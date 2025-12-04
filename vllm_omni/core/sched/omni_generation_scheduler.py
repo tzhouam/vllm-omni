@@ -20,7 +20,7 @@ from vllm_omni.core.sched.output import OmniNewRequestData
 from vllm_omni.outputs import OmniModelRunnerOutput
 
 
-class GenerationScheduler(VLLMScheduler):
+class OmniGenerationScheduler(VLLMScheduler):
     def schedule(self) -> SchedulerOutput:
         """Diffusion fast path:
         - Feed all input tokens of the request at once
