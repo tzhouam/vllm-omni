@@ -10,11 +10,9 @@ from vllm.v1.core.sched.scheduler import (
     SchedulerOutput,
     SpecDecodingStats,
 )
+from vllm.v1.core.sched.scheduler import Scheduler as VLLMScheduler
 from vllm.v1.core.sched.utils import remove_all
 from vllm.v1.engine import EngineCoreEventType, EngineCoreOutput, EngineCoreOutputs
-from vllm.v1.core.sched.scheduler import Scheduler as VLLMScheduler
-
-
 
 from vllm_omni.core.sched.output import OmniNewRequestData
 from vllm_omni.outputs import OmniModelRunnerOutput
