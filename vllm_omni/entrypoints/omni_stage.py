@@ -28,6 +28,7 @@ from vllm.v1.engine.async_llm import AsyncLLM
 from vllm.v1.engine.llm_engine import LLMEngine
 
 from vllm_omni.engine.arg_utils import AsyncOmniEngineArgs
+from vllm_omni.entrypoints.logging_setup import configure_stage_logging
 from vllm_omni.entrypoints.stage_utils import (
     _to_dict,
     maybe_dump_to_shm,
@@ -331,7 +332,6 @@ def _stage_worker(
 ) -> None:
     """Stage worker entry: device setup, LLM init, batching, SHM IPC."""
     import logging as _logging
-    import os as _os
     import time as _time
 
     from vllm_omni.entrypoints.log_utils import (
@@ -348,73 +348,9 @@ def _stage_worker(
     runtime_cfg = stage_payload.get("runtime", {})
     shm_threshold_bytes = int(stage_payload.get("shm_threshold_bytes", 65536))
 
-    # Per-stage logger: clear inherited handlers to avoid broken parent streams
-    try:
-        stage_log = _logging.getLogger(__name__)
-        stage_log.setLevel(_logging.DEBUG)
-        for _h in list(stage_log.handlers):
-            try:
-                stage_log.removeHandler(_h)
-            except Exception:
-                pass
-        stage_log.propagate = False
-
-        class _StageFilter(_logging.Filter):
-            def filter(self, record: _logging.LogRecord) -> bool:
-                setattr(record, "stage", stage_id)
-                return True
-
-        # Prefer file logging even when log_file is not provided, to avoid invalid stdio in child procs
-        try:
-            if log_file:
-                _path = f"{log_file}.stage{stage_id}.log"
-            else:
-                _path = f"/tmp/omni_stage{stage_id}.log"
-            # Ensure dir exists
-            _os.makedirs(_os.path.dirname(_path), exist_ok=True)
-            fh = _logging.FileHandler(_path)
-            fh.setLevel(_logging.DEBUG)
-            fh.setFormatter(
-                _logging.Formatter("%(asctime)s [PID:%(process)d] [Stage-%(stage)s] %(levelname)s: %(message)s")
-            )
-
-            class _StageFilter(_logging.Filter):
-                def filter(self, record: _logging.LogRecord) -> bool:
-                    setattr(record, "stage", stage_id)
-                    return True
-
-            fh.addFilter(_StageFilter())
-            stage_log.addHandler(fh)
-            try:
-                # Also route vLLM internal logs to the same handler for this stage
-                _vllm_logger = _logging.getLogger("vllm")
-                _vllm_logger.setLevel(_logging.DEBUG)
-                for _vh in list(_vllm_logger.handlers):
-                    try:
-                        _vllm_logger.removeHandler(_vh)
-                    except Exception:
-                        pass
-                _vllm_logger.propagate = False
-                _vllm_logger.addHandler(fh)
-            except Exception:
-                pass
-        except Exception:
-            # Final fallback: attach NullHandler to avoid logging errors
-            stage_log.addHandler(_logging.NullHandler())
-    except Exception:
-        pass
-
-    try:
-        _logging.raiseExceptions = False
-        _root_logger = _logging.getLogger()
-        for _h in list(_root_logger.handlers):
-            try:
-                _root_logger.removeHandler(_h)
-            except Exception:
-                pass
-        _root_logger.addHandler(_logging.NullHandler())
-    except Exception:
-        pass
+    # Configure per-stage logging aligned with vLLM config
+    configure_stage_logging(stage_id, log_file)
+    stage_logger = _logging.getLogger("vllm_omni.stage")
 
     # Stage stats JSONL file
     _stats_file = f"{log_file}.stage{stage_id}.stats.jsonl" if log_file else None
@@ -443,8 +379,8 @@ def _stage_worker(
     # Signal readiness to orchestrator
     try:
         out_q.put({"type": "stage_ready", "stage_id": stage_id})
-    except Exception:
-        pass
+    except Exception as e:
+        _logging.getLogger(__name__).warning("[Stage-%s] Failed to signal stage_ready: %s", stage_id, e)
 
     # Batch processing loop
     while True:
@@ -455,7 +391,7 @@ def _stage_worker(
             break
 
         max_batch_size = int(runtime_cfg.get("max_batch_size", 1) or 1)
-        print(f"[Stage-{stage_id}] Max batch size: {max_batch_size}")
+        stage_logger.debug("Max batch size: %d", max_batch_size)
         batch_tasks: list[dict[str, Any]] = [task]
         start_time = _time.time()
         if max_batch_size > 1:
@@ -513,12 +449,7 @@ def _stage_worker(
             len(batch_tasks),
             batch_request_ids,
         )
-        print("--------------------------------", flush=True)
-        print(
-            f"[Stage-{stage_id}] Received batch size={len(batch_tasks)}, request_ids={batch_request_ids}",
-            flush=True,
-        )
-        print("--------------------------------", flush=True)
+        stage_logger.info("Received batch size=%d, request_ids=%s", len(batch_tasks), batch_request_ids)
         try:
             _batch_seq += 1
             gen_outputs: list[Any] = []
@@ -527,14 +458,12 @@ def _stage_worker(
                 gen_outputs.append(ro)
             _gen_t1 = _time.time()
             _gen_ms = (_gen_t1 - _gen_t0) * 1000.0
-            try:
-                print(
-                    f"[Stage-{stage_id}] Generate done: batch={len(batch_tasks)}, "
-                    f"req_ids={batch_request_ids}, gen_ms={_gen_ms:.1f}",
-                    flush=True,
-                )
-            except Exception:
-                pass
+            stage_logger.info(
+                "Generate done: batch=%d, req_ids=%s, gen_ms=%.1f",
+                len(batch_tasks),
+                batch_request_ids,
+                _gen_ms,
+            )
 
             # Group outputs per request id with fallback
             req_to_outputs: dict[Any, list[Any]] = {rid: [] for rid in batch_request_ids}
@@ -689,26 +618,9 @@ async def _stage_worker_async(
     log_file = omni_stage._log_file
     in_q = omni_stage._in_q
     out_q = omni_stage._out_q
-    # Per-stage file logger (optional)
-    try:
-        if log_file:
-            stage_log = _logging.getLogger(__name__)
-            stage_log.setLevel(_logging.DEBUG)
-            fh = _logging.FileHandler(f"{log_file}.stage{stage_id}.log")
-            fh.setLevel(_logging.DEBUG)
-            fh.setFormatter(
-                _logging.Formatter("%(asctime)s [PID:%(process)d] [Stage-%(stage)s] %(levelname)s: %(message)s")
-            )  # noqa: E501
-
-            class _StageFilter(_logging.Filter):
-                def filter(self, record: _logging.LogRecord) -> bool:
-                    setattr(record, "stage", stage_id)
-                    return True
-
-            fh.addFilter(_StageFilter())
-            stage_log.addHandler(fh)
-    except Exception:
-        pass
+    # Configure per-stage logging aligned with vLLM config
+    configure_stage_logging(stage_id, log_file)
+    stage_logger = _logging.getLogger("vllm_omni.stage")
 
     # Stage stats JSONL file
     _stats_file = f"{log_file}.stage{stage_id}.stats.jsonl" if log_file else None
@@ -794,9 +706,7 @@ async def _stage_worker_async(
 
         sampling_params = task["sampling_params"]
         _logging.getLogger(__name__).debug("[Stage-%s] Received batch size=1, request_ids=%d", stage_id, rid)
-        print("--------------------------------", flush=True)
-        print(f"[Stage-{stage_id}] Received batch size=1, request_ids={rid}", flush=True)
-        print("--------------------------------", flush=True)
+        stage_logger.info("Received batch size=1, request_id=%s", rid)
         try:
             _batch_seq += 1
             _gen_t0 = _time.time()
@@ -865,14 +775,12 @@ async def _stage_worker_async(
                             "metrics": _metrics,
                         }
                     )
-                    try:
-                        print(
-                            f"[Stage-{stage_id}] Enqueued req={rid}, use_shm={use_shm}, "
-                            f"tokens_out={_metrics['num_tokens_out']}",
-                            flush=True,
-                        )
-                    except Exception:
-                        pass
+                    stage_logger.info(
+                        "Enqueued req=%s, use_shm=%s, tokens_out=%d",
+                        rid,
+                        use_shm,
+                        _metrics["num_tokens_out"],
+                    )
             except Exception as e:
                 _logging.getLogger(__name__).exception(
                     "[Stage-%s] Failed to enqueue result for request %s: %s",
@@ -905,6 +813,4 @@ async def _stage_worker_async(
                     "error": str(e),
                 }
             )
-    print("--------------------------------", flush=True)
-    print(f"[Stage-{stage_id}] Stage worker exiting", flush=True)
-    print("--------------------------------", flush=True)
+    stage_logger.info("Stage worker exiting")
