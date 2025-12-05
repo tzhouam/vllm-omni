@@ -176,7 +176,7 @@ def omni_server():
 
     # Start server process
     env = os.environ.copy()
-    env["CUDA_VISIBLE_DEVICES"] = "0"  # Use first GPU
+    env["CUDA_VISIBLE_DEVICES"] = "0,1"  # Use first two GPUs
 
     process = subprocess.Popen(
         cmd,
@@ -303,7 +303,12 @@ class TestQwen25OmniOnlineServing:
 
     @requires_multi_gpu
     def test_mixed_modalities_chat_completion(self, omni_server):
-        """Test mixed modalities via chat completion API."""
+        """Test mixed modalities via chat completion API.
+        
+        Note: This test requires the same request format as the working example client:
+        - System prompt uses content list format [{type: "text", text: "..."}]
+        - Video URL should not include num_frames (optional parameter)
+        """
         import requests
         from vllm.assets.audio import AudioAsset
 
@@ -311,19 +316,28 @@ class TestQwen25OmniOnlineServing:
         video_url = "https://huggingface.co/datasets/raushan-testing-hf/videos-test/resolve/main/sample_demo_1.mp4"
         audio_url = AudioAsset("mary_had_lamb").url
 
+        # Use the same format as the working example client
         payload = {
             "model": _MODEL_NAME,
             "messages": [
-                {"role": "system", "content": _DEFAULT_SYSTEM},
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": _DEFAULT_SYSTEM,
+                        }
+                    ],
+                },
                 {
                     "role": "user",
                     "content": [
                         {"type": "audio_url", "audio_url": {"url": audio_url}},
                         {"type": "image_url", "image_url": {"url": image_url}},
-                        {"type": "video_url", "video_url": {"url": video_url, "num_frames": 8}},
+                        {"type": "video_url", "video_url": {"url": video_url}},
                         {
                             "type": "text",
-                            "text": "Describe the audio, image, and video briefly.",
+                            "text": "What is recited in the audio? What is the content of this image? Why is this video funny?",
                         },
                     ],
                 },
