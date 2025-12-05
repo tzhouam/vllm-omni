@@ -14,6 +14,7 @@ Run with:
     # To allow model download:
     VLLM_OMNI_DOWNLOAD_MODEL=1 pytest tests/test_qwen2_5_omni_online_server.py -v -s
 """
+
 from __future__ import annotations
 
 import base64
@@ -65,9 +66,7 @@ requires_model = pytest.mark.skipif(
     not _MODEL_AVAILABLE,
     reason=f"Model {_MODEL_NAME} not available. Set VLLM_OMNI_DOWNLOAD_MODEL=1 to download.",
 )
-requires_multi_gpu = pytest.mark.skipif(
-    _GPU_COUNT < 2, reason="Multiple GPUs required for full pipeline"
-)
+requires_multi_gpu = pytest.mark.skipif(_GPU_COUNT < 2, reason="Multiple GPUs required for full pipeline")
 
 # System prompt for Qwen2.5-Omni
 _DEFAULT_SYSTEM = (
@@ -88,32 +87,32 @@ def _find_free_port() -> int:
 
 class _OutputStreamer:
     """Stream subprocess output in a background thread."""
-    
+
     def __init__(self, process: subprocess.Popen, max_lines: int = 500):
         self.process = process
         self.lines: deque = deque(maxlen=max_lines)
         self._stop_event = threading.Event()
         self._thread = threading.Thread(target=self._stream_output, daemon=True)
         self._thread.start()
-    
+
     def _stream_output(self):
         """Read and print output lines from the process."""
         try:
-            for line in iter(self.process.stdout.readline, b''):
+            for line in iter(self.process.stdout.readline, b""):
                 if self._stop_event.is_set():
                     break
-                decoded = line.decode('utf-8', errors='replace').rstrip()
+                decoded = line.decode("utf-8", errors="replace").rstrip()
                 self.lines.append(decoded)
                 # Print server logs with prefix
                 print(f"[SERVER] {decoded}")
         except Exception as e:
             print(f"[SERVER] Output streaming error: {e}")
-    
+
     def stop(self):
         """Stop the output streaming."""
         self._stop_event.set()
         self._thread.join(timeout=2)
-    
+
     def get_output(self) -> str:
         """Get all captured output."""
         return "\n".join(self.lines)
@@ -121,7 +120,7 @@ class _OutputStreamer:
 
 def _wait_for_server(host: str, port: int, timeout: float = 1800) -> bool:
     """Wait for the server to be ready.
-    
+
     Args:
         timeout: Maximum time to wait in seconds. Default is 1800 (30 minutes)
                  because vLLM-Omni multi-stage pipeline takes a long time to initialize.
@@ -149,7 +148,7 @@ def _wait_for_server(host: str, port: int, timeout: float = 1800) -> bool:
 @pytest.fixture(scope="module")
 def omni_server():
     """Start vLLM-Omni server as a subprocess with actual model weights.
-    
+
     Uses module scope so the server starts only once for all tests.
     Multi-stage initialization can take 10-20+ minutes.
     """
@@ -158,20 +157,26 @@ def omni_server():
 
     # Build the server command
     cmd = [
-        sys.executable, "-m", "vllm_omni.entrypoints.cli.main",
-        "serve", _MODEL_NAME,
+        sys.executable,
+        "-m",
+        "vllm_omni.entrypoints.cli.main",
+        "serve",
+        _MODEL_NAME,
         "--omni",
-        "--host", host,
-        "--port", str(port),
+        "--host",
+        host,
+        "--port",
+        str(port),
         "--trust-remote-code",
         "--enforce-eager",
-        "--gpu-memory-utilization", "0.8",
+        "--gpu-memory-utilization",
+        "0.8",
     ]
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Starting vLLM-Omni server on {host}:{port}")
-    print(f"Multi-stage init may take 10-20+ minutes...")
-    print(f"{'='*60}")
+    print("Multi-stage init may take 10-20+ minutes...")
+    print(f"{'=' * 60}")
     print(f"Command: {' '.join(cmd)}")
 
     # Start server process
@@ -195,14 +200,11 @@ def omni_server():
             streamer.stop()
             process.terminate()
             process.wait(timeout=10)
-            raise RuntimeError(
-                f"Server failed to start within 30 minute timeout.\n"
-                f"See server logs above for details."
-            )
+            raise RuntimeError("Server failed to start within 30 minute timeout.\nSee server logs above for details.")
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Server ready at http://{host}:{port}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         yield {
             "host": host,
@@ -228,6 +230,7 @@ def omni_server():
 def _encode_audio_to_base64(audio_data: tuple) -> str:
     """Encode audio data to base64 for API requests."""
     import io
+
     import soundfile as sf
 
     audio_array, sample_rate = audio_data
@@ -242,7 +245,7 @@ def _encode_audio_to_base64(audio_data: tuple) -> str:
 class TestQwen25OmniOnlineServing:
     """
     End-to-end tests for Qwen2.5-Omni online serving API.
-    
+
     These tests require actual model weights to be available.
     Run with: VLLM_OMNI_DOWNLOAD_MODEL=1 pytest tests/test_qwen2_5_omni_online_server.py -v -s
     """
@@ -304,7 +307,7 @@ class TestQwen25OmniOnlineServing:
     @requires_multi_gpu
     def test_mixed_modalities_chat_completion(self, omni_server):
         """Test mixed modalities via chat completion API.
-        
+
         Note: This test requires the same request format as the working example client:
         - System prompt uses content list format [{type: "text", text: "..."}]
         - Video URL should not include num_frames (optional parameter)
@@ -363,8 +366,6 @@ class TestQwen25OmniOnlineServing:
         print(f"Mixed modalities response: {content}")
         assert len(content) > 20, "Response too short for mixed modalities"
 
-   
-
 
 @requires_gpu
 @requires_model
@@ -398,8 +399,6 @@ class TestQwen25OmniOnlineServingWithOpenAIClient:
         content = response.choices[0].message.content
         print(f"OpenAI client response: {content}")
         assert "4" in content
-
-    
 
     def test_openai_client_image(self, omni_server):
         """Test using OpenAI Python client with image input."""
