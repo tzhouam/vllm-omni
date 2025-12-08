@@ -45,7 +45,7 @@ _HAS_GPU = torch.cuda.is_available()
 _GPU_COUNT = torch.cuda.device_count() if _HAS_GPU else 0
 
 # Model configuration
-_MODEL_NAME = "Qwen/Qwen2.5-Omni-7B"
+_MODEL_NAME = "Qwen/Qwen2.5-Omni-3B"
 _SEED = 42
 
 
