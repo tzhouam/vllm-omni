@@ -96,6 +96,11 @@ class Qwen2_5OmniForConditionalGeneration(
             self.talker.init_multi_modal(thinker_config)
             self.model = self.talker
             self.token2wav = None
+            self.thinker_embedding = nn.Embedding(
+                self.thinker_config.text_config.vocab_size,
+                self.thinker_config.text_config.hidden_size,
+            )
+            self._init_special_tokens_embeddings()
 
         elif self.model_stage == "code2wav":
             self.thinker = None
