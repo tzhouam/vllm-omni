@@ -18,21 +18,15 @@ Run with:
 from __future__ import annotations
 
 import os
-import signal
-import socket
-import subprocess
-import sys
-import tempfile
-import threading
-import time
-from collections import deque
 from pathlib import Path
 
 import pytest
-from vllm.assets.image import ImageAsset
-from vllm.multimodal.image import convert_image_mode
 
-from .utils import get_image_url_from_path
+from ..utils import (
+    _check_model_available,
+    _create_local_128_image_path,
+    get_image_url_from_path,
+)
 
 # Skip entire module if basic dependencies are missing
 torch = pytest.importorskip("torch")
@@ -47,22 +41,7 @@ _GPU_COUNT = torch.cuda.device_count() if _HAS_GPU else 0
 # Model configuration
 _MODEL_NAME = "Qwen/Qwen2.5-Omni-3B"
 _SEED = 42
-
-
-def _check_model_available(model_name: str) -> bool:
-    """Check if model weights are available locally or can be downloaded."""
-    try:
-        from huggingface_hub import snapshot_download
-        from huggingface_hub.utils import LocalEntryNotFoundError
-
-        try:
-            snapshot_download(model_name, local_files_only=True)
-            return True
-        except LocalEntryNotFoundError:
-            # Model not cached, allow download if env var is set
-            return os.environ.get("VLLM_OMNI_DOWNLOAD_MODEL", "0") == "1"
-    except ImportError:
-        return False
+models = [_MODEL_NAME]
 
 
 _MODEL_AVAILABLE = _check_model_available(_MODEL_NAME)
@@ -115,215 +94,27 @@ _SAMPLING_PARAMS_LIST = [
 ]
 
 
-def _create_local_128_image_path() -> str:
-    """Create a temporary 128x128 PNG from built-in asset and return its path."""
-    image = convert_image_mode(ImageAsset("cherry_blossom").pil_image.resize((128, 128)), "RGB")
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f:
-        image.save(f, format="PNG")
-        return f.name
+def _create_openai_client(base_url: str):
+    from openai import OpenAI
 
-
-def _find_free_port() -> int:
-    """Find a free port on localhost."""
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("", 0))
-        s.listen(1)
-        port = s.getsockname()[1]
-    return port
-
-
-def _terminate_process_group(process: subprocess.Popen, wait_timeout: float = 15) -> None:
-    """Gracefully terminate a subprocess group, then force kill if it hangs."""
-    if process.poll() is not None:
-        return
-
-    try:
-        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-    except ProcessLookupError:
-        return
-
-    try:
-        process.wait(timeout=wait_timeout)
-        return
-    except subprocess.TimeoutExpired:
-        print(f"[TEST] Process did not exit in {wait_timeout}s; sending SIGKILL")
-    except Exception as e:  # pragma: no cover - defensive logging
-        print(f"[TEST] Error while waiting for process to exit: {e}")
-
-    try:
-        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-    except ProcessLookupError:
-        return
-
-    try:
-        process.wait(timeout=5)
-    except Exception as e:  # pragma: no cover - defensive logging
-        print(f"[TEST] Error while force-killing process: {e}")
-
-
-class _OutputStreamer:
-    """Stream subprocess output in a background thread."""
-
-    def __init__(self, process: subprocess.Popen, max_lines: int = 500):
-        self.process = process
-        self.lines: deque = deque(maxlen=max_lines)
-        self._stop_event = threading.Event()
-        self._thread = threading.Thread(target=self._stream_output, daemon=True)
-        self._thread.start()
-
-    def _stream_output(self):
-        """Read and print output lines from the process."""
-        try:
-            for line in iter(self.process.stdout.readline, b""):
-                if self._stop_event.is_set():
-                    break
-                decoded = line.decode("utf-8", errors="replace").rstrip()
-                self.lines.append(decoded)
-                # Print server logs with prefix
-                print(f"[SERVER] {decoded}")
-        except Exception as e:
-            print(f"[SERVER] Output streaming error: {e}")
-
-    def stop(self):
-        """Stop the output streaming."""
-        self._stop_event.set()
-        self._thread.join(timeout=2)
-
-    def get_output(self) -> str:
-        """Get all captured output."""
-        return "\n".join(self.lines)
-
-
-def _wait_for_server(host: str, port: int, timeout: float = 1800, process: subprocess.Popen | None = None) -> bool:
-    """Wait for the server to be ready, fail fast if the process has died.
-
-    Args:
-        timeout: Maximum time to wait in seconds. Default is 1800 (30 minutes)
-                 because vLLM-Omni multi-stage pipeline takes a long time to initialize.
-    """
-    import requests
-
-    start_time = time.time()
-    url = f"http://{host}:{port}/health"
-
-    while time.time() - start_time < timeout:
-        elapsed = int(time.time() - start_time)
-        # Exit early if subprocess already crashed
-        if process is not None and process.poll() is not None:
-            print(f"\n[TEST] Server process exited early with code {process.returncode}")
-            return False
-        try:
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                print(f"\n[TEST] Server ready after {elapsed}s")
-                return True
-        except requests.exceptions.RequestException:
-            pass
-        time.sleep(2)
-
-    print(f"\n[TEST] Server failed to start after {timeout}s")
-    return False
-
-
-@pytest.fixture(scope="module")
-def omni_server():
-    """Start vLLM-Omni server as a subprocess with actual model weights.
-
-    Uses module scope so the server starts only once for all tests.
-    Multi-stage initialization can take 10-20+ minutes.
-    """
-    port = _find_free_port()
-    host = "127.0.0.1"
-
-    # Build the server command
-    cmd = [
-        sys.executable,
-        "-m",
-        "vllm_omni.entrypoints.cli.main",
-        "serve",
-        _MODEL_NAME,
-        "--omni",
-        "--host",
-        host,
-        "--port",
-        str(port),
-        "--trust-remote-code",
-        "--enforce-eager",
-        "--gpu-memory-utilization",
-        "0.8",
-        "--load-format",
-        "dummy",
-        # "--stage-configs-path",
-        # CI_STAGE_CONFIG_PATH,
-    ]
-
-    print(f"\n{'=' * 60}")
-    print(f"Starting vLLM-Omni server on {host}:{port}")
-    print("Multi-stage init may take 10-20+ minutes...")
-    print(f"{'=' * 60}")
-    print(f"Command: {' '.join(cmd)}")
-
-    # Start server process
-    env = os.environ.copy()
-
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        env=env,
-        preexec_fn=os.setsid,  # Create new process group for cleanup
+    return OpenAI(
+        api_key="EMPTY",
+        base_url=f"{base_url}/v1",
     )
-
-    # Start streaming server output in background
-    streamer = _OutputStreamer(process)
-
-    try:
-        # Wait for server to be ready (30 min timeout for multi-stage init)
-        if not _wait_for_server(host, port, timeout=1800, process=process):
-            streamer.stop()
-            process.terminate()
-            process.wait(timeout=10)
-            raise RuntimeError("Server failed to start within 30 minute timeout.\nSee server logs above for details.")
-
-        print(f"\n{'=' * 60}")
-        print(f"Server ready at http://{host}:{port}")
-        print(f"{'=' * 60}\n")
-
-        yield {
-            "host": host,
-            "port": port,
-            "base_url": f"http://{host}:{port}",
-            "process": process,
-            "streamer": streamer,
-        }
-
-    finally:
-        # Cleanup: terminate the process group
-        print("\nShutting down server...")
-        streamer.stop()
-        _terminate_process_group(process)
-        if process.poll() is None:
-            print("[TEST] Server shutdown forcefully; check logs above for details")
-        else:
-            print("Server shut down successfully")
 
 
 @requires_gpu
 @requires_model
+@pytest.mark.parametrize("omni_server", models, indirect=True)
 class TestQwen25OmniOnlineServingWithOpenAIClient:
     """Tests using the official OpenAI Python client."""
 
     def test_openai_client_text(self, omni_server):
         """Test using OpenAI Python client for text chat."""
-        from openai import OpenAI
-
-        client = OpenAI(
-            api_key="EMPTY",
-            base_url=f"{omni_server['base_url']}/v1",
-        )
+        client = _create_openai_client(omni_server["base_url"])
 
         response = client.chat.completions.create(
-            model=_MODEL_NAME,
+            model=omni_server["model"],
             messages=[
                 {"role": "system", "content": _DEFAULT_SYSTEM},
                 {"role": "user", "content": "What is 2 + 2?"},
@@ -340,12 +131,7 @@ class TestQwen25OmniOnlineServingWithOpenAIClient:
 
     def test_openai_client_image(self, omni_server):
         """Test using OpenAI Python client with image input."""
-        from openai import OpenAI
-
-        client = OpenAI(
-            api_key="EMPTY",
-            base_url=f"{omni_server['base_url']}/v1",
-        )
+        client = _create_openai_client(omni_server["base_url"])
 
         # Create a local 128x128 PNG and encode to data URL to avoid external fetch
         image_path = _create_local_128_image_path()
@@ -353,7 +139,7 @@ class TestQwen25OmniOnlineServingWithOpenAIClient:
         os.remove(image_path)
 
         response = client.chat.completions.create(
-            model=_MODEL_NAME,
+            model=omni_server["model"],
             messages=[
                 {"role": "system", "content": _DEFAULT_SYSTEM},
                 {
@@ -379,15 +165,10 @@ class TestQwen25OmniOnlineServingWithOpenAIClient:
 
     def test_openai_client_list_models(self, omni_server):
         """Test listing models via OpenAI Python client."""
-        from openai import OpenAI
+        client = _create_openai_client(omni_server["base_url"])
 
-        client = OpenAI(
-            api_key="EMPTY",
-            base_url=f"{omni_server['base_url']}/v1",
-        )
-
-        models = client.models.list()
-        model_ids = [m.id for m in models.data]
+        models_response = client.models.list()
+        model_ids = [m.id for m in models_response.data]
 
         assert len(model_ids) > 0
         print(f"Models via OpenAI client: {model_ids}")
