@@ -173,7 +173,7 @@ def main(args):
     if not args.enable_stats:
         log_file = None
     else:
-        log_file = f"omni_llm_pipeline_{args.query_type}"
+        log_file = os.path.join(args.log_dir, f"omni_llm_pipeline_{args.query_type}")
 
     omni_llm = Omni(
         model=model_name,
@@ -365,6 +365,12 @@ def parse_args():
         type=int,
         default=16000,
         help="Sampling rate for audio loading (default: 16000).",
+    )
+    parser.add_argument(
+        "--log-dir",
+        type=str,
+        default="logs",
+        help="Log directory (default: logs).",
     )
 
     return parser.parse_args()

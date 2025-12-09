@@ -3,7 +3,7 @@ import json
 import os
 
 import soundfile as sf
-from qwen3_omni_moe_model import Qwen3OmniMoeForConditionalGeneration
+from qwen3_omni_moe_model import Qwen3OmniMoeForConditionalGenerationWithLogging
 from qwen_omni_utils import process_mm_info
 from tqdm import tqdm
 from transformers import Qwen3OmniMoeProcessor
@@ -242,7 +242,7 @@ def main():
 
     # Load model and processor
     print(f"Loading model from {args.model_path}...")
-    model = Qwen3OmniMoeForConditionalGeneration.from_pretrained(
+    model = Qwen3OmniMoeForConditionalGenerationWithLogging.from_pretrained(
         args.model_path,
         dtype="auto",
         device_map="auto",
