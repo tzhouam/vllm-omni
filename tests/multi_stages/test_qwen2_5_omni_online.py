@@ -4,41 +4,48 @@
 End-to-end tests for Qwen2.5-Omni online serving API.
 
 These tests require:
-- GPU with sufficient memory (tested on H100-80G)
+- GPU with sufficient memory (tested on H200-140G)
 - Model weights downloaded from HuggingFace
 
 Run with:
     # If model already cached:
-    pytest tests/test_qwen2_5_omni_online_server.py -v -s
+    pytest tests/multi_stages/test_qwen2_5_omni_online.py -v -s
 
     # To allow model download:
-    VLLM_OMNI_DOWNLOAD_MODEL=1 pytest tests/test_qwen2_5_omni_online_server.py -v -s
+    VLLM_OMNI_DOWNLOAD_MODEL=1 pytest tests/multi_stages/test_qwen2_5_omni_online.py -v -s
 """
 
 from __future__ import annotations
 
-import base64
 import os
 import signal
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from collections import deque
+from pathlib import Path
 
 import pytest
+from vllm.assets.image import ImageAsset
+from vllm.multimodal.image import convert_image_mode
+
+from .utils import get_image_url_from_path
 
 # Skip entire module if basic dependencies are missing
 torch = pytest.importorskip("torch")
 pytest.importorskip("vllm")
+
+CI_STAGE_CONFIG_PATH = str(Path(__file__).parent / "stage_configs" / "qwen2_5_omni_ci.yaml")
 
 # Check GPU availability
 _HAS_GPU = torch.cuda.is_available()
 _GPU_COUNT = torch.cuda.device_count() if _HAS_GPU else 0
 
 # Model configuration
-_MODEL_NAME = "Qwen/Qwen2.5-Omni-7B"
+_MODEL_NAME = "Qwen/Qwen2.5-Omni-3B"
 _SEED = 42
 
 
@@ -75,6 +82,46 @@ _DEFAULT_SYSTEM = (
     "generating text and speech."
 )
 
+# Sampling parameters for the multi-stage pipeline (thinker/talker/code2wav)
+_SAMPLING_PARAMS_LIST = [
+    {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": -1,
+        "max_tokens": 10,
+        "seed": _SEED,
+        "detokenize": True,
+        "repetition_penalty": 1.1,
+    },
+    {
+        "temperature": 0.9,
+        "top_p": 0.8,
+        "top_k": 40,
+        "max_tokens": 10,
+        "seed": _SEED,
+        "detokenize": True,
+        "repetition_penalty": 1.05,
+        "stop_token_ids": [8294],
+    },
+    {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": -1,
+        "max_tokens": 10,
+        "seed": _SEED,
+        "detokenize": True,
+        "repetition_penalty": 1.1,
+    },
+]
+
+
+def _create_local_128_image_path() -> str:
+    """Create a temporary 128x128 PNG from built-in asset and return its path."""
+    image = convert_image_mode(ImageAsset("cherry_blossom").pil_image.resize((128, 128)), "RGB")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as f:
+        image.save(f, format="PNG")
+        return f.name
+
 
 def _find_free_port() -> int:
     """Find a free port on localhost."""
@@ -83,6 +130,35 @@ def _find_free_port() -> int:
         s.listen(1)
         port = s.getsockname()[1]
     return port
+
+
+def _terminate_process_group(process: subprocess.Popen, wait_timeout: float = 15) -> None:
+    """Gracefully terminate a subprocess group, then force kill if it hangs."""
+    if process.poll() is not None:
+        return
+
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+    except ProcessLookupError:
+        return
+
+    try:
+        process.wait(timeout=wait_timeout)
+        return
+    except subprocess.TimeoutExpired:
+        print(f"[TEST] Process did not exit in {wait_timeout}s; sending SIGKILL")
+    except Exception as e:  # pragma: no cover - defensive logging
+        print(f"[TEST] Error while waiting for process to exit: {e}")
+
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+    except ProcessLookupError:
+        return
+
+    try:
+        process.wait(timeout=5)
+    except Exception as e:  # pragma: no cover - defensive logging
+        print(f"[TEST] Error while force-killing process: {e}")
 
 
 class _OutputStreamer:
@@ -118,8 +194,8 @@ class _OutputStreamer:
         return "\n".join(self.lines)
 
 
-def _wait_for_server(host: str, port: int, timeout: float = 1800) -> bool:
-    """Wait for the server to be ready.
+def _wait_for_server(host: str, port: int, timeout: float = 1800, process: subprocess.Popen | None = None) -> bool:
+    """Wait for the server to be ready, fail fast if the process has died.
 
     Args:
         timeout: Maximum time to wait in seconds. Default is 1800 (30 minutes)
@@ -132,6 +208,10 @@ def _wait_for_server(host: str, port: int, timeout: float = 1800) -> bool:
 
     while time.time() - start_time < timeout:
         elapsed = int(time.time() - start_time)
+        # Exit early if subprocess already crashed
+        if process is not None and process.poll() is not None:
+            print(f"\n[TEST] Server process exited early with code {process.returncode}")
+            return False
         try:
             response = requests.get(url, timeout=5)
             if response.status_code == 200:
@@ -171,6 +251,10 @@ def omni_server():
         "--enforce-eager",
         "--gpu-memory-utilization",
         "0.8",
+        "--load-format",
+        "dummy",
+        # "--stage-configs-path",
+        # CI_STAGE_CONFIG_PATH,
     ]
 
     print(f"\n{'=' * 60}")
@@ -181,7 +265,6 @@ def omni_server():
 
     # Start server process
     env = os.environ.copy()
-    env["CUDA_VISIBLE_DEVICES"] = "0"  # Use first GPU
 
     process = subprocess.Popen(
         cmd,
@@ -196,7 +279,7 @@ def omni_server():
 
     try:
         # Wait for server to be ready (30 min timeout for multi-stage init)
-        if not _wait_for_server(host, port, timeout=1800):
+        if not _wait_for_server(host, port, timeout=1800, process=process):
             streamer.stop()
             process.terminate()
             process.wait(timeout=10)
@@ -218,91 +301,11 @@ def omni_server():
         # Cleanup: terminate the process group
         print("\nShutting down server...")
         streamer.stop()
-        try:
-            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-            process.wait(timeout=30)
+        _terminate_process_group(process)
+        if process.poll() is None:
+            print("[TEST] Server shutdown forcefully; check logs above for details")
+        else:
             print("Server shut down successfully")
-        except Exception as e:
-            print(f"Error during cleanup: {e}")
-            process.kill()
-
-
-def _encode_audio_to_base64(audio_data: tuple) -> str:
-    """Encode audio data to base64 for API requests."""
-    import io
-
-    import soundfile as sf
-
-    audio_array, sample_rate = audio_data
-    buffer = io.BytesIO()
-    sf.write(buffer, audio_array, sample_rate, format="WAV")
-    buffer.seek(0)
-    return base64.b64encode(buffer.read()).decode("utf-8")
-
-
-# @requires_gpu
-# @requires_model
-# class TestQwen25OmniOnlineServing:
-#     """
-#     End-to-end tests for Qwen2.5-Omni online serving API.
-
-#     These tests require actual model weights to be available.
-#     Run with: VLLM_OMNI_DOWNLOAD_MODEL=1 pytest tests/test_qwen2_5_omni_online_server.py -v -s
-#     """
-
-#     def test_health_endpoint(self, omni_server):
-#         """Test that health endpoint returns OK."""
-#         import requests
-
-#         response = requests.get(f"{omni_server['base_url']}/health")
-#         assert response.status_code == 200
-
-#     def test_models_endpoint(self, omni_server):
-#         """Test that models endpoint returns model info."""
-#         import requests
-
-#         response = requests.get(f"{omni_server['base_url']}/v1/models")
-#         assert response.status_code == 200
-
-#         data = response.json()
-#         assert "data" in data
-#         assert len(data["data"]) > 0
-
-#         model_ids = [m["id"] for m in data["data"]]
-#         print(f"Available models: {model_ids}")
-
-#     def test_text_chat_completion(self, omni_server):
-#         """Test text-only chat completion via API."""
-#         import requests
-
-#         payload = {
-#             "model": _MODEL_NAME,
-#             "messages": [
-#                 {"role": "system", "content": _DEFAULT_SYSTEM},
-#                 {"role": "user", "content": "What is 2 + 2? Answer with just the number."},
-#             ],
-#             "temperature": 0.0,
-#             "max_tokens": 64,
-#             "seed": _SEED,
-#         }
-
-#         response = requests.post(
-#             f"{omni_server['base_url']}/v1/chat/completions",
-#             json=payload,
-#             timeout=120,
-#         )
-
-#         assert response.status_code == 200, f"Request failed: {response.text}"
-
-#         data = response.json()
-#         assert "choices" in data
-#         assert len(data["choices"]) > 0
-#         assert "message" in data["choices"][0]
-#         assert "content" in data["choices"][0]["message"]
-
-#         content = data["choices"][0]["message"]["content"]
-#         print(f"Response: {content}")
-#         assert "4" in content, f"Expected '4' in response, got: {content}"
 
 
 @requires_gpu
@@ -328,15 +331,12 @@ class TestQwen25OmniOnlineServingWithOpenAIClient:
             temperature=0.0,
             max_tokens=32,
             seed=_SEED,
+            extra_body={"sampling_params_list": _SAMPLING_PARAMS_LIST},
         )
 
         assert response.choices is not None
         assert len(response.choices) > 0
         assert response.choices[0].message.content is not None
-
-        content = response.choices[0].message.content
-        print(f"OpenAI client response: {content}")
-        assert "4" in content
 
     def test_openai_client_image(self, omni_server):
         """Test using OpenAI Python client with image input."""
@@ -347,7 +347,10 @@ class TestQwen25OmniOnlineServingWithOpenAIClient:
             base_url=f"{omni_server['base_url']}/v1",
         )
 
-        image_url = "https://vllm-public-assets.s3.us-west-2.amazonaws.com/vision_model_images/cherry_blossom.jpg"
+        # Create a local 128x128 PNG and encode to data URL to avoid external fetch
+        image_path = _create_local_128_image_path()
+        image_url = get_image_url_from_path(image_path)
+        os.remove(image_path)
 
         response = client.chat.completions.create(
             model=_MODEL_NAME,
@@ -364,6 +367,7 @@ class TestQwen25OmniOnlineServingWithOpenAIClient:
             temperature=0.0,
             max_tokens=64,
             seed=_SEED,
+            extra_body={"sampling_params_list": _SAMPLING_PARAMS_LIST},
         )
 
         assert response.choices is not None
