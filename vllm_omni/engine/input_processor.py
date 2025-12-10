@@ -90,13 +90,13 @@ class OmniProcessor(Processor):
         self,
         request_id: str,
         prompt: PromptType,
-        params: Union[SamplingParams, PoolingParams],
-        arrival_time: Optional[float] = None,
-        lora_request: Optional[LoRARequest] = None,
-        tokenization_kwargs: Optional[dict[str, Any]] = None,
-        trace_headers: Optional[Mapping[str, str]] = None,
+        params: SamplingParams | PoolingParams,
+        arrival_time: float | None = None,
+        lora_request: LoRARequest | None = None,
+        tokenization_kwargs: dict[str, Any] | None = None,
+        trace_headers: Mapping[str, str] | None = None,
         priority: int = 0,
-        data_parallel_rank: Optional[int] = None,
+        data_parallel_rank: int | None = None,
     ) -> tuple[Optional[str], OmniEngineCoreRequest]:
         """Process input prompt into an engine core request.
 
@@ -127,14 +127,17 @@ class OmniProcessor(Processor):
             ValueError: If data_parallel_rank is out of range or prompt_embeds
                 has incorrect shape
         """
-        # TODO(woosuk): Support pooling models.
-        # TODO(woosuk): Support encoder-decoder models.
         self._validate_lora(lora_request)
         self._validate_params(params)
 
         data_parallel_size = self.vllm_config.parallel_config.data_parallel_size
-        if data_parallel_rank is not None and not (0 <= data_parallel_rank < data_parallel_size):
-            raise ValueError(f"data_parallel_rank {data_parallel_rank} is out of range [0, {data_parallel_size}).")
+        if data_parallel_rank is not None and not (
+            0 <= data_parallel_rank < data_parallel_size
+        ):
+            raise ValueError(
+                f"data_parallel_rank {data_parallel_rank} "
+                f"is out of range [0, {data_parallel_size})."
+            )
 
         if arrival_time is None:
             arrival_time = time.time()
@@ -158,7 +161,9 @@ class OmniProcessor(Processor):
             # if provided.
             self._validate_multi_modal_uuids(prompt)
             if isinstance(prompt, dict):
-                mm_uuids = prompt.get("multi_modal_uuids")
+                mm_uuids = cast(
+                    MultiModalUUIDDict | None, prompt.get("multi_modal_uuids")
+                )
             else:
                 mm_uuids = None
 
@@ -171,23 +176,26 @@ class OmniProcessor(Processor):
             tokenization_kwargs=tokenization_kwargs,
             mm_uuids=mm_uuids,
         )
+        from vllm.platforms import current_platform
+
         current_platform.validate_request(
             prompt=prompt,
             params=params,
             processed_inputs=processed_inputs,
         )
+
         eos_token_id = self.input_preprocessor.get_eos_token_id()
 
         encoder_inputs, decoder_inputs = split_enc_dec_inputs(processed_inputs)
         self._validate_model_inputs(encoder_inputs, decoder_inputs)
 
-        # Mypy does not always properly infer the types of some elements of
-        # discriminated unions of TypedDicts, because of how it handles
-        # inheritance of TypedDict. If we explicitly extract the items we want
-        # we can avoid type errors from using `dict.get` later in the method.
-        prompt_str: Optional[str] = None if decoder_inputs["type"] == "embeds" else decoder_inputs.get("prompt")
-        prompt_token_ids = decoder_inputs["prompt_token_ids"] if decoder_inputs["type"] != "embeds" else None
-        prompt_embeds = decoder_inputs["prompt_embeds"] if decoder_inputs["type"] == "embeds" else None
+        # Mypy can be conservative for TypedDict unions; normalize access.
+        if decoder_inputs["type"] == "embeds":
+            prompt_token_ids = None
+            prompt_embeds = decoder_inputs["prompt_embeds"]
+        else:
+            prompt_token_ids = decoder_inputs["prompt_token_ids"]
+            prompt_embeds = None
 
         sampling_params = None
         pooling_params = None
@@ -196,16 +204,20 @@ class OmniProcessor(Processor):
             sampling_params = params.clone()
             # If unset max tokens, then generate up to the max_model_len.
             if sampling_params.max_tokens is None:
-                seq_len = length_from_prompt_token_ids_or_embeds(prompt_token_ids, prompt_embeds)
+                seq_len = length_from_prompt_token_ids_or_embeds(
+                    prompt_token_ids, prompt_embeds
+                )
                 sampling_params.max_tokens = self.model_config.max_model_len - seq_len
-            sampling_params.update_from_generation_config(self.generation_config_fields, eos_token_id)
+            sampling_params.update_from_generation_config(
+                self.generation_config_fields, eos_token_id
+            )
             if self.tokenizer is not None:
                 sampling_params.update_from_tokenizer(self.tokenizer)
         else:
             pooling_params = params.clone()
 
         # Multimodal related.
-        mm_features: Optional[list[MultiModalFeatureSpec]] = None
+        mm_features: list[MultiModalFeatureSpec] | None = None
 
         if decoder_inputs["type"] == "multimodal":
             decoder_mm_inputs = decoder_inputs["mm_kwargs"]
@@ -266,7 +278,7 @@ class OmniProcessor(Processor):
                 entries[key] = entry
             additional_information_payload = AdditionalInformationPayload(entries=entries)
 
-        return prompt_str, OmniEngineCoreRequest(
+        return OmniEngineCoreRequest(
             request_id=request_id,
             prompt_token_ids=prompt_token_ids,
             mm_features=mm_features,

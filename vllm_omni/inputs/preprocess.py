@@ -23,20 +23,22 @@ class OmniInputPreprocessor(InputPreprocessor):
     def _process_tokens(
         self,
         parsed_content: TokensPrompt,
-        tokenization_kwargs: Optional[dict[str, Any]] = None,
+        tokenization_kwargs: dict[str, Any] | None = None,
         *,
-        mm_uuids: Optional[MultiModalUUIDDict] = None,
-    ) -> Union[OmniTokenInputs, MultiModalInputs]:
-        prompt_token_ids = self._truncate_inputs(parsed_content["prompt_token_ids"], tokenization_kwargs)
+        mm_uuids: MultiModalUUIDDict | None = None,
+    ) -> OmniTokenInputs | MultiModalInputs:
+        prompt_token_ids = self._truncate_inputs(
+            parsed_content["prompt_token_ids"], tokenization_kwargs
+        )
         prompt_embeds = parsed_content.get("prompt_embeds")
         additional_information = parsed_content.get("additional_information")
 
-        inputs: Union[OmniTokenInputs, MultiModalInputs]
+        inputs: OmniTokenInputs | MultiModalInputs
         if multi_modal_data := parsed_content.get("multi_modal_data"):
             inputs = self._process_multimodal(
                 prompt_token_ids,
                 multi_modal_data,
-                parsed_content.get("mm_processor_kwargs"),
+                parsed_content.get("mm_processor_kwargs") or {},
                 tokenization_kwargs=tokenization_kwargs,
                 mm_uuids=mm_uuids,
             )
@@ -55,9 +57,9 @@ class OmniInputPreprocessor(InputPreprocessor):
     def _prompt_to_llm_inputs(
         self,
         prompt: SingletonPrompt,
-        tokenization_kwargs: Optional[dict[str, Any]] = None,
+        tokenization_kwargs: dict[str, Any] | None = None,
         *,
-        mm_uuids: Optional[MultiModalUUIDDict] = None,
+        mm_uuids: MultiModalUUIDDict | None = None,
     ) -> SingletonInputs:
         """
         Extract the singleton inputs from a prompt.

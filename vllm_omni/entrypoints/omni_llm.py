@@ -22,7 +22,7 @@ from vllm.v1.engine.llm_engine import LLMEngine
 # Internal imports (our code)
 from vllm_omni.engine.arg_utils import OmniEngineArgs
 from vllm_omni.engine.output_processor import MultimodalOutputProcessor
-from vllm_omni.engine.processor import OmniProcessor
+from vllm_omni.engine.input_processor import OmniProcessor
 from vllm_omni.entrypoints.log_utils import (
     OrchestratorMetrics,
     configure_orchestrator_logger,

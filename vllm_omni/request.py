@@ -40,7 +40,7 @@ class OmniRequest(Request):
     def from_engine_core_request(
         cls,
         request: OmniEngineCoreRequest,
-        block_hasher: Optional[Callable[["Request"], list["BlockHash"]]],
+        block_hasher: Callable[["Request"], list["BlockHash"]] | None,
     ) -> "Request":
         """Create an OmniRequest from an OmniEngineCoreRequest.
 
@@ -56,15 +56,13 @@ class OmniRequest(Request):
             request_id=request.request_id,
             client_index=request.client_index,
             prompt_token_ids=request.prompt_token_ids,
+            prompt_embeds=request.prompt_embeds,
             mm_features=request.mm_features,
             sampling_params=request.sampling_params,
             pooling_params=request.pooling_params,
             eos_token_id=request.eos_token_id,
             arrival_time=request.arrival_time,
             lora_request=request.lora_request,
-            structured_output_request=(
-                StructuredOutputRequest(sampling_params=request.sampling_params) if request.sampling_params else None
-            ),
             cache_salt=request.cache_salt,
             priority=request.priority,
             trace_headers=request.trace_headers,
