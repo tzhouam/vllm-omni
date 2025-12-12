@@ -26,15 +26,17 @@ from vllm.v1.outputs import SamplerOutput
 from vllm.v1.sample.metadata import SamplingMetadata
 from vllm.v1.sample.sampler import Sampler
 
-from vllm_omni.model_executor.models.output_templates import OmniOutput
-from vllm_omni.model_executor.models.utils import add_prefix_to_loaded_weights
-
-from .qwen3_omni_moe_thinker import (
+from vllm.model_executor.models.qwen3_omni_moe_thinker import (
     Qwen3OmniMoeConditionalGenerationMixin,
     Qwen3OmniMoeThinkerDummyInputsBuilder,
     Qwen3OmniMoeThinkerMultiModalProcessor,
     Qwen3OmniMoeThinkerProcessingInfo,
 )
+
+from vllm_omni.model_executor.models.output_templates import OmniOutput
+from vllm_omni.model_executor.models.utils import add_prefix_to_loaded_weights
+
+
 
 # Special token IDs for Qwen3 Omni MoE
 # Reference: https://huggingface.co/Qwen/Qwen3-Omni-30B-A3B-Instruct/blob/main/tokenizer_config.json
@@ -238,9 +240,9 @@ class Qwen3OmniMoeForConditionalGeneration(
             return torch.zeros_like(input_ids).reshape(-1, 1).repeat(1, self.vllm_config.model_config.get_hidden_size())
         return self.model.get_input_embeddings(input_ids, multimodal_embeddings)
 
-    def get_multimodal_embeddings(self, **kwargs):
+    def embed_multimodal(self, **kwargs):
         """Delegate to active model for multimodal processing."""
-        return self.model.get_multimodal_embeddings(**kwargs)
+        return self.model.embed_multimodal(**kwargs)
 
     # ==================== Forward Pass ====================
     def _get_talker_suppressed_tokens(self):

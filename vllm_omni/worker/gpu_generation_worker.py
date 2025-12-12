@@ -4,7 +4,8 @@ import os
 import torch
 from vllm.model_executor import set_random_seed
 from vllm.platforms import current_platform
-from vllm.utils import GiB_bytes, MemorySnapshot
+from vllm.utils.mem_constants import GiB_bytes
+from vllm.utils.mem_utils import MemorySnapshot
 from vllm.v1.utils import report_usage_stats
 from vllm.v1.worker.gpu_worker import Worker as GPUWorker
 from vllm.v1.worker.gpu_worker import init_worker_distributed_environment

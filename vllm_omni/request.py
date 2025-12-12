@@ -67,6 +67,5 @@ class OmniRequest(Request):
             priority=request.priority,
             trace_headers=request.trace_headers,
             block_hasher=block_hasher,
-            prompt_embeds=request.prompt_embeds,
             additional_information=request.additional_information,
         )

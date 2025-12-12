@@ -471,7 +471,7 @@ class Qwen3OmniMoeTalkerForConditionalGeneration(
                 mm_input_by_modality["audio"] = self._parse_and_validate_audio_input(**kwargs)
         return mm_input_by_modality
 
-    def get_multimodal_embeddings(self, **kwargs: object) -> MultiModalEmbeddings | None:
+    def embed_multimodal(self, **kwargs: object) -> MultiModalEmbeddings | None:
         mm_input_by_modality = self._parse_and_validate_multimodal_inputs(**kwargs)
         if not mm_input_by_modality:
             return []

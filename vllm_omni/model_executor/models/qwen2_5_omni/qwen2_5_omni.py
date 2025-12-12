@@ -27,7 +27,7 @@ from vllm.v1.sample.sampler import Sampler
 
 from vllm_omni.model_executor.model_loader.weight_utils import download_weights_from_hf_specific
 from vllm_omni.model_executor.models.output_templates import OmniOutput
-from vllm_omni.model_executor.models.qwen2_5_omni.qwen2_5_omni_thinker import (
+from vllm.model_executor.models.qwen2_5_omni_thinker import (
     Qwen2_5OmniConditionalGenerationMixin,
     Qwen2_5OmniThinkerDummyInputsBuilder,
     Qwen2_5OmniThinkerMultiModalProcessor,
@@ -75,9 +75,9 @@ class Qwen2_5OmniForConditionalGeneration(
             self.thinker = init_vllm_registered_model(
                 vllm_config=vllm_config,
                 prefix=maybe_prefix(prefix, "thinker"),
-                hf_config=thinker_config,
+                hf_config=config,
                 # Use registry architecture key
-                architectures=["Qwen2_5OmniThinkerModel"],
+                architectures=["Qwen2_5OmniModel"],
             )
             self.model = self.thinker
             self.talker = None
@@ -162,18 +162,18 @@ class Qwen2_5OmniForConditionalGeneration(
             return self.model.sampler
         return Sampler()
 
-    def get_input_embeddings(
+    def embed_input_ids(
         self,
         input_ids: torch.Tensor,
         multimodal_embeddings=None,
     ) -> torch.Tensor:
         if self.model_stage == "code2wav":
             return torch.zeros_like(input_ids).reshape(-1, 1).repeat(1, self.vllm_config.model_config.get_hidden_size())
-        return self.model.get_input_embeddings(input_ids, multimodal_embeddings)
+        return self.model.embed_input_ids(input_ids, multimodal_embeddings)
 
-    def get_multimodal_embeddings(self, **kwargs):
+    def embed_multimodal(self, **kwargs):
         # Delegate to thinker model for multimodal processing
-        return self.model.get_multimodal_embeddings(**kwargs)
+        return self.model.embed_multimodal(**kwargs)
 
     def last_index_of(self, list, value):
         return len(list) - 1 - list[::-1].index(value)

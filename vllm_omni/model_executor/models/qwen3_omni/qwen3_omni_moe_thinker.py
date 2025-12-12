@@ -28,7 +28,7 @@ import torch
 from vllm.compilation.decorators import support_torch_compile
 from vllm.distributed import get_pp_group
 from vllm.logger import init_logger
-from vllm.model_executor.models.qwen3_moe import Qwen3MoeLLMModel as _Qwen3MoeLLMModel
+from vllm.model_executor.models.qwen3_moe import Qwen3MoeModel as _Qwen3MoeLLMModel
 from vllm.sequence import IntermediateTensors
 
 try:

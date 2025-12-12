@@ -1,6 +1,6 @@
 import time
 from collections.abc import Mapping
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 import torch
 from vllm.config import VllmConfig
@@ -9,14 +9,14 @@ from vllm.inputs.parse import split_enc_dec_inputs
 from vllm.logger import init_logger
 from vllm.lora.request import LoRARequest
 from vllm.multimodal import MULTIMODAL_REGISTRY, MultiModalRegistry
-from vllm.multimodal.inputs import MultiModalFeatureSpec
 from vllm.multimodal.utils import argsort_mm_positions
 from vllm.platforms import current_platform
 from vllm.pooling_params import PoolingParams
 from vllm.sampling_params import SamplingParams
 from vllm.transformers_utils.tokenizer import AnyTokenizer
 from vllm.utils import length_from_prompt_token_ids_or_embeds
-from vllm.v1.engine.processor import Processor
+from vllm.v1.engine.input_processor import InputProcessor
+from vllm.multimodal.inputs import MultiModalFeatureSpec, MultiModalUUIDDict
 
 from vllm_omni.engine import (
     AdditionalInformationEntry,
@@ -29,7 +29,7 @@ from vllm_omni.inputs.preprocess import OmniInputPreprocessor
 logger = init_logger(__name__)
 
 
-class OmniProcessor(Processor):
+class OmniInputProcessor(InputProcessor):
     """Processor for omni models, handling multimodal inputs and embeddings.
 
     Extends the base vLLM Processor with support for processing prompt

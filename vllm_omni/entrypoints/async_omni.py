@@ -24,7 +24,7 @@ from vllm.tracing import init_tracer
 from vllm.transformers_utils.config import maybe_register_config_serialize_by_value
 from vllm.transformers_utils.tokenizer import AnyTokenizer, init_tokenizer_from_configs
 from vllm.usage.usage_lib import UsageContext
-from vllm.utils import Device, deprecate_kwargs
+from vllm.utils.func_utils import deprecate_kwargs
 from vllm.v1.engine.async_llm import AsyncLLM
 from vllm.v1.engine.core_client import EngineCoreClient
 from vllm.v1.engine.exceptions import EngineDeadError
@@ -35,7 +35,7 @@ from vllm.v1.metrics.loggers import StatLoggerFactory, StatLoggerManager
 from vllm_omni.config import OmniModelConfig
 from vllm_omni.engine.arg_utils import AsyncOmniEngineArgs
 from vllm_omni.engine.output_processor import MultimodalOutputProcessor
-from vllm_omni.engine.processor import OmniProcessor
+from vllm_omni.engine.input_processor import OmniInputProcessor
 from vllm_omni.entrypoints.log_utils import (
     OrchestratorMetrics,
     configure_orchestrator_logger,
@@ -585,7 +585,7 @@ class AsyncOmni(EngineClient):
     async def reset_mm_cache(self) -> None:
         pass
 
-    async def reset_prefix_cache(self, device: Optional[Device] = None) -> None:
+    async def reset_prefix_cache(self, device = None) -> None:
         pass
 
     async def sleep(self, level: int = 1) -> None:
