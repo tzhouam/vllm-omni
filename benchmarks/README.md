@@ -36,9 +36,6 @@ This document explains the benchmark architecture across all benchmark assets in
 - **Latency distribution**: look for long tails in `*.stats.jsonl`.
 - **Quality/completeness**: missing outputs or errors in stage logs indicate pipeline failures or misconfigurations.
 
-## Performance snapshot
-Current measured comparison (vLLM-Omni vs HF Transformers) is documented in `benchmarks/<model>/README.md` and visualized in `benchmarks/<model>/vllm-omni-vs-hf.png`. Use this as a reference baseline when evaluating or reproducing.
-
 ## Troubleshooting
 - Verify GPU/driver/FlashAttention2 requirements for your chosen model/config.
 - Ensure network access for dataset/model downloads (Google Drive, Hugging Face, etc.).
