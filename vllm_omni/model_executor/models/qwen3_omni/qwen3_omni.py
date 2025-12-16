@@ -18,6 +18,12 @@ from transformers.models.qwen3_omni_moe.configuration_qwen3_omni_moe import (
 from vllm.config import VllmConfig
 from vllm.logger import init_logger
 from vllm.model_executor.models.interfaces import SupportsMultiModal, SupportsPP
+from vllm.model_executor.models.qwen3_omni_moe_thinker import (
+    Qwen3OmniMoeConditionalGenerationMixin,
+    Qwen3OmniMoeThinkerDummyInputsBuilder,
+    Qwen3OmniMoeThinkerMultiModalProcessor,
+    Qwen3OmniMoeThinkerProcessingInfo,
+)
 from vllm.model_executor.models.utils import init_vllm_registered_model, maybe_prefix
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.sequence import IntermediateTensors
@@ -25,17 +31,8 @@ from vllm.v1.outputs import SamplerOutput
 from vllm.v1.sample.metadata import SamplingMetadata
 from vllm.v1.sample.sampler import Sampler
 
-from vllm.model_executor.models.qwen3_omni_moe_thinker import (
-    Qwen3OmniMoeConditionalGenerationMixin,
-    Qwen3OmniMoeThinkerDummyInputsBuilder,
-    Qwen3OmniMoeThinkerMultiModalProcessor,
-    Qwen3OmniMoeThinkerProcessingInfo,
-)
-
 from vllm_omni.model_executor.models.output_templates import OmniOutput
 from vllm_omni.model_executor.models.utils import add_prefix_to_loaded_weights
-
-
 
 # Special token IDs for Qwen3 Omni MoE
 # Reference: https://huggingface.co/Qwen/Qwen3-Omni-30B-A3B-Instruct/blob/main/tokenizer_config.json
@@ -236,7 +233,9 @@ class Qwen3OmniMoeForConditionalGeneration(
     ) -> torch.Tensor:
         if self.model_stage == "code2wav":
             return torch.zeros_like(input_ids).reshape(-1, 1).repeat(1, self.vllm_config.model_config.get_hidden_size())
-        return self.model.embed_input_ids(input_ids=input_ids, multimodal_embeddings=multimodal_embeddings, is_multimodal=is_multimodal)
+        return self.model.embed_input_ids(
+            input_ids=input_ids, multimodal_embeddings=multimodal_embeddings, is_multimodal=is_multimodal
+        )
 
     def embed_multimodal(self, **kwargs):
         """Delegate to active model for multimodal processing."""
@@ -282,16 +281,16 @@ class Qwen3OmniMoeForConditionalGeneration(
         # ========== Stage 1: Thinker ==========
         if self.model_stage == "thinker":
             # Normalize to batched inputs if needed
-            added_batch_dim = False
+            _added_batch_dim = False
             if input_ids is not None and input_ids.ndim == 1:
                 input_ids = input_ids.unsqueeze(0)
-                added_batch_dim = True
+                _added_batch_dim = True
             if positions is not None and positions.ndim == 1:
                 positions = positions.unsqueeze(0)
-                added_batch_dim = True
+                _added_batch_dim = True
             if inputs_embeds is not None and inputs_embeds.ndim == 2:
                 inputs_embeds = inputs_embeds.unsqueeze(0)
-                added_batch_dim = True
+                _added_batch_dim = True
 
             thinker_dev = self._module_device(self.thinker)
 
@@ -302,7 +301,7 @@ class Qwen3OmniMoeForConditionalGeneration(
                     dtype=torch.long,
                     device=thinker_dev,
                 ).unsqueeze(0)
-                added_batch_dim = True
+                _added_batch_dim = True
 
             # Move to thinker device
             if input_ids is not None and input_ids.device != thinker_dev:
@@ -959,9 +958,7 @@ class Qwen3OmniMoeForConditionalGeneration(
                     device=tts_pad_embed.device,
                     dtype=torch.bfloat16,
                 ),
-                self.talker.embed_input_ids(codec_special_tokens).to(
-                    device=tts_pad_embed.device, dtype=torch.bfloat16
-                ),
+                self.talker.embed_input_ids(codec_special_tokens).to(device=tts_pad_embed.device, dtype=torch.bfloat16),
             ),
             dim=0,
         )

@@ -15,6 +15,12 @@ from transformers.models.qwen2_5_omni.configuration_qwen2_5_omni import (
 from vllm.config import VllmConfig
 from vllm.logger import init_logger
 from vllm.model_executor.models.interfaces import SupportsMRoPE, SupportsMultiModal, SupportsPP
+from vllm.model_executor.models.qwen2_5_omni_thinker import (
+    Qwen2_5OmniConditionalGenerationMixin,
+    Qwen2_5OmniThinkerDummyInputsBuilder,
+    Qwen2_5OmniThinkerMultiModalProcessor,
+    Qwen2_5OmniThinkerProcessingInfo,
+)
 from vllm.model_executor.models.utils import init_vllm_registered_model, maybe_prefix
 
 # from vllm.model_executor.models.qwen2_code2wav_dit import Qwen2Code2wav
@@ -26,12 +32,6 @@ from vllm.v1.sample.sampler import Sampler
 
 from vllm_omni.model_executor.model_loader.weight_utils import download_weights_from_hf_specific
 from vllm_omni.model_executor.models.output_templates import OmniOutput
-from vllm.model_executor.models.qwen2_5_omni_thinker import (
-    Qwen2_5OmniConditionalGenerationMixin,
-    Qwen2_5OmniThinkerDummyInputsBuilder,
-    Qwen2_5OmniThinkerMultiModalProcessor,
-    Qwen2_5OmniThinkerProcessingInfo,
-)
 from vllm_omni.model_executor.models.utils import add_prefix_to_loaded_weights, split_list_into_ranges
 from vllm_omni.model_executor.models.vision import get_llm_pos_ids_for_vision
 from vllm_omni.utils.platform_utils import is_npu
@@ -169,7 +169,9 @@ class Qwen2_5OmniForConditionalGeneration(
     ) -> torch.Tensor:
         if self.model_stage == "code2wav":
             return torch.zeros_like(input_ids).reshape(-1, 1).repeat(1, self.vllm_config.model_config.get_hidden_size())
-        return self.model.embed_input_ids(input_ids=input_ids, multimodal_embeddings=multimodal_embeddings, is_multimodal=is_multimodal)
+        return self.model.embed_input_ids(
+            input_ids=input_ids, multimodal_embeddings=multimodal_embeddings, is_multimodal=is_multimodal
+        )
 
     def embed_multimodal(self, **kwargs):
         # Delegate to thinker model for multimodal processing

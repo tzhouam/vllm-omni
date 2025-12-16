@@ -33,8 +33,8 @@ from vllm_omni.distributed.ray_utils.utils import (
     try_close_ray,
 )
 from vllm_omni.engine.arg_utils import OmniEngineArgs
-from vllm_omni.engine.output_processor import MultimodalOutputProcessor
 from vllm_omni.engine.input_processor import OmniInputProcessor
+from vllm_omni.engine.output_processor import MultimodalOutputProcessor
 from vllm_omni.entrypoints.log_utils import (
     OrchestratorMetrics,
     configure_orchestrator_logger,

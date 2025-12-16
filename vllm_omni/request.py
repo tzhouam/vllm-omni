@@ -2,7 +2,6 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from vllm.v1.request import Request
-from vllm.v1.structured_output.request import StructuredOutputRequest
 
 if TYPE_CHECKING:
     from vllm.v1.core.kv_cache_utils import BlockHash

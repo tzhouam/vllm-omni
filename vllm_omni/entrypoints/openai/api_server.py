@@ -38,7 +38,6 @@ from vllm.logger import init_logger
 from vllm.tokenizers import MistralTokenizer
 from vllm.utils.system_utils import decorate_logs
 
-
 from vllm_omni.entrypoints.async_omni import AsyncOmni
 from vllm_omni.entrypoints.openai.serving_chat import OmniOpenAIServingChat
 
@@ -228,7 +227,7 @@ async def omni_init_app_state(
     state.engine_client = engine_client
     state.log_stats = not args.disable_log_stats
     state.vllm_config = vllm_config
-    model_config = vllm_config.model_config
+    _model_config = vllm_config.model_config
     state.log_stats = not args.disable_log_stats
 
     # For omni models

@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from vllm.config import CUDAGraphMode
 from vllm.distributed.parallel_state import get_pp_group
-from vllm.forward_context import BatchDescriptor, set_forward_context
+from vllm.forward_context import set_forward_context
 from vllm.logger import init_logger
 from vllm.model_executor.layers.rotary_embedding import MRotaryEmbedding
 from vllm.model_executor.models.interfaces import supports_mrope
@@ -12,14 +12,9 @@ from vllm.model_executor.models.interfaces_base import VllmModelForPooling
 from vllm.sampling_params import SamplingType
 from vllm.utils.import_utils import LazyLoader
 from vllm.utils.math_utils import cdiv
-from vllm.v1.attention.backends.utils import (
-    CommonAttentionMetadata,
-    split_attn_metadata,
-)
 from vllm.v1.spec_decode.eagle import EagleProposer
 from vllm.v1.worker.gpu_input_batch import CachedRequestState
 from vllm.v1.worker.gpu_model_runner import GPUModelRunner, IntermediateTensors, PerLayerAttnMetadata
-
 
 if TYPE_CHECKING:
     from vllm.v1.core.sched.output import SchedulerOutput
@@ -37,9 +32,9 @@ logger = init_logger(__name__)
 class OmniGPUModelRunner(GPUModelRunner):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._omni_per_req_additional_information: Optional[dict[str, dict]] = None
-        self._omni_num_scheduled_tokens_np: Optional[np.ndarray] = None
-        self._omni_last_model_output: Optional[object] = None
+        self._omni_per_req_additional_information: dict[str, dict] | None = None
+        self._omni_num_scheduled_tokens_np: np.ndarray | None = None
+        self._omni_last_model_output: object | None = None
 
     def _init_mrope_positions(self, req_state: CachedRequestState):
         """Initialize M-RoPE positions for multimodal inputs.
@@ -366,10 +361,7 @@ class OmniGPUModelRunner(GPUModelRunner):
             remove_lora: If False, dummy LoRAs are not destroyed after the run
             activate_lora: If False, dummy_run is performed without LoRAs.
         """
-        assert (
-            cudagraph_runtime_mode is None
-            or cudagraph_runtime_mode.valid_runtime_modes()
-        )
+        assert cudagraph_runtime_mode is None or cudagraph_runtime_mode.valid_runtime_modes()
 
         # If cudagraph_mode.decode_mode() == FULL and
         # cudagraph_mode.separate_routine(). This means that we are using
@@ -422,26 +414,23 @@ class OmniGPUModelRunner(GPUModelRunner):
 
         num_sampled_tokens = np.ones(num_reqs, dtype=np.int32)
 
-        _cudagraph_mode, batch_desc, ubatch_slices, num_tokens_across_dp = (
-            self._determine_batch_execution_and_padding(
-                num_tokens=num_tokens_unpadded,
-                num_reqs=num_reqs,
-                num_scheduled_tokens_np=num_scheduled_tokens,
-                max_num_scheduled_tokens=max_query_len,
-                use_cascade_attn=False,
-                allow_microbatching=allow_microbatching,
-                force_eager=is_profile
-                or (cudagraph_runtime_mode == CUDAGraphMode.NONE),
-                # `force_uniform_decode` is used for cudagraph capture; because for
-                # capturing mixed prefill-decode batches, we sometimes use
-                # num_tokens == num_reqs which looks like a uniform decode batch to the
-                # dispatcher; but we actually want to capture a piecewise cudagraph
-                force_uniform_decode=uniform_decode,
-                # `force_has_lora` is used for cudagraph capture; because LoRA is
-                # activated later in the context manager, but we need to know the
-                # LoRA state when determining the batch descriptor for capture
-                force_has_lora=activate_lora,
-            )
+        _cudagraph_mode, batch_desc, ubatch_slices, num_tokens_across_dp = self._determine_batch_execution_and_padding(
+            num_tokens=num_tokens_unpadded,
+            num_reqs=num_reqs,
+            num_scheduled_tokens_np=num_scheduled_tokens,
+            max_num_scheduled_tokens=max_query_len,
+            use_cascade_attn=False,
+            allow_microbatching=allow_microbatching,
+            force_eager=is_profile or (cudagraph_runtime_mode == CUDAGraphMode.NONE),
+            # `force_uniform_decode` is used for cudagraph capture; because for
+            # capturing mixed prefill-decode batches, we sometimes use
+            # num_tokens == num_reqs which looks like a uniform decode batch to the
+            # dispatcher; but we actually want to capture a piecewise cudagraph
+            force_uniform_decode=uniform_decode,
+            # `force_has_lora` is used for cudagraph capture; because LoRA is
+            # activated later in the context manager, but we need to know the
+            # LoRA state when determining the batch descriptor for capture
+            force_has_lora=activate_lora,
         )
 
         if cudagraph_runtime_mode is None:
@@ -453,9 +442,7 @@ class OmniGPUModelRunner(GPUModelRunner):
             )
 
         num_tokens_padded = batch_desc.num_tokens
-        num_reqs_padded = (
-            batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
-        )
+        num_reqs_padded = batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
 
         attn_metadata: PerLayerAttnMetadata | None = None
 
@@ -521,17 +508,13 @@ class OmniGPUModelRunner(GPUModelRunner):
                 intermediate_tensors = None
             else:
                 if self.intermediate_tensors is None:
-                    self.intermediate_tensors = (
-                        self.model.make_empty_intermediate_tensors(
-                            batch_size=self.max_num_tokens,
-                            dtype=self.model_config.dtype,
-                            device=self.device,
-                        )
+                    self.intermediate_tensors = self.model.make_empty_intermediate_tensors(
+                        batch_size=self.max_num_tokens,
+                        dtype=self.model_config.dtype,
+                        device=self.device,
                     )
 
-                intermediate_tensors = self.sync_and_slice_intermediate_tensors(
-                    num_tokens_padded, None, False
-                )
+                intermediate_tensors = self.sync_and_slice_intermediate_tensors(num_tokens_padded, None, False)
 
             if ubatch_slices is not None:
                 # Adjust values to reflect a single ubatch.
@@ -597,9 +580,7 @@ class OmniGPUModelRunner(GPUModelRunner):
             self.eplb_step(is_dummy=True, is_profile=is_profile)
 
         logit_indices = np.cumsum(num_scheduled_tokens) - 1
-        logit_indices_device = torch.from_numpy(logit_indices).to(
-            self.device, non_blocking=True
-        )
+        logit_indices_device = torch.from_numpy(logit_indices).to(self.device, non_blocking=True)
         return hidden_states, hidden_states[logit_indices_device]
 
     def _decode_and_store_request_payloads(self, scheduler_output: "SchedulerOutput") -> None:
@@ -667,7 +648,7 @@ class OmniGPUModelRunner(GPUModelRunner):
                 # Debug: 打印队列状态
                 if "thinker_reply_part_per_request" in info:
                     q = info["thinker_reply_part_per_request"]
-                    if hasattr(q, 'shape'):
+                    if hasattr(q, "shape"):
                         logger.debug(f"[OMNI] req={req_id} has thinker_reply_part_per_request queue shape: {q.shape}")
             else:
                 per_req_runtime_info.append({})
@@ -704,6 +685,7 @@ class OmniGPUModelRunner(GPUModelRunner):
         except Exception as e:
             logger.error(f"[OMNI DEBUG] Error building model_kwargs_extra: {e}")
             import traceback
+
             traceback.print_exc()
         return model_kwargs_extra
 
@@ -732,7 +714,9 @@ class OmniGPUModelRunner(GPUModelRunner):
                     self._merge_additional_information_update(req_id, upd)
             updates_map = multimodal_outputs.get("additional_information_update_by_req_id")
             if isinstance(updates_map, dict):
-                logger.debug(f"[OMNI] Processing additional_information_update_by_req_id for {list(updates_map.keys())}")
+                logger.debug(
+                    f"[OMNI] Processing additional_information_update_by_req_id for {list(updates_map.keys())}"
+                )
                 for req_id, upd in updates_map.items():
                     if not isinstance(upd, dict):
                         continue
@@ -746,7 +730,7 @@ class OmniGPUModelRunner(GPUModelRunner):
                         info = getattr(req_state, "additional_information_cpu", {})
                         if "thinker_reply_part_per_request" in info:
                             q = info["thinker_reply_part_per_request"]
-                            if hasattr(q, 'shape'):
+                            if hasattr(q, "shape"):
                                 logger.debug(f"[OMNI] After update, req={req_id} queue shape: {q.shape}")
         except Exception as e:
             logger.error(
@@ -755,6 +739,7 @@ class OmniGPUModelRunner(GPUModelRunner):
                 f"as {multimodal_outputs}"
             )
             import traceback
+
             traceback.print_exc()
 
     def _build_mm_inputs_and_overlays(
@@ -817,7 +802,6 @@ class OmniGPUModelRunner(GPUModelRunner):
                     per_req_additional_information[req_id] = req_info
         return per_req_additional_information
 
-
     def _preprocess(
         self,
         scheduler_output: "SchedulerOutput",
@@ -876,11 +860,7 @@ class OmniGPUModelRunner(GPUModelRunner):
             # If a batch only has token ids, then including the embedding layer
             # in the CUDA graph will be more performant (like in the else case
             # below).
-            token_ids_idx = (
-                self.is_token_ids.gpu[:num_scheduled_tokens]
-                .nonzero(as_tuple=False)
-                .squeeze(1)
-            )
+            token_ids_idx = self.is_token_ids.gpu[:num_scheduled_tokens].nonzero(as_tuple=False).squeeze(1)
             # Some tokens ids may need to become embeds
             if token_ids_idx.numel() > 0:
                 token_ids = self.input_ids.gpu[token_ids_idx]
@@ -923,7 +903,6 @@ class OmniGPUModelRunner(GPUModelRunner):
             encoder_outputs = self._execute_mm_encoder(scheduler_output)
             model_kwargs.update({"encoder_outputs": encoder_outputs})
 
-
         req_ids = self.input_batch.req_ids
         num_scheduled_tokens_np = np.array(
             [scheduler_output.num_scheduled_tokens[rid] for rid in req_ids],
@@ -938,9 +917,7 @@ class OmniGPUModelRunner(GPUModelRunner):
         per_req_additional_information: dict[str, dict] = {}
         if inputs_embeds is not None:
             # prefill 阶段：覆盖 prompt_embeds 并收集 additional_information
-            per_req_additional_information = self._collect_additional_information_for_prefill(
-                num_scheduled_tokens_np
-            )
+            per_req_additional_information = self._collect_additional_information_for_prefill(num_scheduled_tokens_np)
         # 无论是否 prefill，都保存以供 _model_forward 使用
         # runtime_additional_information 会在 _build_model_kwargs_extra 中从 request state 获取
         self._omni_per_req_additional_information = per_req_additional_information
@@ -967,14 +944,14 @@ class OmniGPUModelRunner(GPUModelRunner):
             self._omni_per_req_additional_information,
             self._omni_num_scheduled_tokens_np,
         )
-        
+
         # Debug: 验证 runtime_additional_information 在 decode 阶段是否正确
         runtime_info = model_kwargs_extra.get("runtime_additional_information", [])
         if runtime_info:
             for i, info in enumerate(runtime_info):
                 if info:
                     logger.debug(f"[OMNI] req[{i}] runtime_additional_information keys: {list(info.keys())}")
-        
+
         model_output = super()._model_forward(
             input_ids=input_ids,
             positions=positions,

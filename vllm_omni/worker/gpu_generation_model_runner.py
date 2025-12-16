@@ -8,14 +8,12 @@ from __future__ import annotations
 
 import gc
 import logging
-from typing import Any
 
 import numpy as np
 import torch
 from vllm.config import CUDAGraphMode
-from vllm.forward_context import BatchDescriptor
 from vllm.multimodal.inputs import MultiModalKwargs
-from vllm.v1.attention.backends.utils import CommonAttentionMetadata
+from vllm.utils.math_utils import cdiv
 from vllm.v1.core.sched.output import SchedulerOutput
 from vllm.v1.spec_decode.eagle import EagleProposer
 from vllm.v1.utils import record_function_or_nullcontext
@@ -27,7 +25,6 @@ from vllm.v1.worker.gpu_model_runner import (
     get_pp_group,
     set_forward_context,
 )
-
 from vllm.v1.worker.utils import sanity_check_mm_encoder_outputs
 
 from vllm_omni.outputs import OmniModelRunnerOutput
@@ -82,9 +79,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 )
 
                 num_tokens_padded = batch_desc.num_tokens
-                num_reqs_padded = (
-                    batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
-                )
+                num_reqs_padded = batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
                 use_spec_decode = len(scheduler_output.scheduled_spec_decode_tokens) > 0
                 pad_attn = cudagraph_mode == CUDAGraphMode.FULL
 
@@ -146,16 +141,20 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
         _, multimodal_outputs = self.extract_multimodal_outputs(outputs)
         pooler_output: list[object] = []
         if isinstance(multimodal_outputs, torch.Tensor):
-            assert multimodal_outputs.shape[0] == 1, "model should return a single tensor, to return multiple tensors, use a dict"
+            assert multimodal_outputs.shape[0] == 1, (
+                "model should return a single tensor, to return multiple tensors, use a dict"
+            )
             assert multimodal_outputs.shape[0] == self.input_batch.num_reqs
             for i in range(self.input_batch.num_reqs):
-                pooler_output.append({"model_outputs": 
-                    multimodal_outputs[i].detach().to("cpu").contiguous()
-                })
+                pooler_output.append({"model_outputs": multimodal_outputs[i].detach().to("cpu").contiguous()})
         elif isinstance(multimodal_outputs, list):
-            assert len(multimodal_outputs) == 1, "model should return a single list, to return multiple lists, use a dict"
+            assert len(multimodal_outputs) == 1, (
+                "model should return a single list, to return multiple lists, use a dict"
+            )
             for out in multimodal_outputs:
-                pooler_output.append({"model_outputs": out.detach().to("cpu").contiguous() if out is not None else None})
+                pooler_output.append(
+                    {"model_outputs": out.detach().to("cpu").contiguous() if out is not None else None}
+                )
         elif isinstance(multimodal_outputs, dict):
             for key, out in multimodal_outputs.items():
                 pooler_output.append({key: out.detach().to("cpu").contiguous() if out is not None else None})
@@ -264,10 +263,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             remove_lora: If False, dummy LoRAs are not destroyed after the run
             activate_lora: If False, dummy_run is performed without LoRAs.
         """
-        assert (
-            cudagraph_runtime_mode is None
-            or cudagraph_runtime_mode.valid_runtime_modes()
-        )
+        assert cudagraph_runtime_mode is None or cudagraph_runtime_mode.valid_runtime_modes()
 
         # If cudagraph_mode.decode_mode() == FULL and
         # cudagraph_mode.separate_routine(). This means that we are using
@@ -320,26 +316,23 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
 
         num_sampled_tokens = np.ones(num_reqs, dtype=np.int32)
 
-        _cudagraph_mode, batch_desc, ubatch_slices, num_tokens_across_dp = (
-            self._determine_batch_execution_and_padding(
-                num_tokens=num_tokens_unpadded,
-                num_reqs=num_reqs,
-                num_scheduled_tokens_np=num_scheduled_tokens,
-                max_num_scheduled_tokens=max_query_len,
-                use_cascade_attn=False,
-                allow_microbatching=allow_microbatching,
-                force_eager=is_profile
-                or (cudagraph_runtime_mode == CUDAGraphMode.NONE),
-                # `force_uniform_decode` is used for cudagraph capture; because for
-                # capturing mixed prefill-decode batches, we sometimes use
-                # num_tokens == num_reqs which looks like a uniform decode batch to the
-                # dispatcher; but we actually want to capture a piecewise cudagraph
-                force_uniform_decode=uniform_decode,
-                # `force_has_lora` is used for cudagraph capture; because LoRA is
-                # activated later in the context manager, but we need to know the
-                # LoRA state when determining the batch descriptor for capture
-                force_has_lora=activate_lora,
-            )
+        _cudagraph_mode, batch_desc, ubatch_slices, num_tokens_across_dp = self._determine_batch_execution_and_padding(
+            num_tokens=num_tokens_unpadded,
+            num_reqs=num_reqs,
+            num_scheduled_tokens_np=num_scheduled_tokens,
+            max_num_scheduled_tokens=max_query_len,
+            use_cascade_attn=False,
+            allow_microbatching=allow_microbatching,
+            force_eager=is_profile or (cudagraph_runtime_mode == CUDAGraphMode.NONE),
+            # `force_uniform_decode` is used for cudagraph capture; because for
+            # capturing mixed prefill-decode batches, we sometimes use
+            # num_tokens == num_reqs which looks like a uniform decode batch to the
+            # dispatcher; but we actually want to capture a piecewise cudagraph
+            force_uniform_decode=uniform_decode,
+            # `force_has_lora` is used for cudagraph capture; because LoRA is
+            # activated later in the context manager, but we need to know the
+            # LoRA state when determining the batch descriptor for capture
+            force_has_lora=activate_lora,
         )
 
         if cudagraph_runtime_mode is None:
@@ -351,9 +344,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             )
 
         num_tokens_padded = batch_desc.num_tokens
-        num_reqs_padded = (
-            batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
-        )
+        num_reqs_padded = batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
 
         attn_metadata: PerLayerAttnMetadata | None = None
 
@@ -419,17 +410,13 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 intermediate_tensors = None
             else:
                 if self.intermediate_tensors is None:
-                    self.intermediate_tensors = (
-                        self.model.make_empty_intermediate_tensors(
-                            batch_size=self.max_num_tokens,
-                            dtype=self.model_config.dtype,
-                            device=self.device,
-                        )
+                    self.intermediate_tensors = self.model.make_empty_intermediate_tensors(
+                        batch_size=self.max_num_tokens,
+                        dtype=self.model_config.dtype,
+                        device=self.device,
                     )
 
-                intermediate_tensors = self.sync_and_slice_intermediate_tensors(
-                    num_tokens_padded, None, False
-                )
+                intermediate_tensors = self.sync_and_slice_intermediate_tensors(num_tokens_padded, None, False)
 
             if ubatch_slices is not None:
                 # Adjust values to reflect a single ubatch.
@@ -501,10 +488,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
         if self.supports_mm_inputs:
             mm_config = self.model_config.multimodal_config
             if mm_config is not None and mm_config.skip_mm_profiling:
-                logger.info(
-                    "Skipping memory profiling for multimodal encoder and "
-                    "encoder cache."
-                )
+                logger.info("Skipping memory profiling for multimodal encoder and encoder cache.")
             else:
                 mm_budget = self.mm_budget
                 assert mm_budget is not None
@@ -514,9 +498,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                     # modality with the max possible input tokens even when
                     # it supports multiple.
                     dummy_modality = mm_budget.get_modality_with_max_tokens()
-                    max_mm_items_per_batch = mm_budget.max_items_per_batch_by_modality[
-                        dummy_modality
-                    ]
+                    max_mm_items_per_batch = mm_budget.max_items_per_batch_by_modality[dummy_modality]
 
                     logger.info(
                         "Encoder cache will be initialized with a budget of "
@@ -534,9 +516,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                     )
 
                     # Run multimodal encoder.
-                    dummy_encoder_outputs = self.model.embed_multimodal(
-                        **batched_dummy_mm_inputs
-                    )
+                    dummy_encoder_outputs = self.model.embed_multimodal(**batched_dummy_mm_inputs)
 
                     sanity_check_mm_encoder_outputs(
                         dummy_encoder_outputs,
@@ -549,16 +529,12 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                     # (max_tokens_for_modality, hidden_size) and scatter
                     # encoder output into it.
                     encoder_output_shape = dummy_encoder_outputs[0].shape
-                    max_mm_tokens_per_item = mm_budget.max_tokens_by_modality[
-                        dummy_modality
-                    ]
+                    max_mm_tokens_per_item = mm_budget.max_tokens_by_modality[dummy_modality]
                     if encoder_output_shape[0] < max_mm_tokens_per_item:
                         encoder_hidden_size = encoder_output_shape[-1]
                         expanded_outputs = []
                         for output in dummy_encoder_outputs:
-                            expanded = output.new_zeros(
-                                (max_mm_tokens_per_item, encoder_hidden_size)
-                            )
+                            expanded = output.new_zeros((max_mm_tokens_per_item, encoder_hidden_size))
                             num_tokens = output.shape[0]
                             expanded[:num_tokens].copy_(output)
                             expanded_outputs.append(expanded)
@@ -569,9 +545,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                     self.encoder_cache["tmp"] = dict(enumerate(dummy_encoder_outputs))
 
         # Add `is_profile` here to pre-allocate communication buffers
-        hidden_states, _ = self._dummy_run(
-            self.max_num_tokens, is_profile=True
-        )
+        hidden_states, _ = self._dummy_run(self.max_num_tokens, is_profile=True)
         output = None
         self._sync_device()
         del hidden_states

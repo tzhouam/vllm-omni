@@ -19,7 +19,6 @@ from vllm.multimodal.image import convert_image_mode
 from vllm.sampling_params import SamplingParams
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 
-
 from vllm_omni.entrypoints.omni import Omni
 
 SEED = 42
@@ -371,7 +370,6 @@ def main(args):
         talker_sampling_params,
         code2wav_sampling_params,
     ]
-
 
     omni_outputs = omni_llm.generate(prompts, sampling_params_list)
 

@@ -197,7 +197,7 @@ class OmniRequestState(RequestState):
 
         if not finished and final_only:
             return None
-        
+
         if self.stream_interval > 1:
             assert self.detokenizer is not None
 
@@ -208,19 +208,16 @@ class OmniRequestState(RequestState):
             if not (
                 finished
                 or self.sent_tokens_offset == 0
-                or len(self.detokenizer.output_token_ids) - self.sent_tokens_offset
-                >= self.stream_interval
+                or len(self.detokenizer.output_token_ids) - self.sent_tokens_offset >= self.stream_interval
             ):
                 return None
 
             if self.output_kind == RequestOutputKind.DELTA:
                 # Send tokens from the offset in DELTA mode, otherwise all
                 # tokens are sent.
-                new_token_ids = self.detokenizer.output_token_ids[
-                    self.sent_tokens_offset :
-                ]
+                new_token_ids = self.detokenizer.output_token_ids[self.sent_tokens_offset :]
                 self.sent_tokens_offset = len(self.detokenizer.output_token_ids)
-                
+
         request_id = self.request_id
         output = self._new_completion_output(new_token_ids, finish_reason, stop_reason)
 

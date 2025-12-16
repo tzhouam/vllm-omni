@@ -23,6 +23,7 @@ from vllm.model_executor.models.qwen2_5_omni_thinker import (
     Qwen2_5OmniThinkerDummyInputsBuilder,
 )
 from vllm.model_executor.models.qwen3_moe import Qwen3MoeMLP
+from vllm.model_executor.models.qwen3_omni_moe_thinker import Qwen3Omni_VisionTransformer
 from vllm.model_executor.models.utils import (
     AutoWeightsLoader,
     WeightsMapper,
@@ -31,7 +32,6 @@ from vllm.model_executor.models.utils import (
 )
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.sequence import IntermediateTensors
-from vllm.v1.sample.metadata import SamplingMetadata
 
 from vllm_omni.model_executor.models.qwen3_omni.qwen3_omni_moe_code_predictor_mtp import (
     Qwen3OmniMoeTalkerCodePredictor,
@@ -42,7 +42,7 @@ from vllm_omni.model_executor.models.qwen3_omni.qwen3_omni_moe_thinker import (
     Qwen3OmniMoeThinkerMultiModalProcessor,
     Qwen3OmniMoeThinkerProcessingInfo,
 )
-from vllm.model_executor.models.qwen3_omni_moe_thinker import Qwen3Omni_VisionTransformer
+
 try:
     import flash_attn
 except (ImportError, ModuleNotFoundError):
@@ -504,7 +504,12 @@ class Qwen3OmniMoeTalkerForConditionalGeneration(
                 multimodal_embeddings += tuple(audio_embeddings)
         return multimodal_embeddings
 
-    def embed_input_ids(self, input_ids: torch.Tensor, multimodal_embeddings: MultiModalEmbeddings | None = None, is_multimodal: bool = False):
+    def embed_input_ids(
+        self,
+        input_ids: torch.Tensor,
+        multimodal_embeddings: MultiModalEmbeddings | None = None,
+        is_multimodal: bool = False,
+    ):
         """Get the input embedding layer (for codec tokens)."""
         return self.language_model.embed_input_ids(input_ids)
 

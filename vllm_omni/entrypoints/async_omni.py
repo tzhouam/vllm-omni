@@ -19,6 +19,7 @@ from vllm.inputs.preprocess import InputPreprocessor
 from vllm.logger import init_logger
 from vllm.lora.request import LoRARequest
 from vllm.multimodal import MULTIMODAL_REGISTRY, MultiModalRegistry
+from vllm.plugins.io_processors import get_io_processor
 from vllm.sampling_params import SamplingParams
 from vllm.tracing import init_tracer
 from vllm.transformers_utils.config import maybe_register_config_serialize_by_value
@@ -30,7 +31,6 @@ from vllm.v1.engine.core_client import EngineCoreClient
 from vllm.v1.engine.exceptions import EngineDeadError
 from vllm.v1.executor.abstract import Executor
 from vllm.v1.metrics.loggers import StatLoggerFactory, StatLoggerManager
-from vllm.plugins.io_processors import get_io_processor
 
 # Internal imports (our code)
 from vllm_omni.config import OmniModelConfig
@@ -45,8 +45,8 @@ from vllm_omni.distributed.ray_utils.utils import (
     try_close_ray,
 )
 from vllm_omni.engine.arg_utils import AsyncOmniEngineArgs
-from vllm_omni.engine.output_processor import MultimodalOutputProcessor
 from vllm_omni.engine.input_processor import OmniInputProcessor
+from vllm_omni.engine.output_processor import MultimodalOutputProcessor
 from vllm_omni.entrypoints.log_utils import (
     OrchestratorMetrics,
     configure_orchestrator_logger,
@@ -144,8 +144,11 @@ class AsyncOmni(EngineClient):
         self._stats_file, self._overall_stats_file = init_stats_paths(self._enable_stats, self._log_file)
         self._initialize_stages(model, cli_args.init_sleep_seconds, cli_args.shm_threshold_bytes, cli_args.init_timeout)
 
-        # Here is a duplicated init for the first stage to get the tokenizer, input_processor, and io_processor
-        # TODO: Refactor the code to avoid the duplicated init, we need to pass the tokenizer, input_processor, and io_processor back here from the first stage.
+        # Here is a duplicated init for the first stage to get the tokenizer,
+        # input_processor, and io_processor
+        # TODO: Refactor the code to avoid the duplicated init, we need to pass
+        # the tokenizer, input_processor, and io_processor back here from the
+        # first stage.
         vllm_config = self.stage_list[0].vllm_config
         self.tokenizer = init_tokenizer_from_configs(model_config=vllm_config.model_config)
         self.input_processor = OmniInputProcessor(
@@ -643,7 +646,7 @@ class AsyncOmni(EngineClient):
     async def reset_mm_cache(self) -> None:
         pass
 
-    async def reset_prefix_cache(self, device = None) -> None:
+    async def reset_prefix_cache(self, device=None) -> None:
         pass
 
     async def sleep(self, level: int = 1) -> None:
@@ -673,6 +676,7 @@ class AsyncOmni(EngineClient):
 
     async def stop_profile(self) -> None:
         raise NotImplementedError("stop_profile() is not implemented for AsyncOmni")
+
     async def pause_generation(
         self,
         *,
@@ -720,6 +724,7 @@ class AsyncOmni(EngineClient):
 
         async with self._pause_cond:
             return self._paused
+
 
 class AsyncOmniStageLLM(AsyncLLM):
     """Async single-stage LLM engine for use within a stage worker process.

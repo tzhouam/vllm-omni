@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from time import time
+
 from vllm.distributed.kv_events import KVEventBatch
 from vllm.distributed.kv_transfer.kv_connector.v1.metrics import KVConnectorStats
 from vllm.logger import init_logger
@@ -88,9 +89,7 @@ class OmniARScheduler(VLLMScheduler):
             # These blocks contain externally computed tokens that failed to
             # load. Identify affected requests and adjust their computed token
             # count to trigger recomputation of the invalid blocks.
-            failed_kv_load_req_ids = self._handle_invalid_blocks(
-                kv_connector_output.invalid_block_ids
-            )
+            failed_kv_load_req_ids = self._handle_invalid_blocks(kv_connector_output.invalid_block_ids)
 
         # NOTE(woosuk): As len(num_scheduled_tokens) can be up to 1K or more,
         # the below loop can be a performance bottleneck. We should do our best
@@ -110,13 +109,9 @@ class OmniARScheduler(VLLMScheduler):
                 continue
 
             req_index = model_runner_output.req_id_to_index[req_id]
-            generated_token_ids = (
-                sampled_token_ids[req_index] if sampled_token_ids else []
-            )
+            generated_token_ids = sampled_token_ids[req_index] if sampled_token_ids else []
 
-            scheduled_spec_token_ids = (
-                scheduler_output.scheduled_spec_decode_tokens.get(req_id)
-            )
+            scheduled_spec_token_ids = scheduler_output.scheduled_spec_decode_tokens.get(req_id)
             if scheduled_spec_token_ids:
                 num_draft_tokens = len(scheduled_spec_token_ids)
                 num_accepted = len(generated_token_ids) - 1
@@ -146,9 +141,7 @@ class OmniARScheduler(VLLMScheduler):
 
             # Check for stop and update request status.
             if new_token_ids:
-                new_token_ids, stopped = self._update_request_with_output(
-                    request, new_token_ids
-                )
+                new_token_ids, stopped = self._update_request_with_output(request, new_token_ids)
 
             # Stop checking for pooler models.
             pooler_output = None
@@ -165,11 +158,7 @@ class OmniARScheduler(VLLMScheduler):
                     stopped_preempted_reqs.add(request)
 
             # Extract sample logprobs if needed.
-            if (
-                request.sampling_params is not None
-                and request.sampling_params.logprobs is not None
-                and logprobs
-            ):
+            if request.sampling_params is not None and request.sampling_params.logprobs is not None and logprobs:
                 new_logprobs = logprobs.slice_request(req_index, len(new_token_ids))
 
             if new_token_ids and self.structured_output_manager.should_advance(request):
@@ -235,10 +224,7 @@ class OmniARScheduler(VLLMScheduler):
 
         # Create EngineCoreOutputs for all clients that have requests with
         # outputs in this step.
-        engine_core_outputs = {
-            client_index: EngineCoreOutputs(outputs=outs)
-            for client_index, outs in outputs.items()
-        }
+        engine_core_outputs = {client_index: EngineCoreOutputs(outputs=outs) for client_index, outs in outputs.items()}
 
         finished_req_ids = self.finished_req_ids_dict
         if finished_req_ids:
@@ -249,14 +235,10 @@ class OmniARScheduler(VLLMScheduler):
                 if (eco := engine_core_outputs.get(client_index)) is not None:
                     eco.finished_requests = finished_set
                 else:
-                    engine_core_outputs[client_index] = EngineCoreOutputs(
-                        finished_requests=finished_set
-                    )
+                    engine_core_outputs[client_index] = EngineCoreOutputs(finished_requests=finished_set)
             finished_req_ids.clear()
 
-        if (
-            stats := self.make_stats(spec_decoding_stats, kv_connector_stats)
-        ) is not None:
+        if (stats := self.make_stats(spec_decoding_stats, kv_connector_stats)) is not None:
             # Return stats to only one of the front-ends.
             if (eco := next(iter(engine_core_outputs.values()), None)) is None:
                 # We must return the stats even if there are no request

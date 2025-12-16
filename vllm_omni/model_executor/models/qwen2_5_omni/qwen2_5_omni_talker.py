@@ -31,6 +31,7 @@ from vllm.v1.sample.sampler import Sampler
 
 from vllm_omni.model_executor.models.qwen2_5_omni.qwen2_5_omni_thinker import Qwen2_5OmniConditionalGenerationMixin
 
+
 @MULTIMODAL_REGISTRY.register_processor(
     Qwen2_5OmniThinkerMultiModalProcessor,
     info=Qwen2_5OmniThinkerProcessingInfo,

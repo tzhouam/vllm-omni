@@ -1,6 +1,6 @@
 import time
 from collections.abc import Mapping
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 
 import torch
 from vllm.config import VllmConfig
@@ -9,6 +9,7 @@ from vllm.inputs.parse import split_enc_dec_inputs
 from vllm.logger import init_logger
 from vllm.lora.request import LoRARequest
 from vllm.multimodal import MULTIMODAL_REGISTRY, MultiModalRegistry
+from vllm.multimodal.inputs import MultiModalFeatureSpec, MultiModalUUIDDict
 from vllm.multimodal.utils import argsort_mm_positions
 from vllm.platforms import current_platform
 from vllm.pooling_params import PoolingParams
@@ -16,7 +17,6 @@ from vllm.sampling_params import SamplingParams
 from vllm.tokenizers import TokenizerLike
 from vllm.utils import length_from_prompt_token_ids_or_embeds
 from vllm.v1.engine.input_processor import InputProcessor
-from vllm.multimodal.inputs import MultiModalFeatureSpec, MultiModalUUIDDict
 
 from vllm_omni.engine import (
     AdditionalInformationEntry,
@@ -97,7 +97,7 @@ class OmniInputProcessor(InputProcessor):
         trace_headers: Mapping[str, str] | None = None,
         priority: int = 0,
         data_parallel_rank: int | None = None,
-    ) -> tuple[Optional[str], OmniEngineCoreRequest]:
+    ) -> tuple[str | None, OmniEngineCoreRequest]:
         """Process input prompt into an engine core request.
 
         Converts a prompt (text, tokens, or multimodal) into an
@@ -131,13 +131,8 @@ class OmniInputProcessor(InputProcessor):
         self._validate_params(params)
 
         data_parallel_size = self.vllm_config.parallel_config.data_parallel_size
-        if data_parallel_rank is not None and not (
-            0 <= data_parallel_rank < data_parallel_size
-        ):
-            raise ValueError(
-                f"data_parallel_rank {data_parallel_rank} "
-                f"is out of range [0, {data_parallel_size})."
-            )
+        if data_parallel_rank is not None and not (0 <= data_parallel_rank < data_parallel_size):
+            raise ValueError(f"data_parallel_rank {data_parallel_rank} is out of range [0, {data_parallel_size}).")
 
         if arrival_time is None:
             arrival_time = time.time()
@@ -161,9 +156,7 @@ class OmniInputProcessor(InputProcessor):
             # if provided.
             self._validate_multi_modal_uuids(prompt)
             if isinstance(prompt, dict):
-                mm_uuids = cast(
-                    MultiModalUUIDDict | None, prompt.get("multi_modal_uuids")
-                )
+                mm_uuids = cast(MultiModalUUIDDict | None, prompt.get("multi_modal_uuids"))
             else:
                 mm_uuids = None
 
@@ -176,7 +169,6 @@ class OmniInputProcessor(InputProcessor):
             tokenization_kwargs=tokenization_kwargs,
             mm_uuids=mm_uuids,
         )
-        from vllm.platforms import current_platform
 
         current_platform.validate_request(
             prompt=prompt,
@@ -193,7 +185,7 @@ class OmniInputProcessor(InputProcessor):
         # discriminated unions of TypedDicts, because of how it handles
         # inheritance of TypedDict. If we explicitly extract the items we want
         # we can avoid type errors from using `dict.get` later in the method.
-        prompt_str: str | None = None if decoder_inputs["type"] == "embeds" else decoder_inputs.get("prompt")
+        _prompt_str: str | None = None if decoder_inputs["type"] == "embeds" else decoder_inputs.get("prompt")
         prompt_token_ids = decoder_inputs["prompt_token_ids"] if decoder_inputs["type"] != "embeds" else None
         prompt_embeds = decoder_inputs["prompt_embeds"] if decoder_inputs["type"] == "embeds" else None
 
@@ -204,13 +196,9 @@ class OmniInputProcessor(InputProcessor):
             sampling_params = params.clone()
             # If unset max tokens, then generate up to the max_model_len.
             if sampling_params.max_tokens is None:
-                seq_len = length_from_prompt_token_ids_or_embeds(
-                    prompt_token_ids, prompt_embeds
-                )
+                seq_len = length_from_prompt_token_ids_or_embeds(prompt_token_ids, prompt_embeds)
                 sampling_params.max_tokens = self.model_config.max_model_len - seq_len
-            sampling_params.update_from_generation_config(
-                self.generation_config_fields, eos_token_id
-            )
+            sampling_params.update_from_generation_config(self.generation_config_fields, eos_token_id)
             if self.tokenizer is not None:
                 sampling_params.update_from_tokenizer(self.tokenizer)
         else:

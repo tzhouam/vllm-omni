@@ -1,13 +1,12 @@
-import json
 import warnings
 from importlib.util import find_spec
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 import torch
 import vllm.envs as envs
-from omegaconf import DictConfig, OmegaConf
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
+from vllm.attention.backends.registry import AttentionBackendEnum
 from vllm.config import ModelConfig, config
 from vllm.config.model import (
     _RUNNER_CONVERTS,
@@ -18,10 +17,6 @@ from vllm.config.model import (
     _get_and_verify_dtype,
     get_served_model_name,
 )
-from vllm.attention.backends.registry import AttentionBackendEnum
-from vllm.transformers_utils.gguf_utils import (
-    maybe_patch_hf_config_from_gguf,
-)
 from vllm.config.multimodal import MMCacheType, MMEncoderTPMode, MultiModalConfig
 from vllm.config.pooler import PoolerConfig
 from vllm.logger import init_logger
@@ -31,13 +26,17 @@ from vllm.transformers_utils.config import (
     get_hf_image_processor_config,
     get_hf_text_config,
     get_pooling_config,
-    is_interleaved,
+)
+from vllm.transformers_utils.gguf_utils import (
+    maybe_patch_hf_config_from_gguf,
 )
 from vllm.transformers_utils.utils import (
     is_gguf,
     maybe_model_redirect,
 )
+
 import vllm_omni.model_executor.models as me_models
+
 ConvertOption = Literal["auto", ConvertType]
 
 logger = init_logger(__name__)
@@ -72,8 +71,8 @@ class OmniModelConfig(ModelConfig):
     stage_id: int = 0
     model_stage: str = "thinker"
     model_arch: str = "Qwen2_5OmniForConditionalGeneration"
-    engine_output_type: Optional[str] = None
-    hf_config_name: Optional[str] = None
+    engine_output_type: str | None = None
+    hf_config_name: str | None = None
 
     @property
     def registry(self):
@@ -108,9 +107,7 @@ class OmniModelConfig(ModelConfig):
         video_pruning_rate: float | None,
     ) -> None:
         # Keep set served_model_name before maybe_model_redirect(self.model)
-        self.served_model_name = get_served_model_name(
-            self.model, self.served_model_name
-        )
+        self.served_model_name = get_served_model_name(self.model, self.served_model_name)
         self.model = maybe_model_redirect(self.model)
         # The tokenizer is consistent with the model by default.
         if self.tokenizer is None:
@@ -140,19 +137,13 @@ class OmniModelConfig(ModelConfig):
 
         self.maybe_pull_model_tokenizer_for_runai(self.model, self.tokenizer)
 
-        if (
-            (backend := envs.VLLM_ATTENTION_BACKEND)
-            and backend == "FLASHINFER"
-            and find_spec("flashinfer") is None
-        ):
+        if (backend := envs.VLLM_ATTENTION_BACKEND) and backend == "FLASHINFER" and find_spec("flashinfer") is None:
             raise ValueError(
                 "VLLM_ATTENTION_BACKEND is set to FLASHINFER, but flashinfer "
                 "module was not found. See "
                 "https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile "  # noqa: E501
                 "for instructions on how to install it."
             )
-
-        from vllm.platforms import current_platform
 
         if self.override_attention_dtype is not None and not current_platform.is_rocm():
             warnings.warn(
@@ -181,9 +172,7 @@ class OmniModelConfig(ModelConfig):
         if dict_overrides:
             self._apply_dict_overrides(hf_config, dict_overrides)
         self.hf_text_config = self.draw_hf_text_config()
-        self.attention_chunk_size = getattr(
-            self.hf_text_config, "attention_chunk_size", None
-        )
+        self.attention_chunk_size = getattr(self.hf_text_config, "attention_chunk_size", None)
         self.encoder_config = self._get_encoder_config()
         self.hf_image_processor_config = get_hf_image_processor_config(
             self.model, hf_token=self.hf_token, revision=self.revision
@@ -211,8 +200,7 @@ class OmniModelConfig(ModelConfig):
             runner: RunnerOption = "auto"
             convert: ConvertOption = "auto"
             msg_prefix = (
-                "The 'task' option has been deprecated and will be "
-                "removed in v0.13.0 or v1.0, whichever comes first."
+                "The 'task' option has been deprecated and will be removed in v0.13.0 or v1.0, whichever comes first."
             )
             msg_hint = "Please remove this option."
 
@@ -282,9 +270,7 @@ class OmniModelConfig(ModelConfig):
             warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
         self.runner_type = self._get_runner_type(architectures, self.runner)
-        self.convert_type = self._get_convert_type(
-            architectures, self.runner_type, self.convert
-        )
+        self.convert_type = self._get_convert_type(architectures, self.runner_type, self.convert)
 
         if self.runner_type == "generate" and not is_generative_model:
             generate_converts = _RUNNER_CONVERTS["generate"]
@@ -336,10 +322,7 @@ class OmniModelConfig(ModelConfig):
         self.max_model_len = self.get_and_verify_max_len(self.max_model_len)
         # Init multimodal config if needed
         if self._model_info.supports_multimodal:
-            if (
-                mm_encoder_tp_mode == "data"
-                and not self._model_info.supports_multimodal_encoder_tp_data
-            ):
+            if mm_encoder_tp_mode == "data" and not self._model_info.supports_multimodal_encoder_tp_data:
                 logger.warning_once(
                     "This model does not support `--mm-encoder-tp-mode data`. "
                     "Falling back to `--mm-encoder-tp-mode weights`."
@@ -361,9 +344,7 @@ class OmniModelConfig(ModelConfig):
                 video_pruning_rate=video_pruning_rate,
             )
 
-            mm_config_kwargs = {
-                k: v for k, v in mm_config_kwargs.items() if v is not None
-            }
+            mm_config_kwargs = {k: v for k, v in mm_config_kwargs.items() if v is not None}
 
             self.multimodal_config = MultiModalConfig(**mm_config_kwargs)
 
