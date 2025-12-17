@@ -808,8 +808,8 @@ class OmniGPUModelRunner(GPUModelRunner):
         num_input_tokens: int,
         intermediate_tensors: IntermediateTensors | None = None,
     ):
-        """Align与v0.12 preprocess，同步Omni的额外输入/信息通道。"""
-        # 先解码 payload，确保 request state 具备 prompt_embeds / additional_information
+        """Align with v0.12 preprocess and omni's additional information handling."""
+        # Decode payload first, ensure request state has prompt_embeds / additional_information
         self._decode_and_store_request_payloads(scheduler_output)
 
         num_scheduled_tokens = scheduler_output.total_num_scheduled_tokens

@@ -174,13 +174,8 @@ async def build_async_omni_from_stage_config(
     """
 
     # V1 AsyncLLM.
-    # assert envs.VLLM_USE_V1
-
     if disable_frontend_multiprocessing:
-        logger.warning(
-            "V1 is enabled, but got --disable-frontend-multiprocessing. "
-            "To disable frontend multiprocessing, set VLLM_USE_V1=0."
-        )
+        logger.warning("V1 is enabled, but got --disable-frontend-multiprocessing.")
 
     async_omni: EngineClient | None = None
 

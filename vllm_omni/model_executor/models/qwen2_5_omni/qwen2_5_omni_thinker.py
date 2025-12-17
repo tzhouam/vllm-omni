@@ -50,7 +50,6 @@ from vllm.model_executor.models.utils import (
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.multimodal.inputs import (
     MultiModalFeatureSpec,
-    NestedTensors,
 )
 from vllm.sequence import IntermediateTensors
 
@@ -487,27 +486,6 @@ class Qwen2_5OmniThinkerForConditionalGeneration(
             is_multimodal=is_multimodal,
             handle_oov_mm_token=handle_oov_mm_token,
         )
-
-    def embed_multimodal_v0(self, **kwargs: object) -> NestedTensors | None:
-        audio_input = self._parse_and_validate_audio_input(**kwargs)
-        image_input = self._parse_and_validate_image_input(**kwargs)
-        video_input = self._parse_and_validate_video_input(**kwargs)
-
-        if audio_input is None and image_input is None and video_input is None:
-            return None
-
-        multimodal_embeddings: list[tuple[NestedTensors, str]] = []
-
-        if audio_input is not None:
-            audio_embeds = self._process_audio_input(audio_input)
-            multimodal_embeddings.append((audio_embeds, "audio"))
-        if image_input is not None:
-            image_embeds = self._process_image_input(image_input)
-            multimodal_embeddings.append((image_embeds, "image"))
-        if video_input is not None:
-            video_embeds = self._process_video_input(video_input)
-            multimodal_embeddings.append((video_embeds, "video"))
-        return multimodal_embeddings
 
     def forward(
         self,

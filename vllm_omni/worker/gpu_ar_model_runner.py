@@ -200,7 +200,6 @@ class GPUARModelRunner(OmniGPUModelRunner):
             multimodal_outputs = model_output.multimodal_outputs
             hidden_states = model_output.text_hidden_states
 
-            # Debug: 打印 multimodal_outputs 状态
             if multimodal_outputs is not None:
                 keys_or_type = (
                     list(multimodal_outputs.keys())

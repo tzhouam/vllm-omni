@@ -1,9 +1,0 @@
-Prompt:
-<|im_start|>system
-You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, capable of perceiving auditory and visual inputs, as well as generating text and speech.<|im_end|>
-<|im_start|>user
-<|audio_bos|><|AUDIO|><|audio_eos|><|vision_bos|><|IMAGE|><|vision_eos|><|vision_bos|><|VIDEO|><|vision_eos|>What is recited in the audio? What is the content of this image? Why is this video funny?<|im_end|>
-<|im_start|>assistant
-
-vllm_text_output:
-The first part of the audio recites "Mary had a little lamb". The image shows cherry blossoms with a tower in the background.The video might be considered funny because it's unexpected to see a baby reading a book while wearing glasses. It's not something you'd usually expect from a baby.What do you think about it? Do you have any other thoughts or questions?
