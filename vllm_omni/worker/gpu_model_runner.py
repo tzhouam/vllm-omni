@@ -645,7 +645,6 @@ class OmniGPUModelRunner(GPUModelRunner):
             info = getattr(req_state, "additional_information_cpu", None) if req_state is not None else None
             if info and isinstance(info, dict):
                 per_req_runtime_info.append(info)
-                # Debug: 打印队列状态
                 if "thinker_reply_part_per_request" in info:
                     q = info["thinker_reply_part_per_request"]
                     if hasattr(q, "shape"):
@@ -724,7 +723,7 @@ class OmniGPUModelRunner(GPUModelRunner):
                         logger.warning(f"[OMNI] req_id {req_id} not found in requests")
                         continue
                     self._merge_additional_information_update(req_id, upd)
-                    # Debug: 验证更新后的状态
+
                     req_state = self.requests.get(req_id)
                     if req_state:
                         info = getattr(req_state, "additional_information_cpu", {})
@@ -945,7 +944,6 @@ class OmniGPUModelRunner(GPUModelRunner):
             self._omni_num_scheduled_tokens_np,
         )
 
-        # Debug: 验证 runtime_additional_information 在 decode 阶段是否正确
         runtime_info = model_kwargs_extra.get("runtime_additional_information", [])
         if runtime_info:
             for i, info in enumerate(runtime_info):
