@@ -1,6 +1,6 @@
 import warnings
 from importlib.util import find_spec
-from typing import Any, Literal
+from typing import Any
 
 import torch
 import vllm.envs as envs
@@ -11,6 +11,7 @@ from vllm.config import ModelConfig, config
 from vllm.config.model import (
     _RUNNER_CONVERTS,
     _RUNNER_TASKS,
+    ConvertOption,
     ConvertType,
     RunnerOption,
     TaskOption,
@@ -36,8 +37,6 @@ from vllm.transformers_utils.utils import (
 )
 
 import vllm_omni.model_executor.models as me_models
-
-ConvertOption = Literal["auto", ConvertType]
 
 logger = init_logger(__name__)
 
