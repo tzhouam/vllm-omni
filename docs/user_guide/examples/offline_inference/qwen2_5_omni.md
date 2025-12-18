@@ -1,4 +1,4 @@
-# Offline Example of vLLM-Omni for Qwen2.5-Omni
+# Qwen2.5-Omni
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/qwen2_5_omni>.
 
@@ -36,6 +36,14 @@ cd examples/offline_inference/qwen2_5_omni
 Then run the command below.
 ```bash
 bash run_single_prompt.sh
+```
+
+### Modality control
+If you want to control output modalities, e.g. only output text, you can run the command below:
+```bash
+python end2end.py --output-wav output_audio \
+                  --query-type mixed_modalities \
+                  --modalities text
 ```
 
 #### Using Local Media Files

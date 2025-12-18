@@ -1,4 +1,4 @@
-# Online serving Example of vLLM-Omni for Qwen3-omni
+# Qwen3-Omni
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/online_serving/qwen3_omni>.
 
@@ -81,13 +81,21 @@ sudo apt update
 sudo apt install ffmpeg
 ```
 
+## Modality control
+If you want to control output modalities, e.g. only output text, you can run the command below:
+```bash
+python openai_chat_completion_client_for_multimodal_generation.py \
+    --query-type use_image \
+    --modalities text
+```
+
 ## Run Local Web UI Demo
 
 This Web UI demo allows users to interact with the model through a web browser.
 
 ### Running Gradio Demo
 
-Once vllm and vllm-omni are installed, you can launch the web service built on AsyncOmni by
+Once vllm and vllm-omni are installed, you can launch the web service built on AsyncOmni by:
 
 ```bash
 python gradio_demo.py  --model Qwen/Qwen3-Omni-30B-A3B-Instruct --port 7861

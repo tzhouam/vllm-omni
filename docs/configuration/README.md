@@ -9,3 +9,9 @@ Currently, the main options are maintained by stage configs for each model.
 For specific example, please refer to [Qwen2.5-omni stage config](stage_configs/qwen2_5_omni.yaml)
 
 For introduction, please check [Introduction for stage config](./stage_configs.md)
+
+## Optimization Features
+
+- **[TeaCache Configuration](../user_guide/acceleration/teacache.md)** - Enable TeaCache adaptive caching for DiT models to achieve 1.5x-2.0x speedup with minimal quality loss
+- **[Cache-DiT Configuration](../user_guide/acceleration/cache_dit_acceleration.md)** - Enable Cache-DiT as cache acceleration backends for DiT models
+- **[Parallelism Configuration](../user_guide/acceleration/parallelism_acceleration.md)** - Enable parallelism (e.g., sequence parallelism) for for DiT models
