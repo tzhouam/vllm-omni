@@ -42,6 +42,7 @@ def extract_prompts(input_file: str, output_file: str, num_lines: int) -> None:
         for prompt in prompts:
             f.write(prompt + "\n")
 
+    # Print result stats
     print(f"Extracted {len(prompts)} prompts from first {num_lines} lines")
     print(f"Saved to: {output_file}")
 
