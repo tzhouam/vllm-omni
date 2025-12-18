@@ -681,7 +681,7 @@ class AsyncOmni(EngineClient):
     async def reset_mm_cache(self) -> None:
         pass
 
-    async def reset_prefix_cache(self, device=None) -> None:
+    async def reset_prefix_cache(self, reset_running_requests: bool = False) -> bool:
         pass
 
     async def sleep(self, level: int = 1) -> None:
