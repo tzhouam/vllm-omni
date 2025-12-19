@@ -842,7 +842,7 @@ class AsyncOmniStageLLM(AsyncLLM):
             tokenizer = None
         else:
             # Tokenizer (+ ensure liveness if running in another process).
-            self.tokenizer = init_tokenizer_from_config(model_config=vllm_config.model_config)
+            tokenizer = init_tokenizer_from_config(model_config=vllm_config.model_config)
 
         # InputProcessor (converts Inputs --> EngineCoreRequests).
         self.input_processor = OmniInputProcessor(
