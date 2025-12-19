@@ -6,7 +6,7 @@ import torch
 from vllm.logger import init_logger
 from vllm.outputs import PoolingRequestOutput
 from vllm.sampling_params import RequestOutputKind
-from vllm.tokenizers.tokenizer_like import TokenizerLike
+from vllm.tokenizers import TokenizerLike
 from vllm.v1.engine import EngineCoreOutput, EngineCoreRequest, FinishReason
 from vllm.v1.engine.detokenizer import IncrementalDetokenizer
 from vllm.v1.engine.logprobs import LogprobsProcessor

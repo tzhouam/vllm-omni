@@ -23,7 +23,7 @@ from vllm.plugins.io_processors import get_io_processor
 from vllm.sampling_params import SamplingParams
 from vllm.tracing import init_tracer
 from vllm.transformers_utils.config import maybe_register_config_serialize_by_value
-from vllm.tokenizers.tokenizer_like import TokenizerLike, init_tokenizer_from_config
+from vllm.tokenizers import TokenizerLike, init_tokenizer_from_config
 from vllm.usage.usage_lib import UsageContext
 from vllm.utils.func_utils import deprecate_kwargs
 from vllm.v1.engine.async_llm import AsyncLLM
