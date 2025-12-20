@@ -71,7 +71,7 @@ class OmniLLM:
         log_stats: Whether to enable statistics logging
         log_file: Optional path prefix for log files. If provided, logs will
             be written to files with stage-specific suffixes.
-        init_sleep_seconds: Number of seconds to sleep between starting
+        stage_init_timeout: Number of seconds to sleep between starting
             each stage process during initialization
         shm_threshold_bytes: Threshold in bytes for using shared memory
             for IPC. Objects larger than this threshold will use shared memory.
@@ -93,7 +93,7 @@ class OmniLLM:
         stage_configs_path: str | None = None,
         log_stats: bool = False,
         log_file: str | None = None,
-        init_sleep_seconds: int = 20,
+        stage_init_timeout: int = 20,
         shm_threshold_bytes: int = 65536,
         batch_timeout: int = 10,
         init_timeout: int = 300,
@@ -122,7 +122,7 @@ class OmniLLM:
         self._log_file = log_file
 
         self._stats_file, self._overall_stats_file = init_stats_paths(self._enable_stats, self._log_file)
-        self._initialize_stages(model, init_sleep_seconds, shm_threshold_bytes, init_timeout)
+        self._initialize_stages(model, stage_init_timeout, shm_threshold_bytes, init_timeout)
         if self._log_file:
             remove_old_logs(self._log_file, len(self.stage_list))
             configure_orchestrator_logger(logger, self._log_file)
@@ -130,7 +130,7 @@ class OmniLLM:
     def _initialize_stages(
         self,
         model: str,
-        init_sleep_seconds: int,
+        stage_init_timeout: int,
         shm_threshold_bytes: int,
         init_timeout: int,
     ) -> None:
@@ -139,7 +139,7 @@ class OmniLLM:
         # Build OmniStage instances in parallel, preserve original order
         def _build_stage(idx_cfg: tuple[int, Any]) -> tuple[int, OmniStage]:
             idx, cfg = idx_cfg
-            return idx, OmniStage(cfg)
+            return idx, OmniStage(cfg, stage_init_timeout=stage_init_timeout)
 
         with ThreadPoolExecutor(max_workers=min(len(self.stage_configs), max(1, os.cpu_count() or 1))) as executor:
             futures = [executor.submit(_build_stage, (idx, cfg)) for idx, cfg in enumerate(self.stage_configs)]
@@ -159,7 +159,7 @@ class OmniLLM:
 
         self._stage_in_queues: list[mp.Queue] = []
         self._stage_out_queues: list[mp.Queue] = []
-        self._init_sleep_seconds = max(0, int(init_sleep_seconds))
+        self._stage_init_timeout = max(0, int(stage_init_timeout))
         self._shm_threshold_bytes = max(0, int(shm_threshold_bytes))
         self._start_stages(model)
         # Wait for all stages to report readiness before seeding
@@ -197,7 +197,6 @@ class OmniLLM:
             )
 
             logger.debug("[Orchestrator] Stage-%s process started", stage_id)
-            time.sleep(self._init_sleep_seconds)
 
     def close(self) -> None:
         """Close all stage processes and clean up resources.
@@ -517,7 +516,7 @@ class OmniLLM:
                     "Verify GPU/device assignment in config (runtime.devices) is correct.",
                     "Check GPU/host memory availability; reduce model or batch size if needed.",
                     "Check model weights path and network reachability (if loading remotely).",
-                    "Increase initialization wait time (init_sleep_seconds or call-site timeout).",
+                    "Increase initialization wait time (stage_init_timeout or call-site timeout).",
                 ]
                 if getattr(self, "_log_file", None):
                     suggestions.append(f"Inspect per-stage log files for details: {self._log_file}.stage<id>.log")

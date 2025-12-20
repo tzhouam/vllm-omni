@@ -53,7 +53,7 @@ class OmniStage:
             runtime settings, and stage-specific parameters
     """
 
-    def __init__(self, stage_config: Any):
+    def __init__(self, stage_config: Any, stage_init_timeout: int = 300):
         self.stage_config = stage_config
         self.engine = None
         self.async_engine = None
@@ -81,6 +81,7 @@ class OmniStage:
         self.final_output_type = getattr(stage_config, "final_output_type", None)
         default_sampling_params = getattr(stage_config, "default_sampling_params", {})
         self.default_sampling_params = SamplingParams(**_to_dict(default_sampling_params))
+        self._stage_init_timeout = max(0, int(stage_init_timeout))
         # Runtime orchestration state (added)
         self._in_q: mp.Queue | None = None
         self._out_q: mp.Queue | None = None
@@ -220,6 +221,7 @@ class OmniStage:
                     model=model,
                     stage_payload=stage_payload,
                     batch_timeout=batch_timeout,
+                    max_wait_time=self._stage_init_timeout,
                 )
             else:
                 self._ray_actor = start_ray_actor(
@@ -242,6 +244,7 @@ class OmniStage:
                         model,
                         stage_payload,
                         batch_timeout,
+                        self._stage_init_timeout,
                     ),
                 )
             else:
@@ -254,6 +257,7 @@ class OmniStage:
                         self._out_q,
                         self._log_file,
                         batch_timeout,
+                        self._stage_init_timeout,
                     ),
                 )
             self._proc.start()
@@ -375,6 +379,7 @@ def _stage_worker(
     out_q: mp.Queue,
     log_file: str | None = None,
     batch_timeout: int = 10,
+    max_wait_time: int = 300,
 ) -> None:
     """Stage worker entry: device setup, LLM init, batching, SHM IPC."""
     import logging as _logging
@@ -548,7 +553,6 @@ def _stage_worker(
 
                 # Acquire exclusive locks for all devices using fcntl.flock
                 # Locks are automatically released when process dies
-                max_wait_time = 300  # 5 minutes max wait
                 wait_start = _time.time()
                 acquired_lock_fds = []  # Store file descriptors to keep locks alive
 
@@ -623,9 +627,9 @@ def _stage_worker(
             try:
                 _os.close(lock_fd)
                 _logging.getLogger(__name__).debug("[Stage-%s] Released initialization lock (fd=%s)", stage_id, lock_fd)
+                _logging.getLogger(__name__).info("[Stage-%s] Stage successfully initialized with %s seconds waiting for locks", stage_id, _time.time() - wait_start)
             except (OSError, ValueError):
                 pass
-    _logging.getLogger(__name__).debug("[Stage-%s] Engine initialized", stage_id)
 
     # Initialize OmniConnectors if configured
     connectors = {}
@@ -872,8 +876,9 @@ def _stage_worker_async_entry(
     model: str,
     stage_payload: dict[str, Any],
     batch_timeout: int = 10,
+    max_wait_time: int = 300,
 ) -> None:
-    asyncio.run(_stage_worker_async(omni_stage, model, stage_payload, batch_timeout))
+    asyncio.run(_stage_worker_async(omni_stage, model, stage_payload, batch_timeout, max_wait_time))
 
 
 async def _stage_worker_async(
@@ -881,6 +886,7 @@ async def _stage_worker_async(
     model: str,
     stage_payload: dict[str, Any],
     batch_timeout: int = 10,
+    max_wait_time: int = 300,
 ) -> None:
     """Stage worker entry: device setup, LLM init, batching, SHM IPC."""
     import logging as _logging
@@ -1023,7 +1029,6 @@ async def _stage_worker_async(
 
                 # Acquire exclusive locks for all devices using fcntl.flock
                 # Locks are automatically released when process dies
-                max_wait_time = 300  # 5 minutes max wait
                 wait_start = _time.time()
                 acquired_lock_fds = []  # Store file descriptors to keep locks alive
 
@@ -1107,6 +1112,7 @@ async def _stage_worker_async(
             try:
                 _os.close(lock_fd)
                 _logging.getLogger(__name__).debug("[Stage-%s] Released initialization lock (fd=%s)", stage_id, lock_fd)
+                _logging.getLogger(__name__).info("[Stage-%s] Stage successfully initialized with %s seconds waiting for locks", stage_id, _time.time() - wait_start)
             except (OSError, ValueError):
                 pass
     omni_stage.set_async_engine(stage_engine)
