@@ -177,7 +177,7 @@ class AsyncOmni(EngineClient):
         # Build OmniStage instances in parallel, preserve original order
         def _build_stage(idx_cfg: tuple[int, Any]) -> tuple[int, OmniStage]:
             idx, cfg = idx_cfg
-            return idx, OmniStage(cfg)
+            return idx, OmniStage(cfg, stage_init_timeout=stage_init_timeout)
 
         with ThreadPoolExecutor(max_workers=min(len(self.stage_configs), max(1, os.cpu_count() or 1))) as executor:
             futures = [executor.submit(_build_stage, (idx, cfg)) for idx, cfg in enumerate(self.stage_configs)]
