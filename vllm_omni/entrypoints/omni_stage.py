@@ -221,7 +221,7 @@ class OmniStage:
                     model=model,
                     stage_payload=stage_payload,
                     batch_timeout=batch_timeout,
-                    max_wait_time=self._stage_init_timeout,
+                    stage_init_timeout=self._stage_init_timeout,
                 )
             else:
                 self._ray_actor = start_ray_actor(
@@ -379,7 +379,7 @@ def _stage_worker(
     out_q: mp.Queue,
     log_file: str | None = None,
     batch_timeout: int = 10,
-    max_wait_time: int = 300,
+    stage_init_timeout: int = 300,
 ) -> None:
     """Stage worker entry: device setup, LLM init, batching, SHM IPC."""
     import logging as _logging
@@ -582,7 +582,7 @@ def _stage_worker(
                                 _os.close(lock_fd)
 
                                 # Check if we've been waiting too long
-                                if _time.time() - wait_start > max_wait_time:
+                                if _time.time() - wait_start > stage_init_timeout:
                                     _logging.getLogger(__name__).warning(
                                         "[Stage-%s] Timeout waiting for device %s "
                                         "initialization lock, proceeding anyway",
@@ -876,9 +876,9 @@ def _stage_worker_async_entry(
     model: str,
     stage_payload: dict[str, Any],
     batch_timeout: int = 10,
-    max_wait_time: int = 300,
+    stage_init_timeout: int = 300,
 ) -> None:
-    asyncio.run(_stage_worker_async(omni_stage, model, stage_payload, batch_timeout, max_wait_time))
+    asyncio.run(_stage_worker_async(omni_stage, model, stage_payload, batch_timeout, stage_init_timeout))
 
 
 async def _stage_worker_async(
@@ -886,7 +886,7 @@ async def _stage_worker_async(
     model: str,
     stage_payload: dict[str, Any],
     batch_timeout: int = 10,
-    max_wait_time: int = 300,
+    stage_init_timeout: int = 300,
 ) -> None:
     """Stage worker entry: device setup, LLM init, batching, SHM IPC."""
     import logging as _logging
@@ -1058,7 +1058,7 @@ async def _stage_worker_async(
                                 _os.close(lock_fd)
 
                                 # Check if we've been waiting too long
-                                if _time.time() - wait_start > max_wait_time:
+                                if _time.time() - wait_start > stage_init_timeout:
                                     _logging.getLogger(__name__).warning(
                                         "[Stage-%s] Timeout waiting for device %s "
                                         "initialization lock, proceeding anyway",
