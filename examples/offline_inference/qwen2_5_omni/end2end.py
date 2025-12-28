@@ -322,8 +322,7 @@ def main(args):
     omni_llm = Omni(
         model=model_name,
         log_stats=args.enable_stats,
-        log_file=("omni_llm_pipeline.log" if args.enable_stats else None),
-        stage_init_timeout=args.stage_init_timeout,
+        init_sleep_seconds=args.init_sleep_seconds,
         batch_timeout=args.batch_timeout,
         init_timeout=args.init_timeout,
         shm_threshold_bytes=args.shm_threshold_bytes,
