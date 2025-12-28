@@ -125,6 +125,7 @@ class OmniStage:
         self._out_q: mp.Queue | None = None
         self._proc: mp.Process | None = None
         self._shm_threshold_bytes: int = 65536
+        self._stage_init_timeout: int = stage_init_timeout
 
     def set_engine(self, engine: LLMEngine) -> None:
         """Set the LLM engine for this stage.
