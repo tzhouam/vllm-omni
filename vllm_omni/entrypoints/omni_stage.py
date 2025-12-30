@@ -539,14 +539,6 @@ def _stage_worker(
                                 lock_acquired = True
                                 acquired_lock_fds.append(lock_fd)
                                 logger.debug("Acquired exclusive lock for device %s", device_id)
-                                logger.warning(
-                                    "================================================\n"
-                                    "Stage %s acquired lock for device %s with timeout %s \n"
-                                    "================================================",
-                                    stage_id,
-                                    device_id,
-                                    stage_init_timeout,
-                                )
                             except BlockingIOError:
                                 # Lock is held by another process
                                 _os.close(lock_fd)
@@ -556,15 +548,6 @@ def _stage_worker(
                                     logger.warning(
                                         "Timeout waiting for device %s initialization lock, proceeding anyway",
                                         device_id,
-                                    )
-                                    logger.warning(
-                                        "================================================\n"
-                                        "Stage %s timed out waiting for device %s initialization lock, "
-                                        "proceeding anyway with timeout %s \n"
-                                        "================================================",
-                                        stage_id,
-                                        device_id,
-                                        stage_init_timeout,
                                     )
                                     break
 
@@ -1001,14 +984,6 @@ async def _stage_worker_async(
                                 lock_acquired = True
                                 acquired_lock_fds.append(lock_fd)
                                 logger.debug("Acquired exclusive lock for device %s", device_id)
-                                logger.warning(
-                                    "================================================\n"
-                                    "Stage %s acquired lock for device %s with timeout %s \n"
-                                    "================================================",
-                                    stage_id,
-                                    device_id,
-                                    stage_init_timeout,
-                                )
                             except BlockingIOError:
                                 # Lock is held by another process
                                 _os.close(lock_fd)
@@ -1018,15 +993,6 @@ async def _stage_worker_async(
                                     logger.warning(
                                         "Timeout waiting for device %s initialization lock, "
                                         "proceeding anyway with timeout %s",
-                                        device_id,
-                                        stage_init_timeout,
-                                    )
-                                    logger.warning(
-                                        "================================================\n"
-                                        "Stage %s timed out waiting for device %s initialization lock, "
-                                        "proceeding anyway with timeout %s \n"
-                                        "================================================",
-                                        stage_id,
                                         device_id,
                                         stage_init_timeout,
                                     )
