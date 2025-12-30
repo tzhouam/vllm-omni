@@ -8,7 +8,7 @@ stage_args:
   - stage_id: 0
     stage_type: llm  # Use llm stage type to launch OmniLLM
     runtime:
-      devices: "0"
+      devices: "0,1"
       max_batch_size: 1
     engine_args:
       model_stage: thinker
@@ -23,7 +23,7 @@ stage_args:
       enable_prefix_caching: false
       max_num_batched_tokens: 32768
       hf_config_name: thinker_config
-      # tensor_parallel_size: 2
+      tensor_parallel_size: 2
     final_output: true
     final_output_type: text
     is_comprehension: true
@@ -39,7 +39,7 @@ stage_args:
   - stage_id: 1
     stage_type: llm  # Use llm stage type to launch OmniLLM
     runtime:
-      devices: "0"
+      devices: "1"
       max_batch_size: 1
     engine_args:
       model_stage: talker
@@ -82,7 +82,7 @@ stage_args:
       trust_remote_code: true
       enable_prefix_caching: false
       engine_output_type: audio  # Final output: audio waveform
-      gpu_memory_utilization: 0.05
+      gpu_memory_utilization: 0.1
       distributed_executor_backend: "mp"
       max_num_batched_tokens: 1000000
       hf_config_name: thinker_config
