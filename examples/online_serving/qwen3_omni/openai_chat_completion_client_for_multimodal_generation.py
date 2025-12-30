@@ -253,6 +253,7 @@ def get_audio_query(audio_path: str | None = None, custom_prompt: str | None = N
     }
     return prompt
 
+
 def get_mixed_modalities_query(
     video_path: str | None = None,
     image_path: str | None = None,
@@ -265,8 +266,7 @@ def get_mixed_modalities_query(
     - Returns the OpenAI-style message dict directly (not the offline QueryResult).
     """
     question = (
-        custom_prompt
-        or "What is recited in the audio? What is the content of this image? Why is this video funny?"
+        custom_prompt or "What is recited in the audio? What is the content of this image? Why is this video funny?"
     )
 
     audio_url = get_audio_url_from_path(audio_path)
@@ -282,7 +282,8 @@ def get_mixed_modalities_query(
             {"type": "text", "text": question},
         ],
     }
-    
+
+
 def get_multi_audios_query(custom_prompt: str | None = None):
     """
     Online-friendly two-audio comparison request.
@@ -302,6 +303,8 @@ def get_multi_audios_query(custom_prompt: str | None = None):
             {"type": "text", "text": question},
         ],
     }
+
+
 query_map = {
     "text": get_text_query,
     "use_audio": get_audio_query,

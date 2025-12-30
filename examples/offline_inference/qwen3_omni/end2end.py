@@ -142,11 +142,9 @@ def get_audio_query(question: str = None, audio_path: str | None = None, samplin
         limit_mm_per_prompt={"audio": 1},
     )
 
+
 def get_mixed_modalities_query() -> QueryResult:
-    question = (
-        "What is recited in the audio? "
-        "What is the content of this image? Why is this video funny?"
-    )
+    question = "What is recited in the audio? What is the content of this image? Why is this video funny?"
     prompt = (
         f"<|im_start|>system\n{default_system}<|im_end|>\n"
         "<|im_start|>user\n<|audio_start|><|audio_pad|><|audio_end|>"
@@ -160,15 +158,14 @@ def get_mixed_modalities_query() -> QueryResult:
             "prompt": prompt,
             "multi_modal_data": {
                 "audio": AudioAsset("mary_had_lamb").audio_and_sample_rate,
-                "image": convert_image_mode(
-                    ImageAsset("cherry_blossom").pil_image, "RGB"
-                ),
+                "image": convert_image_mode(ImageAsset("cherry_blossom").pil_image, "RGB"),
                 "video": VideoAsset(name="baby_reading", num_frames=16).np_ndarrays,
             },
         },
         limit_mm_per_prompt={"audio": 1, "image": 1, "video": 1},
     )
-    
+
+
 def get_multi_audios_query() -> QueryResult:
     question = "Are these two audio clips the same?"
     prompt = (
@@ -192,6 +189,8 @@ def get_multi_audios_query() -> QueryResult:
             "audio": 2,
         },
     )
+
+
 query_map = {
     "text": get_text_query,
     "use_audio": get_audio_query,

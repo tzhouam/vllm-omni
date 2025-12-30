@@ -16,7 +16,8 @@ from transformers.models.qwen3_omni_moe.configuration_qwen3_omni_moe import (
 )
 from vllm.config import VllmConfig
 from vllm.logger import init_logger
-from vllm.model_executor.models.interfaces import SupportsMultiModal, SupportsPP, SupportsMRoPE
+from vllm.model_executor.layers.rotary_embedding import MRotaryEmbedding
+from vllm.model_executor.models.interfaces import SupportsMRoPE, SupportsMultiModal, SupportsPP
 from vllm.model_executor.models.qwen3_omni_moe_thinker import (
     Qwen3OmniMoeConditionalGenerationMixin,
     Qwen3OmniMoeThinkerDummyInputsBuilder,
@@ -25,6 +26,7 @@ from vllm.model_executor.models.qwen3_omni_moe_thinker import (
 )
 from vllm.model_executor.models.utils import init_vllm_registered_model, maybe_prefix
 from vllm.multimodal import MULTIMODAL_REGISTRY
+from vllm.multimodal.inputs import MultiModalFeatureSpec
 from vllm.sequence import IntermediateTensors
 from vllm.v1.outputs import SamplerOutput
 from vllm.v1.sample.metadata import SamplingMetadata
@@ -34,8 +36,6 @@ from vllm_omni.model_executor.custom_process_mixin import CustomProcessMixin
 from vllm_omni.model_executor.models.output_templates import OmniOutput
 from vllm_omni.model_executor.models.utils import add_prefix_to_loaded_weights, safe_tensor_reshape
 from vllm_omni.utils.platform_utils import is_npu
-from vllm.multimodal.inputs import MultiModalFeatureSpec
-from vllm.model_executor.layers.rotary_embedding import MRotaryEmbedding
 
 # Special token IDs for Qwen3 Omni MoE
 # Reference: https://huggingface.co/Qwen/Qwen3-Omni-30B-A3B-Instruct/blob/main/tokenizer_config.json
@@ -260,6 +260,7 @@ class Qwen3OmniMoeForConditionalGeneration(
             )
             if i != self.config.talker_config.codec_eos_token_id
         ]
+
     def get_mrope_input_positions(
         self,
         input_tokens: list[int],
@@ -272,7 +273,6 @@ class Qwen3OmniMoeForConditionalGeneration(
                 raise ValueError(msg)
             return self.thinker.get_mrope_input_positions(input_tokens, mm_features)
         return MRotaryEmbedding.get_input_positions_tensor(input_tokens, **kwargs)
-
 
     def forward(
         self,
