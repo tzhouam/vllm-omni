@@ -263,13 +263,15 @@ class Qwen3OmniMoeForConditionalGeneration(
     def get_mrope_input_positions(
         self,
         input_tokens: list[int],
-        mm_features: list[MultiModalFeatureSpec],
+        mm_features: list[MultiModalFeatureSpec] | None = None,
         **kwargs: object,
     ) -> tuple[torch.Tensor, int]:
         if self.model_stage == "thinker":
+            if mm_features is None:
+                msg = "Qwen3 Omni thinker get_mrope_input_positions requires mm_features"
+                raise ValueError(msg)
             return self.thinker.get_mrope_input_positions(input_tokens, mm_features)
-        else:
-            return MRotaryEmbedding.get_input_positions_tensor(input_tokens, **kwargs)
+        return MRotaryEmbedding.get_input_positions_tensor(input_tokens, **kwargs)
 
 
     def forward(
