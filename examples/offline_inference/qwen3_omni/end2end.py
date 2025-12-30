@@ -168,13 +168,37 @@ def get_mixed_modalities_query() -> QueryResult:
         },
         limit_mm_per_prompt={"audio": 1, "image": 1, "video": 1},
     )
-
+    
+def get_multi_audios_query() -> QueryResult:
+    question = "Are these two audio clips the same?"
+    prompt = (
+        f"<|im_start|>system\n{default_system}<|im_end|>\n"
+        "<|im_start|>user\n<|audio_start|><|audio_pad|><|audio_end|>"
+        "<|audio_start|><|audio_pad|><|audio_end|>"
+        f"{question}<|im_end|>\n"
+        f"<|im_start|>assistant\n"
+    )
+    return QueryResult(
+        inputs={
+            "prompt": prompt,
+            "multi_modal_data": {
+                "audio": [
+                    AudioAsset("winning_call").audio_and_sample_rate,
+                    AudioAsset("mary_had_lamb").audio_and_sample_rate,
+                ],
+            },
+        },
+        limit_mm_per_prompt={
+            "audio": 2,
+        },
+    )
 query_map = {
     "text": get_text_query,
     "use_audio": get_audio_query,
     "use_image": get_image_query,
     "use_video": get_video_query,
     "use_mixed_modalities": get_mixed_modalities_query,
+    "use_multi_audios": get_multi_audios_query,
 }
 
 
