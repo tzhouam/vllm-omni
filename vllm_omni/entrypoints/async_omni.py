@@ -51,7 +51,9 @@ class AsyncOmni(OmniBase):
               configurations. If None, configurations are loaded from the model.
             - log_stats: Whether to enable statistics logging
               be written to files with stage-specific suffixes.
-            - stage_init_timeout: Timeout for initializing a single stage in seconds.
+            - stage_init_timeout: Per-stage init watchdog (seconds). Measured from
+              when the previous stage finished (possibly a prior Omni run with GPU
+              reuse/overlap) to when the current stage starts to initialize.
             - shm_threshold_bytes: Threshold in bytes for using shared memory
               for IPC. Objects larger than this threshold will use shared memory.
             - worker_backend: Backend for worker processes. Default is "multi_process".
