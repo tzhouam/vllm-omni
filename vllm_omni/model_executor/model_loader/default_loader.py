@@ -3,6 +3,7 @@ import os
 import time
 
 from transformers.utils import SAFE_WEIGHTS_INDEX_NAME
+from vllm.config.load import LoadConfig
 from vllm.logger import init_logger
 from vllm.model_executor.model_loader.default_loader import DefaultModelLoader
 from vllm.model_executor.model_loader.weight_utils import (
@@ -18,6 +19,18 @@ logger = init_logger(__name__)
 
 
 class OmniDefaultModelLoader(DefaultModelLoader):
+    def __init__(self, load_config: LoadConfig):
+        super().__init__(load_config)
+
+        extra_config = load_config.model_loader_extra_config
+        allowed_keys = {"enable_multithread_load", "num_threads", "download_hook"}
+        unexpected_keys = set(extra_config.keys()) - allowed_keys
+
+        if unexpected_keys:
+            raise ValueError(
+                f"Unexpected extra config keys for load format {load_config.load_format}: {unexpected_keys}"
+            )
+
     def _prepare_weights(
         self,
         model_name_or_path: str,
