@@ -1,6 +1,9 @@
 import base64
+import io
 import os
 from typing import NamedTuple
+
+import numpy as np
 
 import requests
 from openai import OpenAI
@@ -18,6 +21,7 @@ client = OpenAI(
 )
 
 SEED = 42
+SYNTHETIC_IMAGE_RNG = np.random.default_rng(SEED)
 
 
 class QueryResult(NamedTuple):
@@ -158,6 +162,22 @@ def get_audio_url_from_path(audio_path: str | None) -> str:
     return f"data:{mime_type};base64,{audio_base64}"
 
 
+def generate_synthetic_image(width: int, height: int) -> str:
+    """Generate synthetic image as JPEG data URL."""
+    image = SYNTHETIC_IMAGE_RNG.integers(0, 256, (height, width, 3), dtype=np.uint8)
+
+    from PIL import Image
+
+    pil_image = Image.fromarray(image)
+    pil_image = pil_image.convert("RGB")
+    buffer = io.BytesIO()
+    pil_image.save(buffer, format="JPEG", quality=85, optimize=True)
+    buffer.seek(0)
+    image_bytes = buffer.read()
+
+    return f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}"
+
+
 def get_system_prompt():
     return {
         "role": "system",
@@ -284,6 +304,25 @@ def get_mixed_modalities_query(
     }
 
 
+def get_multiple_synthetic_images_query(
+    custom_prompt: str | None = None, num_images: int = 4
+):
+    """Generate multiple synthetic images and ask a text question."""
+    question = (
+        custom_prompt
+        or "Describe the content of these synthetic images and summarize any notable details."
+    )
+    images = [generate_synthetic_image(1280, 720) for _ in range(num_images)]
+    return {
+        "role": "user",
+        "content": [
+            {"type": "image_url", "image_url": {"url": image_url}}
+            for image_url in images
+        ]
+        + [{"type": "text", "text": question}],
+    }
+
+
 def get_multi_audios_query(custom_prompt: str | None = None):
     """
     Online-friendly two-audio comparison request.
@@ -312,6 +351,7 @@ query_map = {
     "use_video": get_video_query,
     "use_mixed_modalities": get_mixed_modalities_query,
     "use_multi_audios": get_multi_audios_query,
+    "multiple_synthetic_images": get_multiple_synthetic_images_query,
 }
 
 
@@ -371,6 +411,8 @@ def run_multimodal_generation(args) -> None:
     elif args.query_type == "use_audio":
         prompt = query_func(audio_path=audio_path, custom_prompt=custom_prompt)
     elif args.query_type == "text":
+        prompt = query_func(custom_prompt=custom_prompt)
+    elif args.query_type == "multiple_synthetic_images":
         prompt = query_func(custom_prompt=custom_prompt)
     else:
         prompt = query_func()
