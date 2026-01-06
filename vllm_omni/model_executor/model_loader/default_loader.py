@@ -20,7 +20,7 @@ logger = init_logger(__name__)
 
 class OmniDefaultModelLoader(DefaultModelLoader):
     def __init__(self, load_config: LoadConfig):
-        super().__init__(load_config)
+        self.load_config = load_config
 
         extra_config = load_config.model_loader_extra_config
         allowed_keys = {"enable_multithread_load", "num_threads", "download_hook"}
