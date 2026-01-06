@@ -223,6 +223,69 @@ def get_multi_audios_query() -> QueryResult:
             "audio": 2,
         },
     )
+    
+def get_multi_images_query() -> QueryResult:
+    question = "Are these four images the same?"
+    prompt = (
+        f"<|im_start|>system\n{default_system}<|im_end|>\n"
+        "<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>"
+        "<|vision_start|><|image_pad|><|vision_end|>"
+        "<|vision_start|><|image_pad|><|vision_end|>"
+        "<|vision_start|><|image_pad|><|vision_end|>"
+        f"{question}<|im_end|>\n"
+        f"<|im_start|>assistant\n"
+    )
+    return QueryResult(
+        inputs={
+            "prompt": prompt,
+            "multi_modal_data": {
+                "image": [
+                    ImageAsset("cherry_blossom").pil_image,
+                    ImageAsset("cherry_blossom").pil_image,
+                    ImageAsset("cherry_blossom").pil_image,
+                    ImageAsset("cherry_blossom").pil_image,
+                ],
+            },
+        },
+        limit_mm_per_prompt={
+            "image": 4,
+        },
+    )
+def generate_synthetic_image(width: int, height: int) -> Any:
+    """Generate synthetic image with random values."""
+    from PIL import Image
+
+    image = np.random.randint(0, 256, (height, width, 3), dtype=np.uint8)
+    pil_image = Image.fromarray(image)
+    return convert_image_mode(pil_image, "RGB")
+
+def get_multi_synthetic_images_query() -> QueryResult:
+    question = "Are these four images the same?"
+    prompt = (
+        f"<|im_start|>system\n{default_system}<|im_end|>\n"
+        "<|im_start|>user\n<|vision_start|><|image_pad|><|vision_end|>"
+        "<|vision_start|><|image_pad|><|vision_end|>"
+        "<|vision_start|><|image_pad|><|vision_end|>"
+        "<|vision_start|><|image_pad|><|vision_end|>"
+        f"{question}<|im_end|>\n"
+        f"<|im_start|>assistant\n"
+    )
+    return QueryResult(
+        inputs={
+            "prompt": prompt,
+            "multi_modal_data": {
+                "image": [
+                    generate_synthetic_image(1280, 720),
+                    generate_synthetic_image(1280, 720),
+                    generate_synthetic_image(1280, 720),
+                    generate_synthetic_image(1280, 720),
+                ],
+            },
+        },
+        limit_mm_per_prompt={
+            "image": 4,
+        },
+    )
 
 
 query_map = {
@@ -231,6 +294,8 @@ query_map = {
     "use_image": get_image_query,
     "use_video": get_video_query,
     "multi_audios": get_multi_audios_query,
+    "multi_images": get_multi_images_query,
+    "multi_synthetic_images": get_multi_synthetic_images_query,
     "mixed_modalities": get_mixed_modalities_query,
 }
 
@@ -385,7 +450,7 @@ def parse_args():
         "--query-type",
         "-q",
         type=str,
-        default="mixed_modalities",
+        default="multi_synthetic_images",
         choices=query_map.keys(),
         help="Query type.",
     )
