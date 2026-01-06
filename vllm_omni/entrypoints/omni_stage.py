@@ -13,6 +13,7 @@ import multiprocessing as mp
 import os
 import queue
 import sys
+import time
 import traceback
 from dataclasses import fields
 from typing import Any
@@ -48,6 +49,21 @@ from vllm_omni.inputs.data import OmniTokensPrompt
 from vllm_omni.utils import detect_device_type
 
 logger = init_logger(__name__)
+
+
+def _emit_stage_init_status(
+    out_q: mp.queues.Queue | None, stage_id: int, phase: str, duration_ms: float | None = None
+) -> None:
+    """Send a non-blocking init status message to orchestrator."""
+    if out_q is None:
+        return
+    payload = {"type": "stage_init_status", "stage_id": stage_id, "phase": phase}
+    if duration_ms is not None:
+        payload["duration_ms"] = duration_ms
+    try:
+        out_q.put(payload)
+    except Exception:
+        logger.debug("Failed to emit stage_init_status: %s", payload)
 
 
 def _build_od_config(engine_args: dict[str, Any], model: str) -> dict[str, Any]:
@@ -585,15 +601,64 @@ def _stage_worker(
                 lock_files = acquired_lock_fds
         except Exception as e:
             logger.debug("[Stage-%s] Failed to set up sequential initialization lock: %s", stage_id, e)
+    # Attach download hook to propagate status back to orchestrator
+    hook_emitted = {"start": False, "done": False}
+    hook_t0: float | None = None
+
+    def _stage_download_hook(event: str, info: dict) -> None:
+        nonlocal hook_t0
+        if event == "download_start":
+            hook_t0 = time.perf_counter()
+            hook_emitted["start"] = True
+            _emit_stage_init_status(out_q, stage_id, "download_start")
+        elif event == "download_done":
+            hook_emitted["done"] = True
+            duration_ms = info.get("duration_ms")
+            if duration_ms is None and hook_t0 is not None:
+                duration_ms = (time.perf_counter() - hook_t0) * 1000
+            _emit_stage_init_status(out_q, stage_id, "download_done", duration_ms=duration_ms)
+
+    cfg = engine_args.get("model_loader_extra_config")
+    if isinstance(cfg, dict):
+        cfg = dict(cfg)
+        user_hook = cfg.get("download_hook")
+        if user_hook is not None:
+
+            def _combined_hook(event: str, info: dict) -> None:
+                try:
+                    user_hook(event, info)
+                except Exception:
+                    logger.debug("user download_hook raised")
+                _stage_download_hook(event, info)
+
+            cfg["download_hook"] = _combined_hook
+        else:
+            cfg["download_hook"] = _stage_download_hook
+    else:
+        cfg = {"download_hook": _stage_download_hook}
+    engine_args["model_loader_extra_config"] = cfg
+
     # Init engine based on stage_type
     logger.debug("[Stage-%s] Initializing %s engine with args keys=%s", stage_id, stage_type, list(engine_args.keys()))
+    _download_t0 = time.perf_counter()
     try:
-        if stage_type == "diffusion":
-            engine_args.pop("model_stage")
-            stage_engine = OmniDiffusion(**engine_args)
-        else:
-            # Default to LLM engine
-            stage_engine = OmniLLM(model=model, **engine_args)
+        try:
+            if stage_type == "diffusion":
+                engine_args.pop("model_stage")
+                stage_engine = OmniDiffusion(**engine_args)
+            else:
+                # Default to LLM engine
+                stage_engine = OmniLLM(model=model, **engine_args)
+        finally:
+            if not hook_emitted["start"]:
+                _emit_stage_init_status(out_q, stage_id, "download_start")
+            if not hook_emitted["done"]:
+                _emit_stage_init_status(
+                    out_q,
+                    stage_id,
+                    "download_done",
+                    duration_ms=(time.perf_counter() - _download_t0) * 1000,
+                )
     finally:
         # Release all locks by closing file descriptors
         # Locks are automatically released when file descriptors are closed
@@ -1035,12 +1100,50 @@ async def _stage_worker_async(
             logger.debug("Failed to set up sequential initialization lock: %s", e)
 
     # Init engine based on stage_type
+    # Attach download hook to propagate status back to orchestrator
+    hook_emitted = {"start": False, "done": False}
+    hook_t0: float | None = None
+
+    def _stage_download_hook(event: str, info: dict) -> None:
+        nonlocal hook_t0
+        if event == "download_start":
+            hook_t0 = time.perf_counter()
+            hook_emitted["start"] = True
+            _emit_stage_init_status(out_q, stage_id, "download_start")
+        elif event == "download_done":
+            hook_emitted["done"] = True
+            duration_ms = info.get("duration_ms")
+            if duration_ms is None and hook_t0 is not None:
+                duration_ms = (time.perf_counter() - hook_t0) * 1000
+            _emit_stage_init_status(out_q, stage_id, "download_done", duration_ms=duration_ms)
+
+    cfg = engine_args.get("model_loader_extra_config")
+    if isinstance(cfg, dict):
+        cfg = dict(cfg)
+        user_hook = cfg.get("download_hook")
+        if user_hook is not None:
+
+            def _combined_hook(event: str, info: dict) -> None:
+                try:
+                    user_hook(event, info)
+                except Exception:
+                    logger.debug("user download_hook raised")
+                _stage_download_hook(event, info)
+
+            cfg["download_hook"] = _combined_hook
+        else:
+            cfg["download_hook"] = _stage_download_hook
+    else:
+        cfg = {"download_hook": _stage_download_hook}
+    engine_args["model_loader_extra_config"] = cfg
+
     logger.debug(
         "[Stage-%s] Initializing %s engine with args keys=%s",
         stage_id,
         stage_type,
         list(engine_args.keys()),
     )
+    _download_t0 = time.perf_counter()
     try:
         if stage_type == "diffusion":
             # For diffusion, we need to extract diffusion-specific config
@@ -1062,6 +1165,15 @@ async def _stage_worker_async(
                 engine_args=omni_engine_args,
             )
     finally:
+        if not hook_emitted["start"]:
+            _emit_stage_init_status(out_q, stage_id, "download_start")
+        if not hook_emitted["done"]:
+            _emit_stage_init_status(
+                out_q,
+                stage_id,
+                "download_done",
+                duration_ms=(time.perf_counter() - _download_t0) * 1000,
+            )
         # Release all locks by closing file descriptors
         # Locks are automatically released when file descriptors are closed
         # or when process dies

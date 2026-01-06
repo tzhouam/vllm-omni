@@ -4,6 +4,7 @@ from vllm.inputs.data import TokensPrompt as _OriginalTokensPrompt
 from vllm.model_executor.layers.rotary_embedding import (
     MRotaryEmbedding as _OriginalMRotaryEmbedding,
 )
+from vllm.model_executor.model_loader.default_loader import DefaultModelLoader as _OriginalDefaultModelLoader
 from vllm.v1.engine import EngineCoreOutput as _OriginalEngineCoreOutput
 from vllm.v1.engine import EngineCoreOutputs as _OriginalEngineCoreOutputs
 from vllm.v1.engine import EngineCoreRequest as _OriginalEngineCoreRequest
@@ -13,6 +14,7 @@ import vllm_omni.logger  # noqa: F401
 from vllm_omni.engine import OmniEngineCoreOutput, OmniEngineCoreOutputs, OmniEngineCoreRequest
 from vllm_omni.inputs.data import OmniTokensPrompt
 from vllm_omni.model_executor.layers.mrope import MRotaryEmbedding
+from vllm_omni.model_executor.model_loader.default_loader import OmniDefaultModelLoader
 from vllm_omni.request import OmniRequest
 from vllm_omni.utils import is_npu
 
@@ -32,6 +34,8 @@ for module_name, module in sys.modules.items():
         module.Request = OmniRequest
     if hasattr(module, "EngineCoreRequest") and module.EngineCoreRequest == _OriginalEngineCoreRequest:
         module.EngineCoreRequest = OmniEngineCoreRequest
+    if hasattr(module, "DefaultModelLoader") and module.DefaultModelLoader == _OriginalDefaultModelLoader:
+        module.DefaultModelLoader = OmniDefaultModelLoader
 
 
 # Patch for vllm-ascend prefetch functions bug fix

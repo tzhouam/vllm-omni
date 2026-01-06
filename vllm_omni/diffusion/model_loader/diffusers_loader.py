@@ -114,14 +114,41 @@ class DiffusersPipelineLoader:
         if subfolder is not None:
             allow_patterns = [f"{subfolder}/{pattern}" for pattern in allow_patterns]
 
+        extra_config = getattr(self.load_config, "model_loader_extra_config", {}) or {}
+        download_hook = extra_config.get("download_hook") if isinstance(extra_config, dict) else None
+
+        def _emit(event: str, info: dict) -> None:
+            if download_hook is None:
+                return
+            try:
+                download_hook(event, info)
+            except Exception:
+                logger.debug("download_hook failed on event=%s", event)
+
         if not is_local:
-            hf_folder = download_weights_from_hf(
-                model_name_or_path,
-                self.load_config.download_dir,
-                allow_patterns,
-                revision,
-                ignore_patterns=self.load_config.ignore_patterns,
+            _emit(
+                "download_start",
+                {"model": str(model_name_or_path), "revision": revision, "subfolder": subfolder},
             )
+            _t0 = time.perf_counter()
+            try:
+                hf_folder = download_weights_from_hf(
+                    model_name_or_path,
+                    self.load_config.download_dir,
+                    allow_patterns,
+                    revision,
+                    ignore_patterns=self.load_config.ignore_patterns,
+                )
+            finally:
+                _emit(
+                    "download_done",
+                    {
+                        "model": str(model_name_or_path),
+                        "revision": revision,
+                        "subfolder": subfolder,
+                        "duration_ms": (time.perf_counter() - _t0) * 1000,
+                    },
+                )
         else:
             hf_folder = model_name_or_path
 

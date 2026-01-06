@@ -292,21 +292,67 @@ class OmniBase:
     def _wait_for_stages_ready(self, timeout: int = 120) -> None:
         """Wait for all stages to report readiness with optimized polling."""
         num_stages = len(self.stage_list)
-        deadline = time.time() + max(0, int(timeout))
+        start_ts = time.time()
+        timeout = max(0, int(timeout))
+        stage_states = {
+            idx: {
+                "deadline": start_ts + timeout,
+                "pause_start": None,
+                "paused": 0.0,
+            }
+            for idx in range(num_stages)
+        }
+
+        def _effective_deadline(states: dict[int, dict]) -> float:
+            pending = []
+            for sid, st in states.items():
+                if sid in self._stages_ready:
+                    continue
+                if st["pause_start"] is not None:
+                    # While paused, allow an extra `timeout` window before giving up
+                    pending.append(st["deadline"] + timeout)
+                else:
+                    pending.append(st["deadline"])
+            return min(pending) if pending else start_ts + timeout
 
         logger.info(f"[{self._name}] Waiting for {num_stages} stages to initialize (timeout: {timeout}s)")
 
-        while len(self._stages_ready) < num_stages and time.time() < deadline:
+        while len(self._stages_ready) < num_stages and time.time() < _effective_deadline(stage_states):
             progressed = False
             for stage_id, stage in enumerate(self.stage_list):
                 if stage_id in self._stages_ready:
                     continue
 
-                # Check if the stage has reported status
-                if result := stage.try_collect():
+                # Drain all available status for this stage
+                while True:
+                    result = stage.try_collect()
+                    if not result:
+                        break
                     progressed = True
-                    if result.get("type") == "stage_ready":
+                    r_type = result.get("type")
+                    if r_type == "stage_ready":
                         self._process_stage_ready(stage, stage_id, result)
+                        break
+                    if r_type == "stage_init_status":
+                        phase = result.get("phase")
+                        st = stage_states[stage_id]
+                        now = time.time()
+                        if phase == "download_start":
+                            st["pause_start"] = now
+                        elif phase == "download_done":
+                            pause_start = st.get("pause_start")
+                            delta = result.get("duration_ms", None)
+                            if delta is not None:
+                                delta = float(delta) / 1000.0
+                            elif pause_start is not None:
+                                delta = now - pause_start
+                            else:
+                                delta = 0.0
+                            st["deadline"] += delta
+                            st["paused"] += delta
+                            st["pause_start"] = None
+                        continue
+                    # Ignore other message types here
 
             if not progressed:
                 time.sleep(0.05)
