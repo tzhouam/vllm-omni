@@ -962,6 +962,29 @@ class Qwen3OmniMoeForConditionalGeneration(
 
     # ==================== Logits and Sampling ====================
 
+    def _warn_talker_sampling_temperature(self, sampling_metadata: SamplingMetadata):
+        warning_parts = []
+        if sampling_metadata.temperature is None:
+            warning_parts.append(
+                "Temperature is set to None, as all requests are greedy. "
+                "This is equivalent to setting temperature to 0.0."
+                "Please consider setting a higher temperature i.e. 0.4."
+            )
+        else:
+            warning_parts.append(
+                "Temperature is set to: "
+                f"{sampling_metadata.temperature}, where temperature as 0.0 may "
+                "cause repetitive output. Please consider setting a higher "
+                "temperature i.e. 0.4."
+            )
+        warning_parts.append(
+            "This warning will be shown only once, for the first request where "
+            "temperature is 0.0. Later requests will not show this warning but "
+            "still be affected by the temperature."
+        )
+        warning_info = "\n".join(warning_parts)
+        logger.warning_once(warning_info)
+
     def compute_logits(
         self,
         hidden_states: torch.Tensor | OmniOutput,
@@ -977,26 +1000,7 @@ class Qwen3OmniMoeForConditionalGeneration(
             and sampling_metadata is not None
             and (sampling_metadata.temperature is None or (sampling_metadata.temperature <= 0).any())
         ):
-            warning_parts = []
-            if sampling_metadata.temperature is None:
-                warning_parts.append(
-                    "Temperature is set to None, as all requests are greedy. "
-                    "This is equivalent to setting temperature to 0.0."
-                )
-            else:
-                warning_parts.append(
-                    "Temperature is set to: "
-                    f"{sampling_metadata.temperature}, where temperature as 0.0 may "
-                    "cause repetitive output. Please consider setting a higher "
-                    "temperature i.e. 0.4."
-                )
-            warning_parts.append(
-                "This warning will be shown only once, for the first request where "
-                "temperature is 0.0. Later requests will not show this warning but "
-                "still be affected by the temperature."
-            )
-            warning_info = "\n".join(warning_parts)
-            logger.warning_once(warning_info)
+            self._warn_talker_sampling_temperature(sampling_metadata)
 
         # Use active model for logits computation
         logits = self.model.compute_logits(hidden_states)  # V, d
