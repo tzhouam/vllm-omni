@@ -194,6 +194,78 @@ class LayerTracer:
                 deduplicated.append(info)
         return deduplicated
 
+    def _get_layer_pattern(self, name: str) -> str:
+        """
+        Extract a pattern from layer name by replacing numeric indices with {N}.
+        Example: 'thinker.model.layers.5.mlp' -> 'thinker.model.layers.{N}.mlp'
+        """
+        import re
+        # Replace numeric indices (surrounded by dots or at end) with {N}
+        pattern = re.sub(r'\.(\d+)(\.|\Z)', r'.{N}\2', name)
+        return pattern
+
+    def _collapse_repeated_layers(self, info_list: list[LayerInfo]) -> list[LayerInfo]:
+        """
+        Collapse repeated layers (like layers.0, layers.1, ..., layers.47) into one representative.
+        Returns a list with only one representative for each repeated pattern, 
+        with the name modified to show the range.
+        """
+        import re
+        from collections import OrderedDict
+        
+        if not info_list:
+            return info_list
+        
+        # Group layers by pattern
+        pattern_groups: dict[str, list[LayerInfo]] = OrderedDict()
+        for info in info_list:
+            pattern = self._get_layer_pattern(info.name)
+            if pattern not in pattern_groups:
+                pattern_groups[pattern] = []
+            pattern_groups[pattern].append(info)
+        
+        # Create collapsed list
+        collapsed = []
+        for pattern, group in pattern_groups.items():
+            if len(group) == 1:
+                # No repetition, keep as is
+                collapsed.append(group[0])
+            else:
+                # Multiple layers with same pattern - use first one as representative
+                representative = group[0]
+                
+                # Extract indices to show range
+                indices = []
+                for info in group:
+                    match = re.search(r'\.(\d+)(\.|\Z)', info.name)
+                    if match:
+                        indices.append(int(match.group(1)))
+                
+                if indices:
+                    min_idx, max_idx = min(indices), max(indices)
+                    # Modify name to show range, e.g., "layers.[0-47]"
+                    new_name = re.sub(
+                        r'\.(\d+)(\.|\Z)', 
+                        f'.[{min_idx}-{max_idx}]\\2', 
+                        representative.name
+                    )
+                    # Create new LayerInfo with modified name
+                    collapsed_info = LayerInfo(
+                        name=new_name,
+                        module_type=f"{representative.module_type} (x{len(group)})",
+                        input_shapes=representative.input_shapes,
+                        input_dtypes=representative.input_dtypes,
+                        output_shapes=representative.output_shapes,
+                        output_dtypes=representative.output_dtypes,
+                        call_order=representative.call_order,
+                    )
+                    collapsed.append(collapsed_info)
+                else:
+                    # Fallback: just use first one
+                    collapsed.append(group[0])
+        
+        return collapsed
+
     def _get_subcomponent(self, name: str, module_type: str = "") -> str:
         """
         Classify a layer into a sub-component category.
@@ -341,6 +413,7 @@ class LayerTracer:
         max_nodes: int = 200,
         compact: bool = False,
         max_layer_depth: int | None = None,
+        collapse_repeated: bool = True,
     ) -> str:
         """
         Generate a mermaid flowchart showing model structure and data flow.
@@ -356,6 +429,7 @@ class LayerTracer:
             max_nodes: Maximum number of nodes in the diagram (default: 200)
             compact: Use compact labels (shorter names/types)
             max_layer_depth: Maximum layer nesting depth (None = no limit)
+            collapse_repeated: If True, collapse repeated layers (like layers.0-47) into one (default: True)
 
         Returns:
             Mermaid diagram string
@@ -373,6 +447,10 @@ class LayerTracer:
             filtered = self._filter_by_component(deduplicated, component)
         
         filtered = self._filter_by_depth(filtered, max_layer_depth)
+        
+        # Collapse repeated layers (e.g., layers.0, layers.1, ... -> layers.[0-47])
+        if collapse_repeated:
+            filtered = self._collapse_repeated_layers(filtered)
 
         # Generate nodes and edges
         node_lines, edge_count, node_count = self._generate_mermaid_nodes(
@@ -385,7 +463,6 @@ class LayerTracer:
         lines.extend(node_lines)
 
         return "\n".join(lines)
-
     def generate_mermaid_by_subcomponent(
         self,
         include_details: bool = True,
