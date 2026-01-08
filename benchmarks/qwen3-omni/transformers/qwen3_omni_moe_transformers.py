@@ -194,34 +194,39 @@ class LayerTracer:
                 deduplicated.append(info)
         return deduplicated
 
-    def _get_subcomponent(self, name: str) -> str:
+    def _get_subcomponent(self, name: str, module_type: str = "") -> str:
         """
         Classify a layer into a sub-component category.
         
         Categories:
         - thinker: Base thinker model (non-MoE layers)
-        - thinker_moe: MoE specific layers in thinker (experts, gate, shared_expert)
+        - thinker_moe: MoE specific layers in thinker (SparseMoeBlock)
         - talker_lm: Talker language model (non-MoE, non-MTP layers)
         - talker_moe: MoE specific layers in talker
-        - talker_mtp: Multi-token prediction layers in talker
+        - talker_mtp: Multi-token prediction / code predictor layers in talker
         - code2wav: Code2Wav vocoder
         """
         name_lower = name.lower()
+        type_lower = module_type.lower()
         
         if name.startswith("code2wav"):
             return "code2wav"
         elif name.startswith("talker"):
-            # Check for MTP (multi-token prediction)
-            if "mtp" in name_lower:
+            # Check for Code Predictor / MTP (multi-token prediction)
+            if "code_predictor" in name_lower or "codec_head" in name_lower:
                 return "talker_mtp"
-            # Check for MoE components
+            # Check for MoE components - by name or module type
             elif any(x in name_lower for x in ["experts", "gate", "shared_expert", "router"]):
+                return "talker_moe"
+            elif "sparsemoeblock" in type_lower or ("moe" in type_lower and ".mlp" in name_lower):
                 return "talker_moe"
             else:
                 return "talker_lm"
         elif name.startswith("thinker"):
-            # Check for MoE components
+            # Check for MoE components - by name or module type
             if any(x in name_lower for x in ["experts", "gate", "shared_expert", "router"]):
+                return "thinker_moe"
+            elif "sparsemoeblock" in type_lower or ("moe" in type_lower and ".mlp" in name_lower):
                 return "thinker_moe"
             else:
                 return "thinker"
@@ -232,7 +237,7 @@ class LayerTracer:
         self, info_list: list[LayerInfo], subcomponent: str
     ) -> list[LayerInfo]:
         """Filter layer info by sub-component category."""
-        return [info for info in info_list if self._get_subcomponent(info.name) == subcomponent]
+        return [info for info in info_list if self._get_subcomponent(info.name, info.module_type) == subcomponent]
 
     def _filter_by_component(
         self, info_list: list[LayerInfo], component: str | None
@@ -416,7 +421,7 @@ class LayerTracer:
         # Identify all sub-components present
         subcomponents = set()
         for info in deduplicated:
-            subcomponents.add(self._get_subcomponent(info.name))
+            subcomponents.add(self._get_subcomponent(info.name, info.module_type))
         
         # Remove "other" if present
         subcomponents.discard("other")
@@ -753,7 +758,7 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
                 {
                     "name": info.name,
                     "type": info.module_type,
-                    "subcomponent": self.tracer._get_subcomponent(info.name),
+                    "subcomponent": self.tracer._get_subcomponent(info.name, info.module_type),
                     "input_shapes": [list(s) for s in info.input_shapes],
                     "input_dtypes": info.input_dtypes,
                     "output_shapes": [list(s) for s in info.output_shapes],
