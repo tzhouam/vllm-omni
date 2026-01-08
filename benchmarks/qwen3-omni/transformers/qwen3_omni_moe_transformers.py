@@ -470,13 +470,16 @@ class LayerTracer:
         max_nodes: int = 200,
         compact: bool = False,
         max_layer_depth: int | None = None,
+        include_overall: bool = True,
     ) -> dict[str, str]:
         """
         Generate separate mermaid diagrams for each sub-component.
 
-        Sub-components:
+        Components generated:
+        - thinker_overall: All thinker layers combined (if include_overall=True)
         - thinker: Base thinker model (non-MoE layers)
         - thinker_moe: MoE specific layers in thinker
+        - talker_overall: All talker layers combined (if include_overall=True)
         - talker_lm: Talker language model (non-MoE, non-MTP)
         - talker_moe: MoE specific layers in talker
         - talker_mtp: Multi-token prediction layers in talker
@@ -488,29 +491,55 @@ class LayerTracer:
             max_nodes: Maximum number of nodes per diagram (default: 200)
             compact: Use compact labels (shorter names/types)
             max_layer_depth: Maximum layer nesting depth (None = no limit)
+            include_overall: If True, also generate overall thinker/talker graphs (default: True)
 
         Returns:
-            Dict mapping sub-component name to mermaid diagram string
+            Dict mapping component/sub-component name to mermaid diagram string
         """
         # First deduplicate
         deduplicated = self._deduplicate_layers(self.prefill_info)
         
         # Identify all sub-components present
         subcomponents = set()
+        top_components = set()
         for info in deduplicated:
-            subcomponents.add(self._get_subcomponent(info.name, info.module_type))
+            subcomp = self._get_subcomponent(info.name, info.module_type)
+            subcomponents.add(subcomp)
+            # Also track top-level components
+            if info.name.startswith("thinker"):
+                top_components.add("thinker")
+            elif info.name.startswith("talker"):
+                top_components.add("talker")
+            elif info.name.startswith("code2wav"):
+                top_components.add("code2wav")
         
         # Remove "other" if present
         subcomponents.discard("other")
         
-        # Define preferred order
+        result = {}
+        
+        # Generate overall graphs for thinker and talker first
+        if include_overall:
+            for comp in ["thinker", "talker"]:
+                if comp in top_components:
+                    mermaid = self.generate_mermaid(
+                        include_details=include_details,
+                        component=comp,  # Use component filter for overall
+                        max_edges=max_edges,
+                        max_nodes=max_nodes,
+                        compact=compact,
+                        max_layer_depth=max_layer_depth,
+                    )
+                    if len(mermaid.strip().split("\n")) > 1:
+                        result[f"{comp}_overall"] = mermaid
+        
+        # Define preferred order for sub-components
         ordered_subcomponents = [
             "thinker", "thinker_moe", 
             "talker_lm", "talker_moe", "talker_mtp", 
             "code2wav"
         ]
         
-        result = {}
         for subcomp in ordered_subcomponents:
             if subcomp in subcomponents:
                 mermaid = self.generate_mermaid(
@@ -526,7 +555,6 @@ class LayerTracer:
                     result[subcomp] = mermaid
         
         return result
-
     def generate_mermaid_by_component(
         self,
         include_details: bool = True,
@@ -776,6 +804,8 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
         
         # Define human-readable titles for sub-components
         subcomponent_titles = {
+            "thinker_overall": "Thinker (Complete Overview)",
+            "talker_overall": "Talker (Complete Overview)",
             "thinker": "Thinker (Base Model)",
             "thinker_moe": "Thinker MoE (Mixture of Experts)",
             "talker_lm": "Talker Language Model",

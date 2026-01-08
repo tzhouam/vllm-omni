@@ -299,12 +299,14 @@ def main():
 
     print(f"\nOutput files saved to: {args.output_dir}/")
     if split_by_component:
-        print("  - qwen3_omni_thinker_mermaid.md      (Thinker Base Model)")
-        print("  - qwen3_omni_thinker_moe_mermaid.md  (Thinker MoE)")
-        print("  - qwen3_omni_talker_lm_mermaid.md    (Talker Language Model)")
-        print("  - qwen3_omni_talker_moe_mermaid.md   (Talker MoE)")
-        print("  - qwen3_omni_talker_mtp_mermaid.md   (Talker MTP)")
-        print("  - qwen3_omni_code2wav_mermaid.md     (Code2Wav Vocoder)")
+        print("  - qwen3_omni_thinker_overall_mermaid.md  (Thinker Complete Overview)")
+        print("  - qwen3_omni_thinker_mermaid.md          (Thinker Base Model)")
+        print("  - qwen3_omni_thinker_moe_mermaid.md      (Thinker MoE)")
+        print("  - qwen3_omni_talker_overall_mermaid.md   (Talker Complete Overview)")
+        print("  - qwen3_omni_talker_lm_mermaid.md        (Talker Language Model)")
+        print("  - qwen3_omni_talker_moe_mermaid.md       (Talker MoE)")
+        print("  - qwen3_omni_talker_mtp_mermaid.md       (Talker MTP)")
+        print("  - qwen3_omni_code2wav_mermaid.md         (Code2Wav Vocoder)")
     else:
         print("  - qwen3_omni_mermaid.md  (Combined mermaid diagram)")
     print("  - qwen3_omni_layers.md   (Layer details table)")
