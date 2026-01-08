@@ -184,6 +184,56 @@ class LayerTracer:
         """Format dtype string (remove 'torch.' prefix)."""
         return dtype.replace("torch.", "")
 
+    def _deduplicate_layers(self, info_list: list[LayerInfo]) -> list[LayerInfo]:
+        """Remove duplicate layers, keeping only the first occurrence of each layer name."""
+        seen_names = set()
+        deduplicated = []
+        for info in info_list:
+            if info.name not in seen_names:
+                seen_names.add(info.name)
+                deduplicated.append(info)
+        return deduplicated
+
+    def _get_subcomponent(self, name: str) -> str:
+        """
+        Classify a layer into a sub-component category.
+        
+        Categories:
+        - thinker: Base thinker model (non-MoE layers)
+        - thinker_moe: MoE specific layers in thinker (experts, gate, shared_expert)
+        - talker_lm: Talker language model (non-MoE, non-MTP layers)
+        - talker_moe: MoE specific layers in talker
+        - talker_mtp: Multi-token prediction layers in talker
+        - code2wav: Code2Wav vocoder
+        """
+        name_lower = name.lower()
+        
+        if name.startswith("code2wav"):
+            return "code2wav"
+        elif name.startswith("talker"):
+            # Check for MTP (multi-token prediction)
+            if "mtp" in name_lower:
+                return "talker_mtp"
+            # Check for MoE components
+            elif any(x in name_lower for x in ["experts", "gate", "shared_expert", "router"]):
+                return "talker_moe"
+            else:
+                return "talker_lm"
+        elif name.startswith("thinker"):
+            # Check for MoE components
+            if any(x in name_lower for x in ["experts", "gate", "shared_expert", "router"]):
+                return "thinker_moe"
+            else:
+                return "thinker"
+        else:
+            return "other"
+
+    def _filter_by_subcomponent(
+        self, info_list: list[LayerInfo], subcomponent: str
+    ) -> list[LayerInfo]:
+        """Filter layer info by sub-component category."""
+        return [info for info in info_list if self._get_subcomponent(info.name) == subcomponent]
+
     def _filter_by_component(
         self, info_list: list[LayerInfo], component: str | None
     ) -> list[LayerInfo]:
@@ -281,6 +331,7 @@ class LayerTracer:
         self,
         include_details: bool = True,
         component: str | None = None,
+        subcomponent: str | None = None,
         max_edges: int = 499,
         max_nodes: int = 200,
         compact: bool = False,
@@ -293,6 +344,9 @@ class LayerTracer:
             include_details: Whether to include shape/dtype details in nodes
             component: Filter by component name (e.g., "thinker", "talker", "code2wav").
                        If None, includes all components.
+            subcomponent: Filter by sub-component (e.g., "thinker", "thinker_moe", 
+                          "talker_lm", "talker_moe", "talker_mtp", "code2wav").
+                          Takes precedence over component if both specified.
             max_edges: Maximum number of edges in the diagram (default: 499)
             max_nodes: Maximum number of nodes in the diagram (default: 200)
             compact: Use compact labels (shorter names/types)
@@ -304,7 +358,15 @@ class LayerTracer:
         lines = ["flowchart TD"]
 
         # Use prefill_info as the main source (contains the model structure)
-        filtered = self._filter_by_component(self.prefill_info, component)
+        # First deduplicate to remove repeated layers from prefill/decode
+        deduplicated = self._deduplicate_layers(self.prefill_info)
+        
+        # Filter by subcomponent or component
+        if subcomponent is not None:
+            filtered = self._filter_by_subcomponent(deduplicated, subcomponent)
+        else:
+            filtered = self._filter_by_component(deduplicated, component)
+        
         filtered = self._filter_by_depth(filtered, max_layer_depth)
 
         # Generate nodes and edges
@@ -319,6 +381,70 @@ class LayerTracer:
 
         return "\n".join(lines)
 
+    def generate_mermaid_by_subcomponent(
+        self,
+        include_details: bool = True,
+        max_edges: int = 499,
+        max_nodes: int = 200,
+        compact: bool = False,
+        max_layer_depth: int | None = None,
+    ) -> dict[str, str]:
+        """
+        Generate separate mermaid diagrams for each sub-component.
+
+        Sub-components:
+        - thinker: Base thinker model (non-MoE layers)
+        - thinker_moe: MoE specific layers in thinker
+        - talker_lm: Talker language model (non-MoE, non-MTP)
+        - talker_moe: MoE specific layers in talker
+        - talker_mtp: Multi-token prediction layers in talker
+        - code2wav: Code2Wav vocoder
+
+        Args:
+            include_details: Whether to include shape/dtype details in nodes
+            max_edges: Maximum number of edges per diagram (default: 499)
+            max_nodes: Maximum number of nodes per diagram (default: 200)
+            compact: Use compact labels (shorter names/types)
+            max_layer_depth: Maximum layer nesting depth (None = no limit)
+
+        Returns:
+            Dict mapping sub-component name to mermaid diagram string
+        """
+        # First deduplicate
+        deduplicated = self._deduplicate_layers(self.prefill_info)
+        
+        # Identify all sub-components present
+        subcomponents = set()
+        for info in deduplicated:
+            subcomponents.add(self._get_subcomponent(info.name))
+        
+        # Remove "other" if present
+        subcomponents.discard("other")
+        
+        # Define preferred order
+        ordered_subcomponents = [
+            "thinker", "thinker_moe", 
+            "talker_lm", "talker_moe", "talker_mtp", 
+            "code2wav"
+        ]
+        
+        result = {}
+        for subcomp in ordered_subcomponents:
+            if subcomp in subcomponents:
+                mermaid = self.generate_mermaid(
+                    include_details=include_details,
+                    subcomponent=subcomp,
+                    max_edges=max_edges,
+                    max_nodes=max_nodes,
+                    compact=compact,
+                    max_layer_depth=max_layer_depth,
+                )
+                # Only add if there are actual nodes (not just "flowchart TD")
+                if len(mermaid.strip().split("\n")) > 1:
+                    result[subcomp] = mermaid
+        
+        return result
+
     def generate_mermaid_by_component(
         self,
         include_details: bool = True,
@@ -329,6 +455,9 @@ class LayerTracer:
     ) -> dict[str, str]:
         """
         Generate separate mermaid diagrams for each component.
+        
+        NOTE: This method now uses sub-component classification for more granular separation.
+        Use generate_mermaid_by_subcomponent() directly for explicit sub-component separation.
 
         Args:
             include_details: Whether to include shape/dtype details in nodes
@@ -338,30 +467,16 @@ class LayerTracer:
             max_layer_depth: Maximum layer nesting depth (None = no limit)
 
         Returns:
-            Dict mapping component name to mermaid diagram string
+            Dict mapping sub-component name to mermaid diagram string
         """
-        # Identify components from layer names
-        components = set()
-        for info in self.prefill_info + self.decode_info:
-            # Extract top-level component (thinker, talker, code2wav)
-            parts = info.name.split(".")
-            if parts:
-                components.add(parts[0])
-
-        result = {}
-        for component in sorted(components):
-            mermaid = self.generate_mermaid(
-                include_details=include_details,
-                component=component,
-                max_edges=max_edges,
-                max_nodes=max_nodes,
-                compact=compact,
-                max_layer_depth=max_layer_depth,
-            )
-            result[component] = mermaid
-
-        return result
-
+        # Delegate to subcomponent method for granular separation
+        return self.generate_mermaid_by_subcomponent(
+            include_details=include_details,
+            max_edges=max_edges,
+            max_nodes=max_nodes,
+            compact=compact,
+            max_layer_depth=max_layer_depth,
+        )
     def generate_layer_table(self) -> str:
         """Generate a markdown table with layer details."""
         lines = []
@@ -568,31 +683,43 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
             max_nodes: Maximum nodes per mermaid diagram (default: 200)
             compact: Use compact labels (default: True)
             max_layer_depth: Maximum layer depth to show (default: 3)
-            split_by_component: If True, save separate mermaid files for thinker/talker/code2wav
+            split_by_component: If True, save separate mermaid files for each sub-component:
+                               thinker, thinker_moe, talker_lm, talker_moe, talker_mtp, code2wav
         """
         os.makedirs(output_dir, exist_ok=True)
 
         if self.tracer is None:
             print("[Tracing] No tracing data to save.")
             return
+        
+        # Define human-readable titles for sub-components
+        subcomponent_titles = {
+            "thinker": "Thinker (Base Model)",
+            "thinker_moe": "Thinker MoE (Mixture of Experts)",
+            "talker_lm": "Talker Language Model",
+            "talker_moe": "Talker MoE (Mixture of Experts)",
+            "talker_mtp": "Talker MTP (Multi-Token Prediction)",
+            "code2wav": "Code2Wav (Vocoder)",
+        }
 
         if split_by_component:
-            # Save separate mermaid diagrams for each component
-            component_diagrams = self.tracer.generate_mermaid_by_component(
+            # Save separate mermaid diagrams for each sub-component
+            component_diagrams = self.tracer.generate_mermaid_by_subcomponent(
                 include_details=True,
                 max_edges=max_edges,
                 max_nodes=max_nodes,
                 compact=compact,
                 max_layer_depth=max_layer_depth,
             )
-            for component, mermaid in component_diagrams.items():
-                mermaid_path = os.path.join(output_dir, f"{prefix}_{component}_mermaid.md")
+            for subcomp, mermaid in component_diagrams.items():
+                mermaid_path = os.path.join(output_dir, f"{prefix}_{subcomp}_mermaid.md")
+                title = subcomponent_titles.get(subcomp, subcomp.replace("_", " ").title())
                 with open(mermaid_path, "w", encoding="utf-8") as f:
-                    f.write(f"# Qwen3 Omni Model Structure - {component.capitalize()}\n\n")
+                    f.write(f"# Qwen3 Omni Model Structure - {title}\n\n")
                     f.write("```mermaid\n")
                     f.write(mermaid)
                     f.write("\n```\n")
-                print(f"[Tracing] Saved {component} mermaid diagram to {mermaid_path}")
+                print(f"[Tracing] Saved {subcomp} mermaid diagram to {mermaid_path}")
         else:
             # Save combined mermaid diagram
             mermaid_path = os.path.join(output_dir, f"{prefix}_mermaid.md")
@@ -616,21 +743,24 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
             f.write(self.get_layer_table())
         print(f"[Tracing] Saved layer table to {table_path}")
 
-        # Save JSON data
+        # Save JSON data (with deduplicated layers)
+        deduplicated_layers = self.tracer._deduplicate_layers(self.tracer.prefill_info)
         json_path = os.path.join(output_dir, f"{prefix}_data.json")
         data = {
             "summary": self.tracer.get_summary(),
+            "subcomponents": list(self.tracer.generate_mermaid_by_subcomponent().keys()),
             "layers": [
                 {
                     "name": info.name,
                     "type": info.module_type,
+                    "subcomponent": self.tracer._get_subcomponent(info.name),
                     "input_shapes": [list(s) for s in info.input_shapes],
                     "input_dtypes": info.input_dtypes,
                     "output_shapes": [list(s) for s in info.output_shapes],
                     "output_dtypes": info.output_dtypes,
                     "call_order": info.call_order,
                 }
-                for info in self.tracer.prefill_info
+                for info in deduplicated_layers
             ],
         }
         with open(json_path, "w", encoding="utf-8") as f:
