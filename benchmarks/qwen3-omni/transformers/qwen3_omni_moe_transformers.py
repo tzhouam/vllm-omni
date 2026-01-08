@@ -217,18 +217,16 @@ class LayerTracer:
                 module_type = module_type[len(prefix):]
         return module_type[:20] if len(module_type) > 20 else module_type
 
-    def _generate_mermaid_for_list(
+    def _generate_mermaid_nodes(
         self,
         info_list: list[LayerInfo],
-        phase_name: str,
-        node_prefix: str,
         include_details: bool = True,
         max_edges: int = 499,
         max_nodes: int = 200,
         compact: bool = False,
     ) -> tuple[list[str], int, int]:
         """
-        Generate mermaid lines for a list of layer info.
+        Generate mermaid nodes and edges for a list of layer info.
 
         Returns:
             tuple: (lines, edge_count, node_count)
@@ -236,21 +234,19 @@ class LayerTracer:
         lines = []
         edge_count = 0
         node_count = 0
+        prev_node = None
 
         if not info_list:
             return lines, edge_count, node_count
 
-        lines.append(f"    subgraph {node_prefix}Phase [{phase_name}]")
-        prev_node = None
-
         for info in info_list:
             if edge_count >= max_edges or node_count >= max_nodes:
-                lines.append(f'        {node_prefix}_truncated["... truncated (max {max_nodes} nodes / {max_edges} edges)"]')
+                lines.append(f'    truncated["... truncated (max {max_nodes} nodes / {max_edges} edges)"]')
                 if prev_node:
-                    lines.append(f"        {prev_node} --> {node_prefix}_truncated")
+                    lines.append(f"    {prev_node} --> truncated")
                 break
 
-            node_id = f"{node_prefix}_{self._sanitize_node_id(info.name)}"
+            node_id = self._sanitize_node_id(info.name)
 
             if compact:
                 # Compact mode: shorter labels
@@ -272,14 +268,13 @@ class LayerTracer:
                 else:
                     label = f"{info.name}\\n{info.module_type}"
 
-            lines.append(f'        {node_id}["{label}"]')
+            lines.append(f'    {node_id}["{label}"]')
             node_count += 1
             if prev_node:
-                lines.append(f"        {prev_node} --> {node_id}")
+                lines.append(f"    {prev_node} --> {node_id}")
                 edge_count += 1
             prev_node = node_id
 
-        lines.append("    end")
         return lines, edge_count, node_count
 
     def generate_mermaid(
@@ -307,49 +302,20 @@ class LayerTracer:
             Mermaid diagram string
         """
         lines = ["flowchart TD"]
-        total_edges = 0
-        total_nodes = 0
 
-        # Filter by component and depth
-        prefill_filtered = self._filter_by_component(self.prefill_info, component)
-        prefill_filtered = self._filter_by_depth(prefill_filtered, max_layer_depth)
-        decode_filtered = self._filter_by_component(self.decode_info, component)
-        decode_filtered = self._filter_by_depth(decode_filtered, max_layer_depth)
+        # Use prefill_info as the main source (contains the model structure)
+        filtered = self._filter_by_component(self.prefill_info, component)
+        filtered = self._filter_by_depth(filtered, max_layer_depth)
 
-        # Generate Prefill Phase subgraph
-        if prefill_filtered:
-            prefill_lines, prefill_edges, prefill_nodes = self._generate_mermaid_for_list(
-                prefill_filtered,
-                "Prefill Phase",
-                "P",
-                include_details,
-                max_edges - total_edges,
-                max_nodes - total_nodes,
-                compact,
-            )
-            lines.extend(prefill_lines)
-            total_edges += prefill_edges
-            total_nodes += prefill_nodes
-
-        # Generate Decode Phase subgraph
-        if decode_filtered and total_edges < max_edges and total_nodes < max_nodes:
-            decode_lines, decode_edges, decode_nodes = self._generate_mermaid_for_list(
-                decode_filtered,
-                "Decode Phase - Step 1",
-                "D",
-                include_details,
-                max_edges - total_edges,
-                max_nodes - total_nodes,
-                compact,
-            )
-            lines.extend(decode_lines)
-            total_edges += decode_edges
-            total_nodes += decode_nodes
-
-        # Connect phases
-        if prefill_filtered and decode_filtered and total_edges < max_edges:
-            lines.append("    PPhase --> DPhase")
-            total_edges += 1
+        # Generate nodes and edges
+        node_lines, edge_count, node_count = self._generate_mermaid_nodes(
+            filtered,
+            include_details,
+            max_edges,
+            max_nodes,
+            compact,
+        )
+        lines.extend(node_lines)
 
         return "\n".join(lines)
 
@@ -400,29 +366,25 @@ class LayerTracer:
         """Generate a markdown table with layer details."""
         lines = []
 
-        def _add_table(phase_name: str, info_list: list[LayerInfo]):
-            if not info_list:
-                return
-            lines.append(f"\n## {phase_name}\n")
-            lines.append("| # | Layer Name | Type | Input Shape | Input Dtype | Output Shape | Output Dtype |")
-            lines.append("|---|------------|------|-------------|-------------|--------------|--------------|")
-            for i, info in enumerate(info_list):
-                in_shapes = ", ".join(self._format_shape(s) for s in info.input_shapes) or "-"
-                in_dtypes = ", ".join(self._format_dtype(d) for d in info.input_dtypes) or "-"
-                out_shapes = ", ".join(self._format_shape(s) for s in info.output_shapes) or "-"
-                out_dtypes = ", ".join(self._format_dtype(d) for d in info.output_dtypes) or "-"
-                lines.append(f"| {i+1} | {info.name} | {info.module_type} | {in_shapes} | {in_dtypes} | {out_shapes} | {out_dtypes} |")
+        if not self.prefill_info:
+            return "# No layer data available."
 
-        _add_table("Prefill Phase", self.prefill_info)
-        _add_table("Decode Phase (Step 1)", self.decode_info)
+        lines.append("\n## Layer Details\n")
+        lines.append("| # | Layer Name | Type | Input Shape | Input Dtype | Output Shape | Output Dtype |")
+        lines.append("|---|------------|------|-------------|-------------|--------------|--------------|")
+        for i, info in enumerate(self.prefill_info):
+            in_shapes = ", ".join(self._format_shape(s) for s in info.input_shapes) or "-"
+            in_dtypes = ", ".join(self._format_dtype(d) for d in info.input_dtypes) or "-"
+            out_shapes = ", ".join(self._format_shape(s) for s in info.output_shapes) or "-"
+            out_dtypes = ", ".join(self._format_dtype(d) for d in info.output_dtypes) or "-"
+            lines.append(f"| {i+1} | {info.name} | {info.module_type} | {in_shapes} | {in_dtypes} | {out_shapes} | {out_dtypes} |")
 
         return "\n".join(lines)
 
     def get_summary(self) -> dict:
         """Get a summary of traced layers."""
         return {
-            "prefill_layers": len(self.prefill_info),
-            "decode_layers": len(self.decode_info),
+            "total_layers": len(self.prefill_info),
             "total_hooks": len(self.hooks),
         }
 
@@ -658,7 +620,7 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
         json_path = os.path.join(output_dir, f"{prefix}_data.json")
         data = {
             "summary": self.tracer.get_summary(),
-            "prefill_layers": [
+            "layers": [
                 {
                     "name": info.name,
                     "type": info.module_type,
@@ -669,18 +631,6 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
                     "call_order": info.call_order,
                 }
                 for info in self.tracer.prefill_info
-            ],
-            "decode_layers": [
-                {
-                    "name": info.name,
-                    "type": info.module_type,
-                    "input_shapes": [list(s) for s in info.input_shapes],
-                    "input_dtypes": info.input_dtypes,
-                    "output_shapes": [list(s) for s in info.output_shapes],
-                    "output_dtypes": info.output_dtypes,
-                    "call_order": info.call_order,
-                }
-                for info in self.tracer.decode_info
             ],
         }
         with open(json_path, "w", encoding="utf-8") as f:
