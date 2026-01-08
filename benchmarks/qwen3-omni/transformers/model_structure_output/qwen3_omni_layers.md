@@ -17830,109 +17830,3090 @@
 | 17824 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
 | 17825 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
 | 17826 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
-| 17827 | code2wav.code_embedding | Embedding | 1x16x49 | int64 | 1x16x49x1024 | bfloat16 |
-| 17828 | code2wav.pre_transformer.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x49x1024, 1x49 | bfloat16, int64 | 1x49x64, 1x49x64 | bfloat16, bfloat16 |
-| 17829 | code2wav.pre_transformer.layers.0.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17830 | code2wav.pre_transformer.layers.0.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17831 | code2wav.pre_transformer.layers.0.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17832 | code2wav.pre_transformer.layers.0.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17833 | code2wav.pre_transformer.layers.0.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17834 | code2wav.pre_transformer.layers.0.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17835 | code2wav.pre_transformer.layers.0 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17836 | code2wav.pre_transformer.layers.1.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17837 | code2wav.pre_transformer.layers.1.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17838 | code2wav.pre_transformer.layers.1.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17839 | code2wav.pre_transformer.layers.1.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17840 | code2wav.pre_transformer.layers.1.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17841 | code2wav.pre_transformer.layers.1.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17842 | code2wav.pre_transformer.layers.1 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17843 | code2wav.pre_transformer.layers.2.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17844 | code2wav.pre_transformer.layers.2.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17845 | code2wav.pre_transformer.layers.2.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17846 | code2wav.pre_transformer.layers.2.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17847 | code2wav.pre_transformer.layers.2.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17848 | code2wav.pre_transformer.layers.2.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17849 | code2wav.pre_transformer.layers.2 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17850 | code2wav.pre_transformer.layers.3.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17851 | code2wav.pre_transformer.layers.3.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17852 | code2wav.pre_transformer.layers.3.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17853 | code2wav.pre_transformer.layers.3.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17854 | code2wav.pre_transformer.layers.3.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17855 | code2wav.pre_transformer.layers.3.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17856 | code2wav.pre_transformer.layers.3 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17857 | code2wav.pre_transformer.layers.4.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17858 | code2wav.pre_transformer.layers.4.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17859 | code2wav.pre_transformer.layers.4.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17860 | code2wav.pre_transformer.layers.4.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17861 | code2wav.pre_transformer.layers.4.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17862 | code2wav.pre_transformer.layers.4.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17863 | code2wav.pre_transformer.layers.4 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17864 | code2wav.pre_transformer.layers.5.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17865 | code2wav.pre_transformer.layers.5.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17866 | code2wav.pre_transformer.layers.5.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17867 | code2wav.pre_transformer.layers.5.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17868 | code2wav.pre_transformer.layers.5.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17869 | code2wav.pre_transformer.layers.5.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17870 | code2wav.pre_transformer.layers.5 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17871 | code2wav.pre_transformer.layers.6.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17872 | code2wav.pre_transformer.layers.6.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17873 | code2wav.pre_transformer.layers.6.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17874 | code2wav.pre_transformer.layers.6.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17875 | code2wav.pre_transformer.layers.6.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17876 | code2wav.pre_transformer.layers.6.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17877 | code2wav.pre_transformer.layers.6 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17878 | code2wav.pre_transformer.layers.7.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17879 | code2wav.pre_transformer.layers.7.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x49x1024 | bfloat16 |
-| 17880 | code2wav.pre_transformer.layers.7.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17881 | code2wav.pre_transformer.layers.7.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17882 | code2wav.pre_transformer.layers.7.mlp | Qwen3OmniMoeCode2WavMlp | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17883 | code2wav.pre_transformer.layers.7.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17884 | code2wav.pre_transformer.layers.7 | Qwen3OmniMoeCode2WavTransformerLayer | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17885 | code2wav.pre_transformer.norm | Qwen3OmniMoeRMSNorm | 1x49x1024 | bfloat16 | 1x49x1024 | bfloat16 |
-| 17886 | code2wav.pre_transformer | Qwen3OmniMoeCode2WavTransformerModel | - | - | 1x49x1024 | bfloat16 |
-| 17887 | code2wav.upsample.0.0.conv | ConvTranspose1d | 1x1024x49 | bfloat16 | 1x1024x98 | bfloat16 |
-| 17888 | code2wav.upsample.0.0 | Qwen3OmniMoeCausalTransConvNet | 1x1024x49 | bfloat16 | 1x1024x98 | bfloat16 |
-| 17889 | code2wav.upsample.0.1.dwconv | Qwen3OmniMoeCausalConvNet | 1x1024x98 | bfloat16 | 1x1024x98 | bfloat16 |
-| 17890 | code2wav.upsample.0.1.norm | LayerNorm | 1x98x1024 | bfloat16 | 1x98x1024 | bfloat16 |
-| 17891 | code2wav.upsample.0.1.pwconv1 | Linear | 1x98x1024 | bfloat16 | 1x98x4096 | bfloat16 |
-| 17892 | code2wav.upsample.0.1.act | GELU | 1x98x4096 | bfloat16 | 1x98x4096 | bfloat16 |
-| 17893 | code2wav.upsample.0.1.pwconv2 | Linear | 1x98x4096 | bfloat16 | 1x98x1024 | bfloat16 |
-| 17894 | code2wav.upsample.0.1 | Qwen3OmniMoeConvNeXtBlock | 1x1024x98 | bfloat16 | 1x1024x98 | bfloat16 |
-| 17895 | code2wav.upsample.1.0.conv | ConvTranspose1d | 1x1024x98 | bfloat16 | 1x1024x196 | bfloat16 |
-| 17896 | code2wav.upsample.1.0 | Qwen3OmniMoeCausalTransConvNet | 1x1024x98 | bfloat16 | 1x1024x196 | bfloat16 |
-| 17897 | code2wav.upsample.1.1.dwconv | Qwen3OmniMoeCausalConvNet | 1x1024x196 | bfloat16 | 1x1024x196 | bfloat16 |
-| 17898 | code2wav.upsample.1.1.norm | LayerNorm | 1x196x1024 | bfloat16 | 1x196x1024 | bfloat16 |
-| 17899 | code2wav.upsample.1.1.pwconv1 | Linear | 1x196x1024 | bfloat16 | 1x196x4096 | bfloat16 |
-| 17900 | code2wav.upsample.1.1.act | GELU | 1x196x4096 | bfloat16 | 1x196x4096 | bfloat16 |
-| 17901 | code2wav.upsample.1.1.pwconv2 | Linear | 1x196x4096 | bfloat16 | 1x196x1024 | bfloat16 |
-| 17902 | code2wav.upsample.1.1 | Qwen3OmniMoeConvNeXtBlock | 1x1024x196 | bfloat16 | 1x1024x196 | bfloat16 |
-| 17903 | code2wav.decoder.0.conv | Conv1d | 1x1024x202 | bfloat16 | 1x1536x196 | bfloat16 |
-| 17904 | code2wav.decoder.0 | Qwen3OmniMoeCausalConvNet | 1x1024x196 | bfloat16 | 1x1536x196 | bfloat16 |
-| 17905 | code2wav.decoder.1.block.0 | SnakeBeta | 1x1536x196 | bfloat16 | 1x1536x196 | bfloat16 |
-| 17906 | code2wav.decoder.1.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x1536x196 | bfloat16 | 1x768x1560 | bfloat16 |
-| 17907 | code2wav.decoder.1.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x768x1560 | bfloat16 | 1x768x1560 | bfloat16 |
-| 17908 | code2wav.decoder.1.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x768x1560 | bfloat16 | 1x768x1560 | bfloat16 |
-| 17909 | code2wav.decoder.1.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x768x1560 | bfloat16 | 1x768x1560 | bfloat16 |
-| 17910 | code2wav.decoder.1 | Qwen3OmniMoeCode2WavDecoderBlock | 1x1536x196 | bfloat16 | 1x768x1560 | bfloat16 |
-| 17911 | code2wav.decoder.2.block.0 | SnakeBeta | 1x768x1560 | bfloat16 | 1x768x1560 | bfloat16 |
-| 17912 | code2wav.decoder.2.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x768x1560 | bfloat16 | 1x384x7795 | bfloat16 |
-| 17913 | code2wav.decoder.2.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x384x7795 | bfloat16 | 1x384x7795 | bfloat16 |
-| 17914 | code2wav.decoder.2.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x384x7795 | bfloat16 | 1x384x7795 | bfloat16 |
-| 17915 | code2wav.decoder.2.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x384x7795 | bfloat16 | 1x384x7795 | bfloat16 |
-| 17916 | code2wav.decoder.2 | Qwen3OmniMoeCode2WavDecoderBlock | 1x768x1560 | bfloat16 | 1x384x7795 | bfloat16 |
-| 17917 | code2wav.decoder.3.block.0 | SnakeBeta | 1x384x7795 | bfloat16 | 1x384x7795 | bfloat16 |
-| 17918 | code2wav.decoder.3.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x384x7795 | bfloat16 | 1x192x31176 | bfloat16 |
-| 17919 | code2wav.decoder.3.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x192x31176 | bfloat16 | 1x192x31176 | bfloat16 |
-| 17920 | code2wav.decoder.3.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x192x31176 | bfloat16 | 1x192x31176 | bfloat16 |
-| 17921 | code2wav.decoder.3.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x192x31176 | bfloat16 | 1x192x31176 | bfloat16 |
-| 17922 | code2wav.decoder.3 | Qwen3OmniMoeCode2WavDecoderBlock | 1x384x7795 | bfloat16 | 1x192x31176 | bfloat16 |
-| 17923 | code2wav.decoder.4.block.0 | SnakeBeta | 1x192x31176 | bfloat16 | 1x192x31176 | bfloat16 |
-| 17924 | code2wav.decoder.4.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x192x31176 | bfloat16 | 1x96x93525 | bfloat16 |
-| 17925 | code2wav.decoder.4.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x96x93525 | bfloat16 | 1x96x93525 | bfloat16 |
-| 17926 | code2wav.decoder.4.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x96x93525 | bfloat16 | 1x96x93525 | bfloat16 |
-| 17927 | code2wav.decoder.4.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x96x93525 | bfloat16 | 1x96x93525 | bfloat16 |
-| 17928 | code2wav.decoder.4 | Qwen3OmniMoeCode2WavDecoderBlock | 1x192x31176 | bfloat16 | 1x96x93525 | bfloat16 |
-| 17929 | code2wav.decoder.5 | SnakeBeta | 1x96x93525 | bfloat16 | 1x96x93525 | bfloat16 |
-| 17930 | code2wav.decoder.6.conv | Conv1d | 1x96x93531 | bfloat16 | 1x1x93525 | bfloat16 |
-| 17931 | code2wav.decoder.6 | Qwen3OmniMoeCausalConvNet | 1x96x93525 | bfloat16 | 1x1x93525 | bfloat16 |
-| 17932 | code2wav | Qwen3OmniMoeCode2Wav | 1x16x49 | int64 | 1x1x93525 | bfloat16 |
+| 17827 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17828 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 17829 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 17830 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 17831 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 17832 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 17833 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 17834 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 17835 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 17836 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 17837 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 17838 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17839 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17840 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17841 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17842 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17843 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17844 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17845 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17846 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17847 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17848 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17849 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17850 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17851 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17852 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17853 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17854 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17855 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17856 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17857 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17858 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17859 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17860 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17861 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17862 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17863 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17864 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17865 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17866 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17867 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17868 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17869 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17870 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17871 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17872 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17873 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17874 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17875 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17876 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17877 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17878 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17879 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17880 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17881 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17882 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17883 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17884 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17885 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17886 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17887 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17888 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17889 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17890 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17891 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17892 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17893 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17894 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17895 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17896 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17897 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17898 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17899 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17900 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17901 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17902 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17903 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17904 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17905 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17906 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17907 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17908 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17909 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17910 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17911 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17912 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17913 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17914 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17915 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17916 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17917 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17918 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17919 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17920 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17921 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17922 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17923 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17924 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17925 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17926 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17927 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17928 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17929 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17930 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17931 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17932 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17933 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17934 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17935 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17936 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17937 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17938 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17939 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17940 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17941 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17942 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17943 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17944 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17945 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17946 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17947 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17948 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17949 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17950 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17951 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17952 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17953 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17954 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17955 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17956 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17957 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17958 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17959 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17960 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17961 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17962 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17963 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17964 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17965 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17966 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17967 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17968 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17969 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17970 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17971 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17972 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17973 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17974 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17975 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17976 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17977 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17978 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17979 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17980 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17981 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17982 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17983 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17984 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17985 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17986 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17987 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17988 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17989 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 17990 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 17991 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 17992 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 17993 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 17994 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17995 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 17996 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17997 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 17998 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 17999 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18000 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18001 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18002 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18003 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18004 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18005 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18006 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18007 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18008 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18009 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18010 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18011 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18012 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18013 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18014 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18015 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18016 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18017 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18018 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18019 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18020 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18021 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18022 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18023 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18024 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18025 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18026 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18027 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18028 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18029 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18030 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18031 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18032 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18033 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18034 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18035 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18036 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18037 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18038 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18039 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18040 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18041 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18042 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18043 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18044 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18045 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18046 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18047 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18048 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18049 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18050 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18051 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18052 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18053 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18054 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18055 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18056 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18057 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18058 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18059 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18060 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18061 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18062 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18063 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18064 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18065 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18066 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18067 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18068 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18069 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18070 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18071 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18072 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18073 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18074 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18075 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18076 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18077 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18078 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18079 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18080 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18081 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18082 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18083 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18084 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18085 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18086 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18087 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18088 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18089 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18090 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18091 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18092 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18093 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18094 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18095 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 18096 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 18097 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 18098 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18099 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 18100 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18101 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18102 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18103 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18104 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18105 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18106 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 18107 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 18108 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 18109 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18110 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18111 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18112 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18113 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18114 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18115 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18116 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18117 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18118 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18119 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18120 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18121 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18122 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18123 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18124 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18125 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18126 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18127 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18128 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18129 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18130 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18131 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18132 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18133 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18134 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18135 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18136 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18137 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18138 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18139 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18140 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18141 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18142 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18143 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18144 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18145 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18146 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18147 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18148 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18149 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18150 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18151 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18152 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18153 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18154 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18155 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18156 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18157 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18158 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18159 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18160 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18161 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18162 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18163 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18164 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18165 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18166 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18167 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18168 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18169 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18170 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18171 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18172 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18173 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18174 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18175 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18176 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18177 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18178 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18179 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18180 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18181 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18182 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18183 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18184 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18185 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18186 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18187 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18188 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18189 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18190 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18191 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18192 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18193 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18194 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18195 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18196 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18197 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18198 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18199 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18200 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18201 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18202 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18203 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18204 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18205 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18206 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18207 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18208 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18209 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18210 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18211 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18212 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18213 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18214 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18215 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18216 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18217 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18218 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18219 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18220 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18221 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18222 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18223 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18224 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18225 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18226 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18227 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18228 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18229 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18230 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18231 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18232 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18233 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18234 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18235 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18236 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18237 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18238 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18239 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18240 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18241 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18242 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18243 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18244 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18245 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18246 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18247 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18248 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18249 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18250 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18251 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18252 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18253 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18254 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18255 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18256 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18257 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18258 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18259 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18260 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18261 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18262 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18263 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18264 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18265 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18266 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18267 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18268 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18269 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18270 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18271 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18272 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18273 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18274 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18275 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18276 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18277 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18278 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18279 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18280 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18281 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18282 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18283 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18284 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18285 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18286 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18287 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18288 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18289 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18290 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18291 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18292 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18293 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18294 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18295 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18296 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18297 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18298 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18299 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18300 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18301 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18302 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18303 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18304 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18305 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18306 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18307 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18308 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18309 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18310 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18311 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18312 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18313 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18314 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18315 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18316 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18317 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18318 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18319 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18320 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18321 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18322 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18323 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18324 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18325 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18326 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18327 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18328 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18329 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18330 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18331 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18332 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18333 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18334 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18335 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18336 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18337 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18338 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18339 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18340 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18341 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18342 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18343 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18344 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18345 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18346 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18347 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18348 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18349 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18350 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18351 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18352 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18353 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18354 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18355 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18356 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18357 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18358 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18359 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18360 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18361 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18362 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18363 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18364 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18365 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18366 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 18367 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 18368 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 18369 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18370 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 18371 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18372 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18373 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18374 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18375 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18376 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18377 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 18378 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 18379 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 18380 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18381 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18382 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18383 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18384 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18385 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18386 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18387 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18388 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18389 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18390 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18391 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18392 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18393 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18394 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18395 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18396 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18397 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18398 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18399 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18400 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18401 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18402 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18403 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18404 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18405 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18406 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18407 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18408 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18409 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18410 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18411 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18412 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18413 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18414 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18415 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18416 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18417 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18418 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18419 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18420 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18421 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18422 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18423 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18424 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18425 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18426 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18427 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18428 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18429 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18430 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18431 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18432 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18433 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18434 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18435 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18436 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18437 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18438 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18439 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18440 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18441 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18442 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18443 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18444 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18445 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18446 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18447 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18448 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18449 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18450 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18451 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18452 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18453 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18454 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18455 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18456 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18457 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18458 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18459 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18460 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18461 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18462 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18463 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18464 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18465 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18466 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18467 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18468 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18469 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18470 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18471 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18472 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18473 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18474 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18475 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18476 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18477 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18478 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18479 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18480 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18481 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18482 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18483 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18484 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18485 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18486 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18487 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18488 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18489 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18490 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18491 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18492 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18493 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18494 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18495 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18496 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18497 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18498 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18499 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18500 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18501 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18502 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18503 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18504 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18505 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18506 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18507 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18508 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18509 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18510 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18511 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18512 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18513 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18514 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18515 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18516 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18517 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18518 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18519 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18520 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18521 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18522 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18523 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18524 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18525 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18526 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18527 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18528 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18529 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18530 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18531 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18532 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18533 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18534 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18535 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18536 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18537 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18538 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18539 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18540 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18541 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18542 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18543 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18544 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18545 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18546 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18547 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18548 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18549 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18550 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18551 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18552 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18553 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18554 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18555 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18556 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18557 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18558 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18559 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18560 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18561 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18562 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18563 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18564 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18565 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18566 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18567 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18568 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18569 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18570 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18571 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18572 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18573 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18574 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18575 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18576 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18577 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18578 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18579 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18580 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18581 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18582 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18583 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18584 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18585 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18586 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18587 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18588 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18589 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18590 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18591 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18592 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18593 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18594 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18595 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18596 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18597 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18598 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18599 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18600 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18601 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18602 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18603 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18604 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18605 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18606 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18607 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18608 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18609 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18610 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18611 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18612 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18613 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18614 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18615 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18616 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18617 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18618 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18619 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18620 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18621 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18622 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18623 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18624 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18625 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18626 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18627 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18628 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18629 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18630 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18631 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18632 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18633 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18634 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18635 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18636 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18637 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 18638 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 18639 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 18640 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18641 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 18642 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18643 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18644 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18645 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18646 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18647 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18648 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 18649 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 18650 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 18651 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18652 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18653 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18654 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18655 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18656 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18657 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18658 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18659 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18660 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18661 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18662 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18663 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18664 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18665 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18666 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18667 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18668 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18669 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18670 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18671 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18672 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18673 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18674 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18675 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18676 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18677 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18678 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18679 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18680 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18681 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18682 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18683 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18684 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18685 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18686 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18687 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18688 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18689 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18690 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18691 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18692 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18693 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18694 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18695 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18696 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18697 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18698 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18699 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18700 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18701 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18702 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18703 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18704 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18705 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18706 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18707 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18708 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18709 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18710 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18711 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18712 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18713 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18714 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18715 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18716 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18717 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18718 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18719 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18720 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18721 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18722 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18723 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18724 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18725 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18726 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18727 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18728 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18729 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18730 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18731 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18732 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18733 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18734 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18735 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18736 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18737 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18738 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18739 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18740 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18741 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18742 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18743 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18744 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18745 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18746 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18747 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18748 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18749 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18750 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18751 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18752 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18753 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18754 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18755 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18756 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18757 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18758 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18759 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18760 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18761 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18762 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18763 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18764 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18765 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18766 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18767 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18768 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18769 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18770 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18771 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18772 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18773 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18774 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18775 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18776 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18777 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18778 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18779 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18780 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18781 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18782 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18783 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18784 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18785 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18786 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18787 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18788 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18789 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18790 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18791 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18792 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18793 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18794 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18795 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18796 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18797 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18798 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18799 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18800 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18801 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18802 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18803 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18804 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18805 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18806 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18807 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18808 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18809 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18810 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18811 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18812 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18813 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18814 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18815 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18816 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18817 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18818 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18819 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18820 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18821 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18822 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18823 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18824 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18825 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18826 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18827 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18828 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18829 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18830 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18831 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18832 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18833 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18834 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18835 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18836 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18837 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18838 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18839 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18840 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18841 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18842 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18843 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18844 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18845 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18846 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18847 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18848 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18849 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18850 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18851 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18852 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18853 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18854 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18855 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18856 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18857 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18858 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18859 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18860 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18861 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18862 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18863 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18864 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18865 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18866 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18867 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18868 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18869 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18870 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18871 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18872 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18873 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18874 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18875 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18876 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18877 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18878 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18879 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18880 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18881 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18882 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18883 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18884 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18885 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18886 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18887 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18888 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18889 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18890 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18891 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18892 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18893 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18894 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18895 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18896 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18897 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18898 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18899 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18900 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18901 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18902 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18903 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 18904 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18905 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 18906 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18907 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18908 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 18909 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 18910 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 18911 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18912 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 18913 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18914 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18915 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18916 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18917 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18918 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 18919 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 18920 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 18921 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 18922 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18923 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18924 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18925 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18926 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18927 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18928 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18929 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18930 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18931 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18932 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18933 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18934 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18935 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18936 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18937 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18938 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18939 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18940 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18941 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18942 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18943 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18944 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18945 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18946 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18947 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18948 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18949 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18950 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18951 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18952 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18953 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18954 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18955 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18956 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18957 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18958 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18959 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18960 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18961 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18962 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18963 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18964 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18965 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18966 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18967 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18968 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18969 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18970 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18971 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18972 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18973 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18974 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18975 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18976 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18977 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18978 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18979 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18980 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18981 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18982 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18983 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18984 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18985 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18986 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18987 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18988 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 18989 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 18990 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18991 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18992 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18993 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18994 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18995 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 18996 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 18997 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 18998 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 18999 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19000 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19001 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19002 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19003 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19004 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19005 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19006 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19007 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19008 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19009 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19010 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19011 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19012 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19013 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19014 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19015 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19016 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19017 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19018 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19019 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19020 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19021 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19022 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19023 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19024 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19025 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19026 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19027 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19028 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19029 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19030 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19031 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19032 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19033 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19034 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19035 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19036 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19037 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19038 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19039 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19040 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19041 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19042 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19043 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19044 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19045 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19046 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19047 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19048 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19049 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19050 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19051 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19052 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19053 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19054 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19055 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19056 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19057 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19058 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19059 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19060 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19061 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19062 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19063 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19064 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19065 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19066 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19067 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19068 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19069 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19070 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19071 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19072 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19073 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19074 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19075 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19076 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19077 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19078 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19079 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19080 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19081 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19082 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19083 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19084 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19085 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19086 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19087 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19088 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19089 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19090 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19091 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19092 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19093 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19094 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19095 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19096 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19097 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19098 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19099 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19100 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19101 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19102 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19103 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19104 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19105 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19106 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19107 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19108 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19109 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19110 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19111 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19112 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19113 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19114 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19115 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19116 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19117 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19118 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19119 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19120 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19121 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19122 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19123 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19124 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19125 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19126 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19127 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19128 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19129 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19130 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19131 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19132 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19133 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19134 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19135 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19136 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19137 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19138 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19139 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19140 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19141 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19142 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19143 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19144 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19145 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19146 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19147 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19148 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19149 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19150 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19151 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19152 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19153 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19154 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19155 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19156 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19157 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19158 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19159 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19160 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19161 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19162 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19163 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19164 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19165 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19166 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19167 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19168 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19169 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19170 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19171 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19172 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19173 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19174 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19175 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19176 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19177 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19178 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19179 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 19180 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 19181 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 19182 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19183 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 19184 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19185 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19186 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19187 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19188 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19189 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19190 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 19191 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 19192 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 19193 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19194 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19195 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19196 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19197 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19198 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19199 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19200 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19201 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19202 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19203 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19204 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19205 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19206 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19207 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19208 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19209 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19210 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19211 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19212 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19213 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19214 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19215 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19216 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19217 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19218 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19219 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19220 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19221 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19222 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19223 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19224 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19225 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19226 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19227 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19228 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19229 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19230 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19231 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19232 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19233 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19234 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19235 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19236 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19237 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19238 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19239 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19240 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19241 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19242 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19243 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19244 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19245 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19246 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19247 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19248 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19249 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19250 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19251 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19252 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19253 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19254 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19255 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19256 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19257 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19258 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19259 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19260 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19261 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19262 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19263 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19264 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19265 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19266 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19267 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19268 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19269 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19270 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19271 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19272 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19273 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19274 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19275 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19276 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19277 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19278 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19279 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19280 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19281 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19282 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19283 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19284 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19285 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19286 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19287 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19288 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19289 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19290 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19291 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19292 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19293 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19294 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19295 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19296 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19297 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19298 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19299 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19300 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19301 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19302 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19303 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19304 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19305 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19306 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19307 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19308 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19309 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19310 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19311 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19312 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19313 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19314 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19315 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19316 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19317 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19318 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19319 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19320 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19321 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19322 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19323 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19324 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19325 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19326 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19327 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19328 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19329 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19330 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19331 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19332 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19333 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19334 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19335 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19336 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19337 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19338 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19339 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19340 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19341 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19342 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19343 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19344 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19345 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19346 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19347 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19348 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19349 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19350 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19351 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19352 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19353 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19354 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19355 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19356 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19357 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19358 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19359 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19360 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19361 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19362 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19363 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19364 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19365 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19366 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19367 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19368 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19369 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19370 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19371 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19372 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19373 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19374 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19375 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19376 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19377 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19378 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19379 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19380 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19381 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19382 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19383 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19384 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19385 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19386 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19387 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19388 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19389 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19390 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19391 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19392 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19393 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19394 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19395 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19396 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19397 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19398 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19399 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19400 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19401 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19402 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19403 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19404 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19405 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19406 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19407 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19408 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19409 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19410 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19411 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19412 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19413 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19414 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19415 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19416 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19417 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19418 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19419 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19420 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19421 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19422 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19423 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19424 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19425 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19426 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19427 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19428 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19429 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19430 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19431 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19432 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19433 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19434 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19435 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19436 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19437 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19438 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19439 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19440 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19441 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19442 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19443 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19444 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19445 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19446 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19447 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19448 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19449 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19450 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 19451 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 19452 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 19453 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19454 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 19455 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19456 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19457 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19458 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19459 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19460 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19461 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 19462 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 19463 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 19464 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19465 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19466 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19467 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19468 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19469 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19470 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19471 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19472 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19473 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19474 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19475 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19476 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19477 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19478 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19479 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19480 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19481 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19482 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19483 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19484 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19485 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19486 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19487 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19488 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19489 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19490 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19491 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19492 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19493 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19494 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19495 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19496 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19497 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19498 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19499 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19500 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19501 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19502 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19503 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19504 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19505 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19506 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19507 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19508 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19509 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19510 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19511 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19512 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19513 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19514 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19515 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19516 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19517 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19518 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19519 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19520 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19521 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19522 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19523 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19524 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19525 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19526 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19527 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19528 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19529 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19530 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19531 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19532 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19533 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19534 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19535 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19536 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19537 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19538 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19539 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19540 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19541 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19542 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19543 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19544 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19545 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19546 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19547 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19548 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19549 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19550 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19551 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19552 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19553 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19554 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19555 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19556 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19557 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19558 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19559 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19560 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19561 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19562 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19563 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19564 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19565 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19566 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19567 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19568 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19569 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19570 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19571 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19572 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19573 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19574 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19575 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19576 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19577 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19578 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19579 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19580 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19581 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19582 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19583 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19584 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19585 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19586 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19587 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19588 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19589 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19590 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19591 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19592 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19593 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19594 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19595 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19596 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19597 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19598 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19599 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19600 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19601 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19602 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19603 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19604 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19605 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19606 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19607 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19608 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19609 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19610 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19611 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19612 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19613 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19614 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19615 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19616 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19617 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19618 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19619 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19620 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19621 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19622 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19623 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19624 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19625 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19626 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19627 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19628 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19629 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19630 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19631 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19632 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19633 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19634 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19635 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19636 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19637 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19638 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19639 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19640 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19641 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19642 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19643 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19644 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19645 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19646 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19647 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19648 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19649 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19650 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19651 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19652 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19653 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19654 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19655 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19656 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19657 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19658 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19659 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19660 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19661 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19662 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19663 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19664 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19665 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19666 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19667 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19668 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19669 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19670 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19671 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19672 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19673 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19674 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19675 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19676 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19677 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19678 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19679 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19680 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19681 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19682 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19683 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19684 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19685 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19686 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19687 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19688 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19689 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19690 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19691 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19692 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19693 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19694 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19695 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19696 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19697 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19698 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19699 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19700 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19701 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19702 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19703 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19704 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19705 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19706 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19707 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19708 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19709 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19710 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19711 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19712 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19713 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19714 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19715 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19716 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19717 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19718 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19719 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19720 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19721 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 19722 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 19723 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 19724 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19725 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 19726 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19727 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19728 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19729 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19730 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19731 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19732 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 19733 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 19734 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 19735 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19736 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19737 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19738 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19739 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19740 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19741 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19742 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19743 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19744 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19745 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19746 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19747 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19748 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19749 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19750 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19751 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19752 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19753 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19754 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19755 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19756 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19757 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19758 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19759 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19760 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19761 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19762 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19763 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19764 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19765 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19766 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19767 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19768 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19769 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19770 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19771 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19772 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19773 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19774 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19775 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19776 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19777 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19778 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19779 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19780 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19781 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19782 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19783 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19784 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19785 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19786 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19787 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19788 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19789 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19790 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19791 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19792 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19793 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19794 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19795 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19796 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19797 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19798 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19799 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19800 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19801 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19802 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19803 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19804 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19805 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19806 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19807 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19808 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19809 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19810 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19811 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19812 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19813 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19814 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19815 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19816 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19817 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19818 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19819 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19820 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19821 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19822 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19823 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19824 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19825 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19826 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19827 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19828 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19829 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19830 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19831 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19832 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19833 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19834 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19835 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19836 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19837 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19838 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19839 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19840 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19841 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19842 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19843 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19844 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19845 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19846 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19847 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19848 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19849 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19850 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19851 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19852 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19853 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19854 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19855 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19856 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19857 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19858 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19859 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19860 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19861 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19862 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19863 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19864 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19865 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19866 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19867 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19868 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19869 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19870 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19871 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19872 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19873 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19874 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19875 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19876 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19877 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19878 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19879 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19880 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19881 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19882 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19883 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19884 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19885 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19886 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 19887 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 19888 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 19889 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19890 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 19891 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19892 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19893 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19894 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19895 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19896 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19897 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19898 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19899 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19900 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19901 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19902 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19903 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19904 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19905 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19906 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19907 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19908 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19909 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19910 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19911 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19912 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19913 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19914 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19915 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19916 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19917 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19918 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19919 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19920 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19921 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19922 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19923 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19924 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19925 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19926 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19927 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19928 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19929 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19930 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19931 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19932 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19933 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19934 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19935 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19936 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19937 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19938 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19939 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19940 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19941 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19942 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19943 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19944 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19945 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19946 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19947 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19948 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19949 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19950 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19951 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19952 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19953 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19954 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19955 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19956 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19957 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19958 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19959 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19960 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19961 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19962 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19963 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19964 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19965 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19966 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19967 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19968 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19969 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19970 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19971 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19972 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19973 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19974 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19975 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19976 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19977 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19978 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19979 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19980 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19981 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19982 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19983 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19984 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19985 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19986 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19987 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 19988 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19989 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 19990 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19991 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 19992 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 19993 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 19994 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 19995 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 19996 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 19997 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19998 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 19999 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20000 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20001 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20002 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20003 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 20004 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 20005 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 20006 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20007 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20008 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20009 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20010 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20011 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20012 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20013 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20014 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20015 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20016 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20017 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20018 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20019 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20020 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20021 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20022 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20023 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20024 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20025 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20026 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20027 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20028 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20029 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20030 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20031 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20032 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20033 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20034 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20035 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20036 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20037 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20038 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20039 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20040 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20041 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20042 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20043 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20044 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20045 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20046 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20047 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20048 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20049 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20050 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20051 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20052 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20053 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20054 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20055 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20056 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20057 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20058 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20059 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20060 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20061 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20062 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20063 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20064 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20065 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20066 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20067 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20068 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20069 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20070 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20071 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20072 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20073 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20074 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20075 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20076 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20077 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20078 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20079 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20080 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20081 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20082 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20083 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20084 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20085 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20086 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20087 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20088 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20089 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20090 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20091 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20092 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20093 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20094 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20095 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20096 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20097 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20098 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20099 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20100 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20101 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20102 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20103 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20104 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20105 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20106 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20107 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20108 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20109 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20110 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20111 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20112 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20113 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20114 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20115 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20116 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20117 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20118 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20119 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20120 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20121 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20122 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20123 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20124 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20125 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20126 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20127 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20128 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20129 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20130 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20131 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20132 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20133 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20134 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20135 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20136 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20137 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20138 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20139 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20140 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20141 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20142 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20143 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20144 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20145 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20146 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20147 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20148 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20149 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20150 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20151 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20152 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20153 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20154 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20155 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20156 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20157 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20158 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20159 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20160 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20161 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20162 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20163 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20164 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20165 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20166 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20167 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20168 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20169 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20170 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20171 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20172 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20173 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20174 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20175 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20176 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20177 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20178 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20179 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20180 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20181 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20182 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20183 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20184 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20185 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20186 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20187 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20188 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20189 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20190 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20191 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20192 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20193 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20194 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20195 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20196 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20197 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20198 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20199 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20200 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20201 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20202 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20203 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20204 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20205 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20206 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20207 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20208 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20209 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20210 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20211 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20212 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20213 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20214 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20215 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20216 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20217 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20218 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20219 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20220 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20221 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20222 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20223 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20224 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20225 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20226 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20227 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20228 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20229 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20230 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20231 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20232 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20233 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20234 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20235 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20236 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20237 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20238 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20239 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20240 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20241 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20242 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20243 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20244 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20245 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20246 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20247 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20248 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20249 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20250 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20251 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20252 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20253 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20254 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20255 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20256 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20257 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20258 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20259 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20260 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20261 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20262 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20263 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 20264 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 20265 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 20266 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20267 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 20268 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20269 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20270 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20271 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20272 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20273 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20274 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 20275 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 20276 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 20277 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20278 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20279 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20280 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20281 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20282 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20283 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20284 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20285 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20286 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20287 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20288 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20289 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20290 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20291 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20292 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20293 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20294 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20295 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20296 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20297 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20298 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20299 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20300 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20301 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20302 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20303 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20304 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20305 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20306 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20307 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20308 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20309 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20310 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20311 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20312 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20313 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20314 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20315 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20316 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20317 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20318 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20319 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20320 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20321 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20322 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20323 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20324 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20325 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20326 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20327 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20328 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20329 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20330 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20331 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20332 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20333 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20334 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20335 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20336 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20337 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20338 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20339 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20340 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20341 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20342 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20343 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20344 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20345 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20346 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20347 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20348 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20349 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20350 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20351 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20352 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20353 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20354 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20355 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20356 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20357 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20358 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20359 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20360 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20361 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20362 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20363 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20364 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20365 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20366 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20367 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20368 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20369 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20370 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20371 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20372 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20373 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20374 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20375 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20376 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20377 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20378 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20379 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20380 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20381 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20382 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20383 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20384 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20385 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20386 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20387 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20388 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20389 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20390 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20391 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20392 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20393 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20394 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20395 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20396 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20397 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20398 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20399 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20400 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20401 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20402 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20403 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20404 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20405 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20406 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20407 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20408 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20409 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20410 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20411 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20412 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20413 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20414 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20415 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20416 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20417 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20418 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20419 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20420 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20421 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20422 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20423 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20424 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20425 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20426 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20427 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20428 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20429 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20430 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20431 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20432 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20433 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20434 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20435 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20436 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20437 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20438 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20439 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20440 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20441 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20442 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20443 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20444 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20445 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20446 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20447 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20448 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20449 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20450 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20451 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20452 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20453 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20454 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20455 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20456 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20457 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20458 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20459 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20460 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20461 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20462 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20463 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20464 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20465 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20466 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20467 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20468 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20469 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20470 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20471 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20472 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20473 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20474 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20475 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20476 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20477 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20478 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20479 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20480 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20481 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20482 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20483 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20484 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20485 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20486 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20487 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20488 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20489 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20490 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20491 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20492 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20493 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20494 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20495 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20496 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20497 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20498 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20499 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20500 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20501 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20502 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20503 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20504 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20505 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20506 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20507 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20508 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20509 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20510 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20511 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20512 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20513 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20514 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20515 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20516 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20517 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20518 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20519 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20520 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20521 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20522 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20523 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20524 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20525 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20526 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20527 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20528 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20529 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20530 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20531 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20532 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20533 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20534 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 20535 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 20536 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 20537 | talker.model.codec_embedding | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20538 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x2x1024, 1x2 | bfloat16, int64 | 1x2x128, 1x2x128 | bfloat16, bfloat16 |
+| 20539 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20540 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20541 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20542 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20543 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20544 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x2x1024 | bfloat16 | 1x2x1024 | bfloat16 |
+| 20545 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x2x1024 | bfloat16 |
+| 20546 | talker.code_predictor.lm_head.0 | Linear | 1x2x1024 | bfloat16 | 1x2x2048 | bfloat16 |
+| 20547 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x2x2048 | bfloat16 |
+| 20548 | talker.code_predictor.model.codec_embedding.0 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20549 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20550 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20551 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20552 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20553 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20554 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20555 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20556 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20557 | talker.code_predictor.lm_head.1 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20558 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20559 | talker.code_predictor.model.codec_embedding.1 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20560 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20561 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20562 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20563 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20564 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20565 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20566 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20567 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20568 | talker.code_predictor.lm_head.2 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20569 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20570 | talker.code_predictor.model.codec_embedding.2 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20571 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20572 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20573 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20574 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20575 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20576 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20577 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20578 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20579 | talker.code_predictor.lm_head.3 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20580 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20581 | talker.code_predictor.model.codec_embedding.3 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20582 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20583 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20584 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20585 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20586 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20587 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20588 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20589 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20590 | talker.code_predictor.lm_head.4 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20591 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20592 | talker.code_predictor.model.codec_embedding.4 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20593 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20594 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20595 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20596 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20597 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20598 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20599 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20600 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20601 | talker.code_predictor.lm_head.5 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20602 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20603 | talker.code_predictor.model.codec_embedding.5 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20604 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20605 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20606 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20607 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20608 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20609 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20610 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20611 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20612 | talker.code_predictor.lm_head.6 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20613 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20614 | talker.code_predictor.model.codec_embedding.6 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20615 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20616 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20617 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20618 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20619 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20620 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20621 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20622 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20623 | talker.code_predictor.lm_head.7 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20624 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20625 | talker.code_predictor.model.codec_embedding.7 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20626 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20627 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20628 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20629 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20630 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20631 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20632 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20633 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20634 | talker.code_predictor.lm_head.8 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20635 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20636 | talker.code_predictor.model.codec_embedding.8 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20637 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20638 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20639 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20640 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20641 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20642 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20643 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20644 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20645 | talker.code_predictor.lm_head.9 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20646 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20647 | talker.code_predictor.model.codec_embedding.9 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20648 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20649 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20650 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20651 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20652 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20653 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20654 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20655 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20656 | talker.code_predictor.lm_head.10 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20657 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20658 | talker.code_predictor.model.codec_embedding.10 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20659 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20660 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20661 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20662 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20663 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20664 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20665 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20666 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20667 | talker.code_predictor.lm_head.11 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20668 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20669 | talker.code_predictor.model.codec_embedding.11 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20670 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20671 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20672 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20673 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20674 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20675 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20676 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20677 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20678 | talker.code_predictor.lm_head.12 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20679 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20680 | talker.code_predictor.model.codec_embedding.12 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20681 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20682 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20683 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20684 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20685 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20686 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20687 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20688 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20689 | talker.code_predictor.lm_head.13 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20690 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20691 | talker.code_predictor.model.codec_embedding.13 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20692 | talker.code_predictor.model.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x1x1024, 1x1 | bfloat16, int64 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20693 | talker.code_predictor.model.layers.0 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20694 | talker.code_predictor.model.layers.1 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20695 | talker.code_predictor.model.layers.2 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20696 | talker.code_predictor.model.layers.3 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20697 | talker.code_predictor.model.layers.4 | Qwen3OmniMoeTalkerCodePredictorDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20698 | talker.code_predictor.model.norm | Qwen3OmniMoeRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20699 | talker.code_predictor.model | Qwen3OmniMoeTalkerCodePredictorModel | - | - | 1x1x1024 | bfloat16 |
+| 20700 | talker.code_predictor.lm_head.14 | Linear | 1x1x1024 | bfloat16 | 1x1x2048 | bfloat16 |
+| 20701 | talker.code_predictor | Qwen3OmniMoeTalkerCodePredictorModelForConditionalGeneration | - | - | 1x1x2048 | bfloat16 |
+| 20702 | talker.code_predictor.model.codec_embedding.14 | Embedding | 1x1 | int64 | 1x1x1024 | bfloat16 |
+| 20703 | talker.model.rotary_emb | Qwen3OmniMoeTalkerRotaryEmbedding | 1x1x1024, 3x1x1 | bfloat16, float32 | 1x1x128, 1x1x128 | bfloat16, bfloat16 |
+| 20704 | talker.model.layers.0.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20705 | talker.model.layers.0.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20706 | talker.model.layers.0.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20707 | talker.model.layers.0.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20708 | talker.model.layers.0 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20709 | talker.model.layers.1.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20710 | talker.model.layers.1.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20711 | talker.model.layers.1.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20712 | talker.model.layers.1.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20713 | talker.model.layers.1 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20714 | talker.model.layers.2.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20715 | talker.model.layers.2.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20716 | talker.model.layers.2.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20717 | talker.model.layers.2.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20718 | talker.model.layers.2 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20719 | talker.model.layers.3.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20720 | talker.model.layers.3.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20721 | talker.model.layers.3.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20722 | talker.model.layers.3.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20723 | talker.model.layers.3 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20724 | talker.model.layers.4.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20725 | talker.model.layers.4.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20726 | talker.model.layers.4.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20727 | talker.model.layers.4.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20728 | talker.model.layers.4 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20729 | talker.model.layers.5.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20730 | talker.model.layers.5.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20731 | talker.model.layers.5.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20732 | talker.model.layers.5.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20733 | talker.model.layers.5 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20734 | talker.model.layers.6.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20735 | talker.model.layers.6.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20736 | talker.model.layers.6.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20737 | talker.model.layers.6.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20738 | talker.model.layers.6 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20739 | talker.model.layers.7.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20740 | talker.model.layers.7.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20741 | talker.model.layers.7.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20742 | talker.model.layers.7.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20743 | talker.model.layers.7 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20744 | talker.model.layers.8.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20745 | talker.model.layers.8.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20746 | talker.model.layers.8.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20747 | talker.model.layers.8.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20748 | talker.model.layers.8 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20749 | talker.model.layers.9.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20750 | talker.model.layers.9.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20751 | talker.model.layers.9.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20752 | talker.model.layers.9.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20753 | talker.model.layers.9 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20754 | talker.model.layers.10.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20755 | talker.model.layers.10.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20756 | talker.model.layers.10.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20757 | talker.model.layers.10.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20758 | talker.model.layers.10 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20759 | talker.model.layers.11.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20760 | talker.model.layers.11.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20761 | talker.model.layers.11.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20762 | talker.model.layers.11.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20763 | talker.model.layers.11 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20764 | talker.model.layers.12.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20765 | talker.model.layers.12.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20766 | talker.model.layers.12.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20767 | talker.model.layers.12.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20768 | talker.model.layers.12 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20769 | talker.model.layers.13.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20770 | talker.model.layers.13.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20771 | talker.model.layers.13.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20772 | talker.model.layers.13.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20773 | talker.model.layers.13 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20774 | talker.model.layers.14.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20775 | talker.model.layers.14.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20776 | talker.model.layers.14.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20777 | talker.model.layers.14.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20778 | talker.model.layers.14 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20779 | talker.model.layers.15.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20780 | talker.model.layers.15.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20781 | talker.model.layers.15.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20782 | talker.model.layers.15.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20783 | talker.model.layers.15 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20784 | talker.model.layers.16.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20785 | talker.model.layers.16.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20786 | talker.model.layers.16.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20787 | talker.model.layers.16.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20788 | talker.model.layers.16 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20789 | talker.model.layers.17.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20790 | talker.model.layers.17.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20791 | talker.model.layers.17.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20792 | talker.model.layers.17.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20793 | talker.model.layers.17 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20794 | talker.model.layers.18.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20795 | talker.model.layers.18.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20796 | talker.model.layers.18.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20797 | talker.model.layers.18.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20798 | talker.model.layers.18 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20799 | talker.model.layers.19.input_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20800 | talker.model.layers.19.self_attn | Qwen3OmniMoeThinkerTextAttention | - | - | 1x1x1024 | bfloat16 |
+| 20801 | talker.model.layers.19.post_attention_layernorm | Qwen3OmniMoeThinkerTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20802 | talker.model.layers.19.mlp | Qwen3OmniMoeTalkerTextSparseMoeBlock | 1x1x1024 | bfloat16 | 1x1x1024, 1x128 | bfloat16, bfloat16 |
+| 20803 | talker.model.layers.19 | Qwen3OmniMoeTalkerDecoderLayer | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20804 | talker.model.norm | Qwen3OmniMoeTextRMSNorm | 1x1x1024 | bfloat16 | 1x1x1024 | bfloat16 |
+| 20805 | talker.model | Qwen3OmniMoeTalkerModel | - | - | 1x1x1024 | bfloat16 |
+| 20806 | talker.codec_head | Linear | 1x1x1024 | bfloat16 | 1x1x3072 | bfloat16 |
+| 20807 | talker | Qwen3OmniMoeTalkerForConditionalGeneration | - | - | 1x1x3072 | bfloat16 |
+| 20808 | code2wav.code_embedding | Embedding | 1x16x60 | int64 | 1x16x60x1024 | bfloat16 |
+| 20809 | code2wav.pre_transformer.rotary_emb | Qwen3OmniMoeRotaryEmbedding | 1x60x1024, 1x60 | bfloat16, int64 | 1x60x64, 1x60x64 | bfloat16, bfloat16 |
+| 20810 | code2wav.pre_transformer.layers.0.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20811 | code2wav.pre_transformer.layers.0.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20812 | code2wav.pre_transformer.layers.0.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20813 | code2wav.pre_transformer.layers.0.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20814 | code2wav.pre_transformer.layers.0.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20815 | code2wav.pre_transformer.layers.0.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20816 | code2wav.pre_transformer.layers.0 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20817 | code2wav.pre_transformer.layers.1.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20818 | code2wav.pre_transformer.layers.1.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20819 | code2wav.pre_transformer.layers.1.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20820 | code2wav.pre_transformer.layers.1.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20821 | code2wav.pre_transformer.layers.1.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20822 | code2wav.pre_transformer.layers.1.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20823 | code2wav.pre_transformer.layers.1 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20824 | code2wav.pre_transformer.layers.2.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20825 | code2wav.pre_transformer.layers.2.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20826 | code2wav.pre_transformer.layers.2.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20827 | code2wav.pre_transformer.layers.2.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20828 | code2wav.pre_transformer.layers.2.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20829 | code2wav.pre_transformer.layers.2.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20830 | code2wav.pre_transformer.layers.2 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20831 | code2wav.pre_transformer.layers.3.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20832 | code2wav.pre_transformer.layers.3.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20833 | code2wav.pre_transformer.layers.3.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20834 | code2wav.pre_transformer.layers.3.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20835 | code2wav.pre_transformer.layers.3.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20836 | code2wav.pre_transformer.layers.3.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20837 | code2wav.pre_transformer.layers.3 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20838 | code2wav.pre_transformer.layers.4.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20839 | code2wav.pre_transformer.layers.4.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20840 | code2wav.pre_transformer.layers.4.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20841 | code2wav.pre_transformer.layers.4.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20842 | code2wav.pre_transformer.layers.4.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20843 | code2wav.pre_transformer.layers.4.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20844 | code2wav.pre_transformer.layers.4 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20845 | code2wav.pre_transformer.layers.5.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20846 | code2wav.pre_transformer.layers.5.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20847 | code2wav.pre_transformer.layers.5.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20848 | code2wav.pre_transformer.layers.5.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20849 | code2wav.pre_transformer.layers.5.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20850 | code2wav.pre_transformer.layers.5.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20851 | code2wav.pre_transformer.layers.5 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20852 | code2wav.pre_transformer.layers.6.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20853 | code2wav.pre_transformer.layers.6.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20854 | code2wav.pre_transformer.layers.6.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20855 | code2wav.pre_transformer.layers.6.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20856 | code2wav.pre_transformer.layers.6.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20857 | code2wav.pre_transformer.layers.6.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20858 | code2wav.pre_transformer.layers.6 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20859 | code2wav.pre_transformer.layers.7.input_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20860 | code2wav.pre_transformer.layers.7.self_attn | Qwen3OmniMoeCode2WavAttention | - | - | 1x60x1024 | bfloat16 |
+| 20861 | code2wav.pre_transformer.layers.7.self_attn_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20862 | code2wav.pre_transformer.layers.7.post_attention_layernorm | Qwen3OmniMoeCode2WavRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20863 | code2wav.pre_transformer.layers.7.mlp | Qwen3OmniMoeCode2WavMlp | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20864 | code2wav.pre_transformer.layers.7.mlp_layer_scale | Qwen3OmniMoeCode2WavLayerScale | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20865 | code2wav.pre_transformer.layers.7 | Qwen3OmniMoeCode2WavTransformerLayer | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20866 | code2wav.pre_transformer.norm | Qwen3OmniMoeRMSNorm | 1x60x1024 | bfloat16 | 1x60x1024 | bfloat16 |
+| 20867 | code2wav.pre_transformer | Qwen3OmniMoeCode2WavTransformerModel | - | - | 1x60x1024 | bfloat16 |
+| 20868 | code2wav.upsample.0.0.conv | ConvTranspose1d | 1x1024x60 | bfloat16 | 1x1024x120 | bfloat16 |
+| 20869 | code2wav.upsample.0.0 | Qwen3OmniMoeCausalTransConvNet | 1x1024x60 | bfloat16 | 1x1024x120 | bfloat16 |
+| 20870 | code2wav.upsample.0.1.dwconv | Qwen3OmniMoeCausalConvNet | 1x1024x120 | bfloat16 | 1x1024x120 | bfloat16 |
+| 20871 | code2wav.upsample.0.1.norm | LayerNorm | 1x120x1024 | bfloat16 | 1x120x1024 | bfloat16 |
+| 20872 | code2wav.upsample.0.1.pwconv1 | Linear | 1x120x1024 | bfloat16 | 1x120x4096 | bfloat16 |
+| 20873 | code2wav.upsample.0.1.act | GELU | 1x120x4096 | bfloat16 | 1x120x4096 | bfloat16 |
+| 20874 | code2wav.upsample.0.1.pwconv2 | Linear | 1x120x4096 | bfloat16 | 1x120x1024 | bfloat16 |
+| 20875 | code2wav.upsample.0.1 | Qwen3OmniMoeConvNeXtBlock | 1x1024x120 | bfloat16 | 1x1024x120 | bfloat16 |
+| 20876 | code2wav.upsample.1.0.conv | ConvTranspose1d | 1x1024x120 | bfloat16 | 1x1024x240 | bfloat16 |
+| 20877 | code2wav.upsample.1.0 | Qwen3OmniMoeCausalTransConvNet | 1x1024x120 | bfloat16 | 1x1024x240 | bfloat16 |
+| 20878 | code2wav.upsample.1.1.dwconv | Qwen3OmniMoeCausalConvNet | 1x1024x240 | bfloat16 | 1x1024x240 | bfloat16 |
+| 20879 | code2wav.upsample.1.1.norm | LayerNorm | 1x240x1024 | bfloat16 | 1x240x1024 | bfloat16 |
+| 20880 | code2wav.upsample.1.1.pwconv1 | Linear | 1x240x1024 | bfloat16 | 1x240x4096 | bfloat16 |
+| 20881 | code2wav.upsample.1.1.act | GELU | 1x240x4096 | bfloat16 | 1x240x4096 | bfloat16 |
+| 20882 | code2wav.upsample.1.1.pwconv2 | Linear | 1x240x4096 | bfloat16 | 1x240x1024 | bfloat16 |
+| 20883 | code2wav.upsample.1.1 | Qwen3OmniMoeConvNeXtBlock | 1x1024x240 | bfloat16 | 1x1024x240 | bfloat16 |
+| 20884 | code2wav.decoder.0.conv | Conv1d | 1x1024x246 | bfloat16 | 1x1536x240 | bfloat16 |
+| 20885 | code2wav.decoder.0 | Qwen3OmniMoeCausalConvNet | 1x1024x240 | bfloat16 | 1x1536x240 | bfloat16 |
+| 20886 | code2wav.decoder.1.block.0 | SnakeBeta | 1x1536x240 | bfloat16 | 1x1536x240 | bfloat16 |
+| 20887 | code2wav.decoder.1.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x1536x240 | bfloat16 | 1x768x1912 | bfloat16 |
+| 20888 | code2wav.decoder.1.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x768x1912 | bfloat16 | 1x768x1912 | bfloat16 |
+| 20889 | code2wav.decoder.1.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x768x1912 | bfloat16 | 1x768x1912 | bfloat16 |
+| 20890 | code2wav.decoder.1.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x768x1912 | bfloat16 | 1x768x1912 | bfloat16 |
+| 20891 | code2wav.decoder.1 | Qwen3OmniMoeCode2WavDecoderBlock | 1x1536x240 | bfloat16 | 1x768x1912 | bfloat16 |
+| 20892 | code2wav.decoder.2.block.0 | SnakeBeta | 1x768x1912 | bfloat16 | 1x768x1912 | bfloat16 |
+| 20893 | code2wav.decoder.2.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x768x1912 | bfloat16 | 1x384x9555 | bfloat16 |
+| 20894 | code2wav.decoder.2.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x384x9555 | bfloat16 | 1x384x9555 | bfloat16 |
+| 20895 | code2wav.decoder.2.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x384x9555 | bfloat16 | 1x384x9555 | bfloat16 |
+| 20896 | code2wav.decoder.2.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x384x9555 | bfloat16 | 1x384x9555 | bfloat16 |
+| 20897 | code2wav.decoder.2 | Qwen3OmniMoeCode2WavDecoderBlock | 1x768x1912 | bfloat16 | 1x384x9555 | bfloat16 |
+| 20898 | code2wav.decoder.3.block.0 | SnakeBeta | 1x384x9555 | bfloat16 | 1x384x9555 | bfloat16 |
+| 20899 | code2wav.decoder.3.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x384x9555 | bfloat16 | 1x192x38216 | bfloat16 |
+| 20900 | code2wav.decoder.3.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x192x38216 | bfloat16 | 1x192x38216 | bfloat16 |
+| 20901 | code2wav.decoder.3.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x192x38216 | bfloat16 | 1x192x38216 | bfloat16 |
+| 20902 | code2wav.decoder.3.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x192x38216 | bfloat16 | 1x192x38216 | bfloat16 |
+| 20903 | code2wav.decoder.3 | Qwen3OmniMoeCode2WavDecoderBlock | 1x384x9555 | bfloat16 | 1x192x38216 | bfloat16 |
+| 20904 | code2wav.decoder.4.block.0 | SnakeBeta | 1x192x38216 | bfloat16 | 1x192x38216 | bfloat16 |
+| 20905 | code2wav.decoder.4.block.1 | Qwen3OmniMoeCausalTransConvNet | 1x192x38216 | bfloat16 | 1x96x114645 | bfloat16 |
+| 20906 | code2wav.decoder.4.block.2 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x96x114645 | bfloat16 | 1x96x114645 | bfloat16 |
+| 20907 | code2wav.decoder.4.block.3 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x96x114645 | bfloat16 | 1x96x114645 | bfloat16 |
+| 20908 | code2wav.decoder.4.block.4 | Qwen3OmniMoeCode2WavDecoderResidualUnit | 1x96x114645 | bfloat16 | 1x96x114645 | bfloat16 |
+| 20909 | code2wav.decoder.4 | Qwen3OmniMoeCode2WavDecoderBlock | 1x192x38216 | bfloat16 | 1x96x114645 | bfloat16 |
+| 20910 | code2wav.decoder.5 | SnakeBeta | 1x96x114645 | bfloat16 | 1x96x114645 | bfloat16 |
+| 20911 | code2wav.decoder.6.conv | Conv1d | 1x96x114651 | bfloat16 | 1x1x114645 | bfloat16 |
+| 20912 | code2wav.decoder.6 | Qwen3OmniMoeCausalConvNet | 1x96x114645 | bfloat16 | 1x1x114645 | bfloat16 |
+| 20913 | code2wav | Qwen3OmniMoeCode2Wav | 1x16x60 | int64 | 1x1x114645 | bfloat16 |

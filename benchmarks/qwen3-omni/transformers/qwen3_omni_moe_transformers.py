@@ -192,6 +192,31 @@ class LayerTracer:
             return info_list
         return [info for info in info_list if info.name.startswith(component)]
 
+    def _filter_by_depth(
+        self, info_list: list[LayerInfo], max_layer_depth: int | None
+    ) -> list[LayerInfo]:
+        """Filter layers by nesting depth (number of dots in name)."""
+        if max_layer_depth is None:
+            return info_list
+        return [info for info in info_list if info.name.count(".") <= max_layer_depth]
+
+    def _shorten_name(self, name: str) -> str:
+        """Shorten layer name for compact display."""
+        # Remove common prefixes and simplify
+        parts = name.split(".")
+        if len(parts) > 3:
+            # Keep component, model, and last 2 parts
+            return f"{parts[0]}...{'.'.join(parts[-2:])}"
+        return name
+
+    def _shorten_type(self, module_type: str) -> str:
+        """Shorten module type name."""
+        # Remove common prefixes
+        for prefix in ["Qwen3OmniMoe", "Qwen3Omni", "Qwen3", "Qwen2"]:
+            if module_type.startswith(prefix):
+                module_type = module_type[len(prefix):]
+        return module_type[:20] if len(module_type) > 20 else module_type
+
     def _generate_mermaid_for_list(
         self,
         info_list: list[LayerInfo],
@@ -199,51 +224,72 @@ class LayerTracer:
         node_prefix: str,
         include_details: bool = True,
         max_edges: int = 499,
-    ) -> tuple[list[str], int]:
+        max_nodes: int = 200,
+        compact: bool = False,
+    ) -> tuple[list[str], int, int]:
         """
         Generate mermaid lines for a list of layer info.
 
         Returns:
-            tuple: (lines, edge_count)
+            tuple: (lines, edge_count, node_count)
         """
         lines = []
         edge_count = 0
+        node_count = 0
 
         if not info_list:
-            return lines, edge_count
+            return lines, edge_count, node_count
 
         lines.append(f"    subgraph {node_prefix}Phase [{phase_name}]")
         prev_node = None
 
         for info in info_list:
-            if edge_count >= max_edges:
-                lines.append(f'        {node_prefix}_truncated["... truncated (max {max_edges} edges)"]')
+            if edge_count >= max_edges or node_count >= max_nodes:
+                lines.append(f'        {node_prefix}_truncated["... truncated (max {max_nodes} nodes / {max_edges} edges)"]')
                 if prev_node:
                     lines.append(f"        {prev_node} --> {node_prefix}_truncated")
                 break
 
             node_id = f"{node_prefix}_{self._sanitize_node_id(info.name)}"
-            if include_details and info.input_shapes and info.output_shapes:
-                in_shape = self._format_shape(info.input_shapes[0]) if info.input_shapes else "?"
-                out_shape = self._format_shape(info.output_shapes[0]) if info.output_shapes else "?"
-                in_dtype = self._format_dtype(info.input_dtypes[0]) if info.input_dtypes else "?"
-                label = f'{info.name}\\nType: {info.module_type}\\nIn: {in_shape} {in_dtype}\\nOut: {out_shape}'
+
+            if compact:
+                # Compact mode: shorter labels
+                short_name = self._shorten_name(info.name)
+                short_type = self._shorten_type(info.module_type)
+                if include_details and info.input_shapes and info.output_shapes:
+                    in_shape = self._format_shape(info.input_shapes[0]) if info.input_shapes else "?"
+                    out_shape = self._format_shape(info.output_shapes[0]) if info.output_shapes else "?"
+                    label = f'{short_name}\\n{short_type}\\n{in_shape}->{out_shape}'
+                else:
+                    label = f"{short_name}\\n{short_type}"
             else:
-                label = f"{info.name}\\n{info.module_type}"
+                # Full mode
+                if include_details and info.input_shapes and info.output_shapes:
+                    in_shape = self._format_shape(info.input_shapes[0]) if info.input_shapes else "?"
+                    out_shape = self._format_shape(info.output_shapes[0]) if info.output_shapes else "?"
+                    in_dtype = self._format_dtype(info.input_dtypes[0]) if info.input_dtypes else "?"
+                    label = f'{info.name}\\nType: {info.module_type}\\nIn: {in_shape} {in_dtype}\\nOut: {out_shape}'
+                else:
+                    label = f"{info.name}\\n{info.module_type}"
+
             lines.append(f'        {node_id}["{label}"]')
+            node_count += 1
             if prev_node:
                 lines.append(f"        {prev_node} --> {node_id}")
                 edge_count += 1
             prev_node = node_id
 
         lines.append("    end")
-        return lines, edge_count
+        return lines, edge_count, node_count
 
     def generate_mermaid(
         self,
         include_details: bool = True,
         component: str | None = None,
         max_edges: int = 499,
+        max_nodes: int = 200,
+        compact: bool = False,
+        max_layer_depth: int | None = None,
     ) -> str:
         """
         Generate a mermaid flowchart showing model structure and data flow.
@@ -253,44 +299,56 @@ class LayerTracer:
             component: Filter by component name (e.g., "thinker", "talker", "code2wav").
                        If None, includes all components.
             max_edges: Maximum number of edges in the diagram (default: 499)
+            max_nodes: Maximum number of nodes in the diagram (default: 200)
+            compact: Use compact labels (shorter names/types)
+            max_layer_depth: Maximum layer nesting depth (None = no limit)
 
         Returns:
             Mermaid diagram string
         """
         lines = ["flowchart TD"]
         total_edges = 0
+        total_nodes = 0
 
-        # Filter by component if specified
+        # Filter by component and depth
         prefill_filtered = self._filter_by_component(self.prefill_info, component)
+        prefill_filtered = self._filter_by_depth(prefill_filtered, max_layer_depth)
         decode_filtered = self._filter_by_component(self.decode_info, component)
+        decode_filtered = self._filter_by_depth(decode_filtered, max_layer_depth)
 
         # Generate Prefill Phase subgraph
         if prefill_filtered:
-            prefill_lines, prefill_edges = self._generate_mermaid_for_list(
+            prefill_lines, prefill_edges, prefill_nodes = self._generate_mermaid_for_list(
                 prefill_filtered,
                 "Prefill Phase",
                 "P",
                 include_details,
                 max_edges - total_edges,
+                max_nodes - total_nodes,
+                compact,
             )
             lines.extend(prefill_lines)
             total_edges += prefill_edges
+            total_nodes += prefill_nodes
 
         # Generate Decode Phase subgraph
-        if decode_filtered and total_edges < max_edges:
-            decode_lines, decode_edges = self._generate_mermaid_for_list(
+        if decode_filtered and total_edges < max_edges and total_nodes < max_nodes:
+            decode_lines, decode_edges, decode_nodes = self._generate_mermaid_for_list(
                 decode_filtered,
                 "Decode Phase - Step 1",
                 "D",
                 include_details,
                 max_edges - total_edges,
+                max_nodes - total_nodes,
+                compact,
             )
             lines.extend(decode_lines)
             total_edges += decode_edges
+            total_nodes += decode_nodes
 
         # Connect phases
         if prefill_filtered and decode_filtered and total_edges < max_edges:
-            lines.append("    PrefillPhase --> DPhase")
+            lines.append("    PPhase --> DPhase")
             total_edges += 1
 
         return "\n".join(lines)
@@ -299,6 +357,9 @@ class LayerTracer:
         self,
         include_details: bool = True,
         max_edges: int = 499,
+        max_nodes: int = 200,
+        compact: bool = False,
+        max_layer_depth: int | None = None,
     ) -> dict[str, str]:
         """
         Generate separate mermaid diagrams for each component.
@@ -306,6 +367,9 @@ class LayerTracer:
         Args:
             include_details: Whether to include shape/dtype details in nodes
             max_edges: Maximum number of edges per diagram (default: 499)
+            max_nodes: Maximum number of nodes per diagram (default: 200)
+            compact: Use compact labels (shorter names/types)
+            max_layer_depth: Maximum layer nesting depth (None = no limit)
 
         Returns:
             Dict mapping component name to mermaid diagram string
@@ -324,6 +388,9 @@ class LayerTracer:
                 include_details=include_details,
                 component=component,
                 max_edges=max_edges,
+                max_nodes=max_nodes,
+                compact=compact,
+                max_layer_depth=max_layer_depth,
             )
             result[component] = mermaid
 
@@ -524,6 +591,9 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
         output_dir: str,
         prefix: str = "model_structure",
         max_edges: int = 499,
+        max_nodes: int = 200,
+        compact: bool = True,
+        max_layer_depth: int | None = 3,
         split_by_component: bool = True,
     ):
         """
@@ -533,6 +603,9 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
             output_dir: Directory to save results
             prefix: Filename prefix
             max_edges: Maximum edges per mermaid diagram (default: 499)
+            max_nodes: Maximum nodes per mermaid diagram (default: 200)
+            compact: Use compact labels (default: True)
+            max_layer_depth: Maximum layer depth to show (default: 3)
             split_by_component: If True, save separate mermaid files for thinker/talker/code2wav
         """
         os.makedirs(output_dir, exist_ok=True)
@@ -546,6 +619,9 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
             component_diagrams = self.tracer.generate_mermaid_by_component(
                 include_details=True,
                 max_edges=max_edges,
+                max_nodes=max_nodes,
+                compact=compact,
+                max_layer_depth=max_layer_depth,
             )
             for component, mermaid in component_diagrams.items():
                 mermaid_path = os.path.join(output_dir, f"{prefix}_{component}_mermaid.md")
@@ -561,7 +637,13 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
             with open(mermaid_path, "w", encoding="utf-8") as f:
                 f.write("# Qwen3 Omni Model Structure\n\n")
                 f.write("```mermaid\n")
-                f.write(self.tracer.generate_mermaid(include_details=True, max_edges=max_edges))
+                f.write(self.tracer.generate_mermaid(
+                    include_details=True,
+                    max_edges=max_edges,
+                    max_nodes=max_nodes,
+                    compact=compact,
+                    max_layer_depth=max_layer_depth,
+                ))
                 f.write("\n```\n")
             print(f"[Tracing] Saved mermaid diagram to {mermaid_path}")
 

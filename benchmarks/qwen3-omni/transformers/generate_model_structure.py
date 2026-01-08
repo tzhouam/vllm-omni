@@ -95,6 +95,23 @@ def parse_args():
         help="Maximum edges per mermaid diagram (default: 499)",
     )
     parser.add_argument(
+        "--max_nodes",
+        type=int,
+        default=200,
+        help="Maximum nodes per mermaid diagram (default: 200)",
+    )
+    parser.add_argument(
+        "--max_layer_depth",
+        type=int,
+        default=3,
+        help="Maximum layer nesting depth to show (default: 3)",
+    )
+    parser.add_argument(
+        "--no_compact",
+        action="store_true",
+        help="Disable compact mode (show full layer names)",
+    )
+    parser.add_argument(
         "--no_split",
         action="store_true",
         help="Don't split mermaid by component (save as single file)",
@@ -236,10 +253,14 @@ def main():
     print("=" * 70)
 
     split_by_component = not args.no_split
+    compact = not args.no_compact
     model.save_tracing_results(
         args.output_dir,
         prefix="qwen3_omni",
         max_edges=args.max_edges,
+        max_nodes=args.max_nodes,
+        compact=compact,
+        max_layer_depth=args.max_layer_depth,
         split_by_component=split_by_component,
     )
 
@@ -249,7 +270,12 @@ def main():
         print("Mermaid Diagram")
         print("=" * 70)
         if model.tracer:
-            diagrams = model.tracer.generate_mermaid_by_component(max_edges=args.max_edges)
+            diagrams = model.tracer.generate_mermaid_by_component(
+                max_edges=args.max_edges,
+                max_nodes=args.max_nodes,
+                compact=compact,
+                max_layer_depth=args.max_layer_depth,
+            )
             for component, mermaid in diagrams.items():
                 print(f"\n### {component.capitalize()}\n")
                 print("```mermaid")
@@ -265,7 +291,10 @@ def main():
         print(f"  Total hooks registered: {summary['total_hooks']}")
         print(f"  Prefill layers traced:  {summary['prefill_layers']}")
         print(f"  Decode layers traced:   {summary['decode_layers']}")
+        print(f"  Max nodes per diagram:  {args.max_nodes}")
         print(f"  Max edges per diagram:  {args.max_edges}")
+        print(f"  Max layer depth:        {args.max_layer_depth}")
+        print(f"  Compact mode:           {compact}")
         print(f"  Split by component:     {split_by_component}")
 
     print(f"\nOutput files saved to: {args.output_dir}/")
