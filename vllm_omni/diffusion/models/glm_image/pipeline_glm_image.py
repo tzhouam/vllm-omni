@@ -705,6 +705,112 @@ class GlmImagePipeline(nn.Module):
 
     # ==================== Main Forward Pass ====================
 
+    def _prepare_condition_image_kv_cache(
+        self,
+        condition_images: list[torch.Tensor],
+        prior_token_image_ids: list[torch.Tensor],
+        prompt_embeds: torch.Tensor,
+        generator: torch.Generator | None = None,
+    ) -> GlmImageKVCache:
+        """
+        Prepare KV cache by running condition images through transformer at timestep 0.
+
+        This is used for Image Edit mode where we need to cache the condition image's
+        KV states for cross-attention during denoising.
+
+        Args:
+            condition_images: List of preprocessed condition images
+            prior_token_image_ids: Prior token IDs for each condition image from AR model
+            prompt_embeds: Prompt embeddings (used to get dtype)
+            generator: Optional random generator
+
+        Returns:
+            GlmImageKVCache with cached KV states from condition images
+        """
+        kv_caches = self.transformer.create_kv_cache()
+        kv_caches.set_mode("write")
+
+        # Prepare VAE normalization parameters
+        latents_mean = (
+            torch.tensor(self.vae.config.latents_mean)
+            .view(1, self.vae.config.latent_channels, 1, 1)
+            .to(device=self.device, dtype=prompt_embeds.dtype)
+        )
+        latents_std = (
+            torch.tensor(self.vae.config.latents_std)
+            .view(1, self.vae.config.latent_channels, 1, 1)
+            .to(device=self.device, dtype=prompt_embeds.dtype)
+        )
+
+        # Process each condition image through transformer to populate KV cache
+        for condition_image, condition_prior_token_id in zip(condition_images, prior_token_image_ids):
+            condition_image = condition_image.to(device=self.device, dtype=prompt_embeds.dtype)
+
+            # Encode condition image to latent space
+            # Use argmax (mode) for deterministic encoding of condition images
+            condition_latent = retrieve_latents(
+                self.vae.encode(condition_image), generator=generator, sample_mode="argmax"
+            )
+            condition_latent = (condition_latent - latents_mean) / latents_std
+
+            # Run forward pass at timestep 0 to cache KV states
+            # Empty encoder_hidden_states since we only want to cache image features
+            _ = self.transformer(
+                hidden_states=condition_latent,
+                encoder_hidden_states=torch.zeros_like(prompt_embeds)[:1, :0, ...],
+                prior_token_id=condition_prior_token_id,
+                prior_token_drop=torch.full_like(condition_prior_token_id, False, dtype=torch.bool),
+                timestep=torch.zeros((1,), device=self.device),
+                target_size=torch.tensor([condition_image.shape[-2:]], device=self.device, dtype=prompt_embeds.dtype),
+                crop_coords=torch.zeros((1, 2), device=self.device, dtype=prompt_embeds.dtype),
+                kv_caches=kv_caches,
+                return_dict=False,
+            )
+
+        return kv_caches
+
+    def _preprocess_condition_images(
+        self,
+        images: list[PIL.Image.Image] | PIL.Image.Image | None,
+    ) -> tuple[list[torch.Tensor] | None, int | None, int | None]:
+        """
+        Preprocess condition images for Image Edit mode.
+
+        Args:
+            images: Input images (PIL or list of PIL)
+
+        Returns:
+            Tuple of (preprocessed_images, height, width)
+        """
+        if images is None:
+            return None, None, None
+
+        if not isinstance(images, list):
+            images = [images]
+
+        preprocessed = []
+        height, width = None, None
+
+        for img in images:
+            if isinstance(img, PIL.Image.Image):
+                img_h, img_w = img.size[::-1]
+            else:
+                img_h, img_w = img.shape[:2]
+
+            # Align to multiple of vae_scale_factor * patch_size
+            multiple_of = self.vae_scale_factor * self._patch_size
+            img_h = (img_h // multiple_of) * multiple_of
+            img_w = (img_w // multiple_of) * multiple_of
+
+            processed = self.image_processor.preprocess(img, height=img_h, width=img_w)
+            preprocessed.append(processed)
+
+            # Use first image dimensions as default
+            if height is None:
+                height, width = img_h, img_w
+
+        return preprocessed, height, width
+
     @torch.inference_mode()
     def forward(self, req: OmniDiffusionRequest) -> DiffusionOutput:
         """
@@ -720,13 +826,26 @@ class GlmImagePipeline(nn.Module):
         if isinstance(prompt, list):
             prompt = prompt[0] if prompt else ""
 
-        height = req.height or self.default_sample_size * self.vae_scale_factor
-        width = req.width or self.default_sample_size * self.vae_scale_factor
+        # Get pre-computed prompt embeddings if provided
+        prompt_embeds = req.prompt_embeds if isinstance(req.prompt_embeds, torch.Tensor) else None
+
+        # Get condition images for Image Edit mode
+        condition_images = req.pil_image
+        if condition_images is not None and not isinstance(condition_images, list):
+            condition_images = [condition_images]
+
+        # Preprocess condition images and get dimensions
+        preprocessed_images, img_height, img_width = self._preprocess_condition_images(condition_images)
+        is_image_edit = preprocessed_images is not None
+
+        # Use image dimensions as default if available
+        height = req.height or img_height or self.default_sample_size * self.vae_scale_factor
+        width = req.width or img_width or self.default_sample_size * self.vae_scale_factor
         num_inference_steps = req.num_inference_steps or 50
         guidance_scale = req.guidance_scale or 1.5
 
         # 0. Validate inputs
-        self.check_inputs(prompt=prompt, height=height, width=width)
+        self.check_inputs(prompt=prompt, height=height, width=width, prompt_embeds=prompt_embeds)
 
         batch_size = 1
         do_classifier_free_guidance = guidance_scale > 1.0
@@ -740,7 +859,7 @@ class GlmImagePipeline(nn.Module):
         logger.info("Generating prior tokens with AR model...")
         prior_token_id, prior_token_image_ids = self.generate_prior_tokens(
             prompt=prompt,
-            image=None,  # Text-to-image for now
+            image=condition_images,
             height=height,
             width=width,
         )
@@ -751,11 +870,25 @@ class GlmImagePipeline(nn.Module):
             prompt,
             do_classifier_free_guidance=do_classifier_free_guidance,
             num_images_per_prompt=1,
+            prompt_embeds=prompt_embeds,
             device=self.device,
             dtype=self.transformer.dtype,
         )
 
-        # 3. Prepare latents
+        # 3. Prepare KV cache for Image Edit mode
+        kv_caches = None
+        if is_image_edit and prior_token_image_ids is not None:
+            logger.info("Preparing KV cache for Image Edit mode...")
+            kv_caches = self._prepare_condition_image_kv_cache(
+                condition_images=preprocessed_images,
+                prior_token_image_ids=prior_token_image_ids,
+                prompt_embeds=prompt_embeds,
+                generator=generator,
+            )
+            # Switch to read mode for denoising
+            kv_caches.set_mode("read")
+
+        # 4. Prepare latents
         latent_channels = self.transformer.in_channels
         latents = self.prepare_latents(
             batch_size=batch_size,
@@ -767,7 +900,7 @@ class GlmImagePipeline(nn.Module):
             generator=generator,
         )
 
-        # 4. Prepare timesteps
+        # 5. Prepare timesteps
         image_seq_len = ((height // self.vae_scale_factor) * (width // self.vae_scale_factor)) // (self._patch_size**2)
         timesteps_array = np.linspace(self.scheduler.config.num_train_timesteps, 1.0, num_inference_steps + 1)[:-1]
         timesteps_array = timesteps_array.astype(np.int64).astype(np.float32)
@@ -783,11 +916,11 @@ class GlmImagePipeline(nn.Module):
             self.scheduler, num_inference_steps, self.device, timesteps_array.tolist(), sigmas.tolist(), mu=mu
         )
 
-        # 5. Prepare conditioning tensors
+        # 6. Prepare conditioning tensors
         target_size = torch.tensor([[height, width]], dtype=prompt_embeds.dtype, device=self.device)
         crop_coords = torch.zeros((1, 2), dtype=prompt_embeds.dtype, device=self.device)
 
-        # 6. Denoising loop with CFG-parallel support
+        # 7. Denoising loop with CFG-parallel support
         logger.info(f"Starting denoising loop with {num_inference_steps} steps...")
         latents = self.diffuse(
             latents=latents,
@@ -799,10 +932,10 @@ class GlmImagePipeline(nn.Module):
             crop_coords=crop_coords,
             guidance_scale=guidance_scale,
             do_classifier_free_guidance=do_classifier_free_guidance,
-            kv_caches=None,  # TODO: Add KV cache support for Image Edit
+            kv_caches=kv_caches,
         )
 
-        # 7. VAE decode
+        # 8. VAE decode
         logger.info("Decoding latents with VAE...")
         latents = latents.to(self.vae.dtype)
         latents_mean = (
@@ -818,7 +951,7 @@ class GlmImagePipeline(nn.Module):
         latents = latents * latents_std + latents_mean
         image = self.vae.decode(latents, return_dict=False, generator=generator)[0]
 
-        # 8. Post-process
+        # 9. Post-process
         image = self.image_processor.postprocess(image, output_type="pil")[0]
 
         return DiffusionOutput(output=image)
