@@ -50,6 +50,28 @@ from vllm_omni.model_executor.model_loader.weight_utils import (
 logger = logging.getLogger(__name__)
 
 
+def get_glm_image_post_process_func(od_config: OmniDiffusionConfig):
+    """Get post-processing function for GLM-Image pipeline."""
+    model_name = od_config.model
+    if os.path.exists(model_name):
+        model_path = model_name
+    else:
+        model_path = download_weights_from_hf_specific(model_name, None, ["*"])
+
+    vae_config_path = os.path.join(model_path, "vae/config.json")
+    with open(vae_config_path) as f:
+        vae_config = json.load(f)
+        block_out_channels = vae_config.get("block_out_channels", [128, 256, 512, 512])
+        vae_scale_factor = 2 ** (len(block_out_channels) - 1)
+
+    image_processor = VaeImageProcessor(vae_scale_factor=vae_scale_factor)
+
+    def post_process_func(images: torch.Tensor):
+        return image_processor.postprocess(images)
+
+    return post_process_func
+
+
 def calculate_shift(
     image_seq_len: int,
     base_seq_len: int = 256,
@@ -126,42 +148,6 @@ def retrieve_latents(
         return encoder_output.latents
     else:
         raise AttributeError("Could not access latents of provided encoder_output")
-
-
-def get_glm_image_post_process_func(od_config: OmniDiffusionConfig):
-    """Get post-processing function for GLM-Image pipeline."""
-    model_name = od_config.model
-    if os.path.exists(model_name):
-        model_path = model_name
-    else:
-        model_path = download_weights_from_hf_specific(model_name, None, ["*"])
-
-    vae_config_path = os.path.join(model_path, "vae/config.json")
-    with open(vae_config_path) as f:
-        vae_config = json.load(f)
-        block_out_channels = vae_config.get("block_out_channels", [128, 256, 512, 512])
-        vae_scale_factor = 2 ** (len(block_out_channels) - 1)
-
-    image_processor = VaeImageProcessor(vae_scale_factor=vae_scale_factor)
-
-    def post_process_func(images: torch.Tensor):
-        return image_processor.postprocess(images)
-
-    return post_process_func
-
-
-def get_glm_image_pre_process_func(od_config: OmniDiffusionConfig):
-    """Get pre-processing function for GLM-Image pipeline.
-
-    For text-to-image, no pre-processing is needed.
-    For image-to-image, could handle condition image processing.
-    """
-
-    def pre_process_func(requests: list[OmniDiffusionRequest]) -> list[OmniDiffusionRequest]:
-        # Currently just pass through, can add image preprocessing later
-        return requests
-
-    return pre_process_func
 
 
 class GlmImagePipeline(nn.Module):
