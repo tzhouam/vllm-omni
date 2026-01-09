@@ -174,7 +174,9 @@ class LayerTracer:
 
     def _sanitize_node_id(self, name: str) -> str:
         """Convert module name to a valid mermaid node ID."""
-        return name.replace(".", "_").replace("-", "_")
+        import re
+        # Replace any non-alphanumeric character (including brackets) with underscore
+        return re.sub(r"[^a-zA-Z0-9]", "_", name)
 
     def _format_shape(self, shape: tuple) -> str:
         """Format a shape tuple for display."""
@@ -206,9 +208,10 @@ class LayerTracer:
 
     def _collapse_repeated_layers(self, info_list: list[LayerInfo]) -> list[LayerInfo]:
         """
-        Collapse repeated layers (like layers.0, layers.1, ..., layers.47) into one representative.
-        Returns a list with only one representative for each repeated pattern, 
-        with the name modified to show the range.
+        Collapse repeated layers (like layers.0, layers.1, ..., layers.47) into a single
+        representative entry **without** altering the name. We keep the first occurrence
+        of each pattern and drop the rest, so internal details of that representative
+        layer remain visible (zoom-in effect) while avoiding bracketed range names.
         """
         import re
         from collections import OrderedDict
@@ -224,45 +227,11 @@ class LayerTracer:
                 pattern_groups[pattern] = []
             pattern_groups[pattern].append(info)
         
-        # Create collapsed list
+        # Create collapsed list: keep only the first occurrence per pattern
         collapsed = []
         for pattern, group in pattern_groups.items():
-            if len(group) == 1:
-                # No repetition, keep as is
-                collapsed.append(group[0])
-            else:
-                # Multiple layers with same pattern - use first one as representative
-                representative = group[0]
-                
-                # Extract indices to show range
-                indices = []
-                for info in group:
-                    match = re.search(r'\.(\d+)(\.|\Z)', info.name)
-                    if match:
-                        indices.append(int(match.group(1)))
-                
-                if indices:
-                    min_idx, max_idx = min(indices), max(indices)
-                    # Modify name to show range, e.g., "layers.[0-47]"
-                    new_name = re.sub(
-                        r'\.(\d+)(\.|\Z)', 
-                        f'.[{min_idx}-{max_idx}]\\2', 
-                        representative.name
-                    )
-                    # Create new LayerInfo with modified name
-                    collapsed_info = LayerInfo(
-                        name=new_name,
-                        module_type=f"{representative.module_type} (x{len(group)})",
-                        input_shapes=representative.input_shapes,
-                        input_dtypes=representative.input_dtypes,
-                        output_shapes=representative.output_shapes,
-                        output_dtypes=representative.output_dtypes,
-                        call_order=representative.call_order,
-                    )
-                    collapsed.append(collapsed_info)
-                else:
-                    # Fallback: just use first one
-                    collapsed.append(group[0])
+            # Keep only the first occurrence to represent the repeated block
+            collapsed.append(group[0])
         
         return collapsed
 
@@ -518,7 +487,7 @@ class LayerTracer:
         
         result = {}
         
-        # Generate overall graphs for thinker and talker first
+        # Generate overall graphs for thinker and talker first (full depth)
         if include_overall:
             for comp in ["thinker", "talker"]:
                 if comp in top_components:
@@ -528,7 +497,7 @@ class LayerTracer:
                         max_edges=max_edges,
                         max_nodes=max_nodes,
                         compact=compact,
-                        max_layer_depth=max_layer_depth,
+                        max_layer_depth=None,  # show full depth for overall
                     )
                     if len(mermaid.strip().split("\n")) > 1:
                         result[f"{comp}_overall"] = mermaid
@@ -540,15 +509,17 @@ class LayerTracer:
             "code2wav"
         ]
         
+        deep_subcomponents = {"thinker_moe", "talker_moe", "talker_mtp"}
         for subcomp in ordered_subcomponents:
             if subcomp in subcomponents:
+                depth_limit = None if subcomp in deep_subcomponents else max_layer_depth
                 mermaid = self.generate_mermaid(
                     include_details=include_details,
                     subcomponent=subcomp,
                     max_edges=max_edges,
                     max_nodes=max_nodes,
                     compact=compact,
-                    max_layer_depth=max_layer_depth,
+                    max_layer_depth=depth_limit,
                 )
                 # Only add if there are actual nodes (not just "flowchart TD")
                 if len(mermaid.strip().split("\n")) > 1:
@@ -832,6 +803,21 @@ class Qwen3OmniMoeForConditionalGenerationWithTracing(Qwen3OmniMoeForConditional
                     f.write(mermaid)
                     f.write("\n```\n")
                 print(f"[Tracing] Saved {subcomp} mermaid diagram to {mermaid_path}")
+            
+            # Save a combined overall diagram (all components)
+            overall_path = os.path.join(output_dir, f"{prefix}_overall_mermaid.md")
+            with open(overall_path, "w", encoding="utf-8") as f:
+                f.write("# Qwen3 Omni Model Structure - Complete Overview\n\n")
+                f.write("```mermaid\n")
+                f.write(self.tracer.generate_mermaid(
+                    include_details=True,
+                    max_edges=max_edges,
+                    max_nodes=max_nodes,
+                    compact=compact,
+                    max_layer_depth=None,  # full depth for complete overview
+                ))
+                f.write("\n```\n")
+            print(f"[Tracing] Saved overall mermaid diagram to {overall_path}")
         else:
             # Save combined mermaid diagram
             mermaid_path = os.path.join(output_dir, f"{prefix}_mermaid.md")

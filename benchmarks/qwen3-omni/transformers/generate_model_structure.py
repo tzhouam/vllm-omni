@@ -103,8 +103,8 @@ def parse_args():
     parser.add_argument(
         "--max_layer_depth",
         type=int,
-        default=3,
-        help="Maximum layer nesting depth to show (default: 3)",
+        default=6,
+        help="Maximum layer nesting depth to show (default: 6; increase to see deeper layers)",
     )
     parser.add_argument(
         "--no_compact",
@@ -307,6 +307,7 @@ def main():
         print("  - qwen3_omni_talker_moe_mermaid.md       (Talker MoE)")
         print("  - qwen3_omni_talker_mtp_mermaid.md       (Talker MTP)")
         print("  - qwen3_omni_code2wav_mermaid.md         (Code2Wav Vocoder)")
+        print("  - qwen3_omni_overall_mermaid.md         (Complete Model Overview)")
     else:
         print("  - qwen3_omni_mermaid.md  (Combined mermaid diagram)")
     print("  - qwen3_omni_layers.md   (Layer details table)")
