@@ -14,6 +14,7 @@ from vllm.logger import init_logger
 from vllm.utils.mem_utils import DeviceMemoryProfiler, GiB_bytes
 
 from vllm_omni.diffusion.cache.selector import get_cache_backend
+from vllm_omni.diffusion.compile import regionally_compile
 from vllm_omni.diffusion.data import (
     DiffusionOutput,
     OmniDiffusionConfig,
@@ -100,6 +101,16 @@ class GPUWorker:
         )
         logger.info(f"Worker {self.rank}: Model loaded successfully.")
 
+        if not self.od_config.enforce_eager:
+            try:
+                self.pipeline.transformer = regionally_compile(
+                    self.pipeline.transformer,
+                    dynamic=True,
+                )
+                logger.info(f"Worker {self.rank}: Model compiled with torch.compile.")
+            except Exception as e:
+                logger.warning(f"Worker {self.rank}: torch.compile failed with error: {e}. Using eager mode.")
+
         # Setup cache backend based on type (both backends use enable()/reset() interface)
         self.cache_backend = get_cache_backend(self.od_config.cache_backend, self.od_config.cache_config)
 
@@ -143,6 +154,16 @@ class GPUWorker:
         return self.pipeline.load_weights(weights)
 
     def sleep(self, level: int = 1) -> bool:
+        """
+        Put the worker to sleep. The worker should not process any requests.
+        The caller should guarantee that no requests are being processed
+        during the sleep period, before `wake_up` is called.
+
+        Args:
+            level: The sleep level. Level 1 sleep will offload the model
+                weights and discard the kv cache.
+                Currently only support level 1.
+        """
         from vllm.device_allocator.cumem import CuMemAllocator
 
         free_bytes_before_sleep = torch.cuda.mem_get_info()[0]
@@ -166,6 +187,17 @@ class GPUWorker:
         return True
 
     def wake_up(self, tags: list[str] | None = None) -> bool:
+        """
+        Wake up the worker from sleep mode. See the sleep function
+        method for more details.
+
+        Args:
+            tags: An optional list of tags to reallocate the worker memory
+                for specific memory allocations. Values must be in
+                `("weights")`. If None, all memory is reallocated.
+                wake_up should be called with all tags (or None) before the
+                worker is used again.
+        """
         from vllm.device_allocator.cumem import CuMemAllocator
 
         allocator = CuMemAllocator.get_instance()

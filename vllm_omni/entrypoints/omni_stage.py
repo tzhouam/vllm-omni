@@ -601,6 +601,7 @@ def _stage_worker(
         # or when process dies
         for lock_fd in lock_files:
             try:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
                 _os.close(lock_fd)
                 logger.debug("Released initialization lock (fd=%s)", lock_fd)
             except (OSError, ValueError):
@@ -1104,6 +1105,7 @@ async def _stage_worker_async(
         # or when process dies
         for lock_fd in lock_files:
             try:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
                 _os.close(lock_fd)
                 logger.debug("Released initialization lock (fd=%s)", lock_fd)
             except (OSError, ValueError):
@@ -1224,6 +1226,7 @@ async def _stage_worker_async(
                     gen_output = res
                     _gen_t1 = _time.time()
                     _gen_ms = (_gen_t1 - _gen_t0) * 1000.0
+                    _gen_t0 = _gen_t1
                     await generation_out_q.put((rid, gen_output, _gen_ms))
         except Exception as e:
             logger.exception("Failed on request %s: %s", rid, e)

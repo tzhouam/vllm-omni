@@ -11,6 +11,7 @@ nav:
     - examples/README.md
     - Offline Inference:
       - Image-To-Image: user_guide/examples/offline_inference/image_to_image.md
+      - Image-To-Video: user_guide/examples/offline_inference/image_to_video.md
       - Qwen2.5-Omni: user_guide/examples/offline_inference/qwen2_5_omni.md
       - Qwen3-Omni: user_guide/examples/offline_inference/qwen3_omni.md
       - Text-To-Image: user_guide/examples/offline_inference/text_to_image.md
@@ -33,6 +34,8 @@ nav:
       - Parallelism Acceleration: user_guide/acceleration/parallelism_acceleration.md
   - Models:
     - models/supported_models.md
+  - Features:
+    - Sleep Mode: features/sleep_mode.md
 - Developer Guide:
   - General:
     - contributing/README.md
