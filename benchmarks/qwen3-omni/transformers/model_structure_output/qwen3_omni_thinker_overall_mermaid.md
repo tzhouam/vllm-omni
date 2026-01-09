@@ -1,4 +1,4 @@
-# Qwen3 Omni Model Structure - Thinker (Base Model)
+# Qwen3 Omni Model Structure - Thinker (Complete Overview)
 
 ```mermaid
 flowchart TD
@@ -11,8 +11,10 @@ flowchart TD
     thinker_model_layers_0_input_layernorm --> thinker_model_layers_0_self_attn
     thinker_model_layers_0_post_attention_layernorm["thinker...0.post_attention_layernorm\nThinkerTextRMSNorm\n1x14x2048->1x14x2048"]
     thinker_model_layers_0_self_attn --> thinker_model_layers_0_post_attention_layernorm
+    thinker_model_layers_0_mlp["thinker...0.mlp\nThinkerTextSparseMoe\n1x14x2048->1x14x2048"]
+    thinker_model_layers_0_post_attention_layernorm --> thinker_model_layers_0_mlp
     thinker_model_layers_0["thinker...layers.0\nThinkerTextDecoderLa\n1x14x2048->1x14x2048"]
-    thinker_model_layers_0_post_attention_layernorm --> thinker_model_layers_0
+    thinker_model_layers_0_mlp --> thinker_model_layers_0
     thinker_model_norm["thinker.model.norm\nTextRMSNorm\n1x14x2048->1x14x2048"]
     thinker_model_layers_0 --> thinker_model_norm
     thinker_model["thinker.model\nThinkerTextModel"]

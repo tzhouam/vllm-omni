@@ -1,58 +1,50 @@
-# Qwen3 Omni Model Structure - Code2wav
+# Qwen3 Omni Model Structure - Code2Wav (Vocoder)
 
 ```mermaid
 flowchart TD
-    subgraph PPhase [Prefill Phase]
-        P_code2wav_code_embedding["code2wav.code_embedding\nEmbedding\n1x16x60->1x16x60x1024"]
-        P_code2wav_pre_transformer_rotary_emb["code2wav.pre_transformer.rotary_emb\nRotaryEmbedding\n1x60x1024->1x60x64"]
-        P_code2wav_code_embedding --> P_code2wav_pre_transformer_rotary_emb
-        P_code2wav_pre_transformer_layers_0["code2wav...layers.0\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_rotary_emb --> P_code2wav_pre_transformer_layers_0
-        P_code2wav_pre_transformer_layers_1["code2wav...layers.1\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_0 --> P_code2wav_pre_transformer_layers_1
-        P_code2wav_pre_transformer_layers_2["code2wav...layers.2\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_1 --> P_code2wav_pre_transformer_layers_2
-        P_code2wav_pre_transformer_layers_3["code2wav...layers.3\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_2 --> P_code2wav_pre_transformer_layers_3
-        P_code2wav_pre_transformer_layers_4["code2wav...layers.4\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_3 --> P_code2wav_pre_transformer_layers_4
-        P_code2wav_pre_transformer_layers_5["code2wav...layers.5\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_4 --> P_code2wav_pre_transformer_layers_5
-        P_code2wav_pre_transformer_layers_6["code2wav...layers.6\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_5 --> P_code2wav_pre_transformer_layers_6
-        P_code2wav_pre_transformer_layers_7["code2wav...layers.7\nCode2WavTransformerL\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_6 --> P_code2wav_pre_transformer_layers_7
-        P_code2wav_pre_transformer_norm["code2wav.pre_transformer.norm\nRMSNorm\n1x60x1024->1x60x1024"]
-        P_code2wav_pre_transformer_layers_7 --> P_code2wav_pre_transformer_norm
-        P_code2wav_pre_transformer["code2wav.pre_transformer\nCode2WavTransformerM"]
-        P_code2wav_pre_transformer_norm --> P_code2wav_pre_transformer
-        P_code2wav_upsample_0_0["code2wav...0.0\nCausalTransConvNet\n1x1024x60->1x1024x120"]
-        P_code2wav_pre_transformer --> P_code2wav_upsample_0_0
-        P_code2wav_upsample_0_1["code2wav...0.1\nConvNeXtBlock\n1x1024x120->1x1024x120"]
-        P_code2wav_upsample_0_0 --> P_code2wav_upsample_0_1
-        P_code2wav_upsample_1_0["code2wav...1.0\nCausalTransConvNet\n1x1024x120->1x1024x240"]
-        P_code2wav_upsample_0_1 --> P_code2wav_upsample_1_0
-        P_code2wav_upsample_1_1["code2wav...1.1\nConvNeXtBlock\n1x1024x240->1x1024x240"]
-        P_code2wav_upsample_1_0 --> P_code2wav_upsample_1_1
-        P_code2wav_decoder_0_conv["code2wav...0.conv\nConv1d\n1x1024x246->1x1536x240"]
-        P_code2wav_upsample_1_1 --> P_code2wav_decoder_0_conv
-        P_code2wav_decoder_0["code2wav.decoder.0\nCausalConvNet\n1x1024x240->1x1536x240"]
-        P_code2wav_decoder_0_conv --> P_code2wav_decoder_0
-        P_code2wav_decoder_1["code2wav.decoder.1\nCode2WavDecoderBlock\n1x1536x240->1x768x1912"]
-        P_code2wav_decoder_0 --> P_code2wav_decoder_1
-        P_code2wav_decoder_2["code2wav.decoder.2\nCode2WavDecoderBlock\n1x768x1912->1x384x9555"]
-        P_code2wav_decoder_1 --> P_code2wav_decoder_2
-        P_code2wav_decoder_3["code2wav.decoder.3\nCode2WavDecoderBlock\n1x384x9555->1x192x38216"]
-        P_code2wav_decoder_2 --> P_code2wav_decoder_3
-        P_code2wav_decoder_4["code2wav.decoder.4\nCode2WavDecoderBlock\n1x192x38216->1x96x114645"]
-        P_code2wav_decoder_3 --> P_code2wav_decoder_4
-        P_code2wav_decoder_5["code2wav.decoder.5\nSnakeBeta\n1x96x114645->1x96x114645"]
-        P_code2wav_decoder_4 --> P_code2wav_decoder_5
-        P_code2wav_decoder_6_conv["code2wav...6.conv\nConv1d\n1x96x114651->1x1x114645"]
-        P_code2wav_decoder_5 --> P_code2wav_decoder_6_conv
-        P_code2wav_decoder_6["code2wav.decoder.6\nCausalConvNet\n1x96x114645->1x1x114645"]
-        P_code2wav_decoder_6_conv --> P_code2wav_decoder_6
-        P_code2wav["code2wav\nCode2Wav\n1x16x60->1x1x114645"]
-        P_code2wav_decoder_6 --> P_code2wav
-    end
+    code2wav_code_embedding["code2wav.code_embedding\nEmbedding\n1x16x39->1x16x39x1024"]
+    code2wav_pre_transformer_rotary_emb["code2wav.pre_transformer.rotary_emb\nRotaryEmbedding\n1x39x1024->1x39x64"]
+    code2wav_code_embedding --> code2wav_pre_transformer_rotary_emb
+    code2wav_pre_transformer_layers_0_input_layernorm["code2wav...0.input_layernorm\nCode2WavRMSNorm\n1x39x1024->1x39x1024"]
+    code2wav_pre_transformer_rotary_emb --> code2wav_pre_transformer_layers_0_input_layernorm
+    code2wav_pre_transformer_layers_0_self_attn["code2wav...0.self_attn\nCode2WavAttention"]
+    code2wav_pre_transformer_layers_0_input_layernorm --> code2wav_pre_transformer_layers_0_self_attn
+    code2wav_pre_transformer_layers_0_self_attn_layer_scale["code2wav...0.self_attn_layer_scale\nCode2WavLayerScale\n1x39x1024->1x39x1024"]
+    code2wav_pre_transformer_layers_0_self_attn --> code2wav_pre_transformer_layers_0_self_attn_layer_scale
+    code2wav_pre_transformer_layers_0_post_attention_layernorm["code2wav...0.post_attention_layernorm\nCode2WavRMSNorm\n1x39x1024->1x39x1024"]
+    code2wav_pre_transformer_layers_0_self_attn_layer_scale --> code2wav_pre_transformer_layers_0_post_attention_layernorm
+    code2wav_pre_transformer_layers_0_mlp["code2wav...0.mlp\nCode2WavMlp\n1x39x1024->1x39x1024"]
+    code2wav_pre_transformer_layers_0_post_attention_layernorm --> code2wav_pre_transformer_layers_0_mlp
+    code2wav_pre_transformer_layers_0_mlp_layer_scale["code2wav...0.mlp_layer_scale\nCode2WavLayerScale\n1x39x1024->1x39x1024"]
+    code2wav_pre_transformer_layers_0_mlp --> code2wav_pre_transformer_layers_0_mlp_layer_scale
+    code2wav_pre_transformer_layers_0["code2wav...layers.0\nCode2WavTransformerL\n1x39x1024->1x39x1024"]
+    code2wav_pre_transformer_layers_0_mlp_layer_scale --> code2wav_pre_transformer_layers_0
+    code2wav_pre_transformer_norm["code2wav.pre_transformer.norm\nRMSNorm\n1x39x1024->1x39x1024"]
+    code2wav_pre_transformer_layers_0 --> code2wav_pre_transformer_norm
+    code2wav_pre_transformer["code2wav.pre_transformer\nCode2WavTransformerM"]
+    code2wav_pre_transformer_norm --> code2wav_pre_transformer
+    code2wav_upsample_0_0_conv["code2wav...0.conv\nConvTranspose1d\n1x1024x39->1x1024x78"]
+    code2wav_pre_transformer --> code2wav_upsample_0_0_conv
+    code2wav_upsample_0_0["code2wav...0.0\nCausalTransConvNet\n1x1024x39->1x1024x78"]
+    code2wav_upsample_0_0_conv --> code2wav_upsample_0_0
+    code2wav_upsample_0_1_dwconv["code2wav...1.dwconv\nCausalConvNet\n1x1024x78->1x1024x78"]
+    code2wav_upsample_0_0 --> code2wav_upsample_0_1_dwconv
+    code2wav_upsample_0_1_norm["code2wav...1.norm\nLayerNorm\n1x78x1024->1x78x1024"]
+    code2wav_upsample_0_1_dwconv --> code2wav_upsample_0_1_norm
+    code2wav_upsample_0_1_pwconv1["code2wav...1.pwconv1\nLinear\n1x78x1024->1x78x4096"]
+    code2wav_upsample_0_1_norm --> code2wav_upsample_0_1_pwconv1
+    code2wav_upsample_0_1_act["code2wav...1.act\nGELU\n1x78x4096->1x78x4096"]
+    code2wav_upsample_0_1_pwconv1 --> code2wav_upsample_0_1_act
+    code2wav_upsample_0_1_pwconv2["code2wav...1.pwconv2\nLinear\n1x78x4096->1x78x1024"]
+    code2wav_upsample_0_1_act --> code2wav_upsample_0_1_pwconv2
+    code2wav_upsample_0_1["code2wav...0.1\nConvNeXtBlock\n1x1024x78->1x1024x78"]
+    code2wav_upsample_0_1_pwconv2 --> code2wav_upsample_0_1
+    code2wav_decoder_0_conv["code2wav...0.conv\nConv1d\n1x1024x162->1x1536x156"]
+    code2wav_upsample_0_1 --> code2wav_decoder_0_conv
+    code2wav_decoder_0["code2wav.decoder.0\nCausalConvNet\n1x1024x156->1x1536x156"]
+    code2wav_decoder_0_conv --> code2wav_decoder_0
+    code2wav_decoder_1_block_0["code2wav...block.0\nSnakeBeta\n1x1536x156->1x1536x156"]
+    code2wav_decoder_0 --> code2wav_decoder_1_block_0
+    code2wav["code2wav\nCode2Wav\n1x16x39->1x1x74325"]
+    code2wav_decoder_1_block_0 --> code2wav
 ```
