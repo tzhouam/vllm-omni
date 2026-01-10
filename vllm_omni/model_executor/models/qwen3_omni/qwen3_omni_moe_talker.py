@@ -24,7 +24,6 @@ from vllm.model_executor.layers.linear import ReplicatedLinear
 from vllm.model_executor.layers.quantization import QuantizationConfig
 from vllm.model_executor.models.interfaces import (
     MultiModalEmbeddings,
-    SupportsMultiModal,
     SupportsPP,
 )
 from vllm.model_executor.models.qwen2_5_omni_thinker import (
@@ -430,7 +429,12 @@ class Qwen3OmniMoeTalkerForConditionalGeneration(
         if not mm_input_by_modality:
             return []
 
-        logger.warning(f"\n\n\nTHIS FUNCTION RETURNS DUMMY MULTIMODAL EMBEDDINGS FOR PROFILE RUN, SHOULD NOT BE CALLED IN INFERENCE.\n\n\n")
+        logger.warning(
+            "\n\n\n"
+            "THIS FUNCTION RETURNS DUMMY MULTIMODAL EMBEDDINGS FOR PROFILE RUN, "
+            "SHOULD NOT BE CALLED IN INFERENCE."
+            "\n\n\n"
+        )
 
         # The result multimodal_embeddings is tuple of tensors, with each
         # tensor correspoending to a multimodal data item (image or video).
@@ -445,19 +449,40 @@ class Qwen3OmniMoeTalkerForConditionalGeneration(
                 image_embeddings = self._process_image_input(multimodal_input)
                 dummy_image_embeddings = ()
                 for image_embed in image_embeddings:
-                    dummy_image_embeddings += (torch.zeros(image_embed.shape[0], self.config.text_config.hidden_size, device=image_embed.device, dtype=torch.bfloat16),)
+                    dummy_image_embeddings += (
+                        torch.zeros(
+                            image_embed.shape[0],
+                            self.config.text_config.hidden_size,
+                            device=image_embed.device,
+                            dtype=torch.bfloat16,
+                        ),
+                    )
                 dummy_multimodal_embeddings += tuple(image_embeddings)
             if modality == "video":
                 video_embeddings = self._process_video_input(multimodal_input)
                 dummy_video_video_embeddings = ()
                 for video_embed in video_embeddings:
-                    dummy_video_video_embeddings += (torch.zeros(video_embed.shape[0], self.config.text_config.hidden_size, device=video_embed.device, dtype=torch.bfloat16),)
+                    dummy_video_video_embeddings += (
+                        torch.zeros(
+                            video_embed.shape[0],
+                            self.config.text_config.hidden_size,
+                            device=video_embed.device,
+                            dtype=torch.bfloat16,
+                        ),
+                    )
                 dummy_multimodal_embeddings += tuple(dummy_video_video_embeddings)
             if modality == "audio":
                 audio_embeddings = self._process_audio_input(multimodal_input)
                 dummy_audio_embeddings = ()
                 for audio_embed in audio_embeddings:
-                    dummy_audio_embeddings += (torch.zeros(audio_embed.shape[0], self.config.text_config.hidden_size, device=audio_embed.device, dtype=torch.bfloat16),)
+                    dummy_audio_embeddings += (
+                        torch.zeros(
+                            audio_embed.shape[0],
+                            self.config.text_config.hidden_size,
+                            device=audio_embed.device,
+                            dtype=torch.bfloat16,
+                        ),
+                    )
                 dummy_multimodal_embeddings += tuple(dummy_audio_embeddings)
         return dummy_multimodal_embeddings
 
@@ -496,11 +521,11 @@ class Qwen3OmniMoeTalkerForConditionalGeneration(
                 "[Model Loaded] name=%s, success=%s, size=%.2f MB, device=%s",
                 self.__class__.__name__,
                 True,
-                total_bytes / (MB:=1024**2),
+                total_bytes / (1024**2),
                 str(device),
             )
         except Exception:
-            logger.error(f"Error logging model load summary")
+            logger.error("Error logging model load summary")
 
         multi_model_weights = set()
         for name, param in self.visual.named_parameters():

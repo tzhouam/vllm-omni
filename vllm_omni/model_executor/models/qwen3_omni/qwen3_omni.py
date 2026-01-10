@@ -8,13 +8,6 @@ from functools import cached_property
 
 import torch
 import torch.nn as nn
-from transformers.generation.logits_process import (
-    LogitsProcessorList,
-    RepetitionPenaltyLogitsProcessor,
-    SuppressTokensLogitsProcessor,
-    TemperatureLogitsWarper,
-    TopKLogitsWarper,
-)
 from transformers.models.qwen3_omni_moe.configuration_qwen3_omni_moe import (
     Qwen3OmniMoeCode2WavConfig,
     Qwen3OmniMoeConfig,

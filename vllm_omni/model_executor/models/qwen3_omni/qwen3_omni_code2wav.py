@@ -215,10 +215,10 @@ class Qwen3OmniMoeCode2Wav(nn.Module):
                 "[Model Loaded] name=%s, success=%s, size=%.2f MB, device=%s",
                 self.__class__.__name__,
                 True,
-                total_bytes / (MB:=1024**2),
+                total_bytes / (1024**2),
                 str(device),
             )
         except Exception:
-            logger.error(f"Error logging model load summary")
+            logger.error("Error logging model load summary")
 
         return loaded
