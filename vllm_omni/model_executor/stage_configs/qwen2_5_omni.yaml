@@ -1,6 +1,7 @@
 # stage config for running qwen2.5-omni with architecture of OmniLLM.
 
 # The following config has been verified on 2x H100-80G GPU.
+model_params_validator: "vllm_omni.model_executor.model_param_validate.qwen2_5_omni:validate_model_params"
 stage_args:
   - stage_id: 0
     stage_type: llm  # Use llm stage type to launch OmniLLM
