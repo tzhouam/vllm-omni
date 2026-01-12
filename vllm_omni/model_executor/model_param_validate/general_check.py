@@ -26,7 +26,6 @@ def check_general_params(
     This function must NOT raise; it should return human-readable warning strings.
     The orchestrator will emit them via logger.warning_once.
     """
-    print("Checking general model params")
     errors: list[str] = []
     stage_list = stage_list or []
     engine_args_list = engine_args_list or []

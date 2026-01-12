@@ -164,11 +164,16 @@ def validate_model_params(
 
     Validator is expected to check sampling params together with per-stage engine args.
     """
+    # Only validate Omni LLM pipelines. Pure diffusion pipelines should not run
+    # model/sampling validation here.
+    if not any(getattr(s, "stage_type", "llm") == "llm" for s in stage_list):
+        return
+
     validator = _load_validator_from_config_path(config_path)
     if validator is None:
         return
 
-    # Normalize LLM-stage dicts into SamplingParams where possible.
+    # Normalize engine args for stage-level validation.
     engine_args_list = [_to_plain_dict(getattr(s, "engine_args", None)) for s in stage_list]
     try:
         errors = validator(
