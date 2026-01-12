@@ -6,7 +6,7 @@ https://github.com/vllm-project/vllm-omni/issues/710
 
 Key properties:
 - Validator is configured per stage config YAML via a *top-level* key:
-    sampling_params_validator: "pkg.module:func"
+    model_params_validator: "pkg.module:func"
 - Validation runs in the orchestrator (Omni / AsyncOmni) so it covers both:
   - offline Python APIs (Omni / AsyncOmni)
   - online OpenAI server (which uses AsyncOmni internally)
@@ -27,20 +27,32 @@ logger = init_logger(__name__)
 
 ValidatorFn = Callable[..., list[str]]
 
+# Default validator when config does not specify one.
+_DEFAULT_VALIDATOR = "vllm_omni.model_executor.model_param_validate.general_check:check_general_params"
+
 
 def _stringify_validator_errors(errors: list[str]) -> str:
-    header = "Sampling params validation warnings (warning_once):"
+    header = "=" * 10 + "Sampling params validation warnings"
     # Keep ordering stable for warning_once keying.
     body = "\n".join(f"- {e}" for e in errors)
-    return f"{header}\n{body}"
+    return f"{header}\n{body}\n" + "=" * 10
 
 
 def _to_plain_dict(obj: Any) -> dict[str, Any]:
-    """Best-effort conversion of SamplingParams-like objects to plain dict."""
+    """Best-effort conversion of objects (SamplingParams / OmegaConf / dataclasses) to plain dict."""
     if obj is None:
         return {}
     if isinstance(obj, dict):
         return dict(obj)
+    # OmegaConf containers
+    try:
+        # Avoid importing DictConfig/ListConfig types directly.
+        if obj.__class__.__module__.startswith("omegaconf"):
+            as_container = OmegaConf.to_container(obj, resolve=True)  # type: ignore[arg-type]
+            if isinstance(as_container, dict):
+                return dict(as_container)
+    except Exception:
+        pass
     # pydantic v2
     model_dump = getattr(obj, "model_dump", None)
     if callable(model_dump):
@@ -74,30 +86,44 @@ def _parse_validator_path(path: str) -> tuple[str, str] | None:
 
 @lru_cache(maxsize=32)
 def _load_validator_from_config_path(config_path: str | None) -> ValidatorFn | None:
-    """Load validator callable from YAML top-level key `sampling_params_validator`."""
+    """Load validator callable from YAML top-level key `model_params_validator`."""
     if not config_path:
-        return None
+        # No config: still use the default validator.
+        return _load_validator_from_path(_DEFAULT_VALIDATOR, config_path="<none>")
     try:
         cfg = OmegaConf.load(config_path)
     except Exception as e:
-        logger.warning_once("Sampling params validator: failed to load config %r: %s", config_path, e)
-        return None
+        logger.warning_once("Model params validator: failed to load config %r: %s", config_path, e)
+        return _load_validator_from_path(_DEFAULT_VALIDATOR, config_path=str(config_path))
 
     validator_path = None
     try:
-        validator_path = cfg.get("sampling_params_validator", None)
+        validator_path = cfg.get("model_params_validator", None)
     except Exception:
         # OmegaConf objects can fail .get in some edge cases; ignore.
-        validator_path = getattr(cfg, "sampling_params_validator", None)
+        validator_path = getattr(cfg, "model_params_validator", None)
 
     if not validator_path:
-        return None
+        # Fallback to default general validator.
+        return _load_validator_from_path(_DEFAULT_VALIDATOR, config_path=str(config_path))
 
     parsed = _parse_validator_path(str(validator_path))
     if not parsed:
         logger.warning_once(
-            "Sampling params validator: invalid path %r in %r (expected 'pkg.module:func')",
+            "Model params validator: invalid path %r in %r (expected 'pkg.module:func')",
             validator_path,
+            config_path,
+        )
+        return _load_validator_from_path(_DEFAULT_VALIDATOR, config_path=str(config_path))
+    return _load_validator_from_path(str(validator_path), config_path=str(config_path))
+
+
+def _load_validator_from_path(path: str, *, config_path: str) -> ValidatorFn | None:
+    parsed = _parse_validator_path(str(path))
+    if not parsed:
+        logger.warning_once(
+            "Model params validator: invalid path %r (expected 'pkg.module:func') [config=%r]",
+            path,
             config_path,
         )
         return None
@@ -107,7 +133,7 @@ def _load_validator_from_config_path(config_path: str | None) -> ValidatorFn | N
         fn = getattr(mod, fn_name)
     except Exception as e:
         logger.warning_once(
-            "Sampling params validator: failed to import %r from %r (%r): %s",
+            "Model params validator: failed to import %r from %r (config=%r): %s",
             fn_name,
             module_path,
             config_path,
@@ -117,7 +143,7 @@ def _load_validator_from_config_path(config_path: str | None) -> ValidatorFn | N
 
     if not callable(fn):
         logger.warning_once(
-            "Sampling params validator: %r in %r (%r) is not callable",
+            "Model params validator: %r in %r (config=%r) is not callable",
             fn_name,
             module_path,
             config_path,
@@ -127,39 +153,53 @@ def _load_validator_from_config_path(config_path: str | None) -> ValidatorFn | N
     return fn  # type: ignore[return-value]
 
 
-def validate_sampling_params_list_once(
+def validate_model_params(
     *,
     sampling_params_list: list[Any],
     stage_list: list[Any],
     model: str | None,
     config_path: str | None,
 ) -> None:
-    """Run validator (if configured) and emit warning_once on violations."""
+    """Run stage-level validator (if configured) and emit warning_once on violations.
+
+    Validator is expected to check sampling params together with per-stage engine args.
+    """
     validator = _load_validator_from_config_path(config_path)
     if validator is None:
         return
 
-    # Normalize params to plain dicts for model-specific validators.
-    normalized_list = [_to_plain_dict(p) for p in sampling_params_list]
+    # Normalize LLM-stage dicts into SamplingParams where possible.
+    engine_args_list = [_to_plain_dict(getattr(s, "engine_args", None)) for s in stage_list]
     try:
         errors = validator(
-            normalized_list,
+            sampling_params_list,
             stage_list,
+            engine_args_list,
             model=model,
             config_path=config_path,
         )
     except TypeError:
-        # Backward-compat: allow older signature check_sampling_params_list(sampling_params_list)
+        # Backward-compat: try without engine_args_list, then with the oldest
+        # signature check_sampling_params_list(sampling_params_list).
         try:
-            errors = validator(normalized_list)
-        except Exception as e:
-            logger.warning_once(
-                "Sampling params validator raised (ignored). model=%r config=%r err=%s",
-                model,
-                config_path,
-                e,
+            errors = validator(
+                sampling_params_list,
+                stage_list,
+                model=model,
+                config_path=config_path,
             )
-            return
+        except Exception as e:
+            try:
+                errors = validator(sampling_params_list)
+            except Exception as e2:
+                logger.warning_once(
+                    "Sampling params validator raised (ignored). model=%r config=%r err=%s / %s",
+                    model,
+                    config_path,
+                    e,
+                    e2,
+                )
+                return
     except Exception as e:
         logger.warning_once(
             "Sampling params validator raised (ignored). model=%r config=%r err=%s",

@@ -27,9 +27,9 @@ from vllm_omni.entrypoints.client_request_state import ClientRequestState
 from vllm_omni.entrypoints.log_utils import (
     OrchestratorMetrics,
 )
+from vllm_omni.entrypoints.model_params_validation import validate_model_params
 from vllm_omni.entrypoints.omni import OmniBase
 from vllm_omni.entrypoints.omni_stage import OmniStage
-from vllm_omni.entrypoints.sampling_params_validation import validate_sampling_params_list_once
 from vllm_omni.entrypoints.stage_utils import SHUTDOWN_TASK, OmniStageTaskType
 from vllm_omni.entrypoints.stage_utils import maybe_load_from_ipc as _load
 from vllm_omni.entrypoints.utils import (
@@ -304,7 +304,7 @@ class AsyncOmni(OmniBase):
                 raise ValueError(f"Expected {len(self.stage_list)} sampling params, got {len(sampling_params_list)}")
 
             # Best-effort sampling params validation (warning_once, non-blocking).
-            validate_sampling_params_list_once(
+            validate_model_params(
                 sampling_params_list=list(sampling_params_list),
                 stage_list=self.stage_list,
                 model=getattr(self, "model", None) if hasattr(self, "model") else None,
