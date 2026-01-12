@@ -29,6 +29,7 @@ from vllm_omni.entrypoints.log_utils import (
 )
 from vllm_omni.entrypoints.omni import OmniBase
 from vllm_omni.entrypoints.omni_stage import OmniStage
+from vllm_omni.entrypoints.sampling_params_validation import validate_sampling_params_list_once
 from vllm_omni.entrypoints.stage_utils import SHUTDOWN_TASK, OmniStageTaskType
 from vllm_omni.entrypoints.stage_utils import maybe_load_from_ipc as _load
 from vllm_omni.entrypoints.utils import (
@@ -301,6 +302,14 @@ class AsyncOmni(OmniBase):
 
             if len(sampling_params_list) != len(self.stage_list):
                 raise ValueError(f"Expected {len(self.stage_list)} sampling params, got {len(sampling_params_list)}")
+
+            # Best-effort sampling params validation (warning_once, non-blocking).
+            validate_sampling_params_list_once(
+                sampling_params_list=list(sampling_params_list),
+                stage_list=self.stage_list,
+                model=getattr(self, "model", None) if hasattr(self, "model") else None,
+                config_path=getattr(self, "config_path", None),
+            )
 
             # Orchestrator keeps stage objects for input derivation
             num_stages = len(self.stage_list)

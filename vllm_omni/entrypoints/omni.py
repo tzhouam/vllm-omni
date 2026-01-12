@@ -30,6 +30,7 @@ from vllm_omni.distributed.ray_utils.utils import (
 )
 from vllm_omni.entrypoints.log_utils import OrchestratorMetrics
 from vllm_omni.entrypoints.omni_stage import OmniStage
+from vllm_omni.entrypoints.sampling_params_validation import validate_sampling_params_list_once
 from vllm_omni.entrypoints.stage_utils import SHUTDOWN_TASK, OmniStageTaskType
 from vllm_omni.entrypoints.stage_utils import maybe_load_from_ipc as _load
 from vllm_omni.entrypoints.utils import (
@@ -102,6 +103,8 @@ class OmniBase:
         model = args[0] if args else kwargs.get("model", "")
         assert model != "", "Null model id detected, please specify a model id."
         model = omni_snapshot_download(model)
+        # Keep the resolved model id/path for logging/validation.
+        self.model: str = model
         if args:
             args[0] = model
         elif kwargs.get("model", "") != "":
@@ -561,6 +564,14 @@ class Omni(OmniBase):
 
         if len(sampling_params_list) != len(self.stage_list):
             raise ValueError(f"Expected {len(self.stage_list)} sampling params, got {len(sampling_params_list)}")
+
+        # Best-effort sampling params validation (warning_once, non-blocking).
+        validate_sampling_params_list_once(
+            sampling_params_list=sampling_params_list,
+            stage_list=self.stage_list,
+            model=getattr(self, "model", None) if hasattr(self, "model") else None,
+            config_path=getattr(self, "config_path", None),
+        )
 
         # Normalize prompts to a list for per-request iteration
         if not isinstance(prompts, (list, tuple)):
