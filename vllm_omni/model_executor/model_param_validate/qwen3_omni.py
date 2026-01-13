@@ -127,8 +127,8 @@ def validate_model_params(
                                 stage,
                                 "max_num_batched_tokens",
                                 max_num_batched_tokens,
-                                "Expected max_num_batched_tokens >= 1280 * talker's max_tokens for code2wav stage as ",
-                                1280 * sampling_params_list[1].max_tokens,
+                                "Expected max_num_batched_tokens >= 1280 * talker's max_tokens for code2wav stage as "
+                                + str(1280 * sampling_params_list[1].max_tokens),
                             )
                         )
                 except Exception:
