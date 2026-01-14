@@ -881,7 +881,7 @@ class OmniGPUModelRunner(GPUModelRunner):
         num_input_tokens: int,
         intermediate_tensors: IntermediateTensors | None = None,
     ):
-        """Align with v0.12 preprocess and omni's additional information handling."""
+        """Align with v0.14.0 preprocess and omni's additional information handling."""
         num_scheduled_tokens = scheduler_output.total_num_scheduled_tokens
         is_first_rank = get_pp_group().is_first_rank
         is_encoder_decoder = self.model_config.is_encoder_decoder
@@ -998,9 +998,15 @@ class OmniGPUModelRunner(GPUModelRunner):
                 span_len = int(e) - int(s)
 
                 # call the custom process function
-                req_input_ids, req_embeds, update_dict = self.model.preprocess(
-                    input_ids=input_ids[s:e], input_embeds=inputs_embeds[s:e], **req_infos
-                )
+                try:
+                    req_input_ids, req_embeds, update_dict = self.model.preprocess(
+                        input_ids=input_ids[s:e], input_embeds=inputs_embeds[s:e], **req_infos
+                    )
+                except Exception as e:
+                    logger.error(f"Error in preprocess for request {req_id}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    raise e
                 #TODO: This is Model Specific Code, need to be generalized in the future ZTC
                 # run talker mtp decode
                 if hasattr(self.model, "talker_mtp"):

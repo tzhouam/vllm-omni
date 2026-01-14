@@ -5,16 +5,16 @@ This is a non-autoregressive model that doesn't require sampling or logits compu
 """
 
 from __future__ import annotations
+from copy import copy
 
 import gc
 import logging
-
+from typing import Any
 import numpy as np
 import torch
 from vllm.config import CUDAGraphMode
-from vllm.multimodal.inputs import MultiModalKwargs
 from vllm.utils.math_utils import cdiv
-from vllm.v1.core.sched.output import SchedulerOutput
+from vllm.v1.core.sched.output import SchedulerOutput, GrammarOutput
 from vllm.v1.spec_decode.eagle import EagleProposer
 from vllm.v1.utils import record_function_or_nullcontext
 from vllm.v1.worker.gpu_model_runner import (
@@ -30,7 +30,15 @@ from vllm.v1.worker.utils import sanity_check_mm_encoder_outputs
 from vllm.v1.worker.ubatch_utils import maybe_create_ubatch_slices
 from vllm_omni.outputs import OmniModelRunnerOutput
 from vllm_omni.worker.gpu_model_runner import OmniGPUModelRunner
-
+from vllm.model_executor.layers.fused_moe.routed_experts_capturer import (
+    RoutedExpertsCapturer,
+)
+from vllm.distributed.ec_transfer import get_ec_transfer, has_ec_transfer
+from vllm.distributed.kv_transfer import get_kv_transfer_group, has_kv_transfer_group
+from vllm.v1.outputs import make_empty_encoder_model_runner_output
+from vllm.v1.worker.ubatch_utils import maybe_create_ubatch_slices
+from vllm.v1.outputs import AsyncModelRunnerOutput
+from vllm_omni.worker.gpu_ar_model_runner import ExecuteModelState
 logger = logging.getLogger(__name__)
 
 
@@ -48,58 +56,149 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
         scheduler_output: SchedulerOutput,
         intermediate_tensors: IntermediateTensors | None = None,
     ) -> OmniModelRunnerOutput | IntermediateTensors:
-        with record_function_or_nullcontext("Preprocess"):
-            with self.synchronize_input_prep():
-                self._update_states(scheduler_output)
-                if not scheduler_output.total_num_scheduled_tokens:
-                    return EMPTY_MODEL_RUNNER_OUTPUT
+        if self.execute_model_state is not None:
+            raise RuntimeError(
+                "State error: sample_tokens() must be called "
+                "after execute_model() returns None."
+            )
 
-                num_reqs = self.input_batch.num_reqs
-                req_ids = self.input_batch.req_ids
-                tokens = [scheduler_output.num_scheduled_tokens[i] for i in req_ids]
-                num_scheduled_tokens_np = np.array(tokens, dtype=np.int32)
-                max_num_scheduled_tokens = int(num_scheduled_tokens_np.max())
-                num_tokens_unpadded = scheduler_output.total_num_scheduled_tokens
+        if self.vllm_config.model_config.enable_return_routed_experts:
+            capturer = RoutedExpertsCapturer.get_instance()
+            if capturer is not None:
+                capturer.clear_buffer()  # noqa
+            else:
+                logger.error("RoutedExpertsCapturer not initialized.")
 
-                logits_indices, spec_decode_metadata = self._prepare_inputs(
+        if scheduler_output.preempted_req_ids and has_kv_transfer_group():
+            get_kv_transfer_group().handle_preemptions(
+                scheduler_output.preempted_req_ids
+            )
+            
+        num_scheduled_tokens = scheduler_output.total_num_scheduled_tokens
+        with (
+            record_function_or_nullcontext("gpu_model_runner: preprocess"),
+            self.synchronize_input_prep(),
+        ):
+            self._update_states(scheduler_output)
+            if not scheduler_output.total_num_scheduled_tokens:
+                return EMPTY_MODEL_RUNNER_OUTPUT
+            
+            if has_ec_transfer() and get_ec_transfer().is_producer:
+                with self.maybe_get_ec_connector_output(
                     scheduler_output,
+                    encoder_cache=self.encoder_cache,
+                ) as ec_connector_output:
+                    self._execute_mm_encoder(scheduler_output)
+                    return make_empty_encoder_model_runner_output(scheduler_output)
+
+            if not num_scheduled_tokens:
+                if (
+                    self.parallel_config.distributed_executor_backend
+                    == "external_launcher"
+                    and self.parallel_config.data_parallel_size > 1
+                ):
+                    # this is a corner case when both external launcher
+                    # and DP are enabled, num_scheduled_tokens could be
+                    # 0, and has_unfinished_requests in the outer loop
+                    # returns True. before returning early here we call
+                    # dummy run to ensure coordinate_batch_across_dp
+                    # is called into to avoid out of sync issues.
+                    self._dummy_run(1)
+                if not has_kv_transfer_group():
+                    # Return empty ModelRunnerOutput if no work to do.
+                    return EMPTY_MODEL_RUNNER_OUTPUT
+                
+                return self.kv_connector_no_forward(scheduler_output, self.vllm_config)
+
+            if self.cache_config.kv_sharing_fast_prefill:
+                assert not self.num_prompt_logprobs, (
+                    "--kv-sharing-fast-prefill produces incorrect "
+                    "logprobs for prompt tokens, tokens, please disable "
+                    "it when the requests need prompt logprobs"
+                )
+            num_reqs = self.input_batch.num_reqs
+            req_ids = self.input_batch.req_ids
+            tokens = [scheduler_output.num_scheduled_tokens[i] for i in req_ids]
+            num_scheduled_tokens_np = np.array(tokens, dtype=np.int32)
+            max_num_scheduled_tokens = int(num_scheduled_tokens_np.max())
+            num_tokens_unpadded = scheduler_output.total_num_scheduled_tokens
+
+            logits_indices, spec_decode_metadata = self._prepare_inputs(
+                scheduler_output,
+                num_scheduled_tokens_np,
+            )
+            
+            cascade_attn_prefix_lens = None
+            # Disable cascade attention when using microbatching (DBO)
+            if self.cascade_attn_enabled and not self.parallel_config.use_ubatching:
+                # Pre-compute cascade attention prefix lengths
+                cascade_attn_prefix_lens = self._compute_cascade_attn_prefix_lens(
                     num_scheduled_tokens_np,
+                    self.input_batch.num_computed_tokens_cpu[:num_reqs],
+                    scheduler_output.num_common_prefix_blocks,
                 )
+                
+            (
+                cudagraph_mode,
+                batch_desc,
+                should_ubatch,
+                num_tokens_across_dp,
+                cudagraph_stats,
+            ) = self._determine_batch_execution_and_padding(
+                num_tokens=num_tokens_unpadded,
+                num_reqs=num_reqs,
+                num_scheduled_tokens_np=num_scheduled_tokens_np,
+                max_num_scheduled_tokens=max_num_scheduled_tokens,
+                use_cascade_attn=cascade_attn_prefix_lens is not None,
+                num_encoder_reqs=len(scheduler_output.scheduled_encoder_inputs),
+            )
 
-                (
-                    cudagraph_mode,
-                    batch_desc,
-                    ubatch_slices,
-                    num_tokens_across_dp,
-                    _
-                ) = self._determine_batch_execution_and_padding(
-                    num_tokens=num_tokens_unpadded,
-                    num_reqs=num_reqs,
-                    num_scheduled_tokens_np=num_scheduled_tokens_np,
-                    max_num_scheduled_tokens=max_num_scheduled_tokens,
-                    use_cascade_attn=False,
-                )
+            logger.debug(
+                "Running batch with cudagraph_mode: %s, batch_descriptor: %s, "
+                "should_ubatch: %s, num_tokens_across_dp: %s",
+                cudagraph_mode,
+                batch_desc,
+                should_ubatch,
+                num_tokens_across_dp,
+            )
 
-                num_tokens_padded = batch_desc.num_tokens
-                num_reqs_padded = batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
-                use_spec_decode = len(scheduler_output.scheduled_spec_decode_tokens) > 0
-                pad_attn = cudagraph_mode == CUDAGraphMode.FULL
+            num_tokens_padded = batch_desc.num_tokens
+            num_reqs_padded = (
+                batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
+            )
+            ubatch_slices, ubatch_slices_padded = maybe_create_ubatch_slices(
+                should_ubatch,
+                num_scheduled_tokens_np,
+                num_tokens_padded,
+                num_reqs_padded,
+                self.parallel_config.num_ubatches,
+            )
 
-                (
-                    attn_metadata,
-                    spec_decode_common_attn_metadata,
-                ) = self._build_attention_metadata(
+            logger.debug(
+                "ubatch_slices: %s, ubatch_slices_padded: %s",
+                ubatch_slices,
+                ubatch_slices_padded,
+            )
+
+            pad_attn = cudagraph_mode == CUDAGraphMode.FULL
+
+            use_spec_decode = len(scheduler_output.scheduled_spec_decode_tokens) > 0
+            ubatch_slices_attn = ubatch_slices_padded if pad_attn else ubatch_slices
+
+            attn_metadata, spec_decode_common_attn_metadata = (
+                self._build_attention_metadata(
                     num_tokens=num_tokens_unpadded,
                     num_tokens_padded=num_tokens_padded if pad_attn else None,
                     num_reqs=num_reqs,
                     num_reqs_padded=num_reqs_padded if pad_attn else None,
                     max_query_len=max_num_scheduled_tokens,
-                    ubatch_slices=ubatch_slices,
+                    ubatch_slices=ubatch_slices_attn,
                     logits_indices=logits_indices,
                     use_spec_decode=use_spec_decode,
                     num_scheduled_tokens=scheduler_output.num_scheduled_tokens,
-                    cascade_attn_prefix_lens=None,
+                    cascade_attn_prefix_lens=cascade_attn_prefix_lens,
                 )
+            )
 
             (
                 input_ids,
@@ -114,10 +213,16 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 intermediate_tensors,
             )
 
+        # Set cudagraph mode to none if calc_kv_scales is true.
+        # KV scales calculation involves dynamic operations that are incompatible
+        # with CUDA graph capture.
         if self.calculate_kv_scales:
             cudagraph_mode = CUDAGraphMode.NONE
+            # Mark KV scales as calculated after the first forward pass
             self.calculate_kv_scales = False
 
+        # Run the model.
+        # Use persistent buffers for CUDA graphs.
         with (
             set_forward_context(
                 attn_metadata,
@@ -126,7 +231,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 num_tokens_across_dp=num_tokens_across_dp,
                 cudagraph_runtime_mode=cudagraph_mode,
                 batch_descriptor=batch_desc,
-                ubatch_slices=ubatch_slices,
+                ubatch_slices=ubatch_slices_padded,
             ),
             record_function_or_nullcontext("Forward"),
             self.maybe_get_kv_connector_output(scheduler_output) as kv_connector_output,
@@ -141,6 +246,58 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             )
 
         _, multimodal_outputs = self.extract_multimodal_outputs(outputs)
+        self.execute_model_state = ExecuteModelState(
+            scheduler_output,
+            None,
+            spec_decode_metadata,
+            spec_decode_common_attn_metadata,
+            None,
+            None,
+            None,
+            ec_connector_output,
+            cudagraph_stats,
+            multimodal_outputs,
+        )
+        self.kv_connector_output = kv_connector_output
+        return None
+    
+    @torch.inference_mode()
+    def sample_tokens(
+        self,
+        grammar_output: GrammarOutput | None = None,
+    ) -> OmniModelRunnerOutput | AsyncModelRunnerOutput | IntermediateTensors:
+        kv_connector_output = self.kv_connector_output
+        self.kv_connector_output = None
+
+        if self.execute_model_state is None:
+            # Nothing to do (PP non-final rank case), output isn't used.
+            if not kv_connector_output:
+                return None  # type: ignore[return-value]
+
+            # In case of PP with kv transfer, we need to pass through the
+            # kv_connector_output
+            if kv_connector_output.is_empty():
+                return EMPTY_MODEL_RUNNER_OUTPUT
+
+            output = copy(EMPTY_MODEL_RUNNER_OUTPUT)
+            output.kv_connector_output = kv_connector_output
+            return output
+
+        # Unpack ephemeral state.
+        (
+            scheduler_output,
+            logits,
+            spec_decode_metadata,
+            spec_decode_common_attn_metadata,
+            hidden_states,
+            sample_hidden_states,
+            aux_hidden_states,
+            ec_connector_output,
+            cudagraph_stats,
+            multimodal_outputs,
+        ) = self.execute_model_state
+        self.execute_model_state = None
+
         pooler_output: list[object] = []
         if isinstance(multimodal_outputs, torch.Tensor):
             assert multimodal_outputs.shape[0] == 1, (
@@ -171,6 +328,10 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             pooler_output=pooler_output,
             kv_connector_output=kv_connector_output,
             num_nans_in_logits={},
+            cudagraph_stats=cudagraph_stats,
+            ec_connector_output=ec_connector_output
+            if self.supports_mm_inputs
+            else None,
         )
 
         if not self.use_async_scheduling:
@@ -178,9 +339,11 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
 
         return AsyncGPUModelRunnerOutput(
             model_runner_output=output,
-            sampled_token_ids=[],
+            sampled_token_ids=torch.tensor([], device=self.device),
             invalid_req_indices=[],
             async_output_copy_stream=self.async_output_copy_stream,
+            vocab_size=self.input_batch.vocab_size,
+            logprobs_tensors=None,
         )
 
     def _run_generation_model(
@@ -208,7 +371,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             positions=positions,
             intermediate_tensors=intermediate_tensors,
             inputs_embeds=inputs_embeds,
-            **MultiModalKwargs.as_kwargs(model_kwargs, device=self.device),
+            **model_kwargs,
             sampling_metadata=self.input_batch.sampling_metadata,
             logits_index=logits_indices,
             sampler=self.sampler,
