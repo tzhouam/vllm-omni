@@ -11,6 +11,7 @@ import torch
 from vllm.v1.engine import (
     EngineCoreRequest,
     EngineCoreOutput,
+    EngineCoreOutputs,
     SchedulerStats,
     UtilityOutput,
 )
@@ -81,32 +82,5 @@ class OmniEngineCoreOutput(EngineCoreOutput):
 
 
 
-class OmniEngineCoreOutputs(
-    msgspec.Struct,
-    array_like=True,  # type: ignore[call-arg]
-    omit_defaults=True,  # type: ignore[call-arg]
-    gc=False,
-):  # type: ignore[call-arg]
-    # NOTE(Nick): We could consider ways to make this more compact,
-    # e.g. columnwise layout
-
-    engine_index: int = 0
-
-    # [num_reqs]
+class OmniEngineCoreOutputs(EngineCoreOutputs):
     outputs: list[OmniEngineCoreOutput] = []
-    scheduler_stats: SchedulerStats | None = None
-    timestamp: float = 0.0
-
-    utility_output: UtilityOutput | None = None
-    finished_requests: set[str] | None = None
-
-    # In DP case, used to signal that the current wave of requests
-    # has finished and the engines are paused.
-    wave_complete: int | None = None
-    # In DP case, used to signal that a request was received for an
-    # "old" wave, so the next wave needs to be started in other engines.
-    start_wave: int | None = None
-
-    def __post_init__(self):
-        if self.timestamp == 0.0:
-            self.timestamp = time.monotonic()
