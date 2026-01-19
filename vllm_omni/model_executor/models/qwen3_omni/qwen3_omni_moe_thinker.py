@@ -82,7 +82,7 @@ from vllm.model_executor.models.vision import (
 from vllm.multimodal import MULTIMODAL_REGISTRY
 from vllm.multimodal.inputs import MultiModalFeatureSpec, MultiModalKwargsItems
 from vllm.multimodal.parse import AudioProcessorItems, MultiModalDataItems
-from vllm.multimodal.processing.processor import (
+from vllm.multimodal.processing import (
     MultiModalPromptUpdates,
     PlaceholderFeaturesInfo,
     PromptReplacement,
@@ -604,11 +604,12 @@ class Qwen3OmniMoeConditionalGenerationMixin(Qwen2_5OmniConditionalGenerationMix
 
         audio_output_lengths = _get_feat_extract_output_lengths(audio_feature_lengths)
 
-        audio_features = self.audio_tower(
+        audio_outputs = self.audio_tower(
             input_features.to(self.audio_tower.dtype),
             feature_lens=audio_feature_lengths,
             aftercnn_lens=audio_output_lengths,
         )
+        audio_features = audio_outputs.last_hidden_state
         return audio_features.split(audio_output_lengths.tolist())
 
 
@@ -666,8 +667,6 @@ class Qwen3OmniMoeThinkerForConditionalGeneration(
 
         self.audio_tower = Qwen3OmniMoeAudioEncoder(
             thinker_config.audio_config,
-            multimodal_config=multimodal_config,
-            prefix=maybe_prefix(prefix, "audio_tower"),
         )
 
         self.visual = Qwen3Omni_VisionTransformer(

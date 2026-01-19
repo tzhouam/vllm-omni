@@ -29,7 +29,11 @@ from vllm.entrypoints.chat_utils import (
     make_tool_call_id,
     resolve_chat_template_content_format,
 )
-from vllm.entrypoints.openai.chat_completion.protocol import (
+from vllm.entrypoints.openai.parser.harmony_utils import (
+    get_streamable_parser_for_assistant,
+    parse_chat_output,
+)
+from vllm.entrypoints.openai.protocol import (
     ChatCompletionNamedToolChoiceParam,
     ChatCompletionRequest,
     ChatCompletionResponse,
@@ -37,9 +41,6 @@ from vllm.entrypoints.openai.chat_completion.protocol import (
     ChatCompletionResponseStreamChoice,
     ChatCompletionStreamResponse,
     ChatMessage,
-)
-from vllm.entrypoints.openai.chat_completion.serving import OpenAIServingChat
-from vllm.entrypoints.openai.engine.protocol import (
     DeltaFunctionCall,
     DeltaMessage,
     DeltaToolCall,
@@ -49,17 +50,14 @@ from vllm.entrypoints.openai.engine.protocol import (
     FunctionDefinition,
     PromptTokenUsageInfo,
     RequestResponseMetadata,
+    ResponsesRequest,
     ToolCall,
     UsageInfo,
 )
-from vllm.entrypoints.openai.engine.serving import (
+from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
+from vllm.entrypoints.openai.serving_engine import (
     ChatLikeRequest,
-    ResponsesRequest,
     clamp_prompt_logprobs,
-)
-from vllm.entrypoints.openai.parser.harmony_utils import (
-    get_streamable_parser_for_assistant,
-    parse_chat_output,
 )
 from vllm.entrypoints.openai.utils import maybe_filter_parallel_tool_calls
 from vllm.entrypoints.utils import should_include_usage
@@ -215,10 +213,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                 if error_check_ret is not None:
                     return error_check_ret
 
-                chat_template_kwargs = self._prepare_extra_chat_template_kwargs(
-                    request.chat_template_kwargs,
-                    self.default_chat_template_kwargs,
-                )
+                chat_template_kwargs = request.chat_template_kwargs or {}
                 chat_template_kwargs.update(reasoning_effort=request.reasoning_effort)
 
                 (
@@ -236,6 +231,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                     tool_dicts=tool_dicts,
                     documents=getattr(request, "documents", None),
                     chat_template_kwargs=chat_template_kwargs,
+                    default_chat_template_kwargs=self.default_chat_template_kwargs,
                     tool_parser=tool_parser,
                     add_special_tokens=request.add_special_tokens,
                 )
@@ -334,6 +330,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         tool_dicts: list[dict[str, Any]] | None = None,
         documents: list[dict[str, str]] | None = None,
         chat_template_kwargs: dict[str, Any] | None = None,
+        default_chat_template_kwargs: dict[str, Any] | None = None,
         tool_parser: Callable[[TokenizerLike], ToolParser] | None = None,
         add_special_tokens: bool = False,
     ) -> tuple[
@@ -357,6 +354,13 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
             mm_processor_kwargs=getattr(request, "mm_processor_kwargs", None),
         )
 
+        # Merge default_chat_template_kwargs with request-provided kwargs
+        # Request kwargs take precedence over defaults
+        merged_kwargs = self._prepare_extra_chat_template_kwargs(
+            chat_template_kwargs,
+            default_chat_template_kwargs,
+        )
+
         _chat_template_kwargs: dict[str, Any] = dict(
             chat_template=chat_template,
             add_generation_prompt=add_generation_prompt,
@@ -364,7 +368,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
             tools=tool_dicts,
             documents=documents,
         )
-        _chat_template_kwargs.update(chat_template_kwargs or {})
+        _chat_template_kwargs.update(merged_kwargs)
 
         request_prompt: str | list[int]
 
