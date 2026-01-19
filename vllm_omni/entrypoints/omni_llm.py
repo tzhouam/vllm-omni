@@ -1,14 +1,15 @@
+from collections.abc import Callable
 from typing import Any
 
 import cloudpickle
 from pydantic import ValidationError
 from tqdm import tqdm
-from vllm.outputs import RequestOutput, PoolingRequestOutput
-from typing import Callable
+
 # External library imports (vLLM)
 from vllm.config import CompilationConfig, StructuredOutputsConfig, is_init_field
 from vllm.entrypoints.llm import LLM
 from vllm.logger import init_logger
+from vllm.outputs import PoolingRequestOutput, RequestOutput
 from vllm.plugins.io_processors import get_io_processor
 from vllm.usage.usage_lib import UsageContext
 from vllm.utils.counter import Counter
@@ -193,9 +194,7 @@ class OmniLLM(LLM):
         except Exception as e:
             logger.debug("[Orchestrator] __del__ close() raised: %s", e, exc_info=True)
 
-    def _run_engine(
-        self, *, use_tqdm: bool | Callable[..., tqdm] = True
-    ) -> list[RequestOutput | PoolingRequestOutput]:
+    def _run_engine(self, *, use_tqdm: bool | Callable[..., tqdm] = True) -> list[RequestOutput | PoolingRequestOutput]:
         # Initialize tqdm.
         if use_tqdm:
             num_requests = self.llm_engine.get_num_unfinished_requests()
@@ -223,14 +222,9 @@ class OmniLLM(LLM):
                             assert output.prompt_token_ids is not None
                             total_in_toks += len(output.prompt_token_ids) * n
                             in_spd = total_in_toks / pbar.format_dict["elapsed"]
-                            total_out_toks += sum(
-                                len(stp.token_ids) for stp in output.outputs
-                            )
+                            total_out_toks += sum(len(stp.token_ids) for stp in output.outputs)
                             out_spd = total_out_toks / pbar.format_dict["elapsed"]
-                            pbar.postfix = (
-                                f"est. speed input: {in_spd:.2f} toks/s, "
-                                f"output: {out_spd:.2f} toks/s"
-                            )
+                            pbar.postfix = f"est. speed input: {in_spd:.2f} toks/s, output: {out_spd:.2f} toks/s"
                             pbar.update(n)
                         else:
                             pbar.update(1)

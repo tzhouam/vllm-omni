@@ -8,8 +8,8 @@ from typing import Any
 import torch
 import torch.nn as nn
 from diffusers.models.attention import FeedForward
-from diffusers.models.transformers.transformer_glm_image import GlmImageCombinedTimestepSizeEmbeddings
 from diffusers.models.modeling_outputs import Transformer2DModelOutput
+from diffusers.models.transformers.transformer_glm_image import GlmImageCombinedTimestepSizeEmbeddings
 from vllm.logger import init_logger
 from vllm.model_executor.layers.linear import QKVParallelLinear
 from vllm.model_executor.model_loader.weight_utils import default_weight_loader
@@ -414,9 +414,10 @@ class GlmImageAttention(nn.Module):
             query_img = query[:, text_seq_length:, :, :]
             key_img = key[:, text_seq_length:, :, :]
             from diffusers.models.embeddings import apply_rotary_emb
-            query_img = apply_rotary_emb(query_img,image_rotary_emb, sequence_dim=1, use_real_unbind_dim=-2)
+
+            query_img = apply_rotary_emb(query_img, image_rotary_emb, sequence_dim=1, use_real_unbind_dim=-2)
             # key_img = self.rope(key_img, cos, sin)
-            key_img = apply_rotary_emb(key_img,image_rotary_emb, sequence_dim=1, use_real_unbind_dim=-2)
+            key_img = apply_rotary_emb(key_img, image_rotary_emb, sequence_dim=1, use_real_unbind_dim=-2)
             query = torch.cat([query[:, :text_seq_length, :, :], query_img], dim=1)
             key = torch.cat([key[:, :text_seq_length, :, :], key_img], dim=1)
 
@@ -555,7 +556,7 @@ class GlmImageTransformer2DModel(CachedTransformer):
         od_config: OmniDiffusionConfig,
     ):
         super().__init__()
-        
+
         patch_size = od_config.tf_model_config.patch_size
         in_channels = od_config.tf_model_config.in_channels
         out_channels = od_config.tf_model_config.out_channels
@@ -565,8 +566,6 @@ class GlmImageTransformer2DModel(CachedTransformer):
         condition_dim = od_config.tf_model_config.condition_dim
         prior_vq_quantizer_codebook_size = od_config.tf_model_config.prior_vq_quantizer_codebook_size
         text_embed_dim = od_config.tf_model_config.text_embed_dim
-        
-        
 
         # Get num_layers from config if available
         model_config = od_config.tf_model_config

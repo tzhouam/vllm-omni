@@ -1,12 +1,9 @@
 import warnings
-from importlib.util import find_spec
 from typing import Any
 
 import torch
-import vllm.envs as envs
 from pydantic import ConfigDict
 from pydantic.dataclasses import dataclass
-from vllm.v1.attention.backends.registry import AttentionBackendEnum
 from vllm.config import ModelConfig, config
 from vllm.config.model import (
     _RUNNER_CONVERTS,
@@ -24,10 +21,12 @@ from vllm.transformers_utils.config import (
     get_pooling_config,
 )
 from vllm.transformers_utils.gguf_utils import (
+    is_gguf,
     maybe_patch_hf_config_from_gguf,
 )
 from vllm.transformers_utils.utils import maybe_model_redirect
-from vllm.transformers_utils.gguf_utils import is_gguf
+from vllm.v1.attention.backends.registry import AttentionBackendEnum
+
 import vllm_omni.model_executor.models as me_models
 
 logger = init_logger(__name__)
@@ -108,9 +107,7 @@ class OmniModelConfig(ModelConfig):
         video_pruning_rate: float | None,
     ) -> None:
         # Keep set served_model_name before maybe_model_redirect(self.model)
-        self.served_model_name = get_served_model_name(
-            self.model, self.served_model_name
-        )
+        self.served_model_name = get_served_model_name(self.model, self.served_model_name)
         self.model = maybe_model_redirect(self.model)
         # The tokenizer is consistent with the model by default.
         if self.tokenizer is None:
@@ -167,9 +164,7 @@ class OmniModelConfig(ModelConfig):
         if dict_overrides:
             self._apply_dict_overrides(hf_config, dict_overrides)
         self.hf_text_config = self.draw_hf_text_config()
-        self.attention_chunk_size = getattr(
-            self.hf_text_config, "attention_chunk_size", None
-        )
+        self.attention_chunk_size = getattr(self.hf_text_config, "attention_chunk_size", None)
         self.encoder_config = self._get_encoder_config()
         self.hf_image_processor_config = get_hf_image_processor_config(
             self.model, hf_token=self.hf_token, revision=self.revision
@@ -182,9 +177,7 @@ class OmniModelConfig(ModelConfig):
         is_pooling_model = registry.is_pooling_model(architectures, self)
 
         self.runner_type = self._get_runner_type(architectures, self.runner)
-        self.convert_type = self._get_convert_type(
-            architectures, self.runner_type, self.convert
-        )
+        self.convert_type = self._get_convert_type(architectures, self.runner_type, self.convert)
 
         if self.runner_type == "generate" and not is_generative_model:
             generate_converts = _RUNNER_CONVERTS["generate"]
@@ -244,10 +237,7 @@ class OmniModelConfig(ModelConfig):
 
         # Init multimodal config if needed
         if self._model_info.supports_multimodal:
-            if (
-                mm_encoder_tp_mode == "data"
-                and not self._model_info.supports_multimodal_encoder_tp_data
-            ):
+            if mm_encoder_tp_mode == "data" and not self._model_info.supports_multimodal_encoder_tp_data:
                 logger.warning_once(
                     "This model does not support `--mm-encoder-tp-mode data`. "
                     "Falling back to `--mm-encoder-tp-mode weights`."
@@ -269,9 +259,7 @@ class OmniModelConfig(ModelConfig):
                 video_pruning_rate=video_pruning_rate,
             )
 
-            mm_config_kwargs = {
-                k: v for k, v in mm_config_kwargs.items() if v is not None
-            }
+            mm_config_kwargs = {k: v for k, v in mm_config_kwargs.items() if v is not None}
 
             self.multimodal_config = MultiModalConfig(**mm_config_kwargs)
 

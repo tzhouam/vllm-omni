@@ -8,8 +8,6 @@ from vllm.outputs import PoolingRequestOutput
 from vllm.sampling_params import RequestOutputKind
 from vllm.tokenizers import TokenizerLike
 from vllm.v1.engine import EngineCoreOutput, EngineCoreRequest, FinishReason
-from vllm.v1.engine.detokenizer import IncrementalDetokenizer
-from vllm.v1.engine.logprobs import LogprobsProcessor
 from vllm.v1.engine.output_processor import OutputProcessor as VLLMOutputProcessor
 from vllm.v1.engine.output_processor import OutputProcessorOutput, RequestOutputCollector, RequestState
 from vllm.v1.engine.parallel_sampling import ParentRequest

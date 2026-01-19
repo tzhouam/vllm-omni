@@ -5,16 +5,23 @@ This is a non-autoregressive model that doesn't require sampling or logits compu
 """
 
 from __future__ import annotations
-from copy import copy
 
 import gc
 import logging
-from typing import Any
+from copy import copy
+
 import numpy as np
 import torch
 from vllm.config import CUDAGraphMode
+from vllm.distributed.ec_transfer import get_ec_transfer, has_ec_transfer
+from vllm.distributed.kv_transfer import get_kv_transfer_group, has_kv_transfer_group
+from vllm.model_executor.layers.fused_moe.routed_experts_capturer import (
+    RoutedExpertsCapturer,
+)
+from vllm.model_executor.models.interfaces import supports_mm_encoder_only
 from vllm.utils.math_utils import cdiv
-from vllm.v1.core.sched.output import SchedulerOutput, GrammarOutput
+from vllm.v1.core.sched.output import GrammarOutput, SchedulerOutput
+from vllm.v1.outputs import AsyncModelRunnerOutput, make_empty_encoder_model_runner_output
 from vllm.v1.spec_decode.eagle import EagleProposer
 from vllm.v1.utils import record_function_or_nullcontext
 from vllm.v1.worker.gpu_model_runner import (
@@ -25,20 +32,13 @@ from vllm.v1.worker.gpu_model_runner import (
     get_pp_group,
     set_forward_context,
 )
-from vllm.model_executor.models.interfaces import supports_mm_encoder_only
+from vllm.v1.worker.ubatch_utils import maybe_create_ubatch_slices
 from vllm.v1.worker.utils import sanity_check_mm_encoder_outputs
-from vllm.v1.worker.ubatch_utils import maybe_create_ubatch_slices
+
 from vllm_omni.outputs import OmniModelRunnerOutput
-from vllm_omni.worker.gpu_model_runner import OmniGPUModelRunner
-from vllm.model_executor.layers.fused_moe.routed_experts_capturer import (
-    RoutedExpertsCapturer,
-)
-from vllm.distributed.ec_transfer import get_ec_transfer, has_ec_transfer
-from vllm.distributed.kv_transfer import get_kv_transfer_group, has_kv_transfer_group
-from vllm.v1.outputs import make_empty_encoder_model_runner_output
-from vllm.v1.worker.ubatch_utils import maybe_create_ubatch_slices
-from vllm.v1.outputs import AsyncModelRunnerOutput
 from vllm_omni.worker.gpu_ar_model_runner import ExecuteModelState
+from vllm_omni.worker.gpu_model_runner import OmniGPUModelRunner
+
 logger = logging.getLogger(__name__)
 
 
@@ -57,10 +57,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
         intermediate_tensors: IntermediateTensors | None = None,
     ) -> OmniModelRunnerOutput | IntermediateTensors:
         if self.execute_model_state is not None:
-            raise RuntimeError(
-                "State error: sample_tokens() must be called "
-                "after execute_model() returns None."
-            )
+            raise RuntimeError("State error: sample_tokens() must be called after execute_model() returns None.")
 
         if self.vllm_config.model_config.enable_return_routed_experts:
             capturer = RoutedExpertsCapturer.get_instance()
@@ -70,10 +67,8 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 logger.error("RoutedExpertsCapturer not initialized.")
 
         if scheduler_output.preempted_req_ids and has_kv_transfer_group():
-            get_kv_transfer_group().handle_preemptions(
-                scheduler_output.preempted_req_ids
-            )
-            
+            get_kv_transfer_group().handle_preemptions(scheduler_output.preempted_req_ids)
+
         num_scheduled_tokens = scheduler_output.total_num_scheduled_tokens
         with (
             record_function_or_nullcontext("gpu_model_runner: preprocess"),
@@ -82,7 +77,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             self._update_states(scheduler_output)
             if not scheduler_output.total_num_scheduled_tokens:
                 return EMPTY_MODEL_RUNNER_OUTPUT
-            
+
             if has_ec_transfer() and get_ec_transfer().is_producer:
                 with self.maybe_get_ec_connector_output(
                     scheduler_output,
@@ -93,8 +88,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
 
             if not num_scheduled_tokens:
                 if (
-                    self.parallel_config.distributed_executor_backend
-                    == "external_launcher"
+                    self.parallel_config.distributed_executor_backend == "external_launcher"
                     and self.parallel_config.data_parallel_size > 1
                 ):
                     # this is a corner case when both external launcher
@@ -107,7 +101,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 if not has_kv_transfer_group():
                     # Return empty ModelRunnerOutput if no work to do.
                     return EMPTY_MODEL_RUNNER_OUTPUT
-                
+
                 return self.kv_connector_no_forward(scheduler_output, self.vllm_config)
 
             if self.cache_config.kv_sharing_fast_prefill:
@@ -127,7 +121,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 scheduler_output,
                 num_scheduled_tokens_np,
             )
-            
+
             cascade_attn_prefix_lens = None
             # Disable cascade attention when using microbatching (DBO)
             if self.cascade_attn_enabled and not self.parallel_config.use_ubatching:
@@ -137,7 +131,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                     self.input_batch.num_computed_tokens_cpu[:num_reqs],
                     scheduler_output.num_common_prefix_blocks,
                 )
-                
+
             (
                 cudagraph_mode,
                 batch_desc,
@@ -163,9 +157,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             )
 
             num_tokens_padded = batch_desc.num_tokens
-            num_reqs_padded = (
-                batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
-            )
+            num_reqs_padded = batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
             ubatch_slices, ubatch_slices_padded = maybe_create_ubatch_slices(
                 should_ubatch,
                 num_scheduled_tokens_np,
@@ -185,19 +177,17 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             use_spec_decode = len(scheduler_output.scheduled_spec_decode_tokens) > 0
             ubatch_slices_attn = ubatch_slices_padded if pad_attn else ubatch_slices
 
-            attn_metadata, spec_decode_common_attn_metadata = (
-                self._build_attention_metadata(
-                    num_tokens=num_tokens_unpadded,
-                    num_tokens_padded=num_tokens_padded if pad_attn else None,
-                    num_reqs=num_reqs,
-                    num_reqs_padded=num_reqs_padded if pad_attn else None,
-                    max_query_len=max_num_scheduled_tokens,
-                    ubatch_slices=ubatch_slices_attn,
-                    logits_indices=logits_indices,
-                    use_spec_decode=use_spec_decode,
-                    num_scheduled_tokens=scheduler_output.num_scheduled_tokens,
-                    cascade_attn_prefix_lens=cascade_attn_prefix_lens,
-                )
+            attn_metadata, spec_decode_common_attn_metadata = self._build_attention_metadata(
+                num_tokens=num_tokens_unpadded,
+                num_tokens_padded=num_tokens_padded if pad_attn else None,
+                num_reqs=num_reqs,
+                num_reqs_padded=num_reqs_padded if pad_attn else None,
+                max_query_len=max_num_scheduled_tokens,
+                ubatch_slices=ubatch_slices_attn,
+                logits_indices=logits_indices,
+                use_spec_decode=use_spec_decode,
+                num_scheduled_tokens=scheduler_output.num_scheduled_tokens,
+                cascade_attn_prefix_lens=cascade_attn_prefix_lens,
             )
 
             (
@@ -260,12 +250,15 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
         )
         self.kv_connector_output = kv_connector_output
         return None
-    
+
     @torch.inference_mode()
     def sample_tokens(
         self,
         grammar_output: GrammarOutput | None = None,
     ) -> OmniModelRunnerOutput | AsyncModelRunnerOutput | IntermediateTensors:
+        # NOTE: Even though the model is non-autoregressive, we still need
+        # this function to match the interface of the engine core.
+        # In this case, this function
         kv_connector_output = self.kv_connector_output
         self.kv_connector_output = None
 
@@ -329,9 +322,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             kv_connector_output=kv_connector_output,
             num_nans_in_logits={},
             cudagraph_stats=cudagraph_stats,
-            ec_connector_output=ec_connector_output
-            if self.supports_mm_inputs
-            else None,
+            ec_connector_output=ec_connector_output if self.supports_mm_inputs else None,
         )
 
         if not self.use_async_scheduling:
@@ -433,10 +424,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             # mm encoder dummy run may need to add in the future.
             return torch.tensor([]), torch.tensor([])
 
-        assert (
-            cudagraph_runtime_mode is None
-            or cudagraph_runtime_mode.valid_runtime_modes()
-        )
+        assert cudagraph_runtime_mode is None or cudagraph_runtime_mode.valid_runtime_modes()
 
         # If cudagraph_mode.decode_mode() == FULL and
         # cudagraph_mode.separate_routine(). This means that we are using
@@ -497,8 +485,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 max_num_scheduled_tokens=max_query_len,
                 use_cascade_attn=False,
                 allow_microbatching=allow_microbatching,
-                force_eager=is_profile
-                or (cudagraph_runtime_mode == CUDAGraphMode.NONE),
+                force_eager=is_profile or (cudagraph_runtime_mode == CUDAGraphMode.NONE),
                 # `force_uniform_decode` is used for cudagraph capture; because for
                 # capturing mixed prefill-decode batches, we sometimes use
                 # num_tokens == num_reqs which looks like a uniform decode batch to the
@@ -520,9 +507,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
             )
 
         num_tokens_padded = batch_desc.num_tokens
-        num_reqs_padded = (
-            batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
-        )
+        num_reqs_padded = batch_desc.num_reqs if batch_desc.num_reqs is not None else num_reqs
         ubatch_slices, ubatch_slices_padded = maybe_create_ubatch_slices(
             should_ubatch,
             num_scheduled_tokens,
@@ -601,17 +586,13 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 intermediate_tensors = None
             else:
                 if self.intermediate_tensors is None:
-                    self.intermediate_tensors = (
-                        self.model.make_empty_intermediate_tensors(
-                            batch_size=self.max_num_tokens,
-                            dtype=self.model_config.dtype,
-                            device=self.device,
-                        )
+                    self.intermediate_tensors = self.model.make_empty_intermediate_tensors(
+                        batch_size=self.max_num_tokens,
+                        dtype=self.model_config.dtype,
+                        device=self.device,
                     )
 
-                intermediate_tensors = self.sync_and_slice_intermediate_tensors(
-                    num_tokens_padded, None, False
-                )
+                intermediate_tensors = self.sync_and_slice_intermediate_tensors(num_tokens_padded, None, False)
 
             if ubatch_slices_padded is not None:
                 # Adjust values to reflect a single ubatch.
@@ -652,14 +633,8 @@ class GPUGenerationModelRunner(OmniGPUModelRunner):
                 # Therefore only use cudagraphs if the main model uses PIECEWISE
                 # NOTE(lucas): this is a hack, need to clean up.
                 use_cudagraphs = (
-                    (
-                        is_graph_capturing
-                        and cudagraph_runtime_mode == CUDAGraphMode.PIECEWISE
-                    )
-                    or (
-                        not is_graph_capturing
-                        and cudagraph_runtime_mode != CUDAGraphMode.NONE
-                    )
+                    (is_graph_capturing and cudagraph_runtime_mode == CUDAGraphMode.PIECEWISE)
+                    or (not is_graph_capturing and cudagraph_runtime_mode != CUDAGraphMode.NONE)
                 ) and not self.speculative_config.enforce_eager
 
                 # Note(gnovack) - We need to disable cudagraphs for one of the two

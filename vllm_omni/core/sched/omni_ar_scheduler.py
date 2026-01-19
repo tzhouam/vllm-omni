@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from time import time
 
+import numpy as np
+from vllm.compilation.cuda_graph import CUDAGraphStat
 from vllm.distributed.kv_events import KVEventBatch
 from vllm.distributed.kv_transfer.kv_connector.v1.metrics import KVConnectorStats
 from vllm.logger import init_logger
@@ -10,9 +12,12 @@ from vllm.v1.core.sched.output import SchedulerOutput
 from vllm.v1.core.sched.scheduler import Scheduler as VLLMScheduler
 from vllm.v1.core.sched.utils import check_stop, remove_all
 from vllm.v1.engine import EngineCoreOutput, EngineCoreOutputs
+from vllm.v1.metrics.perf import PerfStats
 from vllm.v1.outputs import ModelRunnerOutput
 from vllm.v1.request import Request, RequestStatus
 from vllm.v1.spec_decode.metrics import SpecDecodingStats
+
+logger = init_logger(__name__)
 
 
 class OmniARScheduler(VLLMScheduler):
@@ -73,7 +78,7 @@ class OmniARScheduler(VLLMScheduler):
         pooler_outputs = model_runner_output.pooler_output
         num_nans_in_logits = model_runner_output.num_nans_in_logits
         kv_connector_output = model_runner_output.kv_connector_output
-        cudagraph_stats = model_runner_output.cudagraph_stats
+        cudagraph_stats: CUDAGraphStat | None = model_runner_output.cudagraph_stats
 
         perf_stats: PerfStats | None = None
         if self.perf_metrics and self.perf_metrics.is_enabled():
@@ -152,7 +157,7 @@ class OmniARScheduler(VLLMScheduler):
                 new_token_ids, stopped = self._update_request_with_output(request, new_token_ids)
 
             if pooler_output:
-                # Note: As we occupied the pooler output, for multimodal outputs, we do not intermediate stop checking for pooler output
+                # Note: For multimodal outputs, we skip intermediate stop checks.
                 if request.output_token_ids:
                     stopped = check_stop(request, self.max_model_len)
             routed_experts = None
@@ -172,13 +177,10 @@ class OmniARScheduler(VLLMScheduler):
 
                     # compute slot mapping: slot = block_id * block_size + offset
                     slot_mapping = (
-                        block_offsets.reshape((1, block_size))
-                        + block_ids_array.reshape((num_blocks, 1)) * block_size
+                        block_offsets.reshape((1, block_size)) + block_ids_array.reshape((num_blocks, 1)) * block_size
                     ).flatten()[:num_tokens]
 
-                    routed_experts = self.routed_experts_reader.get_routed_experts(
-                        indices=slot_mapping
-                    )
+                    routed_experts = self.routed_experts_reader.get_routed_experts(indices=slot_mapping)
                 kv_transfer_params = self._free_request(request)
                 if status_before_stop == RequestStatus.RUNNING:
                     stopped_running_reqs.add(request)
@@ -221,6 +223,7 @@ class OmniARScheduler(VLLMScheduler):
                         kv_transfer_params=kv_transfer_params,
                         trace_headers=request.trace_headers,
                         num_cached_tokens=request.num_cached_tokens,
+                        routed_experts=routed_experts,
                         num_nans_in_logits=request.num_nans_in_logits,
                     )
                 )
@@ -234,7 +237,7 @@ class OmniARScheduler(VLLMScheduler):
         if stopped_preempted_reqs:
             # This is a rare case and unlikely to impact performance.
             self.waiting.remove_requests(stopped_preempted_reqs)
-            
+
         if failed_kv_load_req_ids and not self.recompute_kv_load_failures:
             requests = [self.requests[req_id] for req_id in failed_kv_load_req_ids]
             self.finish_requests(failed_kv_load_req_ids, RequestStatus.FINISHED_ERROR)
@@ -286,7 +289,7 @@ class OmniARScheduler(VLLMScheduler):
                     engine_core_outputs[client_index] = EngineCoreOutputs(finished_requests=finished_set)
             finished_req_ids.clear()
 
-        if (stats := self.make_stats(spec_decoding_stats, kv_connector_stats)) is not None:
+        if (stats := self.make_stats(spec_decoding_stats, kv_connector_stats, cudagraph_stats, perf_stats)) is not None:
             # Return stats to only one of the front-ends.
             if (eco := next(iter(engine_core_outputs.values()), None)) is None:
                 # We must return the stats even if there are no request
