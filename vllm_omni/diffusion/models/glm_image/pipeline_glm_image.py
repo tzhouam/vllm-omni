@@ -491,7 +491,7 @@ class GlmImagePipeline(nn.Module):
             condition_grid = image_grid_thw[:-1]
             prior_token_image_embed = self.vision_language_encoder.get_image_features(
                 inputs["pixel_values"], condition_grid
-            )
+            ).pooler_output
             prior_token_image_embed = torch.cat(prior_token_image_embed, dim=0)
             flat_prior_token_image_ids = self.vision_language_encoder.get_image_tokens(
                 prior_token_image_embed, condition_grid
@@ -802,7 +802,7 @@ class GlmImagePipeline(nn.Module):
 
         # Process each condition image through transformer to populate KV cache
         for condition_image, condition_prior_token_id in zip(condition_images, prior_token_image_ids):
-            condition_image = condition_image.to(device=self.device, dtype=prompt_embeds.dtype)
+            condition_image = condition_image.to(device=self.device, dtype=prompt_embeds.dtype).unsqueeze(0) # [bz=1, 3, H, W]
 
             # Encode condition image to latent space
             # Use argmax (mode) for deterministic encoding of condition images
