@@ -20,7 +20,8 @@ Therefore, it is recommended to install vLLM and vLLM-Omni with a **fresh new** 
 
 vLLM-Omni is built based on vLLM. Please install it with command below.
 ```bash
-uv pip install vllm==0.16.0 --torch-backend=auto
+# vllm 0.16.0 is still under prerelease
+uv pip install --prerelease=allow vllm --extra-index-url https://wheels.vllm.ai/2d5be1dd5ce2e44dfea53ea03ff61143da5137eb
 ```
 
 #### Installation of vLLM-Omni

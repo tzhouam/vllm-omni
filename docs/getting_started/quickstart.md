@@ -19,7 +19,8 @@ uv venv --python 3.12 --seed
 source .venv/bin/activate
 
 # On CUDA
-uv pip install vllm==0.16.0 --torch-backend=auto
+# vllm 0.16.0 is still under prerelease
+uv pip install --prerelease=allow vllm --extra-index-url https://wheels.vllm.ai/2d5be1dd5ce2e44dfea53ea03ff61143da5137eb
 
 # On ROCm
 uv pip install vllm==0.16.0 --extra-index-url https://wheels.vllm.ai/rocm/0.16.0/rocm700
