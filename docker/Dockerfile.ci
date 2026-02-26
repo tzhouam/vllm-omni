@@ -4,8 +4,10 @@ WORKDIR ${APP_DIR}
 
 COPY . .
 
-RUN uv pip install --system --no-cache-dir ".[dev]"
+RUN uv pip install --upgrade --system --no-cache-dir ".[dev]"
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
+
+RUN rm -rf /root/.cache/uv /root/.cache/pip
 
 ENTRYPOINT []
