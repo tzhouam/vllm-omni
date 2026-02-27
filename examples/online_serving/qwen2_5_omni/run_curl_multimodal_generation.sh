@@ -160,10 +160,10 @@ esac
 echo "Running query type: $QUERY_TYPE"
 echo ""
 
+MAX_RETRIES=3
+RETRY_DELAY=3
 
-output=$(curl -sS -X POST http://localhost:8091/v1/chat/completions \
-    -H "Content-Type: application/json" \
-    -d @- <<EOF
+request_body=$(cat <<EOF
 {
   "model": "Qwen/Qwen2.5-Omni-7B",
   "sampling_params_list": $sampling_params_list,
@@ -186,7 +186,28 @@ output=$(curl -sS -X POST http://localhost:8091/v1/chat/completions \
   ]
 }
 EOF
-  )
+)
+
+output=""
+for attempt in $(seq 1 "$MAX_RETRIES"); do
+  http_response=$(curl -sS -w "\n%{http_code}" -X POST http://localhost:8091/v1/chat/completions \
+      -H "Content-Type: application/json" \
+      -d "$request_body")
+
+  http_code=$(echo "$http_response" | tail -1)
+  output=$(echo "$http_response" | sed '$d')
+
+  if [[ "$http_code" -ge 200 && "$http_code" -lt 300 ]]; then
+    break
+  fi
+
+  if [[ "$attempt" -lt "$MAX_RETRIES" ]]; then
+    echo "Request failed with HTTP $http_code, retrying ($attempt/$MAX_RETRIES) in ${RETRY_DELAY}s..." >&2
+    sleep "$RETRY_DELAY"
+  else
+    echo "Request failed with HTTP $http_code after $MAX_RETRIES attempts" >&2
+  fi
+done
 
 # Here it only shows the text content of the first choice. Audio content has many binaries, so it's not displayed here.
 echo "Output of request: $(echo "$output" | jq '.choices[0].message.content')"
