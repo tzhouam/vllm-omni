@@ -896,7 +896,7 @@ def _stage_worker(
     except Exception:
         pass
 
-    max_batch_size = int(runtime_cfg.get("max_batch_size", 1) or 1)
+    max_batch_size = int(engine_args.get("max_num_seqs", 1))
     logger.info(f"Max batch size: {max_batch_size}")
 
     def handle_profiler_task_local(task_type: OmniStageTaskType) -> dict:

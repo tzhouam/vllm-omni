@@ -4,9 +4,9 @@ stage_args:
     stage_type: llm
     runtime:
       devices: "0"
-      max_batch_size: 1
     engine_args:
       model_stage: qwen3_tts
+      max_num_seqs: 1
       model_arch: Qwen3TTSTalkerForConditionalGeneration
       # Force stage-specific registered architecture.
       hf_overrides:
@@ -39,9 +39,9 @@ stage_args:
     stage_type: llm
     runtime:
       devices: "0"
-      max_batch_size: 1
     engine_args:
       model_stage: code2wav
+      max_num_seqs: 1
       model_arch: Qwen3TTSCode2Wav
       # Force stage-specific registered architecture.
       hf_overrides:

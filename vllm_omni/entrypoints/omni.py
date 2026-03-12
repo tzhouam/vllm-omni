@@ -249,11 +249,11 @@ class OmniBase:
                 "runtime": {
                     "process": True,
                     "devices": devices,
-                    "max_batch_size": 1,
                 },
                 "engine_args": OmegaConf.create(
                     {
                         **kwargs,
+                        "max_num_seqs": 1,
                         "cache_backend": cache_backend,
                         "cache_config": cache_config,
                     }
