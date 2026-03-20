@@ -443,8 +443,7 @@ class StageConfigFactory:
                 mbs = yaml_runtime.pop("max_batch_size")
                 yaml_engine_args.setdefault("max_num_seqs", int(mbs))
                 logger.debug(
-                    "Stage %s: migrated runtime.max_batch_size=%s to "
-                    "engine_args.max_num_seqs",
+                    "Stage %s: migrated runtime.max_batch_size=%s to engine_args.max_num_seqs",
                     stage_data.get("stage_id", "?"),
                     mbs,
                 )
