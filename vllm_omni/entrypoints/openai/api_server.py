@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 import asyncio
 import base64
+import dataclasses
 import io
 import json
 import multiprocessing
@@ -112,6 +113,7 @@ from vllm_omni.entrypoints.openai.serving_chat import OmniOpenAIServingChat
 from vllm_omni.entrypoints.openai.serving_speech import OmniOpenAIServingSpeech
 from vllm_omni.entrypoints.openai.serving_speech_stream import OmniStreamingSpeechHandler
 from vllm_omni.entrypoints.openai.serving_video import OmniOpenAIServingVideo, ReferenceImage
+from vllm_omni.entrypoints.openai.serving_video_stream import OmniStreamingVideoHandler
 from vllm_omni.entrypoints.openai.storage import STORAGE_MANAGER
 from vllm_omni.entrypoints.openai.stores import VIDEO_STORE, VIDEO_TASKS
 from vllm_omni.entrypoints.openai.utils import get_stage_type, parse_lora_request
@@ -490,6 +492,7 @@ async def omni_init_app_state(
     state.engine_client = engine_client
     state.log_stats = not args.disable_log_stats
     state.args = args
+    state.sleeping_stages = set()
 
     # For omni models
     state.stage_configs = engine_client.stage_configs if hasattr(engine_client, "stage_configs") else None
@@ -522,6 +525,7 @@ async def omni_init_app_state(
             stage_configs=diffusion_stage_configs,
         )
         state.openai_streaming_speech = None
+        state.openai_streaming_video = None
 
         state.enable_server_load_tracking = getattr(args, "enable_server_load_tracking", False)
         state.server_load_metrics = 0
@@ -821,6 +825,14 @@ async def omni_init_app_state(
 
     state.openai_streaming_speech = OmniStreamingSpeechHandler(
         speech_service=state.openai_serving_speech,
+    )
+    state.openai_streaming_video = (
+        OmniStreamingVideoHandler(
+            chat_service=state.openai_serving_chat,
+            engine_client=engine_client,
+        )
+        if state.openai_serving_chat is not None
+        else None
     )
     state.openai_serving_realtime = OpenAIServingRealtime(
         engine_client=engine_client,
@@ -1200,6 +1212,23 @@ async def streaming_speech(websocket: WebSocket):
     await handler.handle_session(websocket)
 
 
+@router.websocket("/v1/video/chat/stream")
+async def streaming_video_chat(websocket: WebSocket):
+    """WebSocket endpoint for streaming video input chat."""
+    handler = getattr(websocket.app.state, "openai_streaming_video", None)
+    if handler is None:
+        await websocket.accept()
+        await websocket.send_json(
+            {
+                "type": "error",
+                "message": "Streaming video chat is not available",
+            }
+        )
+        await websocket.close()
+        return
+    await handler.handle_session(websocket)
+
+
 @router.websocket("/v1/realtime")
 async def realtime_websocket(websocket: WebSocket):
     """WebSocket endpoint for OpenAI-style realtime interactions."""
@@ -1448,13 +1477,23 @@ async def generate_images(request: ImageGenerationRequest, raw_request: Request)
 
         logger.info(f"Successfully generated {len(images)} image(s)")
 
-        # Encode images to base64
-        image_data = [ImageData(b64_json=encode_image_base64(img), revised_prompt=None) for img in images]
+        # Determine output format (default to png)
+        output_format = _choose_output_format(request.output_format or "png", None)
 
-        return ImageGenerationResponse(
-            created=int(time.time()),
-            data=image_data,
-        )
+        # Encode images to base64 with the specified format
+        image_data = [
+            ImageData(b64_json=_encode_image_base64_with_compression(img, format=output_format), revised_prompt=None)
+            for img in images
+        ]
+
+        response_kwargs = {
+            "created": int(time.time()),
+            "data": image_data,
+            "output_format": output_format,
+        }
+        if request.size:
+            response_kwargs["size"] = size_str
+        return ImageGenerationResponse(**response_kwargs)
 
     except HTTPException:
         # Re-raise HTTPExceptions as-is
@@ -2528,3 +2567,67 @@ async def stop_profile(raw_request: Request, request: ProfileRequest | None = No
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR.value, detail=f"Failed to stop profiler: {str(e)}"
         )
+
+
+class OmniSleepRequest(BaseModel):
+    stage_ids: list[int]
+    level: int = 2
+
+
+class OmniWakeupRequest(BaseModel):
+    stage_ids: list[int]
+
+
+@router.post("/v1/omni/sleep")
+async def omni_sleep(request: OmniSleepRequest, raw_request: Request):
+    engine_client = raw_request.app.state.engine_client
+    sleeping_set = raw_request.app.state.sleeping_stages
+    if not hasattr(engine_client, "sleep"):
+        raise HTTPException(status_code=501, detail="Engine does not support sleep")
+    acks = await engine_client.sleep(stage_ids=request.stage_ids, level=request.level)
+    for sid in request.stage_ids:
+        sleeping_set.add(sid)
+    return {"status": "SUCCESS", "acks": [dataclasses.asdict(a) if dataclasses.is_dataclass(a) else a for a in acks]}
+
+
+@router.post("/v1/omni/wakeup")
+async def omni_wakeup(request: OmniWakeupRequest, raw_request: Request):
+    engine_client = raw_request.app.state.engine_client
+    sleeping_set = raw_request.app.state.sleeping_stages
+    if not any(sid in sleeping_set for sid in request.stage_ids):
+        return {"status": "SKIPPED", "reason": "Target stages are not sleeping."}
+    if not hasattr(engine_client, "wake_up"):
+        raise HTTPException(status_code=501, detail="Engine does not support wake_up")
+    acks = await engine_client.wake_up(stage_ids=request.stage_ids)
+    for sid in request.stage_ids:
+        if sid in sleeping_set:
+            sleeping_set.remove(sid)
+    return {"status": "SUCCESS", "acks": [dataclasses.asdict(a) if dataclasses.is_dataclass(a) else a for a in acks]}
+
+
+if __name__ == "__main__":
+    import argparse
+    import asyncio
+
+    from vllm.entrypoints.openai.cli_args import make_arg_parser
+
+    from vllm_omni.engine.arg_utils import nullify_stage_engine_defaults
+
+    parser = argparse.ArgumentParser(description="vLLM-Omni OpenAI-Compatible REST API server")
+    parser = make_arg_parser(parser)
+    registered_flags = set()
+    for action in parser._actions:
+        registered_flags.update(action.option_strings)
+    if "--omni" not in registered_flags:
+        parser.add_argument("--omni", action="store_true", default=False, help="Enable vLLM-Omni mode.")
+    if "--enable-sleep-mode" not in registered_flags:
+        parser.add_argument(
+            "--enable-sleep-mode", action="store_true", default=False, help="Enable GPU memory pool for sleep mode."
+        )
+    nullify_stage_engine_defaults(parser)
+    args = parser.parse_args()
+    if not hasattr(args, "model_tag"):
+        setattr(args, "model_tag", args.model)
+    if hasattr(args, "model_tag") and args.model_tag is None:
+        args.model_tag = args.model
+    asyncio.run(omni_run_server(args))

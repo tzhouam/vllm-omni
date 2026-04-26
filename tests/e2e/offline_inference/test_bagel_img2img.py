@@ -16,17 +16,19 @@ Equivalent to running:
 
 import os
 import socket
-from pathlib import Path
 from typing import Any
 
 import pytest
 from PIL import Image
 from vllm.assets.image import ImageAsset
 
-from tests.conftest import OmniRunner, modify_stage_config
-from tests.utils import hardware_test
-from vllm_omni import Omni
+from tests.helpers.mark import hardware_test
+from tests.helpers.runtime import OmniRunner
+from tests.helpers.stage_config import get_deploy_config_path, modify_stage_config
+from vllm_omni.entrypoints.omni import Omni
 from vllm_omni.platforms import current_omni_platform
+
+BAGEL_CI_DEPLOY = get_deploy_config_path("ci/bagel.yaml")
 
 # When set to a truthy value, the test skips the pixel-tolerance assertion and
 # instead dumps the ten sampled RGB values in a copy-pastable block. Use this
@@ -239,8 +241,8 @@ def _generate_bagel_img2img(
     return generated_image
 
 
-def _resolve_stage_config(config_path: str, run_level: str) -> str:
-    """Resolve stage config based on run level.
+def _resolve_deploy_config(config_path: str, run_level: str) -> str:
+    """Resolve deploy config based on run level.
 
     For advanced_model (real weights), strip load_format: dummy so the model
     falls back to loading real weights from HuggingFace.
@@ -249,9 +251,9 @@ def _resolve_stage_config(config_path: str, run_level: str) -> str:
         return modify_stage_config(
             config_path,
             deletes={
-                "stage_args": {
-                    0: ["engine_args.load_format"],
-                    1: ["engine_args.load_format"],
+                "stages": {
+                    0: ["load_format"],
+                    1: ["load_format"],
                 }
             },
         )
@@ -265,8 +267,7 @@ def _resolve_stage_config(config_path: str, run_level: str) -> str:
 def test_bagel_img2img_shared_memory_connector(run_level):
     """Test Bagel img2img with shared memory connector."""
     input_image = _load_input_image()
-    config_path = str(Path(__file__).parent / "stage_configs" / "bagel_sharedmemory_ci.yaml")
-    config_path = _resolve_stage_config(config_path, run_level)
+    config_path = _resolve_deploy_config(BAGEL_CI_DEPLOY, run_level)
     with OmniRunner(
         "ByteDance-Seed/BAGEL-7B-MoT",
         stage_configs_path=config_path,

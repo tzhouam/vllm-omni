@@ -21,6 +21,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from vllm_omni.diffusion.data import DiffusionParallelConfig
 from vllm_omni.entrypoints.omni import Omni
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams
 from vllm_omni.platforms import current_omni_platform
@@ -113,6 +114,61 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Enable diffusion pipeline profiler to display stage durations.",
     )
+    parser.add_argument(
+        "--use-hsdp",
+        action="store_true",
+        help="Enable HSDP for Stable Audio DiT weight sharding.",
+    )
+    parser.add_argument(
+        "--hsdp-shard-size",
+        type=int,
+        default=1,
+        help="Number of GPUs to shard Stable Audio DiT weights across when HSDP is enabled.",
+    )
+    parser.add_argument(
+        "--hsdp-replicate-size",
+        type=int,
+        default=1,
+        help="Number of HSDP replica groups. Default 1 means pure sharding.",
+    )
+    parser.add_argument(
+        "--tensor-parallel-size",
+        type=int,
+        default=1,
+        help="Number of GPUs used for tensor parallelism (TP) inside the DiT.",
+    )
+    parser.add_argument(
+        "--ulysses-degree",
+        type=int,
+        default=1,
+        help="Number of GPUs used for ulysses sequence parallelism.",
+    )
+    parser.add_argument(
+        "--ulysses-mode",
+        type=str,
+        default="strict",
+        choices=["strict", "advanced_uaa"],
+        help="Ulysses sequence-parallel mode: 'strict' (divisibility required) or 'advanced_uaa' (UAA).",
+    )
+    parser.add_argument(
+        "--ring-degree",
+        type=int,
+        default=1,
+        help="Number of GPUs used for ring sequence parallelism.",
+    )
+    parser.add_argument(
+        "--cfg-parallel-size",
+        type=int,
+        default=1,
+        choices=[1, 2],
+        help="Number of GPUs used for classifier free guidance parallel size.",
+    )
+    parser.add_argument(
+        "--vae-patch-parallel-size",
+        type=int,
+        default=1,
+        help="Number of GPUs used for VAE patch/tile parallelism (decode).",
+    )
     return parser.parse_args()
 
 
@@ -147,6 +203,17 @@ def main():
         cache_config = {
             "rel_l1_thresh": args.tea_cache_rel_l1_thresh,
         }
+    parallel_config = DiffusionParallelConfig(
+        ulysses_degree=args.ulysses_degree,
+        ring_degree=args.ring_degree,
+        ulysses_mode=args.ulysses_mode,
+        cfg_parallel_size=args.cfg_parallel_size,
+        tensor_parallel_size=args.tensor_parallel_size,
+        vae_patch_parallel_size=args.vae_patch_parallel_size,
+        use_hsdp=args.use_hsdp,
+        hsdp_shard_size=args.hsdp_shard_size,
+        hsdp_replicate_size=args.hsdp_replicate_size,
+    )
 
     print(f"\n{'=' * 60}")
     print("Stable Audio Open - Text-to-Audio Generation")
@@ -167,6 +234,7 @@ def main():
         cache_backend=args.cache_backend,
         cache_config=cache_config,
         enable_diffusion_pipeline_profiler=args.enable_diffusion_pipeline_profiler,
+        parallel_config=parallel_config,
     )
 
     # Calculate audio end time

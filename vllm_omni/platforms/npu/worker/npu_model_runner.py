@@ -425,10 +425,12 @@ class OmniNPUModelRunner(OmniGPUModelRunner, NPUModelRunner):
         # keeps it device-resident when the key is in gpu_resident_buffer_keys.
         # D2H is deferred to sample_tokens where hidden_states.to("cpu") already
         # syncs the stream, avoiding a per-step cudaStreamSynchronize.
-        out_key = getattr(self.model, "talker_mtp_output_key", "code_predictor_codes")
+        out_key = getattr(self.model, "talker_mtp_output_key", ("codes", "audio"))
+        if not isinstance(out_key, tuple) or len(out_key) != 2:
+            raise TypeError(f"talker_mtp_output_key must be a 2-tuple, got {type(out_key).__name__}: {out_key!r}")
         for idx, req_id in enumerate(decode_req_ids):
             req_index = self.input_batch.req_ids.index(req_id)
             start_offset = int(self.query_start_loc.cpu[req_index])
             inputs_embeds[start_offset : start_offset + 1] = req_embeds[idx : idx + 1]
-            update_dict = {out_key: code_predictor_codes[idx : idx + 1]}
+            update_dict = {out_key[0]: {out_key[1]: code_predictor_codes[idx : idx + 1]}}
             self._merge_additional_information_update(req_id, update_dict)
