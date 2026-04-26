@@ -113,6 +113,9 @@ class OrchestratorRequestState:
 
     streaming: StreamingInputState = field(default_factory=lambda: StreamingInputState())
 
+    # Per-request pipeline timing accumulator (milliseconds)
+    pipeline_timings: dict[str, float] = field(default_factory=dict)
+
 
 @dataclass
 class StreamingInputState:
@@ -579,6 +582,7 @@ class Orchestrator:
                 total_token=self._agg_total_tokens[stage_id],
                 total_gen_time_ms=self._agg_total_gen_time_ms[stage_id],
             ),
+            pipeline_timings=dict(req_state.pipeline_timings),
         )
 
     def _build_kv_sender_info(self, sender_stage_ids: list[int]) -> dict[int, dict[str, Any]] | None:
@@ -628,11 +632,21 @@ class Orchestrator:
         if next_client.stage_type == "diffusion":
             self.stage_clients[stage_id].set_engine_outputs([output])
             if next_client.custom_process_input_func is not None:
+                _t_ar2d = _time.perf_counter()
                 diffusion_prompt = next_client.custom_process_input_func(
                     self.stage_clients,
                     next_client.engine_input_source,
                     req_state.prompt,
                     False,
+                )
+                _dt_ar2d = (_time.perf_counter() - _t_ar2d) * 1000
+                req_state.pipeline_timings["ar2diffusion_ms"] = _dt_ar2d
+                logger.info(
+                    "[Orchestrator] ar2diffusion req=%s wall_time=%.3fms stage=%d->%d",
+                    req_id,
+                    _dt_ar2d,
+                    stage_id,
+                    next_stage_id,
                 )
                 if isinstance(diffusion_prompt, list):
                     if not diffusion_prompt:
@@ -856,6 +870,15 @@ class Orchestrator:
         )
         req_state.streaming.enabled = is_streaming
         req_state.stage_submit_ts[stage_id] = _time.time()
+
+        # Per-request pipeline timings from caller thread
+        _enqueue_ts = msg.get("enqueue_ts", 0.0)
+        if _enqueue_ts > 0:
+            req_state.pipeline_timings["queue_wait_ms"] = (_time.perf_counter() - _enqueue_ts) * 1000.0
+        _preprocess_ms = msg.get("preprocess_ms", 0.0)
+        if _preprocess_ms > 0:
+            req_state.pipeline_timings["preprocess_ms"] = _preprocess_ms
+
         self.request_states[request_id] = req_state
 
         # Stage-0 prompt is already a fully-formed OmniEngineCoreRequest

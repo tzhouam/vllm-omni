@@ -698,15 +698,10 @@ stages:
 
 
 class TestPipelineDiscovery:
-    """Tests for auto-discovery of pipelines from models/*/pipeline.py."""
+    """Tests for the central pipeline registry (``pipeline_registry._OMNI_PIPELINES``)."""
 
-    def test_discover_populates_registry_with_known_models(self):
-        """``_discover_all_pipelines`` imports every pipeline.py so the
-        registry is populated with the built-in models after one call."""
-        from vllm_omni.config.stage_config import _discover_all_pipelines
-
-        _discover_all_pipelines()
-        # These models have a pipeline.py in-tree and must be registered.
+    def test_registry_has_known_models(self):
+        """Built-in pipelines are visible via the lazy central registry."""
         assert "qwen2_5_omni" in _PIPELINE_REGISTRY
         assert "qwen3_omni_moe" in _PIPELINE_REGISTRY
         assert "qwen3_tts" in _PIPELINE_REGISTRY
