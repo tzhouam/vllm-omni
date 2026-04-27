@@ -1,4 +1,4 @@
 -r common.txt
 # MUSA platform dependencies
-torchada>=0.1.46
+torchada>=0.1.52
 onnxruntime>=1.23.2
