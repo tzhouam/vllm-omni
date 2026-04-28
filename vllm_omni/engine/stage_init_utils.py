@@ -589,6 +589,26 @@ def release_device_locks(lock_fds: list[int]) -> None:
             pass
 
 
+def acquire_diffusion_device_locks(
+    stage_id: int,
+    od_config: Any,
+    stage_init_timeout: int,
+) -> list[int]:
+    """Acquire init locks for the GPU set used by a diffusion stage."""
+    parallel_config = getattr(od_config, "parallel_config", None)
+    world_size = getattr(parallel_config, "world_size", 1)
+    try:
+        world_size = max(1, int(world_size))
+    except (TypeError, ValueError):
+        world_size = 1
+
+    return acquire_device_locks(
+        stage_id,
+        {"tensor_parallel_size": world_size},
+        stage_init_timeout,
+    )
+
+
 def load_omni_transfer_config_for_model(model: str, config_path: str | None) -> Any:
     """Load omni transfer config from an explicit path or resolved model config.
 
@@ -682,7 +702,11 @@ def initialize_diffusion_stage(
     from vllm_omni.diffusion.stage_diffusion_client import create_diffusion_client
 
     od_config = build_diffusion_config(model, stage_cfg, metadata)
-    return create_diffusion_client(model, od_config, metadata, stage_init_timeout, batch_size, use_inline)
+    lock_fds = acquire_diffusion_device_locks(metadata.stage_id, od_config, stage_init_timeout)
+    try:
+        return create_diffusion_client(model, od_config, metadata, stage_init_timeout, batch_size, use_inline)
+    finally:
+        release_device_locks(lock_fds)
 
 
 def _shutdown_or_close_resource(resource: Any, resource_name: str, stage_id: int) -> None:

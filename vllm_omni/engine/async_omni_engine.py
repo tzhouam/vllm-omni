@@ -66,6 +66,7 @@ from vllm_omni.engine.stage_init_utils import (
     StartedLlmStage,
     _inject_inferred_kv_tp_topology,
     acquire_device_locks,
+    acquire_diffusion_device_locks,
     build_diffusion_config,
     build_engine_args_dict,
     build_vllm_config,
@@ -561,11 +562,14 @@ class AsyncOmniEngine:
         stage_cfg: Any,
         metadata: Any,
         omni_master_server: OmniMasterServer,
+        stage_init_timeout: int,
     ) -> StageDiffusionClient:
         """Launch a local diffusion stage on OmniMasterServer-allocated sockets."""
         proc = None
+        lock_fds: list[int] = []
         try:
             od_config = build_diffusion_config(self.model, stage_cfg, metadata)
+            lock_fds = acquire_diffusion_device_locks(metadata.stage_id, od_config, stage_init_timeout)
             handshake_address, request_address, response_address = register_stage_with_omni_master(
                 omni_master_address=omni_master_server.address,
                 omni_master_port=omni_master_server.port,
@@ -584,7 +588,7 @@ class AsyncOmniEngine:
                 request_address=request_address,
                 response_address=response_address,
             )
-            complete_diffusion_handshake(proc, handshake_address)
+            complete_diffusion_handshake(proc, handshake_address, stage_init_timeout)
             logger.info(
                 "[AsyncOmniEngine] Stage %s diffusion startup completed",
                 metadata.stage_id,
@@ -600,6 +604,9 @@ class AsyncOmniEngine:
             if proc is not None:
                 terminate_alive_proc(proc)
             raise
+        finally:
+            if lock_fds:
+                release_device_locks(lock_fds)
 
     def _create_remote_diffusion_stage(
         self,
@@ -805,6 +812,7 @@ class AsyncOmniEngine:
                                         stage_cfg,
                                         metadata,
                                         self._omni_master_server,
+                                        stage_init_timeout,
                                     )
                                 else:
                                     use_inline = True if self.num_stages == 1 else False

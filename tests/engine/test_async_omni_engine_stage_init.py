@@ -171,6 +171,83 @@ def test_initialize_stages_passes_stage_init_timeout_to_diffusion_handshake(monk
     assert captured_timeout == 302
 
 
+def test_acquire_diffusion_device_locks_uses_diffusion_world_size(monkeypatch):
+    """Diffusion stages should lock every GPU covered by their parallel config."""
+    import vllm_omni.engine.stage_init_utils as stage_init_mod
+
+    captured_args = None
+
+    def _capture_acquire(stage_id, engine_args_dict, stage_init_timeout):
+        nonlocal captured_args
+        captured_args = (stage_id, engine_args_dict, stage_init_timeout)
+        return [101]
+
+    monkeypatch.setattr(stage_init_mod, "acquire_device_locks", _capture_acquire)
+
+    od_config = types.SimpleNamespace(parallel_config=types.SimpleNamespace(world_size=2))
+    result = stage_init_mod.acquire_diffusion_device_locks(
+        stage_id=1,
+        od_config=od_config,
+        stage_init_timeout=302,
+    )
+
+    assert result == [101]
+    assert captured_args == (1, {"tensor_parallel_size": 2}, 302)
+
+
+def test_initialize_diffusion_stage_holds_device_locks_until_client_ready(monkeypatch):
+    """The device init lock must cover diffusion spawn and READY handshake."""
+    import vllm_omni.diffusion.stage_diffusion_client as client_mod
+    import vllm_omni.engine.stage_init_utils as stage_init_mod
+
+    events: list[str] = []
+    stage_cfg = types.SimpleNamespace(stage_id=1, stage_type="diffusion")
+    metadata = types.SimpleNamespace(stage_id=1)
+    od_config = types.SimpleNamespace(parallel_config=types.SimpleNamespace(world_size=1))
+    diffusion_client = object()
+
+    monkeypatch.setattr(stage_init_mod, "build_diffusion_config", lambda *_: od_config)
+
+    def _acquire_locks(stage_id, config, timeout):
+        assert (stage_id, config, timeout) == (1, od_config, 302)
+        events.append("acquire")
+        return [101]
+
+    def _create_client(model, config, meta, timeout, batch_size, use_inline):
+        assert events == ["acquire"]
+        assert (model, config, meta, timeout, batch_size, use_inline) == (
+            "dummy-model",
+            od_config,
+            metadata,
+            302,
+            4,
+            False,
+        )
+        events.append("create")
+        return diffusion_client
+
+    def _release_locks(lock_fds):
+        assert lock_fds == [101]
+        assert events == ["acquire", "create"]
+        events.append("release")
+
+    monkeypatch.setattr(stage_init_mod, "acquire_diffusion_device_locks", _acquire_locks)
+    monkeypatch.setattr(client_mod, "create_diffusion_client", _create_client)
+    monkeypatch.setattr(stage_init_mod, "release_device_locks", _release_locks)
+
+    result = stage_init_mod.initialize_diffusion_stage(
+        "dummy-model",
+        stage_cfg,
+        metadata,
+        stage_init_timeout=302,
+        batch_size=4,
+        use_inline=False,
+    )
+
+    assert result is diffusion_client
+    assert events == ["acquire", "create", "release"]
+
+
 def test_launch_llm_stage_passes_stage_init_timeout_to_complete_stage_handshake(monkeypatch):
     """Regression test for stage_init_timeout reaching complete_stage_handshake
     in the LLM stage path.
