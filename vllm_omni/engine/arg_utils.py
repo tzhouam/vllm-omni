@@ -137,11 +137,9 @@ class OmniEngineArgs(EngineArgs):
     subtalker_sampling_params: dict[str, Any] | None = None
     async_chunk: bool = False
     omni_kv_config: dict | None = None
-    quantization_config: Any | None = None
     worker_type: str | None = None
     task_type: str | None = None
     worker_cls: str = None
-    enable_sleep_mode: bool = False
     omni: bool = False
 
     @classmethod

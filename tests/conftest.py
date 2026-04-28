@@ -110,7 +110,7 @@ def assert_image_diffusion_response(
             f"Expected {num_outputs_per_prompt} images, got {len(response.images)}"
         )
 
-    if run_level == "advanced_model":
+    if run_level in {"advanced_model", "full_model"}:
         width = extra_body.get("width")
         height = extra_body.get("height")
 
@@ -1888,8 +1888,8 @@ def pytest_addoption(parser):
         "--run-level",
         action="store",
         default="core_model",
-        choices=["core_model", "advanced_model"],
-        help="Test level to run: L2, L3",
+        choices=["core_model", "advanced_model", "full_model"],
+        help="Test level to run: L2, L3, L4",
     )
 
 
@@ -1916,7 +1916,7 @@ def omni_server(request: pytest.FixtureRequest, run_level: str, model_prefix: st
         model = model_prefix + params.model
         port = params.port
         stage_config_path = params.stage_config_path
-        if run_level == "advanced_model" and stage_config_path is not None:
+        if run_level in {"advanced_model", "full_model"} and stage_config_path is not None:
             with open(stage_config_path, encoding="utf-8") as f:
                 cfg = yaml.safe_load(f) or {}
             # Strip ``load_format: dummy`` (CI overlay default) so advanced_model
@@ -2249,7 +2249,7 @@ def assert_omni_response(response: OmniResponse, request_config: dict[str, Any],
 
     modalities = request_config.get("modalities", ["text", "audio"])
 
-    if run_level == "advanced_model":
+    if run_level in {"advanced_model", "full_model"}:
         if "audio" in modalities:
             assert response.audio_content is not None, "No audio output is generated"
             print(f"audio content is: {response.audio_content}")
@@ -2319,7 +2319,7 @@ def assert_audio_speech_response(
     if e2e_latency is not None:
         print(f"the avg e2e latency is: {e2e_latency}")
 
-    if run_level == "advanced_model" and req_fmt != "pcm":
+    if run_level in {"advanced_model", "full_model"} and req_fmt != "pcm":
         # Text–audio semantic similarity check (skipped for raw PCM: no Whisper transcript).
         expected_text = request_config.get("input")
         if expected_text:
@@ -2711,6 +2711,8 @@ class OpenAIClientHandler:
             mm = dict(extra_body.get("mm_processor_kwargs") or {})
             mm["use_audio_in_video"] = True
             extra_body["mm_processor_kwargs"] = mm
+        if "sampling_params_list" in request_config:
+            extra_body["sampling_params_list"] = request_config["sampling_params_list"]
         extra_body_arg: dict[str, Any] | None = extra_body if extra_body else None
 
         create_kwargs: dict[str, Any] = {

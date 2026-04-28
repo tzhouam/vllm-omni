@@ -333,6 +333,13 @@ class Qwen3TTSCode2Wav(nn.Module):
             frames = n // q
             # [q*F] -> [Q, F] for direct decoder call (decoder expects [B, Q, F])
             codes_qf = flat.reshape(q, frames)
+            if torch.all(codes_qf == 0):
+                logger.debug(
+                    "Code2Wav skipping all-zero placeholder tokens (async_chunk prewarm) for request %d",
+                    i,
+                )
+                parsed.append((0, 0))
+                continue
             parsed.append((ctx_frames, frames))
             valid_codes_qf.append(codes_qf)
             valid_indices.append(i)
