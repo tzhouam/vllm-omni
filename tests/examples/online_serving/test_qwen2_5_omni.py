@@ -14,7 +14,9 @@ import pytest
 from tests.conftest import OmniServerParams, convert_audio_file_to_text, cosine_similarity_text
 from tests.examples.conftest import (
     extract_content_after_keyword,
+    extract_last_audio_saved_path,
     run_cmd,
+    strip_audio_saved_to_lines,
     strip_trailing_audio_saved_line,
 )
 from tests.utils import get_deploy_config_path, hardware_test
@@ -56,8 +58,8 @@ def test_send_multimodal_request_001(omni_server) -> None:
     text_content = strip_trailing_audio_saved_line(text_content_tmp)
 
     # Verify text output same as audio output
-    wav_path = extract_content_after_keyword("Audio saved to", result)
-    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path.strip()}")
+    wav_path = extract_last_audio_saved_path(result)
+    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path}")
     print(f"text content is: {text_content}")
     print(f"audio content is: {audio_content}")
 
@@ -94,8 +96,8 @@ def test_send_multimodal_request_002(omni_server) -> None:
     text_content = strip_trailing_audio_saved_line(text_content_tmp)
 
     # Verify text output same as audio output
-    wav_path = extract_content_after_keyword("Audio saved to", result)
-    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path.strip()}")
+    wav_path = extract_last_audio_saved_path(result)
+    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path}")
     print(f"text content is: {text_content}")
     assert all(keyword in text_content for keyword in ["baby", "book"]), (
         "The output does not contain any of the keywords in video description."
@@ -185,8 +187,8 @@ def test_modality_control_002(omni_server) -> None:
 
     result = run_cmd(command)
     # Verify text output same as audio output
-    wav_path = extract_content_after_keyword("Audio saved to", result)
-    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path.strip()}")
+    wav_path = extract_last_audio_saved_path(result)
+    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path}")
     print(f"audio content is: {audio_content}")
     assert all(keyword in audio_content for keyword in ["baby", "book"]), (
         "The output does not contain any of the keywords in video description."
@@ -218,8 +220,8 @@ def test_modality_control_003(omni_server) -> None:
     text_content = strip_trailing_audio_saved_line(text_content_tmp)
 
     # Verify text output same as audio output
-    wav_path = extract_content_after_keyword("Audio saved to", result)
-    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path.strip()}")
+    wav_path = extract_last_audio_saved_path(result)
+    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path}")
     print(f"text content is: {text_content}")
     assert all(keyword in text_content for keyword in ["baby", "book"]), (
         "The output does not contain any of the keywords in video description."
@@ -252,11 +254,11 @@ def test_stream_001(omni_server) -> None:
     result = run_cmd(command)
 
     text_content_tmp = extract_content_after_keyword("content:", result)
-    text_content = strip_trailing_audio_saved_line(text_content_tmp)
+    text_content = strip_audio_saved_to_lines(text_content_tmp)
 
     # Verify text output same as audio output
-    wav_path = extract_content_after_keyword("Audio saved to", result)
-    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path.strip()}")
+    wav_path = extract_last_audio_saved_path(result)
+    audio_content = convert_audio_file_to_text(output_path=f"./{wav_path}")
     print(f"text content is: {text_content}")
     assert all(keyword in text_content for keyword in ["baby", "book"]), (
         "The output does not contain any of the keywords in video description."
