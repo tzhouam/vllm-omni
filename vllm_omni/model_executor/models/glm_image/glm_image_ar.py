@@ -591,25 +591,17 @@ class GlmImageMultiModalProcessor(BaseMultiModalProcessor[GlmImageProcessingInfo
     def _build_generation_grids(self, hf_processor_mm_kwargs: Mapping[str, object]) -> torch.Tensor:
         """Build generation grids for M-RoPE decode positions."""
         target_h = (
-            hf_processor_mm_kwargs.get("target_h")
-            if isinstance(hf_processor_mm_kwargs.get("target_h"), int)
-            else None
+            hf_processor_mm_kwargs.get("target_h") if isinstance(hf_processor_mm_kwargs.get("target_h"), int) else None
         )
         target_w = (
-            hf_processor_mm_kwargs.get("target_w")
-            if isinstance(hf_processor_mm_kwargs.get("target_w"), int)
-            else None
+            hf_processor_mm_kwargs.get("target_w") if isinstance(hf_processor_mm_kwargs.get("target_w"), int) else None
         )
         if target_h is None or target_w is None:
             target_h = (
-                hf_processor_mm_kwargs.get("height")
-                if isinstance(hf_processor_mm_kwargs.get("height"), int)
-                else 1024
+                hf_processor_mm_kwargs.get("height") if isinstance(hf_processor_mm_kwargs.get("height"), int) else 1024
             )
             target_w = (
-                hf_processor_mm_kwargs.get("width")
-                if isinstance(hf_processor_mm_kwargs.get("width"), int)
-                else 1024
+                hf_processor_mm_kwargs.get("width") if isinstance(hf_processor_mm_kwargs.get("width"), int) else 1024
             )
 
         factor = 32

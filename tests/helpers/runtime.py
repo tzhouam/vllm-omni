@@ -24,16 +24,16 @@ import torch
 import yaml
 from openai import OpenAI, omit
 from PIL import Image
+from vllm import TextPrompt
+from vllm.distributed.parallel_state import cleanup_dist_env_and_memory
+from vllm.logger import init_logger
+
 from tests.helpers.assertions import (
     assert_audio_speech_response,
     assert_diffusion_response,
     assert_omni_response,
 )
 from tests.helpers.env import run_forced_gpu_cleanup_round
-from vllm import TextPrompt
-from vllm.distributed.parallel_state import cleanup_dist_env_and_memory
-from vllm.logger import init_logger
-
 from tests.helpers.media import (
     _merge_base64_audio_to_segment,
     convert_audio_bytes_to_text,

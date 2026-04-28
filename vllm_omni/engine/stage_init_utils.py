@@ -25,9 +25,14 @@ from vllm.v1.executor import Executor
 
 from vllm_omni.engine.arg_utils import OmniEngineArgs
 from vllm_omni.entrypoints.stage_utils import _to_dict, set_stage_devices
-from vllm_omni.entrypoints.utils import filter_dataclass_kwargs, resolve_model_config_path
+from vllm_omni.entrypoints.utils import (
+    detect_pid_host,
+    filter_dataclass_kwargs,
+    resolve_model_config_path,
+)
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams, OmniSamplingParams
 from vllm_omni.platforms import current_omni_platform
+from vllm_omni.worker.gpu_memory_utils import is_process_scoped_memory_available
 
 logger = init_logger(__name__)
 
@@ -457,6 +462,21 @@ def build_vllm_config(
     return vllm_config, executor_class
 
 
+def should_use_sequential_stage_init_locks() -> bool:
+    """Return whether stage initialization needs per-device serialization.
+
+    Process-scoped GPU memory accounting is safe on bare metal and in
+    containers with host PID namespace. In isolated PID namespaces we fall
+    back to device-level profiling, so overlapping stage init can pollute
+    another stage's memory budget.
+    """
+    try:
+        return not (is_process_scoped_memory_available() and detect_pid_host())
+    except Exception as e:
+        logger.debug("Falling back to sequential stage initialization locks: %s", e)
+        return True
+
+
 def acquire_device_locks(
     stage_id: int,
     engine_args_dict: dict[str, Any],
@@ -467,6 +487,14 @@ def acquire_device_locks(
     Returns list of lock file descriptors that must be released after init.
     """
     lock_fds: list[int] = []
+    if not should_use_sequential_stage_init_locks():
+        logger.debug(
+            "[Stage-%s] Skipping sequential initialization locks because "
+            "process-scoped GPU memory accounting is available.",
+            stage_id,
+        )
+        return lock_fds
+
     try:
         # Get parallel sizes
         if "parallel_config" in engine_args_dict:

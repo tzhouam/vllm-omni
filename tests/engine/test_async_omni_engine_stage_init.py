@@ -182,6 +182,7 @@ def test_acquire_diffusion_device_locks_uses_diffusion_world_size(monkeypatch):
         captured_args = (stage_id, engine_args_dict, stage_init_timeout)
         return [101]
 
+    monkeypatch.setattr(stage_init_mod, "should_use_sequential_stage_init_locks", lambda: True)
     monkeypatch.setattr(stage_init_mod, "acquire_device_locks", _capture_acquire)
 
     od_config = types.SimpleNamespace(parallel_config=types.SimpleNamespace(world_size=2))
@@ -193,6 +194,38 @@ def test_acquire_diffusion_device_locks_uses_diffusion_world_size(monkeypatch):
 
     assert result == [101]
     assert captured_args == (1, {"tensor_parallel_size": 2}, 302)
+
+
+def test_acquire_device_locks_skips_when_process_scoped_memory_is_safe(monkeypatch):
+    """Bare metal or host-PID containers can initialize stages in parallel."""
+    import vllm_omni.engine.stage_init_utils as stage_init_mod
+
+    monkeypatch.setattr(stage_init_mod, "should_use_sequential_stage_init_locks", lambda: False)
+
+    assert (
+        stage_init_mod.acquire_device_locks(
+            stage_id=0,
+            engine_args_dict={"tensor_parallel_size": 1},
+            stage_init_timeout=1,
+        )
+        == []
+    )
+
+
+def test_should_use_sequential_stage_init_locks_matches_memory_tracking(monkeypatch):
+    """Sequential locks are only needed when process-scoped accounting is unavailable."""
+    import vllm_omni.engine.stage_init_utils as stage_init_mod
+
+    monkeypatch.setattr(stage_init_mod, "is_process_scoped_memory_available", lambda: True)
+    monkeypatch.setattr(stage_init_mod, "detect_pid_host", lambda: True)
+    assert stage_init_mod.should_use_sequential_stage_init_locks() is False
+
+    monkeypatch.setattr(stage_init_mod, "detect_pid_host", lambda: False)
+    assert stage_init_mod.should_use_sequential_stage_init_locks() is True
+
+    monkeypatch.setattr(stage_init_mod, "is_process_scoped_memory_available", lambda: False)
+    monkeypatch.setattr(stage_init_mod, "detect_pid_host", lambda: True)
+    assert stage_init_mod.should_use_sequential_stage_init_locks() is True
 
 
 def test_initialize_diffusion_stage_holds_device_locks_until_client_ready(monkeypatch):
