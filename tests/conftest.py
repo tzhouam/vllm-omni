@@ -950,9 +950,18 @@ def generate_synthetic_video(
     return result
 
 
-def generate_synthetic_image(width: int, height: int, save_to_file: bool = False) -> dict[str, Any]:
+def generate_synthetic_image(
+    width: int,
+    height: int,
+    save_to_file: bool = False,
+    *,
+    seed: int | None = None,
+) -> dict[str, Any]:
     """Generate synthetic image with randomly colored squares and return base64 string."""
     from PIL import Image, ImageDraw
+
+    if seed is not None:
+        random.seed(seed)
 
     # Create white background
     image = Image.new("RGB", (width, height), (255, 255, 255))

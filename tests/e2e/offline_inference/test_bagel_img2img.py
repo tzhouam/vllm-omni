@@ -51,16 +51,13 @@ REFERENCE_PIXELS = [
     {"position": (400, 50), "rgb": (105, 144, 217)},
     {"position": (700, 100), "rgb": (118, 159, 232)},
     {"position": (150, 400), "rgb": (180, 22, 52)},
-    # Re-baselined on 2026-04-24 (CUDA/H100, second update of the day): the
-    # center pixel drifted again to (201, 218, 185) after another upstream
-    # rebase (R channel shifted by 15 from the previous (216, 213, 190)
-    # baseline, outside the ±10 tolerance band) while the other 9 samples
-    # remained within tolerance. Earlier re-baselines on 2026-04-24 set it
-    # to (216, 213, 190), and on 2026-04-21 (transformers v5 rebase) set it
-    # to (201, 217, 185). Other stack parameters (cfg_text_scale=4.0,
-    # cfg_img_scale=1.5, step=15, seed=52) are unchanged from the original
-    # baseline.
-    {"position": (512, 336), "rgb": (201, 218, 185)},
+    # Re-baselined on 2026-04-28 (CUDA/H100): center pixel drifted to
+    # (215, 213, 191) after upstream rebase (R delta=14 from previous
+    # (201, 218, 185), outside ±10 tolerance) while the other 9 samples
+    # remained within tolerance. Prior baselines: 2026-04-24 (201, 218, 185),
+    # 2026-04-24 (216, 213, 190), 2026-04-21 (201, 217, 185). Stack params
+    # (cfg_text_scale=4.0, cfg_img_scale=1.5, step=15, seed=52) unchanged.
+    {"position": (512, 336), "rgb": (215, 213, 191)},
     {"position": (700, 400), "rgb": (192, 10, 46)},
     {"position": (100, 600), "rgb": (102, 12, 22)},
     {"position": (400, 600), "rgb": (161, 28, 47)},

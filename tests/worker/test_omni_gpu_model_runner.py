@@ -41,10 +41,7 @@ class MiMoAudioForConditionalGeneration(torch.nn.Module):
 class DummyTalkerMTP(torch.nn.Module):
     """A fake talker_mtp module for deterministic CPU testing."""
 
-    def forward(self, req_input_ids, req_embeds, last_talker_hidden, text_step):
-        # Deterministic behavior:
-        # - output embeds = input embeds + 1
-        # - output codes = [[0], [1], ...]
+    def forward(self, req_input_ids, req_embeds, last_talker_hidden, text_step, **kwargs):
         bsz = req_embeds.shape[0]
         new_embeds = req_embeds + 1.0
         codes = torch.arange(bsz, dtype=torch.int64).view(bsz, 1)

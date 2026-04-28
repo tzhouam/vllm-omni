@@ -620,7 +620,8 @@ if "daily-omni" not in OPENAI_COMPATIBLE_BACKENDS:
 # ruff: noqa: E402
 # Prevent import order from causing patch failures
 from vllm.benchmarks import serve
-from vllm.benchmarks.serve import TaskType, calculate_metrics_for_embeddings, get_request, wait_for_endpoint
+from vllm.benchmarks.lib.ready_checker import wait_for_endpoint
+from vllm.benchmarks.serve import TaskType, calculate_metrics_for_embeddings, get_request
 
 from vllm_omni.benchmarks.metrics.metrics import MultiModalsBenchmarkMetrics, calculate_metrics
 

@@ -31,7 +31,7 @@ import requests
 import torch
 from PIL import Image
 
-from tests.e2e.accuracy.helpers import compute_image_ssim_psnr, model_output_dir
+from tests.e2e.accuracy.utils import compute_image_ssim_psnr, model_output_dir
 from tests.helpers.env import run_post_test_cleanup, run_pre_test_cleanup
 from tests.helpers.mark import hardware_test
 from tests.helpers.runtime import OmniServer

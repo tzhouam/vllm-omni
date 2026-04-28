@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 
@@ -88,7 +89,9 @@ def test_bench_serve_cli_mocks_http_request(tmp_path: Path):
     env["VLLM_OMNI_TEST_POST_CALLS_FILE"] = str(calls_path)
 
     cmd = [
-        "vllm",
+        sys.executable,
+        "-c",
+        "from vllm_omni.entrypoints.cli.main import main; main()",
         "bench",
         "serve",
         "--omni",

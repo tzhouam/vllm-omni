@@ -5,7 +5,10 @@ from pydantic import ConfigDict, TypeAdapter
 from vllm.config import ModelConfig
 from vllm.config.utils import config
 from vllm.logger import init_logger
-from vllm.transformers_utils.config import get_hf_text_config
+from vllm.transformers_utils.config import (
+    get_hf_text_config,
+    thinker_uses_mrope,
+)
 from vllm.transformers_utils.model_arch_config_convertor import (
     ModelArchConfigConvertorBase,
 )
@@ -48,6 +51,18 @@ class OmniModelArchConfigConvertor(ModelArchConfigConvertorBase):
                     quant_cfg = self._normalize_quantization_config(text_cfg)
                     if quant_cfg is not None:
                         return quant_cfg
+
+            # Fall back to top-level quantization_config
+            top_quant = super().get_quantization_config()
+            if top_quant is not None:
+                block_names = top_quant.get("block_name_to_quantize")
+                if block_names is not None:
+                    hf_prefix = self.stage_config_name.removesuffix("_config") + "."
+                    if isinstance(block_names, str):
+                        block_names = [b.strip() for b in block_names.split(",")]
+                    if isinstance(block_names, list) and not any(b.startswith(hf_prefix) for b in block_names):
+                        return None
+                return top_quant
 
             # For non-thinker stages (talker, code2wav) whose text_config
             # has no quantization_config, return None so quantization is
@@ -109,9 +124,11 @@ class OmniModelConfig(ModelConfig):
             "extra": {},
         }
     )
+    subtalker_sampling_params: dict[str, Any] | None = None
     omni_kv_config: dict | None = None
     codec_frame_rate_hz: float | None = None
     task_type: str | None = None
+    has_sampling_extra_args: bool = False
 
     @property
     def registry(self):
@@ -122,6 +139,14 @@ class OmniModelConfig(ModelConfig):
         if self.model_arch is not None:
             return [self.model_arch]
         return super().architectures
+
+    @property
+    def uses_mrope(self) -> bool:
+        if self.hf_config_name is not None:
+            stage_config = getattr(self.hf_config, self.hf_config_name, None)
+            if stage_config is None:
+                return thinker_uses_mrope(self.hf_config)
+        return super().uses_mrope
 
     @property
     def embedding_size(self):

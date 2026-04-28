@@ -694,6 +694,11 @@ class Qwen3OmniMoeForConditionalGeneration(
         input_embeds: torch.Tensor,
         last_talker_hidden: torch.Tensor,
         text_step: torch.Tensor,
+        do_sample: bool | None = None,
+        temperature: float | None = None,
+        top_k: int | None = None,
+        top_p: float | None = None,
+        **kwargs: Any,
     ):
         # TODO(Peiqi): not support intermediate_tensors now
         input_ids = safe_tensor_reshape(input_ids, (input_ids.shape[0], -1))

@@ -209,6 +209,20 @@ class DyninOmniToken2Text(DyninOmniStageBase):
     def _load_text_model(model_path: str, *, local_files_only: bool = False) -> Any:
         try:
             dynin_model_cls = get_dynin_modeling_attr("DyninOmniModelLM")
+            # Remote Dynin `DyninOmniConfig` may omit `use_cache`, but bundled
+            # `modeling_llada.forward` reads `self.config.use_cache` like a
+            # standard HF causal LM config (see kernel warmup / mmu_generate).
+            dynin_config_cls = get_dynin_modeling_attr("DyninOmniConfig")
+            if not getattr(dynin_config_cls, "_dynin_use_cache_shim_applied", False):
+                _orig_cfg_init = dynin_config_cls.__init__
+
+                def _cfg_init_shim(self, *args, **kwargs):
+                    _orig_cfg_init(self, *args, **kwargs)
+                    if not hasattr(self, "use_cache"):
+                        setattr(self, "use_cache", True)
+
+                dynin_config_cls.__init__ = _cfg_init_shim  # type: ignore[method-assign]
+                dynin_config_cls._dynin_use_cache_shim_applied = True
             # transformers>=5.0 renamed the weight-tying manifest accessor from
             # `_tied_weights_keys` (a class attribute) to `all_tied_weights_keys`
             # (a property returning a {module_path: [tied_keys]} mapping) and

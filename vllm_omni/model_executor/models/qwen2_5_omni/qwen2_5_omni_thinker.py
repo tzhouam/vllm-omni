@@ -272,8 +272,6 @@ class Qwen2_5OmniConditionalGenerationMixin(Qwen2_5OmniConditionalGenerationMixi
     def _process_video_input(
         self,
         video_input: Qwen2_5_VLVideoInputs,
-        video_hashes: list[str] = None,
-        cached_video_embeds: torch.Tensor = None,
     ) -> torch.Tensor:
         if video_input["type"] == "video_embeds":
             return video_input["video_embeds"].type(self.visual.dtype)
