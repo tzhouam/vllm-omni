@@ -732,10 +732,12 @@ async def omni_init_app_state(
     )
     await state.openai_serving_models.init_static_loras()
 
+    # NOTE: vLLM 0.20 dropped the `io_processor` kwarg from
+    # OpenAIServingRender. The processor stays on `engine_client` (initialized
+    # above) and downstream serving classes read it from there.
     state.openai_serving_render = OpenAIServingRender(
         model_config=engine_client.model_config,
         renderer=engine_client.renderer,
-        io_processor=engine_client.io_processor,
         model_registry=state.openai_serving_models.registry,
         request_logger=request_logger,
         chat_template=resolved_chat_template,
