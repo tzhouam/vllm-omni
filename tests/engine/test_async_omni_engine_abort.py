@@ -19,7 +19,7 @@ os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
 SEED = 42
 
-# Single-stage thinker-only deploy, materialized from tests.utils._CI_OVERLAYS.
+# Single-stage thinker-only deploy, materialized from tests.helpers.stage_config._CI_OVERLAYS.
 stage_config = get_deploy_config_path("ci/qwen2_5_omni_thinker_only.yaml")
 model = "Qwen/Qwen2.5-Omni-7B"
 
@@ -65,7 +65,6 @@ async def generate(
 
 @pytest.mark.core_model
 @pytest.mark.omni
-@pytest.mark.real_hf_config
 @hardware_test(res={"cuda": "L4", "rocm": "MI325"}, num_cards=1)
 @pytest.mark.asyncio
 async def test_abort():
