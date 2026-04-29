@@ -44,6 +44,8 @@ from vllm_omni.platforms import current_omni_platform
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion]
 
+os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
+
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
 

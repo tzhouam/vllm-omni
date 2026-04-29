@@ -26,6 +26,8 @@ from vllm.sampling_params import SamplingParams
 from tests.helpers.mark import hardware_test
 from tests.helpers.runtime import OmniRunner
 
+os.environ["VLLM_TEST_CLEAN_GPU_MEMORY"] = "1"
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
