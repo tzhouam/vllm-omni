@@ -87,8 +87,13 @@ else:
     if flash_attn_varlen_func is None:
         try:
             from vllm.vllm_flash_attn import flash_attn_varlen_func  # noqa: F401
-        except (ImportError, ModuleNotFoundError):
-            pass
+        except (ImportError, ModuleNotFoundError) as exc:
+            logger.warning(
+                "vllm.vllm_flash_attn flash_attn_varlen_func fallback unavailable: %s. "
+                "Callers depending on the varlen kernel (e.g. Bagel PackedAttentionMoT) "
+                "will fall back to SDPA.",
+                exc,
+            )
 
 # If no FA backend available, SDPA backend will be selected at the platform level
 # flash_attn_func and flash_attn_varlen_func will be None

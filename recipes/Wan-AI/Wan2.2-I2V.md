@@ -33,7 +33,7 @@ with vLLM-Omni using multi-card parallelism. Two configurations are provided:
 
 - OS: Linux
 - Python: 3.10+
-- Driver / runtime: Ascend NPU driver with CAN toolkit
+- Driver / runtime: Ascend NPU driver with CANN toolkit
 - Recommended operator library: **mindie-sd** (Ascend high-performance fused
   operators — enables `adalayernorm` and other fused kernels automatically upon
   installation)
