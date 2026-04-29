@@ -6,7 +6,10 @@ Directly inherits from vLLM's AsyncMPClient to reuse EngineCore architecture.
 
 from __future__ import annotations
 
+import multiprocessing.connection
 import socket
+import threading
+import weakref
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
@@ -14,6 +17,7 @@ import psutil
 from vllm.logger import init_logger
 from vllm.v1.engine import EngineCoreRequest
 from vllm.v1.engine.core_client import AsyncMPClient, DPLBAsyncMPClient
+from vllm.v1.engine.exceptions import EngineDeadError
 
 from vllm_omni.distributed.omni_connectors.utils.initialization import (
     KV_TRANSFER_PORT_OFFSET,
@@ -58,7 +62,6 @@ class StageEngineCoreClientBase:
         coordinator: Any = None,
         client_count: int = 1,
         client_index: int = 0,
-        log_stats: bool = False,
     ) -> StageEngineCoreClient | DPLBStageEngineCoreClient:
         """Create the appropriate stage async client for the DP mode."""
         parallel_config = vllm_config.parallel_config
@@ -72,7 +75,6 @@ class StageEngineCoreClientBase:
             coordinator=coordinator,
             client_count=client_count,
             client_index=client_index,
-            log_stats=log_stats,
         )
 
         if parallel_config.data_parallel_size > 1 and not parallel_config.data_parallel_external_lb:
@@ -163,12 +165,63 @@ class StageEngineCoreClientBase:
                     shutdown_error,
                 )
             raise
+
         self._initialize_kv_sender_endpoint()
+
+        if self._proc is not None:
+            self._start_proc_monitor()
+
         logger.info(
             "[%s] Stage-%s EngineCore running",
             client_name,
             self.stage_id,
         )
+
+    def _start_proc_monitor(self) -> None:
+        """Start a daemon thread that watches the subprocess sentinel.
+
+        When the subprocess dies without sending the ZMQ ``ENGINE_CORE_DEAD``
+        sentinel (e.g. SIGKILL, segfault, OOM-killer), this thread sets
+        ``resources.engine_dead`` so subsequent calls raise
+        ``EngineDeadError``.
+        """
+        proc = self._proc
+        resources_ref = weakref.ref(self.resources)
+        stage_id = self.stage_id
+
+        def _monitor() -> None:
+            try:
+                multiprocessing.connection.wait([proc.sentinel])
+            except Exception:
+                return
+            resources = resources_ref()
+            if resources is None or resources.engine_dead:
+                return
+            resources.engine_dead = True
+            logger.error(
+                "[StageEngineCoreClient] Stage-%s subprocess died unexpectedly (exit code %s).",
+                stage_id,
+                proc.exitcode,
+            )
+
+        t = threading.Thread(
+            target=_monitor,
+            daemon=True,
+            name=f"StageCoreProcMonitor-{stage_id}",
+        )
+        t.start()
+
+    def check_health(self) -> None:
+        """Raise ``EngineDeadError`` if the stage subprocess is dead.
+
+        Called by ``OmniBase.check_health()`` and transitively by the
+        ``/health`` HTTP endpoint.
+        """
+        if self.resources.engine_dead:
+            raise EngineDeadError(f"Stage-{self.stage_id} engine core is dead")
+        if self._proc is not None and not self._proc.is_alive():
+            self.resources.engine_dead = True
+            raise EngineDeadError(f"Stage-{self.stage_id} subprocess is not alive (exit code {self._proc.exitcode})")
 
     # ==================== Overrides ====================
 
@@ -368,7 +421,7 @@ class StageEngineCoreClientBase:
             kwargs=kwargs,
         )
 
-    def shutdown(self, timeout: float | None = None) -> None:
+    def shutdown(self) -> None:
         """Shutdown managed resources and any externally spawned subprocess."""
         child_procs: list[psutil.Process] = []
         if self._proc is not None and self._proc.pid is not None:

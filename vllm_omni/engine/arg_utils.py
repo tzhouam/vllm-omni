@@ -77,8 +77,10 @@ def register_omni_models_to_vllm():
 
     _register_omni_hf_configs()
 
+    supported_archs = ModelRegistry.get_supported_archs()
     for arch, (mod_folder, mod_relname, cls_name) in _OMNI_MODELS.items():
-        ModelRegistry.register_model(arch, f"vllm_omni.model_executor.models.{mod_folder}.{mod_relname}:{cls_name}")
+        if arch not in supported_archs:
+            ModelRegistry.register_model(arch, f"vllm_omni.model_executor.models.{mod_folder}.{mod_relname}:{cls_name}")
 
 
 @dataclass
@@ -137,9 +139,11 @@ class OmniEngineArgs(EngineArgs):
     subtalker_sampling_params: dict[str, Any] | None = None
     async_chunk: bool = False
     omni_kv_config: dict | None = None
+    quantization_config: Any | None = None
     worker_type: str | None = None
     task_type: str | None = None
     worker_cls: str = None
+    enable_sleep_mode: bool = False
     omni: bool = False
 
     @classmethod
@@ -257,6 +261,13 @@ class OmniEngineArgs(EngineArgs):
                     if model_type is not None:
                         self.hf_overrides.setdefault("model_type", model_type)
 
+                # Stage wrappers (e.g. Code2Wav) may need max_model_len larger
+                # than the base checkpoint's text max_position_embeddings.
+                if self.model_arch == "Qwen3TTSCode2Wav" and self.max_model_len is not None:
+                    self.hf_overrides.setdefault("talker_config", {}).setdefault(
+                        "max_position_embeddings", int(self.max_model_len)
+                    )
+
             # For models whose HF config.json is empty or lacks model_type
             # (e.g. CosyVoice3), AutoConfig.from_pretrained fails because it
             # cannot determine which config class to use from the empty dict.
@@ -333,11 +344,6 @@ class OmniEngineArgs(EngineArgs):
             has_sampling_extra_args=self.has_sampling_extra_args,
         )
         return omni_config
-
-    @property
-    def output_modality(self) -> OutputModality:
-        """Parse engine_output_type into a type-safe OutputModality flag."""
-        return OutputModality.from_string(self.engine_output_type)
 
 
 @dataclass
