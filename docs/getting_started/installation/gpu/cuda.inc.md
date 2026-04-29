@@ -70,8 +70,8 @@ git checkout v0.20.0
 ```
 Set up environment variables to get pre-built wheels. If there are internet problems, just download the whl file manually. And set `VLLM_PRECOMPILED_WHEEL_LOCATION` as your local absolute path of whl file.
 ```bash
-#For CUDA 13.0
-export VLLM_PRECOMPILED_WHEEL_LOCATION=https://github.com/vllm-project/vllm/releases/download/v0.20.0/vllm-0.20.0+cu130-cp38-abi3-manylinux_2_35_x86_64.whl
+#For CUDA 13.0 (the default for v0.20.0; the wheel filename has no `+cu130` suffix)
+export VLLM_PRECOMPILED_WHEEL_LOCATION=https://github.com/vllm-project/vllm/releases/download/v0.20.0/vllm-0.20.0-cp38-abi3-manylinux_2_35_x86_64.whl
 ```
 Install vllm with command below (If you have no existing PyTorch).
 ```bash
@@ -80,7 +80,7 @@ uv pip install --editable .
 Install vllm with command below (If you already have PyTorch).
 ```bash
 python use_existing_torch.py
-uv pip install -r requirements/build.txt
+uv pip install -r requirements/build/cuda.txt
 uv pip install --no-build-isolation --editable .
 ```
 </details>
