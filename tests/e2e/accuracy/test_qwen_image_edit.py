@@ -11,12 +11,7 @@ from PIL import Image
 from tests.e2e.accuracy.utils import assert_similarity, model_output_dir
 
 from benchmarks.accuracy.common import decode_base64_image, pil_to_png_bytes
-from tests.helpers.env import (
-    run_post_test_cleanup as _run_post_test_cleanup,
-)
-from tests.helpers.env import (
-    run_pre_test_cleanup as _run_pre_test_cleanup,
-)
+from tests.helpers.env import run_post_test_cleanup, run_pre_test_cleanup
 from tests.helpers.mark import hardware_test
 from tests.helpers.runtime import OmniServer
 
@@ -79,7 +74,7 @@ def _run_diffusers_image_edit(
     input_images: list[Image.Image],
     output_path: Path,
 ) -> Image.Image:
-    _run_pre_test_cleanup(enable_force=True)
+    run_pre_test_cleanup(enable_force=True)
     pipe: QwenImageEditPipeline | QwenImageEditPlusPipeline | None = None
     device = torch.device("cuda:0")
     torch.cuda.set_device(device)
@@ -112,7 +107,7 @@ def _run_diffusers_image_edit(
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-        _run_post_test_cleanup(enable_force=True)
+        run_post_test_cleanup(enable_force=True)
 
 
 def _vllm_omni_output_single_image(
