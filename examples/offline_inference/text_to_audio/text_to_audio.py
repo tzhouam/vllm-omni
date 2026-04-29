@@ -203,17 +203,6 @@ def main():
         cache_config = {
             "rel_l1_thresh": args.tea_cache_rel_l1_thresh,
         }
-    parallel_config = DiffusionParallelConfig(
-        ulysses_degree=args.ulysses_degree,
-        ring_degree=args.ring_degree,
-        ulysses_mode=args.ulysses_mode,
-        cfg_parallel_size=args.cfg_parallel_size,
-        tensor_parallel_size=args.tensor_parallel_size,
-        vae_patch_parallel_size=args.vae_patch_parallel_size,
-        use_hsdp=args.use_hsdp,
-        hsdp_shard_size=args.hsdp_shard_size,
-        hsdp_replicate_size=args.hsdp_replicate_size,
-    )
 
     print(f"\n{'=' * 60}")
     print("Stable Audio Open - Text-to-Audio Generation")
@@ -225,16 +214,26 @@ def main():
     print(f"  Inference steps: {args.num_inference_steps}")
     print(f"  Guidance scale: {args.guidance_scale}")
     print(f"  Cache backend: {args.cache_backend if args.cache_backend else 'None (no acceleration)'}")
+    if args.use_hsdp:
+        print(f"  HSDP: enabled (shard_size={args.hsdp_shard_size}, replicate_size={args.hsdp_replicate_size})")
+    else:
+        print("  HSDP: disabled")
     print(f"  Seed: {args.seed}")
     print(f"{'=' * 60}\n")
+
+    parallel_config = DiffusionParallelConfig(
+        use_hsdp=args.use_hsdp,
+        hsdp_shard_size=args.hsdp_shard_size,
+        hsdp_replicate_size=args.hsdp_replicate_size,
+    )
 
     # Initialize Omni with Stable Audio model
     omni = Omni(
         model=args.model,
+        parallel_config=parallel_config,
         cache_backend=args.cache_backend,
         cache_config=cache_config,
         enable_diffusion_pipeline_profiler=args.enable_diffusion_pipeline_profiler,
-        parallel_config=parallel_config,
     )
 
     # Calculate audio end time
