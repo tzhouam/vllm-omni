@@ -18,7 +18,7 @@ from tests.conftest import (
     OpenAIClientHandler,
     dummy_messages_from_mix_data,
 )
-from tests.utils import hardware_marks
+from tests.helpers.mark import hardware_marks
 
 T2I_PROMPT = "A photo of a cat sitting on a laptop keyboard, digital art style."
 NEGATIVE_PROMPT = "blurry, low quality"

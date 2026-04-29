@@ -22,7 +22,7 @@ from tests.conftest import (
     dummy_messages_from_mix_data,
     generate_synthetic_image,
 )
-from tests.utils import hardware_marks
+from tests.helpers.mark import hardware_marks
 
 MODEL = "Qwen/Qwen-Image-Layered"
 EDIT_PROMPT = "Decompose this image into layers."

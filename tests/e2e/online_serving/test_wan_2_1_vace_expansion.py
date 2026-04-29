@@ -28,7 +28,7 @@ from tests.conftest import (
     OmniServerParams,
     OpenAIClientHandler,
 )
-from tests.utils import hardware_marks
+from tests.helpers.mark import hardware_marks
 
 MODEL = "Wan-AI/Wan2.1-VACE-1.3B-diffusers"
 PROMPT = "A cat walking slowly across a sunlit garden path"

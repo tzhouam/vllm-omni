@@ -20,7 +20,7 @@ from tests.conftest import (
     dummy_messages_from_mix_data,
     generate_synthetic_image,
 )
-from tests.utils import hardware_marks
+from tests.helpers.mark import hardware_marks
 
 EDIT_PROMPT = "Transform this modern image into a cinematic animation style with vibrant colors and soft lighting."
 NEGATIVE_PROMPT = "blurry, low quality, distorted, oversaturated"

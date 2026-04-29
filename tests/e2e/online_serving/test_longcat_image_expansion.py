@@ -19,7 +19,7 @@ from tests.conftest import (
     OpenAIClientHandler,
     dummy_messages_from_mix_data,
 )
-from tests.utils import hardware_marks
+from tests.helpers.mark import hardware_marks
 
 TEXT_TO_IMAGE_PROMPT = (
     "A cinematic illustration of a cat typing on a silver laptop, soft window light, highly detailed."

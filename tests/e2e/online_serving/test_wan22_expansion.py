@@ -25,7 +25,7 @@ from tests.conftest import (
     OpenAIClientHandler,
     generate_synthetic_image,
 )
-from tests.utils import hardware_marks
+from tests.helpers.mark import hardware_marks
 
 PROMPT = "Two anthropomorphic cats in comfy boxing gear and bright gloves fight intensely on a spotlighted stage."
 NEGATIVE_PROMPT = "low quality, blurry, distorted face, extra limbs, bad anatomy, watermark, logo, text, ugly, deformed, mutated, jpeg artifacts"
