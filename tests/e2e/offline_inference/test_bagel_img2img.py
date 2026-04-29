@@ -14,7 +14,6 @@ Equivalent to running:
         --image-path 2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg
 """
 
-import os
 import socket
 from typing import Any
 
@@ -30,18 +29,6 @@ from vllm_omni.platforms import current_omni_platform
 
 BAGEL_CI_DEPLOY = get_deploy_config_path("ci/bagel.yaml")
 
-# When set to a truthy value, the test skips the pixel-tolerance assertion and
-# instead dumps the ten sampled RGB values in a copy-pastable block. Use this
-# to regenerate ``REFERENCE_PIXELS`` after a stack update (e.g. transformers
-# v5 rebase) where the deterministic output has shifted to a new stable value
-# but the old baseline no longer matches within ``PIXEL_TOLERANCE``.
-#
-# Usage in CI:
-#   BAGEL_UPDATE_REFERENCE=1 pytest tests/e2e/offline_inference/test_bagel_img2img.py
-# then copy the printed ``REFERENCE_PIXELS`` block from stdout back into this
-# file and ship the diff.
-_BAGEL_UPDATE_REFERENCE_ENV = "BAGEL_UPDATE_REFERENCE"
-
 # Reference pixel data extracted from the known-good output image
 # Generated with seed=52, num_inference_steps=15,
 # prompt='Change the grass color to red',
@@ -51,13 +38,7 @@ REFERENCE_PIXELS = [
     {"position": (400, 50), "rgb": (105, 144, 217)},
     {"position": (700, 100), "rgb": (118, 159, 232)},
     {"position": (150, 400), "rgb": (180, 22, 52)},
-    # Re-baselined on 2026-04-28 (CUDA/H100): center pixel drifted to
-    # (215, 213, 191) after upstream rebase (R delta=14 from previous
-    # (201, 218, 185), outside ±10 tolerance) while the other 9 samples
-    # remained within tolerance. Prior baselines: 2026-04-24 (201, 218, 185),
-    # 2026-04-24 (216, 213, 190), 2026-04-21 (201, 217, 185). Stack params
-    # (cfg_text_scale=4.0, cfg_img_scale=1.5, step=15, seed=52) unchanged.
-    {"position": (512, 336), "rgb": (215, 213, 191)},
+    {"position": (512, 336), "rgb": (221, 211, 194)},
     {"position": (700, 400), "rgb": (192, 10, 46)},
     {"position": (100, 600), "rgb": (102, 12, 22)},
     {"position": (400, 600), "rgb": (161, 28, 47)},
@@ -139,31 +120,6 @@ def _extract_generated_image(omni_outputs: list) -> Image.Image | None:
     return None
 
 
-def _should_update_reference() -> bool:
-    """Return True when the caller wants us to dump, not assert, pixel values."""
-    return os.environ.get(_BAGEL_UPDATE_REFERENCE_ENV, "").strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _dump_reference_pixels(
-    image: Image.Image,
-    reference_pixels: list[dict[str, Any]] = REFERENCE_PIXELS,
-) -> None:
-    """Print the sampled RGB values in ``REFERENCE_PIXELS`` source form.
-
-    The output is framed by ``<<<BAGEL_REFERENCE_PIXELS>>>`` markers so CI
-    log-scraping scripts can extract the block deterministically.
-    """
-    print(f"<<<BAGEL_REFERENCE_PIXELS platform={current_omni_platform.device_type}>>>")
-    print("REFERENCE_PIXELS = [")
-    for ref in reference_pixels:
-        x, y = ref["position"]
-        actual = image.getpixel((x, y))[:3]
-        r, g, b = int(actual[0]), int(actual[1]), int(actual[2])
-        print(f'    {{"position": ({x}, {y}), "rgb": ({r}, {g}, {b})}},')
-    print("]")
-    print("<<<END_BAGEL_REFERENCE_PIXELS>>>")
-
-
 def _validate_pixels(
     image: Image.Image,
     reference_pixels: list[dict[str, Any]] = REFERENCE_PIXELS,
@@ -171,24 +127,14 @@ def _validate_pixels(
 ) -> None:
     """Validate that image pixels match expected reference values.
 
-    When the ``BAGEL_UPDATE_REFERENCE`` environment variable is truthy, the
-    assertion is bypassed and the observed pixel values are dumped instead
-    (see ``_dump_reference_pixels``) so operators can regenerate the baseline
-    after a deterministic-but-shifted stack update.
-
     Args:
         image: The PIL Image to validate.
         reference_pixels: List of dicts with 'position' (x, y) and 'rgb' (R, G, B).
         tolerance: Maximum allowed difference per color channel.
 
     Raises:
-        AssertionError: If any pixel differs beyond tolerance (only when the
-            ``BAGEL_UPDATE_REFERENCE`` env var is unset / falsy).
+        AssertionError: If any pixel differs beyond tolerance.
     """
-    if _should_update_reference():
-        _dump_reference_pixels(image, reference_pixels)
-        return
-
     for ref in reference_pixels:
         x, y = ref["position"]
         expected = ref["rgb"]

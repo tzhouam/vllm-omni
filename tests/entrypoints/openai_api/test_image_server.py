@@ -416,6 +416,29 @@ def test_health_endpoint_no_engine():
     assert data["status"] == "unhealthy"
 
 
+def test_health_endpoint_dead_engine():
+    """Health returns 503 when the engine raises EngineDeadError."""
+    from unittest.mock import AsyncMock
+
+    from fastapi import FastAPI
+    from vllm.v1.engine.exceptions import EngineDeadError
+
+    from vllm_omni.entrypoints.openai.api_server import router
+
+    app = FastAPI()
+    app.include_router(router)
+
+    dead_engine = AsyncMock()
+    dead_engine.check_health = AsyncMock(side_effect=EngineDeadError())
+    app.state.engine_client = dead_engine
+
+    client = TestClient(app)
+    response = client.get("/health")
+    assert response.status_code == 503
+    data = response.json()
+    assert data["status"] == "unhealthy"
+
+
 def test_models_endpoint(test_client):
     """Test /v1/models endpoint for diffusion mode"""
     response = test_client.get("/v1/models")
@@ -944,6 +967,19 @@ def test_model_field_omitted_works(test_client):
     assert response.status_code == 200
 
 
+def test_generate_images_rejects_model_mismatch(test_client):
+    response = test_client.post(
+        "/v1/images/generations",
+        json={
+            "prompt": "test",
+            "model": "Qwen/Qwen-Image-2512",
+            "size": "1024x1024",
+        },
+    )
+    assert response.status_code == 400
+    assert "model mismatch" in response.json()["detail"].lower()
+
+
 def make_test_image_bytes(size=(64, 64)) -> bytes:
     img = Image.new(
         "RGB",
@@ -1045,6 +1081,20 @@ def test_image_edit_rejects_multiple_images_when_model_does_not_support_them(asy
         response.json()["detail"] == "Received multiple input images. Only a single image is supported by this model."
     )
     assert engine.captured_prompt is None
+
+
+def test_image_edit_rejects_model_mismatch(test_client):
+    img_bytes = make_test_image_bytes((16, 16))
+    response = test_client.post(
+        "/v1/images/edits",
+        files=[("image", img_bytes)],
+        data={
+            "prompt": "edit me",
+            "model": "Qwen/Qwen-Image-Edit",
+        },
+    )
+    assert response.status_code == 400
+    assert "model mismatch" in response.json()["detail"].lower()
 
 
 def test_image_edit_rejects_too_many_images_for_qwen_image_edit_2511(async_omni_test_client):

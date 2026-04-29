@@ -3,12 +3,7 @@
 """Pytest marks and decorators for hardware / resource selection (CUDA, ROCm, …)."""
 
 import pytest
-from vllm.platforms import current_platform
-
-
-def cuda_device_count_stateless() -> int:
-    return current_platform.device_count()
-
+from vllm.utils.torch_utils import cuda_device_count_stateless
 
 # Re-exported from tests.helpers.env (GPU wait + DeviceMemoryMonitor).
 

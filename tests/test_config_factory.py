@@ -24,7 +24,7 @@ from vllm_omni.config.stage_config import (
     register_pipeline,
     strip_parent_engine_args,
 )
-from vllm_omni.engine.arg_utils import internal_blacklist_keys
+from vllm_omni.engine.arg_utils import SHARED_FIELDS, internal_blacklist_keys
 
 
 class TestStageType:
@@ -331,6 +331,9 @@ class TestStageResolutionHelpers:
     """Tests for shared stage override / filtering helpers."""
 
     def test_build_stage_runtime_overrides_ignores_other_stage_and_internal_keys(self):
+        # Pass the same filter set the function uses by default
+        # (orchestrator-only fields plus SHARED_FIELDS so ``model`` is
+        # treated as not-per-stage-overridable).
         overrides = build_stage_runtime_overrides(
             0,
             {
@@ -340,7 +343,7 @@ class TestStageResolutionHelpers:
                 "stage_0_model": "should_be_ignored",
                 "parallel_config": {"world_size": 2},
             },
-            internal_keys=internal_blacklist_keys(),
+            internal_keys=internal_blacklist_keys() | SHARED_FIELDS,
         )
 
         assert overrides["gpu_memory_utilization"] == 0.9
@@ -701,10 +704,23 @@ class TestPipelineDiscovery:
     """Tests for the central pipeline registry (``pipeline_registry._OMNI_PIPELINES``)."""
 
     def test_registry_has_known_models(self):
-        """Built-in pipelines are visible via the lazy central registry."""
+        """Built-in pipelines are lazy-loaded from the central declaration
+        on first access; no eager import or discovery walk needed."""
+        # ``in`` triggers the lazy-map lookup without forcing a load.
         assert "qwen2_5_omni" in _PIPELINE_REGISTRY
         assert "qwen3_omni_moe" in _PIPELINE_REGISTRY
         assert "qwen3_tts" in _PIPELINE_REGISTRY
+
+    def test_registry_loads_pipeline_on_getitem(self):
+        """Looking up a registered model_type returns the matching PipelineConfig."""
+        pipeline = _PIPELINE_REGISTRY["qwen3_omni_moe"]
+        assert pipeline.model_type == "qwen3_omni_moe"
+        assert len(pipeline.stages) == 3  # thinker + talker + code2wav
+
+    def test_registry_returns_none_for_unknown(self):
+        """Unknown model_types aren't found; ``get()`` returns None."""
+        assert "definitely_not_a_real_model" not in _PIPELINE_REGISTRY
+        assert _PIPELINE_REGISTRY.get("definitely_not_a_real_model") is None
 
     def test_pipeline_config_supports_hf_architectures(self):
         """PipelineConfig accepts hf_architectures for HF-arch fallback
@@ -950,12 +966,42 @@ class TestQwen3TTSPipeline:
         # Stage 1 uses its per-stage override
         assert stages[1].yaml_engine_args["model_arch"] == "Qwen3TTSCode2Wav"
 
+    def test_subtalker_sampling_params_deep_merge_preserves_base_keys(self):
+        """Verify subtalker sampling params participate in stage deep-merge."""
+        from vllm_omni.config.stage_config import _deep_merge_stage
+
+        base = {
+            "stage_id": 0,
+            "subtalker_sampling_params": {
+                "do_sample": True,
+                "temperature": 0.9,
+                "top_k": 50,
+                "top_p": 1.0,
+            },
+        }
+        overlay = {
+            "stage_id": 0,
+            "subtalker_sampling_params": {
+                "temperature": 0.7,
+                "top_k": 32,
+            },
+        }
+
+        merged = _deep_merge_stage(base, overlay)
+
+        assert merged["subtalker_sampling_params"] == {
+            "do_sample": True,
+            "temperature": 0.7,
+            "top_k": 32,
+            "top_p": 1.0,
+        }
+
 
 class TestBaseConfigInheritance:
     """Test deploy YAML base_config inheritance."""
 
     def test_ci_inherits_from_main(self):
-        from tests.utils import get_deploy_config_path
+        from tests.helpers.stage_config import get_deploy_config_path
         from vllm_omni.config.stage_config import load_deploy_config
 
         ci_path = Path(get_deploy_config_path("ci/qwen3_omni_moe.yaml"))
@@ -971,10 +1017,13 @@ class TestBaseConfigInheritance:
         assert deploy.stages[0].gpu_memory_utilization == 0.9
         assert deploy.connectors is not None
         assert "connector_of_shared_memory" in deploy.connectors
-        assert deploy.async_chunk is True
+        # CI overlay explicitly sets async_chunk: False (see
+        # tests.helpers.stage_config._CI_OVERLAYS and PR #2383 discussion). Overlay
+        # bool overrides base even when the base yaml has async_chunk: true.
+        assert deploy.async_chunk is False
 
     def test_ci_sampling_merge(self):
-        from tests.utils import get_deploy_config_path
+        from tests.helpers.stage_config import get_deploy_config_path
         from vllm_omni.config.stage_config import load_deploy_config
 
         ci_path = Path(get_deploy_config_path("ci/qwen3_omni_moe.yaml"))
