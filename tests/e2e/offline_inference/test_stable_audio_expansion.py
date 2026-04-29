@@ -22,7 +22,14 @@ from vllm_omni.inputs.data import OmniDiffusionSamplingParams
 from vllm_omni.outputs import OmniRequestOutput
 from vllm_omni.platforms import current_omni_platform
 
-pytestmark = [pytest.mark.full_model, pytest.mark.diffusion]
+# Keep ``advanced_model`` alongside ``full_model`` so the rebase orchestrator
+# (which still filters with ``-m 'advanced_model and diffusion and L4'`` on
+# ``audio_generation_model``) can select this test, while upstream nightly
+# (``-m 'full_model and diffusion and L4'`` per .buildkite/test-nightly.yml)
+# continues to pick it up unchanged. Removing ``advanced_model`` (PR #2641)
+# silently caused ``rc=5 / 1 deselected`` during rebase because the rebase
+# orchestrator config still expects the merge-tier marker.
+pytestmark = [pytest.mark.full_model, pytest.mark.advanced_model, pytest.mark.diffusion]
 
 _SAMPLE_RATE = 44100
 _CLIP_DURATION_S = 2.0
