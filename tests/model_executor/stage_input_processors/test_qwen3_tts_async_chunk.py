@@ -163,56 +163,57 @@ def test_streaming_phases(config, n_frames, finished, expected):
         assert len(payload["codes"]["audio"]) == _Q * exp_window
 
 
-def test_fixed_ic_ignores_load():
-    """Build 1018 → 1021: IC is forced to `max_ic_for_chunk_size(chunk_size)`
-    regardless of load, trading small-load TTFA latency for stable
-    audio-quality under concurrent streaming on slower GPUs (L4). Previously
-    `compute_dynamic_initial_chunk_size` scaled IC with active requests and
-    under 5-way concurrency produced IC=2, which triggered a Code2Wav
-    chunk-boundary regression. The dynamic policy helper is still exported
-    for other pipelines that opt in via per-request override, but qwen3_tts
-    no longer consults it.
-    """
-    # chunk_size=25 -> max_ic=16 (largest power-of-2 strictly below 25).
+def test_dynamic_ic_adapts_to_load():
+    # chunk_size=25 -> max_ic=16, steps=[2,4,8,16]
     tm = _tm(max_num_seqs=8)
 
-    # Low load: IC is fixed at 16, so n=2 MUST hold (n % 16 != 0).
-    assert _call(tm, "r-low", n_frames=2) is None
-    p1 = _call(tm, "r-low", n_frames=16)
+    # Low load (1/8) -> IC=2 -> emit at 2
+    p1 = _call(tm, "r", n_frames=2)
     assert p1 is not None
-    assert len(p1["codes"]["audio"]) == _Q * 16
+    assert len(p1["codes"]["audio"]) == _Q * 2
 
-    # High load: same result — IC is not load-sensitive anymore.
+    # High load: add 4 others -> active=5/8 -> IC=8 -> emit at 8
     for i in range(4):
         tm.code_prompt_token_ids[f"other-{i}"] = [[0]]
-    assert _call(tm, "r-high", n_frames=8) is None
-    p2 = _call(tm, "r-high", n_frames=16)
+    p2 = _call(tm, "r", n_frames=8)
     assert p2 is not None
-    assert len(p2["codes"]["audio"]) == _Q * 16
+    assert len(p2["codes"]["audio"]) == _Q * 8
 
-    # Different chunk_size propagates the same rule.
-    tm2 = _tm(chunk_frames=16, left_context=25)
-    p3 = _call(tm2, "r", n_frames=8)  # chunk_size=16 -> max_ic=8
+    # Requests past initial phase still count in load factor
+    tm2 = _tm(max_num_seqs=4)
+    for i in range(3):
+        tm2.code_prompt_token_ids[f"long-{i}"] = [[0]] * 50  # well past cs=25
+    # active=4/4=1.0 -> IC=16
+    p3 = _call(tm2, "new", n_frames=16)
     assert p3 is not None
-    assert len(p3["codes"]["audio"]) == _Q * 8
+    assert len(p3["codes"]["audio"]) == _Q * 16
 
 
-def test_ic_cached_per_request():
-    """IC is still cached per request over its lifetime, so boundaries stay
-    stable even if we swap in a different policy later. Today the cache
-    always stores `max_ic_for_chunk_size(chunk_size)`.
-    """
+def test_ic_load_change_mid_request():
+    """IC is cached per request; a load spike only affects new requests."""
     tm = _tm(chunk_frames=25, left_context=25, max_num_seqs=8)
 
-    # All requests get IC=16 (max_ic for chunk_size=25).
-    assert _call(tm, "r", n_frames=8) is None
-    p1 = _call(tm, "r", n_frames=16)
+    # Low load -> IC=2 (cached for "r"), emit at frame 2
+    p1 = _call(tm, "r", n_frames=2)
     assert p1 is not None
 
-    # A new request also gets IC=16 (no load sensitivity).
+    # Spike load: 6 others running
+    for i in range(6):
+        tm.code_prompt_token_ids[f"other-{i}"] = [[0]] * 10
+
+    # IC for "r" is still cached as 2.
+    # initial_coverage = ((25-1)//2)*2 = 24, first normal emit at 24+25=49
+    assert _call(tm, "r", n_frames=25) is None
+    assert _call(tm, "r", n_frames=27) is None
+    p3 = _call(tm, "r", n_frames=49)
+    assert p3 is not None
+    assert p3["meta"]["left_context_size"] == 24
+
+    # A *new* request under high load gets IC=16 (not IC=2).
+    # Frame 2 would emit under IC=2 but must hold under IC=16.
     assert _call(tm, "new_req", n_frames=2) is None
-    p2 = _call(tm, "new_req", n_frames=16)
-    assert p2 is not None
+    p4 = _call(tm, "new_req", n_frames=16)
+    assert p4 is not None
 
 
 @pytest.mark.parametrize(
