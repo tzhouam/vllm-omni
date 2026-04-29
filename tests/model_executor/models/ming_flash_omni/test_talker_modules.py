@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from vllm_omni.model_executor.models.ming_flash_omni.talker_module import CFM, Aggregator, DiT
 
 torch = pytest.importorskip("torch")

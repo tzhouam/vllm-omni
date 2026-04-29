@@ -5,6 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+
 from vllm_omni.model_executor.models.ming_flash_omni.talker_module import (
     CFM,
     Aggregator,

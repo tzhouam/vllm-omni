@@ -9,13 +9,12 @@ from vllm.utils.argparse_utils import FlexibleArgumentParser
 
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
+from vllm_omni.entrypoints.omni import Omni
+from vllm_omni.inputs.data import OmniTokensPrompt
 from vllm_omni.model_executor.models.ming_flash_omni.prompt_utils import (
     DEFAULT_PROMPT,
     create_instruction,
 )
-
-from vllm_omni.entrypoints.omni import Omni
-from vllm_omni.inputs.data import OmniTokensPrompt
 
 MODEL_NAME = "Jonathan1909/Ming-flash-omni-2.0"
 DEFAULT_STAGE_CONFIG = "vllm_omni/model_executor/stage_configs/ming_flash_omni_tts.yaml"
