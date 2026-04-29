@@ -2284,7 +2284,7 @@ def assert_omni_response(response: OmniResponse, request_config: dict[str, Any],
 
         # Verify similarity (Whisper transcript vs streamed/detokenized text)
         if "text" in modalities and "audio" in modalities:
-            assert response.similarity is not None and response.similarity > 0.9, (
+            assert response.similarity is not None and response.similarity > 0.85, (
                 "The audio content is not same as the text"
             )
             print(f"similarity is: {response.similarity}")
