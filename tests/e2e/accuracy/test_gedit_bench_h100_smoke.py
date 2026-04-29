@@ -8,7 +8,7 @@ import pytest
 from benchmarks.accuracy.image_to_image.gedit_bench import GROUPS
 from benchmarks.accuracy.image_to_image.gedit_bench import main as gedit_main
 from tests.e2e.accuracy.conftest import infer_model_label, reset_artifact_dir
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 
 
 @pytest.mark.advanced_model

@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 from tests.conftest import OmniServerParams
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 
 MODEL = "FunAudioLLM/Fun-CosyVoice3-0.5B-2512"
 

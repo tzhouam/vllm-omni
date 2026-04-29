@@ -14,7 +14,7 @@ import torch
 
 import tests.conftest as omni_test_conftest
 from tests.conftest import OmniRunner
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 from vllm_omni.model_executor.models.voxcpm.voxcpm_runtime_utils import (
     prepare_voxcpm_hf_config_dir,
     resolve_voxcpm_model_dir,

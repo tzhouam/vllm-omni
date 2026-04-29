@@ -17,7 +17,7 @@ import time
 import pytest
 import torch
 
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 from vllm_omni.distributed.omni_connectors.connectors.mooncake_transfer_engine_connector import (
     ManagedBuffer,
     MooncakeTransferEngineConnector,

@@ -7,7 +7,7 @@ import pytest
 
 from benchmarks.accuracy.text_to_image.gbench import main as gbench_main
 from tests.e2e.accuracy.conftest import infer_model_label, reset_artifact_dir
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 
 
 @pytest.mark.advanced_model

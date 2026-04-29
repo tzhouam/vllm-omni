@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from tests.conftest import OmniRunner
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 
 VOXCPM2_MODEL = "openbmb/VoxCPM2"
 STAGE_CONFIG = os.path.join(

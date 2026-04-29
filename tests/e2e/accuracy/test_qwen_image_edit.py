@@ -8,6 +8,7 @@ import requests
 import torch
 from diffusers import QwenImageEditPipeline, QwenImageEditPlusPipeline
 from PIL import Image
+from tests.e2e.accuracy.utils import assert_similarity, model_output_dir
 
 from benchmarks.accuracy.common import decode_base64_image, pil_to_png_bytes
 from tests.conftest import (
@@ -15,8 +16,7 @@ from tests.conftest import (
     _run_post_test_cleanup,
     _run_pre_test_cleanup,
 )
-from tests.e2e.accuracy.utils import assert_similarity, model_output_dir
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 
 SINGLE_MODEL = "Qwen/Qwen-Image-Edit"
 MULTIPLE_MODEL = "Qwen/Qwen-Image-Edit-2509"

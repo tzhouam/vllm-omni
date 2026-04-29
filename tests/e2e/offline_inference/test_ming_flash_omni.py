@@ -16,7 +16,7 @@ from tests.conftest import (
     generate_synthetic_video,
     modify_stage_config,
 )
-from tests.utils import hardware_test
+from tests.helpers.mark import hardware_test
 
 models = ["Jonathan1909/Ming-flash-omni-2.0"]
 
