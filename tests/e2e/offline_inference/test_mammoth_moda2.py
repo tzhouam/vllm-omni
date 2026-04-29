@@ -23,8 +23,8 @@ import pytest
 import torch
 from vllm.sampling_params import SamplingParams
 
-from tests.conftest import OmniRunner
 from tests.helpers.mark import hardware_test
+from tests.helpers.runtime import OmniRunner
 
 # ---------------------------------------------------------------------------
 # Constants

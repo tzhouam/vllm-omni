@@ -11,7 +11,8 @@ from vllm.inputs import PromptType
 # pipeline registry so the materialized deploy overlay below can select it
 # via its top-level ``pipeline:`` field.
 import vllm_omni.model_executor.models.qwen2_5_omni.pipeline  # noqa: F401, E402
-from tests.utils import get_deploy_config_path, hardware_test
+from tests.helpers.mark import hardware_test
+from tests.helpers.stage_config import get_deploy_config_path
 from vllm_omni.entrypoints.async_omni import AsyncOmni
 
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"

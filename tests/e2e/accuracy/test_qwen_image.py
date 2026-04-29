@@ -13,12 +13,14 @@ from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from PIL import Image
 from tests.e2e.accuracy.utils import assert_similarity, model_output_dir
 
-from tests.conftest import (
-    OmniServer,
-    _run_post_test_cleanup,
-    _run_pre_test_cleanup,
+from tests.helpers.env import (
+    run_post_test_cleanup as _run_post_test_cleanup,
+)
+from tests.helpers.env import (
+    run_pre_test_cleanup as _run_pre_test_cleanup,
 )
 from tests.helpers.mark import hardware_test
+from tests.helpers.runtime import OmniServer
 
 MODEL_ID = "Qwen/Qwen-Image"
 MODEL_ENV_VAR = "QWEN_IMAGE_MODEL"

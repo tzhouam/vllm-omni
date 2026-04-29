@@ -15,7 +15,7 @@ import numpy as np
 import pytest
 import torch
 
-from tests.conftest import assert_audio_valid
+from tests.helpers.assertions import assert_audio_valid
 from tests.helpers.mark import hardware_test
 from vllm_omni import Omni
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams

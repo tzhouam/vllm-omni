@@ -22,7 +22,6 @@ import torch
 from diffusers import UniPCMultistepScheduler
 from PIL import Image
 
-from tests.conftest import OmniServerParams
 from tests.e2e.accuracy.wan22_i2v.run_wan22_i2v_diffusers_cp import (
     _configure_scheduler,
     _ensure_wan_ftfy_fallback,
@@ -49,6 +48,7 @@ from tests.e2e.accuracy.wan22_i2v.wan22_i2v_video_similarity_common import (
     WIDTH,
 )
 from tests.helpers.mark import hardware_test
+from tests.helpers.runtime import OmniServerParams
 
 
 def test_parse_video_metadata_extracts_dimensions_and_fps() -> None:

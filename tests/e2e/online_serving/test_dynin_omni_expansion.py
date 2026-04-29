@@ -16,8 +16,8 @@ import soundfile as sf
 from vllm.assets.image import ImageAsset
 
 from tests import conftest as tests_conftest
-from tests.conftest import OmniServerParams
 from tests.helpers.mark import hardware_test
+from tests.helpers.runtime import OmniServerParams
 
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 os.environ["VLLM_TEST_CLEAN_GPU_MEMORY"] = "0"

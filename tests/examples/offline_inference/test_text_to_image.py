@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import assert_image_valid
-from tests.examples.conftest import EXAMPLES, ExampleRunner, ReadmeSnippet
+from tests.examples.helpers import EXAMPLES, ExampleRunner, ReadmeSnippet
+from tests.helpers.assertions import assert_image_valid
 from tests.helpers.mark import hardware_marks
 
 pytestmark = [pytest.mark.advanced_model, pytest.mark.example, *hardware_marks(res={"cuda": "H100"})]

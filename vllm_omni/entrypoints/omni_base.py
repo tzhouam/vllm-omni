@@ -27,6 +27,23 @@ if TYPE_CHECKING:
 logger = init_logger(__name__)
 
 
+class OmniEngineDeadError(EngineDeadError):
+    _DEFAULT_MESSAGE = EngineDeadError().args[0]
+    error_stage_id: int | None
+
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        error_stage_id: int | None = None,
+        suppress_context: bool = False,
+    ) -> None:
+        resolved_message = message or self._DEFAULT_MESSAGE
+        Exception.__init__(self, resolved_message)
+        self.__suppress_context__ = suppress_context
+        self.error_stage_id = error_stage_id
+
+
 def _weak_shutdown_engine(engine: AsyncOmniEngine) -> None:
     """Best-effort engine cleanup for GC finalization."""
     try:

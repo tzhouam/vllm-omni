@@ -17,13 +17,8 @@ assert_diffusion_response validates successful generation and the expected
 
 import pytest
 
-from tests.conftest import (
-    OmniServer,
-    OmniServerParams,
-    OpenAIClientHandler,
-    dummy_messages_from_mix_data,
-)
 from tests.helpers.mark import hardware_marks
+from tests.helpers.runtime import OmniServer, OmniServerParams, OpenAIClientHandler, dummy_messages_from_mix_data
 
 PROMPT = "A futuristic city skyline at twilight, cyberpunk style, ultra-detailed, high resolution."
 NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, watermark"
