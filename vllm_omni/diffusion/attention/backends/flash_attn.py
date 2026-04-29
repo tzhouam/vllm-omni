@@ -119,13 +119,6 @@ class FlashAttentionImpl(AttentionImpl):
                 attention_mask,
             )
 
-        # When the dense flash_attn_func is unavailable (e.g. only vLLM's
-        # bundled vllm.vllm_flash_attn is installed, which exposes just
-        # flash_attn_varlen_func), fall back to the varlen kernel by packing
-        # the batch dimension into cu_seqlens, matching the XPU path.
-        if flash_attn_func is None:
-            return self.forward_xpu(query, key, value, attn_metadata)
-
         out = flash_attn_func(
             query,
             key,

@@ -78,23 +78,6 @@ else:
         except (ImportError, ModuleNotFoundError):
             pass
 
-    # Fallback: Try FA bundled with vLLM (vllm.vllm_flash_attn). vLLM ships its
-    # own FA2/FA3 CUDA extensions, so when the standalone flash-attn package is
-    # not installed but vLLM is, we can still expose a varlen kernel. Note that
-    # vllm.vllm_flash_attn only provides flash_attn_varlen_func (no
-    # flash_attn_func), which is sufficient for callers (e.g. Bagel
-    # PackedAttentionMoT) that only rely on the varlen variant.
-    if flash_attn_varlen_func is None:
-        try:
-            from vllm.vllm_flash_attn import flash_attn_varlen_func  # noqa: F401
-        except (ImportError, ModuleNotFoundError) as exc:
-            logger.warning(
-                "vllm.vllm_flash_attn flash_attn_varlen_func fallback unavailable: %s. "
-                "Callers depending on the varlen kernel (e.g. Bagel PackedAttentionMoT) "
-                "will fall back to SDPA.",
-                exc,
-            )
-
 # If no FA backend available, SDPA backend will be selected at the platform level
 # flash_attn_func and flash_attn_varlen_func will be None
 HAS_FLASH_ATTN = flash_attn_func is not None or flash_attn_varlen_func is not None

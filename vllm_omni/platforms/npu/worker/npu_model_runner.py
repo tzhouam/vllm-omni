@@ -420,11 +420,16 @@ class OmniNPUModelRunner(OmniGPUModelRunner, NPUModelRunner):
         subtalker_params = getattr(self.vllm_config.model_config, "subtalker_sampling_params", None)
         if not isinstance(subtalker_params, dict):
             subtalker_params = {}
+        # Extract seed from the first request's sampling params for Fast AR
+        # determinism.  NOTE: when batch_size > 1, all requests share the first
+        # request's seed.  Per-request Fast AR seeding requires row-by-row
+        # torch.multinomial calls and is left as a follow-up optimisation.
         _seed = None
         if decode_req_ids:
             _first_sp = getattr(self.requests[decode_req_ids[0]], "sampling_params", None)
             if _first_sp is not None and getattr(_first_sp, "seed", None) is not None:
                 _seed = _first_sp.seed
+            # Warn when batched requests have different seeds.
             if len(decode_req_ids) > 1 and _seed is not None:
                 _other_seeds = {
                     getattr(getattr(self.requests[rid], "sampling_params", None), "seed", None)
@@ -454,6 +459,8 @@ class OmniNPUModelRunner(OmniGPUModelRunner, NPUModelRunner):
                 text_step,
                 **talker_kwargs,
             )
+        # update the inputs_embeds and code_predictor_codes
+        code_predictor_codes_cpu = code_predictor_codes.detach().to("cpu").contiguous()
         out_key = getattr(self.model, "talker_mtp_output_key", ("codes", "audio"))
         if not isinstance(out_key, tuple) or len(out_key) != 2:
             raise TypeError(f"talker_mtp_output_key must be a 2-tuple, got {type(out_key).__name__}: {out_key!r}")
@@ -461,5 +468,5 @@ class OmniNPUModelRunner(OmniGPUModelRunner, NPUModelRunner):
             req_index = self.input_batch.req_ids.index(req_id)
             start_offset = int(self.query_start_loc.cpu[req_index])
             inputs_embeds[start_offset : start_offset + 1] = req_embeds[idx : idx + 1]
-            update_dict = {out_key[0]: {out_key[1]: code_predictor_codes[idx : idx + 1]}}
+            update_dict = {out_key[0]: {out_key[1]: code_predictor_codes_cpu[idx : idx + 1]}}
             self._merge_additional_information_update(req_id, update_dict)

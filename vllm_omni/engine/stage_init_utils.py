@@ -23,17 +23,13 @@ from vllm.usage.usage_lib import UsageContext
 from vllm.v1.engine.input_processor import InputProcessor
 from vllm.v1.executor import Executor
 
+from vllm_omni.diffusion.data import OmniDiffusionConfig
 from vllm_omni.engine.arg_utils import OmniEngineArgs
 from vllm_omni.entrypoints.stage_utils import _to_dict, set_stage_devices
-from vllm_omni.entrypoints.utils import (
-    detect_pid_host,
-    filter_dataclass_kwargs,
-    resolve_model_config_path,
-)
+from vllm_omni.entrypoints.utils import filter_dataclass_kwargs, resolve_model_config_path
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams, OmniSamplingParams
 from vllm_omni.platforms import current_omni_platform
 from vllm_omni.quantization.inc_config import OmniINCConfig
-from vllm_omni.worker.gpu_memory_utils import is_process_scoped_memory_available
 
 logger = init_logger(__name__)
 
@@ -472,21 +468,6 @@ def build_vllm_config(
     return vllm_config, executor_class
 
 
-def should_use_sequential_stage_init_locks() -> bool:
-    """Return whether stage initialization needs per-device serialization.
-
-    Process-scoped GPU memory accounting is safe on bare metal and in
-    containers with host PID namespace. In isolated PID namespaces we fall
-    back to device-level profiling, so overlapping stage init can pollute
-    another stage's memory budget.
-    """
-    try:
-        return not (is_process_scoped_memory_available() and detect_pid_host())
-    except Exception as e:
-        logger.debug("Falling back to sequential stage initialization locks: %s", e)
-        return True
-
-
 def acquire_device_locks(
     stage_id: int,
     engine_args_dict: dict[str, Any],
@@ -497,14 +478,6 @@ def acquire_device_locks(
     Returns list of lock file descriptors that must be released after init.
     """
     lock_fds: list[int] = []
-    if not should_use_sequential_stage_init_locks():
-        logger.debug(
-            "[Stage-%s] Skipping sequential initialization locks because "
-            "process-scoped GPU memory accounting is available.",
-            stage_id,
-        )
-        return lock_fds
-
     try:
         # Get parallel sizes
         if "parallel_config" in engine_args_dict:
@@ -632,7 +605,13 @@ def acquire_diffusion_device_locks(
     od_config: Any,
     stage_init_timeout: int,
 ) -> list[int]:
-    """Acquire init locks for the GPU set used by a diffusion stage."""
+    """Acquire init locks for the GPU set used by a diffusion stage.
+
+    Diffusion stages express their device count via ``OmniDiffusionConfig``'s
+    ``parallel_config.world_size`` rather than the LLM-style
+    ``tensor_parallel_size`` knob, so adapt to the shape that
+    ``acquire_device_locks`` understands.
+    """
     parallel_config = getattr(od_config, "parallel_config", None)
     world_size = getattr(parallel_config, "world_size", 1)
     try:
@@ -718,6 +697,7 @@ def build_diffusion_config(
 
 
 def initialize_diffusion_stage(
+    stage_id: int,
     model: str,
     stage_cfg: Any,
     metadata: StageMetadata,
@@ -739,12 +719,17 @@ def initialize_diffusion_stage(
     """
     from vllm_omni.diffusion.stage_diffusion_client import create_diffusion_client
 
+    engine_args = _to_dict(stage_cfg.engine_args)
+    engine_args.pop("stage_id", None)
+    od_config = OmniDiffusionConfig.from_kwargs(
+        stage_id=stage_id,
+        model=model,
+        **engine_args,
+    )
+    if metadata.cfg_kv_collect_func is not None:
+        od_config.cfg_kv_collect_func = metadata.cfg_kv_collect_func
     od_config = build_diffusion_config(model, stage_cfg, metadata)
-    lock_fds = acquire_diffusion_device_locks(metadata.stage_id, od_config, stage_init_timeout)
-    try:
-        return create_diffusion_client(model, od_config, metadata, stage_init_timeout, batch_size, use_inline)
-    finally:
-        release_device_locks(lock_fds)
+    return create_diffusion_client(model, od_config, metadata, stage_init_timeout, batch_size, use_inline)
 
 
 def _shutdown_or_close_resource(resource: Any, resource_name: str, stage_id: int) -> None:

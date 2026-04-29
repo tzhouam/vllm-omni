@@ -59,10 +59,6 @@ class StageEngineCoreProc(EngineCoreProc):
         signal_callback: SignalCallback | None = None
         maybe_register_config_serialize_by_value()
 
-        from vllm_omni.engine.arg_utils import register_omni_models_to_vllm
-
-        register_omni_models_to_vllm()
-
         engine_core: StageEngineCoreProc | None = None
         try:
             vllm_config: VllmConfig = kwargs["vllm_config"]
