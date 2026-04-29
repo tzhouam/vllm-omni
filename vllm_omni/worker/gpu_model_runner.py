@@ -153,8 +153,10 @@ class OmniGPUModelRunner(GPUModelRunner):
         if supports_mrope(self.get_model()):
             # Model implements SupportsMRoPE interface
             # Pass all extracted metadata; models use what they need via **kwargs
-            req_state.mrope_positions, req_state.mrope_position_delta = self.model.get_mrope_input_positions(
-                req_state.prompt_token_ids,
+            sp_extra_args = getattr(req_state.sampling_params, "extra_args", {}) if req_state.sampling_params else {}
+            target_h = sp_extra_args.get("target_h") if isinstance(sp_extra_args, dict) else None
+            target_w = sp_extra_args.get("target_w") if isinstance(sp_extra_args, dict) else None
+            kwargs = dict(
                 mm_features=req_state.mm_features,
                 hf_config=self.model_config.hf_config,
                 image_grid_thw=image_grid_thw,
@@ -162,6 +164,14 @@ class OmniGPUModelRunner(GPUModelRunner):
                 second_per_grid_ts=second_per_grid_ts,
                 audio_feature_lengths=audio_feature_lengths,
                 use_audio_in_video=use_audio_in_video,
+            )
+            if target_h is not None:
+                kwargs["target_h"] = target_h
+            if target_w is not None:
+                kwargs["target_w"] = target_w
+            req_state.mrope_positions, req_state.mrope_position_delta = self.model.get_mrope_input_positions(
+                req_state.prompt_token_ids,
+                **kwargs,
             )
         else:
             req_state.mrope_positions, req_state.mrope_position_delta = MRotaryEmbedding.get_input_positions_tensor(
@@ -258,7 +268,8 @@ class OmniGPUModelRunner(GPUModelRunner):
             self.requests.pop(req_id, None)
             self.model_intermediate_buffer.pop(req_id, None)
             self.num_prompt_logprobs.pop(req_id, None)
-        self.late_interaction_runner.on_requests_finished(scheduler_output.finished_req_ids)
+        if hasattr(self, "late_interaction_runner"):
+            self.late_interaction_runner.on_requests_finished(scheduler_output.finished_req_ids)
         # Remove the finished requests from the persistent batch.
         # NOTE(woosuk): There could be an edge case where finished_req_ids and
         # scheduled_req_ids overlap. This happens when a request is aborted and
@@ -352,7 +363,8 @@ class OmniGPUModelRunner(GPUModelRunner):
                 lora_request=new_req_data.lora_request,
             )
             self.requests[req_id] = req_state
-            self.late_interaction_runner.register_request(req_id, pooling_params)
+            if hasattr(self, "late_interaction_runner"):
+                self.late_interaction_runner.register_request(req_id, pooling_params)
 
             # If prompt embeddings are provided, decode and attach to inter_data
             try:
@@ -1029,6 +1041,15 @@ class OmniGPUModelRunner(GPUModelRunner):
             import traceback
 
             traceback.print_exc()
+
+        if getattr(self.model_config, "has_sampling_extra_args", False):
+            extra_args_list: list[dict] = []
+            for req_id in self.input_batch.req_ids:
+                req = self.requests[req_id]
+                sp = req.sampling_params if req else None
+                extra_args_list.append(sp.extra_args if sp and sp.extra_args else {})
+            model_kwargs_extra["sampling_extra_args"] = extra_args_list
+
         return model_kwargs_extra
 
     def _process_additional_information_updates(
@@ -1357,11 +1378,16 @@ class OmniGPUModelRunner(GPUModelRunner):
         subtalker_params = getattr(self.vllm_config.model_config, "subtalker_sampling_params", None)
         if not isinstance(subtalker_params, dict):
             subtalker_params = {}
+        # Extract seed from the first request's sampling params for Fast AR
+        # determinism. NOTE: when batch_size > 1, all requests share the first
+        # request's seed. Per-request Fast AR seeding requires row-by-row
+        # torch.multinomial calls and is left as a follow-up optimisation.
         _seed = None
         if decode_req_ids:
             _first_sp = getattr(self.requests[decode_req_ids[0]], "sampling_params", None)
             if _first_sp is not None and getattr(_first_sp, "seed", None) is not None:
                 _seed = _first_sp.seed
+            # Warn when batched requests have different seeds.
             if len(decode_req_ids) > 1 and _seed is not None:
                 _other_seeds = {
                     getattr(getattr(self.requests[rid], "sampling_params", None), "seed", None)
@@ -1391,6 +1417,7 @@ class OmniGPUModelRunner(GPUModelRunner):
                 text_step,
                 **talker_kwargs,
             )
+        # update the inputs_embeds and code_predictor_codes
         out_key = getattr(self.model, "talker_mtp_output_key", ("codes", "audio"))
         if not isinstance(out_key, tuple) or len(out_key) != 2:
             raise TypeError(f"talker_mtp_output_key must be a 2-tuple, got {type(out_key).__name__}: {out_key!r}")

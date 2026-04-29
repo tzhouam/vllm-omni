@@ -9,7 +9,6 @@ from vllm_omni.diffusion.layers.norm import RMSNormVAE
 def patch_wan_rms_norm():
     """Patch diffusers Wan RMSNorm implementation with RMSNormVAE."""
 
-    # Snapshot: importing or lazy-loading during iteration mutates sys.modules.
-    for module_name, module in list(sys.modules.items()):
+    for module_name, module in sys.modules.items():
         if hasattr(module, "WanRMS_norm"):
             setattr(module, "WanRMS_norm", RMSNormVAE)

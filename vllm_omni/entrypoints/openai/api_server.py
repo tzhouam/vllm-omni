@@ -16,6 +16,7 @@ from argparse import Namespace
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from http import HTTPStatus
+from numbers import Integral
 from typing import Annotated, Any, Literal, cast
 
 import httpx
@@ -30,7 +31,7 @@ from starlette.routing import Route
 from vllm.engine.protocol import EngineClient
 from vllm.entrypoints.anthropic.serving import AnthropicServingMessages
 from vllm.entrypoints.chat_utils import load_chat_template
-from vllm.entrypoints.launcher import serve_http
+from vllm.entrypoints.launcher import serve_http, terminate_if_errored
 from vllm.entrypoints.logger import RequestLogger
 from vllm.entrypoints.mcp.tool_server import DemoToolServer, MCPToolServer, ToolServer
 from vllm.entrypoints.openai.api_server import build_app as build_openai_app
@@ -49,6 +50,7 @@ from vllm.entrypoints.openai.engine.protocol import (
     ModelCard,
     ModelList,
     ModelPermission,
+    RequestResponseMetadata,
 )
 from vllm.entrypoints.openai.models.protocol import BaseModelPath
 from vllm.entrypoints.openai.models.serving import OpenAIServingModels
@@ -73,6 +75,7 @@ from vllm.entrypoints.serve.instrumentator.basic import base
 from vllm.entrypoints.serve.render.serving import OpenAIServingRender
 from vllm.entrypoints.serve.tokenize.serving import OpenAIServingTokenization
 from vllm.entrypoints.utils import (
+    create_error_response,
     load_aware_call,
     process_lora_modules,
     with_cancellation,
@@ -82,6 +85,7 @@ from vllm.tasks import POOLING_TASKS
 from vllm.tool_parsers import ToolParserManager
 from vllm.utils import random_uuid
 from vllm.utils.system_utils import decorate_logs
+from vllm.v1.engine.exceptions import EngineDeadError, EngineGenerateError
 
 from vllm_omni.entrypoints.async_omni import AsyncOmni
 from vllm_omni.entrypoints.openai.errors import InvalidInputReferenceError
@@ -208,6 +212,81 @@ def _remove_route_from_app(app, path: str, methods: set[str] | None = None):
         app.routes.remove(route)
 
 
+def _register_omni_exception_handlers(app) -> None:
+    """Override upstream vLLM exception handlers with Omni-aware versions.
+
+    The upstream ``engine_error_handler`` is designed for ``AsyncLLM`` (single
+    EngineCore process).  Omni uses a multi-stage orchestrator with different
+    health semantics, so we register our own handlers that:
+
+    - Log multi-stage diagnostic info (orchestrator liveness, per-stage health)
+      when an ``EngineDeadError`` is caught.
+    - Call ``terminate_if_errored``
+    - Return an OpenAI-compatible error JSON response.
+    """
+
+    async def omni_engine_error_handler(
+        req: Request,
+        exc: EngineDeadError | EngineGenerateError,
+    ):
+        request_id = _get_request_id_from_request(req)
+
+        if req.app.state.args.log_error_stack:
+            logger.exception("Engine Exception caught. Request id: %s", request_id)
+
+        return _create_engine_error_json_response(req, exc)
+
+    app.exception_handler(EngineGenerateError)(omni_engine_error_handler)
+    app.exception_handler(EngineDeadError)(omni_engine_error_handler)
+
+
+def _get_request_id_from_request(req: Request) -> str | None:
+    return req.state.request_metadata.request_id if hasattr(req.state, "request_metadata") else None
+
+
+def _build_engine_error_payload(
+    exc: EngineDeadError | EngineGenerateError,
+    *,
+    request_id: str | None,
+) -> tuple[dict[str, Any], int]:
+    err = create_error_response(exc)
+    payload = err.model_dump()
+    error_body = payload.get("error", {})
+
+    error_body["request_id"] = request_id
+    error_body["error_stage_id"] = getattr(exc, "error_stage_id", None)
+
+    return payload, err.error.code
+
+
+def _create_engine_error_json_response(
+    req: Request,
+    exc: EngineDeadError | EngineGenerateError,
+) -> JSONResponse:
+    request_id = _get_request_id_from_request(req)
+    error_stage_id = getattr(exc, "error_stage_id", None)
+    engine = req.app.state.engine_client
+
+    if isinstance(exc, EngineDeadError):
+        # Log Omni-specific diagnostic information for dead engines.
+        orchestrator_alive = engine.engine.is_alive() if hasattr(engine, "engine") else "N/A"
+        logger.error(
+            "EngineDeadError: orchestrator_alive=%s, errored=%s, request_id=%s, error_stage_id=%s",
+            orchestrator_alive,
+            engine.errored,
+            request_id,
+            error_stage_id,
+        )
+
+    terminate_if_errored(
+        server=req.app.state.server,
+        engine=engine,
+    )
+
+    payload, status_code = _build_engine_error_payload(exc, request_id=request_id)
+    return JSONResponse(content=payload, status_code=status_code)
+
+
 class _DiffusionServingModels:
     """Minimal OpenAIServingModels implementation for diffusion-only servers.
 
@@ -319,6 +398,10 @@ async def omni_run_server_worker(listen_address, sock, args, client_config=None,
         _remove_route_from_app(app, "/v1/chat/completions", {"POST"})
         _remove_route_from_app(app, "/v1/models", {"GET"})  # Remove upstream /v1/models to use omni's handler
         app.include_router(router)
+
+        # OMNI: Override upstream exception handlers with Omni-aware versions
+        # that understand the multi-stage orchestrator lifecycle.
+        _register_omni_exception_handlers(app)
 
         await omni_init_app_state(engine_client, app.state, args)
 
@@ -503,7 +586,6 @@ async def omni_init_app_state(
     state.engine_client = engine_client
     state.log_stats = not args.disable_log_stats
     state.args = args
-    state.sleeping_stages = set()
 
     # For omni models
     state.stage_configs = engine_client.stage_configs if hasattr(engine_client, "stage_configs") else None
@@ -653,6 +735,7 @@ async def omni_init_app_state(
     state.openai_serving_render = OpenAIServingRender(
         model_config=engine_client.model_config,
         renderer=engine_client.renderer,
+        io_processor=engine_client.io_processor,
         model_registry=state.openai_serving_models.registry,
         request_logger=request_logger,
         chat_template=resolved_chat_template,
@@ -661,7 +744,6 @@ async def omni_init_app_state(
         enable_auto_tools=args.enable_auto_tool_choice,
         exclude_tools_when_tool_choice_none=args.exclude_tools_when_tool_choice_none,
         tool_parser=args.tool_call_parser,
-        reasoning_parser=args.structured_outputs_config.reasoning_parser,
         default_chat_template_kwargs=args.default_chat_template_kwargs,
         log_error_stack=args.log_error_stack,
     )
@@ -874,6 +956,7 @@ async def omni_init_app_state(
 
     state.enable_server_load_tracking = args.enable_server_load_tracking
     state.server_load_metrics = 0
+    state.sleeping_stages = set()
 
 
 def Omnivideo(request: Request) -> OmniOpenAIServingVideo | None:
@@ -917,6 +1000,8 @@ async def create_chat_completion(request: ChatCompletionRequest, raw_request: Re
         return base_server.create_error_response(message="The model does not support Chat Completions API")
     try:
         generator = await handler.create_chat_completion(request, raw_request)
+    except (EngineGenerateError, EngineDeadError) as exc:
+        return _create_engine_error_json_response(raw_request, exc)
     except Exception as e:
         logger.exception("Chat completion failed: %s", e)
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR.value, detail=str(e)) from e
@@ -1012,6 +1097,8 @@ async def create_speech(request: OpenAICreateSpeechRequest, raw_request: Request
                 status_code=result.error.code if result.error else 400,
             )
         return result
+    except (EngineGenerateError, EngineDeadError) as exc:
+        return _create_engine_error_json_response(raw_request, exc)
     except Exception as e:
         raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR.value, detail=str(e)) from e
 
@@ -1046,6 +1133,8 @@ async def create_speech_batch(request: BatchSpeechRequest, raw_request: Request)
                 status_code=result.error.code if result.error else 400,
             )
         return JSONResponse(content=result.model_dump())
+    except (EngineGenerateError, EngineDeadError) as exc:
+        return _create_engine_error_json_response(raw_request, exc)
     except ValueError as e:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST.value, detail=str(e)) from e
     except Exception as e:
@@ -1334,31 +1423,26 @@ _remove_route_from_router(router, "/health")
 async def health(raw_request: Request) -> JSONResponse:
     """Health check endpoint that works for both LLM and diffusion modes.
 
-    Returns 200 OK if the server is healthy.
-    For LLM mode: delegates to engine_client health check
-    For diffusion mode: checks if diffusion_engine is running
+    Returns 200 OK if the server is healthy, 503 if the engine is dead.
+    Mirrors vLLM upstream's /health which catches EngineDeadError -> 503.
     """
-    # Check if we're in diffusion mode
-    diffusion_engine = getattr(raw_request.app.state, "diffusion_engine", None)
-    if diffusion_engine is not None:
-        # Diffusion mode health check
-        if hasattr(diffusion_engine, "is_running") and diffusion_engine.is_running:
-            return JSONResponse(content={"status": "healthy"})
+    engine_client = getattr(raw_request.app.state, "engine_client", None) or getattr(
+        raw_request.app.state, "diffusion_engine", None
+    )
+    if engine_client is None:
         return JSONResponse(
-            content={"status": "unhealthy", "reason": "Diffusion engine is not running"},
+            content={"status": "unhealthy", "reason": "No engine initialized"},
             status_code=HTTPStatus.SERVICE_UNAVAILABLE.value,
         )
 
-    # LLM mode - delegate to engine_client
-    engine_client = getattr(raw_request.app.state, "engine_client", None)
-    if engine_client is not None:
+    try:
         await engine_client.check_health()
         return JSONResponse(content={"status": "healthy"})
-
-    return JSONResponse(
-        content={"status": "unhealthy", "reason": "No engine initialized"},
-        status_code=HTTPStatus.SERVICE_UNAVAILABLE.value,
-    )
+    except EngineDeadError:
+        return JSONResponse(
+            content={"status": "unhealthy"},
+            status_code=HTTPStatus.SERVICE_UNAVAILABLE.value,
+        )
 
 
 # Remove existing models endpoint if present (from vllm imports)
@@ -1413,11 +1497,10 @@ async def generate_images(request: ImageGenerationRequest, raw_request: Request)
     # Get engine client (AsyncOmni) from app state
     engine_client, model_name, stage_configs = _get_engine_and_model(raw_request)
 
-    # Validate model field (warn if mismatch, don't error)
     if request.model is not None and request.model != model_name:
-        logger.warning(
-            f"Model mismatch: request specifies '{request.model}' but "
-            f"server is running '{model_name}'. Using server model."
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST.value,
+            detail=(f"Model mismatch: request specifies '{request.model}' but server is running '{model_name}'."),
         )
 
     try:
@@ -1497,6 +1580,16 @@ async def generate_images(request: ImageGenerationRequest, raw_request: Request)
         else:
             size_str = "model default"
 
+        # Keep AR stage target grid in sync with requested output size.
+        # GLM-Image consumes target_h/target_w via mm_processor_kwargs.
+        if width is not None and height is not None:
+            prompt["mm_processor_kwargs"] = {
+                "target_h": height,
+                "target_w": width,
+            }
+            # Backward-compatible fallback for processors reading top-level fields.
+            prompt["height"] = height
+            prompt["width"] = width
         app_state_args = getattr(raw_request.app.state, "args", None)
         _check_max_generated_image_size(app_state_args, width, height)
 
@@ -1518,6 +1611,7 @@ async def generate_images(request: ImageGenerationRequest, raw_request: Request)
         _update_if_not_none(gen_params, "layers", request.layers)
 
         request_id = f"img_gen-{random_uuid()}"
+        raw_request.state.request_metadata = RequestResponseMetadata(request_id=request_id)
 
         logger.info(f"Generating {request.n} image(s) {size_str}")
 
@@ -1559,8 +1653,9 @@ async def generate_images(request: ImageGenerationRequest, raw_request: Request)
             response_kwargs["size"] = size_str
         return ImageGenerationResponse(**response_kwargs)
 
+    except (EngineGenerateError, EngineDeadError) as exc:
+        return _create_engine_error_json_response(raw_request, exc)
     except HTTPException:
-        # Re-raise HTTPExceptions as-is
         raise
     except ValueError as e:
         logger.error(f"Validation error: {e}")
@@ -1619,8 +1714,9 @@ async def edit_images(
     # 1. get engine and model
     engine_client, model_name, stage_configs = _get_engine_and_model(raw_request)
     if model is not None and model != model_name:
-        logger.warning(
-            f"Model mismatch: request specifies '{model}' but server is running '{model_name}'. Using server model."
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST.value,
+            detail=(f"Model mismatch: request specifies '{model}' but server is running '{model_name}'."),
         )
     # 2. get output format & compression
     output_format = _choose_output_format(output_format, background)
@@ -1731,6 +1827,18 @@ async def edit_images(
         _check_max_generated_image_size(app_state_args, width, height, resolution)
 
         size_str = f"{width}x{height}" if width is not None and height is not None else "auto"
+
+        # Keep AR stage target grid in sync with requested output size.
+        # GLM-Image consumes target_h/target_w via mm_processor_kwargs.
+        if width is not None and height is not None:
+            prompt["mm_processor_kwargs"] = {
+                "target_h": height,
+                "target_w": width,
+            }
+            # Backward-compatible fallback for processors reading top-level fields.
+            prompt["height"] = height
+            prompt["width"] = width
+
         _update_if_not_none(gen_params, "width", width)
         _update_if_not_none(gen_params, "height", height)
 
@@ -1750,6 +1858,7 @@ async def edit_images(
 
         # 4. Generate images
         request_id = f"img_edit-{random_uuid()}"
+        raw_request.state.request_metadata = RequestResponseMetadata(request_id=request_id)
         logger.info(f"Generating {n} image(s) {size_str}")
 
         if len(stage_configs) > 1:
@@ -1846,8 +1955,9 @@ async def edit_images(
             size=size_str,
         )
 
+    except (EngineGenerateError, EngineDeadError) as exc:
+        return _create_engine_error_json_response(raw_request, exc)
     except HTTPException:
-        # Re-raise HTTPExceptions as-is
         raise
     except ValueError as e:
         logger.error(f"Validation error: {e}")
@@ -1913,11 +2023,24 @@ def _get_max_edit_input_images(raw_request: Request, engine_client: Any) -> int 
         # config is not exposed on the serving surface.
         return None
 
-    if not bool(getattr(od_config, "supports_multimodal_inputs", False)):
+    supports_multimodal_inputs = getattr(od_config, "supports_multimodal_inputs", None)
+    if not isinstance(supports_multimodal_inputs, bool):
+        # Older serving surfaces and mocked engines may expose a placeholder
+        # object instead of a real diffusion config. Treat that as "unknown"
+        # so existing single-image flows keep working.
+        return None
+
+    if not supports_multimodal_inputs:
         return 1
 
-    limit = getattr(od_config, "max_multimodal_image_inputs", None)
-    return limit if isinstance(limit, int) else None
+    max_input_images = getattr(od_config, "max_multimodal_image_inputs", None)
+    if max_input_images is None:
+        return None
+    if isinstance(max_input_images, bool) or not isinstance(max_input_images, Integral):
+        return None
+    if max_input_images < 1:
+        return None
+    return int(max_input_images)
 
 
 def _get_lora_from_json_str(lora_body):
@@ -2232,6 +2355,48 @@ def video_response_from_request(model_name: str, req: VideoGenerationRequest) ->
     return resp
 
 
+def _status_code_for_video_failure(error: VideoError | None) -> int:
+    if error is None:
+        return HTTPStatus.INTERNAL_SERVER_ERROR.value
+
+    if isinstance(error.code, int):
+        if 400 <= error.code < 600:
+            return error.code
+        return HTTPStatus.INTERNAL_SERVER_ERROR.value
+
+    if error.code == "HTTPException":
+        status_text, _, _ = error.message.partition(":")
+        try:
+            status_code = int(status_text)
+        except ValueError:
+            return HTTPStatus.INTERNAL_SERVER_ERROR.value
+        if 400 <= status_code < 600:
+            return status_code
+        return HTTPStatus.INTERNAL_SERVER_ERROR.value
+
+    if error.code == "EngineDeadError":
+        return HTTPStatus.INTERNAL_SERVER_ERROR.value
+    if error.code == "EngineGenerateError":
+        return HTTPStatus.INTERNAL_SERVER_ERROR.value
+
+    return HTTPStatus.INTERNAL_SERVER_ERROR.value
+
+
+def _video_error_from_exception(exc: Exception) -> VideoError:
+    if isinstance(exc, HTTPException):
+        message = str(exc.detail) if exc.detail else str(exc)
+        return VideoError(code=exc.status_code, message=message)
+
+    if isinstance(exc, (EngineGenerateError, EngineDeadError)):
+        err = create_error_response(exc)
+        return VideoError(code=err.error.code, message=err.error.message)
+
+    return VideoError(
+        code=HTTPStatus.INTERNAL_SERVER_ERROR.value,
+        message=str(exc),
+    )
+
+
 def _cleanup_video(video_id: str, output_path: str | None):
     try:
         if output_path is not None:
@@ -2245,6 +2410,7 @@ async def _run_video_generation_job(
     request: VideoGenerationRequest,
     video_id: str,
     reference_image: ReferenceImage | None = None,
+    app_state: Any | None = None,
 ) -> None:
     job = await VIDEO_STORE.get(video_id)
     if job is None:
@@ -2275,17 +2441,36 @@ async def _run_video_generation_job(
                 "peak_memory_mb": peak_memory_mb,
             },
         )
-    except Exception as exc:
-        logger.exception("Video generation failed for id=%s", video_id)
+    except (EngineGenerateError, EngineDeadError) as exc:
+        logger.exception("Video generation failed (engine error) for id=%s", video_id)
 
         _cleanup_video(video_id, output_path)
-        # TODO: It would be better to have a finite collection of errors to return rather than the exception name
         await VIDEO_STORE.update_fields(
             video_id,
             {
                 "status": VideoGenerationStatus.FAILED,
                 "completed_at": int(time.time()),
-                "error": VideoError(code=type(exc).__name__, message=str(exc)),
+                "error": _video_error_from_exception(exc),
+                "inference_time_s": time.perf_counter() - started_at,
+            },
+        )
+        # Background tasks can't propagate exceptions to FastAPI handlers.
+        # Actively signal shutdown when the engine is dead.
+        if app_state is not None and isinstance(exc, EngineDeadError):
+            terminate_if_errored(
+                server=app_state.server,
+                engine=app_state.engine_client,
+            )
+    except Exception as exc:
+        logger.exception("Video generation failed for id=%s", video_id)
+
+        _cleanup_video(video_id, output_path)
+        await VIDEO_STORE.update_fields(
+            video_id,
+            {
+                "status": VideoGenerationStatus.FAILED,
+                "completed_at": int(time.time()),
+                "error": _video_error_from_exception(exc),
                 "inference_time_s": time.perf_counter() - started_at,
             },
         )
@@ -2319,9 +2504,9 @@ async def _parse_video_form(
     true_cfg_scale: float | None = Form(default=None),
     seed: int | None = Form(default=None),
     negative_prompt: str | None = Form(default=None),
-    enable_frame_interpolation: bool = Form(default=False),
-    frame_interpolation_exp: int = Form(default=1, ge=1),
-    frame_interpolation_scale: float = Form(default=1.0, gt=0.0),
+    enable_frame_interpolation: bool | None = Form(default=None),
+    frame_interpolation_exp: int | None = Form(default=None, ge=1),
+    frame_interpolation_scale: float | None = Form(default=None, gt=0.0),
     frame_interpolation_model_path: str | None = Form(default=None),
     lora: str | None = Form(default=None),
     extra_params: str | None = Form(default=None),
@@ -2380,10 +2565,12 @@ async def _parse_video_form(
         app_model_name, app_stage_configs = _resolve_video_runtime_context(raw_request)
         effective_model_name = handler.model_name or app_model_name or request.model or "unknown"
         if request.model is not None and effective_model_name is not None and request.model != effective_model_name:
-            logger.warning(
-                "Model mismatch: request specifies '%s' but server is running '%s'. Using server model.",
-                request.model,
-                effective_model_name,
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST.value,
+                detail=(
+                    f"Model mismatch: request specifies '{request.model}' but server is running "
+                    f"'{effective_model_name}'."
+                ),
             )
         handler.set_stage_configs_if_missing(app_stage_configs)
     except HTTPException:
@@ -2414,6 +2601,7 @@ async def _parse_video_form(
     },
 )
 async def create_video(
+    raw_request: Request,
     ctx: tuple[VideoGenerationRequest, OmniOpenAIServingVideo, str, ReferenceImage | None] = Depends(_parse_video_form),
 ) -> VideoResponse:
     """Create an asynchronous video generation job.
@@ -2424,7 +2612,9 @@ async def create_video(
     request, handler, effective_model_name, reference_image = ctx
     ref = video_response_from_request(effective_model_name, request)
     await VIDEO_STORE.upsert(ref.id, ref)
-    task = asyncio.create_task(_run_video_generation_job(handler, request, ref.id, reference_image))
+    task = asyncio.create_task(
+        _run_video_generation_job(handler, request, ref.id, reference_image, app_state=raw_request.app.state)
+    )
     await VIDEO_TASKS.upsert(ref.id, task)
     return ref
 
@@ -2439,6 +2629,7 @@ async def create_video(
     },
 )
 async def create_video_sync(
+    raw_request: Request,
     ctx: tuple[VideoGenerationRequest, OmniOpenAIServingVideo, str, ReferenceImage | None] = Depends(_parse_video_form),
 ) -> Response:
     """Synchronous video generation endpoint.
@@ -2452,6 +2643,7 @@ async def create_video_sync(
     """
     request, handler, effective_model_name, reference_image = ctx
     request_id = f"video_sync-{random_uuid()}"
+    raw_request.state.request_metadata = RequestResponseMetadata(request_id=request_id)
     started_at = time.perf_counter()
     try:
         video_bytes, stage_durations, peak_memory_mb = await asyncio.wait_for(
@@ -2463,6 +2655,8 @@ async def create_video_sync(
             status_code=HTTPStatus.GATEWAY_TIMEOUT.value,
             detail=f"Video generation timed out after {VIDEO_SYNC_TIMEOUT_S}s.",
         )
+    except (EngineGenerateError, EngineDeadError) as exc:
+        return _create_engine_error_json_response(raw_request, exc)
     except HTTPException:
         raise
     except Exception as exc:
@@ -2523,8 +2717,8 @@ async def list_videos(
     return VideoListResponse(data=jobs, has_more=has_more, first_id=first_id, last_id=last_id)
 
 
-@router.get("/v1/videos/{video_id}")
-async def retrieve_video(video_id: str) -> VideoResponse:
+@router.get("/v1/videos/{video_id}", response_model=None)
+async def retrieve_video(video_id: str) -> VideoResponse | JSONResponse:
     """Retrieve metadata for a previously created video job.
 
     Args:
@@ -2539,6 +2733,15 @@ async def retrieve_video(video_id: str) -> VideoResponse:
     job = await VIDEO_STORE.get(video_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Video not found")
+    if job.status == VideoGenerationStatus.FAILED:
+        status_code = _status_code_for_video_failure(job.error)
+        content = job.model_dump(mode="json")
+        if content.get("error") is not None:
+            content["error"]["code"] = status_code
+        return JSONResponse(
+            content=content,
+            status_code=status_code,
+        )
     return job
 
 

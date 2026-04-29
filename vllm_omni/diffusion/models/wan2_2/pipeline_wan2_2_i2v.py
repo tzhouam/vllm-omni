@@ -12,6 +12,7 @@ from typing import Any, cast
 import numpy as np
 import PIL.Image
 import torch
+import torchvision.transforms.functional as TF
 from diffusers.utils.torch_utils import randn_tensor
 from torch import nn
 from transformers import AutoTokenizer, CLIPImageProcessor, CLIPVisionModel, UMT5EncoderModel
@@ -26,8 +27,8 @@ from vllm_omni.diffusion.model_loader.hub_prefetch import prefetch_subfolders
 from vllm_omni.diffusion.models.dmd2 import DMD2PipelineMixin
 from vllm_omni.diffusion.models.interface import SupportImageInput
 from vllm_omni.diffusion.models.progress_bar import ProgressBarMixin, _is_rank_zero
+from vllm_omni.diffusion.models.utils import _load_json
 from vllm_omni.diffusion.models.wan2_2.pipeline_wan2_2 import (
-    WAN22_MAX_SEQUENCE_LENGTH,
     build_wan_scheduler,
     create_transformer_from_config,
     load_transformer_config,
@@ -38,37 +39,11 @@ from vllm_omni.diffusion.models.wan2_2.pipeline_wan2_2 import (
 from vllm_omni.diffusion.postprocess import interpolate_video_tensor
 from vllm_omni.diffusion.profiler.diffusion_pipeline_profiler import DiffusionPipelineProfilerMixin
 from vllm_omni.diffusion.request import OmniDiffusionRequest
-from vllm_omni.diffusion.utils.prompt_utils import (
-    validate_prompt_sequence_lengths,
-)
 from vllm_omni.inputs.data import OmniTextPrompt
 from vllm_omni.platforms import current_omni_platform
 
 logger = logging.getLogger(__name__)
 DEBUG_PERF = False
-
-
-def _load_model_index(model: str, local_files_only: bool) -> dict:
-    """Load model_index.json from local path or HF Hub."""
-    if local_files_only:
-        model_index_path = os.path.join(model, "model_index.json")
-        if os.path.exists(model_index_path):
-            import json
-
-            with open(model_index_path) as f:
-                return json.load(f)
-    else:
-        try:
-            import json
-
-            from huggingface_hub import hf_hub_download
-
-            model_index_path = hf_hub_download(model, "model_index.json")
-            with open(model_index_path) as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {}
 
 
 def get_wan22_i2v_post_process_func(
@@ -194,7 +169,10 @@ class Wan22I2VPipeline(
         ]
 
         # Load model_index.json to detect available components
-        model_index = _load_model_index(model, local_files_only)
+        try:
+            model_index = _load_json(model, "model_index.json", local_files_only)
+        except Exception:
+            model_index = {}
 
         # Check if this is a two-stage model (MoE with transformer_2)
         self.has_transformer_2 = "transformer_2" in model_index
@@ -210,23 +188,20 @@ class Wan22I2VPipeline(
                 )
             )
 
+        # Text encoder
+        self.tokenizer = AutoTokenizer.from_pretrained(model, subfolder="tokenizer", local_files_only=local_files_only)
+        self.text_encoder = UMT5EncoderModel.from_pretrained(
+            model, subfolder="text_encoder", torch_dtype=dtype, local_files_only=local_files_only
+        ).to(self.device)
+
         # Image encoder (CLIP) - optional, for Wan2.1-style I2V
         self.has_image_encoder = "image_encoder" in model_index and model_index["image_encoder"][0] is not None
 
         # See ``hub_prefetch.py`` for the transformers v5 subfolder race.
-        # I2V can additionally carry a CLIP image-encoder subfolder, so we
-        # prefetch it conditionally based on what model_index advertises.
-        _i2v_subfolders = ["tokenizer", "text_encoder", "vae"]
+        subfolders = ["tokenizer", "text_encoder", "vae"]
         if self.has_image_encoder:
-            _i2v_subfolders.extend(["image_processor", "image_encoder"])
-        prefetch_subfolders(model, _i2v_subfolders, local_files_only=local_files_only)
-
-        # Text encoder
-        self.tokenizer = AutoTokenizer.from_pretrained(model, subfolder="tokenizer", local_files_only=local_files_only)
-        self.tokenizer_max_length = WAN22_MAX_SEQUENCE_LENGTH
-        self.text_encoder = UMT5EncoderModel.from_pretrained(
-            model, subfolder="text_encoder", torch_dtype=dtype, local_files_only=local_files_only
-        ).to(self.device)
+            subfolders.extend(["image_processor", "image_encoder"])
+        prefetch_subfolders(model, subfolders, local_files_only=local_files_only)
 
         if self.has_image_encoder:
             self.image_processor = CLIPImageProcessor.from_pretrained(
@@ -476,7 +451,6 @@ class Wan22I2VPipeline(
             image_embeds=image_embeds,
             guidance_scale_2=guidance_high if boundary_ratio is not None else None,
             boundary_ratio=boundary_ratio,
-            max_sequence_length=req.sampling_params.max_sequence_length or self.tokenizer_max_length,
         )
 
         # Adjust num_frames to be compatible with VAE temporal scaling
@@ -505,7 +479,7 @@ class Wan22I2VPipeline(
                 negative_prompt=negative_prompt,
                 do_classifier_free_guidance=guidance_low > 1.0 or guidance_high > 1.0,
                 num_videos_per_prompt=req.sampling_params.num_outputs_per_prompt or 1,
-                max_sequence_length=req.sampling_params.max_sequence_length or self.tokenizer_max_length,
+                max_sequence_length=req.sampling_params.max_sequence_length or 512,
                 device=device,
                 dtype=dtype,
             )
@@ -563,6 +537,7 @@ class Wan22I2VPipeline(
         video_processor = VideoProcessor(vae_scale_factor=self.vae_scale_factor_spatial)
 
         if isinstance(image, PIL.Image.Image):
+            image = TF.to_tensor(image).to(device)
             image_tensor = video_processor.preprocess(image, height=height, width=width)
         else:
             image_tensor = image
@@ -571,6 +546,7 @@ class Wan22I2VPipeline(
         # Handle last_image if provided
         if last_image is not None:
             if isinstance(last_image, PIL.Image.Image):
+                image = TF.to_tensor(last_image).to(device)
                 last_image_tensor = video_processor.preprocess(last_image, height=height, width=width)
             else:
                 last_image_tensor = last_image
@@ -708,20 +684,6 @@ class Wan22I2VPipeline(
         prompt = [prompt] if isinstance(prompt, str) else prompt
         prompt_clean = [self._prompt_clean(p) for p in prompt]
         batch_size = len(prompt_clean)
-        text_inputs_untruncated = self.tokenizer(
-            prompt_clean,
-            padding=True,
-            truncation=False,
-            add_special_tokens=True,
-            return_attention_mask=True,
-            return_tensors="pt",
-        )
-        validate_prompt_sequence_lengths(
-            text_inputs_untruncated.attention_mask,
-            max_sequence_length=max_sequence_length,
-            supported_max_sequence_length=self.tokenizer_max_length,
-            error_context="for Wan2.2 text encoding",
-        )
 
         text_inputs = self.tokenizer(
             prompt_clean,
@@ -750,24 +712,8 @@ class Wan22I2VPipeline(
         if do_classifier_free_guidance:
             negative_prompt = negative_prompt or ""
             negative_prompt = batch_size * [negative_prompt] if isinstance(negative_prompt, str) else negative_prompt
-            negative_prompt_clean = [self._prompt_clean(p) for p in negative_prompt]
-            neg_text_inputs_untruncated = self.tokenizer(
-                negative_prompt_clean,
-                padding=True,
-                truncation=False,
-                add_special_tokens=True,
-                return_attention_mask=True,
-                return_tensors="pt",
-            )
-            validate_prompt_sequence_lengths(
-                neg_text_inputs_untruncated.attention_mask,
-                max_sequence_length=max_sequence_length,
-                supported_max_sequence_length=self.tokenizer_max_length,
-                prompt_name="negative_prompt",
-                error_context="for Wan2.2 text encoding",
-            )
             neg_text_inputs = self.tokenizer(
-                negative_prompt_clean,
+                [self._prompt_clean(p) for p in negative_prompt],
                 padding="max_length",
                 max_length=max_sequence_length,
                 truncation=True,
@@ -875,12 +821,14 @@ class Wan22I2VPipeline(
             return latents, latent_condition, first_frame_mask
 
         # Wan2.1 style: create mask and concatenate with condition
-        mask_lat_size = torch.ones(batch_size, 1, num_frames, latent_height, latent_width)
+        mask_lat_size = torch.ones(
+            batch_size, 1, num_frames, latent_height, latent_width, device=latent_condition.device
+        )
 
         if last_image is None:
-            mask_lat_size[:, :, list(range(1, num_frames))] = 0
+            mask_lat_size[:, :, 1:] = 0
         else:
-            mask_lat_size[:, :, list(range(1, num_frames - 1))] = 0
+            mask_lat_size[:, :, 1 : num_frames - 1] = 0
 
         first_frame_mask = mask_lat_size[:, :, 0:1]
         first_frame_mask = torch.repeat_interleave(first_frame_mask, dim=2, repeats=self.vae_scale_factor_temporal)
@@ -909,7 +857,6 @@ class Wan22I2VPipeline(
         image_embeds=None,
         guidance_scale_2=None,
         boundary_ratio=None,
-        max_sequence_length=None,
     ):
         if image is None and image_embeds is None:
             raise ValueError("Provide either `image` or `image_embeds`. Cannot leave both undefined.")
@@ -930,11 +877,6 @@ class Wan22I2VPipeline(
 
         if prompt is None and prompt_embeds is None:
             raise ValueError("Provide either `prompt` or `prompt_embeds`.")
-
-        if max_sequence_length is not None and max_sequence_length > self.tokenizer_max_length:
-            raise ValueError(
-                f"`max_sequence_length` cannot be greater than {self.tokenizer_max_length} but is {max_sequence_length}"
-            )
 
         if boundary_ratio is None and guidance_scale_2 is not None:
             raise ValueError("`guidance_scale_2` is only supported when `boundary_ratio` is set.")

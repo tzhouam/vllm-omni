@@ -8,13 +8,13 @@ import pytest
 import torch
 from diffusers import DiffusionPipeline
 from PIL import Image
-from vllm_omni.diffusion.models.diffusers_adapter import DiffusersAdapterPipeline
 
 from vllm_omni.diffusion.data import (
     DiffusionOutput,
     DiffusionParallelConfig,
     OmniDiffusionConfig,
 )
+from vllm_omni.diffusion.models.diffusers_adapter import DiffusersAdapterPipeline
 from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams
 

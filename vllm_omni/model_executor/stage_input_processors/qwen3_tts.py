@@ -6,6 +6,7 @@ import torch
 from vllm.logger import init_logger
 
 from vllm_omni.model_executor.stage_input_processors.chunk_size_utils import (
+    compute_dynamic_initial_chunk_size,
     max_ic_for_chunk_size,
 )
 from vllm_omni.model_executor.stage_input_processors.tts_utils import (
@@ -178,29 +179,17 @@ def talker2code2wav_async_chunk(
             initial_chunk_size = int(entry.list_data[0])
             per_request_override = True
 
-    # Per-request lifetime IC cache keeps boundaries stable. We previously used
-    # `compute_dynamic_initial_chunk_size` to scale IC with active load, but on
-    # L4 CI with 5 concurrent TTS requests this reliably returned IC=2. That
-    # means the adapter emits every 2 talker frames, feeding Code2Wav a
-    # continuously-growing code window (e.g. [ref_code(101) + codes(2..24)] for
-    # voice-clone, or [codes(2..24)] for CustomVoice). Each such call slices
-    # only 2 frames of NEW audio out of a much larger decoder forward whose
-    # receptive field sees different zero-padding near the slice boundary on
-    # every call (the CUDA-graph decoder pads non-matching sizes with zeros);
-    # those boundary artifacts accumulate into audible distortion —
-    # HNR≈0 dB + garbled Whisper transcript on build 1018 for both the Base
-    # voice-clone path and non-clone streams with several parallel requests.
-    # Force the largest power-of-2-below-chunk_size IC (e.g. 16 for
-    # chunk_size=25) which means at most one IC-phase emit per request; the
-    # remaining emits land on the normal chunk boundary. This trades a small
-    # amount of TTFA latency under low load for stable audio quality.
+    # Dynamic IC: cache per request so boundaries stay stable for its lifetime.
     if not per_request_override:
         _ic_cache = getattr(transfer_manager, "_cached_ic", None)
         if _ic_cache is None:
             _ic_cache = {}
             transfer_manager._cached_ic = _ic_cache
         if request_id not in _ic_cache:
-            _ic_cache[request_id] = max_ic_for_chunk_size(chunk_size)
+            max_ic = max_ic_for_chunk_size(chunk_size)
+            active = sum(1 for v in transfer_manager.code_prompt_token_ids.values() if len(v) > 0)
+            capacity = getattr(transfer_manager, "scheduler_max_num_seqs", 1)
+            _ic_cache[request_id] = compute_dynamic_initial_chunk_size(active, capacity, max_ic)
         initial_chunk_size = _ic_cache[request_id]
 
     if chunk_size <= 0 or left_context_size_config < 0 or initial_chunk_size < 0:
@@ -221,10 +210,6 @@ def talker2code2wav_async_chunk(
 
     if length <= 0:
         if finished:
-            logger.debug(
-                "[tts_async_chunk] tail-flush req=%s length=0 finished=True (empty payload)",
-                request_id,
-            )
             return {
                 "codes": {"audio": []},
                 "meta": {"finished": torch.tensor(True, dtype=torch.bool)},
@@ -263,39 +248,14 @@ def talker2code2wav_async_chunk(
     # distorted audio.  Use `.get()` (not `.pop()`) to keep ref_code for
     # subsequent chunks.
     ref_code = request_payload.get(request_id)
-    ref_frame_count = 0
     if isinstance(ref_code, torch.Tensor) and ref_code.numel() > 0:
         ref_frames = ref_code.tolist()
         window_frames = ref_frames + window_frames
         left_context_size += len(ref_frames)
-        ref_frame_count = len(ref_frames)
 
     num_quantizers = len(window_frames[0])
     num_frames = len(window_frames)
     code_predictor_codes = [window_frames[f][q] for q in range(num_quantizers) for f in range(num_frames)]
-
-    # Per-emission trace kept at DEBUG — build 1018 already pinned the L4
-    # regression to a too-small IC and this field-by-field record was enough
-    # to confirm the fix. Leaving the call in place (just demoted) makes it
-    # cheap to re-enable via VLLM_LOGGING_LEVEL=DEBUG next time streaming
-    # TTS audio quality needs to be triaged.
-    logger.debug(
-        "[tts_async_chunk] emit req=%s length=%d ctx=%d left_ctx=%d "
-        "ref_frames=%d num_frames=%d Q=%d flat_len=%d finished=%s in_initial=%s "
-        "initial_ic=%d chunk_size=%d",
-        request_id,
-        length,
-        context_length,
-        left_context_size,
-        ref_frame_count,
-        num_frames,
-        num_quantizers,
-        len(code_predictor_codes),
-        finished,
-        in_initial_phase,
-        initial_chunk_size,
-        chunk_size,
-    )
 
     info: dict[str, Any] = {
         "codes": {"audio": code_predictor_codes},

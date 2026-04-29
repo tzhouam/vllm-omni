@@ -33,6 +33,7 @@ from vllm.entrypoints.chat_utils import (
     get_history_tool_calls_cnt,
     make_tool_call_id,
 )
+from vllm.entrypoints.launcher import terminate_if_errored
 from vllm.entrypoints.openai.chat_completion.protocol import (
     ChatCompletionNamedToolChoiceParam,
     ChatCompletionRequest,
@@ -81,6 +82,7 @@ from vllm.tokenizers.mistral import (
 from vllm.tool_parsers import ToolParser
 from vllm.tool_parsers.mistral_tool_parser import MistralToolCall
 from vllm.utils.collection_utils import as_list
+from vllm.v1.engine.exceptions import EngineDeadError
 
 from vllm_omni.entrypoints.openai.audio_utils_mixin import AudioMixin
 from vllm_omni.entrypoints.openai.image_api_utils import validate_layered_layers
@@ -309,20 +311,9 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         # effectively unconditioned and produce nonsense images.
         if request.modalities and ("image" in request.modalities):
             try:
-                messages_as_dicts: list[dict[str, Any]] = []
-                for msg in request.messages:
-                    if hasattr(msg, "model_dump"):
-                        messages_as_dicts.append(msg.model_dump())
-                    elif isinstance(msg, dict):
-                        messages_as_dicts.append(msg)
-                    else:
-                        messages_as_dicts.append(
-                            {
-                                "role": getattr(msg, "role", "user"),
-                                "content": getattr(msg, "content", ""),
-                            }
-                        )
-                extracted_prompt, reference_images = self._extract_diffusion_prompt_and_images(messages_as_dicts)
+                extracted_prompt, reference_images = self._extract_diffusion_prompt_and_images_from_messages(
+                    request.messages
+                )
                 if not extracted_prompt:
                     return self.create_error_response("No text prompt found in messages")
 
@@ -333,41 +324,33 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                 extra_body = getattr(request, "extra_body", None)
                 if not extra_body:
                     extra_body = request.model_extra or {}
-                height = extra_body.get("height")
-                width = extra_body.get("width")
+
+                height, width = self._resolve_height_width_from_extra_body(extra_body)
+
                 num_inference_steps = extra_body.get("num_inference_steps")
                 if num_inference_steps is not None:
                     try:
                         num_inference_steps = int(num_inference_steps)
                     except Exception:
                         num_inference_steps = None
-                if "size" in extra_body:
-                    try:
-                        size_str = extra_body["size"]
-                        if isinstance(size_str, str) and "x" in size_str.lower():
-                            w, h = size_str.lower().split("x")
-                            width, height = int(w), int(h)
-                    except Exception:
-                        pass
+
                 negative_prompt = extra_body.get("negative_prompt")
                 cfg_text_scale = extra_body.get("cfg_text_scale")
                 cfg_img_scale = extra_body.get("cfg_img_scale")
 
                 engine_prompt_image: dict[str, Any] | None = None
-                is_img2img = False
                 if reference_images:
                     # Best-effort decode first reference image for i2i.
                     try:
                         img_bytes = base64.b64decode(reference_images[0])
                         img = Image.open(BytesIO(img_bytes))
                         engine_prompt_image = {"img2img": img}
-                        is_img2img = True
                     except Exception:
                         engine_prompt_image = None
 
                 # Override the prompts produced by chat-template preprocessing.
                 tprompt: OmniTextPrompt = {"prompt": extracted_prompt}
-                if is_img2img:
+                if engine_prompt_image:
                     tprompt["modalities"] = ["img2img"]
                 else:
                     tprompt["modalities"] = ["image"]
@@ -383,6 +366,13 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                     tprompt["mm_processor_kwargs"] = mm_processor_kwargs
                 if engine_prompt_image is not None:
                     tprompt["multi_modal_data"] = engine_prompt_image
+                    # Provide multi_modal_uuids so that newer vLLM versions
+                    # can validate multi_modal_data / multi_modal_uuids
+                    # consistency.  After the multimodal processor consumes
+                    # the image data, the uuids remain as a stable reference.
+                    tprompt["multi_modal_uuids"] = {
+                        k: [f"{request_id}-{k}-{i}"] for i, k in enumerate(engine_prompt_image)
+                    }
 
                 engine_prompts = [tprompt]
                 # Store height/width for applying to diffusion stage sampling params later
@@ -457,6 +447,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                 tokenizer,
                 request_metadata,
                 reasoning_parser,
+                raw_request=raw_request,
             )
 
         try:
@@ -554,20 +545,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         # containing image tokens.
         req_modalities = getattr(request, "modalities", [])
         if req_modalities and ("image" in req_modalities):
-            messages_as_dicts: list[dict[str, Any]] = []
-            for msg in messages:
-                if hasattr(msg, "model_dump"):
-                    messages_as_dicts.append(msg.model_dump())
-                elif isinstance(msg, dict):
-                    messages_as_dicts.append(msg)
-                else:
-                    messages_as_dicts.append(
-                        {
-                            "role": getattr(msg, "role", "user"),
-                            "content": getattr(msg, "content", ""),
-                        }
-                    )
-            extracted_prompt, _ = self._extract_diffusion_prompt_and_images(messages_as_dicts)
+            extracted_prompt, _ = self._extract_diffusion_prompt_and_images_from_messages(messages)
             if extracted_prompt:
                 engine_prompt["prompt"] = extracted_prompt
 
@@ -590,6 +568,16 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
             if "additional_information" not in engine_prompt or engine_prompt["additional_information"] is None:
                 engine_prompt["additional_information"] = {}
             engine_prompt["additional_information"]["language"] = [language.strip()]
+
+        # Style instruction — used by Ming-flash-omni instruct TTS path
+        # (ming_task="instruct").  For the omni speech path the thinker2talker
+        # bridge drops this field to match upstream omni_audio_generation
+        # which hardcodes instruction=None.
+        instructions = getattr(request, "instructions", None)
+        if instructions is not None and isinstance(instructions, str) and instructions.strip():
+            if "additional_information" not in engine_prompt or engine_prompt["additional_information"] is None:
+                engine_prompt["additional_information"] = {}
+            engine_prompt["additional_information"]["instruction"] = instructions.strip()
 
         return conversation, [engine_prompt]
 
@@ -740,13 +728,22 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         """
         params = default_params.clone()
 
+        # Only apply fields explicitly provided by user, not protocol defaults.
+        # Pydantic v2 uses `model_fields_set`; keep v1 fallback for compatibility.
+        explicit_fields = getattr(request, "model_fields_set", None)
+        if explicit_fields is None:
+            explicit_fields = getattr(request, "__fields_set__", set())
+
         for field_name in self._OPENAI_SAMPLING_FIELDS:
+            if field_name not in explicit_fields:
+                continue
+
             value = getattr(request, field_name, None)
             if (value is not None and not isinstance(value, list)) or (isinstance(value, list) and len(value) > 0):
                 setattr(params, field_name, value)
 
-        # For GLM-Image, keep target size with the AR sampling params while
-        # leaving max_tokens at the deploy YAML default.
+        # For GLM-Image: compute max_tokens from height/width with mode-aware
+        # budgeting (t2i vs i2i).
         extra_body = getattr(request, "extra_body", {}) or {}
         height, width = self._resolve_height_width_from_extra_body(extra_body)
 
@@ -829,6 +826,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         tokenizer: AnyTokenizer,
         request_metadata: RequestResponseMetadata,
         reasoning_parser: ReasoningParser | None = None,
+        raw_request: Request | None = None,
     ):
         created_time = int(time.time())
         chunk_object_type: Final = "chat.completion.chunk"
@@ -1536,6 +1534,21 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                         delta=False,
                     )
 
+        except EngineDeadError as e:
+            logger.error(
+                "EngineDeadError during streaming for request %s: %s",
+                request_id,
+                e,
+            )
+            data = self.create_streaming_error_response(e)
+            yield f"data: {data}\n\n"
+            # Actively signal shutdown instead of waiting for the watchdog
+            # (5s polling interval).
+            if raw_request is not None:
+                terminate_if_errored(
+                    server=raw_request.app.state.server,
+                    engine=self.engine_client,
+                )
         except Exception as e:
             logger.exception("Error in chat completion stream generator.")
             data = self.create_streaming_error_response(e)
@@ -1616,7 +1629,13 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                 logger.warning(f"Unsupported final output type: {omni_outputs.final_output_type}")
                 continue
             if omni_outputs.metrics:
-                response_metrics = omni_outputs.metrics
+                response_metrics = dict(omni_outputs.metrics)
+            if omni_outputs.final_output_type == "image":
+                # Expose diffusion profiler metrics on the top-level response for benchmarks / clients.
+                if response_metrics is None:
+                    response_metrics = {}
+                response_metrics.setdefault("stage_durations", omni_outputs.stage_durations or {})
+                response_metrics.setdefault("peak_memory_mb", float(omni_outputs.peak_memory_mb or 0.0))
             choices.extend(choices_data)
 
         response = OmniChatCompletionResponse(
@@ -1910,7 +1929,8 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         final_res = omni_outputs.request_output
         # OMNI: Access multimodal_output from CompletionOutput (outputs[0]), not from RequestOutput
         # Reference: examples/offline_inference/qwen3_omni/end2end.py line 421
-        audio_data = final_res.outputs[0].multimodal_output.get("audio")
+        mm_output = final_res.outputs[0].multimodal_output
+        audio_data = mm_output.get("audio")
         if isinstance(audio_data, list):
             if stream:
                 audio_tensor = audio_data[-1]
@@ -1924,9 +1944,20 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         if audio_tensor.ndim > 1:
             audio_tensor = audio_tensor.flatten()
 
+        # Prefer the talker-reported sample rate when present. Qwen3-Omni
+        # omits "sr" and runs at 24kHz; Ming-flash-omni surfaces a 44.1kHz
+        # AudioVAE rate via multimodal_output["sr"].
+        sr_raw = mm_output.get("sr")
+        if sr_raw is None:
+            sample_rate = 24000
+        elif hasattr(sr_raw, "item"):
+            sample_rate = int(sr_raw.item())
+        else:
+            sample_rate = int(sr_raw)
+
         audio_obj = CreateAudio(
             audio_tensor=audio_tensor,
-            sample_rate=24000,
+            sample_rate=sample_rate,
             response_format="wav",
             speed=1.0,
             stream_format="audio",

@@ -261,26 +261,29 @@ def _convert_dataclasses_to_dict(obj: Any) -> Any:
 def _try_resolve_omni_model_type(model: str) -> str | None:
     """Try to resolve model_type for omni models with empty config.json.
 
-    Checks if any registered omni stage config file name matches a substring
-    in the model name (e.g. 'cosyvoice3' in 'FunAudioLLM/Fun-CosyVoice3-0.5B-2512').
-    When multiple configs match, the longest stem wins to avoid ambiguity
-    (e.g. 'bagel_single_stage' over 'bagel').
+    Searches both the legacy ``stage_configs/*.yaml`` directory and the
+    migrated ``deploy/*.yaml`` directory for a stem that substring-matches
+    the model path (e.g. ``cosyvoice3`` in
+    ``FunAudioLLM/Fun-CosyVoice3-0.5B-2512``). The longest match wins so
+    ``cosyvoice3`` beats ``cosyvoice`` and ``bagel_single_stage`` beats
+    ``bagel``.
     """
-    stage_configs_dir = PROJECT_ROOT / "vllm_omni" / "model_executor" / "stage_configs"
-    if not stage_configs_dir.exists():
-        return None
     model_lower = model.lower().replace("-", "").replace("_", "")
     best_match: str | None = None
     best_len = 0
-    for config_file in sorted(stage_configs_dir.glob("*.yaml")):
-        candidate = config_file.stem.replace("-", "").replace("_", "")
-        if candidate in model_lower and len(candidate) > best_len:
-            best_match = config_file.stem
-            best_len = len(candidate)
+    for subdir in ("model_executor/stage_configs", "deploy"):
+        config_dir = PROJECT_ROOT / "vllm_omni" / subdir
+        if not config_dir.exists():
+            continue
+        for config_file in sorted(config_dir.glob("*.yaml")):
+            candidate = config_file.stem.replace("-", "").replace("_", "")
+            if candidate and candidate in model_lower and len(candidate) > best_len:
+                best_match = config_file.stem
+                best_len = len(candidate)
     return best_match
 
 
-def resolve_model_config_path(model: str) -> str | None:
+def resolve_model_config_path(model: str) -> str:
     """Resolve the stage config file path from the model name.
 
     Resolves stage configuration path based on the model type and device type.
@@ -291,17 +294,11 @@ def resolve_model_config_path(model: str) -> str | None:
         model: Model name or path (used to determine model_type)
 
     Returns:
-        Absolute path to the stage configuration YAML, or None if the model type
-        cannot be determined from available config files (callers may supply a
-        default stage config instead).
+        String path to the stage configuration file
 
-    Notes:
-        Returns None (rather than raising) when a diffusers model_index.json is
-        available but ``_class_name`` cannot be extracted (e.g. the Hub fetch
-        fails, the repo is gated without HF_TOKEN, or the pipeline class is not
-        yet mapped to a stage YAML). Callers like
-        ``load_and_resolve_stage_configs`` then fall back to
-        ``default_stage_cfg_factory`` (e.g. default diffusion stage config).
+    Raises:
+        ValueError: If model_type cannot be determined
+        FileNotFoundError: If no stage config file exists for the model type
     """
     # Try to get config from standard transformers format first
     try:
@@ -312,18 +309,10 @@ def resolve_model_config_path(model: str) -> str | None:
         if file_or_path_exists(model, "model_index.json", revision=None):
             model_type = _try_get_class_name_from_diffusers_config(model)
             if model_type is None:
-                # model_index.json is present but ``_class_name`` cannot be
-                # resolved (e.g. Hub fetch failed / gated repo without token).
-                # Fall back to default stage config factory instead of failing
-                # hard, so diffusion pipelines without a dedicated YAML (e.g.
-                # StableAudioPipeline) still load via the default diffusion
-                # stage cfg builder.
-                logger.warning(
-                    "Could not determine _class_name from model_index.json for diffusers model '%s'. "
-                    "Falling back to default stage config factory.",
-                    model,
+                raise ValueError(
+                    f"Could not determine model_type for diffusers model: {model}. "
+                    f"Please ensure the model has 'model_type' in transformer/config.json or model_index.json"
                 )
-                return None
         elif file_or_path_exists(model, "config.json", revision=None):
             # Try to read config.json manually for custom models like Bagel that fail get_config
             # but have a valid config.json with model_type
@@ -340,9 +329,11 @@ def resolve_model_config_path(model: str) -> str | None:
             except Exception as e:
                 raise ValueError(f"Failed to read config.json for model: {model}. Error: {e}") from e
         else:
-            # No usable HF metadata locally / offline: allow load_and_resolve_stage_configs
-            # and similar callers to fall back to default_stage_cfg_factory.
-            return None
+            raise ValueError(
+                f"Could not determine model_type for model: {model}. "
+                f"Model is not in standard transformers format and does not have model_index.json. "
+                f"Please ensure the model has proper configuration files with 'model_type' field"
+            )
 
     default_config_path = current_omni_platform.get_default_stage_config_path()
     if model_type in _DIFFUSERS_CLASS_TO_CONFIG:

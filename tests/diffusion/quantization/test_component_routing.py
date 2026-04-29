@@ -10,7 +10,6 @@ from vllm.model_executor.layers.quantization.base_config import (
     QuantizationConfig,
 )
 from vllm.model_executor.models.utils import WeightsMapper
-from vllm_omni.quantization.inc_config import OmniINCConfig
 
 from vllm_omni.model_executor.models.qwen3_omni.qwen3_omni_moe_thinker import (
     PRE_QUANTIZED_METHODS,
@@ -18,6 +17,7 @@ from vllm_omni.model_executor.models.qwen3_omni.qwen3_omni_moe_thinker import (
 from vllm_omni.quantization.component_config import (
     ComponentQuantizationConfig,
 )
+from vllm_omni.quantization.inc_config import OmniINCConfig
 
 pytestmark = [pytest.mark.core_model]
 

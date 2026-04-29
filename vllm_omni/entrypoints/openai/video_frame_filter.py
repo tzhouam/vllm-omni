@@ -70,7 +70,7 @@ class FrameSimilarityFilter:
             return True
 
         similarity = self._compute_similarity(self._last_retained, current)
-        if similarity > self._threshold:
+        if similarity >= self._threshold:
             self._dropped_count += 1
             return False
 
@@ -101,13 +101,9 @@ class FrameSimilarityFilter:
 
     @staticmethod
     def _compute_similarity(a: np.ndarray, b: np.ndarray) -> float:
-        """Normalised pixel similarity in [0, 1].  1 = identical.
-
-        Uses RMSE scaled to a 20-luma near-duplicate band so that only
-        visually near-identical frames produce high similarity scores.
-        """
-        rmse = float(np.sqrt(np.mean((a.astype(np.float32) - b.astype(np.float32)) ** 2)))
-        return max(0.0, 1.0 - rmse / 20.0)
+        """Normalised pixel similarity in [0, 1].  1 = identical."""
+        mse = float(np.mean((a.astype(np.float32) - b.astype(np.float32)) ** 2))
+        return 1.0 - mse / (255.0 * 255.0)
 
     def _decode_and_resize(self, jpeg_bytes: bytes) -> np.ndarray:
         """Decode JPEG and resize to a small square thumbnail for fast
