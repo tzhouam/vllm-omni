@@ -422,6 +422,10 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
 
         # In-memory LRU cache for voice extraction artifacts (Base voice clone).
         self._voice_cache = VoiceEmbeddingCache()
+        raw_subtalker_sampling = getattr(vllm_config.model_config, "subtalker_sampling_params", None)
+        self._subtalker_sampling_params: dict[str, Any] = (
+            dict(raw_subtalker_sampling) if isinstance(raw_subtalker_sampling, Mapping) else {}
+        )
 
     # -------------------- vLLM required hooks --------------------
 
@@ -1135,21 +1139,6 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
         preprocessor_config_path = cached_file(self.model_path, "speech_tokenizer/preprocessor_config.json")
         if preprocessor_config_path is None:
             raise ValueError(f"{self.model_path}/speech_tokenizer/preprocessor_config.json not found")
-        # Eagerly fetch the speech tokenizer weights into the snapshot dir.
-        # vLLM's main weight loader only pulls top-level model shards, so the
-        # subfolder would otherwise be missing model.safetensors / pytorch_model.bin
-        # and AutoModel.from_pretrained(local_dir) would fail without falling back
-        # to the Hub.
-        for _candidate in ("model.safetensors", "pytorch_model.bin"):
-            try:
-                if cached_file(
-                    self.model_path,
-                    f"speech_tokenizer/{_candidate}",
-                    _raise_exceptions_for_missing_entries=False,
-                ):
-                    break
-            except Exception:
-                continue
         speech_tokenizer_dir = os.path.dirname(speech_tokenizer_path)
         tok = Qwen3TTSTokenizer.from_pretrained(
             speech_tokenizer_dir,
@@ -1691,15 +1680,24 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
             audio_codes = input_ids.reshape(bsz, 1)
             return (last_id_hidden + text_step).reshape(bsz, -1), audio_codes
 
-        # Predict residual codes (1..Q-1) with HF reference sampling params.
+        subtalker_params = self._subtalker_sampling_params
+        if do_sample is None:
+            do_sample = bool(subtalker_params.get("do_sample", True))
+        if temperature is None:
+            temperature = float(subtalker_params.get("temperature", 0.9))
+        if top_k is None:
+            top_k = int(subtalker_params.get("top_k", 50))
+        if top_p is None:
+            top_p = float(subtalker_params.get("top_p", 1.0))
+
         audio_codes = self.code_predictor(
             layer0_code=input_ids.reshape(bsz, 1),
             layer0_embed=last_id_hidden,
             last_talker_hidden=past_hidden,
-            do_sample=True,
-            temperature=0.9,
-            top_k=50,
-            top_p=1.0,
+            do_sample=do_sample,
+            temperature=temperature,
+            top_k=top_k,
+            top_p=top_p,
         )  # [B, Q]
 
         # Map invalid layer-0 ids (e.g. EOS) to PAD=0 so SpeechTokenizer sees only real codes.

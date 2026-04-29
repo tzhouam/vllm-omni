@@ -265,3 +265,6 @@ vllm_omni/_version.py
 *.wav
 # CI overlay yamls materialized from tests/utils.py:_CI_OVERLAYS at test time
 tests/.ci_generated/
+
+# Auto-generated stage config artifacts with timestamp suffixes.
+vllm_omni/model_executor/stage_configs/*_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]*.yaml
