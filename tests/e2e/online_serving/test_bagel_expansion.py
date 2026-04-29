@@ -20,6 +20,8 @@ import pytest
 from tests.helpers.mark import hardware_marks
 from tests.helpers.runtime import OmniServer, OmniServerParams, OpenAIClientHandler, dummy_messages_from_mix_data
 
+pytestmark = [pytest.mark.diffusion, pytest.mark.full_model]
+
 PROMPT = "A futuristic city skyline at twilight, cyberpunk style, ultra-detailed, high resolution."
 NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, watermark"
 
@@ -122,8 +124,6 @@ def _get_diffusion_feature_cases(model: str):
     ]
 
 
-@pytest.mark.advanced_model
-@pytest.mark.diffusion
 @pytest.mark.parametrize(
     "omni_server",
     _get_diffusion_feature_cases("ByteDance-Seed/BAGEL-7B-MoT"),
@@ -144,7 +144,7 @@ def test_bagel(
     - Ring-Attention (degree=2)
     - Layerwise Offloading
 
-    Validation is delegated to assert_diffusion_response in tests.conftest,
+    Validation is delegated to assert_diffusion_response in tests/helpers/assertions.py,
     which checks output dimensions and basic correctness.
     """
 

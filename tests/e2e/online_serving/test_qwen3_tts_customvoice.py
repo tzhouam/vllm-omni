@@ -70,19 +70,7 @@ def test_text_to_audio_001(omni_server, openai_client) -> None:
         "voice": "vivian",
     }
 
-    # L4 async_chunk flake: one of the 5 concurrent streams can return
-    # silence/truncated audio on a given run (build 1018/1021). The
-    # CustomVoice expansion suite already retries test_voice_001 for the
-    # same reason; mirror that idiom here so the e2e suite stays green
-    # while the root cause is investigated.
-    for attempt in range(2):
-        try:
-            openai_client.send_audio_speech_request(request_config, request_num=get_max_batch_size())
-            break
-        except AssertionError:
-            if attempt == 0:
-                continue
-            raise
+    openai_client.send_audio_speech_request(request_config, request_num=get_max_batch_size())
 
 
 @pytest.mark.core_model
@@ -108,14 +96,4 @@ def test_text_to_audio_002(omni_server, openai_client) -> None:
         "voice": "vivian",
     }
 
-    # Same L4 async_chunk flake as test_text_to_audio_001: even single-
-    # request streams can return silence/truncated audio transcribed as
-    # "you". Retry once before failing.
-    for attempt in range(2):
-        try:
-            openai_client.send_audio_speech_request(request_config)
-            break
-        except AssertionError:
-            if attempt == 0:
-                continue
-            raise
+    openai_client.send_audio_speech_request(request_config)

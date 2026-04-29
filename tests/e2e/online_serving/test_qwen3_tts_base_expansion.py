@@ -9,14 +9,16 @@ actual model inference, not mocks.
 
 import os
 
-os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
-os.environ["VLLM_TEST_CLEAN_GPU_MEMORY"] = "0"
-
 import pytest
 
 from tests.helpers.mark import hardware_test
 from tests.helpers.runtime import OmniServerParams
 from tests.helpers.stage_config import get_deploy_config_path
+
+pytestmark = [pytest.mark.full_model, pytest.mark.omni]
+
+os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
+os.environ["VLLM_TEST_CLEAN_GPU_MEMORY"] = "0"
 
 MODEL = "Qwen/Qwen3-TTS-12Hz-0.6B-Base"
 
@@ -61,9 +63,6 @@ tts_server_params = [
 ]
 
 
-@pytest.mark.advanced_model
-@pytest.mark.core_model
-@pytest.mark.omni
 @hardware_test(res={"cuda": "L4"}, num_cards=1)
 @pytest.mark.parametrize("omni_server", tts_server_params, indirect=True)
 def test_voice_clone_streaming_001(omni_server, openai_client) -> None:
@@ -86,27 +85,9 @@ def test_voice_clone_streaming_001(omni_server, openai_client) -> None:
         "ref_audio": REF_AUDIO_URL,
         "ref_text": REF_TEXT,
     }
-
-    # L4 CI has an intermittent async_chunk regression on the Base-0.6B
-    # voice-clone path where one of the 5 concurrent streams occasionally
-    # produces silence/truncated audio that Whisper transcribes as "you"
-    # (see build 1018/1021). The same retry idiom is used by the CustomVoice
-    # expansion tests. Retry once before failing so the test matches the
-    # real-world behaviour we ship with streaming clients (which also retry
-    # transient TTS flakes).
-    for attempt in range(2):
-        try:
-            openai_client.send_audio_speech_request(request_config, request_num=get_max_batch_size("few"))
-            break
-        except AssertionError:
-            if attempt == 0:
-                continue
-            raise
+    openai_client.send_audio_speech_request(request_config, request_num=get_max_batch_size("few"))
 
 
-@pytest.mark.advanced_model
-@pytest.mark.core_model
-@pytest.mark.omni
 @hardware_test(res={"cuda": "L4"}, num_cards=1)
 @pytest.mark.parametrize("omni_server", tts_server_params, indirect=True)
 def test_response_format_001(omni_server, openai_client) -> None:
@@ -128,15 +109,4 @@ def test_response_format_001(omni_server, openai_client) -> None:
         "ref_audio": REF_AUDIO_URL,
         "ref_text": REF_TEXT,
     }
-
-    # Same L4 async_chunk flake as test_voice_clone_streaming_001: the raw
-    # PCM response occasionally decodes to DC silence (HNR≈0 dB). Retry
-    # once to match the streaming-client fallback behaviour.
-    for attempt in range(2):
-        try:
-            openai_client.send_audio_speech_request(request_config)
-            break
-        except AssertionError:
-            if attempt == 0:
-                continue
-            raise
+    openai_client.send_audio_speech_request(request_config)
