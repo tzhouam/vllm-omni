@@ -670,51 +670,35 @@ async def omni_init_app_state(
     )
     lora_modules = process_lora_modules(args.lora_modules, default_mm_loras)
 
-    # Ensure input_processor, io_processor, and model_config exist for OpenAIServingModels compatibility
+    # Ensure `input_processor` and `model_config` exist on the engine client
+    # for OpenAIServingModels compatibility.
+    #
+    # vLLM 0.20 dropped the `io_processor` kwarg from OpenAIServingRender and
+    # neither `vllm.entrypoints.openai.*` nor `vllm.entrypoints.serve.*` reads
+    # `engine_client.io_processor` anymore, so we no longer need to back-fill
+    # it here. AsyncOmni still sets `self.io_processor` in its own __init__
+    # for any vllm-omni internal callers that rely on it.
     if (
         not hasattr(engine_client, "input_processor")
         or engine_client.input_processor is None
-        or not hasattr(engine_client, "io_processor")
-        or engine_client.io_processor is None
         or not hasattr(engine_client, "model_config")
         or engine_client.model_config is None
     ):
         if vllm_config is not None:
-            # Try to initialize processors if vllm_config is available
             try:
-                from vllm.plugins.io_processors import get_io_processor
                 from vllm.v1.engine.input_processor import InputProcessor
 
                 tokenizer = await engine_client.get_tokenizer()
                 if tokenizer is not None:
-                    # Initialize input_processor
                     if not hasattr(engine_client, "input_processor") or engine_client.input_processor is None:
                         engine_client.input_processor = InputProcessor(
                             vllm_config=vllm_config,
                         )
                         logger.info("Initialized input_processor for AsyncOmni")
 
-                    # Initialize model_config
                     if not hasattr(engine_client, "model_config") or engine_client.model_config is None:
                         engine_client.model_config = vllm_config.model_config
                         logger.info("Initialized model_config for AsyncOmni")
-
-                    # Initialize io_processor
-                    if not hasattr(engine_client, "io_processor") or engine_client.io_processor is None:
-                        model_config = (
-                            engine_client.model_config
-                            if hasattr(engine_client, "model_config")
-                            else vllm_config.model_config
-                        )
-                        io_processor_plugin = model_config.io_processor_plugin
-                        renderer = getattr(engine_client, "renderer", None)
-                        if renderer is None:
-                            from vllm.renderers import renderer_from_config
-
-                            renderer = renderer_from_config(vllm_config)
-                            engine_client.renderer = renderer
-                        engine_client.io_processor = get_io_processor(vllm_config, renderer, io_processor_plugin)
-                        logger.info("Initialized io_processor for AsyncOmni")
                 else:
                     logger.warning("Cannot initialize processors: tokenizer is None. OpenAIServingModels may fail.")
             except Exception as e:
@@ -732,9 +716,12 @@ async def omni_init_app_state(
     )
     await state.openai_serving_models.init_static_loras()
 
-    # NOTE: vLLM 0.20 dropped the `io_processor` kwarg from
-    # OpenAIServingRender. The processor stays on `engine_client` (initialized
-    # above) and downstream serving classes read it from there.
+    # NOTE: kept aligned with vllm 0.20 `init_app_state`:
+    # - dropped the `io_processor` kwarg (no longer accepted by 0.20);
+    #   io_processor stays on `engine_client` and downstream serving classes
+    #   read it from there.
+    # - pass `reasoning_parser` so render-time `adjust_request` runs for
+    #   reasoning models (matches `vllm.entrypoints.openai.api_server`).
     state.openai_serving_render = OpenAIServingRender(
         model_config=engine_client.model_config,
         renderer=engine_client.renderer,
@@ -746,6 +733,7 @@ async def omni_init_app_state(
         enable_auto_tools=args.enable_auto_tool_choice,
         exclude_tools_when_tool_choice_none=args.exclude_tools_when_tool_choice_none,
         tool_parser=args.tool_call_parser,
+        reasoning_parser=args.structured_outputs_config.reasoning_parser,
         default_chat_template_kwargs=args.default_chat_template_kwargs,
         log_error_stack=args.log_error_stack,
     )
