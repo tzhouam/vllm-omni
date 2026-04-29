@@ -588,43 +588,21 @@ class FlowUniPCMultistepScheduler(SchedulerMixin, ConfigMixin, BaseScheduler):
         return x_t
 
     def index_for_timestep(self, timestep: torch.Tensor, schedule_timesteps: torch.Tensor | None = None) -> int:
-        """Get the index for a given timestep.
-
-        Performs the ``==`` comparison on CPU to avoid surfacing unrelated
-        asynchronous CUDA errors (e.g. from an earlier kernel with layer-wise
-        offload or CFG-parallel all-reduce) at this sync point, and to prevent
-        device mismatches when ``schedule_timesteps`` and ``timestep`` live on
-        different devices (observed under Wan2.2 cache_dit + layerwise offload
-        which may migrate ``self.timesteps`` off-GPU between steps).
-        """
+        """Get the index for a given timestep."""
         if schedule_timesteps is None:
             schedule_timesteps = self.timesteps
 
-        schedule_cpu = schedule_timesteps.detach().to("cpu")
-        if isinstance(timestep, torch.Tensor):
-            timestep_cpu = timestep.detach().to("cpu")
-        else:
-            timestep_cpu = torch.tensor(timestep, dtype=schedule_cpu.dtype)
-
-        indices = (schedule_cpu == timestep_cpu).nonzero()
-        if len(indices) == 0:
-            # Fallback: clamp to last valid step; mirrors diffusers' behaviour
-            # and avoids an IndexError if a numerically perturbed timestep
-            # misses the exact schedule value.
-            return len(schedule_cpu) - 1
-
+        indices = (schedule_timesteps == timestep).nonzero()
         pos = 1 if len(indices) > 1 else 0
-        step_index: int = int(indices[pos].item())
+        step_index: int = indices[pos].item()
 
         return step_index
 
     def _init_step_index(self, timestep: torch.Tensor) -> None:
         """Initialize the step_index counter for the scheduler."""
         if self.begin_index is None:
-            # index_for_timestep now performs the comparison on CPU so we do
-            # not need to migrate ``timestep`` onto ``self.timesteps.device``
-            # up-front; keeping it as-is also avoids an extra H2D/D2H round
-            # trip when ``timestep`` is already a CPU scalar.
+            if isinstance(timestep, torch.Tensor):
+                timestep = timestep.to(self.timesteps.device)
             self._step_index = self.index_for_timestep(timestep)
         else:
             self._step_index = self._begin_index
