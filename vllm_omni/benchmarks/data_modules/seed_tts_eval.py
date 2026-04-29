@@ -399,17 +399,32 @@ def _transcribe_en_f32_16k(wav_f32: np.ndarray) -> str:
         return ""
     with _lock:
         assert _en_processor is not None and _en_model is not None and _device is not None
-        inputs = _en_processor(wav_f32, sampling_rate=16000, return_tensors="pt")
+        try:
+            inputs = _en_processor(
+                wav_f32,
+                sampling_rate=16000,
+                return_tensors="pt",
+                return_attention_mask=True,
+            )
+        except TypeError:
+            inputs = _en_processor(wav_f32, sampling_rate=16000, return_tensors="pt")
         input_features = inputs.input_features.to(_device)
+        attention_mask = getattr(inputs, "attention_mask", None)
+        if attention_mask is None and isinstance(inputs, dict):
+            attention_mask = inputs.get("attention_mask")
+        generate_kwargs: dict[str, Any] = {}
+        if attention_mask is not None:
+            generate_kwargs["attention_mask"] = attention_mask.to(_device)
         with torch.no_grad():
             try:
                 forced = _en_processor.get_decoder_prompt_ids(language="english", task="transcribe")
-                predicted_ids = _en_model.generate(input_features, forced_decoder_ids=forced)
+                predicted_ids = _en_model.generate(input_features, forced_decoder_ids=forced, **generate_kwargs)
             except Exception:
                 predicted_ids = _en_model.generate(
                     input_features,
                     language="english",
                     task="transcribe",
+                    **generate_kwargs,
                 )
         text = _en_processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
     return (text or "").strip()
