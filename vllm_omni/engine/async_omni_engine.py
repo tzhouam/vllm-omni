@@ -805,6 +805,7 @@ class AsyncOmniEngine:
                                 else:
                                     use_inline = True if self.num_stages == 1 else False
                                     stage_clients[stage_idx] = initialize_diffusion_stage(
+                                        configured_stage_id,
                                         self.model,
                                         stage_cfg,
                                         metadata,
