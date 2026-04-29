@@ -2,7 +2,7 @@ steps:
   - label: "Build and upload wheel"
     key: "build-wheel"
     agents:
-      queue: cpu_queue_premerge
+      queue: cpu_queue_release
     commands:
       - "curl -LsSf https://astral.sh/uv/install.sh | sh"
       - 'export PATH="$HOME/.local/bin:$PATH"'
@@ -15,6 +15,6 @@ steps:
     depends_on: "build-wheel"
     allow_dependency_failure: true
     agents:
-      queue: small_cpu_queue_premerge
+      queue: small_cpu_queue_release
     commands:
       - "bash .buildkite/scripts/generate-and-upload-nightly-index.sh"
