@@ -489,8 +489,8 @@ class Qwen3OmniMoeModel(Qwen3MoeLLMForCausalLM):
     """
     Qwen3 Omni MoE Talker language model.
 
-    Extends Qwen3MoeLLMForCausalLM (which already uses SharedFusedMoE with
-    shared-expert support) and replaces the text embedding / LM head with a
+    Extends Qwen3MoeLLMForCausalLM (which already uses FusedMoE with
+    shared-expert support in vLLM 0.20) and replaces the text embedding / LM head with a
     codec embedding so the talker operates over audio-codec tokens instead
     of text tokens.
     """
