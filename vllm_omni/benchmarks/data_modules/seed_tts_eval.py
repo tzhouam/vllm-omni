@@ -351,6 +351,7 @@ def _ensure_en_asr() -> None:
     with _lock:
         if _en_processor is not None:
             return
+        import torch
         from transformers import WhisperForConditionalGeneration, WhisperProcessor
 
         _device = _get_eval_device()
@@ -361,7 +362,13 @@ def _ensure_en_asr() -> None:
             _device,
         )
         _en_processor = WhisperProcessor.from_pretrained(mid)
-        _en_model = WhisperForConditionalGeneration.from_pretrained(mid).to(_device)
+        # Force float32 weights/bias to match `_transcribe_en_f32_16k`'s fp32 protocol
+        # and `WhisperProcessor`'s default fp32 ``input_features``. transformers >=5.x
+        # honors ``model.config.torch_dtype`` in ``from_pretrained``, and
+        # ``openai/whisper-large-v3`` ships ``torch_dtype: float16`` in its config —
+        # without this override conv1 raises
+        # ``RuntimeError: Input type (float) and bias type (c10::Half) should be the same``.
+        _en_model = WhisperForConditionalGeneration.from_pretrained(mid, torch_dtype=torch.float32).to(_device)
         _en_model.eval()
 
 
