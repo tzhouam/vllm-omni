@@ -24,11 +24,8 @@ from vllm_omni.distributed.omni_connectors.connectors.mooncake_transfer_engine_c
     TransferEngine,
 )
 
-pytestmark = [
-    pytest.mark.parallel,
-    pytest.mark.core_model,
-    pytest.mark.skipif(TransferEngine is None, reason="Mooncake TransferEngine not installed"),
-]
+# All tests in this file require Mooncake TransferEngine and an RDMA environment.
+pytestmark = [pytest.mark.parallel, pytest.mark.core_model]
 
 # ---------------------------------------------------------------------------
 # Shared helpers
