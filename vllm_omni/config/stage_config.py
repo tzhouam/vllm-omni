@@ -48,15 +48,18 @@ def build_stage_runtime_overrides(
 ) -> dict[str, Any]:
     """Build per-stage runtime overrides from global and ``stage_<id>_*`` kwargs.
 
-    ``internal_keys`` defaults to the set derived from ``OrchestratorArgs``
-    (via ``arg_utils.internal_blacklist_keys``) so that orchestrator
-    fields are never forwarded as per-stage engine args. Callers can pass an
-    explicit set for tests or specialized flows.
+    ``internal_keys`` defaults to the union of
+    ``arg_utils.internal_blacklist_keys()`` and ``arg_utils.SHARED_FIELDS``
+    so that neither orchestrator-only fields nor shared-pipeline fields
+    (``model`` / ``stage_configs_path`` / ``log_stats`` / ``stage_id``) leak
+    into a stage's per-stage runtime overrides — the orchestrator sets those
+    uniformly for every stage, they are not per-stage knobs. Callers can
+    pass an explicit set for tests or specialized flows.
     """
     if internal_keys is None:
-        from vllm_omni.engine.arg_utils import internal_blacklist_keys
+        from vllm_omni.engine.arg_utils import SHARED_FIELDS, internal_blacklist_keys
 
-        internal_keys = internal_blacklist_keys()
+        internal_keys = internal_blacklist_keys() | SHARED_FIELDS
 
     result: dict[str, Any] = {}
 
@@ -175,6 +178,12 @@ class StagePipelineConfig:
     prompt_expand_func: str | None = None
     cfg_kv_collect_func: str | None = None
     omni_kv_config: dict[str, Any] | None = None
+    # Model subdirectory indirections: for multi-component HF repos where the
+    # stage's config/tokenizer lives in a subdirectory (e.g. GLM-Image's AR
+    # config is in ``vision_language_encoder/``).  Consumed at stage-init time
+    # by ``stage_init_utils._resolve_model_tokenizer_paths``.
+    model_subdir: str | None = None
+    tokenizer_subdir: str | None = None
     extras: dict[str, Any] = field(default_factory=dict)
 
 
@@ -191,6 +200,11 @@ class PipelineConfig:
     # matches ``hf_config.architectures[*]`` against this tuple to route
     # to the correct pipeline. Leave empty for models with unique model_type.
     hf_architectures: tuple[str, ...] = ()
+    # Diffusers pipeline class name: for models that ship a ``model_index.json``
+    # (no root ``config.json``), the ``_class_name`` field is matched against
+    # this value to auto-detect the pipeline.  Only needed for diffusers-style
+    # multi-component repos (e.g. GLM-Image).  ``None`` = not a diffusers model.
+    diffusers_class_name: str | None = None
 
     def get_stage(self, stage_id: int) -> StagePipelineConfig | None:
         """Look up a stage by its ID."""
@@ -399,6 +413,7 @@ class StageDeployConfig:
     output_connectors: dict[str, str] | None = None
     input_connectors: dict[str, str] | None = None
     default_sampling_params: dict[str, Any] | None = None
+    subtalker_sampling_params: dict[str, Any] | None = None
     engine_extras: dict[str, Any] = field(default_factory=dict)
 
 
@@ -469,7 +484,7 @@ def _parse_stage_deploy(stage_data: dict[str, Any]) -> StageDeployConfig:
     return StageDeployConfig(**kwargs)
 
 
-_DEEP_MERGE_KEYS = frozenset({"default_sampling_params", "engine_extras", "engine_args"})
+_DEEP_MERGE_KEYS = frozenset({"default_sampling_params", "subtalker_sampling_params", "engine_extras", "engine_args"})
 
 
 def _deep_merge_stage(base: dict, overlay: dict) -> dict:
@@ -692,6 +707,13 @@ def _build_engine_args(
         engine_args["engine_output_type"] = ps.engine_output_type
     if next_stage_proc:
         engine_args["custom_process_next_stage_input_func"] = next_stage_proc
+    # Subdirectory indirections from StagePipelineConfig (structural, not
+    # deployment knobs).  Deploy YAML ``engine_extras`` can still override
+    # these per-stage if needed.
+    if ps.model_subdir:
+        engine_args["model_subdir"] = ps.model_subdir
+    if ps.tokenizer_subdir:
+        engine_args["tokenizer_subdir"] = ps.tokenizer_subdir
 
     # Pipeline-wide top-level DeployConfig settings, applied to every stage.
     for name in _PIPELINE_WIDE_ENGINE_FIELDS:
@@ -956,37 +978,14 @@ class ModelPipeline:
         return errors
 
 
-def _discover_all_pipelines() -> None:
-    """Import every ``models/<dir>/pipeline.py`` once to populate the registry.
-
-    Each pipeline.py is expected to call ``register_pipeline(PipelineConfig(...))``
-    at import time. This function walks the models directory and imports any
-    pipeline.py it finds — contributors only need to drop a new pipeline.py
-    in their model's directory for the factory to pick it up.
-
-    Idempotent: Python's module cache ensures subsequent calls are no-ops.
-    """
-    if not _MODELS_DIR.exists():
-        return
-    for subdir in sorted(_MODELS_DIR.iterdir()):
-        if not subdir.is_dir():
-            continue
-        if not (subdir / "pipeline.py").exists():
-            continue
-        module_path = f"vllm_omni.model_executor.models.{subdir.name}.pipeline"
-        try:
-            __import__(module_path)
-        except Exception as exc:
-            logger.debug("Skipping pipeline module %s: %s", module_path, exc)
-
-
 class StageConfigFactory:
     """Factory that loads pipeline YAML and merges CLI overrides.
 
     Handles both single-stage and multi-stage models.
 
     Pipelines are declared in ``vllm_omni/config/pipeline_registry.py`` and
-    loaded lazily via ``_PIPELINE_REGISTRY``. Models with generic HF
+    loaded lazily via ``_PIPELINE_REGISTRY``; no hardcoded model-type →
+    directory mapping is maintained here. Models with generic HF
     ``model_type`` collisions (e.g. MiMo Audio reports ``qwen2``) should
     declare ``hf_architectures=(...)`` on their ``PipelineConfig`` so the
     factory can disambiguate via ``hf_config.architectures``.
@@ -1362,10 +1361,52 @@ class StageConfigFactory:
             from vllm.transformers_utils.config import get_hf_file_to_dict
 
             config_dict = get_hf_file_to_dict("config.json", model, revision=None)
-            if config_dict and "model_type" in config_dict:
-                return config_dict["model_type"], None
+            if config_dict:
+                if "model_type" in config_dict:
+                    return config_dict["model_type"], None
+                # VoxCPM2-style configs use singular ``architecture`` rather
+                # than HF's standard ``model_type`` / ``architectures``. Accept
+                # it as a fallback so the pipeline registry can still match.
+                if "architecture" in config_dict and isinstance(config_dict["architecture"], str):
+                    return config_dict["architecture"], None
         except Exception as e:
             logger.debug(f"Failed to auto-detect model type for {model}: {e}")
+
+        # Fallback for diffusers-style models: check model_index.json.
+        # Some models (e.g. GLM-Image) have no root config.json but ship a
+        # model_index.json with _class_name that maps to a pipeline key via
+        # PipelineConfig.diffusers_class_name.
+        try:
+            from vllm.transformers_utils.config import get_hf_file_to_dict
+
+            model_index = get_hf_file_to_dict("model_index.json", model, revision=None)
+            if model_index and "_class_name" in model_index:
+                class_name = model_index["_class_name"]
+                for pipeline_cfg in _PIPELINE_REGISTRY.values():
+                    if pipeline_cfg.diffusers_class_name == class_name:
+                        logger.info(
+                            "Detected pipeline %r from model_index.json (_class_name=%r)",
+                            pipeline_cfg.model_type,
+                            class_name,
+                        )
+                        return pipeline_cfg.model_type, None
+        except Exception:
+            pass
+
+        # Final fallback: some models (e.g. CosyVoice3) ship an empty
+        # config.json and rely on naming conventions. Match the model path
+        # basename against registered pipeline keys — longest match wins
+        # so "cosyvoice3" (length 10) beats "cosyvoice" (length 9).
+        model_lower = model.lower().replace("-", "").replace("_", "")
+        best: str | None = None
+        best_len = 0
+        for registered_key in _PIPELINE_REGISTRY.keys():
+            candidate = registered_key.lower().replace("-", "").replace("_", "")
+            if candidate and candidate in model_lower and len(candidate) > best_len:
+                best = registered_key
+                best_len = len(candidate)
+        if best is not None:
+            return best, None
 
         return None, None
 

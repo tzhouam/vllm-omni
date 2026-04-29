@@ -57,10 +57,17 @@ class OmniModelArchConfigConvertor(ModelArchConfigConvertorBase):
             if top_quant is not None:
                 block_names = top_quant.get("block_name_to_quantize")
                 if block_names is not None:
+                    # NOTE: This assumes stage_config_name follows the HF
+                    # ``<stage>_config`` convention (e.g. thinker_config →
+                    # prefix "thinker.").  removesuffix is a no-op when
+                    # the suffix doesn't match, so a non-standard name
+                    # would just use itself as prefix — safe but worth
+                    # verifying if new stage names are introduced.
                     hf_prefix = self.stage_config_name.removesuffix("_config") + "."
                     if isinstance(block_names, str):
                         block_names = [b.strip() for b in block_names.split(",")]
                     if isinstance(block_names, list) and not any(b.startswith(hf_prefix) for b in block_names):
+                        # This stage is not listed → no quantization.
                         return None
                 return top_quant
 
@@ -128,6 +135,7 @@ class OmniModelConfig(ModelConfig):
     omni_kv_config: dict | None = None
     codec_frame_rate_hz: float | None = None
     task_type: str | None = None
+    enable_sleep_mode: bool = False
     has_sampling_extra_args: bool = False
 
     @property
@@ -143,8 +151,12 @@ class OmniModelConfig(ModelConfig):
     @property
     def uses_mrope(self) -> bool:
         if self.hf_config_name is not None:
+            # talker_config/thinker_config/etc
             stage_config = getattr(self.hf_config, self.hf_config_name, None)
             if stage_config is None:
+                # Check the named sub-config's text_config directly.
+                # Handles mrope resolution of stage-specific cls
+                # (e.g., talker runs as a standalone cls)
                 return thinker_uses_mrope(self.hf_config)
         return super().uses_mrope
 
