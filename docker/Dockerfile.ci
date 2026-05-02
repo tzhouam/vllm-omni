@@ -1,5 +1,5 @@
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
-ARG VLLM_BASE_TAG=v0.20.0
+ARG VLLM_BASE_TAG=v0.20.0-cu130
 FROM ${VLLM_BASE_IMAGE}:${VLLM_BASE_TAG}
 ARG APP_DIR=/workspace/vllm-omni
 WORKDIR ${APP_DIR}
@@ -11,8 +11,35 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+
+# Install vLLM (CUDA 13.0 build) from precompiled wheel at the selected commit.
+# Must use direct URL because the wheel has a PEP 440 local version identifier
+# (e.g. +gaeee7ef93.cu130) which pip/uv refuse to install from a PEP 503 package index.
+# The cu130 wheel index lives at /<commit>/cu130/vllm/ but the actual wheel files
+# are stored at the top level /<commit>/<wheel>.
+ENV VLLM_PRECOMPILED_WHEEL_COMMIT=88d34c6409e9fb3c7b8ca0c04756f061d2099eb1
+RUN VLLM_WHEEL_URL=$(python3 -c "import urllib.request,re; \
+    from urllib.parse import urljoin, quote; \
+    index_url='https://wheels.vllm.ai/${VLLM_PRECOMPILED_WHEEL_COMMIT}/cu130/vllm/'; \
+    html=urllib.request.urlopen(index_url).read().decode(); \
+    m=re.search(r'href=\"([^\"]*x86_64\.whl)\"',html); \
+    assert m, f'No x86_64 vLLM wheel found at {index_url}'; \
+    print(quote(urljoin(index_url,m.group(1)), safe=':/'))") && \
+    echo "Installing vLLM from: ${VLLM_WHEEL_URL}" && \
+    uv pip install --system --force-reinstall "${VLLM_WHEEL_URL}"
+
+
+
 RUN uv pip install --system ".[dev]"
 
+RUN uv pip install --system --upgrade \
+        "flashinfer-python==0.6.7" \
+        "flashinfer-cubin==0.6.7" \
+        "numpy==2.2.6"
+
+RUN uv pip install --system --upgrade \
+    "flashinfer-jit-cache==0.6.7" \
+    --index-url https://flashinfer.ai/whl/cu130
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 ENTRYPOINT []
