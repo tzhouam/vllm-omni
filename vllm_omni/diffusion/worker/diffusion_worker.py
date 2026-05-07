@@ -140,9 +140,7 @@ class DiffusionWorker:
         # Also need to log, because vLLM internally logs another line in VllmConfig.__post_init__. Avoid confusion.
         from vllm.config.kernel import IrOpPriorityConfig
 
-        vllm_config.kernel_config.ir_op_priority = IrOpPriorityConfig.with_default(
-            ["native"], rms_norm=["native"], fused_add_rms_norm=["native"]
-        )
+        vllm_config.kernel_config.ir_op_priority = IrOpPriorityConfig.with_default(["native"], rms_norm=["native"])
         logger.info(
             "Final IR op priority after setting vLLM-Omni overrides: %s", vllm_config.kernel_config.ir_op_priority
         )
