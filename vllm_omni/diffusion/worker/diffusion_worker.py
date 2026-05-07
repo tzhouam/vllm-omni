@@ -138,7 +138,11 @@ class DiffusionWorker:
         vllm_config.quant_config = self.od_config.quantization_config
         # Since vLLM v0.20.0, IR wraps GPU ops. Set IR op priority preference to enforce GPU op fusion during wrapping.
         # Also need to log, because vLLM internally logs another line in VllmConfig.__post_init__. Avoid confusion.
-        vllm_config.kernel_config.ir_op_priority = current_omni_platform.get_default_ir_op_priority(vllm_config)
+        from vllm.config.kernel import IrOpPriorityConfig
+
+        vllm_config.kernel_config.ir_op_priority = IrOpPriorityConfig.with_default(
+            ["native"], rms_norm=["native"], fused_add_rms_norm=["native"]
+        )
         logger.info(
             "Final IR op priority after setting vLLM-Omni overrides: %s", vllm_config.kernel_config.ir_op_priority
         )

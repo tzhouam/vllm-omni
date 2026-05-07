@@ -719,7 +719,7 @@ class QwenImageTransformerBlock(nn.Module):
                 prefix="img_mod.1",
             ),
         )
-        self.img_norm1 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps)
+        self.img_norm1 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps, force_fp32=True)
         self.attn = QwenImageCrossAttention(
             dim=dim,
             num_heads=num_attention_heads,
@@ -728,7 +728,7 @@ class QwenImageTransformerBlock(nn.Module):
             head_dim=attention_head_dim,
             quant_config=quant_config,
         )
-        self.img_norm2 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps)
+        self.img_norm2 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps, force_fp32=True)
         self.img_mlp = FeedForward(dim=dim, dim_out=dim, quant_config=quant_config, prefix="img_mlp")
 
         # Text processing modules.
@@ -743,9 +743,9 @@ class QwenImageTransformerBlock(nn.Module):
                 prefix="txt_mod.1",
             ),
         )
-        self.txt_norm1 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps)
+        self.txt_norm1 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps, force_fp32=True)
         # Text doesn't need separate attention - it's handled by img_attn joint computation
-        self.txt_norm2 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps)
+        self.txt_norm2 = AdaLayerNorm(dim, elementwise_affine=False, eps=eps, force_fp32=True)
         self.txt_mlp = FeedForward(dim=dim, dim_out=dim, quant_config=quant_config, prefix="txt_mlp")
 
         self.zero_cond_t = zero_cond_t

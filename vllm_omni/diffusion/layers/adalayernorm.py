@@ -23,11 +23,14 @@ class AdaLayerNorm(CustomOp):
         out = layernorm(x) * (1 + scale) + shift
     """
 
-    def __init__(self, hidden_size: int, elementwise_affine: bool = False, eps: float = 1e-6) -> None:
+    def __init__(
+        self, hidden_size: int, elementwise_affine: bool = False, eps: float = 1e-6, force_fp32: bool = False
+    ) -> None:
         super().__init__()
         self.eps = eps
         self.elementwise_affine = elementwise_affine
         self.hidden_size = hidden_size
+        self.force_fp32 = force_fp32
         self.layernorm = LayerNorm(self.hidden_size, elementwise_affine=self.elementwise_affine, eps=self.eps)
 
     def forward_cuda(
@@ -78,12 +81,10 @@ class AdaLayerNorm(CustomOp):
     ) -> torch.Tensor:
         return self.forward_native(x, scale, shift)
 
-    def forward_native(
-        self,
-        x: torch.Tensor,
-        scale: torch.Tensor,
-        shift: torch.Tensor,
-    ) -> torch.Tensor:
+    def forward_native(self, x, scale, shift):
+        if self.force_fp32:
+            o, s, h = x.float(), scale.float(), shift.float()
+            return (self.layernorm(o) * (1 + s) + h).to(x.dtype)
         return self.layernorm(x) * (1 + scale) + shift
 
 
