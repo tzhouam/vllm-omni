@@ -17,7 +17,6 @@ from diffusers.models.embeddings import TimestepEmbedding, Timesteps
 from diffusers.models.modeling_outputs import Transformer2DModelOutput
 from diffusers.models.normalization import AdaLayerNormContinuous
 from vllm.logger import init_logger
-from vllm.model_executor.layers.layernorm import RMSNorm
 from vllm.model_executor.layers.linear import (
     ColumnParallelLinear,
     QKVParallelLinear,
@@ -47,6 +46,28 @@ from vllm_omni.diffusion.layers.adalayernorm import AdaLayerNorm
 from vllm_omni.diffusion.layers.rope import RotaryEmbedding
 
 logger = init_logger(__name__)
+
+
+class RMSNorm(nn.Module):
+    """Pure PyTorch RMSNorm for Qwen-Image precision-sensitive norms."""
+
+    def __init__(self, hidden_size: int, eps: float = 1e-6, force_fp32: bool = False) -> None:
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(hidden_size))
+        self.variance_epsilon = eps
+        self.force_fp32 = force_fp32
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        input_dtype = x.dtype
+        if self.force_fp32:
+            x = x.float()
+            weight = self.weight.float()
+        else:
+            weight = self.weight
+
+        variance = x.pow(2).mean(dim=-1, keepdim=True)
+        x = x * torch.rsqrt(variance + self.variance_epsilon)
+        return (x * weight).to(input_dtype)
 
 
 class ImageRopePrepare(nn.Module):
