@@ -528,8 +528,8 @@ class QwenImageCrossAttention(nn.Module):
         self.query_num_heads = self.to_qkv.num_heads
         self.kv_num_heads = self.to_qkv.num_kv_heads
 
-        self.norm_q = RMSNorm(head_dim, eps=eps) if qk_norm else nn.Identity()
-        self.norm_k = RMSNorm(head_dim, eps=eps) if qk_norm else nn.Identity()
+        self.norm_q = RMSNorm(head_dim, eps=eps, force_fp32=True) if qk_norm else nn.Identity()
+        self.norm_k = RMSNorm(head_dim, eps=eps, force_fp32=True) if qk_norm else nn.Identity()
 
         self.inner_dim = out_dim if out_dim is not None else head_dim * self.total_num_heads
 
@@ -566,8 +566,8 @@ class QwenImageCrossAttention(nn.Module):
             prefix="to_out",
         )
 
-        self.norm_added_q = RMSNorm(head_dim, eps=eps)
-        self.norm_added_k = RMSNorm(head_dim, eps=eps)
+        self.norm_added_q = RMSNorm(head_dim, eps=eps, force_fp32=True)
+        self.norm_added_k = RMSNorm(head_dim, eps=eps, force_fp32=True)
 
         self.attn = Attention(
             num_heads=self.query_num_heads,
@@ -967,7 +967,7 @@ class QwenImageTransformer2DModel(CachedTransformer):
             quant_config=quant_config,
         )
 
-        self.txt_norm = RMSNorm(joint_attention_dim, eps=1e-6)
+        self.txt_norm = RMSNorm(joint_attention_dim, eps=1e-6, force_fp32=True)
 
         # Entry projections (image/text) are kept full precision —
         # small sensitive layers at the network boundary (see #2728).
