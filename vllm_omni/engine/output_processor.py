@@ -77,9 +77,30 @@ def _merge_payload(target: MultimodalPayload, incoming: MultimodalPayload) -> No
 def _cat_tensors(
     tensors: list[torch.Tensor],
     strategy: TensorAccumulationStrategy,
+    *,
+    key: str = "",
 ) -> torch.Tensor:
-    """Concatenate a list of tensors according to *strategy*."""
+    """Concatenate a list of tensors according to *strategy*.
+
+    For ``CONCAT_LAST`` applied to audio keys, includes a cascade fallback
+    when chunks are incompatible: dim=-1 → flatten + dim=0.  Non-audio
+    keys that fail to concatenate log a warning and keep the last tensor.
+    """
     if strategy == TensorAccumulationStrategy.CONCAT_LAST:
+        if key == "audio":
+            try:
+                return torch.cat(tensors, dim=-1)
+            except RuntimeError:
+                logger.debug(
+                    "CONCAT_LAST (dim=-1) failed for audio key; falling back to flatten+dim=0."
+                )
+                try:
+                    return torch.cat([t.reshape(-1) for t in tensors], dim=0)
+                except RuntimeError:
+                    logger.warning(
+                        "Flatten fallback also failed for audio key; keeping last tensor."
+                    )
+                    return tensors[-1]
         return torch.cat(tensors, dim=-1)
     if strategy == TensorAccumulationStrategy.REPLACE:
         return tensors[-1]
@@ -214,19 +235,13 @@ class OmniRequestState(RequestState):
             for k, v in list(self.mm_accumulated.tensors.items()):
                 if isinstance(v, list) and v and isinstance(v[0], torch.Tensor):
                     try:
-                        self.mm_accumulated.tensors[k] = _cat_tensors(v, strategy)
+                        self.mm_accumulated.tensors[k] = _cat_tensors(v, strategy, key=k)
                     except RuntimeError:
-                        if k == "audio":
-                            try:
-                                self.mm_accumulated.tensors[k] = torch.cat(v, dim=-1)
-                            except RuntimeError:
-                                self.mm_accumulated.tensors[k] = torch.cat([t.reshape(-1) for t in v], dim=0)
-                        else:
-                            logger.warning(
-                                "Error concatenating tensor for key %s; keeping last tensor",
-                                k,
-                            )
-                            self.mm_accumulated.tensors[k] = v[-1]
+                        logger.warning(
+                            "Error concatenating tensor for key %s; keeping last tensor",
+                            k,
+                        )
+                        self.mm_accumulated.tensors[k] = v[-1]
 
             # Metadata: consolidate any deferred tensor lists (REPLACE semantics)
             for k, v in list(self.mm_accumulated.metadata.items()):

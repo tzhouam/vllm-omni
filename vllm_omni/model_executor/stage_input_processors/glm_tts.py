@@ -153,13 +153,13 @@ def ar_to_dit(
 # ---------------------------------------------------------------------------
 
 
-def _extract_last_speech_token(pooling_output: dict[str, Any]) -> int | None:
+def _extract_last_speech_token(multimodal_output: dict[str, Any]) -> int | None:
     """Extract the last valid speech token from AR model output.
 
     GLM-TTS AR produces one speech token per decode step.
     Returns the token ID (relative to ATS, i.e. 0-based), or None.
     """
-    speech_tokens = pooling_output.get("speech_tokens")
+    speech_tokens = multimodal_output.get("speech_tokens")
     if not isinstance(speech_tokens, torch.Tensor) or speech_tokens.numel() == 0:
         return None
     token_val = int(speech_tokens.reshape(-1).to(torch.long)[-1].item())
@@ -216,7 +216,6 @@ def ar_to_dit_async_chunk(
     if request_id is None:
         raise ValueError("GLM-TTS async chunk request is missing request id")
     finished = bool(is_finished or request.is_finished())
-    pooling_output = multimodal_output
 
     # Read connector chunk config (supports progressive list or single int)
     connector = getattr(transfer_manager, "connector", None)
@@ -253,9 +252,9 @@ def ar_to_dit_async_chunk(
         prompt_payload: dict[str, Any] = {}
         _copy_voice_clone_payload(info, prompt_payload, to_cpu=True)
 
-        # Also try to extract from pooling_output (first call)
-        if isinstance(pooling_output, dict):
-            _copy_voice_clone_payload(pooling_output, prompt_payload, to_cpu=True, skip_existing=True)
+        # Also try to extract from multimodal_output (first call)
+        if isinstance(multimodal_output, dict):
+            _copy_voice_clone_payload(multimodal_output, prompt_payload, to_cpu=True, skip_existing=True)
 
         request_state = {
             "_glm_tts_async_state": {
@@ -310,8 +309,8 @@ def ar_to_dit_async_chunk(
         )
 
     # Accumulate new speech token from this step
-    if isinstance(pooling_output, dict):
-        token = _extract_last_speech_token(pooling_output)
+    if isinstance(multimodal_output, dict):
+        token = _extract_last_speech_token(multimodal_output)
         if token is not None:
             code_prompt_token_ids[request_id].append(token)
     elif not finished:
