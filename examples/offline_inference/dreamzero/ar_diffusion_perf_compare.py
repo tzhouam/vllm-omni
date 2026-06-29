@@ -73,6 +73,7 @@ def main() -> None:
     ap.add_argument("--video", type=Path, default=None)
     ap.add_argument("--fps", type=int, default=5)
     ap.add_argument("--timing", type=Path, default=None)
+    ap.add_argument("--seed", type=int, default=None, help="Fixed sampling seed (for determinism)")
     ap.add_argument(
         "--repeat-chunk-observations",
         action="store_true",
@@ -118,7 +119,8 @@ def main() -> None:
     per_forward = []
     for index, obs in enumerate(observations):
         sp = E.OmniDiffusionSamplingParams(
-            extra_args={"reset": index == 0, "session_id": obs["session_id"], "robot_obs": obs}
+            extra_args={"reset": index == 0, "session_id": obs["session_id"], "robot_obs": obs},
+            **({"seed": args.seed} if args.seed is not None else {}),
         )
         s = time.perf_counter()
         result = omni.generate(obs["prompt"], sampling_params_list=[sp])  # blocking -> E2E
