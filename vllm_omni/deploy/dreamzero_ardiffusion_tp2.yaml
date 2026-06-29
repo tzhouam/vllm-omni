@@ -1,0 +1,33 @@
+# DreamZero-DROID deploy: AR-Diffusion engine, TP=2 (2 GPUs), CFG parallel size=1.
+# Shards the model across two GPUs (matches the upstream TP=2 topology). The
+# AR-Diffusion KV pool sizes itself by tp_num_heads, so each rank holds its head shard.
+
+pipeline: dreamzero
+async_chunk: false
+distributed_executor_backend: mp
+dtype: bfloat16
+
+stages:
+  - stage_id: 0
+    devices: "0,1"
+    max_num_seqs: 1
+    enforce_eager: false
+    model_class_name: DreamZeroPipeline
+    engine_backend: vllm_omni.experimental.ar_diffusion.engine.ARDiffusionEngine
+    parallel_config:
+      tensor_parallel_size: 2
+      cfg_parallel_size: 1
+    model_config:
+      default_robot_embodiment: roboarena
+      policy_server_config:
+        image_resolution: [180, 320]
+        n_external_cameras: 2
+        needs_wrist_camera: true
+        needs_stereo_camera: false
+        needs_session_id: true
+        action_space: joint_position
+    cache_backend: step_cache
+    cache_config:
+      step_cache_dit_enabled: true
+      velocity_sim_thresholds: [0.95, 0.93]
+      velocity_skip_countdowns: [4, 2]

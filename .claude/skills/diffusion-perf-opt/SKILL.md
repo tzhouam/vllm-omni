@@ -476,7 +476,19 @@ PyTorch profiler traces are Chrome/Perfetto-compatible JSON files, usually
 `trace_rankN.json` or `trace_rankN.json.gz`. They normally contain a top-level
 `traceEvents` list, though some exporters emit the raw event list directly.
 
-Use the checked-in analyzer from the repository root:
+For raw trace/flamegraph reading, prefer the model-agnostic **torch-profiler-analyze**
+skill — it is a superset of the analyzer below and also adds multi-rank aggregation,
+`--per-region` stage attribution, and folded-stack flamegraph reading
+(`stacks_cpu/cuda_rankN.txt` → speedscope/SVG):
+
+```bash
+python3 .claude/skills/torch-profiler-analyze/scripts/trace_reader.py \
+  vllm_profile/.../trace_rank*.json.gz --min-gap-ms 5 --topn 20 --per-region
+python3 .claude/skills/torch-profiler-analyze/scripts/flamegraph_reader.py \
+  vllm_profile/.../stacks_cuda_rank0.txt --top 30 --speedscope fg.json
+```
+
+The original single-trace analyzer remains available and produces the same timeline fields:
 
 ```bash
 python3 .claude/skills/diffusion-perf-opt/scripts/trace_analyzer.py \
