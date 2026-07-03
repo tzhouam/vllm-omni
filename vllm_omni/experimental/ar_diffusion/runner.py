@@ -125,13 +125,23 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
     # -- preallocation at load -------------------------------------------------
 
     def load_model(self, *args, **kwargs):
+        from vllm_omni.experimental.ar_diffusion.mem_profile import ARDiffusionMemProfiler
+
+        rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+        self._mem_profiler = ARDiffusionMemProfiler(rank=rank)
+        self._mem_profiler.checkpoint("before_load")
         super().load_model(*args, **kwargs)
+        self._mem_profiler.checkpoint("weights_loaded")
+        self._mem_profiler.component_breakdown(self.pipeline)
         if self.ar_diffusion_kv_config.enable and self.pipeline is not None:
             self._preallocate_kv_cache()
+            self._mem_profiler.checkpoint("kv_pool_built")
             # Pre-capture the CUDA graphs for every window-fill shape at load time
             # (only when compiling/cuda-graph is on) so serving is fast from chunk 0.
             if not self.od_config.enforce_eager and self.ar_diffusion_kv_config.warmup_cudagraph:
                 self._warmup_ar_rollout()
+                self._mem_profiler.checkpoint("warmup_done")
+        self._mem_profiler.dump_snapshot("load")
 
     def _infer_frame_seqlen(self) -> int:
         """frame_seqlen = (H//8)*(W//8)//4 from the configured image_resolution."""
@@ -247,6 +257,8 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         if self.device is not None and torch.cuda.is_available():
             torch.cuda.synchronize(self.device)
         self._perf_e2e_times.append(time.perf_counter() - _e2e_t0)
+        if getattr(self, "_mem_profiler", None) is not None:
+            self._mem_profiler.on_forward_done()
         return out
 
     # -- cuda-graph warm-up ----------------------------------------------------
