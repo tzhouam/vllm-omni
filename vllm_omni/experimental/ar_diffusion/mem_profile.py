@@ -50,14 +50,14 @@ class ARDiffusionMemProfiler:
     def checkpoint(self, name: str) -> None:
         if not self.enabled:
             return
-        torch.cuda.synchronize()
+        torch.accelerator.synchronize()
         free, total = torch.cuda.mem_get_info()
         self._checkpoints.append(
             {
                 "name": name,
                 "allocated_gib": torch.cuda.memory_allocated() / 2**30,
                 "reserved_gib": torch.cuda.memory_reserved() / 2**30,
-                "max_allocated_gib": torch.cuda.max_memory_allocated() / 2**30,
+                "max_allocated_gib": torch.accelerator.max_memory_allocated() / 2**30,
                 "max_reserved_gib": torch.cuda.max_memory_reserved() / 2**30,
                 "device_used_gib": (total - free) / 2**30,
             }
@@ -109,7 +109,7 @@ class ARDiffusionMemProfiler:
     def _write(self) -> None:
         payload = {
             "rank": self.rank,
-            "device": torch.cuda.current_device(),
+            "device": torch.accelerator.current_device_index(),
             "component_weights_gib": self._components,
             "checkpoints": self._checkpoints,
         }

@@ -308,11 +308,8 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         if self.device is not None and torch.cuda.is_available():
             torch.accelerator.synchronize(self.device)
         self._perf_e2e_times.append(time.perf_counter() - _e2e_t0)
-<<<<<<< HEAD
         if getattr(self, "_mem_profiler", None) is not None:
             self._mem_profiler.on_forward_done()
-=======
->>>>>>> publish-4534-slim
         return out
 
     # -- cuda-graph warm-up ----------------------------------------------------
