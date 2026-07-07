@@ -8,6 +8,7 @@ class OmniWorkerMixin:
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        # the import should be moved to top
         from vllm_omni.plugins import load_omni_general_plugins
 
         load_omni_general_plugins()

@@ -327,6 +327,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         with maybe_disable_pin_memory_for_ray(self, total_bytes):
             return super()._make_buffer(*size, dtype=dtype, numpy=numpy)
 
+    # have the super similar(not same, the async copy part is different) function inside the gpu_model_runner.py, need to be merged
     def _build_model_sampler_output_token_ids(self) -> list[list[int]]:
         """Build decoded-token history for custom model samplers.
 
@@ -335,24 +336,41 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         depends on this history, so we reconstruct it directly from the input
         batch for prefer_model_sampler models.
         """
+        # NOTE: near-duplicate of OmniGPUModelRunner._build_model_sampler_output_token_ids
+        # (gpu_model_runner.py). The two are identical through the backfill loop;
+        # this AR copy ADDS the trailing -1 truncation below. rfc8 audit A1: merge
+        # them (into the OmniModelState sampler hook, B-align) behind a test.
+
+        # Snapshot each request's output-token history (current batch order) into
+        # a fresh list-of-lists; we return this copy, never mutating the batch.
         req_output_token_ids = getattr(self.input_batch, "req_output_token_ids", [])
         req_ids = list(getattr(self.input_batch, "req_ids", []))
         output_token_ids = [list(req_output_token_ids[idx] or []) for idx in range(len(req_ids))]
 
+        # Fast path: nothing to resolve unless async scheduling left pending
+        # sampled tokens (sampled_token_ids_cpu), indexed by the *previous* step's
+        # batch order (prev_req_id_to_index). Otherwise the history is complete.
         sampled_token_ids_cpu = getattr(self.input_batch, "sampled_token_ids_cpu", None)
         async_copy_ready_event = getattr(self.input_batch, "async_copy_ready_event", None)
         prev_req_id_to_index = getattr(self.input_batch, "prev_req_id_to_index", None)
         if sampled_token_ids_cpu is None or not output_token_ids or prev_req_id_to_index is None:
             return output_token_ids
 
+        # Resolve async optimistic placeholders: _update_states appends -1 to the
+        # history before the prior step's sampled tokens are copied D2H; backfill
+        # those -1s with the real tokens now that the copy is available.
         sampled_token_ids: list[list[int]] | None = None
         for index, req_id in enumerate(req_ids):
+            # Map this request to its row in the previous step's sampled tensor.
             prev_index = prev_req_id_to_index.get(req_id)
             if prev_index is None:
                 continue
+            # Only requests whose history ends in a -1 placeholder need fixing.
             req_history = output_token_ids[index]
             if not req_history or req_history[-1] != -1:
                 continue
+            # Materialize the CPU sampled tokens lazily and once — only if some
+            # request actually needs them — to avoid an unnecessary event sync.
             if sampled_token_ids is None:
                 assert async_copy_ready_event is not None
                 async_copy_ready_event.synchronize()
@@ -360,18 +378,26 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             new_ids = list(sampled_token_ids[prev_index])
             if not new_ids:
                 continue
+            # new_ids may carry trailing -1s (spec-decode padding): count only the
+            # valid prefix, then overwrite exactly the placeholder slots (min guard
+            # so we never write past either the sampled ids or the placeholders).
             num_sampled_ids = len(new_ids) if new_ids[-1] != -1 else new_ids.index(-1)
             first_placeholder = req_history.index(-1)
             num_placeholders = len(req_history) - first_placeholder
             num_to_replace = min(num_sampled_ids, num_placeholders)
             req_history[first_placeholder : first_placeholder + num_to_replace] = new_ids[:num_to_replace]
 
+        # DIVERGENCE from the base version (rfc8 A1): crop each history at the
+        # first *unresolved* -1. Any placeholder that couldn't be backfilled above
+        # is dropped so the custom sampler never sees -1. The base runner instead
+        # leaves such -1s in place — reconcile which behavior is correct when merging.
         for index, req_history in enumerate(output_token_ids):
             if -1 in req_history:
                 output_token_ids[index] = req_history[: req_history.index(-1)]
 
         return output_token_ids
 
+    # have super similar function inside the gpu_model_runner.py, need to be merged
     def _sampling_metadata_for_model_sampler(self, sampling_metadata):
         if getattr(self.model, "skips_model_sampler_output_token_history", False):
             return sampling_metadata

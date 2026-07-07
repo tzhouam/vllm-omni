@@ -37,7 +37,16 @@ class OmniGPUWorkerBase(GPUWorker):
     It also replaces vLLM's TorchProfilerWrapper with OmniTorchProfilerWrapper
     for custom trace naming, background gzip, and trace path collection.
     """
-
+    # We should not use the *args or **kwargs here, making it unreadable.
+    # There should be a docstring for this method. The docstring should contain the following information:
+    # - What the method does
+    # - What the method returns
+    # - What the method parameters are
+    # - What the method raises
+    # - What the method assumes
+    # - What the method notes
+    # - What the method examples are
+    # - What the method references are
     def load_model(self, *args, **kwargs):
         with self._maybe_get_memory_pool_context("weights"):
             res = super().load_model(*args, **kwargs)
@@ -45,6 +54,8 @@ class OmniGPUWorkerBase(GPUWorker):
             gc.collect()
             return res
 
+    # We should not use the *args or **kwargs here, making it unreadable.
+    # There should be a docstring for this method.
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -109,6 +120,7 @@ class OmniGPUWorkerBase(GPUWorker):
         """
         if kv_cache_memory_bytes := self.cache_config.kv_cache_memory_bytes:
             self.model_runner.profile_run()
+            #possibly redundant, the sync is already done in the profile_run method in vllm
             if current_omni_platform.is_rocm():
                 torch.accelerator.synchronize()
             return kv_cache_memory_bytes
@@ -168,6 +180,7 @@ class OmniGPUWorkerBase(GPUWorker):
 
         return int(self.available_kv_cache_memory_bytes)
 
+    # Should use doc string for this method.
     # Provide memory pool context
     def _maybe_get_memory_pool_context(self, tag: str) -> AbstractContextManager:
         v1_config_enabled = False
@@ -222,6 +235,7 @@ class OmniGPUWorkerBase(GPUWorker):
         logger.info(f"[LLM Worker {self.rank}] Wake-up complete.")
         return True
 
+    # finer doc string for this method.
     def handle_sleep_task(self, task: OmniSleepTask) -> OmniACK:
         "Handle deterministic Sleep command from the main process"
         try:

@@ -100,6 +100,8 @@ def get_process_gpu_memory(local_rank: int) -> int | None:
                 ) from e
         else:
             # No CUDA_VISIBLE_DEVICES or local_rank out of range: use index directly
+            
+            #logic here should be split into no mask and out of range
             device_count = nvmlDeviceGetCount()
             if local_rank >= device_count:
                 raise RuntimeError(
@@ -121,4 +123,5 @@ def get_process_gpu_memory(local_rank: int) -> int | None:
         try:
             nvmlShutdown()
         except Exception:
+            # should not silently fail
             pass
