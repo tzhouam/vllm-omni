@@ -48,14 +48,16 @@ from vllm_omni.worker.omni_connector_model_runner_mixin import OmniConnectorMode
 
 logger = init_logger(__name__)
 
-
+# utils should be moved to the utils.py file
+# ISSUE(docstring): missing — add purpose, args, returns, how-it-works
 def _to_cpu_contiguous(tensor: torch.Tensor) -> torch.Tensor:
     tensor = tensor.detach()
     if tensor.device.type == "cpu":
         return tensor.contiguous()
     return tensor.to("cpu").contiguous()
 
-
+# utils should be moved to the utils.py file
+# ISSUE(docstring): incomplete — add args, returns
 def _clone_cuda_tensor_payload(value: Any, sources: list[torch.Tensor]) -> Any:
     """Clone CUDA tensors on the current stream before async CPU copies.
 
@@ -77,7 +79,8 @@ def _clone_cuda_tensor_payload(value: Any, sources: list[torch.Tensor]) -> Any:
         return tuple(_clone_cuda_tensor_payload(v, sources) for v in value)
     return value
 
-
+# utils should be moved to the utils.py file
+# ISSUE(docstring): missing — add purpose, args, returns, how-it-works
 def _copy_tensor_payload_to_cpu(value: Any, pin_memory: bool) -> Any:
     if isinstance(value, torch.Tensor):
         if value.device.type != "cuda":
@@ -93,8 +96,9 @@ def _copy_tensor_payload_to_cpu(value: Any, pin_memory: bool) -> Any:
         return tuple(_copy_tensor_payload_to_cpu(v, pin_memory) for v in value)
     return value
 
-
+# Should create a seperate data file for the dataclass
 class _AsyncCPUPayloadSnapshot:
+    # ISSUE(docstring): missing — add purpose, args, how-it-works
     def __init__(
         self,
         payload: Any,
@@ -106,6 +110,7 @@ class _AsyncCPUPayloadSnapshot:
         self._cuda_sources = cuda_sources
         self._waited = False
 
+    # ISSUE(docstring): missing — add purpose, how-it-works
     def wait(self) -> None:
         if self._waited:
             return
@@ -114,7 +119,8 @@ class _AsyncCPUPayloadSnapshot:
         self._cuda_sources.clear()
         self._waited = True
 
-
+# utils should be moved to the utils.py file
+# ISSUE(docstring): missing — add purpose, args, returns, how-it-works
 def _snapshot_tensor_payload_to_cpu_async(
     value: Any,
     *,
@@ -134,34 +140,39 @@ def _snapshot_tensor_payload_to_cpu_async(
         ready_event.record(copy_stream)
     return _AsyncCPUPayloadSnapshot(cpu_payload, ready_event, cuda_sources)
 
-
+# Should create a seperate data file for the dataclass
 class _OmniOutputTensorSnapshot(NamedTuple):
     hidden_states: torch.Tensor
     staged_hidden_states_cpu: torch.Tensor | None
     multimodal_outputs: Any
     async_payload: _AsyncCPUPayloadSnapshot | None = None
 
-
+# Should create a seperate data file for the dataclass
 class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
+    # ISSUE(docstring): missing — add purpose, args, how-it-works
     def __init__(
         self,
-        *,
+        *, # should not use *, but the full keyword arguments
         model_runner_output_builder: Callable[[], OmniModelRunnerOutput],
         cuda_device: torch.device | int | str | None = None,
-        **kwargs: Any,
+        **kwargs: Any, # should not use **kwargs, but the full keyword arguments
     ) -> None:
-        sampled_token_ids = kwargs.pop("sampled_token_ids")
-        logprobs_tensors = kwargs.pop("logprobs_tensors")
-        invalid_req_indices = kwargs.pop("invalid_req_indices")
-        async_output_copy_stream = kwargs.pop("async_output_copy_stream")
-        vocab_size = kwargs.pop("vocab_size")
-        routed_experts = kwargs.pop("routed_experts", None)
+        sampled_token_ids = kwargs.pop("sampled_token_ids") # list this in the parameters directly
+        logprobs_tensors = kwargs.pop("logprobs_tensors") # list this in the parameters directly
+        invalid_req_indices = kwargs.pop("invalid_req_indices") # list this in the parameters directly
+        async_output_copy_stream = kwargs.pop("async_output_copy_stream") # list this in the parameters directly
+        vocab_size = kwargs.pop("vocab_size") # list this in the parameters directly
+        routed_experts = kwargs.pop("routed_experts", None) # list this in the parameters directly
+        # this guard should be removed in the refactor
         if kwargs:
             raise TypeError(f"Unexpected OmniAsyncGPUModelRunnerOutput kwargs: {sorted(kwargs)}")
 
         self._model_runner_output = None
         self._invalid_req_indices = invalid_req_indices
 
+        # double check if the event is actually used, seems like the background thread never waits on it
+        # ISSUE(review): torch.Event() (not torch.cuda.Event()) can default to a CPU event; verify it
+        # resolves to an accelerator event here, else .record() below does not gate the D2H copies.
         self.async_copy_ready_event = torch.Event()
         self._sampled_token_ids = sampled_token_ids
         self.vocab_size = vocab_size
@@ -176,23 +187,35 @@ class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
             # changing its host-copy allocation semantics while building Omni
             # output asynchronously.
             self.sampled_token_ids_cpu = self._sampled_token_ids.to("cpu", non_blocking=True)
+            # ISSUE(review): inconsistent + fragile truthiness — use `is not None` like _routed_experts
+            # below (matches the xxx-is-not-None rule); truthiness on the tensor-holding LogprobsTensors
+            # is only safe by accident (NamedTuple len>=1).
             self._logprobs_tensors_cpu = self._logprobs_tensors.to_cpu_nonblocking() if self._logprobs_tensors else None
             self._routed_experts_cpu = (
                 self._routed_experts.to_cpu_nonblocking() if self._routed_experts is not None else None
             )
+            # ISSUE(review): these three are non_blocking D2H copies on async_output_copy_stream; the
+            # event is recorded here but the background builder (_build_output_in_background) never waits
+            # on it. Correctness relies on the builder NOT reading sampled_token_ids_cpu /
+            # _logprobs_tensors_cpu / _routed_experts_cpu (only super().get_output() does, post-join).
+            # Verify that, or synchronize the event at the top of _build_output_in_background.
             self.async_copy_ready_event.record()
 
         self._model_runner_output_builder = model_runner_output_builder
         self._background_exception: BaseException | None = None
+        # ISSUE(review): dead assignment — immediately overwritten below; drop this line.
         self._background_thread: threading.Thread | None = None
         self._cuda_device = cuda_device
+        # ISSUE(review): daemon thread started in __init__ — a background exception only surfaces if
+        # get_output() is ever called; if the caller drops this object the error is silently swallowed.
         self._background_thread = threading.Thread(
             target=self._build_output_in_background,
             daemon=True,
             name="omni-async-output-builder",
         )
         self._background_thread.start()
-
+    #need doc string
+    # ISSUE(docstring): missing — add purpose, how-it-works
     def _build_model_runner_output_once(self) -> None:
         if self._model_runner_output is not None:
             return
@@ -200,7 +223,10 @@ class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
             self._model_runner_output = self._model_runner_output_builder()
         self._model_runner_output_builder = None
 
+    # ISSUE(docstring): missing — add purpose, how-it-works
     def _build_output_in_background(self) -> None:
+        # ISSUE(review): never waits on self.async_copy_ready_event before building — see the record()
+        # note in __init__. If the builder reads any of the async D2H CPU tensors, sync the event here.
         try:
             if self._cuda_device is not None:
                 torch.cuda.set_device(self._cuda_device)
@@ -208,7 +234,10 @@ class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
         except BaseException as exc:  # noqa: BLE001 - re-raised by get_output().
             self._background_exception = exc
 
+    # ISSUE(docstring): missing — add purpose, returns, how-it-works
     def get_output(self) -> OmniModelRunnerOutput:
+        # ISSUE(review): _background_thread / _background_exception are always set in __init__ — the
+        # getattr(..., None) defaults are unnecessary defensive code; access the attributes directly.
         background_thread = getattr(self, "_background_thread", None)
         if background_thread is not None:
             background_thread.join()
@@ -221,6 +250,7 @@ class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
             return super().get_output()
 
 
+# utils should be moved to the utils.py file
 def _ensure_tensor_values(payload: dict[str, object]) -> dict[str, torch.Tensor]:
     """Convert a flattened payload to strictly ``dict[str, torch.Tensor]``.
 
@@ -253,7 +283,7 @@ def _ensure_tensor_values(payload: dict[str, object]) -> dict[str, torch.Tensor]
             )
     return result
 
-
+# the upstream entries should keep the same order, the vllm omni's should be attached at the end. Since the order matters for the NamedTuple
 class ExecuteModelState(NamedTuple):
     scheduler_output: SchedulerOutput
     logits: torch.Tensor | None
@@ -280,6 +310,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
     outputs per request while keeping Async output semantics.
     """
 
+    # ISSUE(review): *args/**kwargs — list the upstream constructor args explicitly for readability/typing.
+    # ISSUE(docstring): missing — add purpose, args, how-it-works
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.input_ids = self._make_buffer(self.max_num_tokens, dtype=torch.int32)
@@ -295,6 +327,14 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         # separately as `(model_arch, model_stage)` tuples in
         # `omni_scheduling_coordinator._FULL_PAYLOAD_INPUT_STAGES`;
         # forgetting that produces a Stage-1 hang on the consumer.
+        # ISSUE(review): this allowlist is inlined + DIVERGENT from the copy in
+        # gpu_generation_model_runner.py:60 — this one lists IndexTTS2Talker... and passes
+        # kv_transfer_manager; that one lists IndexTTS2S2MelDecoder and omits it. Single-source it
+        # (ideally a StagePipelineConfig.connector_role / model-declared capability, not a hardcoded
+        # arch set) so adding a model doesn't mean editing two divergent sets.
+        # ISSUE(review): two-places coupling — this allowlist AND
+        # omni_scheduling_coordinator._FULL_PAYLOAD_INPUT_STAGES must be kept in lock-step, with a
+        # SILENT Stage-1 consumer hang as the failure mode. Needs a single registration point.
         _OMNI_CONNECTOR_INIT_ARCHS = {
             "Qwen3OmniMoeForConditionalGeneration",
             "Qwen2_5OmniForConditionalGeneration",
@@ -312,10 +352,17 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                 model_config=self.model_config,
                 kv_transfer_manager=self.kv_transfer_manager,
             )
+        # ISSUE(review): AR-only attribute that the shared base pokes at — base
+        # OmniGPUModelRunner._update_states (gpu_model_runner.py:597) pops this via a hasattr guard
+        # ("only appears on ar model runner"). Layering smell; its lifecycle should be owned in one
+        # place (e.g. OmniModelState.remove_request), not cleaned up by the base.
         self._downstream_payload_cache: dict[str, bool] = {}
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _make_buffer(self, *size, dtype, numpy=True):
         # Prevent ray from pinning the buffer due to large size
+        # ISSUE(review): hoistable import — ray_utils.utils is import-safe (it guards `import ray`),
+        # so this is NOT a keep-lazy dep like fish_kvcache_backend; move to module top.
         from vllm_omni.distributed.ray_utils.utils import (
             calculate_total_bytes,
             maybe_disable_pin_memory_for_ray,
@@ -324,6 +371,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         total_bytes = calculate_total_bytes(size, dtype)
 
         # Use the context manager to temporarily disable pinning if needed
+        # ISSUE(review): OMNI fork-coupling — this workaround assumes base _make_buffer decides pinning
+        # from self.pin_memory (the CM flips that attr). If a vLLM rebase changes how pinning is chosen
+        # (e.g. a per-call param), this silently no-ops and the Ray low-ulimit-l alloc failure returns.
+        # Mark as # OMNI: so a rebase notices.
         with maybe_disable_pin_memory_for_ray(self, total_bytes):
             return super()._make_buffer(*size, dtype=dtype, numpy=numpy)
 
@@ -350,6 +401,13 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         # Fast path: nothing to resolve unless async scheduling left pending
         # sampled tokens (sampled_token_ids_cpu), indexed by the *previous* step's
         # batch order (prev_req_id_to_index). Otherwise the history is complete.
+        # ISSUE(review): consumer side of the async-output D2H copy — sampled_token_ids_cpu +
+        # async_copy_ready_event are populated on input_batch by OmniAsyncGPUModelRunnerOutput
+        # (this file, __init__). That producer→consumer coupling is invisible + un-tested; keep the
+        # two together when either moves (B-align: both into the OmniModelState sampler hook).
+        # ISSUE(review): fork-fragility — these input_batch attrs exist only in certain scheduling
+        # modes / vLLM versions, so they're read via getattr. A rebase that renames one silently
+        # drops to the fast-path return below and SKIPS backfill -> wrong decode history, no error.
         sampled_token_ids_cpu = getattr(self.input_batch, "sampled_token_ids_cpu", None)
         async_copy_ready_event = getattr(self.input_batch, "async_copy_ready_event", None)
         prev_req_id_to_index = getattr(self.input_batch, "prev_req_id_to_index", None)
@@ -398,18 +456,30 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         return output_token_ids
 
     # have super similar function inside the gpu_model_runner.py, need to be merged
+    # add doc string
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _sampling_metadata_for_model_sampler(self, sampling_metadata):
         if getattr(self.model, "skips_model_sampler_output_token_history", False):
             return sampling_metadata
         output_token_ids = self._build_model_sampler_output_token_ids()
+        # ISSUE(review): deep list-of-lists equality every sample step — cheap for small batches,
+        # O(total tokens) for large ones. Acceptable (skips a needless replace), just noting the cost.
         if output_token_ids == sampling_metadata.output_token_ids:
             return sampling_metadata
+        # ISSUE(review): OMNI fork-coupling — dataclasses.replace() assumes SamplingMetadata stays a
+        # dataclass. A rebase making it a NamedTuple (needs ._replace) or adding a required field
+        # breaks this. Mark as # OMNI: so a rebase notices.
         return replace(sampling_metadata, output_token_ids=output_token_ids)
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _request_final_stage_id(self, req_id: str) -> int | None:
         info = self.model_intermediate_buffer.get(req_id)
         if not isinstance(info, dict):
             req_state = self.requests.get(req_id)
+            # ISSUE(review): naming drift — the same concept is read from two names here
+            # (model_intermediate_buffer vs req_state.additional_information_cpu). Fold onto the one
+            # canonical accessor (part of the additional_information/model_intermediate_buffer rename);
+            # also the getattr on the upstream RequestState internal is fork-fragile (silent None on rename).
             info = getattr(req_state, "additional_information_cpu", None)
         if not isinstance(info, dict):
             return None
@@ -419,6 +489,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         except (TypeError, ValueError):
             return None
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _request_needs_downstream_stage_payload(self, req_id: str) -> bool:
         cached = self._downstream_payload_cache.get(req_id)
         if cached is not None:
@@ -426,11 +497,19 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         # Conservative default: keep payload if marker is missing.
         final_stage_id = self._request_final_stage_id(req_id)
         needs_payload = final_stage_id is None or final_stage_id > 0
+        # ISSUE(review): stale-memoization hazard — the result is cached forever keyed by req_id, but
+        # it derives from model_intermediate_buffer, which may not be populated yet on the first call
+        # (final_stage_id None -> caches True permanently). If the marker arrives later the cache is
+        # never refreshed. Only memoize once the stage marker is known, or key the cache off it.
         self._downstream_payload_cache[req_id] = needs_payload
         return needs_payload
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _resolve_pooler_payload_req_ids(self, req_ids_output_copy: list[str]) -> tuple[str, list[str]]:
         downstream_req_ids = [rid for rid in req_ids_output_copy if self._request_needs_downstream_stage_payload(rid)]
+        # ISSUE(review): model/config-specific behavior keyed on a hardcoded "audio" engine_output_type
+        # string (single-stage AR TTS override below) — belongs behind a model-declared capability on
+        # OmniModelState, not a magic string compared in the generic runner.
         engine_output_type = (self.vllm_config.model_config.engine_output_type or "").lower()
         # Single-stage AR TTS models (e.g. VoxCPM2) finish on this stage but still
         # need multimodal payloads for final audio postprocess/output.
@@ -438,10 +517,19 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             downstream_req_ids = req_ids_output_copy
         return engine_output_type, downstream_req_ids
 
+    # ISSUE(review): model-specific sparse-audio routing baked into the generic runner — the
+    # "meta.sparse_audio"/"meta.req_id" marker protocol and its parsing (_sparse_mm_req_ids,
+    # _resolve_sparse_mm_routing, _is_sparse_audio_marker) are only meaningful for sparse-audio TTS
+    # models. Move behind a model-declared capability/hook on OmniModelState (B-align), not string keys.
     @staticmethod
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _sparse_mm_req_ids(multimodal_outputs: Any) -> list[str] | None:
         if not isinstance(multimodal_outputs, dict):
             return None
+        # ISSUE(review): dual payload format — the sparse markers are read both as a nested `meta`
+        # dict AND as flattened `meta.req_id`/`meta.sparse_audio` keys. Two on-wire encodings for one
+        # concept is a smell; pick one (the flattened form is what partition_payload_list emits) and
+        # drop the other, or document why both must be supported.
         meta = multimodal_outputs.get("meta")
         req_ids = None
         sparse_audio = False
@@ -455,9 +543,12 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             return None
         if not isinstance(req_ids, list):
             return None
+        # ISSUE(review): silently drops any non-str req_id — if req_ids carries a non-str entry it is
+        # dropped without warning, which mis-aligns sparse_mm_index vs the routed req_ids downstream.
         return [rid for rid in req_ids if isinstance(rid, str)]
 
     @staticmethod
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _resolve_sparse_mm_routing(
         *,
         engine_output_type: str,
@@ -475,13 +566,18 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         return sparse_downstream_req_ids, sparse_mm_index, True
 
     @staticmethod
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _is_sparse_audio_marker(value: Any) -> bool:
         if isinstance(value, list):
             return any(str(item).lower() in ("1", "true", "yes", "on") for item in value)
         if isinstance(value, str):
             return value.lower() in ("1", "true", "yes", "on")
+        # ISSUE(review): latent crash — bool(value) raises "Boolean value of Tensor with more than one
+        # element is ambiguous" if the marker is ever a multi-element tensor/ndarray (it comes from
+        # multimodal_outputs). Guard the tensor/ndarray case or restrict accepted types.
         return bool(value)
 
+    # ISSUE(docstring): missing — add purpose, returns, how-it-works
     def capture_model(self) -> int:
         result = super().capture_model()
         self._capture_talker_mtp_graphs()
@@ -535,6 +631,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         # 5. Release all CUDA graphs unconditionally (upstream only does this
         #    on ROCm; on CUDA the graphs are only freed by Python GC during
         #    interpreter shutdown, which is too late to prevent memory spikes).
+        # OMNI: fork-fragility — vllm.compilation.breakable_cudagraph is an upstream-internal module
+        # that may be renamed/removed on rebase; an ImportError here would break shutdown teardown.
+        # Keep it lazy so a rebase notices, and consider guarding the import.
         from vllm.compilation.breakable_cudagraph import BreakableCUDAGraphWrapper
         from vllm.compilation.cuda_graph import CUDAGraphWrapper
 
@@ -544,6 +643,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         # 6. Delegate to upstream shutdown (model = None, KV caches, workspace).
         super().shutdown()
 
+    # ISSUE(review): model-specific talker-MTP CUDA-graph capture baked into the generic AR runner
+    # (fish_speech / qwen3_tts / qwen3_omni). All the talker_mtp_* buffers + capture belong on a
+    # TalkerMTP component owned by OmniModelState, not on every AR runner. — B-align target.
+    # ISSUE(docstring): missing — add purpose, how-it-works
     def _capture_talker_mtp_graphs(self) -> None:
         from vllm.compilation.cuda_graph import CUDAGraphWrapper
 
@@ -562,6 +665,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         try:
             with torch.inference_mode(), graph_capture(device=self.device):
                 for bsz in capture_sizes:
+                    # ISSUE(review): fragile 5-tuple positional unpack of the upstream
+                    # _determine_batch_execution_and_padding — an arity/order change on rebase silently
+                    # misassigns batch_desc. Unpack by name or assert the arity.
                     _, batch_desc, _, _, _ = self._determine_batch_execution_and_padding(
                         num_tokens=bsz,
                         num_reqs=bsz,
@@ -595,6 +701,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
             logger.info("Captured talker_mtp graphs for %d sizes", len(capture_sizes))
         except RuntimeError as e:
+            # ISSUE(review): misleading message — this path also fires for Omni models with a separate
+            # .talker submodule that never declared talker_mtp_graph_safe (see _init_talker_mtp wrap
+            # condition), so blaming that flag is wrong for those. State the actual wrap condition.
             raise RuntimeError(
                 f"talker_mtp graph capture failed for a model that declared talker_mtp_graph_safe=True: {e}"
             ) from e
@@ -610,15 +719,26 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         that need the full cached_prefix + new_tail span (default) are not
         affected.
         """
+        # ISSUE(review): model-specific prefix-cache capability probe (only higgs_audio_v3_talker /
+        # qwen3_tts_talker set requires_full_prefix_cached_hidden_states=False; verified via grep) —
+        # consolidate onto a declared OmniModelState capability. Also uses raw self.model rather than
+        # get_model(); attr read works via wrapper delegation but bind get_model() for consistency.
         model = getattr(self, "model", None)
         return bool(getattr(model, "requires_full_prefix_cached_hidden_states", True))
 
+    # ISSUE(docstring): incomplete — add how-it-works
     def _deferred_prefix_cache_mm_keys(self) -> set[str]:
         """Model-declared multimodal keys whose prefix-cache writes are deferred."""
+        # ISSUE(review): model-specific probe — only higgs_audio_v3_talker / qwen3_tts_talker declare
+        # deferred_prefix_cache_mm_keys={"codes.audio"} (verified via grep); move to OmniModelState.
         model = getattr(self, "model", None)
         keys = getattr(model, "deferred_prefix_cache_mm_keys", ())
         return set(keys or ())
 
+    # ISSUE(review): dead in the GPU path (verified via grep) — the synchronous prefix-cache update
+    # here is never called by this runner; execute_model uses the async schedule_async_write pipeline
+    # instead. Only platforms/npu/npu_ar_model_runner.py calls its own copy. Remove or move to NPU.
+    # ISSUE(docstring): incomplete — add args
     def _maybe_update_prefix_cache(
         self,
         hidden_states: torch.Tensor,
@@ -661,6 +781,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                 hidden_states_cpu=hidden_states_cpu,
             )
 
+    # ISSUE(docstring): incomplete — add args
     def _maybe_get_combined_prefix_cache_tensors(
         self,
         hidden_states: torch.Tensor,
@@ -680,6 +801,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         if self.omni_prefix_cache is not None:
             if not is_last_pp_rank:
                 raise RuntimeError("Omni prefix-cache tensor merge is only valid on the last pipeline parallel rank.")
+            # ISSUE(review): _model_needs_full_prefix_hidden_states() is called twice on this critical
+            # path (here and below) — each is a getattr probe; bind it to a local once.
             if (
                 not self._model_needs_full_prefix_hidden_states()
                 and not self.omni_prefix_cache.has_prefix_cached_new_req_ids()
@@ -701,6 +824,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             )
         return combined_hidden_states, combined_multimodal_outputs
 
+    # ISSUE(docstring): missing — add purpose, args, how-it-works
     def _stage_deferred_prefix_cache_mm_outputs(
         self,
         *,
@@ -723,6 +847,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             deferred_mm_cache_keys=deferred_mm_cache_keys,
         )
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _prepare_prefix_cache_pooler_payload_sources(
         self,
         *,
@@ -747,13 +872,19 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         return hidden_states_cpu, combined_hidden_states, combined_multimodal_outputs
 
     @staticmethod
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _build_combined_prefix_cache_mm_payload(
         combined_multimodal_outputs: dict,
         *,
         rid: str,
         idx: int,
     ) -> dict[str, object]:
+        # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
         def _unwrap_lists(v):
+            # ISSUE(review): silent wrong-data fallback — on an out-of-range index this returns v[0]
+            # (request 0's payload) instead of failing, so a per-request/per-list length mismatch
+            # silently ships the FIRST request's mm output for request `idx`. (Note the sibling
+            # _build_omni_mm_payload at least warns on the same mismatch.) Raise or warn, don't fall back.
             if isinstance(v, list):
                 return v[idx] if idx < len(v) else v[0]
             if isinstance(v, dict):
@@ -765,6 +896,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             for mm_key in combined_multimodal_outputs.keys()
         }
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _build_omni_mm_payload(
         self,
         *,
@@ -790,6 +922,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             return mm_payload
 
         for mm_key, mm_val in mm_cpu.items():
+            # ISSUE(review): hardcoded sparse-audio marker keys ("meta.req_id"/"meta.sparse_audio")
+            # in the generic payload builder — same model-specific protocol as _sparse_mm_req_ids;
+            # centralize the marker names / routing behind a model hook.
             if mm_key in {"meta.req_id", "meta.sparse_audio"}:
                 continue
             if audio_sparse_output and isinstance(mm_val, list):
@@ -817,6 +952,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             )
         return mm_payload
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _build_omni_pooler_payload(
         self,
         *,
@@ -862,7 +998,13 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         payload.update(mm_payload)
         return payload
 
+    # ISSUE(review): over-long (~430 lines) and a divergent duplicate of the upstream/generation
+    # execute_model — the connector-recv / ngram scheduler_output-copy / KV-preemption / early-return
+    # preamble is copy-pasted from gpu_generation_model_runner.execute_model but diverges (this AR copy
+    # adds warmup-clear, prefix-cache drain, KV-transfer-before-update-states, commit_deferred_mm).
+    # Extract the shared preamble + hook the omni deltas so the two runners can't silently drift.
     @torch.inference_mode()
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def execute_model(
         self,
         scheduler_output: SchedulerOutput,
@@ -874,6 +1016,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         if self.routed_experts_initialized:
             self.routed_experts_capturer.clear_buffer()
 
+        # ISSUE(review): model-specific capability probe — only bagel declares _clear_warmup_state
+        # (verified via grep). One of ~30 scattered getattr/hasattr(self.model,…) probes; move behind a
+        # declared OmniModelState capability. Also _warmup_state_cleared is an implicit instance attr.
         if not getattr(self, "_warmup_state_cleared", False):
             self._warmup_state_cleared = True
             if hasattr(self.model, "_clear_warmup_state"):
@@ -890,9 +1035,14 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             self.omni_prefix_cache.drain_ready_async_writes()
 
         # [Omni] Handle KV transfer BEFORE updating states (which removes finished requests)
+        # ISSUE(review): model-specific probe — only bagel declares get_kv_transfer_metadata (verified
+        # via grep); consolidate onto an OmniModelState capability.
         finished_reqs = getattr(scheduler_output, "finished_requests_needing_kv_transfer", {})
         if finished_reqs and hasattr(self.model, "get_kv_transfer_metadata"):
             for req_id, data in finished_reqs.items():
+                # ISSUE(review): silent failure — bare `except Exception` logs a warning and drops the
+                # model's custom KV-transfer metadata; a real bug (e.g. wrong seq_len) is swallowed and
+                # surfaces later as a corrupt/incomplete KV transfer. Narrow the except or re-raise.
                 try:
                     # NOTE: seq_len is the same as num_computed_tokens_cpu in current
                     # async scheduling, since both exclude async placeholders. We use
@@ -905,6 +1055,11 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                         num_computed_tokens=num_computed,
                     )
                     if model_meta:
+                        # ISSUE(review): in-place mutation of scheduler_output's finished-request data
+                        # (`custom_metadata`). scheduler_output can be shared with the engine-core process
+                        # — the ngram block ~40 lines below explicitly `replace()`-copies to avoid exactly
+                        # this. Mutating `data` here (not copied) can contaminate the engine-core copy.
+                        # Copy before mutating, consistent with the ngram precaution.
                         existing = data.get("custom_metadata") or {}
                         existing.update(model_meta)
                         data["custom_metadata"] = existing
@@ -965,6 +1120,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             deferred_state_corrections_fn = self._update_states(scheduler_output)
 
             # Notify model of finished requests for state cleanup
+            # ISSUE(review): model-specific probe — only moss_tts_nano / voxcpm2_talker declare
+            # on_requests_finished (verified via grep); one of the scattered self.model capability probes.
             if scheduler_output.finished_req_ids and hasattr(self.model, "on_requests_finished"):
                 self.model.on_requests_finished(scheduler_output.finished_req_ids)
 
@@ -1117,6 +1274,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
         # Let the model adjust inputs before forward (e.g. restore input_ids
         # for multimodal position detection, fix decode position offsets).
+        # ISSUE(review): model-specific probe — only bagel declares prepare_runner_inputs (verified via
+        # grep). Capability belongs on OmniModelState rather than a hasattr on the generic runner.
         if hasattr(self.model, "prepare_runner_inputs"):
             input_ids, positions = self.model.prepare_runner_inputs(
                 input_ids=input_ids,
@@ -1171,6 +1330,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             )
 
             # [Omni] Map pending ropes metadata to req_ids.
+            # ISSUE(review): model-specific probe — only bagel declares flush_pending_metadata (verified
+            # via grep); same capability-probe cleanup target as the others in this method.
             if hasattr(self.model, "flush_pending_metadata"):
                 self.model.flush_pending_metadata(list(req_ids))
 
@@ -1183,6 +1344,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                 hidden_states = model_output
                 aux_hidden_states = None
 
+            # ISSUE(review): the `hidden_states` just assigned above is immediately overwritten here
+            # (extract_multimodal_outputs re-derives it from model_output) — only `aux_hidden_states`
+            # survives the block above. Redundant/confusing; fold the aux split into
+            # extract_multimodal_outputs or drop the dead hidden_states assignment.
             hidden_states, multimodal_outputs = self.extract_multimodal_outputs(model_output)
             hidden_states_cpu = None
 
@@ -1199,6 +1364,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                 # needs a CPU hidden-states view. Materialize it synchronously
                 # in that case; the legacy behavior is preserved.
                 if hs_for_cache is None:
+                    # ISSUE(review): blocking synchronous D2H on the default stream (.to("cpu")) on the
+                    # opt-out path (qwen3-tts-talker), inside the async-write block whose whole point is
+                    # to avoid per-step blocking copies — this defeats it for those models. Route via the
+                    # dedicated copy stream + event like the async pipeline, or document why sync is required.
                     hidden_states_cpu = hidden_states[:num_tokens_unpadded].detach().to("cpu").contiguous()
                 slot_mapping_gpu = self.input_batch.block_table[0].slot_mapping.gpu
                 self.omni_prefix_cache.schedule_async_write(
@@ -1228,6 +1397,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                     )
 
                 sample_hidden_states = hidden_states[logits_indices.to(hidden_states.device)]
+                # ISSUE(review): fragile signature-probe via except TypeError — a genuine TypeError
+                # raised *inside* compute_logits is swallowed and silently re-run without
+                # sampling_metadata, hiding the real error. Detect the signature explicitly (inspect /
+                # a model flag) instead. Also duplicated in the broadcast branch below.
                 # Try with sampling_metadata first; fall back to without for models that don't support it
                 try:
                     logits = self.model.compute_logits(
@@ -1283,16 +1456,24 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             multimodal_outputs,
             slot_mappings,  # OMNI: pass slot_mappings for drafter
         )
+        # ISSUE(review): implicit cross-phase state — kv_connector_output is stashed on the instance
+        # here and read/cleared in sample_tokens (and mutated during drafting). Everything else in the
+        # phase hand-off rides ExecuteModelState; this one field is a mutable side-channel. Make it an
+        # ExecuteModelState field so the two-phase contract is explicit and un-droppable.
         self.kv_connector_output = kv_connector_output
 
         if deferred_state_corrections_fn:
             deferred_state_corrections_fn()
 
+        # ISSUE(review): implicit cross-phase state — hasattr(self, "_positions_cpu") reads an attr set
+        # in _preprocess; a missing attr silently skips routed-experts D2H (no error). Thread through
+        # ExecuteModelState / an explicit flag rather than a hasattr probe on an instance attr.
         if self._should_return_omni_routed_experts() and hasattr(self, "_positions_cpu"):
             self._omni_routed_experts_d2h(scheduler_output)
 
         return None
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _sample(
         self,
         logits: torch.Tensor | None,
@@ -1317,6 +1498,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                     logits,
                     self._sampling_metadata_for_model_sampler(sampling_metadata),
                 )
+                # ISSUE(review): silent fallback — if a prefer_model_sampler model's sample() returns
+                # None, control falls through to the default self.sampler, which for a custom sampler
+                # (e.g. CosyVoice3 RAS) produces different/wrong tokens with no signal. Verify the
+                # contract: either None is a valid "use default" opt-out (document it) or it should raise.
                 if sampler_output is not None:
                     return sampler_output
             return self.sampler(
@@ -1327,6 +1512,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         return super()._sample(logits, spec_decode_metadata)
 
     @staticmethod
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _resolve_req_hidden_states(
         hidden_states_cpu: torch.Tensor | None,
         combined_hidden_states: dict[str, torch.Tensor] | None,
@@ -1375,8 +1561,12 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             return None
         return wire_payloads
 
+    # ISSUE(docstring): missing — add purpose, returns, how-it-works
     def _snapshot_query_start_loc_cpu(self) -> Any:
         query_start_loc_cpu = self.query_start_loc.cpu
+        # ISSUE(review): dead defensive guard — CpuGpuBuffer.cpu is a tensor attribute, never callable,
+        # so this branch never fires (every other site indexes .cpu directly). Same dead guard flagged
+        # in gpu_model_runner.py. Drop it.
         if callable(query_start_loc_cpu):
             query_start_loc_cpu = query_start_loc_cpu()
         if isinstance(query_start_loc_cpu, torch.Tensor):
@@ -1388,6 +1578,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         return query_start_loc_cpu
 
     @staticmethod
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _snapshot_scheduler_output_for_async_omni_output(
         scheduler_output: SchedulerOutput,
     ) -> SchedulerOutput:
@@ -1400,12 +1591,20 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                 updates[attr] = list(val)
         if not updates:
             return scheduler_output
+        # OMNI: fork-fragility — dataclasses.replace() assumes SchedulerOutput stays a dataclass; a
+        # rebase turning it into a NamedTuple/attrs type makes this raise TypeError and silently return
+        # the un-snapshotted original (aliasing the live dicts). Mark so a rebase notices.
         try:
             return replace(scheduler_output, **updates)
         except TypeError:
             return scheduler_output
 
+    # ISSUE(docstring): missing — add purpose, returns, how-it-works
     def _should_return_omni_routed_experts(self) -> bool:
+        # ISSUE(review): duplicated defensive model_config resolution (same getattr(self,"model_config")
+        # -> vllm_config.model_config fallback appears in _should_use_async_omni_output and elsewhere).
+        # self.model_config is always set by the base runner; the getattr fallbacks are dead. Access
+        # self.model_config directly, or factor a single accessor.
         model_config = getattr(self, "model_config", None)
         if model_config is None:
             model_config = getattr(getattr(self, "vllm_config", None), "model_config", None)
@@ -1414,15 +1613,24 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         )
 
     @staticmethod
+    # ISSUE(docstring): missing — add purpose/returns (trivial)
     def _model_omni_flag(model: Any, name: str, default: bool = False) -> bool:
         return bool(getattr(model, name, default)) if model is not None else default
 
+    # ISSUE(docstring): missing — add purpose/returns (trivial)
     def _runner_model_omni_flag(self, name: str, default: bool = False) -> bool:
         return self._model_omni_flag(getattr(self, "model", None), name, default)
 
+    # ISSUE(docstring): missing — add purpose/returns (trivial)
     def _model_omni_pooler_payload_include_hidden(self) -> bool:
         return self._runner_model_omni_flag("omni_pooler_payload_include_hidden", default=True)
 
+    # ISSUE(review): model-specific gating baked into the generic runner — async-omni-output is only
+    # exercised by qwen3_omni (use_async_omni_output / eager_omni_postprocess_before_async_output /
+    # async_chunk, verified via grep). The whole async-omni-output cluster (this predicate,
+    # _snapshot_omni_output_tensors_for_async_output, _maybe_run_eager_omni_postprocess..., copy stream)
+    # is a per-model feature; move behind an OmniModelState capability rather than scattered flag probes.
+    # ISSUE(docstring): missing — add purpose, returns, how-it-works
     def _should_use_async_omni_output(self) -> bool:
         if not self.use_async_scheduling:
             return False
@@ -1449,6 +1657,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
         return True
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _build_omni_async_snapshot_payload(
         self,
         *,
@@ -1462,6 +1671,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             payload["staged_hidden_states_cpu"] = staged_hidden_states_cpu
         return payload
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _snapshot_omni_output_tensors_for_async_output(
         self,
         *,
@@ -1502,6 +1712,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             async_payload=async_payload_snapshot,
         )
 
+    # ISSUE(docstring): incomplete — add args, returns, how-it-works
     def _maybe_run_eager_omni_postprocess_before_async_output(
         self,
         *,
@@ -1537,6 +1748,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             )
         return True
 
+    # ISSUE(docstring): missing — add purpose, returns, how-it-works
     def _get_or_create_omni_payload_copy_stream(self) -> torch.cuda.Stream:
         stream = getattr(self, "_omni_payload_copy_stream", None)
         if stream is None:
@@ -1544,6 +1756,14 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             self._omni_payload_copy_stream = stream
         return stream
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
+    # ISSUE(review): dual-mode builder with an implicit contract — this runs EITHER inline (sync
+    # mode) OR on the omni-async-output-builder background thread (async mode, via output_builder).
+    # In async mode it must read ONLY snapshotted arguments; nothing enforces that today (see the
+    # live self.requests read + accumulate_full_payload_output call below). The mode differences
+    # (postprocess_already_applied, pre-copied CPU payloads, prefix-cache branches being sync-only
+    # because _should_use_async_omni_output excludes prefix cache) are scattered ifs — make the
+    # snapshot an explicit type (OmniStepSnapshot) and assert async ⇒ no prefix cache.
     def _build_omni_model_runner_output_from_snapshot(
         self,
         *,
@@ -1689,12 +1909,23 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
         if pooler_inter and self._should_accumulate_full_payload_output():
             with record_function_or_nullcontext("omni_output_builder:accumulate_full_payload_output"):
+                # ISSUE(review): cross-thread live-state access — in async-omni-output mode this
+                # whole builder runs on the background thread, but this block reads live
+                # self.requests AND calls accumulate_full_payload_output (which WRITES connector
+                # accumulation state) while the main thread's next step may be mutating both
+                # (_update_states removes finished requests; connector paths touch the same
+                # accumulation). No lock or snapshot covers it. Either resolve these at snapshot
+                # time on the main thread, or prove this branch is unreachable in async mode
+                # (accumulate is full-payload; async gate requires async_chunk) and assert that.
                 for i, rid in enumerate(req_ids_output_copy):
                     req_state = self.requests.get(rid)
                     if req_state is not None and pooler_inter[i]:
                         self.accumulate_full_payload_output(rid, pooler_inter[i], req_state)
 
         with record_function_or_nullcontext("omni_output_builder:build_multimodal_outputs"):
+            # ISSUE(review): in non-async-chunk mode pooler_inter IS pooler_client (same list object,
+            # set above), so _build_multimodal_outputs runs the full _ensure_tensor_values conversion
+            # TWICE over identical data. Convert once and reuse when they're the same object.
             inter_stage_outputs = self._build_multimodal_outputs(pooler_inter)
             multimodal_outputs = self._build_multimodal_outputs(pooler_client)
 
@@ -1722,7 +1953,11 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             output.routed_experts = routed_experts_lists
         return output
 
+    # ISSUE(review): over-long (~240 lines) — sample/draft/bookkeep + the whole async-omni snapshot
+    # cluster + output-builder closure all inline. Split the async-output snapshot/dispatch tail into a
+    # helper so the core sample path is readable.
     @torch.inference_mode()
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def sample_tokens(
         self,
         grammar_output: GrammarOutput | None,
@@ -1770,6 +2005,11 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             if smd.prompt_token_ids is not None:
                 logits_vocab = logits.shape[-1]
                 if self.input_batch.vocab_size > logits_vocab:
+                    # ISSUE(review): likely off-by-one — clamp(max=logits_vocab) still permits the id
+                    # `logits_vocab`, which is OUT OF BOUNDS for a logits_vocab-wide tensor (valid
+                    # indices 0..logits_vocab-1). Penalty code that gathers logits at prompt_token_ids
+                    # would index OOB. Should almost certainly be `max=logits_vocab - 1`. Verify vs the
+                    # penalty gather path.
                     smd.prompt_token_ids = smd.prompt_token_ids.clamp(max=logits_vocab)
 
         with record_function_or_nullcontext("gpu_model_runner: sample"):
@@ -1782,6 +2022,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         self.valid_sampled_token_count_gpu = None
         self.input_batch.prev_sampled_token_ids = None
 
+        # ISSUE(review): this inner closure shadows the method `self.propose_draft_token_ids` it wraps
+        # (same name), which is confusing to read and error-prone. Rename the local (e.g.
+        # `_run_draft_proposal`) and/or lift it to a method — inner helpers are discouraged here.
+        # ISSUE(docstring): missing — add purpose, args, how-it-works
         def propose_draft_token_ids(sampled_token_ids):
             assert spec_decode_common_attn_metadata is not None
             with record_function_or_nullcontext("gpu_model_runner: draft"):
@@ -1867,6 +2111,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         kv_connector_output = self.kv_connector_output
         self.kv_connector_output = None
 
+        # ISSUE(review): implicit cross-phase state — _omni_num_scheduled_tokens_np is written in
+        # _preprocess (base) and read here via getattr; a rename/miss silently falls back to
+        # recomputing from scheduler_output. Should be an ExecuteModelState field, not a mutable attr.
         num_scheduled_tokens_np = getattr(self, "_omni_num_scheduled_tokens_np", None)
         if num_scheduled_tokens_np is None:
             num_scheduled_tokens_np = np.array(
@@ -1905,6 +2152,13 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             multimodal_outputs=multimodal_outputs,
         )
 
+        # ISSUE(docstring): missing — add purpose, returns, how-it-works
+        # ISSUE(review): implicit snapshot boundary — this closure captures ~14 locals; "everything
+        # the background thread reads must be snapshotted" is a convention encoded in the ad-hoc
+        # copies above (:2117-2135), not a type. A missed copy compiles fine and races silently.
+        # Replace with an explicit frozen OmniStepSnapshot dataclass + capture() so the builder
+        # input is closed over by construction (see async_omni_output_refactor_design.md).
+        # Also: inner closure — should be a method taking the snapshot (no inner helper defs).
         def output_builder() -> OmniModelRunnerOutput:
             if output_tensor_snapshot.async_payload is not None:
                 with record_function_or_nullcontext("omni_async_output:wait_cpu_payload"):
@@ -1957,6 +2211,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                     **async_output_kwargs,
                 )
         with record_function_or_nullcontext("gpu_model_runner: set_async_sampled_token_ids"):
+            # ISSUE(review): producer side of an invisible, untested cross-step coupling — this writes
+            # sampled_token_ids_cpu + async_copy_ready_event onto input_batch, which the *next* step's
+            # _build_model_sampler_output_token_ids reads + syncs (see the ISSUE there). The two must
+            # move together (B-align: both into the OmniModelState sampler hook).
             # Save ref of sampled_token_ids CPU tensor if the batch contains
             # any requests with sampling params that require output ids.
             self.input_batch.set_async_sampled_token_ids(
@@ -1966,12 +2224,16 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
         return async_output
 
+    # ISSUE(docstring): incomplete — add how-it-works
     def _resolve_global_request_id(self, req_id: str) -> str:
         """Resolve global request ID from request state."""
         req_state = self.requests.get(req_id)
         if not req_state:
             return req_id
 
+        # ISSUE(review): reaches into model_intermediate_buffer by the "global_request_id" magic key
+        # (part of the additional_information/model_intermediate_buffer naming cluster) — the buffer is
+        # doubling as a generic side-channel. Prefer a typed accessor for cross-stage request identity.
         add_info = self.model_intermediate_buffer.get(req_id, {})
         global_id = add_info.get("global_request_id")
         if global_id:

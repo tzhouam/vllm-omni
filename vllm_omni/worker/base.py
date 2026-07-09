@@ -47,6 +47,7 @@ class OmniGPUWorkerBase(GPUWorker):
     # - What the method notes
     # - What the method examples are
     # - What the method references are
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def load_model(self, *args, **kwargs):
         with self._maybe_get_memory_pool_context("weights"):
             res = super().load_model(*args, **kwargs)
@@ -56,6 +57,7 @@ class OmniGPUWorkerBase(GPUWorker):
 
     # We should not use the *args or **kwargs here, making it unreadable.
     # There should be a docstring for this method.
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -182,6 +184,7 @@ class OmniGPUWorkerBase(GPUWorker):
 
     # Should use doc string for this method.
     # Provide memory pool context
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _maybe_get_memory_pool_context(self, tag: str) -> AbstractContextManager:
         v1_config_enabled = False
         if hasattr(self, "vllm_config"):
@@ -201,6 +204,7 @@ class OmniGPUWorkerBase(GPUWorker):
             logger.warning(f"[LLM Worker {self.rank}] Sleep Mode DISABLED.")
             return nullcontext()
 
+    # ISSUE(docstring): incomplete — add returns, how-it-works
     def sleep(self, level: int = 1) -> bool:
         """
         Put the worker to sleep.
@@ -225,6 +229,7 @@ class OmniGPUWorkerBase(GPUWorker):
         )
         return True
 
+    # ISSUE(docstring): incomplete — add args, returns, how-it-works
     def wake_up(self, tags: list[str] | None = None) -> bool:
         "Physical video memory reloading logic"
         from vllm.device_allocator.cumem import CuMemAllocator
@@ -236,6 +241,7 @@ class OmniGPUWorkerBase(GPUWorker):
         return True
 
     # finer doc string for this method.
+    # ISSUE(docstring): incomplete — add args, returns, how-it-works
     def handle_sleep_task(self, task: OmniSleepTask) -> OmniACK:
         "Handle deterministic Sleep command from the main process"
         try:
@@ -290,6 +296,7 @@ class OmniGPUWorkerBase(GPUWorker):
                     pass
             return OmniACK(task_id=task.task_id, status="ERROR", error_msg=str(e))
 
+    # ISSUE(docstring): incomplete — add args, returns, how-it-works
     def handle_wake_task(self, task: OmniWakeTask) -> OmniACK:
         "Handle deterministic Wakeup command from the main process"
         try:

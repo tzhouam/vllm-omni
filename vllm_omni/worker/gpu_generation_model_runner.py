@@ -38,6 +38,10 @@ from vllm.v1.worker.utils import sanity_check_mm_encoder_outputs
 
 from vllm_omni.outputs import OmniModelRunnerOutput
 from vllm_omni.utils.mm_outputs import partition_payload_list
+# ISSUE(review): backwards coupling — the generation runner imports ExecuteModelState (a
+# typing.NamedTuple) and _ensure_tensor_values from the AR runner, so a sibling stage depends on the
+# AR module and any field-order/type change there silently breaks this runner. Move the shared
+# ExecuteModelState + helper to a neutral module (base/OmniModelState) and guard with a field-parity test.
 from vllm_omni.worker.gpu_ar_model_runner import ExecuteModelState, _ensure_tensor_values
 from vllm_omni.worker.gpu_model_runner import OmniGPUModelRunner
 from vllm_omni.worker.omni_connector_model_runner_mixin import OmniConnectorModelRunnerMixin
@@ -52,11 +56,22 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
     - Does not compute logits or perform token sampling.
     - Executes generation process and returns tensors via `pooler_output`.
     """
+    # ISSUE(review): docstring drift — claims outputs are returned "via pooler_output", but
+    # sample_tokens() sets pooler_output=None (:484) and ships tensors via multimodal_outputs /
+    # inter_stage_outputs. Update the docstring to name the real output channels.
 
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._async_chunk = getattr(self.model_config, "async_chunk", False)
         # Mirrors the init allowlist in gpu_ar_model_runner.py.
+        # ISSUE(review): this allowlist is inlined + DIVERGENT from gpu_ar_model_runner.py:327 — this
+        # copy's 9th entry is "IndexTTS2S2MelDecoder" (AR has "IndexTTS2TalkerForConditionalGeneration")
+        # and init_omni_connectors() here omits kv_transfer_manager= that the AR copy passes. Two hand-
+        # maintained sets drift silently; single-source it (model-declared connector role, not an arch set).
+        # ISSUE(review): two-places coupling — this allowlist AND
+        # omni_scheduling_coordinator._FULL_PAYLOAD_INPUT_STAGES must be kept in lock-step; forgetting the
+        # latter is a SILENT Stage-1 consumer hang. Needs a single registration point.
         _OMNI_CONNECTOR_INIT_ARCHS = {
             "Qwen3OmniMoeForConditionalGeneration",
             "Qwen2_5OmniForConditionalGeneration",
@@ -74,6 +89,13 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
                 model_config=self.model_config,
             )
 
+    # OMNI: generation-only helper (no AR/base counterpart) that hand-rolls upstream
+    # _update_states' persistent-batch remove/add logic (remove finished + unscheduled, re-add cached
+    # req_states, re-init M-RoPE). Only invoked on the async_chunk path (execute_model :153). It is a
+    # partial fork-copy of upstream GPUModelRunner._update_states — a drift hazard on rebase.
+    # ISSUE(review): duplicates the base _update_states batch bookkeeping — fold into a shared hook so
+    # the remove/add/M-RoPE logic lives in one place rather than two divergent copies.
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _update_request_states(self, scheduler_output: SchedulerOutput):
         # remove requests
         for req_id in scheduler_output.finished_req_ids:
@@ -102,6 +124,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
                 self._init_mrope_positions(req_state)
 
     @torch.inference_mode()
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def execute_model(
         self,
         scheduler_output: SchedulerOutput,
@@ -110,6 +133,13 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
         if self.execute_model_state is not None:
             raise RuntimeError("State error: sample_tokens() must be called after execute_model() returns None.")
 
+        # ISSUE(review): near-duplicate preamble — the block from here through the KV-preemption
+        # handling (:~146: routed-experts clear, connector recv/register/flush, routed-experts
+        # finalize_pending_copy, ngram scheduler_output replace-copy, has_kv_transfer_group preemptions)
+        # is copy-pasted from gpu_ar_model_runner.py:execute_model (:926-1009) but DIVERGENT — this copy
+        # OMITS the AR's _warmup_state_cleared reset, omni_prefix_cache.drain_ready_async_writes,
+        # per-request get_kv_transfer_metadata, on_requests_finished, and prefix-cache commit. Extract a
+        # shared OmniGPUModelRunner.execute_model preamble helper (rfc8 A) so the two can't drift.
         if self.routed_experts_initialized:
             self.routed_experts_capturer.clear_buffer()
 
@@ -153,6 +183,14 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             if self.model_config.async_chunk and num_scheduled_tokens:
                 self._update_request_states(scheduler_output)
             deferred_state_corrections_fn = self._update_states(scheduler_output)
+            # ISSUE(review): this unconditional no-tokens early return SHADOWS the more careful
+            # no-tokens block ~10 lines below (`if not num_scheduled_tokens:` at :194). Because
+            # total_num_scheduled_tokens == num_scheduled_tokens, this returns first, making that block
+            # UNREACHABLE — so on the generation runner a 0-token step skips (a) the external_launcher
+            # + data_parallel_size>1 `_dummy_run(1)` that prevents a DP coordinate_batch_across_dp
+            # out-of-sync HANG, and (b) the `kv_connector_no_forward` path. The AR runner
+            # (gpu_ar_model_runner.py:~1113) has only the careful block and no early return. Remove this
+            # early return (or merge the two) so the DP + KV-transfer corner cases are handled.
             if not scheduler_output.total_num_scheduled_tokens:
                 return self.attach_omni_connector_output(EMPTY_MODEL_RUNNER_OUTPUT)
 
@@ -351,6 +389,10 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             )
 
         _, multimodal_outputs = self.extract_multimodal_outputs(outputs)
+        # ISSUE(review): fragile positional construction — six positional None placeholders (logits,
+        # hidden_states, hidden_states_cpu, sample_hidden_states, aux_hidden_states) mean a field
+        # add/reorder in the AR-owned ExecuteModelState silently maps values to the wrong slots here.
+        # Use keyword args and a field-parity test against the AR definition.
         self.execute_model_state = ExecuteModelState(
             scheduler_output,
             None,
@@ -370,12 +412,16 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
         if deferred_state_corrections_fn:
             deferred_state_corrections_fn()
 
+        # ISSUE(review): fork-fragile guard — hasattr(self, "_positions_cpu") silently skips the
+        # routed-experts D2H if that upstream attr is renamed/removed, dropping expert data with no
+        # error. Depend on an explicit runner flag instead of probing an upstream internal by name.
         if self.routed_experts_initialized and hasattr(self, "_positions_cpu"):
             self._omni_routed_experts_d2h(scheduler_output)
 
         return None
 
     @torch.inference_mode()
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def sample_tokens(
         self,
         grammar_output: GrammarOutput | None = None,
@@ -422,6 +468,10 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
         # pooler_output is no longer used for multimodal data.
         per_req_payloads: list[dict[str, object]] = []
         if isinstance(multimodal_outputs_raw, torch.Tensor):
+            # ISSUE(review): the two asserts are mutually constraining — shape[0]==1 AND
+            # shape[0]==num_reqs together force num_reqs==1, so the bare-tensor return path silently
+            # only supports single-request batches. Either document/guard the batch-size-1 limitation
+            # or per-request slice the tensor (as the Mapping branch does) so batched requests work.
             assert multimodal_outputs_raw.shape[0] == 1, (
                 "model should return a single tensor, to return multiple tensors, use a dict"
             )
@@ -429,6 +479,11 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             for i in range(self.input_batch.num_reqs):
                 per_req_payloads.append({"model_outputs": multimodal_outputs_raw[i].detach().to("cpu").contiguous()})
         elif isinstance(multimodal_outputs_raw, list):
+            # ISSUE(review): silent batch misalignment — this asserts len(list)==1 but NOT
+            # num_reqs==1 (unlike the tensor branch above), so it always produces a length-1
+            # per_req_payloads regardless of num_reqs. For a batched step (num_reqs>1) the payload list
+            # is then misaligned with req_ids downstream, with no error. Assert num_reqs==1 or slice per
+            # request like the Mapping branch.
             assert len(multimodal_outputs_raw) == 1, (
                 "model should return a single list, to return multiple lists, use a dict"
             )
@@ -451,6 +506,9 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
                     elif isinstance(out, torch.Tensor):
                         mm_payload[key] = out.detach().to("cpu").contiguous()
                     else:
+                        # ISSUE(review): silent data drop — an unsupported type is logged and the key is
+                        # omitted from mm_payload, so the downstream stage silently loses that output
+                        # instead of failing loudly. Raise (or narrow the accepted types) rather than warn+skip.
                         logger.warning(f"Unsupported multimodal output type for key '{key}': {type(out)}")
                 per_req_payloads.append(_ensure_tensor_values(mm_payload))
         else:
@@ -514,6 +572,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
         model_kwargs: dict,
         logits_indices: torch.Tensor,
     ) -> torch.Tensor | list[torch.Tensor]:
+        # ISSUE(docstring): incomplete — add how-it-works
         """Run generation from codec codes to waveforms.
 
         Args:
@@ -523,6 +582,9 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
         Returns:
             Audio waveforms: [batch, 1, waveform_len] or list of tensors
         """
+        # ISSUE(review): docstring drift — the Args list names `scheduler_output`, which is not a
+        # parameter of this method (the signature takes input_ids/positions/inputs_embeds/model_kwargs/
+        # logits_indices). Document the actual parameters.
         # Keep inputs identical to AR runner
         kwargs = dict(
             input_ids=input_ids,
@@ -535,6 +597,10 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             sampler=self.sampler,
         )
 
+        # ISSUE(review): dead guard + misleading error — every nn.Module has a `forward`, so
+        # hasattr(self.model, "forward") is always True: the branch always taken, the raise below is
+        # unreachable, and its message advertising 'sample'/'diffuse' interfaces that are never actually
+        # probed is misleading. Drop the guard or check the real capability the runner needs.
         if hasattr(self.model, "forward"):
             return self._model_forward(**kwargs)
 
@@ -543,11 +609,22 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             "'forward', or 'diffuse'. Please implement one of them or adapt the runner."
         )
 
+    # ISSUE(review): likely-uncalled override that warns on every call — this runner's profile_run
+    # (:901) does not call _dummy_sampler_run, and base OmniGPUModelRunner defines no capture_model
+    # that would, so the non-AR path appears never to hit this; if it never fires the override is dead,
+    # and if it does the warning is log noise. Verify the capture/profile path — unverified, needs check.
     @torch.inference_mode()
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _dummy_sampler_run(self, hidden_states: torch.Tensor) -> torch.Tensor:
         logger.warning("Dummy sampler run is not implemented for generation model")
         return torch.tensor([])
 
+    # ISSUE(review): ~88% duplicate of OmniGPUModelRunner._dummy_run (gpu_model_runner.py:989) which is
+    # itself ~90% upstream — extract the shared body and hook the small deltas. The ONLY divergences in
+    # this copy: (a) the input branch below OMITS the base's `has_preprocess` inputs_embeds path (see
+    # mark at the branch); (b) it ADDS the MammothModa2 get_dummy_runtime_additional_information block;
+    # (c) it DROPS the base talker_mtp cudagraph-record block; (d) it returns (hidden_states, None)
+    # instead of (hidden_states, hidden_states[logit_indices]). Merge behind an OmniModelState hook.
     @torch.inference_mode()
     def _dummy_run(
         self,
@@ -564,6 +641,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
         num_active_loras: int = 0,
         profile_seq_lens: int | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        # ISSUE(docstring): incomplete — add returns, how-it-works
         """
         Run a dummy forward pass to warm up/profile run or capture the
         CUDA graph for the model.
@@ -776,6 +854,11 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
                 input_ids = None
                 inputs_embeds = self.inputs_embeds.gpu[:num_tokens_padded]
                 model_kwargs = self._init_model_kwargs()
+            # ISSUE(review): capture==replay divergence — the base _dummy_run (gpu_model_runner.py:1215)
+            # has an extra `elif has_preprocess:` branch that loads BOTH input_ids and inputs_embeds so
+            # graph capture reads the same buffers _preprocess writes at replay. This copy lacks it, so
+            # a generation-stage model with has_preprocess captures on input_ids only while runtime feeds
+            # inputs_embeds → silent capture≠runtime bug. Mirror the base branch (or share the method).
             else:
                 input_ids = self.input_ids.gpu[:num_tokens_padded]
                 inputs_embeds = None
@@ -786,6 +869,11 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             # estimate KV-cache capacity.  get_dummy_runtime_additional_information
             # provides placeholder values of the correct shape so that the profiling
             # run does not raise an error due to missing inputs.
+            # ISSUE(review): model-specific logic in the generic runner — only MammothModa2DiTPipeline
+            # declares get_dummy_runtime_additional_information (verified: sole definition is
+            # diffusion/models/mammoth_moda2/pipeline_mammothmoda2_dit.py:110). This is another
+            # getattr(self.model, …) capability probe hardcoded into _dummy_run; move behind a
+            # model-declared OmniModelState hook rather than a name probe here.
             if hasattr(self.model, "get_dummy_runtime_additional_information"):
                 runtime_addi = self.model.get_dummy_runtime_additional_information(num_reqs)
                 model_kwargs["runtime_additional_information"] = runtime_addi
@@ -898,6 +986,11 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
 
         return hidden_states, None
 
+    # ISSUE(review): near-duplicate of upstream GPUModelRunner.profile_run — the only intended delta is
+    # skipping the last-rank _dummy_sampler_run/_dummy_pooler_run (non-AR). Fold to super().profile_run()
+    # behind an "is generation stage" hook rather than re-copying the whole encoder-profiling body, which
+    # drifts on rebase (this copy already uses logger.info where upstream moved to logger.info_once).
+    # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def profile_run(self) -> None:
         # Profile with multimodal encoder & encoder cache.
         if self.supports_mm_inputs:
@@ -952,6 +1045,9 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
 
         # Add `is_profile` here to pre-allocate communication buffers
         hidden_states, _ = self._dummy_run(self.max_num_tokens, is_profile=True)
+        # ISSUE(review): dead local — `output` is assigned None and never read or freed (upstream
+        # assigns it a real sampler/pooler result and `del`s it). Remove it, or delete it alongside
+        # hidden_states as upstream does.
         output = None
         self._sync_device()
         del hidden_states

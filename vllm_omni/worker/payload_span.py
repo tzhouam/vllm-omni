@@ -19,6 +19,7 @@ CACHED_THINKER_DECODE_TOKEN_END_KEY = "cached_thinker_decode_embeddings_token_en
 TensorSpan = tuple[torch.Tensor, int, int]
 
 
+# ISSUE(docstring): missing — add purpose, args, returns, how-it-works
 def get_tensor_span(payload: Mapping[str, Any], *, tensor_key: str, start_key: str, end_key: str) -> TensorSpan | None:
     tensor = payload.get(tensor_key)
     start = payload.get(start_key)
@@ -32,6 +33,7 @@ def get_tensor_span(payload: Mapping[str, Any], *, tensor_key: str, start_key: s
     return tensor, start, end
 
 
+# ISSUE(docstring): missing — add purpose, args, returns, how-it-works
 def merge_tensor_spans(existing_span: TensorSpan | None, incoming_span: TensorSpan | None) -> TensorSpan | None:
     if existing_span is None or incoming_span is None:
         return None
@@ -55,6 +57,7 @@ def merge_tensor_spans(existing_span: TensorSpan | None, incoming_span: TensorSp
     return None
 
 
+# ISSUE(docstring): missing — add purpose, args, returns, how-it-works
 def get_tensor_span_row(span: TensorSpan | None, index: int) -> torch.Tensor | None:
     if span is None:
         return None

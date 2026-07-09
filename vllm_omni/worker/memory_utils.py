@@ -16,6 +16,7 @@ from vllm.utils.mem_utils import MemorySnapshot, format_gib
 logger = init_logger(__name__)
 
 
+# ISSUE(docstring): incomplete — add args
 def request_memory_tolerant(
     init_snapshot: MemorySnapshot,
     cache_config: CacheConfig,

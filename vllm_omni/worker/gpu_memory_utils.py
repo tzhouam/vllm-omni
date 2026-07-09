@@ -19,6 +19,7 @@ from vllm.third_party.pynvml import (
 logger = init_logger(__name__)
 
 
+# ISSUE(docstring): incomplete — add how-it-works
 def is_process_scoped_memory_available() -> bool:
     """Check if NVML process-scoped memory tracking is available.
 
@@ -34,6 +35,7 @@ def is_process_scoped_memory_available() -> bool:
         return False
 
 
+# ISSUE(docstring): incomplete — add how-it-works
 def parse_cuda_visible_devices() -> list[str | int]:
     """Parse CUDA_VISIBLE_DEVICES into a list of device identifiers.
 
@@ -56,6 +58,7 @@ def parse_cuda_visible_devices() -> list[str | int]:
     return result
 
 
+# ISSUE(docstring): incomplete — add args, returns, how-it-works
 def get_device_handle(device_id: str | int):
     """Get NVML device handle by index or UUID."""
     if isinstance(device_id, int):
@@ -66,6 +69,7 @@ def get_device_handle(device_id: str | int):
         return nvmlDeviceGetHandleByUUID(device_id)
 
 
+# ISSUE(docstring): incomplete — add args, how-it-works
 def get_process_gpu_memory(local_rank: int) -> int | None:
     """Get GPU memory used by current process via pynvml.
 
