@@ -49,6 +49,11 @@ from vllm_omni.worker.omni_connector_model_runner_mixin import OmniConnectorMode
 logger = init_logger(__name__)
 
 # utils should be moved to the utils.py file
+# ISSUE(review): model-specific cluster — this whole module-level async-snapshot family
+# (_to_cpu_contiguous, _clone_cuda_tensor_payload, _copy_tensor_payload_to_cpu,
+# _AsyncCPUPayloadSnapshot, _snapshot_tensor_payload_to_cpu_async, _OmniOutputTensorSnapshot) exists
+# only for the async-omni-output path, whose sole opt-in model is qwen3_omni (use_async_omni_output;
+# see _should_use_async_omni_output). Package with the AsyncOutputSpec extraction (PR22/PR24).
 # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
 def _to_cpu_contiguous(tensor: torch.Tensor) -> torch.Tensor:
     tensor = tensor.detach()
@@ -148,6 +153,10 @@ class _OmniOutputTensorSnapshot(NamedTuple):
     async_payload: _AsyncCPUPayloadSnapshot | None = None
 
 # Should create a seperate data file for the dataclass
+# ISSUE(review): model-specific — this class (background builder thread + async D2H payload snapshot)
+# is only ever instantiated on the async-omni-output path, whose sole opt-in model is qwen3_omni
+# (verified via grep: use_async_omni_output is declared only by qwen3_omni). A one-model feature
+# owning a daemon thread inside the generic runner file; move with the async-output package (PR22).
 class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
     # ISSUE(docstring): missing — add purpose, args, how-it-works
     def __init__(
@@ -171,8 +180,6 @@ class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
         self._invalid_req_indices = invalid_req_indices
 
         # double check if the event is actually used, seems like the background thread never waits on it
-        # ISSUE(review): torch.Event() (not torch.cuda.Event()) can default to a CPU event; verify it
-        # resolves to an accelerator event here, else .record() below does not gate the D2H copies.
         self.async_copy_ready_event = torch.Event()
         self._sampled_token_ids = sampled_token_ids
         self.vocab_size = vocab_size
@@ -187,9 +194,6 @@ class OmniAsyncGPUModelRunnerOutput(AsyncGPUModelRunnerOutput):
             # changing its host-copy allocation semantics while building Omni
             # output asynchronously.
             self.sampled_token_ids_cpu = self._sampled_token_ids.to("cpu", non_blocking=True)
-            # ISSUE(review): inconsistent + fragile truthiness — use `is not None` like _routed_experts
-            # below (matches the xxx-is-not-None rule); truthiness on the tensor-holding LogprobsTensors
-            # is only safe by accident (NamedTuple len>=1).
             self._logprobs_tensors_cpu = self._logprobs_tensors.to_cpu_nonblocking() if self._logprobs_tensors else None
             self._routed_experts_cpu = (
                 self._routed_experts.to_cpu_nonblocking() if self._routed_experts is not None else None
@@ -310,7 +314,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
     outputs per request while keeping Async output semantics.
     """
 
-    # ISSUE(review): *args/**kwargs — list the upstream constructor args explicitly for readability/typing.
     # ISSUE(docstring): missing — add purpose, args, how-it-works
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -379,6 +382,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             return super()._make_buffer(*size, dtype=dtype, numpy=numpy)
 
     # have the super similar(not same, the async copy part is different) function inside the gpu_model_runner.py, need to be merged
+    # ISSUE(review): model-specific — sole caller is _sampling_metadata_for_model_sampler (plus the NPU
+    # copy), i.e. this backfill exists only for the 5 prefer_model_sampler custom-sampler models
+    # (cosyvoice3 / glm_tts / higgs_audio_v2 / higgs_audio_v3 / hunyuan_image3). Extract with the
+    # AsyncSamplerFeedback split (PR23/PR25) together with the divergent base copy.
     def _build_model_sampler_output_token_ids(self) -> list[list[int]]:
         """Build decoded-token history for custom model samplers.
 
@@ -457,8 +464,14 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
     # have super similar function inside the gpu_model_runner.py, need to be merged
     # add doc string
+    # ISSUE(review): model-specific — exists solely for prefer_model_sampler models
+    # (cosyvoice3 / glm_tts / higgs_audio_v2 / higgs_audio_v3 / hunyuan_image3); the generic AR
+    # runner shouldn't carry their sampler-history plumbing. 
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _sampling_metadata_for_model_sampler(self, sampling_metadata):
+        # ISSUE(review): model-specific probe — only higgs_audio_v3_talker declares
+        # skips_model_sampler_output_token_history (verified via grep); an opt-out flag for one model
+        # living in the generic runner. Fold into the model-declared sampler capability.
         if getattr(self.model, "skips_model_sampler_output_token_history", False):
             return sampling_metadata
         output_token_ids = self._build_model_sampler_output_token_ids()
@@ -466,9 +479,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         # O(total tokens) for large ones. Acceptable (skips a needless replace), just noting the cost.
         if output_token_ids == sampling_metadata.output_token_ids:
             return sampling_metadata
-        # ISSUE(review): OMNI fork-coupling — dataclasses.replace() assumes SamplingMetadata stays a
-        # dataclass. A rebase making it a NamedTuple (needs ._replace) or adding a required field
-        # breaks this. Mark as # OMNI: so a rebase notices.
         return replace(sampling_metadata, output_token_ids=output_token_ids)
 
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
@@ -519,8 +529,11 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
     # ISSUE(review): model-specific sparse-audio routing baked into the generic runner — the
     # "meta.sparse_audio"/"meta.req_id" marker protocol and its parsing (_sparse_mm_req_ids,
-    # _resolve_sparse_mm_routing, _is_sparse_audio_marker) are only meaningful for sparse-audio TTS
-    # models. Move behind a model-declared capability/hook on OmniModelState (B-align), not string keys.
+    # _resolve_sparse_mm_routing, _is_sparse_audio_marker) have exactly ONE producer:
+    # voxcpm2_talker (voxcpm2_talker.py:2441/:2458 emits mm["meta"] = {"req_id": ..., "sparse_audio":
+    # ["1"]}; verified via grep — no other model writes the marker). Consumers: this runner + the NPU
+    # copy (npu_ar_model_runner.py), so an extraction needs an NPU shim. Move behind a model-declared
+    # capability/hook on OmniModelState (B-align), not string keys in the generic runner.
     @staticmethod
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _sparse_mm_req_ids(multimodal_outputs: Any) -> list[str] | None:
@@ -549,6 +562,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
 
     @staticmethod
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
+    #VOXCMP2: only one model that uses this function
     def _resolve_sparse_mm_routing(
         *,
         engine_output_type: str,
@@ -565,6 +579,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         sparse_downstream_req_ids = [rid for rid in req_ids_output_copy if rid in sparse_req_id_set]
         return sparse_downstream_req_ids, sparse_mm_index, True
 
+    #VOXCMP2: only one model that uses this function
+    # ISSUE(review): model-specific — third piece of the voxcpm2-only sparse-audio trio (see the
+    # cluster note above _sparse_mm_req_ids); marker values arrive as ["1"] string lists from
+    # voxcpm2_talker.py:2441. Extract together with the other two.
     @staticmethod
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _is_sparse_audio_marker(value: Any) -> bool:
@@ -577,6 +595,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         # multimodal_outputs). Guard the tensor/ndarray case or restrict accepted types.
         return bool(value)
 
+    # TTS and Qwen3 Omni models use this function
     # ISSUE(docstring): missing — add purpose, returns, how-it-works
     def capture_model(self) -> int:
         result = super().capture_model()
@@ -824,6 +843,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             )
         return combined_hidden_states, combined_multimodal_outputs
 
+    # ISSUE(review): model-specific — a no-op unless the model declares deferred_prefix_cache_mm_keys,
+    # which only higgs_audio_v3_talker / qwen3_tts_talker do ({"codes.audio"}; verified via grep).
+    # Their deferred prefix-cache staging living in the generic runner; move to OmniModelState.
     # ISSUE(docstring): missing — add purpose, args, how-it-works
     def _stage_deferred_prefix_cache_mm_outputs(
         self,
@@ -850,7 +872,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def _prepare_prefix_cache_pooler_payload_sources(
         self,
-        *,
+        *, # not use *
         hidden_states: torch.Tensor,
         staged_hidden_states_cpu: torch.Tensor | None,
         multimodal_outputs: Any,
@@ -998,11 +1020,11 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
         payload.update(mm_payload)
         return payload
 
-    # ISSUE(review): over-long (~430 lines) and a divergent duplicate of the upstream/generation
-    # execute_model — the connector-recv / ngram scheduler_output-copy / KV-preemption / early-return
-    # preamble is copy-pasted from gpu_generation_model_runner.execute_model but diverges (this AR copy
-    # adds warmup-clear, prefix-cache drain, KV-transfer-before-update-states, commit_deferred_mm).
-    # Extract the shared preamble + hook the omni deltas so the two runners can't silently drift.
+    # ISSUE(review): divergent duplicate — the connector-recv / ngram scheduler_output-copy /
+    # KV-preemption / early-return preamble is copy-pasted from
+    # gpu_generation_model_runner.execute_model but diverges (this AR copy adds warmup-clear,
+    # prefix-cache drain, KV-transfer-before-update-states, commit_deferred_mm). Extract the shared
+    # preamble + hook the omni deltas so the two runners can't silently drift.
     @torch.inference_mode()
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def execute_model(
@@ -1035,8 +1057,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             self.omni_prefix_cache.drain_ready_async_writes()
 
         # [Omni] Handle KV transfer BEFORE updating states (which removes finished requests)
-        # ISSUE(review): model-specific probe — only bagel declares get_kv_transfer_metadata (verified
-        # via grep); consolidate onto an OmniModelState capability.
         finished_reqs = getattr(scheduler_output, "finished_requests_needing_kv_transfer", {})
         if finished_reqs and hasattr(self.model, "get_kv_transfer_metadata"):
             for req_id, data in finished_reqs.items():
@@ -1456,10 +1476,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             multimodal_outputs,
             slot_mappings,  # OMNI: pass slot_mappings for drafter
         )
-        # ISSUE(review): implicit cross-phase state — kv_connector_output is stashed on the instance
-        # here and read/cleared in sample_tokens (and mutated during drafting). Everything else in the
-        # phase hand-off rides ExecuteModelState; this one field is a mutable side-channel. Make it an
-        # ExecuteModelState field so the two-phase contract is explicit and un-droppable.
         self.kv_connector_output = kv_connector_output
 
         if deferred_state_corrections_fn:
@@ -1481,6 +1497,10 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
     ):
         sampling_metadata = self.input_batch.sampling_metadata
         if spec_decode_metadata is None:
+            # ISSUE(review): model-specific — the model.sample + prefer_model_sampler probes below serve
+            # the same 5 custom-sampler models as _sampling_metadata_for_model_sampler (cosyvoice3 /
+            # glm_tts / higgs_audio_v2 / higgs_audio_v3 / hunyuan_image3; verified via grep). The whole
+            # prefer_model_sampler branch is their plumbing inside the generic _sample; extract together.
             model_sample = getattr(self.model, "sample", None)
             self.input_batch.update_async_output_token_ids()
             if logits is not None and callable(model_sample) and getattr(self.model, "prefer_model_sampler", False):
@@ -1591,9 +1611,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                 updates[attr] = list(val)
         if not updates:
             return scheduler_output
-        # OMNI: fork-fragility — dataclasses.replace() assumes SchedulerOutput stays a dataclass; a
-        # rebase turning it into a NamedTuple/attrs type makes this raise TypeError and silently return
-        # the un-snapshotted original (aliasing the live dicts). Mark so a rebase notices.
         try:
             return replace(scheduler_output, **updates)
         except TypeError:
@@ -1621,6 +1638,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
     def _runner_model_omni_flag(self, name: str, default: bool = False) -> bool:
         return self._model_omni_flag(getattr(self, "model", None), name, default)
 
+    # ISSUE(review): model-specific probe — only qwen3_omni declares omni_pooler_payload_include_hidden
+    # (talker sets False to drop hidden states from the async payload; verified via grep). Belongs in a
+    # model-declared AsyncOutputSpec (PR24), not a generic-runner flag probe.
     # ISSUE(docstring): missing — add purpose/returns (trivial)
     def _model_omni_pooler_payload_include_hidden(self) -> bool:
         return self._runner_model_omni_flag("omni_pooler_payload_include_hidden", default=True)
@@ -1712,6 +1732,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             async_payload=async_payload_snapshot,
         )
 
+    # ISSUE(review): model-specific — has_postprocess + eager_omni_postprocess_before_async_output are
+    # only declared by qwen3_omni 
     # ISSUE(docstring): incomplete — add args, returns, how-it-works
     def _maybe_run_eager_omni_postprocess_before_async_output(
         self,
@@ -1953,9 +1975,9 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             output.routed_experts = routed_experts_lists
         return output
 
-    # ISSUE(review): over-long (~240 lines) — sample/draft/bookkeep + the whole async-omni snapshot
-    # cluster + output-builder closure all inline. Split the async-output snapshot/dispatch tail into a
-    # helper so the core sample path is readable.
+    # ISSUE(review): the omni-added async-omni snapshot cluster + output-builder closure are inlined
+    # into the (upstream-shaped) sample/draft/bookkeep flow. Split the async-output snapshot/dispatch
+    # tail into a helper so the omni delta is separable from the upstream core.
     @torch.inference_mode()
     # ISSUE(docstring): missing — add purpose, args, returns, how-it-works
     def sample_tokens(
@@ -2211,10 +2233,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
                     **async_output_kwargs,
                 )
         with record_function_or_nullcontext("gpu_model_runner: set_async_sampled_token_ids"):
-            # ISSUE(review): producer side of an invisible, untested cross-step coupling — this writes
-            # sampled_token_ids_cpu + async_copy_ready_event onto input_batch, which the *next* step's
-            # _build_model_sampler_output_token_ids reads + syncs (see the ISSUE there). The two must
-            # move together (B-align: both into the OmniModelState sampler hook).
             # Save ref of sampled_token_ids CPU tensor if the batch contains
             # any requests with sampling params that require output ids.
             self.input_batch.set_async_sampled_token_ids(

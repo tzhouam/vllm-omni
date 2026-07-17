@@ -869,11 +869,12 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             # estimate KV-cache capacity.  get_dummy_runtime_additional_information
             # provides placeholder values of the correct shape so that the profiling
             # run does not raise an error due to missing inputs.
-            # ISSUE(review): model-specific logic in the generic runner — only MammothModa2DiTPipeline
-            # declares get_dummy_runtime_additional_information (verified: sole definition is
-            # diffusion/models/mammoth_moda2/pipeline_mammothmoda2_dit.py:110). This is another
-            # getattr(self.model, …) capability probe hardcoded into _dummy_run; move behind a
-            # model-declared OmniModelState hook rather than a name probe here.
+            # ISSUE(review): model-specific logic in the generic runner — four models declare
+            # get_dummy_runtime_additional_information (verified via grep): MammothModa2DiTPipeline
+            # (diffusion/.../pipeline_mammothmoda2_dit.py:110), mammoth_moda2.py:803,
+            # ming_flash_omni_talker.py:295, moss_tts_nano/modeling_moss_tts_nano.py:287. Another
+            # capability probe hardcoded into _dummy_run; move behind a model-declared OmniModelState
+            # hook rather than a name probe here.
             if hasattr(self.model, "get_dummy_runtime_additional_information"):
                 runtime_addi = self.model.get_dummy_runtime_additional_information(num_reqs)
                 model_kwargs["runtime_additional_information"] = runtime_addi
