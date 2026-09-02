@@ -419,3 +419,53 @@ def test_custom_op_compiles_fullgraph_without_recompile_on_value_change():
         # Leave a clean dynamo state for later suites in the same pytest process
         # (e.g. model_executor transformers models).
         torch._dynamo.reset()
+
+
+@pytest.mark.skipif(not _gpu_flash_attn_usable(), reason="usable GPU FlashAttention is required")
+@pytest.mark.parametrize("history_chunks", [0, 1, 3])
+@pytest.mark.parametrize("action_len", [0, 3])
+def test_contiguous_kv_gather_path_matches_paged_path_gpu(monkeypatch, history_chunks, action_len):
+    """LINGBOT_KV_GATHER=1 gathers the visible blocks and runs varlen FA3 without a block table.
+
+    Covers an empty, partial and full window plus a partially filled action block:
+    the gather reads the tail-padding null block, so its (zeroed) rows must be masked.
+    """
+    from vllm_omni.experimental.ar_diffusion.kv_cache import paged_attention as paged_attention_module
+
+    torch.manual_seed(0)
+    device = torch.device("cuda")
+    dtype = torch.float16
+    kv, st = make_state(dtype=dtype, device=device, window_chunks=2)
+    if history_chunks:
+        _commit_video_span(kv, st, kv_branch=POS, n_chunks=history_chunks, dtype=dtype, device=device)
+
+    layer_ctx = st.get_kv_caches(POS, seq_len=BLOCK, commit_current=False)[0]
+    ctx = layer_ctx.forward_ctx
+    current_k = torch.randn(1, BLOCK, N_HEADS, HEAD_DIM, dtype=dtype, device=device)
+    current_v = torch.randn(1, BLOCK, N_HEADS, HEAD_DIM, dtype=dtype, device=device)
+    action_k = action_v = None
+    if action_len:
+        action_k = torch.randn(1, action_len, N_HEADS, HEAD_DIM, dtype=dtype, device=device)
+        action_v = torch.randn(1, action_len, N_HEADS, HEAD_DIM, dtype=dtype, device=device)
+    query = torch.randn(1, BLOCK + action_len, N_HEADS, HEAD_DIM, dtype=dtype, device=device)
+    ctx.prepare(device=device, action_len=action_len, query_len=query.shape[1])
+    inputs = layer_ctx.to_layer_inputs()
+
+    def run() -> torch.Tensor:
+        return paged_write_attn(
+            inputs,
+            query[0],
+            current_k[0],
+            current_v[0],
+            action_k[0] if action_len else None,
+            action_v[0] if action_len else None,
+            HEAD_DIM**-0.5,
+        ).unsqueeze(0)
+
+    monkeypatch.setattr(paged_attention_module, "_KV_GATHER_ENABLED", False)
+    paged = run()
+    monkeypatch.setattr(paged_attention_module, "_KV_GATHER_ENABLED", True)
+    gathered = run()
+    assert torch.isfinite(gathered).all()
+    # Same kernel family on the same K/V: only accumulation order differs.
+    torch.testing.assert_close(gathered, paged, rtol=2e-3, atol=2e-3)

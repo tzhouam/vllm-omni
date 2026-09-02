@@ -24,7 +24,7 @@ from vllm.model_executor.model_loader.weight_utils import default_weight_loader
 from vllm.model_executor.utils import set_weight_attrs
 
 from vllm_omni.diffusion.attention.layer import Attention
-from vllm_omni.diffusion.distributed.comm import SeqAllToAll4D
+from vllm_omni.diffusion.distributed.comm import SeqAllToAll4D, all_to_all_5D
 from vllm_omni.diffusion.distributed.parallel_state import get_sp_group
 from vllm_omni.diffusion.distributed.sp_plan import SequenceParallelInput, SequenceParallelOutput
 from vllm_omni.diffusion.layers.norm import LayerNorm
@@ -329,9 +329,18 @@ class LingBotSelfAttention(nn.Module):
             key = self.rotary_embedding(key, cos, sin)
 
         if self.ulysses_world_size > 1:
-            query = SeqAllToAll4D.apply(self.ulysses_group, query, 2, 1, False)
-            key = SeqAllToAll4D.apply(self.ulysses_group, key, 2, 1, False)
-            value = SeqAllToAll4D.apply(self.ulysses_group, value, 2, 1, False)
+            # One fused sequence->head all-to-all for q/k/v instead of three:
+            # (B, S/N, 3, H, D) -> (B, S, 3, H/N, D). Same head-group assignment
+            # as the per-tensor 4D exchange (rank r receives head group r), so
+            # the result is a pure permutation of the three-call version, with a
+            # 3x larger message and one third of the latency-bound collectives.
+            qkv = all_to_all_5D(
+                torch.stack((query, key, value), dim=2),
+                scatter_idx=3,
+                gather_idx=1,
+                group=self.ulysses_group,
+            )
+            query, key, value = qkv.unbind(2)
 
         if isinstance(cache, ARDiffusionPagedLayerInputs):
             if query.shape[0] != 1:

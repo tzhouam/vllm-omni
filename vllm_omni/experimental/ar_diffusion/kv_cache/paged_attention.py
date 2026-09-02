@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, NamedTuple
 
@@ -19,6 +20,19 @@ def _layer_idx_tensor(layer_idx: int) -> torch.Tensor:
         t = torch.tensor(layer_idx, dtype=torch.int64)
         _LAYER_IDX_TENSORS[layer_idx] = t
     return t
+
+
+def _to_device_async(t: torch.Tensor, device: torch.device) -> torch.Tensor:
+    """Host->device copy that does not stall the CPU.
+
+    ``tensor.to(device)`` from pageable memory is synchronous: the CPU blocks until
+    every kernel already queued on the stream has finished. Pinned + non_blocking
+    keeps the CPU running ahead (the caching host allocator keeps the pinned
+    source alive until the copy's stream event completes).
+    """
+    if torch.device(device).type != "cuda" or t.device.type != "cpu":
+        return t.to(device=device)
+    return t.pin_memory().to(device=device, non_blocking=True)
 
 
 class ARDiffusionPagedLayerInputs(NamedTuple):
@@ -104,15 +118,13 @@ class ARDiffusionPagedForwardContext:
             start_block = start // self.block_size
             self.current_video_block_ids = [int(b) for b in table[start_block : start_block + n_blocks]]
             positions = torch.arange(start, start + self.seq_len, dtype=torch.long)
-            self.current_video_slot_mapping = compute_slot_mapping(table, positions, self.block_size).to(device=device)
+            self.current_video_slot_mapping = _to_device_async(compute_slot_mapping(table, positions, self.block_size), device)
         else:
             self.current_video_block_ids = self.kv_cache.scratch_block_ids(self.kv_branch, 0, n_blocks)
             positions = torch.arange(self.seq_len, dtype=torch.long)
-            self.current_video_slot_mapping = compute_slot_mapping(
-                self.current_video_block_ids,
-                positions,
-                self.block_size,
-            ).to(device=device)
+            self.current_video_slot_mapping = _to_device_async(
+                compute_slot_mapping(self.current_video_block_ids, positions, self.block_size), device
+            )
         self._allocated_video = True
 
     def ensure_action_slots(self, action_len: int, device: torch.device) -> None:
@@ -135,11 +147,9 @@ class ARDiffusionPagedForwardContext:
             action_blocks,
         )
         positions = torch.arange(action_len, dtype=torch.long)
-        self.action_slot_mapping = compute_slot_mapping(
-            self.action_scratch_block_ids,
-            positions,
-            self.block_size,
-        ).to(device=device)
+        self.action_slot_mapping = _to_device_async(
+            compute_slot_mapping(self.action_scratch_block_ids, positions, self.block_size), device
+        )
         self._action_len = action_len
 
     def video_block_table(self, device: torch.device) -> tuple[list[int], int]:
@@ -341,6 +351,9 @@ def _reference_paged_attention(
 
 _FA_VERSION_BY_HEAD_SIZE: dict[int, int] = {}
 
+# Experimental contiguous-K/V gather (see ar_diffusion_paged_attention).
+_KV_GATHER_ENABLED = os.environ.get("LINGBOT_KV_GATHER", "0") == "1"
+
 
 def _resolve_fa_version(head_size: int) -> int:
     # get_flash_attn_version -> current_platform.get_device_capability() is not
@@ -436,6 +449,43 @@ def ar_diffusion_paged_attention(
             max_seqlen_k=int(max_seq_len),
             softmax_scale=float(softmax_scale),
             causal=causal,
+        )
+    elif _KV_GATHER_ENABLED and block_table.shape[0] == 1:
+        # Experimental (LINGBOT_KV_GATHER=1): FA3's paged-KV path with the
+        # frame-sized block (1560 tokens, not a multiple of the FA3 K/V tile)
+        # runs ~15-17% slower than the same kernel on contiguous K/V. Gather the
+        # visible blocks into a contiguous buffer once per layer and attend
+        # without a block table; ``seqused_k`` masks the tail-padding block.
+        from vllm.vllm_flash_attn import flash_attn_varlen_func
+
+        fa_version = _resolve_fa_version(query_flat.shape[-1])
+        block_size = key_cache.shape[1]
+        n_blocks = int(max_seq_len) // block_size
+        if n_blocks * block_size != int(max_seq_len):
+            raise ValueError("LINGBOT_KV_GATHER requires max_seq_len to be block-aligned")
+        block_ids = block_table[0, :n_blocks].to(torch.long)
+        # Fresh allocations on purpose: a module-level cached buffer that is first
+        # allocated inside a CUDA-graph-trees warm-up run lives in the graph pool
+        # untracked ("tensor(s) in the cudagraph pool not tracked as outputs").
+        k_buf = key_cache.index_select(0, block_ids)
+        v_buf = value_cache.index_select(0, block_ids)
+        out = torch.empty_like(query_flat)
+        # Varlen K/V: cu_seqlens_k = [0, kv_len] built on device from seq_lens
+        # (no host sync). Rows past kv_len (the tail-padding block) are never
+        # read, exactly like the ROCm gather path above.
+        cu_seqlens_k = torch.cat((seq_lens.new_zeros(1), seq_lens.to(torch.int32)))
+        flash_attn_varlen_func(
+            q=query_flat,
+            k=k_buf.view(n_blocks * block_size, *key_cache.shape[2:]),
+            v=v_buf.view(n_blocks * block_size, *value_cache.shape[2:]),
+            out=out,
+            cu_seqlens_q=query_start_loc,
+            max_seqlen_q=int(max_query_len),
+            cu_seqlens_k=cu_seqlens_k,
+            max_seqlen_k=int(max_seq_len),
+            softmax_scale=float(softmax_scale),
+            causal=causal,
+            fa_version=fa_version,
         )
     else:
         from vllm.vllm_flash_attn import flash_attn_varlen_func

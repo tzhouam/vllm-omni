@@ -531,14 +531,15 @@ def test_ar_diffusion_capability_uses_transformer_local_head_geometry() -> None:
     assert spec.sink_frames == 3
     assert [(branch.name, branch.local_index) for branch in spec.kv_branches] == [("main", 0)]
     assert spec.cross_attention_lengths == {"text": 512}
-    # One condition block, committed + pending encoder caches, and decoder state.
+    # One condition block, committed + pending encoder caches, the session's
+    # cached prompt embedding (512 tokens x text_dim 8 x fp32), and decoder state.
     # The stub encoder retains 2 RGB frames at 16x16 and 2 feature frames at 2x2.
     encoder_bytes = (2 * 3 * 16 * 16 + 2 * 16 * 2 * 2) * 4
     assert spec.model_owned_state_bytes_per_session == 960 + 2 * encoder_bytes + 2_421_248
 
 
 def test_session_admission_accounts_for_the_streaming_decoder_cache() -> None:
-    """Admission includes encoder state even when the decoder cannot stream."""
+    """Admission includes encoder state and the prompt embedding even when the decoder cannot stream."""
     module = _load_pipeline_module()
 
     def spec_pipeline():
@@ -557,7 +558,8 @@ def test_session_admission_accounts_for_the_streaming_decoder_cache() -> None:
     # than the image condition alone could account for.
     assert widened - small > 2_000_000
 
-    # Removing decoder support leaves the condition and both encoder histories.
+    # Removing decoder support leaves the condition, both encoder histories and
+    # the prompt-embedding cache.
     bare = spec_pipeline()
     for attribute in ("decoder", "post_quant_conv"):
         if hasattr(bare.vae, attribute):
@@ -2833,3 +2835,46 @@ def test_stepwise_requests_with_the_same_prompt_share_one_encode() -> None:
 
     assert encoded == ["move through the room"]
     assert states[0].prompt_embeds is states[1].prompt_embeds
+
+
+def test_session_text_caches_publish_key_only_after_a_successful_build() -> None:
+    module = _load_pipeline_module()
+    pipeline = _pipeline(module)
+    state = module._LingBotARSessionState()
+    invalidations: list[bool] = []
+    fail_next = {"raise": False}
+
+    def fake_text_caches(prompt_embeds, *, invalidate):
+        invalidations.append(invalidate)
+        if fail_next["raise"]:
+            fail_next["raise"] = False
+            raise RuntimeError("injected failure inside _ar_text_caches")
+        return ["caches"]
+
+    pipeline._ar_text_caches = fake_text_caches
+    embeds = torch.ones(1, 512, 8)
+    caches = lambda prompt, length=512, e=embeds: pipeline._session_text_caches(  # noqa: E731
+        e, prompt=prompt, max_sequence_length=length, session_state=state
+    )
+
+    # First build of a session: runner state is empty -> no invalidation, key published.
+    caches("A")
+    assert invalidations == [False] and state.text_cache_key == ("A", 512, str(embeds.dtype))
+    assert state.text_cache_dirty is False
+    # Same inputs: reuse without invalidation.
+    caches("A")
+    assert invalidations == [False, False]
+    # Regression (Codex review): B's build fails after invalidating -> no key is
+    # left behind, so retrying A must invalidate again instead of consuming
+    # partial/mixed K/V.
+    fail_next["raise"] = True
+    with pytest.raises(RuntimeError, match="injected failure"):
+        caches("B")
+    assert state.text_cache_key is None and state.text_cache_dirty is True
+    caches("A")
+    assert invalidations[-2:] == [True, True] and state.text_cache_key == ("A", 512, str(embeds.dtype))
+    assert state.text_cache_dirty is False
+    # The key covers every embedding-defining input: same text, other length or dtype -> rebuild.
+    caches("A", length=256)
+    caches("A", e=embeds.to(torch.bfloat16))
+    assert invalidations[-2:] == [True, True]
