@@ -159,6 +159,14 @@ class _LingBotARSessionState:
 
     next_chunk_index: int = 0
     prompt: str | None = None
+    # The umT5 embedding itself is reused by ``encode_prompt``'s own cache.
+    # ``text_cache_key`` does the same job for the runner-owned cross-attention
+    # K/V built from that embedding: it holds the (prompt, max_sequence_length,
+    # dtype) the K/V was built from and is only published after a successful
+    # build; ``text_cache_dirty`` is raised for the duration of a build, so a
+    # build that fails forces the next tick to invalidate whatever its prompt is.
+    text_cache_key: tuple[str, int, str] | None = None
+    text_cache_dirty: bool = False
     generator_state: torch.Tensor | None = None
     encoder_cache: list[torch.Tensor | None] | None = None
     pending_encoder_cache: list[torch.Tensor | None] | None = None
@@ -620,12 +628,9 @@ class LingBotWorldCausalDMDPipeline(
             raise ValueError("LingBot AR-Diffusion cache needs a positive recent window after reserving sink frames.")
         condition_latent_frames = int(self.transformer.config.num_frames_per_block)
         condition_channels = self.vae_scale_factor_temporal + int(self.transformer.config.out_channels)
+        element_size = torch.empty((), dtype=self.transformer.dtype).element_size()
         condition_bytes_per_session = (
-            condition_channels
-            * condition_latent_frames
-            * latent_height
-            * latent_width
-            * torch.empty((), dtype=self.transformer.dtype).element_size()
+            condition_channels * condition_latent_frames * latent_height * latent_width * element_size
         )
         return ARDiffusionKVCacheSpec(
             num_layers=int(self.transformer.config.num_layers),
@@ -1221,6 +1226,34 @@ class LingBotWorldCausalDMDPipeline(
             progress_bar=progress_bar,
         )
 
+    def _session_text_caches(
+        self,
+        prompt_embeds: torch.Tensor,
+        *,
+        prompt: str,
+        max_sequence_length: int,
+        session_state: _LingBotARSessionState,
+    ) -> list[LingBotAttentionCache]:
+        """Runner-owned cross-attention K/V for this tick, rebuilt when its inputs change.
+
+        The K/V is keyed by everything that defines the prompt embedding
+        (text, sequence length, dtype). The first build of a session needs no
+        invalidation (the runner state is empty); a key change does. The dirty
+        flag is raised for the duration of the build and cleared only after
+        ``_ar_text_caches`` returns, so a build that fails after invalidating
+        or partially writing the caches makes the next tick, whatever its
+        prompt, invalidate again instead of consuming partial K/V.
+        """
+        text_key = (prompt, int(max_sequence_length), str(prompt_embeds.dtype))
+        previous = session_state.text_cache_key
+        invalidate = session_state.text_cache_dirty or (previous is not None and previous != text_key)
+        session_state.text_cache_dirty = True
+        session_state.text_cache_key = None
+        caches = self._ar_text_caches(prompt_embeds, invalidate=invalidate)
+        session_state.text_cache_key = text_key
+        session_state.text_cache_dirty = False
+        return caches
+
     def encode_prompt(
         self,
         prompt: str,
@@ -1318,6 +1351,9 @@ class LingBotWorldCausalDMDPipeline(
         )
         dtype = self.transformer.dtype
         # Phase 1: turn all three user inputs into DiT-ready conditions.
+        # ``encode_prompt`` reuses an already-encoded prompt itself; the
+        # runner-owned cross-attention K/V is keyed the same way in
+        # ``_session_text_caches`` below.
         prompt_embeds = self.encode_prompt(
             inputs.prompt,
             max_sequence_length=inputs.max_sequence_length,
@@ -1369,12 +1405,13 @@ class LingBotWorldCausalDMDPipeline(
             )
         else:
             assert session_state is not None
-            prompt_changed = session_state.prompt is not None and session_state.prompt != inputs.prompt
             if session_state.generator_state is not None:
                 inputs.generator.set_state(session_state.generator_state)
-            ar_cross_attention = self._ar_text_caches(
+            ar_cross_attention = self._session_text_caches(
                 prompt_embeds,
-                invalidate=prompt_changed,
+                prompt=inputs.prompt,
+                max_sequence_length=inputs.max_sequence_length,
+                session_state=session_state,
             )
         generated_blocks: list[torch.Tensor] = []
         total_steps = (inputs.num_latent_frames // block_frames) * len(LINGBOT_DMD_TIMESTEPS)

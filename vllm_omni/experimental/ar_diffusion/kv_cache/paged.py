@@ -117,6 +117,16 @@ def allocate_kv_pool_with_views(
     for _ in range(num_layers):
         k = torch.empty(cache_shape, dtype=dtype, device=device)
         v = torch.empty(cache_shape, dtype=dtype, device=device)
+        for pool in (k, v):
+            # Block 0 is the manager's null block: block tables are tail-padded with
+            # it and it is never written. The contiguous-K/V gather path may read
+            # (masked) rows from it, so it must hold finite values; every other
+            # block is fully written before it is read.
+            pool[0].zero_()
+            # Session-lifetime storage: tell dynamo/inductor the address is static so
+            # CUDA-graph trees (mode="reduce-overhead") mutate it in place instead of
+            # copying ~300 MB per layer per replay (or skipping the graph).
+            torch._dynamo.mark_static_address(pool)
         kv_pools.append([k, v])
         k_pools.append(k.reshape(flat_shape))
         v_pools.append(v.reshape(flat_shape))

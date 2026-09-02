@@ -74,6 +74,17 @@ def _install_vllm_stubs() -> None:
         _SeqAllToAll4D,
     )
 
+    def _all_to_all_5D(value, scatter_idx=3, gather_idx=1, group=None, use_sync=False):
+        # Single-rank stub: the fused q/k/v exchange is the identity when N == 1.
+        del scatter_idx, gather_idx, group, use_sync
+        return value
+
+    setattr(
+        sys.modules["vllm_omni.diffusion.distributed.comm"],
+        "all_to_all_5D",
+        _all_to_all_5D,
+    )
+
     def get_sp_group():
         return SimpleNamespace(
             ulysses_world_size=1,
