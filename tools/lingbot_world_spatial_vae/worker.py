@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-"""Persistent four-rank spatial Wan decoder for benchmark cases D/E."""
+"""Four-rank spatial Wan decoder used by the numerical validation tool."""
 
 import os
-import time
 import traceback
 from pathlib import Path
 
@@ -33,7 +32,7 @@ def _rank_worker(rank, conn, devices, model, port):
     control = dist.new_group(backend="gloo", timeout=timedelta(seconds=240))
     vae = AutoencoderKLWan.from_pretrained(model, subfolder="vae", torch_dtype=torch.float32).cuda().eval()
     assert vae.config.patch_size is None
-    # Preserve a plain decoder on CPU for a single-GPU reference, outside timing.
+    # Preserve a plain decoder on CPU for a single-GPU reference, for numerical validation.
     reference_vae = copy.deepcopy(vae).cpu() if rank == 0 else None
     install_wan_spatial_shard_decode(vae, dist.group.WORLD, split_dim="width")
     mean = torch.tensor(vae.config.latents_mean, device="cuda").view(1, -1, 1, 1, 1)
@@ -53,7 +52,7 @@ def _rank_worker(rank, conn, devices, model, port):
             )
         )
     cache, first = None, True
-    saved_z, saved_out, retained = [], [], []
+    saved_z, saved_out = [], []
 
     def decode(z, state, first_frame):
         x = vae.post_quant_conv(z)
@@ -69,7 +68,6 @@ def _rank_worker(rank, conn, devices, model, port):
         with torch.inference_mode():
             while True:
                 messages = [conn.recv() if rank == 0 else None]
-                start = time.perf_counter()
                 dist.broadcast_object_list(messages, src=0, group=control)
                 msg = messages[0]
                 if msg["op"] == "stop":
@@ -78,18 +76,10 @@ def _rank_worker(rank, conn, devices, model, port):
                     vae.clear_cache()
                     cache = [None] * vae._conv_num
                     first = True
-                    saved_z, saved_out, retained = [], [], []
-                    torch.accelerator.reset_peak_memory_stats()
+                    saved_z, saved_out = [], []
                     dist.barrier()
                     if rank == 0:
                         conn.send(dict(reset=True))
-                    continue
-                if msg["op"] == "save_retained":
-                    if rank == 0:
-                        for index, pixels in enumerate(retained):
-                            torch.save(pixels, Path(msg["folder"]) / f"steady_pixels_{index:02d}.pt")
-                        retained = []
-                        conn.send(dict(saved=True))
                     continue
                 if msg["op"] == "validate":
                     z = torch.cat(saved_z, 2).cuda()
@@ -136,50 +126,29 @@ def _rank_worker(rank, conn, devices, model, port):
                         conn.send(validation)
                     continue
                 assert msg["op"] == "decode"
-                profiler = None
-                if msg.get("profile_path"):
-                    profiler = torch.profiler.profile(
-                        activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA]
-                    )
-                    profiler.start()
                 z = torch.from_numpy(msg["latent"]).cuda() * std + mean
                 torch.accelerator.synchronize()
                 dist.barrier()
-                transfer_done = time.perf_counter()
                 pixels, first = decode(z, cache, first)
                 torch.accelerator.synchronize()
                 dist.barrier()
-                decode_done = time.perf_counter()
                 if rank == 0:
                     cpu = ((pixels + 1) * 127.5).round().clamp(0, 255).to(torch.uint8).cpu()
-                    ready = time.perf_counter()
                     finite = bool(torch.isfinite(pixels).all())
-                    if msg.get("retain"):
-                        retained.append(cpu)
                     if msg.get("save_path"):
                         torch.save(cpu, msg["save_path"])
                     if msg.get("save"):
                         saved_out.append(pixels.cpu())
                 if msg.get("save"):
                     saved_z.append(z.cpu())
-                if profiler is not None:
-                    profiler.stop()
-                    path = Path(msg["profile_path"])
-                    profiler.export_chrome_trace(str(path.with_name(f"{path.stem}_rank{rank}.json")))
                 if rank == 0:
                     conn.send(
                         dict(
                             chunk_index=msg["index"],
-                            start=start,
-                            transfer_done=transfer_done,
-                            decode_done=decode_done,
-                            ready=ready,
                             frames=cpu.shape[2],
                             shape=list(cpu.shape),
                             finite=finite,
                             sha256=hashlib.sha256(cpu.numpy().tobytes()).hexdigest(),
-                            peak_allocated=torch.accelerator.max_memory_allocated(),
-                            peak_reserved=torch.accelerator.max_memory_reserved(),
                         )
                     )
     except BaseException:
@@ -193,15 +162,14 @@ def _rank_worker(rank, conn, devices, model, port):
         dist.destroy_process_group()
 
 
-def worker(conn, device, model):
+def worker(conn, device, model, port):
     devices = device.split(",")
     assert len(devices) == 4
     os.environ["CUDA_VISIBLE_DEVICES"] = device
     try:
-        import torch.multiprocessing as mp
-
-        port = int(os.environ["CAMPAIGN_PORT_BASE"]) + 10
         import signal
+
+        import torch.multiprocessing as mp
 
         def terminate(signum, frame):
             raise SystemExit(128 + signum)

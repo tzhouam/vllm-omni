@@ -7,11 +7,10 @@ import hashlib
 import json
 import multiprocessing as mp
 import os
-import time
 from pathlib import Path
 
 import torch
-from async_vae_spatial_worker import worker
+from worker import worker
 
 
 def main():
@@ -21,16 +20,15 @@ def main():
     p.add_argument("--model", required=True)
     p.add_argument("--port", type=int, default=29500)
     args = p.parse_args()
-    if not 1024 <= args.port <= 65525:
-        p.error("port must be between 1024 and 65525")
+    if not 1024 <= args.port <= 65535:
+        p.error("port must be between 1024 and 65535")
     args.output.mkdir(parents=True, exist_ok=False)
-    os.environ["CAMPAIGN_PORT_BASE"] = str(args.port)
     devices = os.environ["CUDA_VISIBLE_DEVICES"]
     assert len(devices.split(",")) == 4
     torch.set_num_threads(2)
     ctx = mp.get_context("spawn")
     conn, child = ctx.Pipe()
-    decoder = ctx.Process(target=worker, args=(child, devices, args.model))
+    decoder = ctx.Process(target=worker, args=(child, devices, args.model, args.port))
     decoder.start()
 
     def receive():
@@ -50,29 +48,21 @@ def main():
             receive()
             for index in range(10):
                 z = torch.load(args.latents / f"steady_latent_{index:02d}.pt", map_location="cpu", weights_only=True)
-                sent = time.perf_counter()
                 conn.send(
                     dict(
                         op="decode",
                         latent=z.numpy(),
                         index=index,
                         save=epoch == 0 and index < 4,
-                        retain=False,
                         save_path=str(args.output / f"epoch_{epoch:03d}_pixels_{index:02d}.pt"),
                     )
                 )
                 result = receive()
-                result.update(epoch=epoch, sent=sent)
+                result.update(epoch=epoch)
                 assert result["finite"] and result["frames"] == (9 if index == 0 else 12)
                 records.append(result)
                 with (args.output / "decode.jsonl").open("a") as f:
                     f.write(json.dumps(result) + "\n")
-                print(
-                    json.dumps(
-                        dict(epoch=epoch, index=index, decode_s=result["decode_done"] - result["transfer_done"])
-                    ),
-                    flush=True,
-                )
             if epoch == 0:
                 conn.send(dict(op="validate", output=str(args.output)))
                 validation = receive()
