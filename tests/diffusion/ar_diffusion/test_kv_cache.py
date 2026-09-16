@@ -269,8 +269,13 @@ def test_compiled_paged_write_does_not_clone_the_pool():
     # drives the reinplace pass, so a drift here would silently test nothing.
     real_schema = torch.ops.vllm_omni.ar_diffusion_paged_write_attn.default._schema
     real_mutated = [arg.name for arg in real_schema.arguments if arg.alias_info and arg.alias_info.is_write]
-    assert real_mutated == ["key_pool", "value_pool"], (
+    # The staging buffers are mutated too when reuse_history_staging is on, but they are separate
+    # allocations and not what this test is about; the pools are what must not be cloned.
+    assert real_mutated[:2] == ["key_pool", "value_pool"], (
         f"the real paged-write op now mutates {real_mutated}; this test still models two pools"
+    )
+    assert set(real_mutated) - {"key_pool", "value_pool"} <= {"stage_key", "stage_value"}, (
+        f"unexpected mutated argument in the real paged-write op: {real_mutated}"
     )
 
     num_blocks, heads, dim = 8, 4, 16
@@ -588,3 +593,70 @@ def test_non_contiguous_branch_indices_rejected():
             kv_branches=(ARDiffusionKVBranchSpec("main", 1),),
             session_capacity=1,
         )
+
+
+def test_staged_window_reuse_matches_a_full_gather():
+    """Reusing the staged history must be byte-identical to re-gathering the whole window.
+
+    This is the property the optimisation rests on: the leading blocks were staged by an earlier forward of
+    the same AR block, so skipping them can only be correct if what is already there equals what a fresh
+    gather would write. The test stages once, mutates only the current chunk's blocks in the pool (what a
+    later probe of the same block does), restages the tail alone, and compares against a full gather.
+    """
+    from vllm_omni.experimental.ar_diffusion.kv_cache.paged_attention import _stage_window
+
+    torch.manual_seed(0)
+    num_blocks, block_size, heads, dim = 6, 4, 2, 8
+    current_blocks = 2
+    key_cache = torch.randn(num_blocks, block_size, heads, dim)
+    value_cache = torch.randn(num_blocks, block_size, heads, dim)
+    block_ids = torch.tensor([5, 4, 3, 2, 1, 0])
+    stage_key = torch.zeros(num_blocks * block_size, heads, dim)
+    stage_value = torch.zeros(num_blocks * block_size, heads, dim)
+
+    _stage_window(stage_key, stage_value, key_cache, value_cache, block_ids, num_blocks, block_size, first_block=0)
+
+    # A later probe rewrites only the current chunk's blocks in the pool.
+    for slot in block_ids[num_blocks - current_blocks :]:
+        key_cache[slot] = torch.randn(block_size, heads, dim)
+        value_cache[slot] = torch.randn(block_size, heads, dim)
+
+    _stage_window(
+        stage_key,
+        stage_value,
+        key_cache,
+        value_cache,
+        block_ids,
+        num_blocks,
+        block_size,
+        first_block=num_blocks - current_blocks,
+    )
+
+    full_key = torch.zeros_like(stage_key)
+    full_value = torch.zeros_like(stage_value)
+    _stage_window(full_key, full_value, key_cache, value_cache, block_ids, num_blocks, block_size, first_block=0)
+
+    torch.testing.assert_close(stage_key, full_key, rtol=0, atol=0)
+    torch.testing.assert_close(stage_value, full_value, rtol=0, atol=0)
+
+
+def test_staged_window_tail_refresh_leaves_history_untouched():
+    """The tail restage must not write the history rows -- that is what makes it cheaper."""
+    from vllm_omni.experimental.ar_diffusion.kv_cache.paged_attention import _stage_window
+
+    torch.manual_seed(1)
+    num_blocks, block_size, heads, dim = 5, 4, 1, 4
+    key_cache = torch.randn(num_blocks, block_size, heads, dim)
+    value_cache = torch.randn(num_blocks, block_size, heads, dim)
+    block_ids = torch.arange(num_blocks)
+    stage_key = torch.full((num_blocks * block_size, heads, dim), -1.0)
+    stage_value = torch.full((num_blocks * block_size, heads, dim), -1.0)
+
+    _stage_window(
+        stage_key, stage_value, key_cache, value_cache, block_ids, num_blocks, block_size, first_block=num_blocks - 1
+    )
+
+    history_rows = (num_blocks - 1) * block_size
+    assert (stage_key[:history_rows] == -1.0).all(), "history rows were rewritten by a tail restage"
+    assert (stage_value[:history_rows] == -1.0).all()
+    torch.testing.assert_close(stage_key[history_rows:], key_cache[-1].reshape(block_size, heads, dim), rtol=0, atol=0)

@@ -30,6 +30,12 @@ class ARDiffusionKVConfig:
     # DiT graphs for every window-fill shape at load time via a synthetic rollout,
     # so the serving run is fast from the first chunk. No effect when eager.
     warmup_cudagraph: bool = True
+    # Keep one contiguous K/V staging buffer per layer and refresh only the tokens that changed.
+    # Within one AR block every forward attends the same history and differs only in the current
+    # chunk, so re-gathering the whole visible window per forward re-copies bytes that did not move.
+    # Off by default: it costs two max-sequence buffers per layer, per rank. See
+    # ARDiffusionPagedForwardContext.history_staging.
+    reuse_history_staging: bool = False
     # Also capture the post-window-boundary (reset-cycle) forward during warm-up.
     warmup_capture_reset: bool = False
 
