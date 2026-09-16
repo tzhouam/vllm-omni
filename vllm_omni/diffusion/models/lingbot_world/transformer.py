@@ -432,12 +432,12 @@ class LingBotCrossAttention(nn.Module):
         self.head_dim = dim // num_heads
         self.num_local_heads = num_heads // tp_size
         self.ulysses_world_size, self.ulysses_rank, self.ulysses_group = _ulysses_state()
-        if self.num_local_heads % self.ulysses_world_size:
-            raise ValueError(
-                "LingBot local cross-attention heads must be divisible by the Ulysses degree: "
-                f"heads={self.num_local_heads}, ulysses={self.ulysses_world_size}."
-            )
-        self.num_sp_heads = self.num_local_heads // self.ulysses_world_size
+        # Cross-attention keeps every local head on every Ulysses rank and attends the rank's own sequence
+        # shard. Each query token attends the whole text sequence independently of the others, so there is
+        # nothing to exchange: the sequence split Ulysses already gives us is the only split needed, and both
+        # all-to-alls -- one for the query, one for the output -- disappear. The cost is that the text K/V is
+        # replicated per rank instead of head-sharded; ar_diffusion_kv_cache_spec sizes the pool for it.
+        self.num_sp_heads = self.num_local_heads
         self.tp_inner_dim = self.num_local_heads * self.head_dim
 
         self.q = ColumnParallelLinear(
@@ -488,12 +488,11 @@ class LingBotCrossAttention(nn.Module):
         )
 
     def shard_kv_heads(self, value: torch.Tensor) -> torch.Tensor:
-        """Select this Ulysses rank's projected K/V heads."""
+        """Text K/V is replicated per rank, so every rank keeps every head it projected.
 
-        if self.ulysses_world_size == 1:
-            return value
-        start = self.ulysses_rank * self.num_sp_heads
-        return value[:, :, start : start + self.num_sp_heads].clone(memory_format=torch.contiguous_format)
+        Kept as a seam because the pipeline pre-populates the cross-attention cache through this same call.
+        """
+        return value.clone(memory_format=torch.contiguous_format)
 
     def forward(
         self,
@@ -504,8 +503,6 @@ class LingBotCrossAttention(nn.Module):
     ) -> tuple[torch.Tensor, LingBotAttentionCache]:
         query = self.norm_q(self.q(hidden_states))
         query = query.unflatten(2, (self.num_local_heads, self.head_dim))
-        if self.ulysses_world_size > 1:
-            query = SeqAllToAll4D.apply(self.ulysses_group, query, 2, 1, False)
 
         # Text K/V is constant within a request and is projected once per layer.
         if cache is None:
@@ -527,8 +524,6 @@ class LingBotCrossAttention(nn.Module):
             value = cache.value[:, : cache.end]
 
         output = self.attn(query, key, value)
-        if self.ulysses_world_size > 1:
-            output = SeqAllToAll4D.apply(self.ulysses_group, output, 1, 2, False)
         return self.o(output.flatten(2, 3)), cache
 
 

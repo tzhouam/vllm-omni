@@ -837,6 +837,9 @@ def _rollout(model, mode, dtype, batch):
             frames_per_block=_FRAMES,
             max_scratch_tokens_per_branch=_FRAMES * _TOKENS_PER_FRAME,
             cross_attention_lengths={"text": 5},
+            # Cross-attention keeps every local head on every SP rank, so its pool is wider than the
+            # self-attention share above.
+            cross_attention_kv_heads={"text": model.blocks[0].cross_attn.num_sp_heads},
             device=device,
         )
         state = ARDiffusionKVState(kv, "numeric", {"main": kv.begin_request("numeric")}, num_layers=_LAYERS)
@@ -896,7 +899,6 @@ def _worker(rank, world_size, sp_size, tp_size, mode, dtype, batch, rendezvous):
     from vllm_omni.diffusion.distributed.parallel_state import (
         destroy_distributed_env,
         destroy_model_parallel,
-        get_sp_group,
         init_distributed_environment,
         initialize_model_parallel,
     )
@@ -948,11 +950,10 @@ def _worker(rank, world_size, sp_size, tp_size, mode, dtype, batch, rendezvous):
                         bound = 1e-5 if dtype == torch.float32 else 1e-2
                         error = (result - expected).double().norm() / expected.double().norm()
                         assert error <= bound, f"rank={rank}, TP{tp} SP{sp}: relative L2 {error.item():.3g} > {bound}"
-                        local_heads = _HEADS // tp // sp
-                        first = (
-                            get_tensor_model_parallel_rank() * (_HEADS // tp)
-                            + get_sp_group().ulysses_rank * local_heads
-                        )
+                        # Cross-attention K/V is replicated across the Ulysses group, not split over it, so
+                        # every SP rank holds its whole TP shard of heads. Only TP slices the cache now.
+                        local_heads = _HEADS // tp
+                        first = get_tensor_model_parallel_rank() * local_heads
                         for (k, v), (ek, ev) in zip(cross, expected_cross, strict=True):
                             tolerance = 1e-5 if dtype == torch.float32 else 2e-2
                             torch.testing.assert_close(
@@ -1083,8 +1084,13 @@ def test_a_changed_camera_inside_the_window_rebuilds_rather_than_going_stale() -
 
     def run(camera, cache):
         return model(
-            hidden_states, timestep, encoder_hidden_states, camera,
-            cache=cache, start_frame=0, update_cache=False,
+            hidden_states,
+            timestep,
+            encoder_hidden_states,
+            camera,
+            cache=cache,
+            start_frame=0,
+            update_cache=False,
         )
 
     expected = run(second_camera, _cache(module, model))
