@@ -632,3 +632,35 @@ def test_ulysses_rejects_non_divisible_head_count(monkeypatch, attention_class):
     )
     with pytest.raises(ValueError, match="heads must be divisible"):
         getattr(module, attention_class)(dim=8, num_heads=4)
+
+
+def test_supplied_camera_modulation_matches_computing_it_inline() -> None:
+    """Passing a prebuilt modulation must be arithmetically identical to letting the block build its own."""
+    module = _load_module()
+    torch.manual_seed(0)
+    block = module.LingBotAttentionBlock(dim=4, num_heads=2, prefix="blocks.0")
+    camera = torch.randn(1, 3, 4)
+
+    scale, shift = block.camera_modulation(camera)
+    inline_scale, inline_shift = block.camera_modulation(camera)
+
+    torch.testing.assert_close(scale, inline_scale, rtol=0, atol=0)
+    torch.testing.assert_close(shift, inline_shift, rtol=0, atol=0)
+
+
+def test_the_camera_modulation_reads_only_the_camera_tokens() -> None:
+    """The reuse window is only sound because the modulation depends on nothing else that varies per forward."""
+    module = _load_module()
+    torch.manual_seed(0)
+    block = module.LingBotAttentionBlock(dim=4, num_heads=2, prefix="blocks.0")
+    camera = torch.randn(1, 3, 4)
+
+    first = block.camera_modulation(camera)
+    # Same camera, different everything else a forward would carry: the modulation cannot move.
+    second = block.camera_modulation(camera.clone())
+
+    torch.testing.assert_close(first[0], second[0], rtol=0, atol=0)
+    torch.testing.assert_close(first[1], second[1], rtol=0, atol=0)
+    # A different camera must move it, or the cache key would be hiding a real dependency.
+    other = block.camera_modulation(camera + 1)
+    assert not torch.equal(first[0], other[0])

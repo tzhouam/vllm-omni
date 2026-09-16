@@ -5,7 +5,8 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import Any, Self, cast
@@ -601,6 +602,16 @@ class LingBotAttentionBlock(nn.Module):
         self.cam_scale_layer = nn.Linear(dim, dim)
         self.cam_shift_layer = nn.Linear(dim, dim)
 
+    def camera_modulation(self, camera_hidden_states: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Build this block's camera scale and shift from the patchified camera tokens.
+
+        Depends only on ``camera_hidden_states``, so a caller holding the camera trajectory fixed -- every
+        denoise forward of one AR chunk does -- can build this once and pass it back through ``forward``.
+        """
+        camera_features = self.cam_injector_layer2(F.silu(self.cam_injector_layer1(camera_hidden_states)))
+        camera_features = camera_features + camera_hidden_states
+        return self.cam_scale_layer(camera_features), self.cam_shift_layer(camera_features)
+
     def forward(
         self,
         hidden_states: torch.Tensor,
@@ -614,6 +625,7 @@ class LingBotAttentionBlock(nn.Module):
         sink_tokens: int,
         update_cache: bool,
         rotary_emb: tuple[torch.Tensor, torch.Tensor],
+        camera_modulation: tuple[torch.Tensor, torch.Tensor] | None = None,
     ) -> tuple[torch.Tensor, LingBotAttentionCache]:
         batch_size, token_count, dim = hidden_states.shape
         if (
@@ -647,10 +659,9 @@ class LingBotAttentionBlock(nn.Module):
         hidden_grid = hidden_grid + attention_output.unflatten(1, (num_frames, tokens_per_frame)) * gate_msa
         hidden_states = hidden_grid.flatten(1, 2).to(hidden_states.dtype)
 
-        camera_features = self.cam_injector_layer2(F.silu(self.cam_injector_layer1(camera_hidden_states)))
-        camera_features = camera_features + camera_hidden_states
-        camera_scale = self.cam_scale_layer(camera_features)
-        camera_shift = self.cam_shift_layer(camera_features)
+        camera_scale, camera_shift = (
+            self.camera_modulation(camera_hidden_states) if camera_modulation is None else camera_modulation
+        )
         hidden_states = ((1 + camera_scale) * hidden_states + camera_shift).to(hidden_states.dtype)
 
         attention_output, cross_cache = self.cross_attn(
@@ -770,6 +781,32 @@ def _rope_axis(max_seq_len: int, dim: int, *, start: int = 0) -> tuple[torch.Ten
     )
     phase = torch.outer(torch.arange(start, start + max_seq_len, dtype=torch.float64), frequencies)
     return phase.cos().float(), phase.sin().float()
+
+
+class _CameraModulationCache:
+    """Per-block camera scale/shift held across the forwards of one AR chunk.
+
+    Keyed by the identity of the camera tensor entering ``forward``, so a caller that opens the reuse window
+    and then changes the camera trajectory gets a rebuild rather than a stale modulation. Within one chunk the
+    tensor is the same object across all forwards, so the key matches and the blocks are built once.
+    """
+
+    __slots__ = ("key", "entries")
+
+    def __init__(self) -> None:
+        self.key: tuple[int, tuple[int, ...], torch.dtype, torch.device] | None = None
+        self.entries: dict[int, tuple[torch.Tensor, torch.Tensor]] = {}
+
+    def observe(self, camera_hidden_states: torch.Tensor) -> None:
+        key = (
+            camera_hidden_states.data_ptr(),
+            tuple(camera_hidden_states.shape),
+            camera_hidden_states.dtype,
+            camera_hidden_states.device,
+        )
+        if key != self.key:
+            self.key = key
+            self.entries.clear()
 
 
 class CausalLingBotWorldTransformer3DModel(nn.Module):
@@ -931,6 +968,28 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
             cosine, sine = _rope_axis(rope_max_seq_len, axis_dim)
             self.register_buffer(f"_rope_{axis}_cosine", cosine, persistent=False)
             self.register_buffer(f"_rope_{axis}_sine", sine, persistent=False)
+        # Off unless a caller opens reuse_camera_modulation(); see that method.
+        self._camera_modulation_cache: _CameraModulationCache | None = None
+
+    @contextmanager
+    def reuse_camera_modulation(self) -> Iterator[None]:
+        """Build each block's camera scale and shift once for the forwards inside this window.
+
+        The camera injector is four projections and a SiLU per block, and it reads only the camera tokens. An
+        AR chunk runs several forwards over one camera trajectory -- the denoise steps and the clean commit --
+        so without this the whole injector is recomputed per forward for a result that cannot change.
+
+        The window is opened by the caller that owns the invariant, not inferred here. It nests and restores
+        whatever was active before, and the cache is dropped on exit so nothing outlives the chunk. If the
+        camera tensor entering forward changes inside the window the cache rebuilds rather than going stale,
+        so a misplaced window costs the speedup but never correctness.
+        """
+        previous = self._camera_modulation_cache
+        self._camera_modulation_cache = _CameraModulationCache()
+        try:
+            yield
+        finally:
+            self._camera_modulation_cache = previous
 
     @property
     def dtype(self) -> torch.dtype:
@@ -1219,6 +1278,8 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         )
         # Phase 2: independently patchify video and camera grids to identical
         # token layouts, then project timestep and text conditions.
+        if self._camera_modulation_cache is not None:
+            self._camera_modulation_cache.observe(camera_hidden_states)
         hidden_states = self.patch_embedding(hidden_states).flatten(2).transpose(1, 2)
         camera_hidden_states = self.patch_embedding_wancamctrl(camera_hidden_states)
         camera_hidden_states = camera_hidden_states + self.c2ws_hidden_states_layer2(
@@ -1285,12 +1346,20 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         # Phase 3: each layer receives its own cache entry. Text K/V is passed
         # only when absent; the returned cache is stored for subsequent DMD
         # steps and causal blocks in this request.
+        camera_modulation_cache = self._camera_modulation_cache
         for index, block in enumerate(self.blocks):
+            camera_modulation = None
+            if camera_modulation_cache is not None:
+                camera_modulation = camera_modulation_cache.entries.get(index)
+                if camera_modulation is None:
+                    camera_modulation = block.camera_modulation(camera_hidden_states)
+                    camera_modulation_cache.entries[index] = camera_modulation
             hidden_states, cross_cache = block(
                 hidden_states,
                 projected_text if cache.cross_attention[index] is None else None,
                 timestep_projection,
                 camera_hidden_states,
+                camera_modulation=camera_modulation,
                 self_cache=cache.self_attention[index],
                 cross_cache=cache.cross_attention[index],
                 current_start=current_start,

@@ -210,30 +210,33 @@ class LingBotDMDBlockRunner:
         """Request mode: all probes of one block, then its commit."""
         block_shape = (1, self.transformer.config.out_channels, *condition.shape[2:5])
         current_latents = randn_tensor(block_shape, generator=generator, device=self.device, dtype=torch.float32)
-        for step_index, (timestep_value, sigma) in enumerate(schedule):
-            flow_prediction = self.probe_step(
-                current_latents=current_latents,
+        # Every forward below -- each probe and the commit -- reads the same camera trajectory, so the camera
+        # injector is built once per block here instead of once per forward.
+        with self.transformer.reuse_camera_modulation():
+            for step_index, (timestep_value, sigma) in enumerate(schedule):
+                flow_prediction = self.probe_step(
+                    current_latents=current_latents,
+                    condition=condition,
+                    camera=camera,
+                    prompt_embeds=prompt_embeds,
+                    cache=cache,
+                    ar=ar,
+                    start_frame=start_frame,
+                    timestep_value=timestep_value,
+                    step_index=step_index,
+                )
+                next_sigma = schedule[step_index + 1][1] if step_index + 1 < len(schedule) else None
+                current_latents = self.apply_transition(
+                    current_latents, flow_prediction, sigma, next_sigma=next_sigma, generator=generator
+                )
+                progress_bar.update()
+            self.commit_block_kv(
+                latents=current_latents,
                 condition=condition,
                 camera=camera,
                 prompt_embeds=prompt_embeds,
                 cache=cache,
                 ar=ar,
                 start_frame=start_frame,
-                timestep_value=timestep_value,
-                step_index=step_index,
             )
-            next_sigma = schedule[step_index + 1][1] if step_index + 1 < len(schedule) else None
-            current_latents = self.apply_transition(
-                current_latents, flow_prediction, sigma, next_sigma=next_sigma, generator=generator
-            )
-            progress_bar.update()
-        self.commit_block_kv(
-            latents=current_latents,
-            condition=condition,
-            camera=camera,
-            prompt_embeds=prompt_embeds,
-            cache=cache,
-            ar=ar,
-            start_frame=start_frame,
-        )
         return current_latents
