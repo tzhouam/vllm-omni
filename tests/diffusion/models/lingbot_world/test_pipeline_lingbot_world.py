@@ -11,6 +11,7 @@ from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 import torch
 from diffusers.utils.torch_utils import randn_tensor as _diffusers_randn_tensor
@@ -2408,21 +2409,16 @@ def test_stepwise_emits_latents_without_touching_the_vae() -> None:
     assert pipeline.vae.decode_inputs == []
 
 
-def _capture_video_processor(monkeypatch) -> list[tuple[tuple[int, ...], str]]:
-    """Record what reaches postprocess_video, and name each chunk's output."""
-    import diffusers.video_processor as video_processor_module
+def _capture_pixel_conversion(monkeypatch) -> list[tuple[int, ...]]:
+    """Record each decoded block reaching the uint8 conversion, and name its output."""
+    module = _load_pipeline_module()
+    processed: list[tuple[int, ...]] = []
 
-    processed: list[tuple[tuple[int, ...], str]] = []
+    def uint8_frames(video):
+        processed.append(tuple(video.shape))
+        return f"frames-{len(processed)}"
 
-    class VideoProcessor:
-        def __init__(self, *, vae_scale_factor):
-            assert vae_scale_factor == 8
-
-        def postprocess_video(self, video, *, output_type):
-            processed.append((tuple(video.shape), output_type))
-            return f"frames-{len(processed)}"
-
-    monkeypatch.setattr(video_processor_module, "VideoProcessor", VideoProcessor)
+    monkeypatch.setattr(module, "_uint8_frames", uint8_frames)
     return processed
 
 
@@ -2436,7 +2432,7 @@ def _streaming_pipeline(module):
 def test_stepwise_decodes_each_chunk_for_streaming_consumers(monkeypatch) -> None:
     """A non-latent request must stream pixels under the primary "video" key."""
     module = _load_pipeline_module()
-    processed = _capture_video_processor(monkeypatch)
+    processed = _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     state = _stepwise_state(num_frames=21)
     state.sampling.output_type = "np"
@@ -2445,7 +2441,7 @@ def test_stepwise_decodes_each_chunk_for_streaming_consumers(monkeypatch) -> Non
     with pipeline.bind_ar_diffusion_state(state.request_id, fake):
         outputs = _run_stepwise(pipeline, state)
 
-    assert [output_type for _, output_type in processed] == ["np", "np"]
+    assert processed == [(1, 3, 9, 16, 16), (1, 3, 12, 16, 16)]
     assert [output.output["payload"] for output in outputs] == [{"video": "frames-1"}, {"video": "frames-2"}]
     # Identity metadata survives the switch to pixel output.
     assert [output.output["metadata"]["ar_diffusion"]["chunk_index"] for output in outputs] == [0, 1]
@@ -2459,7 +2455,7 @@ def test_stepwise_chunks_continue_one_sessions_temporal_decode(monkeypatch) -> N
     the same latents would: 9 frames, then 12.
     """
     module = _load_pipeline_module()
-    processed = _capture_video_processor(monkeypatch)
+    processed = _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     state = _stepwise_state(num_frames=21)
     state.sampling.output_type = "np"
@@ -2468,7 +2464,7 @@ def test_stepwise_chunks_continue_one_sessions_temporal_decode(monkeypatch) -> N
     with pipeline.bind_ar_diffusion_state(state.request_id, fake):
         _run_stepwise(pipeline, state)
 
-    assert [shape for shape, _ in processed] == [(1, 3, 9, 16, 16), (1, 3, 12, 16, 16)]
+    assert processed == [(1, 3, 9, 16, 16), (1, 3, 12, 16, 16)]
     # One opening frame for the session, not one per chunk.
     assert pipeline.vae.decoder.first_chunk_flags == [True] + [False] * 5
     # The whole-clip decode path is not involved, and the module-owned cache
@@ -2480,7 +2476,7 @@ def test_stepwise_chunks_continue_one_sessions_temporal_decode(monkeypatch) -> N
 def test_streaming_decode_state_is_owned_by_the_session(monkeypatch) -> None:
     """Decoder state is keyed by request id and released with the AR session."""
     module = _load_pipeline_module()
-    _capture_video_processor(monkeypatch)
+    _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     state = _stepwise_state(request_id="req-stream", num_frames=21)
     state.sampling.output_type = "np"
@@ -2504,7 +2500,7 @@ def test_streaming_decode_state_is_owned_by_the_session(monkeypatch) -> None:
 def test_streaming_decode_state_is_dropped_on_session_reset(monkeypatch) -> None:
     """A reset session must not resume the temporal context it just abandoned."""
     module = _load_pipeline_module()
-    _capture_video_processor(monkeypatch)
+    _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     state = _stepwise_state(request_id="req-reset", num_frames=21)
     state.sampling.output_type = "np"
@@ -2528,7 +2524,7 @@ def test_streaming_decode_keeps_interleaved_sessions_isolated(monkeypatch) -> No
     interleaving the scheduler actually produces.
     """
     module = _load_pipeline_module()
-    processed = _capture_video_processor(monkeypatch)
+    processed = _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     states = []
     for request_id in ("req-a", "req-b"):
@@ -2561,7 +2557,7 @@ def test_streaming_decode_keeps_interleaved_sessions_isolated(monkeypatch) -> No
     assert pipeline.vae.decoder.first_chunk_flags == (
         [True, False, False] + [True, False, False] + [False] * 3 + [False] * 3
     )
-    assert [shape for shape, _ in processed] == [
+    assert processed == [
         (1, 3, 9, 16, 16),
         (1, 3, 9, 16, 16),
         (1, 3, 12, 16, 16),
@@ -2572,7 +2568,7 @@ def test_streaming_decode_keeps_interleaved_sessions_isolated(monkeypatch) -> No
 def test_streaming_decode_failure_drops_the_half_advanced_cache(monkeypatch) -> None:
     """A failed chunk must not leave a cache a later chunk would continue from."""
     module = _load_pipeline_module()
-    _capture_video_processor(monkeypatch)
+    _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     state = _stepwise_state(request_id="req-boom", num_frames=21)
     state.sampling.output_type = "np"
@@ -2606,7 +2602,7 @@ def test_streaming_decode_receives_rescaled_latents(monkeypatch) -> None:
     never reaches, so this asserts on what ``post_quant_conv`` received.
     """
     module = _load_pipeline_module()
-    _capture_video_processor(monkeypatch)
+    _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     state = _stepwise_state(num_frames=21)
     state.sampling.output_type = "np"
@@ -2638,7 +2634,7 @@ def test_streaming_decode_is_reported_to_the_profiler(monkeypatch) -> None:
     perf regression in the streaming decoder would be too.
     """
     module = _load_pipeline_module()
-    _capture_video_processor(monkeypatch)
+    _capture_pixel_conversion(monkeypatch)
     pipeline = _pipeline(
         module,
         transformer=_RecordingTransformer(),
@@ -2666,21 +2662,18 @@ def test_streaming_decode_is_reported_to_the_profiler(monkeypatch) -> None:
 def test_streaming_decode_falls_back_when_the_vae_would_tile(monkeypatch) -> None:
     """Tiled decode drives its own cache, so a tiling shape keeps per-chunk decode."""
     module = _load_pipeline_module()
-    processed = _capture_video_processor(monkeypatch)
+    processed = _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     # A latent of 2x2 exceeds a one-latent-cell tile, so vae.decode would tile.
     _enable_vae_tiling(pipeline, tile_sample_min=8)
-    outputs = [
-        pipeline._decode_chunk_to_pixels(torch.zeros(1, 16, 3, 2, 2), output_type="np", session_id="tiled")
-        for _ in range(2)
-    ]
+    outputs = [pipeline._decode_chunk_to_pixels(torch.zeros(1, 16, 3, 2, 2), session_id="tiled") for _ in range(2)]
 
     # One whole-clip decode per AR block, each seeing only that block's frames.
     assert [tuple(latents.shape) for latents in pipeline.vae.decode_inputs] == [(1, 16, 3, 2, 2)] * 2
     assert pipeline.vae.decoder.first_chunk_flags == []
     assert pipeline._streaming_decode_states == {}
     # Nine frames per chunk instead of 9 then 12: the frame loss being removed.
-    assert [shape for shape, _ in processed] == [(1, 3, 9, 16, 16), (1, 3, 9, 16, 16)]
+    assert processed == [(1, 3, 9, 16, 16), (1, 3, 9, 16, 16)]
     assert outputs == ["frames-1", "frames-2"]
 
 
@@ -2692,7 +2685,7 @@ def test_streaming_decode_survives_tiling_enabled_below_the_tile_threshold(monke
     on a configuration that would never have tiled.
     """
     module = _load_pipeline_module()
-    processed = _capture_video_processor(monkeypatch)
+    processed = _capture_pixel_conversion(monkeypatch)
     pipeline = _streaming_pipeline(module)
     # A 2x2 latent is within a tile this size, so vae.decode would not tile.
     _enable_vae_tiling(pipeline, tile_sample_min=256)
@@ -2704,7 +2697,7 @@ def test_streaming_decode_survives_tiling_enabled_below_the_tile_threshold(monke
 
     assert pipeline.vae.decode_inputs == []
     assert pipeline.vae.decoder.first_chunk_flags == [True] + [False] * 5
-    assert [shape for shape, _ in processed] == [(1, 3, 9, 16, 16), (1, 3, 12, 16, 16)]
+    assert processed == [(1, 3, 9, 16, 16), (1, 3, 12, 16, 16)]
 
 
 def test_registry_and_model_exports_resolve_official_pipeline_class_name() -> None:
@@ -2999,3 +2992,40 @@ def test_the_text_cache_is_sized_by_cross_attention_heads_not_the_self_attention
     assert spec.num_kv_heads == 1
     assert spec.cross_attention_kv_heads == {"text": 4}
     assert spec.cross_attention_lengths == {"text": 512}
+
+
+@pytest.mark.parametrize("output_type", ["np", "pil"])
+def test_streamed_chunk_is_uint8_frames_whatever_pixel_output_type_was_asked(monkeypatch, output_type) -> None:
+    """A realtime tick delivers (F, H, W, 3) uint8 for every pixel output type; only latent differs."""
+    module = _load_pipeline_module()
+    pipeline = _streaming_pipeline(module)
+    state = _stepwise_state(num_frames=21)
+    state.sampling.output_type = output_type
+
+    with pipeline.bind_ar_diffusion_state(state.request_id, _FakeARState(state.request_id)):
+        outputs = _run_stepwise(pipeline, state)
+
+    videos = [output.output["payload"]["video"] for output in outputs]
+    assert [type(video) for video in videos] == [np.ndarray, np.ndarray]
+    assert [video.dtype for video in videos] == [np.uint8, np.uint8]
+    assert [video.shape for video in videos] == [(9, 16, 16, 3), (12, 16, 16, 3)]
+
+
+def test_uint8_frames_match_the_pil_conversion_byte_for_byte() -> None:
+    """The device-side conversion is the PIL path's arithmetic, so the bytes are the same."""
+    from diffusers.video_processor import VideoProcessor
+
+    module = _load_pipeline_module()
+    generator = torch.Generator().manual_seed(7)
+    # Cover the clamp on both sides and values that sit exactly on rounding edges.
+    video = torch.rand(1, 3, 5, 8, 8, generator=generator) * 2.4 - 1.2
+    video[0, :, 0, 0, :4] = torch.tensor([-1.0, 1.0, 0.0, 1 / 255 - 1.0])
+
+    reference = VideoProcessor(vae_scale_factor=8).postprocess_video(video, output_type="pil")[0]
+    expected = np.stack([np.asarray(frame) for frame in reference])
+
+    frames = module._uint8_frames(video)
+
+    assert frames.dtype == np.uint8 and frames.shape == (5, 8, 8, 3)
+    assert frames.flags["C_CONTIGUOUS"]
+    np.testing.assert_array_equal(frames, expected)
