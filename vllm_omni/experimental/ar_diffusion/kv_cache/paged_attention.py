@@ -210,9 +210,12 @@ class ARDiffusionPagedForwardContext:
         self.query_len = int(query_len)
         self.kv_len = int(video_len + action_len)
         max_seq_len = int(self.max_video_tokens + action_capacity_blocks * self.block_size)
-        block_table = torch.tensor([padded], dtype=torch.int32, device=device)
-        query_start_loc = torch.tensor([0, self.query_len], dtype=torch.int32, device=device)
-        seq_lens = torch.tensor([self.kv_len], dtype=torch.int32, device=device)
+        # Built on the host once per AR block; the copies go through the same
+        # pinned, non-blocking path as the slot mappings above so the CPU does
+        # not wait for the stream to drain three times before the first layer.
+        block_table = _to_device_async(torch.tensor([padded], dtype=torch.int32), device)
+        query_start_loc = _to_device_async(torch.tensor([0, self.query_len], dtype=torch.int32), device)
+        seq_lens = _to_device_async(torch.tensor([self.kv_len], dtype=torch.int32), device)
         return block_table, query_start_loc, seq_lens, self.query_len, max_seq_len
 
     def prepare(self, device: torch.device, action_len: int, query_len: int) -> None:
