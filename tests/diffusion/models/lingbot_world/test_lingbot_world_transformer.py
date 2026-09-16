@@ -1033,3 +1033,78 @@ def test_temporal_rope_extension_keeps_spatial_limit():
         model._rotary_embedding(
             frames=3, height=17, width=1, start_frame=16, dtype=torch.float32, device=torch.device("cpu")
         )
+
+
+@pytest.mark.cpu
+def test_the_camera_injector_runs_once_per_reuse_window_and_gives_the_same_output() -> None:
+    """Two forwards over one camera trajectory: the injector runs once, and the outputs are unchanged."""
+    module = attention_tests._load_module()
+    model = _tiny_model(module, num_layers=2).eval()
+    hidden_states = torch.randn(1, 36, 1, 4, 4)
+    timestep = torch.tensor([1.0])
+    encoder_hidden_states = torch.randn(1, 3, 6)
+    camera_hidden_states = torch.randn(1, 6 * 8 * 8, 1, 4, 4)
+
+    def run(cache):
+        return model(
+            hidden_states,
+            timestep,
+            encoder_hidden_states,
+            camera_hidden_states,
+            cache=cache,
+            start_frame=0,
+            update_cache=False,
+        )
+
+    # Baseline: no window, so every forward rebuilds the injector in every block.
+    uncached_first = run(_cache(module, model))
+    uncached_second = run(_cache(module, model))
+    injector_calls = [attention_tests._record_outputs(block.cam_injector_layer1) for block in model.blocks]
+    with model.reuse_camera_modulation():
+        cached_first = run(_cache(module, model))
+        cached_second = run(_cache(module, model))
+
+    # One build per block for both forwards, instead of one per block per forward.
+    assert [len(calls) for calls in injector_calls] == [1, 1]
+    torch.testing.assert_close(cached_first, uncached_first, rtol=0, atol=0)
+    torch.testing.assert_close(cached_second, uncached_second, rtol=0, atol=0)
+
+
+@pytest.mark.cpu
+def test_a_changed_camera_inside_the_window_rebuilds_rather_than_going_stale() -> None:
+    """A misplaced window must cost the speedup, never correctness."""
+    module = attention_tests._load_module()
+    model = _tiny_model(module, num_layers=1).eval()
+    hidden_states = torch.randn(1, 36, 1, 4, 4)
+    timestep = torch.tensor([1.0])
+    encoder_hidden_states = torch.randn(1, 3, 6)
+    first_camera = torch.randn(1, 6 * 8 * 8, 1, 4, 4)
+    second_camera = torch.randn(1, 6 * 8 * 8, 1, 4, 4)
+
+    def run(camera, cache):
+        return model(
+            hidden_states, timestep, encoder_hidden_states, camera,
+            cache=cache, start_frame=0, update_cache=False,
+        )
+
+    expected = run(second_camera, _cache(module, model))
+    with model.reuse_camera_modulation():
+        run(first_camera, _cache(module, model))
+        changed = run(second_camera, _cache(module, model))
+
+    torch.testing.assert_close(changed, expected, rtol=0, atol=0)
+
+
+@pytest.mark.cpu
+def test_the_reuse_window_nests_and_leaves_no_state_behind() -> None:
+    module = attention_tests._load_module()
+    model = _tiny_model(module, num_layers=1).eval()
+
+    assert model._camera_modulation_cache is None
+    with model.reuse_camera_modulation():
+        outer = model._camera_modulation_cache
+        assert outer is not None
+        with model.reuse_camera_modulation():
+            assert model._camera_modulation_cache is not outer
+        assert model._camera_modulation_cache is outer
+    assert model._camera_modulation_cache is None

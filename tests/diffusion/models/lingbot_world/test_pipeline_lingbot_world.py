@@ -6,6 +6,7 @@ from __future__ import annotations
 import gc
 import os
 import weakref
+from contextlib import contextmanager
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -127,11 +128,17 @@ class _RecordingTransformer(nn.Module):
             sink_size=3,
         )
         self.blocks = nn.ModuleList([nn.Identity(), nn.Identity()])
+        self.camera_reuse_windows = 0
         self.calls: list[dict] = []
         self.cache_allocations: list[dict] = []
         self.raise_on_call = raise_on_call
         self._dtype = dtype
         self.loaded_weights: list[tuple[str, torch.Tensor]] = []
+
+    @contextmanager
+    def reuse_camera_modulation(self):
+        self.camera_reuse_windows += 1
+        yield
 
     @property
     def dtype(self) -> torch.dtype:
