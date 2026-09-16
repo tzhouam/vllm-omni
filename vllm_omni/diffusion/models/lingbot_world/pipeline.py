@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import math
 import os
+import threading
 from collections import OrderedDict
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from contextlib import contextmanager, nullcontext
@@ -99,6 +100,10 @@ LINGBOT_DMD_TIMESTEPS = (1000, 750, 500, 250)
 _CAMERA_SPATIAL_FOLD = 8
 _MAX_PIXEL_AREA = 480 * 832
 _MAX_SOURCE_IMAGE_PIXELS = 4096 * 4096
+# One decoded source image, keyed by the file it came from; see _load_source_image. A realtime session repeats
+# its own image every tick, so one entry serves the pattern that matters and bounds the memory at one image.
+_SOURCE_IMAGE_CACHE: dict[tuple[str, int, int, int, int, int], PIL.Image.Image] = {}
+_SOURCE_IMAGE_CACHE_LOCK = threading.Lock()
 _MAX_SEQUENCE_LENGTH = 512
 # Distinct prompts whose text encodes are kept. One entry is a single padded
 # sequence -- a few MiB at 512 tokens -- so a handful covers a session's prompt
@@ -287,7 +292,51 @@ def _decode_source_image(image: PIL.Image.Image) -> PIL.Image.Image:
         raise ValueError(_SOURCE_IMAGE_ERROR) from None
 
 
+def _source_image_fingerprint(path: str | os.PathLike[str]) -> tuple[str, int, int, int, int, int]:
+    """Identify the bytes behind ``path``: the resolved path plus the stat fields that change when it is rewritten."""
+    resolved = os.path.realpath(os.fspath(path))
+    stat = os.stat(resolved)
+    return resolved, stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+
+
 def _load_source_image(path: str | os.PathLike[str]) -> PIL.Image.Image:
+    """Decode the source image at ``path``, reusing the last decode when the file is unchanged.
+
+    A realtime session sends the same source image on every tick, and decoding it is pure overhead once the
+    first tick has done it. The cache holds one entry, because the access pattern that matters is the same
+    path repeatedly rather than many paths in rotation.
+
+    Correctness rests on three things. The key is the resolved path plus device, inode, size and both
+    timestamps in nanoseconds, so a rewritten file misses. The fingerprint is taken again after the decode and
+    the result is only stored if it did not move, so a file rewritten *during* the decode is served but never
+    cached. And every caller gets a copy, so a request that mutates its image cannot corrupt the next one.
+    A path that cannot be stat'ed is passed straight through to the uncached path, which keeps upstream
+    validation and its exceptions exactly as they were.
+    """
+    try:
+        key = _source_image_fingerprint(path)
+    except (OSError, TypeError, ValueError):
+        return _decode_source_image_file(path)
+
+    with _SOURCE_IMAGE_CACHE_LOCK:
+        cached = _SOURCE_IMAGE_CACHE.get(key)
+        if cached is not None:
+            return cached.copy()
+
+    image = _decode_source_image_file(path)
+
+    try:
+        unchanged = key == _source_image_fingerprint(path)
+    except (OSError, TypeError, ValueError):
+        unchanged = False
+    if unchanged:
+        with _SOURCE_IMAGE_CACHE_LOCK:
+            _SOURCE_IMAGE_CACHE.clear()
+            _SOURCE_IMAGE_CACHE[key] = image.copy()
+    return image
+
+
+def _decode_source_image_file(path: str | os.PathLike[str]) -> PIL.Image.Image:
     try:
         source_image = PIL.Image.open(path)
     except (OSError, SyntaxError, ValueError, PIL.Image.DecompressionBombError):
