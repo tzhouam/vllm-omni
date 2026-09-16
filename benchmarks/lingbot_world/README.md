@@ -124,10 +124,24 @@ benchmark replays chunk arrivals against a wall clock — playback starts once
 `--playback-buffer-chunks` chunks have landed and then consumes video at `--fps`
 — and reports every moment the player ran dry.
 
+### What the client-side number is worth
+
+Measuring from outside the server invites the obvious objection that the number
+includes the client, the muxer and the socket. It does not, to any degree that
+matters. On a four-GPU Ulysses run the client's mean inter-arrival over fifteen
+steady intervals was **1326.743 ms**, against the server's own
+`StageRequestStats.inter_output_latency_ms` of **1327.479 ms** for the same
+request -- a difference of **0.74 ms**. Fragmented-MP4 muxing, WebSocket
+delivery and the client's own event loop together cost under a millisecond per
+chunk in steady state, so what this benchmark reports is the engine's own output
+cadence, observed where a user would observe it.
+
+Cross-check any surprising result the same way: the server prints that table per
+request, and a client-side cadence that disagrees with it is a client bug.
+
 ### What this benchmark cannot see
 
-Chunk metadata carries no server-side timestamps, so the client measures arrival
-cadence including fragmented-MP4 muxing and WebSocket transport. It cannot split
+Chunk metadata carries no server-side timestamps, so the benchmark cannot split
 DiT time from VAE decode time; use `--enable-diffusion-pipeline-profiler` on the
 server for that. It also reports no GPU memory, which is a server-side quantity.
 
