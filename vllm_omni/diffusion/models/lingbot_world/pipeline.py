@@ -87,7 +87,6 @@ logger = init_logger(__name__)
 _STREAMING_DECODE_BYTES_PER_PIXEL_FP32 = 37832 * 1024 / (64 * 64)
 
 if TYPE_CHECKING:
-    from diffusers.video_processor import VideoProcessor
     from tqdm.std import tqdm as TqdmProgressBar
 
     from vllm_omni.diffusion.worker.input_batch import InputBatch
@@ -297,6 +296,24 @@ def _source_image_fingerprint(path: str | os.PathLike[str]) -> tuple[str, int, i
     resolved = os.path.realpath(os.fspath(path))
     stat = os.stat(resolved)
     return resolved, stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+
+
+def _uint8_frames(video: torch.Tensor) -> np.ndarray:
+    """Turn one decoded block ``(1, 3, F, H, W)`` in ``[-1, 1]`` into ``(F, H, W, 3)`` uint8 on the host.
+
+    This is the arithmetic ``VideoProcessor.postprocess_video`` applies for
+    ``"np"`` and ``"pil"`` -- denormalise, widen to float32, scale by 255 and
+    round -- done on the device before the copy instead of on the host after
+    it. The bytes are identical to the PIL path; what changes is that the
+    frames cross to the host once, already in the layout and dtype the
+    streaming endpoint muxes, instead of as a float32 copy that is then
+    converted per frame while the next block waits.
+    """
+    # Same order of operations as VideoProcessor: denormalise and clamp in
+    # the decoder dtype, then widen, scale and round.
+    frames = (video[0] / 2 + 0.5).clamp(0, 1).permute(1, 2, 3, 0)
+    frames = frames.float().mul_(255).round_().to(torch.uint8)
+    return np.ascontiguousarray(frames.cpu().numpy())
 
 
 def _load_source_image(path: str | os.PathLike[str]) -> PIL.Image.Image:
@@ -1598,10 +1615,14 @@ class LingBotWorldCausalDMDPipeline(
         if state is not None:
             state.release()
 
-    def _decode_chunk_to_pixels(
-        self, latents: torch.Tensor, *, output_type: str, session_id: str | None = None
-    ) -> torch.Tensor | np.ndarray | list[list[PIL.Image.Image]]:
+    def _decode_chunk_to_pixels(self, latents: torch.Tensor, *, session_id: str | None = None) -> np.ndarray:
         """Decode one AR block so streaming consumers receive pixels, not latents.
+
+        The block comes back as ``(F, H, W, 3)`` uint8 whatever pixel output
+        type the request named: the realtime endpoint muxes uint8 frames, so
+        ``"pil"`` and ``"np"`` only ever differed in how much work stood
+        between the decoder and those bytes. Only ``"latent"`` means
+        something else, and the caller keeps latents before reaching here.
 
         With a ``session_id`` the block is decoded through that session's own
         temporal cache, so chunk *N + 1* continues chunk *N*: the causal decoder
@@ -1628,7 +1649,7 @@ class LingBotWorldCausalDMDPipeline(
             video = self.vae.decode(vae_latents, return_dict=False)[0]
         else:
             video = self._streaming_decode_chunk(decoder, vae_latents, cast(str, session_id))
-        return self._video_processor().postprocess_video(video, output_type=output_type)
+        return _uint8_frames(video)
 
     def _streaming_decode_chunk(
         self, decoder: WanStreamingDecoder, vae_latents: torch.Tensor, session_id: str
@@ -1648,15 +1669,6 @@ class LingBotWorldCausalDMDPipeline(
             # so drop it here rather than at close.
             self._release_streaming_decode_state(session_id)
             raise
-
-    def _video_processor(self) -> VideoProcessor:
-        processor = getattr(self, "_cached_video_processor", None)
-        if processor is None:
-            from diffusers.video_processor import VideoProcessor
-
-            processor = VideoProcessor(vae_scale_factor=self.vae_scale_factor_spatial)
-            self._cached_video_processor = processor
-        return processor
 
     def _require_bound_ar_state(self) -> None:
         if self._ar_diffusion_kv_state is None:
@@ -1909,13 +1921,7 @@ class LingBotWorldCausalDMDPipeline(
         if inputs.output_type == "latent":
             payload: dict[str, Any] = {"latents": latents}
         else:
-            payload = {
-                "video": self._decode_chunk_to_pixels(
-                    latents,
-                    output_type=inputs.output_type,
-                    session_id=state.request_id,
-                )
-            }
+            payload = {"video": self._decode_chunk_to_pixels(latents, session_id=state.request_id)}
         output = {
             "payload": payload,
             "metadata": {
