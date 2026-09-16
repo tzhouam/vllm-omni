@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import gc
+import os
 import weakref
 from pathlib import Path
 from threading import Lock
@@ -2878,3 +2879,98 @@ def test_session_text_caches_publish_key_only_after_a_successful_build() -> None
     caches("A", length=256)
     caches("A", e=embeds.to(torch.bfloat16))
     assert invalidations[-2:] == [True, True]
+
+
+# ---------------------------------------------------------------------------
+# a source image is decoded once while the file behind it is unchanged
+# ---------------------------------------------------------------------------
+
+
+def _write_png(path, colour=(10, 20, 30)):
+    Image.new("RGB", (64, 64), colour).save(path)
+    return path
+
+
+def _counting_decode(module):
+    """Replace the file decode with a counter, so the tests measure decodes rather than pixels."""
+    decoded: list[str] = []
+    original = module._decode_source_image_file
+
+    def decode(path):
+        decoded.append(os.fspath(path))
+        return Image.new("RGB", (64, 64), (1, 2, 3))
+
+    module._decode_source_image_file = decode
+    return decoded, original
+
+
+def test_the_same_source_image_is_decoded_once(tmp_path: Path) -> None:
+    module = _load_pipeline_module()
+    module._SOURCE_IMAGE_CACHE.clear()
+    path = _write_png(tmp_path / "frame.png")
+    decoded, original = _counting_decode(module)
+    try:
+        first = module._load_source_image(path)
+        second = module._load_source_image(path)
+        assert decoded == [os.fspath(os.path.realpath(path))] or len(decoded) == 1
+        # Every caller owns its copy: mutating one must not reach the next caller or the cache.
+        assert first is not second
+        first.putpixel((0, 0), (255, 255, 255))
+        assert module._load_source_image(path).getpixel((0, 0)) == (1, 2, 3)
+        assert len(decoded) == 1
+    finally:
+        module._decode_source_image_file = original
+        module._SOURCE_IMAGE_CACHE.clear()
+
+
+def test_a_rewritten_source_image_is_decoded_again(tmp_path: Path) -> None:
+    module = _load_pipeline_module()
+    module._SOURCE_IMAGE_CACHE.clear()
+    path = _write_png(tmp_path / "frame.png")
+    decoded, original = _counting_decode(module)
+    try:
+        module._load_source_image(path)
+        module._load_source_image(path)
+        assert len(decoded) == 1
+        # Same path, different bytes: the mtime/size in the key must force a fresh decode.
+        os.utime(path, ns=(0, 0))
+        _write_png(path, colour=(200, 100, 50))
+        module._load_source_image(path)
+        assert len(decoded) == 2
+    finally:
+        module._decode_source_image_file = original
+        module._SOURCE_IMAGE_CACHE.clear()
+
+
+def test_an_image_rewritten_during_the_decode_is_never_cached(tmp_path: Path) -> None:
+    module = _load_pipeline_module()
+    module._SOURCE_IMAGE_CACHE.clear()
+    path = _write_png(tmp_path / "frame.png")
+    decoded: list[str] = []
+    original = module._decode_source_image_file
+
+    def decode_then_rewrite(p):
+        decoded.append(os.fspath(p))
+        _write_png(path, colour=(len(decoded), 0, 0))
+        os.utime(path, ns=(len(decoded) * 1_000_000, len(decoded) * 1_000_000))
+        return Image.new("RGB", (64, 64), (1, 2, 3))
+
+    module._decode_source_image_file = decode_then_rewrite
+    try:
+        module._load_source_image(path)
+        assert module._SOURCE_IMAGE_CACHE == {}, "a file that moved under the decode must not be cached"
+        module._load_source_image(path)
+        assert len(decoded) == 2
+    finally:
+        module._decode_source_image_file = original
+        module._SOURCE_IMAGE_CACHE.clear()
+
+
+def test_an_unstattable_path_keeps_upstream_validation(tmp_path: Path) -> None:
+    module = _load_pipeline_module()
+    module._SOURCE_IMAGE_CACHE.clear()
+    missing = tmp_path / "does-not-exist.png"
+    # The uncached path owns the error contract; caching must not change which exception a caller sees.
+    with pytest.raises(ValueError):
+        module._load_source_image(missing)
+    assert module._SOURCE_IMAGE_CACHE == {}
