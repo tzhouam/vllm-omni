@@ -1857,8 +1857,11 @@ def test_typed_ticks_keep_bounded_encoder_state_beyond_ten_chunks(
         pipeline(_request(sampling=sampling))
 
     assert pipeline.vae.encode_inputs == []
-    assert [video.shape[2] for video in pipeline.vae.encoder.inputs] == [1] + [4] * 32
+    # The stub encoder's history settles after its second block; the nine
+    # blocks after that reuse the settled condition without an encode.
+    assert [video.shape[2] for video in pipeline.vae.encoder.inputs] == [1] + [4] * 5
     assert all(torch.count_nonzero(video) == 0 for video in pipeline.vae.encoder.inputs[1:])
+    assert pipeline._ar_sessions["world-1"].condition_fixed_point is not None
     encoder_cache = pipeline._ar_sessions["world-1"].encoder_cache
     assert sum(t.numel() * t.element_size() for t in encoder_cache) == pipeline._condition_encoder_cache_bytes()
     assert pipeline.vae._enc_feat_map == ["module-owned"]
@@ -1952,6 +1955,76 @@ def test_condition_continues_real_causal_vae_beyond_initial_horizon(
     assert pipeline.vae._enc_feat_map is module_cache and all(t is None for t in module_cache)
     pipeline.close_ar_diffusion_session(session_id)
     assert pipeline._ar_sessions == {}
+
+
+def test_condition_encoder_stops_at_its_fixed_point_and_restarts_with_the_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Once a block returns the history it was given, later blocks reuse the condition without encoding.
+
+    The whole-clip encode is the reference for every block, so reusing the
+    stored condition is only allowed to be a speedup, never a change.
+    """
+    pipeline = _tiny_condition_pipeline(monkeypatch)
+    pipeline._ar_diffusion_kv_state = object()
+    blocks = 12
+    inputs = pipeline._parse_request(_request(sampling=_SamplingParams(num_frames=(blocks * 3 - 1) * 4 + 1)))
+    with torch.inference_mode():
+        expected = pipeline._prepare_condition(inputs, dtype=torch.float32)
+    encoder_calls = []
+    original_encoder = pipeline.vae.encoder.forward
+
+    def encoder(*args, **kwargs):
+        encoder_calls.append(len(seen))
+        return original_encoder(*args, **kwargs)
+
+    seen: list[torch.Tensor] = []
+
+    def generate_block(**kwargs):
+        index = len(seen) % blocks
+        torch.testing.assert_close(
+            kwargs["condition"], expected[:, :, index * 3 : (index + 1) * 3], rtol=1e-6, atol=1e-6
+        )
+        seen.append(kwargs["condition"])
+        return torch.zeros_like(kwargs["condition"][:, :16])
+
+    monkeypatch.setattr(pipeline.vae.encoder, "forward", encoder)
+    monkeypatch.setattr(pipeline, "_generate_block", generate_block)
+
+    def tick(index):
+        pipeline(_request(sampling=_SamplingParams(extra_args=_tick_extra_args(chunk_index=index))))
+
+    settled_at = None
+    for index in range(blocks):
+        tick(index)
+        state = pipeline._ar_sessions["world-1"]
+        if settled_at is None and state.condition_fixed_point is not None:
+            settled_at = index
+        assert state.pending_encoder_cache is None and state.encoder_cache is not None
+    assert settled_at is not None and 0 < settled_at < blocks - 1, settled_at
+    # Three encoder passes per encoded block, none once the fixed point is stored.
+    assert encoder_calls == [index for index in range(settled_at + 1) for _ in range(3)]
+    # The stored condition is the session's own, not shared with the callers.
+    assert all(seen[settled_at] is not later for later in seen[settled_at + 1 :])
+
+    # A session restarted from chunk 0 encodes again from the source image.
+    pipeline.reset_ar_diffusion_session("world-1")
+    tick(0)
+    state = pipeline._ar_sessions["world-1"]
+    assert state.condition_fixed_point is None
+    assert encoder_calls[-3:] == [blocks] * 3
+
+
+def test_condition_encoder_fixed_point_is_released_with_the_session(monkeypatch: pytest.MonkeyPatch) -> None:
+    pipeline = _tiny_condition_pipeline(monkeypatch)
+    pipeline._ar_diffusion_kv_state = object()
+    monkeypatch.setattr(pipeline, "_generate_block", lambda **kwargs: torch.zeros_like(kwargs["condition"][:, :16]))
+    for index in range(8):
+        pipeline(_request(sampling=_SamplingParams(extra_args=_tick_extra_args(chunk_index=index))))
+    state = pipeline._ar_sessions["world-1"]
+    assert state.condition_fixed_point is not None
+    pipeline.close_ar_diffusion_session("world-1")
+    assert state.condition_fixed_point is None and state.encoder_cache is None
 
 
 def test_condition_encoder_interleaving_retry_and_reset(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2340,7 +2413,10 @@ def test_stepwise_matches_tick_transformer_trace_and_latents(num_chunks) -> None
         torch.testing.assert_close(step_call["camera_hidden_states"], tick_call["camera_hidden_states"])
     assert stepwise_state.extra["condition"].shape[2] == 3
     assert pipeline.vae.encode_inputs == []
-    assert [video.shape[2] for video in pipeline.vae.encoder.inputs] == ([1] + [4] * (num_chunks * 3 - 1)) * 2
+    # The stub encoder's history settles after its second block, so both
+    # modes encode two blocks and reuse the settled condition after that.
+    encoded_blocks = min(num_chunks, 2)
+    assert [video.shape[2] for video in pipeline.vae.encoder.inputs] == ([1] + [4] * (encoded_blocks * 3 - 1)) * 2
     assert stepwise_fake.commits == ["main"] * num_chunks
     assert len(stepwise_outputs) == num_chunks and stepwise_outputs[-1].finished
     assert pipeline.vae.decode_inputs == []
