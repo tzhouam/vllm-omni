@@ -695,6 +695,9 @@ class LingBotWorldCausalDMDPipeline(
                 ARDiffusionCrossAttentionKVSpec(
                     self._AR_TEXT_CACHE,
                     _MAX_SEQUENCE_LENGTH,
+                    # Cross-attention keeps every local head on every rank rather than sharding heads across
+                    # the Ulysses group, so the text pool holds that many heads, not the self-attention share.
+                    num_kv_heads=int(self.transformer.blocks[0].cross_attn.num_sp_heads),
                 ),
             ),
             model_owned_state_bytes_per_session=(

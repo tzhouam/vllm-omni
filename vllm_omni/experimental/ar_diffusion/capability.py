@@ -40,12 +40,18 @@ class ARDiffusionCrossAttentionKVSpec:
 
     name: str
     num_tokens: int
+    # Head count of this cross-attention cache. Cross-attention need not be sharded the same way as
+    # self-attention: a model whose cross-attention keeps every local head on every rank stores that many heads
+    # here instead of its self-attention share. None means "same as self-attention", the existing behaviour.
+    num_kv_heads: int | None = None
 
     def __post_init__(self) -> None:
         if not self.name:
             raise ValueError("AR-Diffusion cross-attention cache names must be non-empty")
         if self.num_tokens <= 0:
             raise ValueError(f"AR-Diffusion cross-attention num_tokens must be positive, got {self.num_tokens}")
+        if self.num_kv_heads is not None and self.num_kv_heads <= 0:
+            raise ValueError(f"AR-Diffusion cross-attention num_kv_heads must be positive, got {self.num_kv_heads}")
 
 
 @dataclass(frozen=True)
@@ -134,6 +140,11 @@ class ARDiffusionKVCacheSpec:
     @property
     def cross_attention_lengths(self) -> dict[str, int]:
         return {cache.name: cache.num_tokens for cache in self.cross_attention}
+
+    @property
+    def cross_attention_kv_heads(self) -> dict[str, int]:
+        """Per-cache head counts, for the caches that do not use the self-attention head count."""
+        return {cache.name: cache.num_kv_heads for cache in self.cross_attention if cache.num_kv_heads is not None}
 
 
 @runtime_checkable

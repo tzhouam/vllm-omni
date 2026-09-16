@@ -128,6 +128,10 @@ class _RecordingTransformer(nn.Module):
             sink_size=3,
         )
         self.blocks = nn.ModuleList([nn.Identity(), nn.Identity()])
+        for block in self.blocks:
+            # The spec reads head geometry from both attentions; cross-attention keeps every local head.
+            block.self_attn = SimpleNamespace(num_sp_heads=2)
+            block.cross_attn = SimpleNamespace(num_sp_heads=2)
         self.camera_reuse_windows = 0
         self.calls: list[dict] = []
         self.cache_allocations: list[dict] = []
@@ -2981,3 +2985,17 @@ def test_an_unstattable_path_keeps_upstream_validation(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         module._load_source_image(missing)
     assert module._SOURCE_IMAGE_CACHE == {}
+
+
+def test_the_text_cache_is_sized_by_cross_attention_heads_not_the_self_attention_share() -> None:
+    """Cross-attention replicates heads per rank, so its pool must not inherit the self-attention head count."""
+    module = _load_pipeline_module()
+    pipeline = _pipeline(module)
+    pipeline.transformer.blocks[0].self_attn = SimpleNamespace(num_sp_heads=1)
+    pipeline.transformer.blocks[0].cross_attn = SimpleNamespace(num_sp_heads=4)
+
+    spec = pipeline.ar_diffusion_kv_cache_spec()
+
+    assert spec.num_kv_heads == 1
+    assert spec.cross_attention_kv_heads == {"text": 4}
+    assert spec.cross_attention_lengths == {"text": 512}
