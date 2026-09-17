@@ -1,9 +1,20 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Configuration for AR-Diffusion engine-level KV cache management."""
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
+
+
+def contiguous_kv_gather_enabled() -> bool:
+    """Whether the experimental contiguous-K/V gather attention path is switched on (``LINGBOT_KV_GATHER=1``).
+
+    It is the only consumer of ``ARDiffusionKVConfig.reuse_history_staging``, so the staging buffers are
+    allocated and budgeted only when this is true.
+    """
+    return os.environ.get("LINGBOT_KV_GATHER", "0") == "1"
 
 
 @dataclass
