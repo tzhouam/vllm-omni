@@ -26,6 +26,7 @@ from vllm.model_executor.models.utils import AutoWeightsLoader
 
 from vllm_omni.diffusion.data import DiffusionOutput, OmniDiffusionConfig
 from vllm_omni.diffusion.distributed.autoencoders.autoencoder_kl_wan import DistributedAutoencoderKLWan
+from vllm_omni.diffusion.distributed.autoencoders.wan_decoder_fast_path import install_wan_decoder_fast_path
 from vllm_omni.diffusion.distributed.autoencoders.wan_spatial_shard import install_wan_spatial_shard_decode
 from vllm_omni.diffusion.distributed.utils import get_local_device
 from vllm_omni.diffusion.interaction.mixin import InteractionMixin
@@ -364,6 +365,18 @@ def _decode_source_image_fingerprinted(fingerprint: tuple[str, int, int, int, in
     carries its image inline and never comes through here.
     """
     return _decode_source_image_file(fingerprint[0])
+
+
+def _vae_decode_fast_path(model_config: dict) -> bool:
+    """Resolve ``lingbot_vae_decode_fast_path`` from the model config.
+
+    Off by default. On, the decoder's exact fast path is installed after the decode dtype and the spatial
+    shard are configured (see ``wan_decoder_fast_path``): no output bit changes, only launches disappear.
+    """
+    value = model_config.get("lingbot_vae_decode_fast_path", False)
+    if isinstance(value, str):
+        value = value.strip().lower() in ("1", "true", "yes", "on")
+    return bool(value)
 
 
 def _load_source_image(path: str | os.PathLike[str]) -> PIL.Image.Image:
@@ -710,6 +723,11 @@ class LingBotWorldCausalDMDPipeline(
         sequence_parallel_size = int(getattr(parallel_config, "sequence_parallel_size", 1) or 1)
         if sequence_parallel_size > 1 and vae_sharding:
             self._install_sharded_vae_decode(sequence_parallel_size)
+        if _vae_decode_fast_path(model_config):
+            # After the shard so its conv wrappers are the ones that get persistent buffers.
+            # VAE parameters already loaded in the stage dtype, so no autocast parameter cast is needed.
+            counts = install_wan_decoder_fast_path(self.vae, conv_dtype=None)
+            logger.info("LingBot World VAE decode fast path installed: %s", counts)
         self.setup_diffusion_pipeline_profiler(
             profiler_targets=[
                 "vae.encode",

@@ -1,0 +1,127 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+"""The exact Wan decoder fast path must be bit-identical to the plain streaming decode.
+
+Two decoders are driven frame by frame through ``WanStreamingDecoder`` over two chunks of one session and
+a fresh session (the persistent buffers' causal front frames go zeros -> cache -> zeros), on CPU: plain
+diffusers modules in one process, and the spatially sharded wrappers across two gloo ranks with real halo
+exchange, each in fp32 and under bf16 autocast (where the parameter cast applies). Every output must
+``torch.equal`` the untouched decoder's on every rank.
+"""
+
+from __future__ import annotations
+
+import copy
+import os
+from types import SimpleNamespace
+
+import pytest
+import torch
+import torch.distributed as dist
+import torch.multiprocessing as mp
+from diffusers.models.autoencoders.autoencoder_kl_wan import WanCausalConv3d, WanDecoder3d
+
+from vllm_omni.diffusion.distributed.autoencoders.wan_decoder_fast_path import install_wan_decoder_fast_path
+from vllm_omni.diffusion.distributed.autoencoders.wan_spatial_shard import (
+    WanDistCausalConv3d,
+    WanDistConv2d,
+    install_wan_spatial_shard_decode,
+)
+from vllm_omni.experimental.ar_diffusion.streaming_decode import WanStreamingDecoder
+
+
+def _make_vae(seed: int = 0) -> SimpleNamespace:
+    torch.manual_seed(seed)
+    decoder = WanDecoder3d(dim=8, z_dim=4, dim_mult=[1, 2], num_res_blocks=1, attn_scales=[], temporal_upsample=[True])
+    post_quant_conv = WanCausalConv3d(4, 4, 1)
+    for p in list(decoder.parameters()) + list(post_quant_conv.parameters()):
+        p.data.uniform_(-0.5, 0.5)
+    decoder.eval()
+    count = sum(1 for m in decoder.modules() if m.__class__.__name__ == "WanCausalConv3d")
+    return SimpleNamespace(decoder=decoder, post_quant_conv=post_quant_conv, _cached_conv_counts={"decoder": count})
+
+
+def _run(vae, latents: list[torch.Tensor], autocast: bool) -> list[torch.Tensor]:
+    decoder = WanStreamingDecoder(vae)
+    outs = []
+    ctx = torch.autocast("cpu", dtype=torch.bfloat16) if autocast else torch.no_grad()
+    with torch.no_grad(), ctx:
+        state = decoder.new_decode_state("a")
+        outs.append(decoder.decode_chunk(latents[0], state))
+        outs.append(decoder.decode_chunk(latents[1], state))
+        fresh = decoder.new_decode_state("b")
+        outs.append(decoder.decode_chunk(latents[2], fresh))
+    return [o.float() for o in outs]
+
+
+def _latents() -> list[torch.Tensor]:
+    torch.manual_seed(1)
+    return [torch.randn(1, 4, 2, 6, 10), torch.randn(1, 4, 1, 6, 10), torch.randn(1, 4, 2, 6, 10)]
+
+
+def _check_pair(reference, candidate, autocast: bool, sharded: bool) -> None:
+    counts = install_wan_decoder_fast_path(candidate, conv_dtype=torch.bfloat16 if autocast else None)
+    assert counts["upsamples"] == 1
+    convs = sum(1 for m in candidate.decoder.modules() if isinstance(m, torch.nn.Conv3d | torch.nn.Conv2d)) + 1
+    assert counts["conv_params_cast"] == (convs if autocast else 0)
+    dist_convs = sum(1 for m in candidate.decoder.modules() if isinstance(m, WanDistCausalConv3d | WanDistConv2d))
+    assert counts["persistent_input_buffers"] == dist_convs
+    assert (dist_convs > 0) == sharded
+    # Idempotent: a second install is a no-op that reports the same counts.
+    assert install_wan_decoder_fast_path(candidate, conv_dtype=torch.bfloat16 if autocast else None) is counts
+    latents = _latents()
+    expected = _run(reference, latents, autocast)
+    actual = _run(candidate, latents, autocast)
+    assert len(expected) == len(actual) == 3
+    for e, a in zip(expected, actual):
+        assert e.shape == a.shape
+        assert torch.equal(e, a)
+    if sharded:
+        bufs = [m._input_buf for m in candidate.decoder.modules() if isinstance(m, WanDistCausalConv3d | WanDistConv2d)]
+        assert all(b is not None for b in bufs)
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+@pytest.mark.parametrize("autocast", [False, True])
+def test_fast_path_is_bit_identical(autocast: bool) -> None:
+    reference = _make_vae()
+    candidate = copy.deepcopy(reference)
+    _check_pair(reference, candidate, autocast, sharded=False)
+
+
+def _sharded_worker(rank: int, world_size: int, port: str, autocast: bool, return_dict) -> None:
+    os.environ["MASTER_ADDR"] = "127.0.0.1"
+    os.environ["MASTER_PORT"] = port
+    dist.init_process_group("gloo", rank=rank, world_size=world_size)
+    try:
+        torch.manual_seed(0)
+        reference = _make_vae()
+        candidate = copy.deepcopy(reference)
+        for vae in (reference, candidate):
+            install_wan_spatial_shard_decode(vae, dist.group.WORLD, split_dim="width", dst=None)
+        _check_pair(reference, candidate, autocast, sharded=True)
+        return_dict[rank] = "ok"
+    except BaseException as exc:  # report, the parent asserts
+        return_dict[rank] = f"{type(exc).__name__}: {exc}"
+        raise
+    finally:
+        dist.destroy_process_group()
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+@pytest.mark.parametrize("autocast", [False, True])
+def test_sharded_fast_path_is_bit_identical_on_every_rank(autocast: bool) -> None:
+    manager = mp.get_context("spawn").Manager()
+    return_dict = manager.dict()
+    mp.spawn(_sharded_worker, args=(2, str(29610 + int(autocast)), autocast, return_dict), nprocs=2, join=True)
+    for rank in range(2):
+        assert return_dict.get(rank) == "ok", f"rank {rank}: {return_dict.get(rank)}"
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+def test_conv_dtype_requires_half() -> None:
+    with pytest.raises(ValueError, match="conv_dtype"):
+        install_wan_decoder_fast_path(_make_vae(), conv_dtype=torch.float32)
