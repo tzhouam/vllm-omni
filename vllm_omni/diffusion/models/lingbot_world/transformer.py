@@ -966,8 +966,12 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         # Off unless a caller opens reuse_camera_modulation(); see that method.
         self._camera_modulation_cache: _CameraModulationCache | None = None
 
+    def new_camera_modulation_cache(self) -> _CameraModulationCache:
+        """A block's camera-modulation cache for a caller to hold across separate forwards; see below."""
+        return _CameraModulationCache()
+
     @contextmanager
-    def reuse_camera_modulation(self) -> Iterator[None]:
+    def reuse_camera_modulation(self, cache: _CameraModulationCache | None = None) -> Iterator[None]:
         """Build each block's camera scale and shift once for the forwards inside this window.
 
         The camera injector is four projections and a SiLU per block, and it reads only the camera tokens. An
@@ -978,9 +982,14 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         whatever was active before, and the cache is dropped on exit so nothing outlives the chunk. If the
         camera tensor entering forward changes inside the window the cache rebuilds rather than going stale,
         so a misplaced window costs the speedup but never correctness.
+
+        A caller whose forwards of one block are separate calls -- the stepwise path runs the four probes and
+        the commit from separate scheduler steps -- holds the block's cache itself
+        (``new_camera_modulation_cache``) and passes it here around each forward: the window still spans
+        exactly one block, and two sessions interleaved by the scheduler never share entries.
         """
         previous = self._camera_modulation_cache
-        self._camera_modulation_cache = _CameraModulationCache()
+        self._camera_modulation_cache = _CameraModulationCache() if cache is None else cache
         try:
             yield
         finally:
