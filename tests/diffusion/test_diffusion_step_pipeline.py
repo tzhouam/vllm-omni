@@ -103,6 +103,36 @@ class _StepPipeline:
         return DiffusionOutput(output=torch.tensor([state.step_index], dtype=torch.float32))
 
 
+class _ChunkedStepPipeline(_StepPipeline):
+    """Streaming stub: two chunks of two denoise steps each, one decode per chunk."""
+
+    def prepare_encode(self, state, **kwargs):
+        del kwargs
+        self.prepare_calls += 1
+        state.timesteps = [torch.tensor(10), torch.tensor(5), torch.tensor(10), torch.tensor(5)]
+        state.latents = torch.tensor([0.0])
+        state.prompt_embeds = torch.tensor([[0.0, 0.0], [1.0, 1.0]])
+        state.chunk_num_steps = 2
+        state.total_chunks = 2
+        state.chunk_index = 0
+        state.step_in_chunk = 0
+        return state
+
+    def step_scheduler(self, state, noise_pred, **kwargs):
+        del noise_pred, kwargs
+        self.scheduler_calls += 1
+        state.step_in_chunk += 1
+        state.step_index = state.step_in_chunk
+
+    def post_decode(self, state, **kwargs):
+        del kwargs
+        self.decode_calls += 1
+        result = DiffusionOutput(output=torch.tensor([float(state.chunk_index)]))
+        state.chunk_index += 1
+        state.step_in_chunk = 0
+        return result
+
+
 class _PerRequestErrorStepPipeline(_StepPipeline):
     def prepare_encode(self, state, **kwargs):
         if state.prompt == "fail-prepare":
@@ -627,6 +657,32 @@ class TestRunner:
         assert runner.pipeline.denoise_calls == 2
         assert runner.pipeline.scheduler_calls == 2
         assert runner.pipeline.decode_calls == 1
+
+    @pytest.mark.parametrize("chunk_per_call", [False, True])
+    def test_streaming_chunk_per_call_runs_every_step_of_a_chunk_in_one_call(self, monkeypatch, chunk_per_call):
+        """With the knob on, one runner call drives a whole chunk; the emitted outputs are the same either way."""
+        runner = _make_runner()
+        runner.od_config.streaming_output = True
+        runner.od_config.stepwise_chunk_per_call = chunk_per_call
+        runner.pipeline = _ChunkedStepPipeline()
+        monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
+
+        outputs = [DiffusionModelRunner.execute_stepwise(runner, _make_scheduler_output(_make_step_request(4)))]
+        step = 1
+        while not outputs[-1].get_request_output("req-1").finished:
+            outputs.append(DiffusionModelRunner.execute_stepwise(runner, _make_cached_scheduler_output(step_id=step)))
+            step += 1
+        per_call = [outputs[i].get_request_output("req-1") for i in range(len(outputs))]
+
+        # Chunk outputs, and the steps they were emitted at, are identical.
+        emitted = [(o.step_index, float(o.result.output[0])) for o in per_call if o.result is not None]
+        assert emitted == [(2, 0.0), (2, 1.0)]
+        assert per_call[-1].finished is True
+        assert runner.pipeline.denoise_calls == 4 and runner.pipeline.scheduler_calls == 4
+        assert runner.pipeline.decode_calls == 2
+        # One call per chunk with the knob, one per step without.
+        assert len(per_call) == (2 if chunk_per_call else 4)
+        assert "req-1" not in runner.state_cache
 
     def test_stepwise_output_includes_stage_and_peak_metrics(self, monkeypatch):
         runner = _make_runner()
