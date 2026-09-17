@@ -52,6 +52,8 @@ logger = init_logger(__name__)
 
 _INSTALLED_ATTR = "_vllm_omni_wan_decoder_fast_path"
 LEVELS = ("exact", "fused")
+# diffusers' WanRMS_norm, and vLLM-Omni's RMSNormVAE that patch_wan_rms_norm swaps in for every Wan-family VAE.
+_NORM_CLASSES = ("WanRMS_norm", "RMSNormVAE")
 _CACHE_T = 2  # diffusers.models.autoencoders.autoencoder_kl_wan.CACHE_T
 
 
@@ -100,18 +102,21 @@ class FusedWanRMSNormSiLU(nn.Module):
             self._bias_value = 0.0
         else:
             self.bias = None
-            self._bias_value = float(bias)
+            self._bias_value = float(bias) if bias is not None else 0.0
         self.scale = float(norm.scale)
-        self.eps = 1e-12  # F.normalize's default, what WanRMS_norm uses
+        # diffusers' WanRMS_norm normalises x.float() with F.normalize's default eps; vLLM-Omni's RMSNormVAE
+        # (patched in for every Wan-family VAE it loads) normalises x itself with its own epsilon.
+        self.upcast = norm.__class__.__name__ == "WanRMS_norm"
+        self.eps = 1e-12 if self.upcast else float(getattr(norm, "epsilon", 1e-6))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.dim() == 5 and x.is_cuda and not (torch.is_grad_enabled() and x.requires_grad):
             if not _dense_channels_last_3d(x):
                 x = x.contiguous(memory_format=torch.channels_last_3d)
             if can_use_wan_rmsnorm_silu(x, self.gamma, self.bias):
-                return wan_rmsnorm_silu(x, self.gamma, self.bias, self.scale, self.eps)
+                return wan_rmsnorm_silu(x, self.gamma, self.bias, self.scale, self.eps, self.upcast)
         bias = self.bias if self.bias is not None else self._bias_value
-        return wan_rmsnorm_silu_reference(x, self.gamma, bias, self.scale, self.eps)
+        return wan_rmsnorm_silu_reference(x, self.gamma, bias, self.scale, self.eps, self.upcast)
 
 
 def _interleave_time_pairs(x: torch.Tensor, b: int, c: int, t: int, h: int, w: int) -> torch.Tensor:
@@ -171,14 +176,16 @@ def _install_fused(decoder: nn.Module, post_quant_conv: nn.Module | None, counts
     for m in blocks:
         for name in ("norm1", "norm2"):
             norm = getattr(m, name, None)
-            if norm.__class__.__name__ != "WanRMS_norm" or not getattr(norm, "channel_first", False):
+            if norm.__class__.__name__ not in _NORM_CLASSES or not getattr(norm, "channel_first", False):
                 raise ValueError(
-                    f"fused fast path needs channel-first WanRMS_norm at {name}; got {type(norm).__name__}"
+                    f"fused fast path needs a channel-first Wan RMSNorm at {name}; got {type(norm).__name__}"
                 )
         if not isinstance(m.nonlinearity, nn.SiLU) or m.nonlinearity.inplace:
             raise ValueError("fused fast path needs a plain SiLU residual block nonlinearity")
     head_norm = getattr(decoder, "norm_out", None)
-    if head_norm.__class__.__name__ != "WanRMS_norm" or not isinstance(getattr(decoder, "nonlinearity", None), nn.SiLU):
+    if head_norm.__class__.__name__ not in _NORM_CLASSES or not isinstance(
+        getattr(decoder, "nonlinearity", None), nn.SiLU
+    ):
         raise ValueError("fused fast path needs the standard WanRMS_norm + SiLU decoder head")
     for m in blocks:
         m.norm1 = FusedWanRMSNormSiLU(m.norm1)

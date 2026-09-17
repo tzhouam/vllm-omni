@@ -40,10 +40,22 @@ _SUPPORTED_DTYPES = (torch.bfloat16, torch.float16, torch.float32)
 
 # --------------------------------------------------------------------------- RMSNorm + SiLU
 def wan_rmsnorm_silu_reference(
-    x: torch.Tensor, gamma: torch.Tensor, bias: torch.Tensor | float, scale: float, eps: float = 1e-12
+    x: torch.Tensor,
+    gamma: torch.Tensor,
+    bias: torch.Tensor | float,
+    scale: float,
+    eps: float = 1e-12,
+    upcast: bool = True,
 ) -> torch.Tensor:
-    """The eager chain of ``WanRMS_norm.forward`` followed by SiLU, cast back to ``x.dtype``."""
-    normalized = F.normalize(x.float(), dim=1, eps=eps).to(x.dtype)
+    """The eager norm chain followed by SiLU, cast back to ``x.dtype``.
+
+    ``upcast=True`` is diffusers' ``WanRMS_norm`` (normalise in fp32, round to ``x.dtype``); ``upcast=False``
+    is vLLM-Omni's ``RMSNormVAE`` (``F.normalize`` on ``x`` itself, so every step rounds to ``x.dtype``).
+    """
+    if upcast:
+        normalized = F.normalize(x.float(), dim=1, eps=eps).to(x.dtype)
+    else:
+        normalized = F.normalize(x, dim=1, eps=eps)
     y = normalized * scale * gamma + bias
     return F.silu(y).to(x.dtype)
 
@@ -88,6 +100,7 @@ if _HAS_TRITON:
         eps,
         has_bias: tl.constexpr,
         round_affine: tl.constexpr,
+        upcast: tl.constexpr,
         block_c: tl.constexpr,
     ):
         row = tl.program_id(0).to(tl.int64)
@@ -97,10 +110,16 @@ if _HAS_TRITON:
         row_offsets = row * channels + offsets
         x = tl.load(x_ptr + row_offsets, mask=mask, other=0.0).to(tl.float32)
         norm = tl.sqrt(tl.sum(x * x, axis=0))
-        inv_norm = 1.0 / tl.maximum(norm, eps)
-        # Eager op boundaries: normalise and * scale in x.dtype, * gamma / + bias in the promoted dtype,
-        # SiLU in fp32, stored in x.dtype.
-        y = (x * inv_norm).to(x_ptr.dtype.element_ty)
+        if upcast:
+            # WanRMS_norm: fp32 normalise, one rounding to x.dtype.
+            y = (x / tl.maximum(norm, eps)).to(x_ptr.dtype.element_ty)
+        else:
+            # RMSNormVAE: F.normalize on x itself, so the norm, the clamp and the quotient each round to x.dtype.
+            denom = tl.maximum(norm.to(x_ptr.dtype.element_ty).to(tl.float32), eps)
+            denom = denom.to(x_ptr.dtype.element_ty).to(tl.float32)
+            y = (x / denom).to(x_ptr.dtype.element_ty)
+        # Then the eager boundaries: * scale in x.dtype, * gamma / + bias in the promoted dtype, SiLU in fp32,
+        # stored in x.dtype.
         y = (y * rms_scale).to(x_ptr.dtype.element_ty)
         gamma = tl.load(gamma_ptr + offsets, mask=mask, other=1.0).to(tl.float32)
         y = y.to(tl.float32) * gamma
@@ -117,7 +136,12 @@ if _HAS_TRITON:
 
 
 def wan_rmsnorm_silu(
-    x: torch.Tensor, gamma: torch.Tensor, bias: torch.Tensor | float | None, scale: float, eps: float = 1e-12
+    x: torch.Tensor,
+    gamma: torch.Tensor,
+    bias: torch.Tensor | float | None,
+    scale: float,
+    eps: float = 1e-12,
+    upcast: bool = True,
 ) -> torch.Tensor:
     """Fused ``SiLU(normalize(x) * scale * gamma + bias)`` on a dense channels_last_3d tensor; raises otherwise."""
     if not can_use_wan_rmsnorm_silu(x, gamma, bias):
@@ -145,6 +169,7 @@ def wan_rmsnorm_silu(
             float(eps),
             has_bias,
             round_affine,
+            upcast,
             block_c,
             num_warps=num_warps,
         )
