@@ -1390,6 +1390,12 @@ class DiffusionModelRunner(OmniConnectorModelRunnerMixin):
                             )
                     if not step_pending:
                         break
+                    # step_scheduler advanced the request states; the batch
+                    # view holds gathered copies of their latents and
+                    # timesteps, so rebuild it before the next step exactly as
+                    # the next scheduler cycle would have.
+                    input_batch = InputBatch.make_batch(states, cached_batch=input_batch)
+                    self.input_batch = input_batch
 
                 if is_primary and record_output_peak_memory:
                     batch_peak_memory_mb = self._sample_peak_memory_mb()
