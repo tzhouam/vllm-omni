@@ -1043,6 +1043,11 @@ class OmniDiffusionConfig:
 
     # Step mode settings
     step_execution: bool = False
+    # With streaming output, run every denoise step of a request's current
+    # chunk inside one runner call instead of one step per scheduler cycle.
+    # Only a lone scheduled request qualifies; batched stepwise calls keep
+    # step granularity.
+    stepwise_chunk_per_call: bool = False
 
     # Streaming mode settings
     streaming_output: bool = False  # Start (video) generation with initial prompt, but streaming output in chunks
