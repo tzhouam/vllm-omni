@@ -435,7 +435,7 @@ class LingBotCrossAttention(nn.Module):
         # Cross-attention keeps every local head on every Ulysses rank and attends the rank's own sequence
         # shard. Each query token attends the whole text sequence independently of the others, so there is
         # nothing to exchange: the sequence split Ulysses already gives us is the only split needed, and both
-        # all-to-alls -- one for the query, one for the output -- disappear. The cost is that the text K/V is
+        # all-to-all collectives -- one for the query, one for the output -- disappear. The cost is that the text K/V is
         # replicated per rank instead of head-sharded; ar_diffusion_kv_cache_spec sizes the pool for it.
         self.num_sp_heads = self.num_local_heads
         self.tp_inner_dim = self.num_local_heads * self.head_dim
