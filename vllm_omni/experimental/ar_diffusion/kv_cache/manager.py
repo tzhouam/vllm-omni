@@ -29,7 +29,7 @@ from vllm.v1.request import RequestStatus
 
 from vllm_omni.diffusion.diffusion_kv.layout import build_kv_cache_tensor
 from vllm_omni.experimental.ar_diffusion.capability import ARDiffusionKVBranchSpec
-from vllm_omni.experimental.ar_diffusion.kv_cache.config import ARDiffusionKVConfig
+from vllm_omni.experimental.ar_diffusion.kv_cache.config import ARDiffusionKVConfig, contiguous_kv_gather_enabled
 from vllm_omni.experimental.ar_diffusion.kv_cache.paged import (
     ChunkWindowManager,
     ChunkWindowSpec,
@@ -299,9 +299,24 @@ class ARDiffusionKVCache:
             resident_per_session = config.sink_chunks + config.window_chunks
             return self.num_local_kv_branches * (capacity * resident_per_session + self.frames_per_block) + 2
 
+        # reuse_history_staging keeps one contiguous K and V buffer per layer,
+        # sized to the padded visible window (sink + window plus the
+        # action-capacity block build_block_table always reserves), for the
+        # whole worker. It is allocated lazily on the first prepared forward,
+        # which is after admission, so it has to be reserved here or admission
+        # can succeed and that first forward run out of memory. Only the
+        # contiguous-gather attention path consumes it.
+        self.history_staging_reserved_bytes = 0
+        if getattr(config, "reuse_history_staging", False) and contiguous_kv_gather_enabled():
+            staging_tokens = self.spec.sliding_window + config.sink_chunks * config.chunk_size + block_size
+            self.history_staging_reserved_bytes = int(
+                2 * num_layers * staging_tokens * num_kv_heads * head_size * dtype.itemsize
+            )
+
         def _required_bytes(capacity: int) -> int:
             return (
                 self.scratch_reserved_bytes
+                + self.history_staging_reserved_bytes
                 + capacity * self.cross_attention_bytes_per_session
                 + capacity * self.model_owned_state_bytes_per_session
                 + _required_managed_blocks(capacity) * page_size_bytes
@@ -312,7 +327,7 @@ class ARDiffusionKVCache:
             raise ValueError(
                 "AR-Diffusion available device memory cannot fit one session: "
                 f"available={available_bytes} bytes, required={one_session_bytes} bytes "
-                "(managed self-attention + cross-attention + scratch + model-owned state)."
+                "(managed self-attention + cross-attention + scratch + model-owned state + K/V staging)."
             )
         self.memory_budget_bytes = max(self.configured_memory_budget_bytes, one_session_bytes)
         if self.memory_budget_bytes > self.configured_memory_budget_bytes:
@@ -339,6 +354,7 @@ class ARDiffusionKVCache:
         self_attn_budget_bytes = (
             self.memory_budget_bytes
             - self.scratch_reserved_bytes
+            - self.history_staging_reserved_bytes
             - self.cross_attention_reserved_bytes
             - self.model_owned_state_reserved_bytes
         )

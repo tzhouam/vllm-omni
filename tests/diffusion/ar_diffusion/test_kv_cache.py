@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Unit tests for the AR-Diffusion KV cache helpers (Phase 1, PR-2).
 
 Covers the request adapter, the chunk-window spec/manager (registration + the
@@ -362,6 +363,7 @@ def _make_tiny_capacity_kv(
     available_bytes: int,
     gpu_memory_fraction: float = 1.0,
     model_owned_state_bytes_per_session: int = 0,
+    reuse_history_staging: bool = False,
 ) -> ARDiffusionKVCache:
     return ARDiffusionKVCache(
         ARDiffusionKVConfig(
@@ -370,6 +372,7 @@ def _make_tiny_capacity_kv(
             window_chunks=3,
             sink_chunks=3,
             gpu_memory_fraction=gpu_memory_fraction,
+            reuse_history_staging=reuse_history_staging,
         ),
         num_layers=1,
         num_kv_heads=1,
@@ -385,6 +388,33 @@ def _make_tiny_capacity_kv(
         model_owned_state_bytes_per_session=model_owned_state_bytes_per_session,
         device=torch.device("cpu"),
     )
+
+
+def test_history_staging_is_reserved_in_the_kv_budget(monkeypatch):
+    """The per-layer staging pair is worker-wide memory allocated after admission; the budget must hold it."""
+    monkeypatch.setenv("LINGBOT_KV_GATHER", "1")
+    # Same geometry as the capacity-two test: 192 bytes fits two sessions exactly without staging.
+    plain = _make_tiny_capacity_kv(requested_capacity=2, available_bytes=192)
+    assert plain.session_capacity == 2 and plain.history_staging_reserved_bytes == 0
+
+    staged = _make_tiny_capacity_kv(requested_capacity=2, available_bytes=192, reuse_history_staging=True)
+    # 2 (K, V) x 1 layer x (sink 3 + window 3 + one action-capacity block) tokens x 1 head x 1 dim x 4 bytes.
+    assert staged.history_staging_reserved_bytes == 2 * 1 * 7 * 1 * 1 * 4
+    # It comes out of the same budget, so the second session no longer fits.
+    assert staged.session_capacity == 1
+    assert staged.num_blocks_total * 8 + staged.history_staging_reserved_bytes <= 192
+
+    # Boundary: one session fits at 128 bytes without staging; with staging the same budget is rejected
+    # up front instead of failing on the first forward.
+    _make_tiny_capacity_kv(requested_capacity=1, available_bytes=128)
+    with pytest.raises(ValueError, match="cannot fit one session"):
+        _make_tiny_capacity_kv(requested_capacity=1, available_bytes=128, reuse_history_staging=True)
+
+
+def test_history_staging_is_not_reserved_when_the_gather_path_is_off(monkeypatch):
+    monkeypatch.delenv("LINGBOT_KV_GATHER", raising=False)
+    staged = _make_tiny_capacity_kv(requested_capacity=2, available_bytes=192, reuse_history_staging=True)
+    assert staged.history_staging_reserved_bytes == 0 and staged.session_capacity == 2
 
 
 def test_capacity_two_retains_both_windows_and_allocates_next_block():

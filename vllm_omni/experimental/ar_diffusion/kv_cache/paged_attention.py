@@ -1,15 +1,16 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Paged self-attention helpers for AR-Diffusion KV reuse."""
 
 from __future__ import annotations
 
-import os
 import weakref
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, NamedTuple
 
 import torch
 
+from vllm_omni.experimental.ar_diffusion.kv_cache.config import contiguous_kv_gather_enabled
 from vllm_omni.experimental.ar_diffusion.kv_cache.paged import compute_slot_mapping
 
 _LAYER_IDX_TENSORS: dict[int, torch.Tensor] = {}
@@ -68,6 +69,9 @@ class ARDiffusionPagedLayerInputs(NamedTuple):
     stage_key: torch.Tensor | None = None
     stage_value: torch.Tensor | None = None
     reuse_history: torch.Tensor | None = None
+    # Index of the current chunk's first block within the staged window: right after the visible history,
+    # which is not the end of the padded block table (that carries at least one action-capacity block).
+    stage_first_block: int = 0
 
 
 @dataclass
@@ -255,7 +259,10 @@ class ARDiffusionPagedForwardContext:
         """
         self.staging_enabled = False
         self.reuse_history = False
-        if not getattr(self.kv_cache.config, "reuse_history_staging", False):
+        self.stage_first_block = 0
+        # Only the contiguous-gather attention path consumes the staging buffers; without it they would
+        # be allocated and kept for nothing.
+        if not getattr(self.kv_cache.config, "reuse_history_staging", False) or not _KV_GATHER_ENABLED:
             return
         if action_len or self.block_table.shape[0] != 1:
             # Action tokens live in scratch blocks outside the video window; staging them is not modelled.
@@ -276,6 +283,10 @@ class ARDiffusionPagedForwardContext:
         bank["signature"] = signature
         self.staging_enabled = True
         self.reuse_history = bool(reuse)
+        # ``kv_len`` is the visible video window here (no action tokens on this path): the current chunk's
+        # blocks are its last ``num_current_video_blocks`` entries, and the table's trailing padding blocks
+        # come after them.
+        self.stage_first_block = self.kv_len // self.block_size - self.num_current_video_blocks
 
     def history_staging(self, layer_idx: int, key_pool: torch.Tensor, value_pool: torch.Tensor):
         """Return this layer's staging pair, allocating it on first use.
@@ -320,6 +331,7 @@ class ARDiffusionPagedForwardContext:
             stage_key=stage_key,
             stage_value=stage_value,
             reuse_history=self.reuse_history,
+            stage_first_block=int(getattr(self, "stage_first_block", 0)),
         )
 
     def mark_committed(self) -> None:
@@ -444,7 +456,7 @@ def _stage_window(stage_key, stage_value, key_cache, value_cache, block_ids, n_b
 
 
 # Experimental contiguous-K/V gather (see ar_diffusion_paged_attention).
-_KV_GATHER_ENABLED = os.environ.get("LINGBOT_KV_GATHER", "0") == "1"
+_KV_GATHER_ENABLED = contiguous_kv_gather_enabled()
 
 
 def _resolve_fa_version(head_size: int) -> int:
@@ -494,6 +506,7 @@ def ar_diffusion_paged_attention(
     stage_value: torch.Tensor | None = None,
     reuse_history: bool = False,
     current_tokens: int = 0,
+    stage_first_block: int = 0,
 ) -> torch.Tensor:
     """Run non-causal paged attention over a vLLM block table.
 
@@ -572,12 +585,15 @@ def ar_diffusion_paged_attention(
             # Caller-owned staging, allocated outside any capture and marked static, so the buffer this
             # writes into is the same address every forward and the graph pool never owns it.
             #
-            # Only the tail moved. The block table is history blocks followed by the current chunk's
-            # blocks, so the tokens this forward changed are the last ``current_tokens`` rows of the
-            # visible window; everything before them was staged by an earlier forward of the same AR
-            # block and is still byte-for-byte what a full gather would produce. When the history did
-            # move -- new block, slid window, different session -- reuse_history is 0 and the whole
-            # window is re-gathered, which is the same work the unstaged path always does.
+            # Only the current chunk moved. The block table is the visible history followed by the
+            # current chunk's blocks and then padding (at least the action-capacity block, plus unused
+            # window capacity while the window is still growing), so the rows this forward changed start
+            # at ``stage_first_block`` -- the caller's count of visible history blocks -- and NOT at
+            # ``n_blocks - current_blocks``, which would refresh padding and leave the current K/V stale.
+            # Everything before them was staged by an earlier forward of the same AR block and is still
+            # byte-for-byte what a full gather would produce. When the history did move -- new block,
+            # slid window, different session -- reuse_history is 0 and the whole window is re-gathered,
+            # which is the same work the unstaged path always does.
             k_flat = stage_key
             v_flat = stage_value
             current_blocks = current_tokens // block_size
@@ -585,7 +601,8 @@ def ar_diffusion_paged_attention(
                 reuse_history
                 and current_tokens > 0
                 and current_blocks * block_size == current_tokens
-                and current_blocks < n_blocks
+                and 0 <= stage_first_block
+                and stage_first_block + current_blocks <= n_blocks
             )
             _stage_window(
                 k_flat,
@@ -595,7 +612,7 @@ def ar_diffusion_paged_attention(
                 block_ids,
                 n_blocks,
                 block_size,
-                first_block=(n_blocks - current_blocks) if reusable else 0,
+                first_block=stage_first_block if reusable else 0,
             )
         out = torch.empty_like(query_flat)
         # Varlen K/V: cu_seqlens_k = [0, kv_len] built on device from seq_lens
@@ -669,6 +686,7 @@ def _paged_write_attn_impl(
     stage_key: torch.Tensor | None = None,
     stage_value: torch.Tensor | None = None,
     reuse_history: bool = False,
+    stage_first_block: int = 0,
 ) -> torch.Tensor:
     key_pool[video_slots] = k_curr.to(key_pool.dtype)
     value_pool[video_slots] = v_curr.to(value_pool.dtype)
@@ -692,6 +710,7 @@ def _paged_write_attn_impl(
         stage_value=stage_value,
         reuse_history=reuse_history,
         current_tokens=int(k_curr.shape[0]),
+        stage_first_block=stage_first_block,
     )
 
 
@@ -723,6 +742,7 @@ if not hasattr(torch.ops.vllm_omni, "ar_diffusion_paged_write_attn"):
         stage_key: torch.Tensor | None = None,
         stage_value: torch.Tensor | None = None,
         reuse_history: bool = False,
+        stage_first_block: int = 0,
     ) -> torch.Tensor:
         return _paged_write_attn_impl(
             query,
@@ -744,6 +764,7 @@ if not hasattr(torch.ops.vllm_omni, "ar_diffusion_paged_write_attn"):
             stage_key,
             stage_value,
             reuse_history,
+            stage_first_block,
         )
 
     @_paged_write_attn_op.register_fake
@@ -767,6 +788,7 @@ if not hasattr(torch.ops.vllm_omni, "ar_diffusion_paged_write_attn"):
         stage_key=None,
         stage_value=None,
         reuse_history=False,
+        stage_first_block=0,
     ):
         return torch.empty_like(query)
 
@@ -795,4 +817,5 @@ def paged_write_attn(
         inputs.stage_key,
         inputs.stage_value,
         inputs.reuse_history,
+        inputs.stage_first_block,
     )
