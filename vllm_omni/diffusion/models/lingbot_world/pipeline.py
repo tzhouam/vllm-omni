@@ -349,16 +349,25 @@ def _decode_source_image_fingerprinted(fingerprint: tuple[str, int, int, int, in
     return _decode_source_image_file(fingerprint[0])
 
 
-def _vae_decode_fast_path(model_config: dict) -> bool:
-    """Resolve ``lingbot_vae_decode_fast_path`` from the model config.
+def _vae_decode_fast_path(model_config: dict) -> str | None:
+    """Resolve ``lingbot_vae_decode_fast_path`` from the model config: ``None``, ``"exact"`` or ``"fused"``.
 
-    Off by default. On, the decoder's exact fast path is installed after the decode dtype and the spatial
-    shard are configured (see ``wan_decoder_fast_path``): no output bit changes, only launches disappear.
+    Off by default. ``true``/``exact`` installs the decoder's exact fast path after the decode dtype and the
+    spatial shard are configured (see ``wan_decoder_fast_path``): no output bit changes, only launches
+    disappear. ``fused`` adds the channels_last decoder with the fused RMSNorm+SiLU kernel, which is not
+    bit-exact and requires subjective video quality review before enabling.
     """
     value = model_config.get("lingbot_vae_decode_fast_path", False)
-    if isinstance(value, str):
-        value = value.strip().lower() in ("1", "true", "yes", "on")
-    return bool(value)
+    if isinstance(value, bool) or value is None:
+        return "exact" if value else None
+    name = str(value).strip().lower()
+    if name in ("", "0", "false", "no", "off", "none"):
+        return None
+    if name in ("1", "true", "yes", "on", "exact"):
+        return "exact"
+    if name == "fused":
+        return "fused"
+    raise ValueError(f"lingbot_vae_decode_fast_path must be off, exact or fused; got {value!r}")
 
 
 def _load_source_image(path: str | os.PathLike[str]) -> PIL.Image.Image:
@@ -685,10 +694,11 @@ class LingBotWorldCausalDMDPipeline(
         sequence_parallel_size = int(getattr(parallel_config, "sequence_parallel_size", 1) or 1)
         if sequence_parallel_size > 1:
             self._install_sharded_vae_decode(sequence_parallel_size)
-        if _vae_decode_fast_path(model_config):
-            # After the shard so its conv wrappers are the ones that get persistent buffers.
-            # VAE parameters already loaded in the stage dtype, so no autocast parameter cast is needed.
-            counts = install_wan_decoder_fast_path(self.vae, conv_dtype=None)
+        fast_path_level = _vae_decode_fast_path(model_config)
+        if fast_path_level is not None:
+            # Install after sharding so its conv wrappers get persistent buffers. The VAE parameters
+            # already use the stage dtype, so no autocast parameter cast is needed.
+            counts = install_wan_decoder_fast_path(self.vae, conv_dtype=None, level=fast_path_level)
             logger.info("LingBot World VAE decode fast path installed: %s", counts)
         self.setup_diffusion_pipeline_profiler(
             profiler_targets=[

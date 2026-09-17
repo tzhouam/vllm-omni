@@ -246,15 +246,25 @@ def _persistent_input_buffer(module: nn.Module, shape: tuple[int, ...], referenc
     The callers write only the activation interior and the halo slots, so the padding rows and columns stay
     zero for the buffer's lifetime and are never filled again.
     """
+    memory_format = getattr(module, "input_memory_format", torch.contiguous_format)
     buf = module._input_buf
-    if buf is None or buf.shape != shape or buf.dtype != reference.dtype or buf.device != reference.device:
-        buf = torch.zeros(shape, dtype=reference.dtype, device=reference.device)
+    if (
+        buf is None
+        or buf.shape != shape
+        or buf.dtype != reference.dtype
+        or buf.device != reference.device
+        or not buf.is_contiguous(memory_format=memory_format)
+    ):
+        buf = torch.empty(shape, dtype=reference.dtype, device=reference.device, memory_format=memory_format).zero_()
         module._input_buf = buf
     return buf
 
 
 def _ensure_recv_buf(recv_buf: torch.Tensor | None, reference: torch.Tensor) -> torch.Tensor:
-    memory_format = _halo_memory_format(reference)
+    # Send and receive buffers are dense in the default order whatever the activation's layout: every
+    # backend accepts that (gloo rejects a channels_last buffer), the halo is a single row or column, and the
+    # copy into the assembled input handles the layout.
+    memory_format = torch.contiguous_format
     if (
         recv_buf is None
         or recv_buf.shape != reference.shape
@@ -284,7 +294,7 @@ def _halo_exchange_p2p(
     p2p_ops = []
     if rank > 0:
         prev_rank = _global_rank(group, rank - 1)
-        top_row = top_row_ref.contiguous(memory_format=_halo_memory_format(top_row_ref))
+        top_row = top_row_ref.contiguous()
         p2p_ops.append(dist.P2POp(dist.irecv, recv_top_buf, prev_rank, group))
         p2p_ops.append(dist.P2POp(dist.isend, top_row, prev_rank, group))
     else:
@@ -292,7 +302,7 @@ def _halo_exchange_p2p(
 
     if rank < world_size - 1:
         next_rank = _global_rank(group, rank + 1)
-        bottom_row = bottom_row_ref.contiguous(memory_format=_halo_memory_format(bottom_row_ref))
+        bottom_row = bottom_row_ref.contiguous()
         p2p_ops.append(dist.P2POp(dist.isend, bottom_row, next_rank, group))
         p2p_ops.append(dist.P2POp(dist.irecv, recv_bottom_buf, next_rank, group))
     else:
@@ -418,6 +428,7 @@ class WanDistConv2d(nn.Conv2d):
         # Opt-in (install_wan_decoder_fast_path): assemble the conv input in one buffer kept across calls
         # instead of allocating, zero-filling and concatenating a fresh one every call. Same bytes.
         self.reuse_input_buffer = False
+        self.input_memory_format = torch.contiguous_format
         self._input_buf: torch.Tensor | None = None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -568,6 +579,7 @@ class WanDistCausalConv3d(nn.Conv3d):
         # Opt-in (install_wan_decoder_fast_path): assemble the conv input in one buffer kept across calls
         # instead of allocating, zero-filling and concatenating a fresh one every call. Same bytes.
         self.reuse_input_buffer = False
+        self.input_memory_format = torch.contiguous_format
         self._input_buf: torch.Tensor | None = None
 
     def forward(self, x: torch.Tensor, cache_x: torch.Tensor | None = None) -> torch.Tensor:
