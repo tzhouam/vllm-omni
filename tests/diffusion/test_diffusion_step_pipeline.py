@@ -106,6 +106,8 @@ class _StepPipeline:
 class _ChunkedStepPipeline(_StepPipeline):
     """Streaming stub: two chunks of two denoise steps each, one decode per chunk."""
 
+    supports_chunk_step_grouping = False
+
     def prepare_encode(self, state, **kwargs):
         del kwargs
         self.prepare_calls += 1
@@ -162,6 +164,15 @@ class _BatchDependentChunkPipeline(_ChunkedStepPipeline):
     def post_decode(self, state, **kwargs):
         self.final_latent = state.latents.reshape(-1)[0].clone()
         return super().post_decode(state, **kwargs)
+
+
+class _FailsMidChunkPipeline(_ChunkedStepPipeline):
+    """Streaming stub whose second denoise step of the first chunk raises."""
+
+    def step_scheduler(self, state, noise_pred, **kwargs):
+        super().step_scheduler(state, noise_pred, **kwargs)
+        if state.chunk_index == 0 and state.step_in_chunk == 2:
+            raise RuntimeError("boom mid chunk")
 
 
 class _PerRequestErrorStepPipeline(_StepPipeline):
@@ -388,8 +399,9 @@ def _make_vllm_config():
 
 def _make_runner(
     diffusion_kv_mode: DiffusionKVCacheMode = DiffusionKVCacheMode.DENSE_LEGACY,
+    runner_cls: type[DiffusionModelRunner] = DiffusionModelRunner,
 ):
-    runner = object.__new__(DiffusionModelRunner)
+    runner = object.__new__(runner_cls)
     runner.vllm_config = _make_vllm_config()
     runner.od_config = SimpleNamespace(
         cache_backend=None,
@@ -689,21 +701,45 @@ class TestRunner:
         assert runner.pipeline.scheduler_calls == 2
         assert runner.pipeline.decode_calls == 1
 
-    @pytest.mark.parametrize("chunk_per_call", [False, True])
-    def test_streaming_chunk_per_call_runs_every_step_of_a_chunk_in_one_call(self, monkeypatch, chunk_per_call):
-        """With the grouping policy on, one runner call drives a whole chunk; the outputs are the same either way."""
-        runner = _make_runner()
-        runner.od_config.streaming_output = True
-        runner._group_steps_per_chunk = lambda states: chunk_per_call
-        runner.pipeline = _ChunkedStepPipeline()
-        monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
+    @staticmethod
+    def _make_grouping_runner(pipeline, *, grouping: bool):
+        """An AR runner without KV (so it inherits the stepwise entry) over a streaming stub pipeline."""
+        from vllm_omni.experimental.ar_diffusion.runner import ARDiffusionModelRunner
 
-        outputs = [DiffusionModelRunner.execute_stepwise(runner, _make_scheduler_output(_make_step_request(4)))]
+        runner = _make_runner(runner_cls=ARDiffusionModelRunner)
+        runner.od_config.streaming_output = True
+        runner.kv_cache = None
+        runner.pipeline = pipeline
+        runner.pipeline.supports_chunk_step_grouping = grouping
+        return runner
+
+    @staticmethod
+    def _drive_to_completion(runner, num_steps=4):
+        outputs = [runner.execute_stepwise(_make_scheduler_output(_make_step_request(num_steps)))]
         step = 1
         while not outputs[-1].get_request_output("req-1").finished:
-            outputs.append(DiffusionModelRunner.execute_stepwise(runner, _make_cached_scheduler_output(step_id=step)))
+            outputs.append(runner.execute_stepwise(_make_cached_scheduler_output(step_id=step)))
             step += 1
-        per_call = [outputs[i].get_request_output("req-1") for i in range(len(outputs))]
+        return [o.get_request_output("req-1") for o in outputs]
+
+    @pytest.mark.parametrize("grouping", [False, True])
+    def test_ar_runner_runs_every_step_of_a_chunk_in_one_call_when_the_pipeline_declares_it(
+        self, monkeypatch, grouping
+    ):
+        """With the capability declared, one AR runner call drives a whole chunk; the outputs are the same either way."""
+        runner = self._make_grouping_runner(_ChunkedStepPipeline(), grouping=grouping)
+        monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
+        denoise_calls_after_each_call = []
+        original = runner.execute_stepwise
+
+        def counting(scheduler_output):
+            output = original(scheduler_output)
+            denoise_calls_after_each_call.append(runner.pipeline.denoise_calls)
+            return output
+
+        runner.execute_stepwise = counting
+
+        per_call = self._drive_to_completion(runner)
 
         # Chunk outputs, and the steps they were emitted at, are identical.
         emitted = [(o.step_index, float(o.result.output[0])) for o in per_call if o.result is not None]
@@ -711,51 +747,87 @@ class TestRunner:
         assert per_call[-1].finished is True
         assert runner.pipeline.denoise_calls == 4 and runner.pipeline.scheduler_calls == 4
         assert runner.pipeline.decode_calls == 2
-        # One call per chunk with the knob, one per step without.
-        assert len(per_call) == (2 if chunk_per_call else 4)
+        assert runner.pipeline.prepare_calls == 1
+        # One call per chunk with the capability, one per step without; a
+        # grouped call never crosses into the next chunk.
+        assert denoise_calls_after_each_call == ([2, 4] if grouping else [1, 2, 3, 4])
         assert "req-1" not in runner.state_cache
 
-    def test_streaming_chunk_per_call_refreshes_the_batch_between_steps(self, monkeypatch):
-        """Every step of a whole-chunk call sees the latents and timestep step_scheduler just advanced."""
+    def test_ar_runner_continues_a_grouped_chunk_as_a_cached_request(self, monkeypatch):
+        """The first step admits the new request; every further step of the chunk is a cached-request continuation."""
+        runner = self._make_grouping_runner(_ChunkedStepPipeline(), grouping=True)
+        monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
+        seen = []
+        original_core = DiffusionModelRunner._execute_stepwise_core
+
+        def recording_core(self_, scheduler_output, **kwargs):
+            seen.append(scheduler_output)
+            return original_core(self_, scheduler_output, **kwargs)
+
+        monkeypatch.setattr(DiffusionModelRunner, "_execute_stepwise_core", recording_core)
+
+        first = runner.execute_stepwise(_make_scheduler_output(_make_step_request(4), finished_req_ids={"old"}))
+
+        assert first.get_request_output("req-1").result is not None
+        assert runner.pipeline.prepare_calls == 1
+        assert len(seen) == 2
+        assert [n.request_id for n in seen[0].scheduled_new_reqs] == ["req-1"]
+        continuation = seen[1]
+        assert continuation.scheduled_new_reqs == []
+        assert continuation.scheduled_cached_reqs.request_ids == ["req-1"]
+        assert continuation.finished_req_ids == set()
+        assert continuation.kv_prefetch_job is None and continuation.kv_connector_metadata is None
+        assert continuation.step_id == seen[0].step_id
+
+    def test_ar_runner_grouped_steps_see_the_same_inputs_as_per_step_calls(self, monkeypatch):
+        """Every grouped step sees the latents and timestep step_scheduler just advanced, exactly as per-step calls do."""
         finals = {}
         seen = {}
-        for chunk_per_call in (False, True):
-            runner = _make_runner()
-            runner.od_config.streaming_output = True
-            runner._group_steps_per_chunk = lambda states: chunk_per_call
-            runner.pipeline = _BatchDependentChunkPipeline()
+        for grouping in (False, True):
+            runner = self._make_grouping_runner(_BatchDependentChunkPipeline(), grouping=grouping)
             monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
-
-            output = DiffusionModelRunner.execute_stepwise(runner, _make_scheduler_output(_make_step_request(4)))
-            step = 1
-            while not output.get_request_output("req-1").finished:
-                output = DiffusionModelRunner.execute_stepwise(runner, _make_cached_scheduler_output(step_id=step))
-                step += 1
-            finals[chunk_per_call] = float(runner.pipeline.final_latent)
-            seen[chunk_per_call] = runner.pipeline.seen
+            self._drive_to_completion(runner)
+            finals[grouping] = float(runner.pipeline.final_latent)
+            seen[grouping] = runner.pipeline.seen
 
         # 1 -> +(1+10)=12 -> +(12+5)=29 -> +(29+10)=68 -> +(68+5)=141 in both modes.
         assert seen[False] == [(1.0, 10.0), (12.0, 5.0), (29.0, 10.0), (68.0, 5.0)]
         assert seen[True] == seen[False]
         assert finals[True] == finals[False] == 141.0
 
-    def test_step_grouping_is_off_in_the_base_runner_and_a_capability_plus_policy_in_the_ar_runner(self):
-        """The base runner never groups; the AR runner groups only for a lone streaming request of a pipeline that declares it."""
-        from vllm_omni.experimental.ar_diffusion.runner import ARDiffusionModelRunner
+    def test_ar_runner_grouped_chunk_stops_at_a_failing_step_and_drops_the_state(self, monkeypatch):
+        """A failure mid-chunk ends the grouped call with that step's error; nothing runs after it."""
+        runner = self._make_grouping_runner(_FailsMidChunkPipeline(), grouping=True)
+        monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
 
+        output = runner.execute_stepwise(_make_scheduler_output(_make_step_request(4)))
+
+        failed = output.get_request_output("req-1")
+        assert failed.finished is True
+        assert failed.result is not None and "boom mid chunk" in failed.result.error
+        assert runner.pipeline.denoise_calls == 2 and runner.pipeline.decode_calls == 0
+        assert "req-1" not in runner.state_cache
+
+    def test_base_runner_never_groups_and_the_ar_policy_needs_capability_streaming_and_one_request(self, monkeypatch):
+        """The shared runner is one step per call; the AR runner groups only a lone streaming request that declares it."""
         base = _make_runner()
         base.od_config.streaming_output = True
-        assert base._group_steps_per_chunk([object()]) is False
+        base.pipeline = _ChunkedStepPipeline()
+        base.pipeline.supports_chunk_step_grouping = True
+        monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
+        first = DiffusionModelRunner.execute_stepwise(base, _make_scheduler_output(_make_step_request(4)))
+        assert first.get_request_output("req-1").result is None and base.pipeline.denoise_calls == 1
 
-        ar = object.__new__(ARDiffusionModelRunner)
-        ar.od_config = SimpleNamespace(streaming_output=True)
-        ar.pipeline = _ChunkedStepPipeline()
-        assert ar._group_steps_per_chunk([object()]) is False  # no capability declared
+        ar = self._make_grouping_runner(_ChunkedStepPipeline(), grouping=False)
+        one = _make_cached_scheduler_output()
+        two = _make_batch_scheduler_output([_make_step_request(4), _make_step_request(4)])
+        two.scheduled_new_reqs[1].request_id = two.scheduled_new_reqs[1].req.request_id = "req-2"
+        assert ar._groups_chunk_steps(one) is False  # no capability declared
         ar.pipeline.supports_chunk_step_grouping = True
-        assert ar._group_steps_per_chunk([object()]) is True
-        assert ar._group_steps_per_chunk([object(), object()]) is False  # not for a batch
+        assert ar._groups_chunk_steps(one) is True
+        assert ar._groups_chunk_steps(two) is False  # not for a batch
         ar.od_config.streaming_output = False
-        assert ar._group_steps_per_chunk([object()]) is False  # not without streaming output
+        assert ar._groups_chunk_steps(one) is False  # not without streaming output
 
     def test_stepwise_output_includes_stage_and_peak_metrics(self, monkeypatch):
         runner = _make_runner()

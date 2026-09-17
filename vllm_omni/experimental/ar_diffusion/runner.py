@@ -14,7 +14,7 @@ from vllm.logger import init_logger
 from vllm_omni.diffusion.data import DiffusionOutput, OmniDiffusionConfig
 from vllm_omni.diffusion.models.interface import supports_chunk_step_grouping, supports_step_execution
 from vllm_omni.diffusion.request import OmniDiffusionRequest
-from vllm_omni.diffusion.sched.interface import DiffusionSchedulerOutput, KVPrefetchJob
+from vllm_omni.diffusion.sched.interface import CachedRequestData, DiffusionSchedulerOutput, KVPrefetchJob
 from vllm_omni.diffusion.worker.diffusion_model_runner import DiffusionModelRunner
 from vllm_omni.diffusion.worker.utils import BatchRunnerOutput
 from vllm_omni.experimental.ar_diffusion.capability import (
@@ -342,21 +342,75 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             "ARDiffusionModelRunner does not support request-batch execution; use request mode with max_num_seqs=1."
         )
 
-    def _group_steps_per_chunk(self, states: list) -> bool:
-        """The realtime AR path runs a session's chunk to its boundary in one call.
+    def _groups_chunk_steps(self, scheduler_output: DiffusionSchedulerOutput) -> bool:
+        """Policy: does this stepwise call run the scheduled request's chunk to its boundary?
 
-        One session per call, its KV bound for the call, and a pipeline that
-        declares its chunk state advances without a scheduler cycle: grouping
-        the probes and the commit of one block drops the scheduler/executor
-        round trips between them (measured -41 ms per chunk served at 480x832
-        on 4xH200). The scheduler regains control at every chunk boundary,
-        which is where this path's interactions are applied anyway.
+        Only on the realtime AR path, for a lone streaming request of a
+        pipeline that declares ``supports_chunk_step_grouping``. The session's
+        KV is bound for the whole call and the scheduler regains control at
+        every chunk boundary, which is where this path's interactions are
+        applied anyway; what it gives up is the chance to act between two
+        steps of one chunk.
         """
         return (
             bool(getattr(self.od_config, "streaming_output", False))
-            and len(states) == 1
+            and len(scheduler_output.scheduled_request_ids) == 1
             and supports_chunk_step_grouping(self.pipeline)
         )
+
+    def _execute_stepwise_core(
+        self,
+        scheduler_output: DiffusionSchedulerOutput,
+        *,
+        record_output_peak_memory: bool,
+        in_diffusion_kv_memory_profile: bool = False,
+    ) -> BatchRunnerOutput:
+        """Run the shared single-step core once, or repeatedly until the chunk boundary.
+
+        The shared runner keeps its one-step-per-call semantics. When the
+        grouping policy applies, the remaining steps of the request's current
+        chunk are driven from here with a continuation of the scheduler
+        output: the request is presented as a cached request, with nothing
+        new to admit, nothing to retire and no connector work, so every
+        further step is exactly what the next scheduler cycle would have
+        asked for. Grouping the probes and the commit of one block this way
+        drops the scheduler/executor round trips between them.
+
+        The loop stops at the first call that emits a result (a chunk or an
+        error), finishes the request, or leaves it without state; the base
+        core already handles a mid-chunk failure or interrupt by finishing
+        the request with an error and dropping its state.
+        """
+        output = super()._execute_stepwise_core(
+            scheduler_output,
+            record_output_peak_memory=record_output_peak_memory,
+            in_diffusion_kv_memory_profile=in_diffusion_kv_memory_profile,
+        )
+        if not self._groups_chunk_steps(scheduler_output):
+            return output
+        request_id = scheduler_output.scheduled_request_ids[0]
+        continuation = dataclasses.replace(
+            scheduler_output,
+            scheduled_new_reqs=[],
+            scheduled_cached_reqs=CachedRequestData(request_ids=[request_id]),
+            finished_req_ids=set(),
+            kv_prefetch_job=None,
+            kv_connector_metadata=None,
+        )
+        while self._chunk_step_pending(output, request_id):
+            output = super()._execute_stepwise_core(
+                continuation,
+                record_output_peak_memory=record_output_peak_memory,
+                in_diffusion_kv_memory_profile=in_diffusion_kv_memory_profile,
+            )
+        return output
+
+    def _chunk_step_pending(self, output: BatchRunnerOutput, request_id: str) -> bool:
+        """More steps of the request's current chunk remain after ``output``."""
+        runner_output = output.get_request_output(request_id)
+        if runner_output is None or runner_output.finished or runner_output.result is not None:
+            return False
+        return request_id in getattr(self, "state_cache", {})
 
     def execute_stepwise(self, scheduler_output: DiffusionSchedulerOutput) -> BatchRunnerOutput:
         """Bind runner-owned KV for one stepwise invocation, then inherit the step loop."""

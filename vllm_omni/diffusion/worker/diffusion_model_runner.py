@@ -1108,18 +1108,6 @@ class DiffusionModelRunner(OmniConnectorModelRunnerMixin):
         self.input_batch = input_batch
         return prepared_states, input_batch, error_outputs
 
-    def _group_steps_per_chunk(self, states: list[StepRequestState]) -> bool:
-        """Scheduling policy: run the scheduled request's chunk to its boundary in this call?
-
-        Off here, for every pipeline. A runner that owns a validated execution
-        path overrides it -- one where the pipeline declares
-        ``supports_chunk_step_grouping`` and nothing that has to run between
-        two steps of a chunk is lost by not yielding to the scheduler until
-        the chunk ends. Only a single streaming request can qualify.
-        """
-        del states
-        return False
-
     def _update_states_after(
         self,
         states: list[StepRequestState],
@@ -1289,124 +1277,97 @@ class DiffusionModelRunner(OmniConnectorModelRunnerMixin):
                 paged_kv_runtime=paged_kv_runtime,
                 in_diffusion_kv_memory_profile=in_diffusion_kv_memory_profile,
             ):
-                # Grouping: run every remaining denoise step of the request's
-                # current chunk inside this call instead of one step per
-                # scheduler cycle. The emitted outputs, step bookkeeping and
-                # stage durations are what the per-step cycles produce; what
-                # changes is that the scheduler does not get control between
-                # those steps, so anything it would have done there (admitting
-                # a request, handling control messages) waits for the chunk
-                # boundary. That is why it is a runner policy on a pipeline
-                # capability rather than a default; the pipeline's interrupt
-                # flag is still checked between the grouped steps.
-                run_whole_chunk = self._group_steps_per_chunk(states)
-                while True:
-                    step_pending = False
-                    clear_pipeline_stage_durations(pipeline)
-                    noise_pred = pipeline.denoise_step(input_batch, states=states)
-                    denoise_stage_durations = consume_pipeline_stage_durations(pipeline)
+                clear_pipeline_stage_durations(pipeline)
+                noise_pred = pipeline.denoise_step(input_batch, states=states)
+                denoise_stage_durations = consume_pipeline_stage_durations(pipeline)
+                for state in states:
+                    merge_stage_durations(
+                        state,
+                        denoise_stage_durations,
+                    )
+
+                pipeline_interrupted = getattr(pipeline, "interrupt", False)
+                if noise_pred is None and pipeline_interrupted:
                     for state in states:
-                        merge_stage_durations(
-                            state,
-                            denoise_stage_durations,
+                        runner_output_list.append(
+                            RunnerOutput(
+                                request_id=state.request_id,
+                                step_index=state.step_index,
+                                finished=True,
+                                result=DiffusionOutput(error="stepwise denoise interrupted"),
+                            )
                         )
 
-                    pipeline_interrupted = getattr(pipeline, "interrupt", False)
-                    if noise_pred is None and pipeline_interrupted:
-                        for state in states:
+                else:
+                    offset = 0
+                    for req in states:
+                        if req.latents is None:
+                            raise RuntimeError(f"Stepwise request {req.request_id} has no latent state.")
+                        row_num = req.latents.shape[0]
+                        try:
+                            pipeline.step_scheduler(
+                                req, noise_pred[offset : offset + row_num] if noise_pred is not None else None
+                            )
+                            if self.od_config.streaming_output:
+                                should_decode = req.chunk_denoise_completed or req.request_denoise_completed
+                            else:
+                                should_decode = req.denoise_completed
+
+                            if should_decode:
+                                clear_pipeline_stage_durations(pipeline)
+                                result = pipeline.post_decode(req)
+                                if result is not None:
+                                    result = self._prepare_output_for_transport(result, req.sampling)
+                                    self._attach_stepwise_metadata(
+                                        req,
+                                        result,
+                                    )
+                                    # After consuming this chunk's interaction metadata, apply pending interactions and
+                                    # prepare the next chunk (prepare_next_chunk may be a no-op---depending on pipeline)
+                                    if supports_interaction_apply(pipeline) and not req.request_denoise_completed:
+                                        pipe = cast(SupportsInteractionApply, pipeline)
+                                        pipe.apply_interaction_at_chunk_boundary(req)
+                                        pipe.prepare_next_chunk(req)
+                            else:
+                                result = None
+                            # finished should be computed after post_decode() advanced chunk_index
+                            finished = (
+                                req.request_denoise_completed
+                                if self.od_config.streaming_output
+                                else req.denoise_completed
+                            )
                             runner_output_list.append(
                                 RunnerOutput(
-                                    request_id=state.request_id,
-                                    step_index=state.step_index,
+                                    request_id=req.request_id,
+                                    step_index=req.step_index,
+                                    finished=finished,
+                                    result=result,
+                                )
+                            )
+                            offset = offset + row_num
+                        except Exception as per_req_exc:
+                            offset = offset + row_num
+                            self.state_cache.pop(req.request_id, None)
+                            logger.error(
+                                "Stepwise per-request error for %s: %s",
+                                req.request_id,
+                                per_req_exc,
+                                exc_info=True,
+                            )
+                            runner_output_list.append(
+                                RunnerOutput(
+                                    request_id=req.request_id,
+                                    step_index=req.step_index,
                                     finished=True,
-                                    result=DiffusionOutput(error="stepwise denoise interrupted"),
+                                    result=DiffusionOutput.from_exception(per_req_exc),
                                 )
                             )
 
-                    else:
-                        offset = 0
-                        for req in states:
-                            if req.latents is None:
-                                raise RuntimeError(f"Stepwise request {req.request_id} has no latent state.")
-                            row_num = req.latents.shape[0]
-                            try:
-                                pipeline.step_scheduler(
-                                    req, noise_pred[offset : offset + row_num] if noise_pred is not None else None
-                                )
-                                if self.od_config.streaming_output:
-                                    should_decode = req.chunk_denoise_completed or req.request_denoise_completed
-                                else:
-                                    should_decode = req.denoise_completed
-
-                                if run_whole_chunk and not should_decode and not req.request_denoise_completed:
-                                    # More steps of this chunk to run before anything is emitted.
-                                    step_pending = True
-                                    offset = offset + row_num
-                                    continue
-                                if should_decode:
-                                    clear_pipeline_stage_durations(pipeline)
-                                    result = pipeline.post_decode(req)
-                                    if result is not None:
-                                        result = self._prepare_output_for_transport(result, req.sampling)
-                                        self._attach_stepwise_metadata(
-                                            req,
-                                            result,
-                                        )
-                                        # After consuming this chunk's interaction metadata, apply
-                                        # pending interactions and prepare the next chunk
-                                        # (prepare_next_chunk may be a no-op, depending on the pipeline).
-                                        if supports_interaction_apply(pipeline) and not req.request_denoise_completed:
-                                            pipe = cast(SupportsInteractionApply, pipeline)
-                                            pipe.apply_interaction_at_chunk_boundary(req)
-                                            pipe.prepare_next_chunk(req)
-                                else:
-                                    result = None
-                                # finished should be computed after post_decode() advanced chunk_index
-                                finished = (
-                                    req.request_denoise_completed
-                                    if self.od_config.streaming_output
-                                    else req.denoise_completed
-                                )
-                                runner_output_list.append(
-                                    RunnerOutput(
-                                        request_id=req.request_id,
-                                        step_index=req.step_index,
-                                        finished=finished,
-                                        result=result,
-                                    )
-                                )
-                                offset = offset + row_num
-                            except Exception as per_req_exc:
-                                offset = offset + row_num
-                                self.state_cache.pop(req.request_id, None)
-                                logger.error(
-                                    "Stepwise per-request error for %s: %s",
-                                    req.request_id,
-                                    per_req_exc,
-                                    exc_info=True,
-                                )
-                                runner_output_list.append(
-                                    RunnerOutput(
-                                        request_id=req.request_id,
-                                        step_index=req.step_index,
-                                        finished=True,
-                                        result=DiffusionOutput.from_exception(per_req_exc),
-                                    )
-                                )
-
-                        if noise_pred is not None and offset != noise_pred.shape[0]:
-                            raise ValueError(
-                                f"Stepwise noise_pred consumed {offset} rows, "
-                                f"but batched noise_pred has {noise_pred.shape[0]} rows."
-                            )
-                    if not step_pending:
-                        break
-                    # step_scheduler advanced the request states; the batch
-                    # view holds gathered copies of their latents and
-                    # timesteps, so rebuild it before the next step exactly as
-                    # the next scheduler cycle would have.
-                    input_batch = InputBatch.make_batch(states, cached_batch=input_batch)
-                    self.input_batch = input_batch
+                    if noise_pred is not None and offset != noise_pred.shape[0]:
+                        raise ValueError(
+                            f"Stepwise noise_pred consumed {offset} rows, "
+                            f"but batched noise_pred has {noise_pred.shape[0]} rows."
+                        )
 
                 if is_primary and record_output_peak_memory:
                     batch_peak_memory_mb = self._sample_peak_memory_mb()
