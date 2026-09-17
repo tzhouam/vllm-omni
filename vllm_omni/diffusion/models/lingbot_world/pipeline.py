@@ -558,6 +558,9 @@ class LingBotWorldCausalDMDPipeline(
     """LingBot-World v2 I2V generation with a request-local causal cache."""
 
     supports_step_execution: ClassVar[bool] = True
+    # A realtime block is four probes and a commit over one prepared chunk
+    # state; nothing between those steps needs the serving scheduler.
+    supports_chunk_step_grouping: ClassVar[bool] = True
     _dit_modules: ClassVar[list[str]] = ["transformer"]
     _encoder_modules: ClassVar[list[str]] = ["text_encoder"]
     _vae_modules: ClassVar[list[str]] = ["vae"]

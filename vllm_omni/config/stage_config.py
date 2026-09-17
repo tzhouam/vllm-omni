@@ -491,8 +491,6 @@ class StageDeployConfig:
     dlo_host_registration_limit_gib: float | None = None
     # Diffusion-specific debug and observability knobs.
     enable_diffusion_pipeline_profiler: bool | None = None
-    # Run every denoise step of a streaming request's chunk in one runner call.
-    stepwise_chunk_per_call: bool | None = None
 
     # Modality/service constraints consumed outside the core engine config.
     max_generated_image_size: int | None = None

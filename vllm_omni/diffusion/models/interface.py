@@ -92,6 +92,13 @@ class SupportsStepExecution(Protocol):
     ``prepare_encode()`` (one-time request setup), ``denoise_step()``
     (one denoise forward), ``step_scheduler()`` (one scheduler update),
     and ``post_decode()`` (final decode).
+
+    A pipeline may additionally set the optional class attribute
+    ``supports_chunk_step_grouping = True`` to declare that its request state
+    may advance through every denoise step of its current chunk without a
+    serving-scheduler cycle in between (a capability, not a policy: the runner
+    that owns the scheduling decision chooses whether to group steps). It is
+    optional so it does not become part of the runtime protocol check.
     """
 
     supports_step_execution: ClassVar[bool] = True
@@ -144,6 +151,12 @@ def supports_step_execution(pipeline: object) -> bool:
     """Return whether `pipeline` implements :class:`SupportsStepExecution`."""
 
     return isinstance(pipeline, SupportsStepExecution)
+
+
+def supports_chunk_step_grouping(pipeline: object) -> bool:
+    """Return whether a step-execution `pipeline` declares that a chunk's steps may run without scheduler cycles."""
+
+    return supports_step_execution(pipeline) and bool(getattr(pipeline, "supports_chunk_step_grouping", False))
 
 
 @runtime_checkable

@@ -12,7 +12,7 @@ import torch
 from vllm.logger import init_logger
 
 from vllm_omni.diffusion.data import DiffusionOutput, OmniDiffusionConfig
-from vllm_omni.diffusion.models.interface import supports_step_execution
+from vllm_omni.diffusion.models.interface import supports_chunk_step_grouping, supports_step_execution
 from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.diffusion.sched.interface import DiffusionSchedulerOutput, KVPrefetchJob
 from vllm_omni.diffusion.worker.diffusion_model_runner import DiffusionModelRunner
@@ -340,6 +340,22 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         """Reject request batching until batch-aware AR state binding exists."""
         raise RuntimeError(
             "ARDiffusionModelRunner does not support request-batch execution; use request mode with max_num_seqs=1."
+        )
+
+    def _group_steps_per_chunk(self, states: list) -> bool:
+        """The realtime AR path runs a session's chunk to its boundary in one call.
+
+        One session per call, its KV bound for the call, and a pipeline that
+        declares its chunk state advances without a scheduler cycle: grouping
+        the probes and the commit of one block drops the scheduler/executor
+        round trips between them (measured -41 ms per chunk served at 480x832
+        on 4xH200). The scheduler regains control at every chunk boundary,
+        which is where this path's interactions are applied anyway.
+        """
+        return (
+            bool(getattr(self.od_config, "streaming_output", False))
+            and len(states) == 1
+            and supports_chunk_step_grouping(self.pipeline)
         )
 
     def execute_stepwise(self, scheduler_output: DiffusionSchedulerOutput) -> BatchRunnerOutput:
