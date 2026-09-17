@@ -14,6 +14,7 @@ by the ``ar`` argument, so this class never reaches back into the pipeline.
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
 
@@ -109,11 +110,16 @@ class LingBotDMDBlockRunner:
         start_frame: int,
         timestep_value: float,
         step_index: int,
+        camera_cache: Any | None = None,
     ) -> torch.Tensor:
         """Predict flow for one denoise step.
 
         A probe never writes KV: only the clean x0 of a finished block may
         enter the cache, which is ``commit_block_kv``'s job.
+
+        ``camera_cache`` is the block's camera-modulation cache when the caller
+        holds it across separate calls (the stepwise path); ``generate_block``
+        opens the window itself instead.
         """
         if not self.enforce_eager:
             torch.compiler.cudagraph_mark_step_begin()
@@ -122,15 +128,16 @@ class LingBotDMDBlockRunner:
         # Checkpoint channel contract:
         # [noise/x_t(16), temporal_mask(4), image_latent(16)] -> 36.
         model_input = torch.cat((current_latents.to(dtype=condition.dtype), condition), dim=1)
-        flow_prediction = self.transformer(
-            hidden_states=model_input,
-            timestep=timestep,
-            encoder_hidden_states=prompt_embeds,
-            camera_hidden_states=camera,
-            cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=False),
-            start_frame=start_frame,
-            update_cache=False,
-        )
+        with self._camera_window(camera_cache):
+            flow_prediction = self.transformer(
+                hidden_states=model_input,
+                timestep=timestep,
+                encoder_hidden_states=prompt_embeds,
+                camera_hidden_states=camera,
+                cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=False),
+                start_frame=start_frame,
+                update_cache=False,
+            )
         if flow_prediction.shape != current_latents.shape:
             raise RuntimeError(
                 "transformer flow prediction shape must match the 16-channel noise latent, "
@@ -172,27 +179,36 @@ class LingBotDMDBlockRunner:
         cache: LingBotTransformerCache | None,
         ar: ARBlockContext | None,
         start_frame: int,
+        camera_cache: Any | None = None,
     ) -> None:
         """Write the finished block's clean x0 into KV and commit its pages.
 
         The fifth transformer call of a block, deliberately not a denoise step:
-        on the stepwise path it belongs to ``post_decode()``.
+        on the stepwise path it belongs to ``post_decode()``. ``camera_cache``
+        is as in ``probe_step``.
         """
         # Commit K/V only for the final clean block, never for noisy probes.
         cache_input = torch.cat((latents.to(dtype=condition.dtype), condition), dim=1)
         if not self.enforce_eager:
             torch.compiler.cudagraph_mark_step_begin()
-        self.transformer(
-            hidden_states=cache_input,
-            timestep=torch.zeros(1, device=self.device, dtype=torch.float32),
-            encoder_hidden_states=prompt_embeds,
-            camera_hidden_states=camera,
-            cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=True),
-            start_frame=start_frame,
-            update_cache=True,
-        )
+        with self._camera_window(camera_cache):
+            self.transformer(
+                hidden_states=cache_input,
+                timestep=torch.zeros(1, device=self.device, dtype=torch.float32),
+                encoder_hidden_states=prompt_embeds,
+                camera_hidden_states=camera,
+                cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=True),
+                start_frame=start_frame,
+                update_cache=True,
+            )
         if ar is not None:
             ar.state.commit_paged_context(ar.branch)
+
+    def _camera_window(self, camera_cache: Any | None):
+        """Install a caller-held camera cache around one forward, or leave whatever window is open alone."""
+        if camera_cache is None:
+            return nullcontext()
+        return self.transformer.reuse_camera_modulation(camera_cache)
 
     def generate_block(
         self,

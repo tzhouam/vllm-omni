@@ -1114,3 +1114,22 @@ def test_the_reuse_window_nests_and_leaves_no_state_behind() -> None:
             assert model._camera_modulation_cache is not outer
         assert model._camera_modulation_cache is outer
     assert model._camera_modulation_cache is None
+
+
+@pytest.mark.cpu
+def test_reuse_window_installs_a_caller_held_cache() -> None:
+    """A caller that runs a block's forwards as separate calls passes the same cache around each of them."""
+    module = attention_tests._load_module()
+    model = _tiny_model(module, num_layers=1).eval()
+    held = model.new_camera_modulation_cache()
+
+    assert model._camera_modulation_cache is None
+    with model.reuse_camera_modulation(held):
+        assert model._camera_modulation_cache is held
+        with model.reuse_camera_modulation():
+            assert model._camera_modulation_cache is not held
+        assert model._camera_modulation_cache is held
+    assert model._camera_modulation_cache is None
+    # Installing it again continues the same entries rather than starting over.
+    with model.reuse_camera_modulation(held):
+        assert model._camera_modulation_cache is held

@@ -134,16 +134,27 @@ class _RecordingTransformer(nn.Module):
             block.self_attn = SimpleNamespace(num_sp_heads=2)
             block.cross_attn = SimpleNamespace(num_sp_heads=2)
         self.camera_reuse_windows = 0
+        self.camera_reuse_caches: list[object] = []
+        self._camera_cache_active: object | None = None
         self.calls: list[dict] = []
         self.cache_allocations: list[dict] = []
         self.raise_on_call = raise_on_call
         self._dtype = dtype
         self.loaded_weights: list[tuple[str, torch.Tensor]] = []
 
+    def new_camera_modulation_cache(self):
+        return object()
+
     @contextmanager
-    def reuse_camera_modulation(self):
+    def reuse_camera_modulation(self, cache=None):
         self.camera_reuse_windows += 1
-        yield
+        self.camera_reuse_caches.append(cache)
+        previous = self._camera_cache_active
+        self._camera_cache_active = cache if cache is not None else object()
+        try:
+            yield
+        finally:
+            self._camera_cache_active = previous
 
     @property
     def dtype(self) -> torch.dtype:
@@ -158,6 +169,7 @@ class _RecordingTransformer(nn.Module):
             "cache_id": id(kwargs["cache"]),
             "start_frame": kwargs["start_frame"],
             "update_cache": kwargs["update_cache"],
+            "camera_cache": self._camera_cache_active,
         }
         self.calls.append(call)
         if self.raise_on_call == len(self.calls):
@@ -2283,6 +2295,35 @@ def _stepwise_chunks(pipeline, state, ar_state):
                 output = pipeline.post_decode(state)
         if output is not None:
             yield output
+
+
+def test_stepwise_block_shares_one_camera_cache_across_its_five_forwards() -> None:
+    """The four probes and the commit of one stepwise block reuse one camera cache; the next block gets its own.
+
+    Request mode opens the window around its own loop; the stepwise path
+    cannot, because its forwards are separate scheduler steps, so the
+    pipeline holds the block's cache and installs it around each one.
+    """
+    module = _load_pipeline_module()
+    transformer = _RecordingTransformer()
+    pipeline = _pipeline(module, transformer=transformer)
+    pipeline._ar_height = 16
+    pipeline._ar_width = 16
+    state = _stepwise_state(num_frames=21)
+    state.sampling.output_type = "latent"
+
+    with pipeline.bind_ar_diffusion_state(state.request_id, _FakeARState(state.request_id)):
+        outputs = _run_stepwise(pipeline, state)
+
+    assert len(outputs) == 2 and len(transformer.calls) == 10
+    caches = [call["camera_cache"] for call in transformer.calls]
+    assert all(c is not None for c in caches)
+    assert len({id(c) for c in caches[:5]}) == 1 and len({id(c) for c in caches[5:]}) == 1
+    assert caches[0] is not caches[5]
+    # Every window was opened with the pipeline-held cache, never a fresh one.
+    assert transformer.camera_reuse_windows == 10 and all(c is not None for c in transformer.camera_reuse_caches)
+    # The block's cache does not outlive its commit.
+    assert "camera_cache" not in state.extra
 
 
 def test_pipeline_declares_step_execution_support() -> None:

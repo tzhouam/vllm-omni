@@ -1875,6 +1875,12 @@ class LingBotWorldCausalDMDPipeline(
             raise ValueError("LingBot World requires the runner-provided torch.Generator.")
         extra["condition"] = condition
         extra["camera"] = camera
+        # One camera-modulation cache per block: the four probes and the
+        # commit below are separate scheduler steps, so the block runner
+        # cannot open the reuse window around them the way generate_block
+        # does around its own loop. Holding the cache here makes the window
+        # span exactly this block, per request.
+        extra["camera_cache"] = self.transformer.new_camera_modulation_cache()
         extra["camera_tail"] = camera_tail
         extra["start_frame"] = start_frame
         extra["ar_cross_attention"] = self._ar_text_caches(
@@ -1933,6 +1939,7 @@ class LingBotWorldCausalDMDPipeline(
             start_frame=int(extra["start_frame"]),
             timestep_value=float(schedule[step_in_chunk][0]),
             step_index=step_in_chunk,
+            camera_cache=extra.get("camera_cache"),
         )
 
     def step_scheduler(self, state: StepRequestState, noise_pred: torch.Tensor, **kwargs: Any) -> None:
@@ -1975,6 +1982,7 @@ class LingBotWorldCausalDMDPipeline(
             cache=None,
             ar=self._ar_block_context(extra["ar_cross_attention"]),
             start_frame=int(extra["start_frame"]),
+            camera_cache=extra.pop("camera_cache", None),
         )
         completed_chunk_index = state.chunk_index
         inputs: _LingBotRequestInputs = extra["inputs"]
