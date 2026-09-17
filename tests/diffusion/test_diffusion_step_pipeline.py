@@ -585,6 +585,37 @@ def test_input_batch_cached_repack_keeps_static_prompt_fields_for_same_compositi
 
 
 @pytest.mark.cpu
+def test_make_batch_identity_mapping_never_reads_the_device_tensor_back(monkeypatch):
+    """The default index mapping is built on the host; reading it back from the device would sync every step."""
+
+    def forbidden(self, *args, **kwargs):
+        raise AssertionError("make_batch read a tensor back to the host")
+
+    monkeypatch.setattr(torch.Tensor, "tolist", forbidden)
+    monkeypatch.setattr(torch.Tensor, "cpu", forbidden)
+    states = [_make_input_batch_state("req-1", 1.0), _make_input_batch_state("req-2", 2.0)]
+
+    batch = InputBatch.make_batch(states)
+    repacked = InputBatch.make_batch(states, cached_batch=batch)
+
+    assert repacked is batch
+    assert list(batch.idx_mapping_np) == [0, 1]
+    assert batch.idx_mapping.dtype is torch.int32 and batch.idx_mapping.shape == (2,)
+    assert batch.request_ids == ["req-1", "req-2"]
+
+
+@pytest.mark.cpu
+def test_make_batch_explicit_mapping_still_selects_and_orders_states():
+    states = [_make_input_batch_state("req-1", 1.0), _make_input_batch_state("req-2", 2.0)]
+
+    batch = InputBatch.make_batch(states, idx_mapping=torch.tensor([1, 0]))
+
+    assert batch.request_ids == ["req-2", "req-1"]
+    assert list(batch.idx_mapping_np) == [1, 0]
+    torch.testing.assert_close(batch.latents, torch.tensor([[2.0], [1.0]]))
+
+
+@pytest.mark.cpu
 def test_step_profiler_reports_denoise_step_as_diffuse():
     pipeline = _AutoDenoiseProfilerPipeline()
 
