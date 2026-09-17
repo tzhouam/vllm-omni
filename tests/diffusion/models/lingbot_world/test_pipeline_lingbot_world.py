@@ -21,7 +21,11 @@ from torch import nn
 import vllm_omni.diffusion.models.lingbot_world.dmd_block as lingbot_dmd_block
 import vllm_omni.diffusion.models.lingbot_world.pipeline as lingbot_pipeline
 from tests.diffusion.models.wan2_2.conftest import noop_progress_bar
-from vllm_omni.diffusion.models.interface import SupportsStepExecution, supports_step_execution
+from vllm_omni.diffusion.models.interface import (
+    SupportsStepExecution,
+    supports_chunk_step_grouping,
+    supports_step_execution,
+)
 from vllm_omni.diffusion.models.lingbot_world.actions import (
     integrate_lingbot_camera_actions,
 )
@@ -2324,6 +2328,13 @@ def test_stepwise_block_shares_one_camera_cache_across_its_five_forwards() -> No
     assert transformer.camera_reuse_windows == 10 and all(c is not None for c in transformer.camera_reuse_caches)
     # The block's cache does not outlive its commit.
     assert "camera_cache" not in state.extra
+
+
+def test_pipeline_declares_chunk_step_grouping() -> None:
+    """A realtime block's probes and commit may run without a scheduler cycle between them."""
+    module = _load_pipeline_module()
+    assert module.LingBotWorldCausalDMDPipeline.supports_chunk_step_grouping is True
+    assert supports_chunk_step_grouping(_pipeline(module))
 
 
 def test_pipeline_declares_step_execution_support() -> None:

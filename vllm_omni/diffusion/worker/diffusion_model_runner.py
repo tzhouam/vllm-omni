@@ -1108,6 +1108,18 @@ class DiffusionModelRunner(OmniConnectorModelRunnerMixin):
         self.input_batch = input_batch
         return prepared_states, input_batch, error_outputs
 
+    def _group_steps_per_chunk(self, states: list[StepRequestState]) -> bool:
+        """Scheduling policy: run the scheduled request's chunk to its boundary in this call?
+
+        Off here, for every pipeline. A runner that owns a validated execution
+        path overrides it -- one where the pipeline declares
+        ``supports_chunk_step_grouping`` and nothing that has to run between
+        two steps of a chunk is lost by not yielding to the scheduler until
+        the chunk ends. Only a single streaming request can qualify.
+        """
+        del states
+        return False
+
     def _update_states_after(
         self,
         states: list[StepRequestState],
@@ -1277,18 +1289,17 @@ class DiffusionModelRunner(OmniConnectorModelRunnerMixin):
                 paged_kv_runtime=paged_kv_runtime,
                 in_diffusion_kv_memory_profile=in_diffusion_kv_memory_profile,
             ):
-                # With ``stepwise_chunk_per_call`` a single streaming request
-                # runs every denoise step of its current chunk inside this one
-                # call instead of one step per scheduler cycle. Nothing else can
-                # be scheduled between those steps anyway (this path refuses
-                # batches), so the hop back to the scheduler between them is
-                # pure overhead; the outputs, step bookkeeping and stage
-                # durations are exactly what the per-step cycles produce.
-                run_whole_chunk = (
-                    bool(getattr(self.od_config, "stepwise_chunk_per_call", False))
-                    and bool(getattr(self.od_config, "streaming_output", False))
-                    and len(states) == 1
-                )
+                # Grouping: run every remaining denoise step of the request's
+                # current chunk inside this call instead of one step per
+                # scheduler cycle. The emitted outputs, step bookkeeping and
+                # stage durations are what the per-step cycles produce; what
+                # changes is that the scheduler does not get control between
+                # those steps, so anything it would have done there (admitting
+                # a request, handling control messages) waits for the chunk
+                # boundary. That is why it is a runner policy on a pipeline
+                # capability rather than a default; the pipeline's interrupt
+                # flag is still checked between the grouped steps.
+                run_whole_chunk = self._group_steps_per_chunk(states)
                 while True:
                     step_pending = False
                     clear_pipeline_stage_durations(pipeline)

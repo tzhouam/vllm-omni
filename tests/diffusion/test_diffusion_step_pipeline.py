@@ -691,10 +691,10 @@ class TestRunner:
 
     @pytest.mark.parametrize("chunk_per_call", [False, True])
     def test_streaming_chunk_per_call_runs_every_step_of_a_chunk_in_one_call(self, monkeypatch, chunk_per_call):
-        """With the knob on, one runner call drives a whole chunk; the emitted outputs are the same either way."""
+        """With the grouping policy on, one runner call drives a whole chunk; the outputs are the same either way."""
         runner = _make_runner()
         runner.od_config.streaming_output = True
-        runner.od_config.stepwise_chunk_per_call = chunk_per_call
+        runner._group_steps_per_chunk = lambda states: chunk_per_call
         runner.pipeline = _ChunkedStepPipeline()
         monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
 
@@ -722,7 +722,7 @@ class TestRunner:
         for chunk_per_call in (False, True):
             runner = _make_runner()
             runner.od_config.streaming_output = True
-            runner.od_config.stepwise_chunk_per_call = chunk_per_call
+            runner._group_steps_per_chunk = lambda states: chunk_per_call
             runner.pipeline = _BatchDependentChunkPipeline()
             monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
 
@@ -738,6 +738,24 @@ class TestRunner:
         assert seen[False] == [(1.0, 10.0), (12.0, 5.0), (29.0, 10.0), (68.0, 5.0)]
         assert seen[True] == seen[False]
         assert finals[True] == finals[False] == 141.0
+
+    def test_step_grouping_is_off_in_the_base_runner_and_a_capability_plus_policy_in_the_ar_runner(self):
+        """The base runner never groups; the AR runner groups only for a lone streaming request of a pipeline that declares it."""
+        from vllm_omni.experimental.ar_diffusion.runner import ARDiffusionModelRunner
+
+        base = _make_runner()
+        base.od_config.streaming_output = True
+        assert base._group_steps_per_chunk([object()]) is False
+
+        ar = object.__new__(ARDiffusionModelRunner)
+        ar.od_config = SimpleNamespace(streaming_output=True)
+        ar.pipeline = _ChunkedStepPipeline()
+        assert ar._group_steps_per_chunk([object()]) is False  # no capability declared
+        ar.pipeline.supports_chunk_step_grouping = True
+        assert ar._group_steps_per_chunk([object()]) is True
+        assert ar._group_steps_per_chunk([object(), object()]) is False  # not for a batch
+        ar.od_config.streaming_output = False
+        assert ar._group_steps_per_chunk([object()]) is False  # not without streaming output
 
     def test_stepwise_output_includes_stage_and_peak_metrics(self, monkeypatch):
         runner = _make_runner()
