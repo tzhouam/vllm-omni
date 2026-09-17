@@ -1117,6 +1117,23 @@ def test_the_reuse_window_nests_and_leaves_no_state_behind() -> None:
 
 
 @pytest.mark.cpu
+def test_timestep_projection_is_staged_into_one_static_buffer_per_shape() -> None:
+    """Two forwards' projections land in the same buffer; the blocks never see the fresh per-forward tensor."""
+    module = attention_tests._load_module()
+    model = _tiny_model(module, num_layers=1).eval()
+    first = torch.randn(1, 8, 6, model.dim)
+    second = torch.randn(1, 8, 6, model.dim)
+
+    staged_first = model._stage_timestep_projection(first)
+    assert staged_first is not first and torch.equal(staged_first, first)
+    staged_second = model._stage_timestep_projection(second)
+    assert staged_second is staged_first and torch.equal(staged_second, second)
+    # A different shape gets its own buffer; the first one is kept.
+    other = model._stage_timestep_projection(torch.randn(1, 4, 6, model.dim))
+    assert other is not staged_first and len(model._timestep_projection_buffers) == 2
+
+
+@pytest.mark.cpu
 def test_reuse_window_installs_a_caller_held_cache() -> None:
     """A caller that runs a block's forwards as separate calls passes the same cache around each of them."""
     module = attention_tests._load_module()

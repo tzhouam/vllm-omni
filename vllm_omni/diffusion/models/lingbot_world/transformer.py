@@ -965,6 +965,29 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
             self.register_buffer(f"_rope_{axis}_sine", sine, persistent=False)
         # Off unless a caller opens reuse_camera_modulation(); see that method.
         self._camera_modulation_cache: _CameraModulationCache | None = None
+        # One static-address buffer per shape for the per-token timestep
+        # projection; see _stage_timestep_projection.
+        self._timestep_projection_buffers: dict[tuple[tuple[int, ...], torch.dtype, torch.device], torch.Tensor] = {}
+
+    def _stage_timestep_projection(self, projection: torch.Tensor) -> torch.Tensor:
+        """Hand the blocks the timestep projection from a buffer whose address never changes.
+
+        Every regional block graph takes the projection as an input. Under CUDA-graph replay an input that
+        arrives in a fresh tensor each forward is copied into the graph's placeholder on every replay: at
+        480x832 with four Ulysses ranks that is a 72 MB copy per block, forty times per forward, two hundred
+        times per AR chunk. Copying the projection once per forward into a buffer marked static lets every
+        replay read it in place. The values the blocks see are the same; only where they live changes.
+        """
+        if projection.requires_grad:
+            return projection
+        key = (tuple(projection.shape), projection.dtype, projection.device)
+        buffer = self._timestep_projection_buffers.get(key)
+        if buffer is None:
+            buffer = torch.empty(projection.shape, dtype=projection.dtype, device=projection.device)
+            torch._dynamo.mark_static_address(buffer)
+            self._timestep_projection_buffers[key] = buffer
+        buffer.copy_(projection)
+        return buffer
 
     def new_camera_modulation_cache(self) -> _CameraModulationCache:
         """A block's camera-modulation cache for a caller to hold across separate forwards; see below."""
@@ -1346,6 +1369,7 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
                     "LingBot SP input hooks did not shard all conditioning tensors consistently; "
                     f"expected {local_tokens} tokens per rank. Check SP hook registration and input dimensions."
                 )
+        timestep_projection = self._stage_timestep_projection(timestep_projection)
         rotary_emb = (cosine, sine)
         # Phase 3: each layer receives its own cache entry. Text K/V is passed
         # only when absent; the returned cache is stored for subsequent DMD
