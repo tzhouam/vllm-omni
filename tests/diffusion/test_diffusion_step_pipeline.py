@@ -133,6 +133,37 @@ class _ChunkedStepPipeline(_StepPipeline):
         return result
 
 
+class _BatchDependentChunkPipeline(_ChunkedStepPipeline):
+    """Streaming stub whose noise depends on the batch's latents and timesteps, so a stale batch shows."""
+
+    def __init__(self):
+        super().__init__()
+        self.seen: list[tuple[float, float]] = []
+
+    def prepare_encode(self, state, **kwargs):
+        super().prepare_encode(state, **kwargs)
+        state.latents = torch.tensor([1.0])
+        return state
+
+    def denoise_step(self, input_batch, **kwargs):
+        self.denoise_calls += 1
+        latent = float(input_batch.latents.reshape(-1)[0])
+        timestep = float(input_batch.timesteps.reshape(-1)[0])
+        self.seen.append((latent, timestep))
+        return torch.full((input_batch.latents.shape[0], 1), latent + timestep)
+
+    def step_scheduler(self, state, noise_pred, **kwargs):
+        del kwargs
+        self.scheduler_calls += 1
+        state.latents = state.latents + noise_pred.reshape(-1)[0]
+        state.step_in_chunk += 1
+        state.step_index = state.step_in_chunk
+
+    def post_decode(self, state, **kwargs):
+        self.final_latent = state.latents.reshape(-1)[0].clone()
+        return super().post_decode(state, **kwargs)
+
+
 class _PerRequestErrorStepPipeline(_StepPipeline):
     def prepare_encode(self, state, **kwargs):
         if state.prompt == "fail-prepare":
@@ -683,6 +714,30 @@ class TestRunner:
         # One call per chunk with the knob, one per step without.
         assert len(per_call) == (2 if chunk_per_call else 4)
         assert "req-1" not in runner.state_cache
+
+    def test_streaming_chunk_per_call_refreshes_the_batch_between_steps(self, monkeypatch):
+        """Every step of a whole-chunk call sees the latents and timestep step_scheduler just advanced."""
+        finals = {}
+        seen = {}
+        for chunk_per_call in (False, True):
+            runner = _make_runner()
+            runner.od_config.streaming_output = True
+            runner.od_config.stepwise_chunk_per_call = chunk_per_call
+            runner.pipeline = _BatchDependentChunkPipeline()
+            monkeypatch.setattr(model_runner_module, "set_forward_context", _noop_forward_context)
+
+            output = DiffusionModelRunner.execute_stepwise(runner, _make_scheduler_output(_make_step_request(4)))
+            step = 1
+            while not output.get_request_output("req-1").finished:
+                output = DiffusionModelRunner.execute_stepwise(runner, _make_cached_scheduler_output(step_id=step))
+                step += 1
+            finals[chunk_per_call] = float(runner.pipeline.final_latent)
+            seen[chunk_per_call] = runner.pipeline.seen
+
+        # 1 -> +(1+10)=12 -> +(12+5)=29 -> +(29+10)=68 -> +(68+5)=141 in both modes.
+        assert seen[False] == [(1.0, 10.0), (12.0, 5.0), (29.0, 10.0), (68.0, 5.0)]
+        assert seen[True] == seen[False]
+        assert finals[True] == finals[False] == 141.0
 
     def test_stepwise_output_includes_stage_and_peak_metrics(self, monkeypatch):
         runner = _make_runner()
