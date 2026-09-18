@@ -839,7 +839,7 @@ def _rollout(model, mode, dtype, batch):
             cross_attention_lengths={"text": 5},
             # Cross-attention keeps every local head on every SP rank, so its pool is wider than the
             # self-attention share above.
-            cross_attention_kv_heads={"text": model.blocks[0].cross_attn.num_sp_heads},
+            cross_attention_kv_heads={"text": model.blocks[0].cross_attn.num_local_heads},
             device=device,
         )
         state = ARDiffusionKVState(kv, "numeric", {"main": kv.begin_request("numeric")}, num_layers=_LAYERS)
