@@ -12,7 +12,7 @@ import torch
 from vllm.logger import init_logger
 
 from vllm_omni.diffusion.data import DiffusionOutput, OmniDiffusionConfig
-from vllm_omni.diffusion.models.interface import supports_chunk_step_grouping, supports_step_execution
+from vllm_omni.diffusion.models.interface import supports_step_execution
 from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.diffusion.sched.interface import CachedRequestData, DiffusionSchedulerOutput, KVPrefetchJob
 from vllm_omni.diffusion.worker.diffusion_model_runner import DiffusionModelRunner
@@ -21,6 +21,7 @@ from vllm_omni.experimental.ar_diffusion.capability import (
     ARDiffusionKVCacheSpec,
     SupportsARDiffusionPipeline,
     SupportsARDiffusionWarmup,
+    supports_chunk_step_grouping,
 )
 from vllm_omni.experimental.ar_diffusion.kv_cache.config import ARDiffusionKVConfig
 from vllm_omni.experimental.ar_diffusion.kv_cache.manager import ARDiffusionKVCache
@@ -353,7 +354,7 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         steps of one chunk.
         """
         return (
-            bool(getattr(self.od_config, "streaming_output", False))
+            bool(self.od_config.streaming_output)
             and len(scheduler_output.scheduled_request_ids) == 1
             and supports_chunk_step_grouping(self.pipeline)
         )
@@ -410,7 +411,7 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         runner_output = output.get_request_output(request_id)
         if runner_output is None or runner_output.finished or runner_output.result is not None:
             return False
-        return request_id in getattr(self, "state_cache", {})
+        return request_id in self.state_cache
 
     def execute_stepwise(self, scheduler_output: DiffusionSchedulerOutput) -> BatchRunnerOutput:
         """Bind runner-owned KV for one stepwise invocation, then inherit the step loop."""

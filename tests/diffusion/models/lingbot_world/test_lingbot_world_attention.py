@@ -599,28 +599,6 @@ def test_tp_rmsnorm_weight_loader_selects_rank_shard(monkeypatch: pytest.MonkeyP
     torch.testing.assert_close(norm.weight, torch.tensor([30.0, 40.0]))
 
 
-def test_text_kv_is_replicated_per_rank_in_compact_storage(monkeypatch):
-    """Every Ulysses rank keeps every head it projected, in storage it owns outright."""
-    module = _load_module()
-    monkeypatch.setattr(
-        module,
-        "get_sp_group",
-        lambda: SimpleNamespace(
-            ulysses_world_size=2,
-            ulysses_rank=1,
-            ulysses_group=None,
-        ),
-    )
-    attention = module.LingBotCrossAttention(dim=8, num_heads=4)
-    full = torch.arange(8, dtype=torch.float32).reshape(1, 1, 4, 2)
-    kept = attention.shard_kv_heads(full)
-    torch.testing.assert_close(kept, full, rtol=0, atol=0)
-    # A copy, not a view: the pool must not alias the projection output.
-    assert kept.data_ptr() != full.data_ptr()
-    assert kept.is_contiguous()
-    assert kept.untyped_storage().nbytes() == kept.numel() * kept.element_size()
-
-
 @pytest.mark.parametrize("attention_class", ["LingBotSelfAttention"])
 def test_ulysses_rejects_non_divisible_head_count(monkeypatch, attention_class):
     module = _load_module()

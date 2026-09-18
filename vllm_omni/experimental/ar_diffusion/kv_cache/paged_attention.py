@@ -64,11 +64,11 @@ class ARDiffusionPagedLayerInputs(NamedTuple):
     seq_lens: torch.Tensor
     max_query_len: int
     max_seq_len: int
-    # Contiguous K/V staging for this layer, when reuse_history_staging is on. ``reuse_history`` is a 0-dim
-    # device tensor rather than a python bool so the value can change per forward without retracing.
+    # Contiguous K/V staging for this layer, when reuse_history_staging is on. ``reuse_history`` is a host
+    # bool decided once per forward (``_prepare_history_staging``): it selects one of two compiled variants.
     stage_key: torch.Tensor | None = None
     stage_value: torch.Tensor | None = None
-    reuse_history: torch.Tensor | None = None
+    reuse_history: bool = False
     # Index of the current chunk's first block within the staged window: right after the visible history,
     # which is not the end of the padded block table (that carries at least one action-capacity block).
     stage_first_block: int = 0
@@ -243,10 +243,10 @@ class ARDiffusionPagedForwardContext:
         ) = self.build_block_table(action_len=action_len, query_len=query_len, device=device)
         if self.action_slot_mapping is None:
             self.action_slot_mapping = torch.empty(0, dtype=torch.long, device=device)
-        self._prepare_history_staging(device, action_len)
+        self._prepare_history_staging(action_len)
         self._prepared = True
 
-    def _prepare_history_staging(self, device: torch.device, action_len: int) -> None:
+    def _prepare_history_staging(self, action_len: int) -> None:
         """Decide whether this forward can keep the history already staged, and from where.
 
         The staged window is only reusable when nothing about it moved: the same session adapter, the same
@@ -260,27 +260,29 @@ class ARDiffusionPagedForwardContext:
         self.staging_enabled = False
         self.reuse_history = False
         self.stage_first_block = 0
-        # Only the contiguous-gather attention path consumes the staging buffers; without it they would
-        # be allocated and kept for nothing.
-        if not getattr(self.kv_cache.config, "reuse_history_staging", False) or not _KV_GATHER_ENABLED:
+        # The manager allocates the staging pairs only when reuse_history_staging is on and the contiguous
+        # gather path -- their only consumer -- is switched on.
+        if not self.kv_cache.history_staging:
             return
         if action_len or self.block_table.shape[0] != 1:
             # Action tokens live in scratch blocks outside the video window; staging them is not modelled.
             return
-        bank = getattr(self.kv_cache, "_history_staging", None)
-        if bank is None:
-            bank = {"buffers": {}, "adapter": None, "signature": None}
-            self.kv_cache._history_staging = bank
+        capacity = int(self.kv_cache.history_staging[0][0].shape[0])
+        if int(self.max_seq_len) > capacity:
+            raise RuntimeError(
+                f"history staging buffers hold {capacity} tokens but this forward stages {int(self.max_seq_len)}"
+            )
+        state = self.kv_cache.history_staging_state
         signature = (
             int(self.adapter.num_computed_tokens),
             tuple(self.history_block_ids),
             int(self.max_seq_len),
             int(self.seq_len),
         )
-        same_session = bank["adapter"] is not None and bank["adapter"]() is self.adapter
-        reuse = same_session and bank["signature"] == signature
-        bank["adapter"] = weakref.ref(self.adapter)
-        bank["signature"] = signature
+        same_session = state.adapter is not None and state.adapter() is self.adapter
+        reuse = same_session and state.signature == signature
+        state.adapter = weakref.ref(self.adapter)
+        state.signature = signature
         self.staging_enabled = True
         self.reuse_history = bool(reuse)
         # ``kv_len`` is the visible video window here (no action tokens on this path): the current chunk's
@@ -288,33 +290,20 @@ class ARDiffusionPagedForwardContext:
         # come after them.
         self.stage_first_block = self.kv_len // self.block_size - self.num_current_video_blocks
 
-    def history_staging(self, layer_idx: int, key_pool: torch.Tensor, value_pool: torch.Tensor):
-        """Return this layer's staging pair, allocating it on first use.
-
-        Allocated here, outside any compiled region or graph capture: a buffer first allocated inside a
-        CUDA-graph-trees warm-up would live in the graph pool untracked, which is exactly why the
-        non-staged path re-allocates per forward. Marked as a static address so the compiled region treats
-        it as a stable input rather than a new tensor each call.
-        """
+    def history_staging(self, layer_idx: int) -> tuple[torch.Tensor | None, torch.Tensor | None]:
+        """This layer's staging pair, narrowed to this forward's staged window (a prefix of the manager's buffer)."""
         if not self.staging_enabled:
             return None, None
-        bank = self.kv_cache._history_staging
-        key = (layer_idx, int(self.max_seq_len))
-        buffers = bank["buffers"].get(key)
-        if buffers is None:
-            shape = (int(self.max_seq_len), *key_pool.shape[1:])
-            buffers = tuple(torch.empty(shape, device=pool.device, dtype=pool.dtype) for pool in (key_pool, value_pool))
-            for buffer in buffers:
-                torch._dynamo.mark_static_address(buffer)
-            bank["buffers"][key] = buffers
-        return buffers
+        key, value = self.kv_cache.history_staging[layer_idx]
+        tokens = int(self.max_seq_len)
+        return key[:tokens], value[:tokens]
 
     def layer_inputs(self, layer_idx: int) -> ARDiffusionPagedLayerInputs:
         if not getattr(self, "_prepared", False):
             raise RuntimeError("ARDiffusionPagedForwardContext.layer_inputs() before prepare()")
         key_pool = self.kv_cache._k_pools[layer_idx]
         value_pool = self.kv_cache._v_pools[layer_idx]
-        stage_key, stage_value = self.history_staging(layer_idx, key_pool, value_pool)
+        stage_key, stage_value = self.history_staging(layer_idx)
         return ARDiffusionPagedLayerInputs(
             layer_idx=_layer_idx_tensor(layer_idx),
             key_pool=key_pool,
@@ -331,7 +320,7 @@ class ARDiffusionPagedForwardContext:
             stage_key=stage_key,
             stage_value=stage_value,
             reuse_history=self.reuse_history,
-            stage_first_block=int(getattr(self, "stage_first_block", 0)),
+            stage_first_block=int(self.stage_first_block),
         )
 
     def mark_committed(self) -> None:
@@ -445,7 +434,7 @@ def _stage_window(stage_key, stage_value, key_cache, value_cache, block_ids, n_b
     history is already staged. Skipping the leading blocks is the whole point: they were gathered by an
     earlier forward of the same AR block and cannot have changed since.
     """
-    ids = block_ids if first_block == 0 else block_ids[first_block:]
+    ids = block_ids[first_block:]
     blocks = n_blocks - first_block
     stage_key.view(n_blocks, block_size, *key_cache.shape[2:])[first_block:].copy_(
         key_cache.index_select(0, ids).view(blocks, block_size, *key_cache.shape[2:])
@@ -453,10 +442,6 @@ def _stage_window(stage_key, stage_value, key_cache, value_cache, block_ids, n_b
     stage_value.view(n_blocks, block_size, *value_cache.shape[2:])[first_block:].copy_(
         value_cache.index_select(0, ids).view(blocks, block_size, *value_cache.shape[2:])
     )
-
-
-# Experimental contiguous-K/V gather (see ar_diffusion_paged_attention).
-_KV_GATHER_ENABLED = contiguous_kv_gather_enabled()
 
 
 def _resolve_fa_version(head_size: int) -> int:
@@ -559,8 +544,8 @@ def ar_diffusion_paged_attention(
             softmax_scale=float(softmax_scale),
             causal=causal,
         )
-    elif _KV_GATHER_ENABLED and block_table.shape[0] == 1:
-        # Experimental (LINGBOT_KV_GATHER=1): FA3's paged-KV path with the
+    elif contiguous_kv_gather_enabled() and block_table.shape[0] == 1:
+        # Experimental (VLLM_OMNI_AR_DIFFUSION_KV_GATHER=1): FA3's paged-KV path with the
         # frame-sized block (1560 tokens, not a multiple of the FA3 K/V tile)
         # runs ~15-17% slower than the same kernel on contiguous K/V. Gather the
         # visible blocks into a contiguous buffer once per layer and attend
@@ -571,7 +556,7 @@ def ar_diffusion_paged_attention(
         block_size = key_cache.shape[1]
         n_blocks = int(max_seq_len) // block_size
         if n_blocks * block_size != int(max_seq_len):
-            raise ValueError("LINGBOT_KV_GATHER requires max_seq_len to be block-aligned")
+            raise ValueError("the contiguous K/V gather path requires max_seq_len to be block-aligned")
         block_ids = block_table[0, :n_blocks].to(torch.long)
         if stage_key is None or stage_value is None:
             # Fresh allocations on purpose: a module-level cached buffer that is first
@@ -596,14 +581,17 @@ def ar_diffusion_paged_attention(
             # which is the same work the unstaged path always does.
             k_flat = stage_key
             v_flat = stage_value
-            current_blocks = current_tokens // block_size
-            reusable = (
-                reuse_history
-                and current_tokens > 0
-                and current_blocks * block_size == current_tokens
-                and 0 <= stage_first_block
-                and stage_first_block + current_blocks <= n_blocks
-            )
+            if reuse_history:
+                # The caller's metadata must describe a block-aligned current chunk inside the staged
+                # window; anything else is a wrong offset, not a reason to quietly restage everything.
+                current_blocks = current_tokens // block_size
+                assert current_tokens > 0 and current_blocks * block_size == current_tokens, (
+                    f"staged reuse needs a block-aligned current chunk, got {current_tokens} tokens"
+                )
+                assert 0 <= stage_first_block and stage_first_block + current_blocks <= n_blocks, (
+                    f"stage_first_block={stage_first_block} + {current_blocks} blocks "
+                    f"exceeds the {n_blocks}-block window"
+                )
             _stage_window(
                 k_flat,
                 v_flat,
@@ -612,7 +600,7 @@ def ar_diffusion_paged_attention(
                 block_ids,
                 n_blocks,
                 block_size,
-                first_block=stage_first_block if reusable else 0,
+                first_block=stage_first_block if reuse_history else 0,
             )
         out = torch.empty_like(query_flat)
         # Varlen K/V: cu_seqlens_k = [0, kv_len] built on device from seq_lens

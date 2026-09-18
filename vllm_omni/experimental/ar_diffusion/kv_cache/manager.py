@@ -15,7 +15,8 @@ from __future__ import annotations
 import inspect
 import os
 from collections.abc import Collection, Iterable, Sequence
-from typing import cast
+from dataclasses import dataclass
+from typing import Any, cast
 
 import torch
 from vllm.logger import init_logger
@@ -29,7 +30,11 @@ from vllm.v1.request import RequestStatus
 
 from vllm_omni.diffusion.diffusion_kv.layout import build_kv_cache_tensor
 from vllm_omni.experimental.ar_diffusion.capability import ARDiffusionKVBranchSpec
-from vllm_omni.experimental.ar_diffusion.kv_cache.config import ARDiffusionKVConfig, contiguous_kv_gather_enabled
+from vllm_omni.experimental.ar_diffusion.kv_cache.config import (
+    KV_GATHER_ENV,
+    ARDiffusionKVConfig,
+    contiguous_kv_gather_enabled,
+)
 from vllm_omni.experimental.ar_diffusion.kv_cache.paged import (
     ChunkWindowManager,
     ChunkWindowSpec,
@@ -38,6 +43,8 @@ from vllm_omni.experimental.ar_diffusion.kv_cache.paged import (
     pool_write_chunk,
     resident_block_ids,
 )
+
+logger = init_logger(__name__)
 
 _log = init_logger(__name__)
 
@@ -156,6 +163,18 @@ def build_kv_manager(
     if "max_num_batched_tokens" in params:
         kwargs["max_num_batched_tokens"] = max_model_len
     return KVCacheManager(config, **kwargs)
+
+
+@dataclass
+class HistoryStagingState:
+    """What the staged history window currently holds: whose session and which visible blocks.
+
+    Owned by the cache next to the buffers themselves; ``ARDiffusionPagedForwardContext`` reads it to decide
+    whether a forward may keep the staged history and writes back what it staged.
+    """
+
+    adapter: Any | None = None  # weakref to the session adapter the window was staged for
+    signature: tuple[Any, ...] | None = None
 
 
 class ARDiffusionKVCache:
@@ -307,11 +326,21 @@ class ARDiffusionKVCache:
         # can succeed and that first forward run out of memory. Only the
         # contiguous-gather attention path consumes it.
         self.history_staging_reserved_bytes = 0
-        if getattr(config, "reuse_history_staging", False) and contiguous_kv_gather_enabled():
-            staging_tokens = self.spec.sliding_window + config.sink_chunks * config.chunk_size + block_size
-            self.history_staging_reserved_bytes = int(
-                2 * num_layers * staging_tokens * num_kv_heads * head_size * dtype.itemsize
-            )
+        self.history_staging_tokens = 0
+        if config.reuse_history_staging:
+            if contiguous_kv_gather_enabled():
+                self.history_staging_tokens = (
+                    self.spec.sliding_window + config.sink_chunks * config.chunk_size + block_size
+                )
+                self.history_staging_reserved_bytes = int(
+                    2 * num_layers * self.history_staging_tokens * num_kv_heads * head_size * dtype.itemsize
+                )
+            else:
+                logger.warning(
+                    "reuse_history_staging is set but the contiguous K/V gather path (%s=1) is off: "
+                    "staging has no consumer and is neither budgeted nor allocated.",
+                    KV_GATHER_ENV,
+                )
 
         def _required_bytes(capacity: int) -> int:
             return (
@@ -404,6 +433,20 @@ class ARDiffusionKVCache:
                 dtype,
                 device,
             )
+        # reuse_history_staging: one contiguous (K, V) pair per layer, sized to the padded visible window this
+        # cache admits and budgeted above, owned here next to the pools it stages from. Allocated outside any
+        # capture and marked static, so compiled regions treat it as a stable input rather than a new tensor.
+        self.history_staging: list[tuple[torch.Tensor, torch.Tensor]] = []
+        self.history_staging_state = HistoryStagingState()
+        if self.history_staging_tokens and device is not None:
+            for _ in range(num_layers):
+                pair = (
+                    torch.empty((self.history_staging_tokens, num_kv_heads, head_size), device=device, dtype=dtype),
+                    torch.empty((self.history_staging_tokens, num_kv_heads, head_size), device=device, dtype=dtype),
+                )
+                for buffer in pair:
+                    torch._dynamo.mark_static_address(buffer)
+                self.history_staging.append(pair)
 
     # -- cross-attention pool access -------------------------------------------
     # Cross-attn KV is static once populated — write once (from text encoder),

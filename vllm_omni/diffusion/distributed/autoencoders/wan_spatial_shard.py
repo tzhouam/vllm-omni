@@ -526,7 +526,9 @@ class WanDistCausalConv3d(nn.Conv3d):
         neighbours sent. Every causal conv of the decoder runs this on every latent frame, so at 480x832 that
         was the largest single source of memory traffic in the decode. Here the final tensor is allocated once
         and the cached frames and the new frames are copied straight into their slots; only the padding slices
-        are zeroed and only the halo columns move again. The conv sees the same tensor as before, byte for byte.
+        are zeroed. The halo rows are exchanged through contiguous send and receive buffers (a P2P op needs a
+        contiguous tensor and the halo slot of a 5D tensor is a strided view) and copied into their slots. The
+        conv sees the same tensor as before, byte for byte.
 
         Returns the assembled tensor and the extent along the split dimension the trim parameters are keyed by
         (the extent before halos, as ``halo_exchange`` saw it).
@@ -555,14 +557,14 @@ class WanDistCausalConv3d(nn.Conv3d):
             buf[:, :, :pad_t0].zero_()
         if pad_t1:
             buf[:, :, total_frames - pad_t1 :].zero_()
-        if top:
-            buf[:, :, :, :top].zero_()
-        if pad_h1 + halo_h:
-            buf[:, :, :, total_height - pad_h1 - halo_h :].zero_()
-        if left:
-            buf[:, :, :, :, :left].zero_()
-        if pad_w1 + halo_w:
-            buf[:, :, :, :, total_width - pad_w1 - halo_w :].zero_()
+        if pad_h0:
+            buf[:, :, :, halo_h:top].zero_()
+        if pad_h1:
+            buf[:, :, :, total_height - halo_h - pad_h1 : total_height - halo_h].zero_()
+        if pad_w0:
+            buf[:, :, :, :, halo_w:left].zero_()
+        if pad_w1:
+            buf[:, :, :, :, total_width - halo_w - pad_w1 : total_width - halo_w].zero_()
         interior = buf[:, :, pad_t0 : pad_t0 + cache_frames + frames, top : top + height, left : left + width]
         if cache_frames:
             interior[:, :, :cache_frames].copy_(cache_x)

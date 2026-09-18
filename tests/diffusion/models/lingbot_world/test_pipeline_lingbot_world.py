@@ -6,7 +6,6 @@ from __future__ import annotations
 import gc
 import os
 import weakref
-from contextlib import contextmanager
 from pathlib import Path
 from threading import Lock
 from types import SimpleNamespace
@@ -23,7 +22,6 @@ import vllm_omni.diffusion.models.lingbot_world.pipeline as lingbot_pipeline
 from tests.diffusion.models.wan2_2.conftest import noop_progress_bar
 from vllm_omni.diffusion.models.interface import (
     SupportsStepExecution,
-    supports_chunk_step_grouping,
     supports_step_execution,
 )
 from vllm_omni.diffusion.models.lingbot_world.actions import (
@@ -35,6 +33,7 @@ from vllm_omni.diffusion.models.lingbot_world.camera import (
 )
 from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.diffusion.worker.utils import StepRequestState
+from vllm_omni.experimental.ar_diffusion.capability import supports_chunk_step_grouping
 from vllm_omni.experimental.ar_diffusion.tick_protocol import (
     ARDiffusionControlInput,
     ARDiffusionTickRequest,
@@ -137,28 +136,11 @@ class _RecordingTransformer(nn.Module):
             # The spec reads head geometry from both attentions; cross-attention keeps every local head.
             block.self_attn = SimpleNamespace(num_sp_heads=2)
             block.cross_attn = SimpleNamespace(num_sp_heads=2)
-        self.camera_reuse_windows = 0
-        self.camera_reuse_caches: list[object] = []
-        self._camera_cache_active: object | None = None
         self.calls: list[dict] = []
         self.cache_allocations: list[dict] = []
         self.raise_on_call = raise_on_call
         self._dtype = dtype
         self.loaded_weights: list[tuple[str, torch.Tensor]] = []
-
-    def new_camera_modulation_cache(self):
-        return object()
-
-    @contextmanager
-    def reuse_camera_modulation(self, cache=None):
-        self.camera_reuse_windows += 1
-        self.camera_reuse_caches.append(cache)
-        previous = self._camera_cache_active
-        self._camera_cache_active = cache if cache is not None else object()
-        try:
-            yield
-        finally:
-            self._camera_cache_active = previous
 
     @property
     def dtype(self) -> torch.dtype:
@@ -173,7 +155,7 @@ class _RecordingTransformer(nn.Module):
             "cache_id": id(kwargs["cache"]),
             "start_frame": kwargs["start_frame"],
             "update_cache": kwargs["update_cache"],
-            "camera_cache": self._camera_cache_active,
+            "camera_cache": kwargs.get("camera_modulation_cache"),
         }
         self.calls.append(call)
         if self.raise_on_call == len(self.calls):
@@ -1700,7 +1682,6 @@ def test_typed_ticks_generate_one_global_block_and_return_standard_metadata(
         "applied_event_ids": [1],
     }
     assert pipeline._ar_sessions["world-1"].next_chunk_index == 2
-    assert pipeline._ar_sessions["world-1"].prompt == "enter the snowy valley"
     assert pipeline._ar_sessions["world-1"].camera_tail is not None
     assert pipeline._ar_sessions["world-1"].camera_tail.poses.shape == (1, 4, 4)
     expected_generator = torch.Generator(device="cpu").manual_seed(17)
@@ -2304,9 +2285,9 @@ def _stepwise_chunks(pipeline, state, ar_state):
 def test_stepwise_block_shares_one_camera_cache_across_its_five_forwards() -> None:
     """The four probes and the commit of one stepwise block reuse one camera cache; the next block gets its own.
 
-    Request mode opens the window around its own loop; the stepwise path
-    cannot, because its forwards are separate scheduler steps, so the
-    pipeline holds the block's cache and installs it around each one.
+    Request mode creates one cache per loop; the stepwise path's forwards are
+    separate scheduler steps, so the pipeline holds the block's cache and
+    passes it to each one.
     """
     module = _load_pipeline_module()
     transformer = _RecordingTransformer()
@@ -2324,8 +2305,6 @@ def test_stepwise_block_shares_one_camera_cache_across_its_five_forwards() -> No
     assert all(c is not None for c in caches)
     assert len({id(c) for c in caches[:5]}) == 1 and len({id(c) for c in caches[5:]}) == 1
     assert caches[0] is not caches[5]
-    # Every window was opened with the pipeline-held cache, never a fresh one.
-    assert transformer.camera_reuse_windows == 10 and all(c is not None for c in transformer.camera_reuse_caches)
     # The block's cache does not outlive its commit.
     assert "camera_cache" not in state.extra
 
@@ -3038,7 +3017,7 @@ def _counting_decode(module):
 
 def test_the_same_source_image_is_decoded_once(tmp_path: Path) -> None:
     module = _load_pipeline_module()
-    module._SOURCE_IMAGE_CACHE.clear()
+    module._decode_source_image_fingerprinted.cache_clear()
     path = _write_png(tmp_path / "frame.png")
     decoded, original = _counting_decode(module)
     try:
@@ -3052,12 +3031,12 @@ def test_the_same_source_image_is_decoded_once(tmp_path: Path) -> None:
         assert len(decoded) == 1
     finally:
         module._decode_source_image_file = original
-        module._SOURCE_IMAGE_CACHE.clear()
+        module._decode_source_image_fingerprinted.cache_clear()
 
 
 def test_a_rewritten_source_image_is_decoded_again(tmp_path: Path) -> None:
     module = _load_pipeline_module()
-    module._SOURCE_IMAGE_CACHE.clear()
+    module._decode_source_image_fingerprinted.cache_clear()
     path = _write_png(tmp_path / "frame.png")
     decoded, original = _counting_decode(module)
     try:
@@ -3071,12 +3050,12 @@ def test_a_rewritten_source_image_is_decoded_again(tmp_path: Path) -> None:
         assert len(decoded) == 2
     finally:
         module._decode_source_image_file = original
-        module._SOURCE_IMAGE_CACHE.clear()
+        module._decode_source_image_fingerprinted.cache_clear()
 
 
 def test_an_image_rewritten_during_the_decode_is_never_cached(tmp_path: Path) -> None:
     module = _load_pipeline_module()
-    module._SOURCE_IMAGE_CACHE.clear()
+    module._decode_source_image_fingerprinted.cache_clear()
     path = _write_png(tmp_path / "frame.png")
     decoded: list[str] = []
     original = module._decode_source_image_file
@@ -3090,22 +3069,23 @@ def test_an_image_rewritten_during_the_decode_is_never_cached(tmp_path: Path) ->
     module._decode_source_image_file = decode_then_rewrite
     try:
         module._load_source_image(path)
-        assert module._SOURCE_IMAGE_CACHE == {}, "a file that moved under the decode must not be cached"
+        # The entry is keyed by the fingerprint taken before the decode, which the rewrite invalidated: the
+        # next call must decode again rather than serve the image that was decoded mid-rewrite.
         module._load_source_image(path)
         assert len(decoded) == 2
     finally:
         module._decode_source_image_file = original
-        module._SOURCE_IMAGE_CACHE.clear()
+        module._decode_source_image_fingerprinted.cache_clear()
 
 
 def test_an_unstattable_path_keeps_upstream_validation(tmp_path: Path) -> None:
     module = _load_pipeline_module()
-    module._SOURCE_IMAGE_CACHE.clear()
+    module._decode_source_image_fingerprinted.cache_clear()
     missing = tmp_path / "does-not-exist.png"
     # The uncached path owns the error contract; caching must not change which exception a caller sees.
     with pytest.raises(ValueError):
         module._load_source_image(missing)
-    assert module._SOURCE_IMAGE_CACHE == {}
+    assert module._decode_source_image_fingerprinted.cache_info().currsize == 0
 
 
 def test_the_text_cache_is_sized_by_cross_attention_heads_not_the_self_attention_share() -> None:

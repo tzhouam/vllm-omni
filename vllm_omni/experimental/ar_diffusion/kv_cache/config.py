@@ -7,14 +7,17 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+KV_GATHER_ENV = "VLLM_OMNI_AR_DIFFUSION_KV_GATHER"
+
 
 def contiguous_kv_gather_enabled() -> bool:
-    """Whether the experimental contiguous-K/V gather attention path is switched on (``LINGBOT_KV_GATHER=1``).
+    """Whether the experimental contiguous-K/V gather attention path is on (``VLLM_OMNI_AR_DIFFUSION_KV_GATHER=1``).
 
-    It is the only consumer of ``ARDiffusionKVConfig.reuse_history_staging``, so the staging buffers are
-    allocated and budgeted only when this is true.
+    The one place the switch is read: the KV manager consults it when it budgets and allocates the history
+    staging buffers, and the attention dispatch when it picks the path, so the two cannot disagree. It is the
+    only consumer of ``ARDiffusionKVConfig.reuse_history_staging``.
     """
-    return os.environ.get("LINGBOT_KV_GATHER", "0") == "1"
+    return os.environ.get(KV_GATHER_ENV, "0") == "1"
 
 
 @dataclass

@@ -192,3 +192,12 @@ class SupportsARDiffusionWarmup(Protocol):
     def ar_diffusion_warmup_requests(self, session_id: str) -> Iterable[OmniDiffusionRequest]:
         """Yield requests for compiled shapes, each carrying ``session_id``."""
         ...
+
+
+def supports_chunk_step_grouping(pipeline: object) -> bool:
+    """Whether a step-execution ``pipeline`` declares that one chunk's steps may run without scheduler cycles.
+
+    An AR-runner policy input, consulted only after the pipeline has already been admitted to step
+    execution; LingBot-World declares it as a class attribute.
+    """
+    return bool(getattr(pipeline, "supports_chunk_step_grouping", False))

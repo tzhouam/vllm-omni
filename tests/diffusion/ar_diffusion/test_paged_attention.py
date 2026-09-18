@@ -22,6 +22,7 @@ from vllm_omni.experimental.ar_diffusion.kv_cache import (
     paged_write_attn,
 )
 from vllm_omni.experimental.ar_diffusion.kv_cache import paged_attention as paged_attention_module
+from vllm_omni.experimental.ar_diffusion.kv_cache.config import KV_GATHER_ENV
 from vllm_omni.experimental.ar_diffusion.kv_cache.state import ARDiffusionKVState
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
@@ -34,8 +35,12 @@ POS = "positive"
 NEG = "negative"
 
 
-def make_state(*, num_layers=1, window_chunks=2, dtype=torch.float32, device=torch.device("cpu")):
-    cfg = ARDiffusionKVConfig(enable=True, chunk_size=BLOCK, window_chunks=window_chunks)
+def make_state(
+    *, num_layers=1, window_chunks=2, dtype=torch.float32, device=torch.device("cpu"), reuse_history_staging=False
+):
+    cfg = ARDiffusionKVConfig(
+        enable=True, chunk_size=BLOCK, window_chunks=window_chunks, reuse_history_staging=reuse_history_staging
+    )
     kv = ARDiffusionKVCache(
         cfg,
         num_layers=num_layers,
@@ -246,11 +251,10 @@ def test_staged_reuse_refreshes_the_current_blocks_at_their_live_offset(monkeypa
     growing in unused window capacity too, so "the last current_blocks entries" is padding. The refresh
     has to start right after the visible history: empty (window growing), partial, full, and after a slide.
     """
-    monkeypatch.setattr(paged_attention_module, "_KV_GATHER_ENABLED", True)
+    monkeypatch.setenv(KV_GATHER_ENV, "1")
     device = torch.device("cpu")
     dtype = torch.float32
-    kv, st = make_state(dtype=dtype, device=device, window_chunks=2)
-    kv.config.reuse_history_staging = True
+    kv, st = make_state(dtype=dtype, device=device, window_chunks=2, reuse_history_staging=True)
     if history_chunks:
         _commit_video_span(kv, st, kv_branch=POS, n_chunks=history_chunks, dtype=dtype, device=device)
 
@@ -267,10 +271,10 @@ def test_staged_reuse_refreshes_the_current_blocks_at_their_live_offset(monkeypa
             ctx.build_block_table(action_len=0, query_len=BLOCK, device=device)
         )
         block_table, max_seq_len = ctx.block_table, ctx.max_seq_len
-        ctx._prepare_history_staging(device, 0)
+        ctx._prepare_history_staging(0)
         n_blocks = max_seq_len // BLOCK
         block_ids = block_table[0, :n_blocks].to(torch.long)
-        stage_k, stage_v = ctx.history_staging(0, kv._k_pools[0], kv._v_pools[0])
+        stage_k, stage_v = ctx.history_staging(0)
         paged_attention_module._stage_window(
             stage_k,
             stage_v,
@@ -300,19 +304,22 @@ def test_staged_reuse_refreshes_the_current_blocks_at_their_live_offset(monkeypa
 
 @pytest.mark.parametrize("gather_enabled", [False, True])
 def test_staging_is_only_allocated_for_the_gather_path(monkeypatch, gather_enabled):
-    monkeypatch.setattr(paged_attention_module, "_KV_GATHER_ENABLED", gather_enabled)
+    if gather_enabled:
+        monkeypatch.setenv(KV_GATHER_ENV, "1")
+    else:
+        monkeypatch.delenv(KV_GATHER_ENV, raising=False)
     device = torch.device("cpu")
-    kv, st = make_state(device=device)
-    kv.config.reuse_history_staging = True
+    kv, st = make_state(device=device, reuse_history_staging=True)
+    # The manager owns the pairs and allocates them only when their consumer is on.
+    assert bool(kv.history_staging) is gather_enabled
     ctx = st.get_kv_caches(POS, seq_len=BLOCK, commit_current=False)[0].forward_ctx
     ctx.ensure_video_slots(device)
     (ctx.block_table, ctx.query_start_loc, ctx.seq_lens, ctx.max_query_len, ctx.max_seq_len) = ctx.build_block_table(
         action_len=0, query_len=BLOCK, device=device
     )
-    ctx._prepare_history_staging(device, 0)
-
+    ctx._prepare_history_staging(0)
     assert ctx.staging_enabled is gather_enabled
-    stage_k, _ = ctx.history_staging(0, kv._k_pools[0], kv._v_pools[0])
+    stage_k, _ = ctx.history_staging(0)
     assert (stage_k is not None) is gather_enabled
 
 
@@ -505,12 +512,11 @@ def test_custom_op_compiles_fullgraph_without_recompile_on_value_change():
 @pytest.mark.parametrize("history_chunks", [0, 1, 3])
 @pytest.mark.parametrize("action_len", [0, 3])
 def test_contiguous_kv_gather_path_matches_paged_path_gpu(monkeypatch, history_chunks, action_len):
-    """LINGBOT_KV_GATHER=1 gathers the visible blocks and runs varlen FA3 without a block table.
+    """VLLM_OMNI_AR_DIFFUSION_KV_GATHER=1 gathers the visible blocks and runs varlen FA3 without a block table.
 
     Covers an empty, partial and full window plus a partially filled action block:
     the gather reads the tail-padding null block, so its (zeroed) rows must be masked.
     """
-    from vllm_omni.experimental.ar_diffusion.kv_cache import paged_attention as paged_attention_module
 
     torch.manual_seed(0)
     device = torch.device("cuda")
@@ -542,9 +548,9 @@ def test_contiguous_kv_gather_path_matches_paged_path_gpu(monkeypatch, history_c
             HEAD_DIM**-0.5,
         ).unsqueeze(0)
 
-    monkeypatch.setattr(paged_attention_module, "_KV_GATHER_ENABLED", False)
+    monkeypatch.delenv(KV_GATHER_ENV, raising=False)
     paged = run()
-    monkeypatch.setattr(paged_attention_module, "_KV_GATHER_ENABLED", True)
+    monkeypatch.setenv(KV_GATHER_ENV, "1")
     gathered = run()
     assert torch.isfinite(gathered).all()
     # Same kernel family on the same K/V: only accumulation order differs.

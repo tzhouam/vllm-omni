@@ -4,9 +4,9 @@
 
 from __future__ import annotations
 
+import functools
 import math
 import os
-import threading
 from collections import OrderedDict
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from contextlib import contextmanager, nullcontext
@@ -50,6 +50,7 @@ from vllm_omni.diffusion.models.lingbot_world.camera import (
 )
 from vllm_omni.diffusion.models.lingbot_world.dmd_block import ARBlockContext, LingBotDMDBlockRunner
 from vllm_omni.diffusion.models.lingbot_world.transformer import (
+    CameraModulationCache,
     CausalLingBotWorldTransformer3DModel,
     LingBotAttentionCache,
     LingBotTransformerCache,
@@ -99,10 +100,6 @@ LINGBOT_DMD_TIMESTEPS = (1000, 750, 500, 250)
 _CAMERA_SPATIAL_FOLD = 8
 _MAX_PIXEL_AREA = 480 * 832
 _MAX_SOURCE_IMAGE_PIXELS = 4096 * 4096
-# One decoded source image, keyed by the file it came from; see _load_source_image. A realtime session repeats
-# its own image every tick, so one entry serves the pattern that matters and bounds the memory at one image.
-_SOURCE_IMAGE_CACHE: dict[tuple[str, int, int, int, int, int], PIL.Image.Image] = {}
-_SOURCE_IMAGE_CACHE_LOCK = threading.Lock()
 _MAX_SEQUENCE_LENGTH = 512
 # Distinct prompts whose text encodes are kept. One entry is a single padded
 # sequence -- a few MiB at 512 tokens -- so a handful covers a session's prompt
@@ -151,6 +148,9 @@ class _LingBotRequestInputs:
     width: int
     num_frames: int
     num_latent_frames: int
+    # Request mode returns pixels through VideoProcessor in this type. Step execution (realtime sessions)
+    # returns every pixel type as ``(F, H, W, 3)`` uint8 frames, the layout the streaming endpoint muxes; only
+    # ``"latent"`` differs there. See ``_decode_chunk_to_pixels``.
     output_type: str
     max_sequence_length: int
     flow_shift: float
@@ -162,7 +162,6 @@ class _LingBotARSessionState:
     """Model-owned state; attention tensors remain runner-owned."""
 
     next_chunk_index: int = 0
-    prompt: str | None = None
     # The umT5 embedding itself is reused by ``encode_prompt``'s own cache.
     # ``text_cache_key`` does the same job for the runner-owned cross-attention
     # K/V built from that embedding: it holds the (prompt, max_sequence_length,
@@ -334,41 +333,27 @@ def _uint8_frames(video: torch.Tensor) -> np.ndarray:
     return np.ascontiguousarray(frames.cpu().numpy())
 
 
+@functools.lru_cache(maxsize=1)
+def _decode_source_image_fingerprinted(fingerprint: tuple[str, int, int, int, int, int]) -> PIL.Image.Image:
+    """The decoded image behind ``fingerprint`` (resolved path plus the stat fields that change on rewrite).
+
+    One entry: a request-mode caller that replays the same source path decodes it once. The realtime tick
+    carries its image inline and never comes through here.
+    """
+    return _decode_source_image_file(fingerprint[0])
+
+
 def _load_source_image(path: str | os.PathLike[str]) -> PIL.Image.Image:
-    """Decode the source image at ``path``, reusing the last decode when the file is unchanged.
+    """Decode the source image at ``path``, reusing the last decode while the file is unchanged.
 
-    A realtime session sends the same source image on every tick, and decoding it is pure overhead once the
-    first tick has done it. The cache holds one entry, because the access pattern that matters is the same
-    path repeatedly rather than many paths in rotation.
-
-    Correctness rests on three things. The key is the resolved path plus device, inode, size and both
-    timestamps in nanoseconds, so a rewritten file misses. The fingerprint is taken again after the decode and
-    the result is only stored if it did not move, so a file rewritten *during* the decode is served but never
-    cached. And every caller gets a copy, so a request that mutates its image cannot corrupt the next one.
-    A path that cannot be stat'ed is passed straight through to the uncached path, which keeps upstream
-    validation and its exceptions exactly as they were.
+    Every caller gets its own copy, so a request that mutates its image cannot reach the next one. A path
+    that cannot be stat'ed goes straight to the uncached decode, which owns the validation error contract.
     """
     try:
-        key = _source_image_fingerprint(path)
+        fingerprint = _source_image_fingerprint(path)
     except (OSError, TypeError, ValueError):
         return _decode_source_image_file(path)
-
-    with _SOURCE_IMAGE_CACHE_LOCK:
-        cached = _SOURCE_IMAGE_CACHE.get(key)
-        if cached is not None:
-            return cached.copy()
-
-    image = _decode_source_image_file(path)
-
-    try:
-        unchanged = key == _source_image_fingerprint(path)
-    except (OSError, TypeError, ValueError):
-        unchanged = False
-    if unchanged:
-        with _SOURCE_IMAGE_CACHE_LOCK:
-            _SOURCE_IMAGE_CACHE.clear()
-            _SOURCE_IMAGE_CACHE[key] = image.copy()
-    return image
+    return _decode_source_image_fingerprinted(fingerprint).copy()
 
 
 def _decode_source_image_file(path: str | os.PathLike[str]) -> PIL.Image.Image:
@@ -1278,10 +1263,8 @@ class LingBotWorldCausalDMDPipeline(
                 for block in self.transformer.blocks:
                     cross_attention = block.cross_attn
                     shape = (cross_attention.num_local_heads, cross_attention.head_dim)
-                    key = cross_attention.shard_kv_heads(
-                        cross_attention.norm_k(cross_attention.k(projected_text)).unflatten(2, shape)
-                    )
-                    value = cross_attention.shard_kv_heads(cross_attention.v(projected_text).unflatten(2, shape))
+                    key = cross_attention.norm_k(cross_attention.k(projected_text)).unflatten(2, shape)
+                    value = cross_attention.v(projected_text).unflatten(2, shape)
                     yield key, value
 
             state.populate_cross_attention(
@@ -1582,7 +1565,6 @@ class LingBotWorldCausalDMDPipeline(
         cache = None
         if tick is not None:
             assert session_state is not None
-            session_state.prompt = inputs.prompt
             session_state.generator_state = inputs.generator.get_state()
             session_state.encoder_cache = pending_encoder_cache
             session_state.camera_tail = camera_tail
@@ -1883,7 +1865,7 @@ class LingBotWorldCausalDMDPipeline(
         # cannot open the reuse window around them the way generate_block
         # does around its own loop. Holding the cache here makes the window
         # span exactly this block, per request.
-        extra["camera_cache"] = self.transformer.new_camera_modulation_cache()
+        extra["camera_cache"] = CameraModulationCache()
         extra["camera_tail"] = camera_tail
         extra["start_frame"] = start_frame
         extra["ar_cross_attention"] = self._ar_text_caches(
@@ -1942,7 +1924,7 @@ class LingBotWorldCausalDMDPipeline(
             start_frame=int(extra["start_frame"]),
             timestep_value=float(schedule[step_in_chunk][0]),
             step_index=step_in_chunk,
-            camera_cache=extra.get("camera_cache"),
+            camera_cache=extra["camera_cache"],
         )
 
     def step_scheduler(self, state: StepRequestState, noise_pred: torch.Tensor, **kwargs: Any) -> None:
@@ -1985,7 +1967,7 @@ class LingBotWorldCausalDMDPipeline(
             cache=None,
             ar=self._ar_block_context(extra["ar_cross_attention"]),
             start_frame=int(extra["start_frame"]),
-            camera_cache=extra.pop("camera_cache", None),
+            camera_cache=extra.pop("camera_cache"),
         )
         completed_chunk_index = state.chunk_index
         inputs: _LingBotRequestInputs = extra["inputs"]

@@ -5,8 +5,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Iterable, Iterator
-from contextlib import contextmanager
+from collections.abc import Iterable
 from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import Any, Self, cast
@@ -431,13 +430,11 @@ class LingBotCrossAttention(nn.Module):
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
         self.num_local_heads = num_heads // tp_size
-        self.ulysses_world_size, self.ulysses_rank, self.ulysses_group = _ulysses_state()
         # Cross-attention keeps every local head on every Ulysses rank and attends the rank's own sequence
         # shard. Each query token attends the whole text sequence independently of the others, so there is
         # nothing to exchange: the sequence split Ulysses already gives us is the only split needed, and both
         # all-to-all collectives -- one for the query, one for the output -- disappear. The cost is that the text K/V is
         # replicated per rank instead of head-sharded; ar_diffusion_kv_cache_spec sizes the pool for it.
-        self.num_sp_heads = self.num_local_heads
         self.tp_inner_dim = self.num_local_heads * self.head_dim
 
         self.q = ColumnParallelLinear(
@@ -475,9 +472,9 @@ class LingBotCrossAttention(nn.Module):
         self.norm_q = _LingBotRMSNorm(self.tp_inner_dim, eps)
         self.norm_k = _LingBotRMSNorm(self.tp_inner_dim, eps)
         self.attn = Attention(
-            num_heads=self.num_sp_heads,
+            num_heads=self.num_local_heads,
             head_size=self.head_dim,
-            num_kv_heads=self.num_sp_heads,
+            num_kv_heads=self.num_local_heads,
             softmax_scale=self.head_dim**-0.5,
             causal=False,
             role="cross",
@@ -486,13 +483,6 @@ class LingBotCrossAttention(nn.Module):
             skip_sequence_parallel=True,
             disable_kv_quant=True,
         )
-
-    def shard_kv_heads(self, value: torch.Tensor) -> torch.Tensor:
-        """Text K/V is replicated per rank, so every rank keeps every head it projected.
-
-        Kept as a seam because the pipeline pre-populates the cross-attention cache through this same call.
-        """
-        return value.clone(memory_format=torch.contiguous_format)
 
     def forward(
         self,
@@ -510,8 +500,8 @@ class LingBotCrossAttention(nn.Module):
                 raise ValueError("encoder_hidden_states are required when the cross-attention cache is empty.")
             key = self.norm_k(self.k(encoder_hidden_states))
             value = self.v(encoder_hidden_states)
-            key = self.shard_kv_heads(key.unflatten(2, (self.num_local_heads, self.head_dim)))
-            value = self.shard_kv_heads(value.unflatten(2, (self.num_local_heads, self.head_dim)))
+            key = key.unflatten(2, (self.num_local_heads, self.head_dim))
+            value = value.unflatten(2, (self.num_local_heads, self.head_dim))
             cache = LingBotAttentionCache(
                 key=key,
                 value=value,
@@ -778,30 +768,20 @@ def _rope_axis(max_seq_len: int, dim: int, *, start: int = 0) -> tuple[torch.Ten
     return phase.cos().float(), phase.sin().float()
 
 
-class _CameraModulationCache:
-    """Per-block camera scale/shift held across the forwards of one AR chunk.
+class CameraModulationCache:
+    """Per-block camera scale and shift, held by the caller across the forwards of one AR block.
 
-    Keyed by the identity of the camera tensor entering ``forward``, so a caller that opens the reuse window
-    and then changes the camera trajectory gets a rebuild rather than a stale modulation. Within one chunk the
-    tensor is the same object across all forwards, so the key matches and the blocks are built once.
+    The camera injector is four projections and a SiLU per block and reads only the camera tokens, which do
+    not change between the denoise steps and the clean commit of one block. The caller that owns that
+    invariant creates one of these per block and passes it to every forward of the block; ``forward`` fills a
+    block's entry on first use and reads it after. Its lifetime is the caller's: the AR runner keeps one per
+    block, ``generate_block`` one per loop, and nothing here checks the camera tensor for change.
     """
 
-    __slots__ = ("key", "entries")
+    __slots__ = ("entries",)
 
     def __init__(self) -> None:
-        self.key: tuple[int, tuple[int, ...], torch.dtype, torch.device] | None = None
         self.entries: dict[int, tuple[torch.Tensor, torch.Tensor]] = {}
-
-    def observe(self, camera_hidden_states: torch.Tensor) -> None:
-        key = (
-            camera_hidden_states.data_ptr(),
-            tuple(camera_hidden_states.shape),
-            camera_hidden_states.dtype,
-            camera_hidden_states.device,
-        )
-        if key != self.key:
-            self.key = key
-            self.entries.clear()
 
 
 class CausalLingBotWorldTransformer3DModel(nn.Module):
@@ -963,8 +943,6 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
             cosine, sine = _rope_axis(rope_max_seq_len, axis_dim)
             self.register_buffer(f"_rope_{axis}_cosine", cosine, persistent=False)
             self.register_buffer(f"_rope_{axis}_sine", sine, persistent=False)
-        # Off unless a caller opens reuse_camera_modulation(); see that method.
-        self._camera_modulation_cache: _CameraModulationCache | None = None
         # One static-address buffer per shape for the per-token timestep
         # projection; see _stage_timestep_projection.
         self._timestep_projection_buffers: dict[tuple[tuple[int, ...], torch.dtype, torch.device], torch.Tensor] = {}
@@ -978,8 +956,6 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         times per AR chunk. Copying the projection once per forward into a buffer marked static lets every
         replay read it in place. The values the blocks see are the same; only where they live changes.
         """
-        if projection.requires_grad:
-            return projection
         key = (tuple(projection.shape), projection.dtype, projection.device)
         buffer = self._timestep_projection_buffers.get(key)
         if buffer is None:
@@ -988,35 +964,6 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
             self._timestep_projection_buffers[key] = buffer
         buffer.copy_(projection)
         return buffer
-
-    def new_camera_modulation_cache(self) -> _CameraModulationCache:
-        """A block's camera-modulation cache for a caller to hold across separate forwards; see below."""
-        return _CameraModulationCache()
-
-    @contextmanager
-    def reuse_camera_modulation(self, cache: _CameraModulationCache | None = None) -> Iterator[None]:
-        """Build each block's camera scale and shift once for the forwards inside this window.
-
-        The camera injector is four projections and a SiLU per block, and it reads only the camera tokens. An
-        AR chunk runs several forwards over one camera trajectory -- the denoise steps and the clean commit --
-        so without this the whole injector is recomputed per forward for a result that cannot change.
-
-        The window is opened by the caller that owns the invariant, not inferred here. It nests and restores
-        whatever was active before, and the cache is dropped on exit so nothing outlives the chunk. If the
-        camera tensor entering forward changes inside the window the cache rebuilds rather than going stale,
-        so a misplaced window costs the speedup but never correctness.
-
-        A caller whose forwards of one block are separate calls -- the stepwise path runs the four probes and
-        the commit from separate scheduler steps -- holds the block's cache itself
-        (``new_camera_modulation_cache``) and passes it here around each forward: the window still spans
-        exactly one block, and two sessions interleaved by the scheduler never share entries.
-        """
-        previous = self._camera_modulation_cache
-        self._camera_modulation_cache = _CameraModulationCache() if cache is None else cache
-        try:
-            yield
-        finally:
-            self._camera_modulation_cache = previous
 
     @property
     def dtype(self) -> torch.dtype:
@@ -1273,6 +1220,7 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         cache: LingBotTransformerCache,
         start_frame: int,
         update_cache: bool,
+        camera_modulation_cache: CameraModulationCache | None = None,
     ) -> torch.Tensor:
         if not isinstance(update_cache, bool):
             raise ValueError("update_cache must be a boolean.")
@@ -1305,8 +1253,6 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         )
         # Phase 2: independently patchify video and camera grids to identical
         # token layouts, then project timestep and text conditions.
-        if self._camera_modulation_cache is not None:
-            self._camera_modulation_cache.observe(camera_hidden_states)
         hidden_states = self.patch_embedding(hidden_states).flatten(2).transpose(1, 2)
         camera_hidden_states = self.patch_embedding_wancamctrl(camera_hidden_states)
         camera_hidden_states = camera_hidden_states + self.c2ws_hidden_states_layer2(
@@ -1373,8 +1319,8 @@ class CausalLingBotWorldTransformer3DModel(nn.Module):
         rotary_emb = (cosine, sine)
         # Phase 3: each layer receives its own cache entry. Text K/V is passed
         # only when absent; the returned cache is stored for subsequent DMD
-        # steps and causal blocks in this request.
-        camera_modulation_cache = self._camera_modulation_cache
+        # steps and causal blocks in this request. A caller-held camera cache
+        # gives every block its modulation once per AR block.
         for index, block in enumerate(self.blocks):
             camera_modulation = None
             if camera_modulation_cache is not None:

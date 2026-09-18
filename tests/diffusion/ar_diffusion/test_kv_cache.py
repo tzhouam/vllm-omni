@@ -392,7 +392,7 @@ def _make_tiny_capacity_kv(
 
 def test_history_staging_is_reserved_in_the_kv_budget(monkeypatch):
     """The per-layer staging pair is worker-wide memory allocated after admission; the budget must hold it."""
-    monkeypatch.setenv("LINGBOT_KV_GATHER", "1")
+    monkeypatch.setenv("VLLM_OMNI_AR_DIFFUSION_KV_GATHER", "1")
     # Same geometry as the capacity-two test: 192 bytes fits two sessions exactly without staging.
     plain = _make_tiny_capacity_kv(requested_capacity=2, available_bytes=192)
     assert plain.session_capacity == 2 and plain.history_staging_reserved_bytes == 0
@@ -412,7 +412,7 @@ def test_history_staging_is_reserved_in_the_kv_budget(monkeypatch):
 
 
 def test_history_staging_is_not_reserved_when_the_gather_path_is_off(monkeypatch):
-    monkeypatch.delenv("LINGBOT_KV_GATHER", raising=False)
+    monkeypatch.delenv("VLLM_OMNI_AR_DIFFUSION_KV_GATHER", raising=False)
     staged = _make_tiny_capacity_kv(requested_capacity=2, available_bytes=192, reuse_history_staging=True)
     assert staged.history_staging_reserved_bytes == 0 and staged.session_capacity == 2
 

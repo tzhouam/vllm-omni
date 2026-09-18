@@ -14,7 +14,6 @@ by the ``ar`` argument, so this class never reaches back into the pipeline.
 
 from __future__ import annotations
 
-from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
 
@@ -23,6 +22,7 @@ from diffusers.utils.torch_utils import randn_tensor
 
 from vllm_omni.diffusion.forward_context import set_forward_context_denoise_step_idx
 from vllm_omni.diffusion.models.lingbot_world.transformer import (
+    CameraModulationCache,
     LingBotAttentionCache,
     LingBotTransformerCache,
 )
@@ -110,7 +110,7 @@ class LingBotDMDBlockRunner:
         start_frame: int,
         timestep_value: float,
         step_index: int,
-        camera_cache: Any | None = None,
+        camera_cache: CameraModulationCache | None = None,
     ) -> torch.Tensor:
         """Predict flow for one denoise step.
 
@@ -128,16 +128,16 @@ class LingBotDMDBlockRunner:
         # Checkpoint channel contract:
         # [noise/x_t(16), temporal_mask(4), image_latent(16)] -> 36.
         model_input = torch.cat((current_latents.to(dtype=condition.dtype), condition), dim=1)
-        with self._camera_window(camera_cache):
-            flow_prediction = self.transformer(
-                hidden_states=model_input,
-                timestep=timestep,
-                encoder_hidden_states=prompt_embeds,
-                camera_hidden_states=camera,
-                cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=False),
-                start_frame=start_frame,
-                update_cache=False,
-            )
+        flow_prediction = self.transformer(
+            hidden_states=model_input,
+            timestep=timestep,
+            encoder_hidden_states=prompt_embeds,
+            camera_hidden_states=camera,
+            cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=False),
+            start_frame=start_frame,
+            update_cache=False,
+            camera_modulation_cache=camera_cache,
+        )
         if flow_prediction.shape != current_latents.shape:
             raise RuntimeError(
                 "transformer flow prediction shape must match the 16-channel noise latent, "
@@ -179,7 +179,7 @@ class LingBotDMDBlockRunner:
         cache: LingBotTransformerCache | None,
         ar: ARBlockContext | None,
         start_frame: int,
-        camera_cache: Any | None = None,
+        camera_cache: CameraModulationCache | None = None,
     ) -> None:
         """Write the finished block's clean x0 into KV and commit its pages.
 
@@ -191,24 +191,18 @@ class LingBotDMDBlockRunner:
         cache_input = torch.cat((latents.to(dtype=condition.dtype), condition), dim=1)
         if not self.enforce_eager:
             torch.compiler.cudagraph_mark_step_begin()
-        with self._camera_window(camera_cache):
-            self.transformer(
-                hidden_states=cache_input,
-                timestep=torch.zeros(1, device=self.device, dtype=torch.float32),
-                encoder_hidden_states=prompt_embeds,
-                camera_hidden_states=camera,
-                cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=True),
-                start_frame=start_frame,
-                update_cache=True,
-            )
+        self.transformer(
+            hidden_states=cache_input,
+            timestep=torch.zeros(1, device=self.device, dtype=torch.float32),
+            encoder_hidden_states=prompt_embeds,
+            camera_hidden_states=camera,
+            cache=self._block_cache(condition=condition, cache=cache, ar=ar, commit_current=True),
+            start_frame=start_frame,
+            update_cache=True,
+            camera_modulation_cache=camera_cache,
+        )
         if ar is not None:
             ar.state.commit_paged_context(ar.branch)
-
-    def _camera_window(self, camera_cache: Any | None):
-        """Install a caller-held camera cache around one forward, or leave whatever window is open alone."""
-        if camera_cache is None:
-            return nullcontext()
-        return self.transformer.reuse_camera_modulation(camera_cache)
 
     def generate_block(
         self,
@@ -227,32 +221,35 @@ class LingBotDMDBlockRunner:
         block_shape = (1, self.transformer.config.out_channels, *condition.shape[2:5])
         current_latents = randn_tensor(block_shape, generator=generator, device=self.device, dtype=torch.float32)
         # Every forward below -- each probe and the commit -- reads the same camera trajectory, so the camera
-        # injector is built once per block here instead of once per forward.
-        with self.transformer.reuse_camera_modulation():
-            for step_index, (timestep_value, sigma) in enumerate(schedule):
-                flow_prediction = self.probe_step(
-                    current_latents=current_latents,
-                    condition=condition,
-                    camera=camera,
-                    prompt_embeds=prompt_embeds,
-                    cache=cache,
-                    ar=ar,
-                    start_frame=start_frame,
-                    timestep_value=timestep_value,
-                    step_index=step_index,
-                )
-                next_sigma = schedule[step_index + 1][1] if step_index + 1 < len(schedule) else None
-                current_latents = self.apply_transition(
-                    current_latents, flow_prediction, sigma, next_sigma=next_sigma, generator=generator
-                )
-                progress_bar.update()
-            self.commit_block_kv(
-                latents=current_latents,
+        # injector is built once per block: one cache for the whole loop, exactly as the stepwise path holds
+        # one per block across its separate calls.
+        camera_cache = CameraModulationCache()
+        for step_index, (timestep_value, sigma) in enumerate(schedule):
+            flow_prediction = self.probe_step(
+                current_latents=current_latents,
                 condition=condition,
                 camera=camera,
                 prompt_embeds=prompt_embeds,
                 cache=cache,
                 ar=ar,
                 start_frame=start_frame,
+                timestep_value=timestep_value,
+                step_index=step_index,
+                camera_cache=camera_cache,
             )
+            next_sigma = schedule[step_index + 1][1] if step_index + 1 < len(schedule) else None
+            current_latents = self.apply_transition(
+                current_latents, flow_prediction, sigma, next_sigma=next_sigma, generator=generator
+            )
+            progress_bar.update()
+        self.commit_block_kv(
+            latents=current_latents,
+            condition=condition,
+            camera=camera,
+            prompt_embeds=prompt_embeds,
+            cache=cache,
+            ar=ar,
+            start_frame=start_frame,
+            camera_cache=camera_cache,
+        )
         return current_latents

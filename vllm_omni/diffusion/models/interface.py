@@ -153,12 +153,6 @@ def supports_step_execution(pipeline: object) -> bool:
     return isinstance(pipeline, SupportsStepExecution)
 
 
-def supports_chunk_step_grouping(pipeline: object) -> bool:
-    """Return whether a step-execution `pipeline` declares that a chunk's steps may run without scheduler cycles."""
-
-    return supports_step_execution(pipeline) and bool(getattr(pipeline, "supports_chunk_step_grouping", False))
-
-
 @runtime_checkable
 class SupportsInteractionApply(Protocol):
     """Optional protocol for pipelines with unified mid-generation, chunk-boundary hooks."""
