@@ -110,12 +110,18 @@ def test_fast_path_is_bit_identical(autocast: bool) -> None:
 
 
 def _swap_norms_to_rmsnorm_vae(vae) -> int:
-    """Replace the decoder's WanRMS_norm modules by vLLM-Omni's RMSNormVAE, as patch_wan_rms_norm does at load."""
+    """Ensure the decoder uses RMSNormVAE and return the number of matching norms.
+
+    Collecting pipeline tests can already apply patch_wan_rms_norm process-wide before this test runs.
+    """
     from vllm_omni.diffusion.layers.norm import RMSNormVAE
 
     count = 0
     for module in list(vae.decoder.modules()):
         for name, child in list(module.named_children()):
+            if isinstance(child, RMSNormVAE):
+                count += 1
+                continue
             if child.__class__.__name__ == "WanRMS_norm":
                 images = child.gamma.dim() == 3  # (dim, 1, 1) for the attention block's 4D norm
                 norm = RMSNormVAE(child.gamma.shape[0], channel_first=child.channel_first, images=images, bias=False)
@@ -127,7 +133,7 @@ def _swap_norms_to_rmsnorm_vae(vae) -> int:
 
 @pytest.mark.core_model
 @pytest.mark.cpu
-@pytest.mark.parametrize("norm", ["WanRMS_norm", "RMSNormVAE"])
+@pytest.mark.parametrize("norm", ["default", "RMSNormVAE"])
 @pytest.mark.parametrize("autocast", [False, True])
 def test_fused_level_plumbing_on_cpu(autocast: bool, norm: str) -> None:
     reference = _make_vae()
