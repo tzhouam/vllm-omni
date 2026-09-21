@@ -444,7 +444,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     workload.add_argument("--prompt", dest="prompt_override", default=None, help=f"Default: {DEFAULT_PROMPT!r}")
     workload.add_argument("--negative-prompt", default=None)
     workload.add_argument("--num-chunks", type=int, default=16, help="AR blocks per session; ignored with --workload.")
-    workload.add_argument("--camera-pattern", choices=CAMERA_PATTERNS, default="forward")
+    workload.add_argument(
+        "--camera-pattern",
+        choices=CAMERA_PATTERNS,
+        default="forward",
+        help="Camera pattern for the built-in workload only; ignored with --workload.",
+    )
     workload.add_argument("--width", dest="width_override", type=int, default=None, help=f"Default: {DEFAULT_WIDTH}")
     workload.add_argument("--height", dest="height_override", type=int, default=None, help=f"Default: {DEFAULT_HEIGHT}")
     workload.add_argument("--fps", dest="fps_override", type=int, default=None, help=f"Default: {DEFAULT_FPS}")

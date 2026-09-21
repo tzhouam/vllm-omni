@@ -64,8 +64,9 @@ python benchmarks/lingbot_world/benchmark_lingbot_world_realtime.py \
 `usp4_compiled.yaml` sets pure Ulysses sequence parallelism over four ranks and
 `enforce_eager: false`. The pipeline validates the parallel shape itself:
 `sequence_parallel_size` must equal `ulysses_degree`, `ring_degree` and
-`allgather_degree` must be 1, `ulysses_mode` must be `strict`, and tensor,
-pipeline, CFG, and VAE parallelism are all rejected.
+`allgather_degree` must be 1, `ulysses_mode` must be `strict`, and pipeline,
+CFG, and VAE parallel sizes above 1 are rejected. This benchmark config sets
+`tensor_parallel_size: 1`; the pipeline validator does not reject larger TP sizes.
 
 Compiled mode can pay compilation and capture costs on the first rollout.
 Use `--warmup-sessions 1` before measured repetitions. Excluding the first six
@@ -181,8 +182,14 @@ prompt changes, which the CLI flags cannot express:
 
 Supply `camera_action_script` directly instead of `num_chunks` to control every
 frame's action. It must hold exactly one three-entry action list per chunk; one
-AR block is three latent frames, and the server rejects any other shape. A
-non-`null` CLI flag overrides the matching file field.
+AR block is three latent frames, and the server rejects any other shape.
+Explicit `--image`, `--prompt`, `--negative-prompt`, `--width`, `--height`,
+`--fps`, `--seed`, and `--flow-shift` flags override the matching workload-file
+values. `--num-chunks` and `--camera-pattern` apply only to the built-in
+workload; when using `--workload`, set those fields in the file instead.
+An explicit `camera_action_script` takes precedence over the file's
+`num_chunks` and `camera_pattern`. Each prompt update must use a distinct
+`after_chunk` boundary so its interaction event ID is unique.
 
 Camera actions change what the world does, not what it costs, so `--camera-pattern`
 (`forward`, `orbit`, `hold`) keeps a rollout representative rather than sweeping a

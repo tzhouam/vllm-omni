@@ -140,6 +140,31 @@ def test_prompt_update_beyond_the_rollout_is_rejected() -> None:
         )
 
 
+@pytest.mark.parametrize("from_file", [False, True])
+def test_duplicate_prompt_update_boundaries_are_rejected(tmp_path: Path, from_file: bool) -> None:
+    updates = [
+        {"after_chunk": 1, "prompt": "Rain begins"},
+        {"after_chunk": 0, "prompt": "Clouds gather"},
+        {"after_chunk": 1, "prompt": "Rain stops"},
+    ]
+    with pytest.raises(ValueError, match="Duplicate prompt update after chunk 1"):
+        if from_file:
+            path = tmp_path / "rollout.json"
+            path.write_text(json.dumps({"image": _IMAGE, "num_chunks": 3, "prompt_updates": updates}))
+            build_workload(parse_args(["--workload", str(path)]))
+        else:
+            Workload(
+                prompt="p",
+                image_reference=_IMAGE,
+                camera_script=build_camera_script(3, "forward"),
+                prompt_updates=(
+                    PromptUpdate(after_chunk=1, prompt="Rain begins"),
+                    PromptUpdate(after_chunk=0, prompt="Clouds gather"),
+                    PromptUpdate(after_chunk=1, prompt="Rain stops"),
+                ),
+            )
+
+
 def test_workload_file_is_loaded_and_cli_overrides_win(tmp_path: Path) -> None:
     path = tmp_path / "rollout.json"
     path.write_text(

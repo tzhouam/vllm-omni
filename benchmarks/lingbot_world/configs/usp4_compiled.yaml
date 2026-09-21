@@ -7,8 +7,9 @@
 #                     pipeline validates this: LingBot requires
 #                     sequence_parallel_size == ulysses_degree, ring_degree and
 #                     allgather_degree of 1, ulysses_mode "strict", and
-#                     ulysses_a2a_permute disabled. Tensor, pipeline, CFG, and
-#                     VAE parallelism are all rejected.
+#                     ulysses_a2a_permute disabled. Pipeline, CFG, and VAE
+#                     parallel sizes above 1 are rejected. This config uses
+#                     TP=1; the validator does not reject larger TP sizes.
 #   enforce_eager     false puts LingBotDMDBlockRunner on the compiled path
 #                     (regional torch.compile with cudagraph step marking). The
 #                     first rollout therefore pays compile and capture cost --

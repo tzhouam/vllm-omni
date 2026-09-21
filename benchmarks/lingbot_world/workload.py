@@ -193,7 +193,11 @@ class Workload:
         if self.fps <= 0:
             raise ValueError("Workload.fps must be positive.")
         object.__setattr__(self, "camera_script", _validate_camera_script(self.camera_script))
+        seen_update_chunks: set[int] = set()
         for update in self.prompt_updates:
+            if update.after_chunk in seen_update_chunks:
+                raise ValueError(f"Duplicate prompt update after chunk {update.after_chunk}; event IDs must be unique.")
+            seen_update_chunks.add(update.after_chunk)
             if update.after_chunk >= self.num_chunks:
                 raise ValueError(
                     f"Prompt update after chunk {update.after_chunk} never fires in a {self.num_chunks}-chunk rollout."
