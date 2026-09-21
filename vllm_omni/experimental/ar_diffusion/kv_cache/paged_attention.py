@@ -705,7 +705,9 @@ def _paged_write_attn_impl(
 # hasattr guard keeps registration idempotent across test re-imports that pop
 # the module from sys.modules (same as sage_attn3.py).
 if not hasattr(torch.ops.vllm_omni, "ar_diffusion_paged_write_attn"):
-
+    # Keep staging arguments required even when their value is None. The dispatcher
+    # strips trailing defaults, and older PyTorch mutation handlers index the
+    # positional arguments without restoring them before bumping version counters.
     @torch.library.custom_op(
         "vllm_omni::ar_diffusion_paged_write_attn",
         mutates_args=("key_pool", "value_pool", "stage_key", "stage_value"),
@@ -727,10 +729,10 @@ if not hasattr(torch.ops.vllm_omni, "ar_diffusion_paged_write_attn"):
         max_query_len: int,
         max_seq_len: int,
         softmax_scale: float,
-        stage_key: torch.Tensor | None = None,
-        stage_value: torch.Tensor | None = None,
-        reuse_history: bool = False,
-        stage_first_block: int = 0,
+        stage_key: torch.Tensor | None,
+        stage_value: torch.Tensor | None,
+        reuse_history: bool,
+        stage_first_block: int,
     ) -> torch.Tensor:
         return _paged_write_attn_impl(
             query,

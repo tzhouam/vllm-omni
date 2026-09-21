@@ -463,13 +463,27 @@ def test_custom_op_registration_idempotent():
     assert hasattr(torch.ops.vllm_omni, "ar_diffusion_paged_write_attn")
 
 
-def test_custom_op_compiles_fullgraph_without_recompile_on_value_change():
+def test_custom_op_mutable_arguments_cannot_be_elided_as_defaults():
+    # Older PyTorch ADInplaceOrView handlers index positional mutable inputs
+    # directly. Default-valued trailing inputs can disappear before that handler.
+    schema = torch.ops.vllm_omni.ar_diffusion_paged_write_attn.default._schema
+    mutable = [arg for arg in schema.arguments if arg.alias_info is not None and arg.alias_info.is_write]
+    assert {arg.name for arg in mutable} == {"key_pool", "value_pool", "stage_key", "stage_value"}
+    assert all(not arg.has_default_value() for arg in mutable)
+
+
+@pytest.mark.parametrize("reuse_history_staging", [False, True])
+def test_custom_op_compiles_fullgraph_without_recompile_on_value_change(monkeypatch, reuse_history_staging):
     """The op must trace as one opaque node: fullgraph OK, and changed tensor
     VALUES (new slots / block ids) must not trigger recompilation."""
     import torch._dynamo
 
     device = torch.device("cpu")
-    kv, st = make_state(num_layers=2, window_chunks=2)
+    monkeypatch.setenv(KV_GATHER_ENV, "1")
+    kv, st = make_state(num_layers=2, window_chunks=2, reuse_history_staging=reuse_history_staging)
+    if reuse_history_staging:
+        # Hold the host-side staging offset fixed while table/slot values change.
+        _commit_video_span(kv, st, kv_branch=POS, n_chunks=2, dtype=torch.float32, device=device)
 
     def run_one_forward(commit):
         contexts = st.get_kv_caches(POS, seq_len=BLOCK, commit_current=commit)
@@ -478,9 +492,8 @@ def test_custom_op_compiles_fullgraph_without_recompile_on_value_change():
         q = torch.randn(BLOCK, N_HEADS, HEAD_DIM)
         k = torch.randn(BLOCK, N_HEADS, HEAD_DIM)
         v = torch.randn(BLOCK, N_HEADS, HEAD_DIM)
-        # Both layers through ONE compiled fn: layer_idx is a tensor, so a
-        # different layer must NOT recompile (all 40 DiT blocks share the
-        # block-forward code object in production).
+        # Both layers use one compiled function; the tensor-valued layer index
+        # must not specialize it.
         for layer_ctx in contexts:
             out = compiled(layer_ctx.to_layer_inputs(), q, k, v)
         st.commit_paged_context(POS)
