@@ -44,8 +44,6 @@ from vllm_omni.experimental.ar_diffusion.kv_cache.paged import (
     resident_block_ids,
 )
 
-logger = init_logger(__name__)
-
 _log = init_logger(__name__)
 
 
@@ -336,7 +334,7 @@ class ARDiffusionKVCache:
                     2 * num_layers * self.history_staging_tokens * num_kv_heads * head_size * dtype.itemsize
                 )
             else:
-                logger.warning(
+                _log.warning(
                     "reuse_history_staging is set but the contiguous K/V gather path (%s=1) is off: "
                     "staging has no consumer and is neither budgeted nor allocated.",
                     KV_GATHER_ENV,

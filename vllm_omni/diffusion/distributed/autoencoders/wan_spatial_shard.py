@@ -539,6 +539,7 @@ class WanDistCausalConv3d(nn.Conv3d):
             cache_x = cache_x.to(x.device)
             cache_frames = int(cache_x.shape[2])
             pad_t0 -= cache_frames
+        assert pad_t0 >= 0, "Wan temporal cache exceeds the causal padding"
         rank, world_size = _rank_world(self.group)
         halo = self.halo_size if world_size > 1 else 0
         halo_h = halo if self.split_dim == "height" else 0

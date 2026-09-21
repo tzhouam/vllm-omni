@@ -397,6 +397,14 @@ def test_single_pass_conv_input_matches_cat_pad_halo_on_one_rank(monkeypatch, sp
 
 @pytest.mark.core_model
 @pytest.mark.cpu
+def test_single_pass_conv_rejects_cache_longer_than_causal_padding():
+    _, conv = _dist_conv("width")
+    with pytest.raises(AssertionError, match="temporal cache exceeds"):
+        conv._assemble_input(torch.randn(1, 3, 2, 6, 8), torch.randn(1, 3, 3, 6, 8))
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
 @pytest.mark.parametrize("split_dim", ["width", "height"])
 def test_single_pass_conv_without_a_halo_matches_the_stock_causal_conv(monkeypatch, split_dim):
     """A kernel with no spatial extent along the split (the temporal conv) needs no halo and equals the stock conv."""

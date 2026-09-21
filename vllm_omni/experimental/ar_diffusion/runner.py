@@ -94,9 +94,9 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             self._warmup_ar_rollout()
 
     def _available_memory_bytes(self) -> int:
-        if self.device is None or torch.device(self.device).type != "cuda":
-            raise RuntimeError("AR-Diffusion KV preallocation currently requires a CUDA device")
-        return int(torch.cuda.mem_get_info(self.device)[0])
+        if self.device is None:
+            raise RuntimeError("AR-Diffusion KV preallocation requires an initialized device")
+        return current_omni_platform.get_free_memory(torch.device(self.device))
 
     def _preallocate_kv_cache(self, *, available_bytes: int | None = None) -> None:
         """Build pools solely from the pipeline capability and runner config."""
@@ -398,7 +398,21 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             kv_prefetch_job=None,
             kv_connector_metadata=None,
         )
+        if not self._chunk_step_pending(output, request_id):
+            return output
+        max_steps = self.state_cache[request_id].chunk_num_steps
+        if max_steps is None:
+            return output
+        steps = 1
         while self._chunk_step_pending(output, request_id):
+            if steps >= max_steps:
+                self.state_cache.pop(request_id)
+                runner_output = output.get_request_output(request_id)
+                assert runner_output is not None
+                runner_output.finished = True
+                runner_output.result = DiffusionOutput(error=f"Chunk did not complete within {max_steps} denoise steps")
+                break
+            steps += 1
             output = super()._execute_stepwise_core(
                 continuation,
                 record_output_peak_memory=record_output_peak_memory,
