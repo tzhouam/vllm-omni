@@ -589,8 +589,12 @@ class LingBotWorldCausalDMDPipeline(
         self._cached_streaming_decoder: WanStreamingDecoder | None = None
         self._streaming_decode_unsupported = False
         self._vae_shard_split_dim: str | None = None
+        self._vae_shard_world_size = 1
+        vae_sharding = model_config.get("lingbot_vae_spatial_sharding", True)
+        if not isinstance(vae_sharding, bool):
+            raise ValueError("lingbot_vae_spatial_sharding must be a boolean.")
         sequence_parallel_size = int(getattr(parallel_config, "sequence_parallel_size", 1) or 1)
-        if sequence_parallel_size > 1:
+        if sequence_parallel_size > 1 and vae_sharding:
             self._install_sharded_vae_decode(sequence_parallel_size)
         self.setup_diffusion_pipeline_profiler(
             profiler_targets=[
@@ -699,9 +703,24 @@ class LingBotWorldCausalDMDPipeline(
         decoder = self._streaming_decoder()
         if decoder is None:
             return 0
+        height, width = self._ar_height, self._ar_width
+        if self._vae_shard_split_dim is not None:
+            # The decoder pads the latent extent to a multiple of the group
+            # size before splitting. Account for that padding on every rank,
+            # including ranks whose final pixels are trimmed after gathering.
+            scale = self.vae_scale_factor_spatial
+            extent = width if self._vae_shard_split_dim == "width" else height
+            latent_extent = (extent + scale - 1) // scale
+            local_extent = (latent_extent + self._vae_shard_world_size - 1) // self._vae_shard_world_size
+            if self._vae_shard_split_dim == "width":
+                width = local_extent * scale
+            else:
+                height = local_extent * scale
+            # Temporal caches retain local inputs, before spatial halo exchange.
+            # Halo receive buffers belong to the decoder, not to each session.
         return decoder.declared_state_bytes(
-            height=self._ar_height,
-            width=self._ar_width,
+            height=height,
+            width=width,
             dtype=self.vae.dtype,
         )
 
@@ -1491,9 +1510,11 @@ class LingBotWorldCausalDMDPipeline(
         ``first_chunk`` pass straight through to the patched decoder, and the
         per-session temporal cache shrinks by the same factor.
 
-        This is how a multi-rank deployment of this pipeline decodes; there is
-        no switch. ``vae_patch_parallel_size`` stays rejected because it would
-        make the registry set up the tiled distributed executor and force
+        This is the default for multi-rank deployments; setting
+        ``model_config.lingbot_vae_spatial_sharding=False`` keeps full-frame
+        decode on each rank without changing DiT parallelism.
+        ``vae_patch_parallel_size`` stays rejected because it would make the
+        registry set up the tiled distributed executor and force
         tiling on a decoder that is already sharded. Width rather than height
         because at 480x832 it is the longer side, so each rank keeps a
         208-pixel shard against the same halo, and it is the split this was
@@ -1510,6 +1531,7 @@ class LingBotWorldCausalDMDPipeline(
             )
         install_wan_spatial_shard_decode(self.vae, group, split_dim=_VAE_SHARD_SPLIT_DIM, dst=None)
         self._vae_shard_split_dim = _VAE_SHARD_SPLIT_DIM
+        self._vae_shard_world_size = world_size
         logger.info("LingBot World VAE decode sharded along %s across %d ranks.", _VAE_SHARD_SPLIT_DIM, world_size)
 
     def _streaming_decoder(self) -> WanStreamingDecoder | None:

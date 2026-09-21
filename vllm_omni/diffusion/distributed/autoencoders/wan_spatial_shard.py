@@ -743,6 +743,9 @@ def install_wan_spatial_shard_decode(
     this costs no extra communication.
     """
     _spatial_dim(split_dim)
+    _, world_size = _rank_world(group)
+    if dst is not None and (not isinstance(dst, int) or not 0 <= dst < world_size):
+        raise ValueError(f"Wan spatial-shard dst must be None or an integer in [0, {world_size}), got {dst!r}.")
     if getattr(vae, "_vllm_omni_wan_spatial_shard_installed", False):
         installed_split_dim = getattr(vae, "_vllm_omni_wan_spatial_shard_split_dim", "height")
         if installed_split_dim != split_dim:

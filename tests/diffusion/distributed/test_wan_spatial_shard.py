@@ -419,6 +419,24 @@ class _PlainDecoder(torch.nn.Module):
         return x
 
 
+@pytest.mark.core_model
+@pytest.mark.cpu
+@pytest.mark.parametrize("world_size, dst", [(4, -1), (4, 4), (4, 5), (1, 1), (4, 1.5)])
+def test_install_rejects_invalid_destination_before_mutating_decoder(monkeypatch, world_size, dst):
+    monkeypatch.setattr(wan_spatial_shard, "_rank_world", lambda group: (0, world_size))
+    vae = SimpleNamespace(decoder=torch.nn.Identity())
+    original_forward = vae.decoder.forward
+
+    def unexpected_patch(*args, **kwargs):
+        pytest.fail("invalid destination must fail before patching modules")
+
+    monkeypatch.setattr(wan_spatial_shard, "_patch_decoder_modules", unexpected_patch)
+    with pytest.raises(ValueError, match="dst must be None or an integer"):
+        wan_spatial_shard.install_wan_spatial_shard_decode(vae, object(), dst=dst)
+    assert vae.decoder.forward == original_forward
+    assert not getattr(vae, "_vllm_omni_wan_spatial_shard_installed", False)
+
+
 def _install_on_plain_decoder(monkeypatch: pytest.MonkeyPatch, *, dst):
     monkeypatch.setattr(wan_spatial_shard, "_rank_world", lambda group: (1, 2))
     monkeypatch.setattr(
@@ -440,7 +458,7 @@ def _install_on_plain_decoder(monkeypatch: pytest.MonkeyPatch, *, dst):
 
 @pytest.mark.core_model
 @pytest.mark.cpu
-@pytest.mark.parametrize("dst", [0, None])
+@pytest.mark.parametrize("dst", [0, 1, None])
 def test_install_passes_the_assembling_rank_through_to_the_gather(monkeypatch: pytest.MonkeyPatch, dst):
     vae, gathers = _install_on_plain_decoder(monkeypatch, dst=dst)
     cache = [None]
