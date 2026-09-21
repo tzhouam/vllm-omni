@@ -57,7 +57,7 @@ vllm serve robbyant/lingbot-world-v2-14b-causal-fast-diffusers \
   --port 8000
 
 python benchmarks/lingbot_world/benchmark_lingbot_world_realtime.py \
-  --port 8000 --num-chunks 16 --warmup-sessions 1
+  --port 8000 --num-chunks 16 --warmup-sessions 1 --sessions 3
 ```
 
 `usp4_compiled.yaml` sets pure Ulysses sequence parallelism over four ranks and
@@ -114,7 +114,16 @@ block. **Chunk cost is not stationary before chunk six.** A mean over a short
 rollout is therefore lower than anything a running session will sustain, which is
 why `--warmup-chunks` defaults to 6 and steady-state metrics are reported
 separately. Keep `--num-chunks` comfortably above the warmup, or the benchmark
-tells you no chunk reached steady state.
+tells you no chunk reached steady state. The terminal chunk skips next-chunk
+preparation, so it is excluded from steady metrics too; it remains in overall
+RTF, all-chunk intervals, and playback simulation.
+
+The default 16-chunk rollout provides only nine steady intervals. Percentiles
+are interpolated sample summaries; the report warns when fewer than 100
+intervals contribute, and even 100 samples do not guarantee a stable p99.
+Use longer rollouts for tail analysis and at least `--sessions 3` after
+`--warmup-sessions 1` for reported comparisons. Session warmup pays compilation
+cost; chunk warmup separately excludes the attention-window ramp.
 
 ### Why playback is simulated
 
@@ -126,18 +135,17 @@ benchmark replays chunk arrivals against a wall clock — playback starts once
 
 ### What the client-side number is worth
 
-Measuring from outside the server invites the obvious objection that the number
-includes the client, the muxer and the socket. It does not, to any degree that
-matters. On a four-GPU Ulysses run the client's mean inter-arrival over fifteen
-steady intervals was **1326.743 ms**, against the server's own
+On a four-GPU Ulysses run the client's mean inter-arrival over all fifteen
+post-first-chunk intervals was **1326.743 ms**, against the server's own
 `StageRequestStats.inter_output_latency_ms` of **1327.479 ms** for the same
-request -- a difference of **0.74 ms**. Fragmented-MP4 muxing, WebSocket
-delivery and the client's own event loop together cost under a millisecond per
-chunk in steady state, so what this benchmark reports is the engine's own output
-cadence, observed where a user would observe it.
+request — a difference of **0.74 ms**. This cross-check shows agreement in
+average output cadence for that run, including warmup and the terminal chunk.
+It does not measure encoding or transport latency: a fixed delivery delay can
+cancel out of inter-arrival differences. Attributing that latency requires
+per-chunk timestamps at both boundaries or server-side profiling.
 
-Cross-check any surprising result the same way: the server prints that table per
-request, and a client-side cadence that disagrees with it is a client bug.
+Compare matching interval populations when investigating discrepancies; both
+measurement bugs and delivery buffering can change the observed cadence.
 
 ### What this benchmark cannot see
 

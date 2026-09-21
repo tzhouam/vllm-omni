@@ -6,7 +6,7 @@ The arithmetic is tested against the server's own formulas rather than against
 hand-copied expectations, and the protocol handling runs against a real
 WebSocket server that replays ``/v1/realtime/video`` with scripted delays -- so
 a benchmark number can be wrong only if the server itself is, not because the
-client mis-parsed an event or timed the wrong edge.
+client parsed incorrectly an event or timed the wrong edge.
 """
 
 from __future__ import annotations
@@ -27,6 +27,8 @@ if str(REPO_ROOT) not in sys.path:
 
 from benchmarks.lingbot_world.benchmark_lingbot_world_realtime import (
     BenchmarkError,
+    build_workload,
+    print_report,
     endpoint_url,
     parse_args,
     resolve_image_reference,
@@ -248,7 +250,7 @@ def test_steady_state_excludes_the_unsaturated_attention_window() -> None:
     """
     intervals = [1.0] + [0.2] * (DEFAULT_WARMUP_CHUNKS - 1) + [0.8] * 4
     metrics = compute_metrics(_records(intervals), fps=16, warmup_chunks=DEFAULT_WARMUP_CHUNKS)
-    assert metrics["interval_steady"]["count"] == 4
+    assert metrics["interval_steady"]["count"] == 3
     assert metrics["interval_steady"]["mean_ms"] == pytest.approx(800.0)
     assert metrics["interval_all"]["mean_ms"] < metrics["interval_steady"]["mean_ms"]
 
@@ -275,8 +277,8 @@ def test_real_time_factor_and_deadline_use_the_true_frame_counts() -> None:
 def test_slo_attainment_counts_only_steady_chunks() -> None:
     intervals = [1.0] + [0.1] * 5 + [0.7, 0.9, 0.7, 0.9]
     metrics = compute_metrics(_records(intervals), fps=16, warmup_chunks=6, slo_ms=750.0)
-    assert metrics["slo_attainment"] == pytest.approx(0.5)
-    assert metrics["slo_violations"] == 2
+    assert metrics["slo_attainment"] == pytest.approx(2 / 3)
+    assert metrics["slo_violations"] == 1
 
 
 def test_playback_simulation_finds_stalls_a_percentile_would_hide() -> None:
@@ -559,7 +561,7 @@ def test_a_stalled_server_times_out_rather_than_hanging() -> None:
         server = _serve(script)
         url = await server.__aenter__()
         try:
-            with pytest.raises(BenchmarkError, match="No message for"):
+            with pytest.raises(BenchmarkError, match="No media chunk for"):
                 await run_session(
                     url,
                     "model",
@@ -659,3 +661,112 @@ def test_prompt_updates_are_sent_on_their_chunk_boundary() -> None:
         assert interactions[0]["interaction"]["transition_chunks"] == 1
 
     _run(scenario())
+
+
+@pytest.mark.parametrize("delivered", [0, 1])
+def test_pongs_do_not_extend_media_deadlines(delivered) -> None:
+    seen = []
+
+    async def script(websocket, payload) -> None:
+        if delivered:
+            await websocket.send(
+                json.dumps(
+                    {
+                        "type": "video.chunk_metadata",
+                        "kind": "media",
+                        "generation_chunk_index": 0,
+                        "num_frames": 9,
+                    }
+                )
+            )
+            await websocket.send(b"media")
+        async for message in websocket:
+            seen.append(json.loads(message)["type"])
+            await websocket.send(json.dumps({"type": "session.pong"}))
+
+    async def scenario() -> None:
+        async with _serve(script) as url:
+            with pytest.raises(BenchmarkError, match=f"after {delivered} chunk"):
+                await asyncio.wait_for(
+                    run_session(
+                        url,
+                        "model",
+                        _workload(num_chunks=2),
+                        first_chunk_timeout=0.25,
+                        chunk_timeout=0.25,
+                        ping_interval=0.03,
+                        collect_media=False,
+                        print_chunks=False,
+                    ),
+                    timeout=2,
+                )
+        assert "session.ping" in seen
+
+    _run(scenario())
+
+
+def test_terminal_chunk_is_only_excluded_from_steady_metrics() -> None:
+    records = _records([1.0] + [0.1] * 5 + [1.2, 0.8, 0.1])
+    metrics = compute_metrics(records, fps=12, warmup_chunks=6)
+    assert metrics["steady_chunks"] == 2
+    assert metrics["interval_steady"]["mean_ms"] == pytest.approx(1000)
+    assert metrics["steady_video_rtf"] == pytest.approx(1)
+    assert metrics["slo_attainment"] == pytest.approx(0.5)
+    assert metrics["interval_all"]["count"] == 8
+    assert metrics["total_frames"] == 105
+    assert metrics["wall_seconds"] == pytest.approx(records[-1].arrival_s)
+    assert metrics["playback"]["total_stall_ms"] == pytest.approx(
+        simulate_playback(records, fps=12).total_stall_s * 1000
+    )
+
+
+def test_terminal_chunk_alone_does_not_establish_steady_state() -> None:
+    metrics = compute_metrics(_records([1.0] * 7), fps=12, warmup_chunks=6)
+    assert not metrics["steady_state_reached"]
+    assert "steady_video_rtf" not in metrics
+
+
+def test_aggregate_preserves_custom_deadline_and_weights_intervals() -> None:
+    fast = compute_metrics(_records([1.0, 0.5, 0.1]), fps=12, warmup_chunks=0, slo_ms=700)
+    slow = compute_metrics(_records([1.0, 0.9, 0.9, 0.9, 0.1]), fps=12, warmup_chunks=0, slo_ms=700)
+    aggregate = aggregate_metrics([fast, slow], fps=12)
+    assert aggregate["chunk_deadline_ms"] == 700
+    assert aggregate["steady_interval_ms_mean"] == pytest.approx(800)
+    slow["chunk_deadline_ms"] = 800
+    with pytest.raises(ValueError, match="different chunk deadlines"):
+        aggregate_metrics([fast, slow], fps=12)
+
+
+@pytest.mark.parametrize(
+    "flags, expected_shift, expected_negative",
+    [
+        ([], 7.0, "file negative"),
+        (["--flow-shift", "5", "--negative-prompt", "CLI negative"], 5.0, "CLI negative"),
+        (["--negative-prompt", ""], 7.0, ""),
+    ],
+)
+def test_cli_workload_generation_overrides(tmp_path, flags, expected_shift, expected_negative) -> None:
+    path = tmp_path / "workload.json"
+    path.write_text(
+        json.dumps(
+            {
+                "image": _IMAGE,
+                "num_chunks": 3,
+                "flow_shift": 7.0,
+                "negative_prompt": "file negative",
+            }
+        )
+    )
+    workload = build_workload(parse_args(["--workload", str(path), *flags]))
+    assert workload.flow_shift == expected_shift
+    assert workload.negative_prompt == expected_negative
+
+
+def test_builtin_workload_keeps_default_flow_shift() -> None:
+    assert build_workload(parse_args(["--image", _IMAGE])).flow_shift == 5.0
+
+
+def test_short_sample_report_qualifies_tail_percentiles(capsys) -> None:
+    metrics = compute_metrics(_records([1.0] * 16), fps=12)
+    print_report(metrics, workload=_workload(num_chunks=16), endpoint="ws://test", sessions=1, target_fps=12)
+    assert "not reliable tail estimates" in capsys.readouterr().out

@@ -118,6 +118,8 @@ def build_workload(args: argparse.Namespace) -> Workload:
                 "fps": args.fps_override,
                 "seed": args.seed_override,
                 "prompt": args.prompt_override,
+                "flow_shift": args.flow_shift,
+                "negative_prompt": args.negative_prompt,
             },
         )
     return default_workload(
@@ -129,7 +131,7 @@ def build_workload(args: argparse.Namespace) -> Workload:
         height=args.height_override if args.height_override is not None else DEFAULT_HEIGHT,
         fps=args.fps_override if args.fps_override is not None else DEFAULT_FPS,
         seed=args.seed_override if args.seed_override is not None else DEFAULT_SEED,
-        flow_shift=args.flow_shift,
+        flow_shift=args.flow_shift if args.flow_shift is not None else DEFAULT_FLOW_SHIFT,
         negative_prompt=args.negative_prompt,
     )
 
@@ -209,10 +211,14 @@ async def run_session(
             while True:
                 timeout = first_chunk_timeout if not records else chunk_timeout
                 try:
-                    message = await asyncio.wait_for(websocket.recv(), timeout=timeout)
+                    deadline = started + (last_arrival if last_arrival is not None else 0.0) + timeout
+                    remaining = deadline - time.perf_counter()
+                    if remaining <= 0:
+                        raise asyncio.TimeoutError
+                    message = await asyncio.wait_for(websocket.recv(), timeout=remaining)
                 except asyncio.TimeoutError as exc:
                     raise BenchmarkError(
-                        f"No message for {timeout:.0f} s after {len(records)} chunk(s); "
+                        f"No media chunk for {timeout:g} s after {len(records)} chunk(s); "
                         "the server may still be loading, compiling, or capturing graphs."
                     ) from exc
                 now = time.perf_counter()
@@ -357,6 +363,10 @@ def print_report(
             _print_row("    std / max:", f"{summary['std_ms']:.1f} / {summary['max_ms']:.1f} ms")
             tail = f"{summary['p90_ms']:.0f} / {summary['p95_ms']:.0f} / {summary['p99_ms']:.0f} ms"
             _print_row("    p90 / p95 / p99:", tail)
+            if summary["count"] < 100:
+                print(
+                    "    NOTE: fewer than 100 intervals; tail percentiles are descriptive, not reliable tail estimates."
+                )
 
         print("{s:{c}^{n}}".format(s=" Real time ", n=60, c="-"))
         _print_row("VIDEO_RTF (wall s / video s, <1 real time):", f"{metrics['video_rtf']:.3f}")
@@ -439,7 +449,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     workload.add_argument("--height", dest="height_override", type=int, default=None, help=f"Default: {DEFAULT_HEIGHT}")
     workload.add_argument("--fps", dest="fps_override", type=int, default=None, help=f"Default: {DEFAULT_FPS}")
     workload.add_argument("--seed", dest="seed_override", type=int, default=None, help=f"Default: {DEFAULT_SEED}")
-    workload.add_argument("--flow-shift", type=float, default=DEFAULT_FLOW_SHIFT)
+    workload.add_argument("--flow-shift", type=float, default=None, help=f"Default: {DEFAULT_FLOW_SHIFT}")
 
     run = parser.add_argument_group("run")
     run.add_argument("--sessions", type=int, default=1, help="Sequential measured rollouts.")
@@ -509,9 +519,9 @@ async def run_benchmark(args: argparse.Namespace) -> dict[str, Any]:
     # The mux label and the real-time basis are different questions; only the
     # latter decides whether a run passes.
     target_fps = args.target_fps if args.target_fps is not None else float(workload.fps)
-    if args.warmup_chunks >= workload.num_chunks:
+    if max(1, args.warmup_chunks) >= workload.num_chunks - 1:
         print(
-            f"WARNING: --warmup-chunks={args.warmup_chunks} leaves no steady-state chunk in a "
+            f"WARNING: --warmup-chunks={args.warmup_chunks} leaves no nonterminal steady-state chunk in a "
             f"{workload.num_chunks}-chunk rollout; steady-state metrics will be empty.",
             file=sys.stderr,
         )

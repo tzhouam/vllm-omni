@@ -512,8 +512,9 @@ def compute_metrics(
     """Summarize one session.
 
     ``warmup_chunks`` are excluded from the steady-state block because the
-    attention window has not saturated before then (see the module docstring);
-    they stay in the all-chunk block and in the playback simulation, which is
+    attention window has not saturated before then (see the module docstring).
+    The terminal chunk also stays out of steady metrics because it skips
+    next-chunk preparation. All chunks stay in the playback simulation, which is
     what a session really costs end to end.
     """
     if not records:
@@ -525,7 +526,9 @@ def compute_metrics(
     deadline_ms = slo_ms if slo_ms is not None else steady_chunk_deadline_ms(fps)
 
     all_intervals = [record.inter_arrival_s for record in ordered[1:]]
-    steady = [record for record in ordered if record.index >= warmup_chunks]
+    # The terminal chunk skips next-chunk preparation and is not representative
+    # of sustained generation. Keep it in end-to-end and playback metrics.
+    steady = [record for record in ordered[:-1] if record.index >= warmup_chunks]
     steady_intervals = [record.inter_arrival_s for record in steady if record.index > 0]
 
     total_frames = sum(record.num_frames for record in ordered)
@@ -591,12 +594,21 @@ def aggregate_metrics(sessions: Iterable[Mapping[str, Any]], *, fps: float) -> d
         single["sessions"] = 1
         return single
 
+    deadline_ms = entries[0]["chunk_deadline_ms"]
+    if any(entry["chunk_deadline_ms"] != deadline_ms for entry in entries):
+        raise ValueError("Cannot aggregate sessions with different chunk deadlines.")
     ttfcs = [float(entry["ttfc_ms"]) for entry in entries if entry.get("ttfc_ms") is not None]
     # Lower is better, so "max" is the worst session, not the best.
     rtfs = [float(entry["video_rtf"]) for entry in entries]
     steady_means = [
         float(entry["interval_steady"]["mean_ms"]) for entry in entries if entry.get("interval_steady", {}).get("count")
     ]
+    steady_count = sum(entry.get("interval_steady", {}).get("count", 0) for entry in entries)
+    steady_total_ms = sum(
+        entry["interval_steady"]["mean_ms"] * entry["interval_steady"]["count"]
+        for entry in entries
+        if entry.get("interval_steady", {}).get("count")
+    )
     return {
         "sessions": len(entries),
         "chunks_received": sum(int(entry["chunks_received"]) for entry in entries),
@@ -608,8 +620,8 @@ def aggregate_metrics(sessions: Iterable[Mapping[str, Any]], *, fps: float) -> d
         "video_rtf_worst": max(rtfs),
         "ttfc_ms_mean": (sum(ttfcs) / len(ttfcs)) if ttfcs else None,
         "ttfc_ms_max": max(ttfcs) if ttfcs else None,
-        "steady_interval_ms_mean": (sum(steady_means) / len(steady_means)) if steady_means else None,
+        "steady_interval_ms_mean": (steady_total_ms / steady_count) if steady_count else None,
         "steady_interval_ms_spread": (max(steady_means) - min(steady_means)) if steady_means else None,
         "underrun_count": sum(int(entry["playback"]["underrun_count"]) for entry in entries),
-        "chunk_deadline_ms": steady_chunk_deadline_ms(fps),
+        "chunk_deadline_ms": deadline_ms,
     }
