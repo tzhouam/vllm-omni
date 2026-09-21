@@ -338,6 +338,12 @@ def parse_args() -> argparse.Namespace:
         help="Enable layerwise (blockwise) offloading on DiT modules.",
     )
     parser.add_argument(
+        "--diffusion-offload-config",
+        type=json.loads,
+        default=None,
+        help="Component-selective diffusion offload config as JSON.",
+    )
+    parser.add_argument(
         "--enable-distributed-layerwise-offload",
         action="store_true",
         help="Enable distributed layerwise offloading with overlapped host-to-device weight streaming.",
@@ -378,12 +384,19 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help='JSON profiler config for torch/cuda profiling, e.g. \'{"profiler":"torch","torch_profiler_dir":"./perf"}\'.',
     )
-    parser.add_argument(
+    quantization_group = parser.add_mutually_exclusive_group()
+    quantization_group.add_argument(
         "--quantization",
         type=str,
         default=None,
         choices=["fp8", "mxfp8", "mxfp4", "mxfp4_dualscale", "int8"],
         help="Quantization method for the transformer. mxfp8: W8A8 MXFP8 (NPU). mxfp4: W4A4 MXFP4 (NPU). mxfp4_dualscale: W4A4 MXFP4 dual-scale + BF16 fallback mixed (NPU). fp8: online FP8 (GPU).",
+    )
+    quantization_group.add_argument(
+        "--quantization-config",
+        type=json.loads,
+        default=None,
+        help='Quantization JSON, e.g. \'{"method":"mxfp4","w4a8_fallback_steps":[0,2]}\'.',
     )
 
     # Distributed and parallel execution
@@ -467,7 +480,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--hsdp-shard-size",
         type=int,
-        default=1,
+        default=-1,
         help="Number of GPUs to shard weights across for HSDP.",
     )
     parser.add_argument(
@@ -534,6 +547,7 @@ def main():
     omni_kwargs = dict(
         model=args.model,
         enable_layerwise_offload=args.enable_layerwise_offload,
+        diffusion_offload_config=args.diffusion_offload_config,
         vae_use_slicing=args.vae_use_slicing,
         vae_use_tiling=args.vae_use_tiling,
         enable_cpu_offload=args.enable_cpu_offload,
@@ -565,6 +579,8 @@ def main():
         omni_kwargs["flow_shift"] = args.flow_shift
     if args.quantization is not None:
         omni_kwargs["quantization"] = args.quantization
+    if args.quantization_config is not None:
+        omni_kwargs["quantization_config"] = args.quantization_config
     if args.cache_backend is not None:
         omni_kwargs["cache_backend"] = args.cache_backend
         omni_kwargs["cache_config"] = cache_config
@@ -575,6 +591,10 @@ def main():
             lora_path = lora_path[0]
         omni_kwargs["lora_path"] = lora_path
         omni_kwargs["lora_backend"] = args.lora_backend
+    if args.use_hsdp:
+        omni_kwargs["use_hsdp"] = args.use_hsdp
+        omni_kwargs["hsdp_shard_size"] = args.hsdp_shard_size
+        omni_kwargs["hsdp_replicate_size"] = args.hsdp_replicate_size
 
     # Cosmos3 loads its (gated) guardrail models at build time, so the guardrails
     # gate is an engine-level config (offline analog of the server's --no-guardrails).

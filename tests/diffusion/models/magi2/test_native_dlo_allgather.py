@@ -36,6 +36,7 @@ from vllm_omni.diffusion.offloader.distributed_layerwise_backend import (
     DistributedLayerwiseOffloadBackend,
     DistributedLayerwiseOffloadHook,
 )
+from vllm_omni.diffusion.offloader.plan_resolver import ResolvedComponent
 
 
 @dataclass(frozen=True)
@@ -44,12 +45,6 @@ class _WeightSourceStub:
     subfolder: str
     revision: str | None
     prefix: str
-
-
-@dataclass(frozen=True)
-class _PipelineModulesStub:
-    dits: list[nn.Module]
-    dit_names: list[str]
 
 
 _WORLD_SIZE = 4
@@ -189,7 +184,7 @@ def _load_mmap_transform_and_reconstruct(
         backend._mmap_transforms_by_tensor_id = {}
         backend._load_weights_via_mmap(
             pipeline,
-            _PipelineModulesStub(dits=[target], dit_names=["transformer"]),
+            (ResolvedComponent(path="transformer", module=target, selected=True),),
             plan_result.plan,
         )
 
@@ -220,7 +215,9 @@ def _load_mmap_transform_and_reconstruct(
         tensor_transforms=backend._mmap_transforms_by_tensor_id,
     )
     assert all(not shard.requires_grad for shard in cpu_shards.values())
-    assert all(parameter.numel() == 0 for parameter in target_block.parameters())
+    # Shard preparation is non-destructive; initialize_hook clears source
+    # storage only after every shard and metadata entry has been prepared.
+    assert all(parameter.numel() > 0 for parameter in target_block.parameters())
 
     for dtype, local_shard in cpu_shards.items():
         gathered = torch.empty(

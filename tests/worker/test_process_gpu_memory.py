@@ -73,9 +73,10 @@ class TestGetProcessGpuMemory:
         del tensor
         torch.accelerator.empty_cache()
 
-    def test_raises_on_invalid_device(self, mocker: MockerFixture):
+    def test_raises_on_invalid_device(self, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch):
         from vllm_omni.worker.gpu_memory_utils import get_process_gpu_memory
 
+        monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)
         mocker.patch("vllm_omni.worker.gpu_memory_utils.nvmlInit")
         mocker.patch("vllm_omni.worker.gpu_memory_utils.nvmlShutdown")
         mocker.patch("vllm.third_party.pynvml.nvmlDeviceGetCount", return_value=1)
@@ -125,9 +126,10 @@ class TestGetProcessGpuMemory:
         count.assert_not_called()
         by_index.assert_not_called()
 
-    def test_raises_on_negative_local_rank_without_mask(self, mocker: MockerFixture):
+    def test_raises_on_negative_local_rank_without_mask(self, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch):
         from vllm_omni.worker.gpu_memory_utils import get_process_gpu_memory
 
+        monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)
         mocker.patch("vllm_omni.worker.gpu_memory_utils.nvmlInit")
         mocker.patch("vllm_omni.worker.gpu_memory_utils.nvmlShutdown")
         mocker.patch("vllm.third_party.pynvml.nvmlDeviceGetCount", return_value=8)
@@ -137,9 +139,10 @@ class TestGetProcessGpuMemory:
             get_process_gpu_memory(-1)
         by_index.assert_not_called()
 
-    def test_returns_zero_when_process_not_found(self, mocker: MockerFixture):
+    def test_returns_zero_when_process_not_found(self, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch):
         from vllm_omni.worker.gpu_memory_utils import get_process_gpu_memory
 
+        monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)
         mocker.patch("vllm_omni.worker.gpu_memory_utils.nvmlInit")
         mocker.patch("vllm_omni.worker.gpu_memory_utils.nvmlShutdown")
         mocker.patch("vllm.third_party.pynvml.nvmlDeviceGetCount", return_value=8)

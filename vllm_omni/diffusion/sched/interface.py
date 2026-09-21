@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, TypedDict
 
@@ -12,6 +12,8 @@ from vllm_omni.diffusion.diffusion_kv.metadata import DiffusionKVMetadata
 from vllm_omni.diffusion.request import OmniDiffusionRequest
 
 if TYPE_CHECKING:
+    from vllm.distributed.kv_transfer.kv_connector.v1.base import KVConnectorMetadata
+
     from vllm_omni.diffusion.diffusion_kv.request import DiffusionKVRequest
 
 
@@ -117,6 +119,7 @@ class RequestBatchSamplingParamsKey:
     guidance_scale: float = 0.0
     guidance_scale_provided: bool = False
     guidance_scale_2: float | None = None
+    guidance_scale_2_provided: bool = False
     guidance_rescale: float = 0.0
     true_cfg_scale: float | None = None
     cfg_normalize: bool = False
@@ -251,6 +254,10 @@ class DiffusionSchedulerOutput:
     num_waiting_reqs: int
     # next request to background-prefetch KV
     kv_prefetch_job: KVPrefetchJob | None = None
+    kv_connector_metadata: KVConnectorMetadata | None = None
+    kv_transfer_request_ids: set[str] = field(default_factory=set)
+    # Connector lifecycle uses per-sequence IDs, not public request IDs.
+    kv_finished_request_ids: set[str] = field(default_factory=set)
 
     @cached_property
     def scheduled_request_ids(self) -> list[str]:
@@ -268,4 +275,4 @@ class DiffusionSchedulerOutput:
 
     @property
     def is_empty(self) -> bool:
-        return self.num_scheduled_reqs == 0
+        return self.num_scheduled_reqs == 0 and self.kv_connector_metadata is None
