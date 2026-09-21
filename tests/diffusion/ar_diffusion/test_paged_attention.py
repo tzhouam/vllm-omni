@@ -323,6 +323,24 @@ def test_staging_is_only_allocated_for_the_gather_path(monkeypatch, gather_enabl
     assert (stage_k is not None) is gather_enabled
 
 
+@pytest.mark.parametrize("window_chunks", [2, 4])
+def test_layer_inputs_preserve_static_staging_tensors(monkeypatch, window_chunks):
+    """Compiled inputs must retain the manager's static-address annotations, including with spare capacity."""
+    monkeypatch.setenv(KV_GATHER_ENV, "1")
+    device = torch.device("cpu")
+    kv, st = make_state(device=device, window_chunks=window_chunks, reuse_history_staging=True)
+    stage_key, stage_value = kv.history_staging[0]
+    for _ in range(2):
+        ctx = st.get_kv_caches(POS, seq_len=BLOCK, commit_current=False)[0].forward_ctx
+        ctx.max_video_tokens = 2 * BLOCK
+        ctx.prepare(device, action_len=0, query_len=BLOCK)
+        inputs = ctx.layer_inputs(0)
+        assert inputs.stage_key is stage_key
+        assert inputs.stage_value is stage_value
+        assert inputs.max_seq_len == 3 * BLOCK
+        assert stage_key.shape[0] == (window_chunks + 1) * BLOCK
+
+
 @pytest.mark.skipif(not _gpu_flash_attn_usable(), reason="usable GPU FlashAttention is required")
 @pytest.mark.parametrize("history_chunks", [1, 3])
 @pytest.mark.parametrize("action_len", [0, 3])
@@ -363,8 +381,8 @@ def test_paged_attention_matches_dense_reference_gpu(history_chunks, action_len,
         query[0],
         current_k[0],
         current_v[0],
-        action_k[0] if action_len else None,
-        action_v[0] if action_len else None,
+        action_k[0] if action_k is not None else None,
+        action_v[0] if action_v is not None else None,
         HEAD_DIM**-0.5,
     ).unsqueeze(0)
 
@@ -543,8 +561,8 @@ def test_contiguous_kv_gather_path_matches_paged_path_gpu(monkeypatch, history_c
             query[0],
             current_k[0],
             current_v[0],
-            action_k[0] if action_len else None,
-            action_v[0] if action_len else None,
+            action_k[0] if action_k is not None else None,
+            action_v[0] if action_v is not None else None,
             HEAD_DIM**-0.5,
         ).unsqueeze(0)
 
