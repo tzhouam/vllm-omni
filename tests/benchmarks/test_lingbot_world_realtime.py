@@ -344,7 +344,7 @@ def test_cli_rejects_a_zero_chunk_buffer() -> None:
 def test_the_real_time_basis_is_independent_of_the_mux_label() -> None:
     """The checkpoint declares no frame rate, so the basis must be statable.
 
-    The same measured cadence is 0.55 real time at 16 fps and 0.74 at 12 fps;
+    The same measured cadence has RTF 1.809 at 16 fps and 1.357 at 12 fps;
     tying that verdict to the fps sent to the muxer would let a playback label
     silently decide whether a run passes.
     """
@@ -367,11 +367,11 @@ def test_the_real_time_basis_is_independent_of_the_mux_label() -> None:
 
 def _serve(script):
     """Return an async context manager yielding a ws:// URL for ``script``."""
-    from websockets.asyncio.server import serve
+    from websockets.asyncio.server import Server, serve
 
     class _Server:
         def __init__(self) -> None:
-            self.server = None
+            self.server: Server | None = None
             self.start_payloads: list[dict] = []
 
         async def __aenter__(self) -> str:
@@ -384,6 +384,7 @@ def _serve(script):
             return f"ws://127.0.0.1:{port}/v1/realtime/video"
 
         async def __aexit__(self, *exc) -> None:
+            assert self.server is not None
             self.server.close()
             await self.server.wait_closed()
 

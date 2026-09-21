@@ -57,7 +57,8 @@ vllm serve robbyant/lingbot-world-v2-14b-causal-fast-diffusers \
   --port 8000
 
 python benchmarks/lingbot_world/benchmark_lingbot_world_realtime.py \
-  --port 8000 --num-chunks 16 --warmup-sessions 1 --sessions 3
+  --port 8000 --num-chunks 40 --warmup-sessions 1 --sessions 3 \
+  --target-fps 12 --output-json /tmp/lingbot_world_repeated.json
 ```
 
 `usp4_compiled.yaml` sets pure Ulysses sequence parallelism over four ranks and
@@ -66,9 +67,10 @@ python benchmarks/lingbot_world/benchmark_lingbot_world_realtime.py \
 `allgather_degree` must be 1, `ulysses_mode` must be `strict`, and tensor,
 pipeline, CFG, and VAE parallelism are all rejected.
 
-Compiled mode pays regional `torch.compile` and CUDA-graph capture on the first
-rollout. Either spend one `--warmup-sessions 1` on it or read the steady-state
-block, which excludes it.
+Compiled mode can pay compilation and capture costs on the first rollout.
+Use `--warmup-sessions 1` before measured repetitions. Excluding the first six
+chunks addresses the attention-window ramp; it does not guarantee that
+compilation and capture have finished.
 
 ## Metrics
 
@@ -104,6 +106,8 @@ simulation) are separate flags. `--target-fps` defaults to `--fps`; set it when 
 two differ, and the report prints both. State the basis whenever you quote a number
 — an RTF without its fps is not a measurement. (RTF is a cost here, so a bigger number is a
 worse result; a steady chunk's RTF is simply its interval divided by its video duration.)
+An RTF above 1 means the measured deployment is slower than real time at the
+stated target frame rate. The benchmark measures this failure as well as success.
 
 ### Why warmup chunks are not optional
 
@@ -123,14 +127,17 @@ are interpolated sample summaries; the report warns when fewer than 100
 intervals contribute, and even 100 samples do not guarantee a stable p99.
 Use longer rollouts for tail analysis and at least `--sessions 3` after
 `--warmup-sessions 1` for reported comparisons. Session warmup pays compilation
-cost; chunk warmup separately excludes the attention-window ramp.
+cost; chunk warmup separately excludes the attention-window ramp. The command
+above yields 33 steady intervals per session (indices 6 through 38), or 99 across
+three sessions. Report each session's mean and the spread across sessions; this
+sample still does not establish a reliable p99.
 
 ### Why playback is simulated
 
 A p99 interval alone cannot say whether a viewer saw a stall: the same p99 is
 invisible behind a three-chunk buffer and a visible freeze behind none. The
 benchmark replays chunk arrivals against a wall clock — playback starts once
-`--playback-buffer-chunks` chunks have landed and then consumes video at `--fps`
+`--playback-buffer-chunks` chunks have landed and then consumes video at `--target-fps`
 — and reports every moment the player ran dry.
 
 ### What the client-side number is worth

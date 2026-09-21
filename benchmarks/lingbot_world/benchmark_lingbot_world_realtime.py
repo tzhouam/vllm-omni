@@ -464,7 +464,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--chunk-slo-ms",
         type=float,
         default=None,
-        help="Deadline a steady chunk must meet. Default: one chunk of video at --fps.",
+        help="Deadline a steady chunk must meet. Default: one chunk of video at --target-fps.",
     )
     run.add_argument(
         "--target-fps",
