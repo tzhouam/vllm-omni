@@ -12,8 +12,8 @@
 #   enforce_eager     false puts LingBotDMDBlockRunner on the compiled path
 #                     (regional torch.compile with cudagraph step marking). The
 #                     first rollout therefore pays compile and capture cost --
-#                     use --warmup-sessions 1, or read the steady-state block
-#                     rather than the all-chunk block.
+#                     use --warmup-sessions 1 before measured repetitions.
+#                     Chunk warmup only excludes the attention-window ramp.
 #
 # Serve it under a GPU reservation, since it needs four cards:
 #
