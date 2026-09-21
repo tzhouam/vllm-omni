@@ -21,6 +21,8 @@ from vllm.v1.engine import EngineCoreOutput, EngineCoreOutputs, FinishReason
 from vllm.v1.engine.exceptions import EngineDeadError
 from vllm.v1.metrics.stats import IterationStats
 
+from vllm_omni.engine import OmniEngineCoreOutput
+from vllm_omni.engine.errors import NativeKVHandoffError
 from vllm_omni.engine.messages import (
     AbortRequestMessage,
     AbortResultMessage,
@@ -309,7 +311,7 @@ def _engine_core_outputs(tag: str, timestamp: float) -> SimpleNamespace:
     return SimpleNamespace(outputs=[tag], timestamp=timestamp, scheduler_stats=None, finished_requests=None)
 
 
-def _terminal_engine_core_outputs(request_id: str) -> EngineCoreOutputs:
+def _terminal_engine_core_outputs(request_id: str, timestamp: float = 1.0) -> EngineCoreOutputs:
     return EngineCoreOutputs(
         outputs=[
             EngineCoreOutput(
@@ -318,7 +320,7 @@ def _terminal_engine_core_outputs(request_id: str) -> EngineCoreOutputs:
                 finish_reason=FinishReason.STOP,
             )
         ],
-        timestamp=1.0,
+        timestamp=timestamp,
         finished_requests={request_id},
     )
 
@@ -518,6 +520,7 @@ async def _enqueue_add_request(
     original_prompt,
     sampling_params_list,
     final_stage_id: int,
+    final_output_stage_ids: list[int] | None = None,
 ) -> None:
     orchestrator_fixture.request_sync_q.put_nowait(
         StageSubmissionMessage(
@@ -528,6 +531,7 @@ async def _enqueue_add_request(
             output_prompt_text=None,
             sampling_params_list=sampling_params_list,
             final_stage_id=final_stage_id,
+            final_output_stage_ids=final_output_stage_ids,
             preprocess_ms=0.0,
             request_timestamp=time.time(),
             enqueue_ts=time.perf_counter(),
@@ -787,6 +791,10 @@ async def test_run_async_chunk(orchestrator_factory) -> None:
 
         stage1.push_engine_core_outputs(_engine_core_outputs("stage1-final", 3.0))
 
+        await _wait_for(
+            lambda: orchestrator_fixture.orchestrator.request_states["req-async"].pending_final_output is not None
+        )
+        stage0.push_engine_core_outputs(_engine_core_outputs("stage0-final", 3.1))
         output_msg = await _get_output_message(orchestrator_fixture)
 
         assert output_msg.request_id == "req-async"
@@ -1413,6 +1421,105 @@ async def test_handle_streaming_update_unknown_request_is_dropped() -> None:
     assert "req-unknown" not in orchestrator.request_states
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("native_kv", [False, True])
+async def test_add_request_attaches_native_kv_ticket_before_dispatch(mocker, native_kv) -> None:
+    sampling = SamplingParams(extra_args={"keep": "sampling"})
+    prompt = SimpleNamespace(sampling_params=SamplingParams(extra_args={"keep": "prompt"}))
+    source = StagePool(
+        0,
+        FakeStageClient(),
+        stage_vllm_config=SimpleNamespace(
+            kv_transfer_config=SimpleNamespace(kv_role="kv_producer") if native_kv else None
+        ),
+    )
+    target = StagePool(1, FakeStageClient(stage_type="diffusion", final_output=True))
+    orchestrator = Orchestrator(
+        request_async_queue=asyncio.Queue(),
+        output_async_queue=asyncio.Queue(),
+        rpc_async_queue=asyncio.Queue(),
+        stage_pools=[source, target],
+    )
+
+    async def check_dispatch(request_id, req_state, request, **kwargs):
+        assert req_state.native_kv_transfer_id == ("xfer-req" if native_kv else None)
+        for params, preserved in ((sampling, "sampling"), (request.sampling_params, "prompt")):
+            assert params.extra_args["keep"] == preserved
+            if native_kv:
+                assert params.extra_args["kv_transfer_params"] == {
+                    "transfer_id": "xfer-req",
+                    "do_remote_decode": True,
+                    "do_remote_prefill": False,
+                }
+            else:
+                assert "kv_transfer_params" not in params.extra_args
+        return 0
+
+    dispatch = mocker.patch.object(source, "submit_initial", side_effect=check_dispatch)
+    await orchestrator._handle_add_request(
+        StageSubmissionMessage(
+            type="add_request",
+            request_id="req",
+            prompt=prompt,
+            original_prompt={},
+            output_prompt_text=None,
+            sampling_params_list=[sampling, OmniDiffusionSamplingParams()],
+            final_stage_id=1,
+            preprocess_ms=0,
+            request_timestamp=0,
+            enqueue_ts=0,
+        )
+    )
+    dispatch.assert_awaited_once()
+
+
+def test_native_handoff_uses_bound_replica_and_reports_missing_binding(mocker) -> None:
+    orchestrator = object.__new__(Orchestrator)
+    orchestrator.stage_pools = [mocker.Mock()]
+    orchestrator.stage_pools[0].get_bound_client.return_value = None
+    req_state = SimpleNamespace(native_kv_transfer_id="xfer-req")
+    output = SimpleNamespace(kv_transfer_params={"num_transfer_tokens": 4})
+
+    with pytest.raises(NativeKVHandoffError, match="bound AR replica"):
+        orchestrator._diffusion_submit_kwargs("req", 0, SimpleNamespace(engine_input_source=[0]), req_state, output)
+    orchestrator.stage_pools[0].get_bound_client.assert_called_once_with("req")
+    # The pool default points at replica 0; this request actually used replica 1.
+    orchestrator.stage_pools[0].stage_vllm_config = SimpleNamespace(
+        kv_transfer_config=SimpleNamespace(engine_id="ar-0")
+    )
+    config = SimpleNamespace(engine_id="ar-1", kv_connector_extra_config={"bootstrap_addr": "http://host:8999"})
+    orchestrator.stage_pools[0].get_bound_client.return_value = SimpleNamespace(
+        vllm_config=SimpleNamespace(kv_transfer_config=config)
+    )
+    params = orchestrator._diffusion_submit_kwargs(
+        "req", 0, SimpleNamespace(engine_input_source=[0]), req_state, output
+    )
+    assert params["kv_transfer_params"]["remote_engine_id"] == "ar-1"
+    assert params["kv_transfer_params"]["remote_bootstrap_addr"] == "http://host:8999"
+    assert "remote_engine_id" not in output.kv_transfer_params
+
+
+@pytest.mark.asyncio
+async def test_native_handoff_failure_is_request_scoped(mocker):
+    orchestrator = object.__new__(Orchestrator)
+    fail = mocker.patch.object(orchestrator, "_fail_request_client_error", new_callable=mocker.AsyncMock)
+
+    def lost_binding():
+        raise NativeKVHandoffError("bound AR replica is unavailable")
+
+    assert not await orchestrator._dispatch_or_fail_request(
+        lost_binding, req_id="req", stage_id=1, operation="inter-stage forward"
+    )
+    fail.assert_awaited_once_with(
+        "req",
+        1,
+        "bound AR replica is unavailable",
+        status_code=502,
+        error_type="NativeKVHandoffError",
+        release_owners=True,
+    )
+
+
 async def test_handle_streaming_update_passes_prompt_text_to_stage_pool() -> None:
     class RecordingPool:
         def __init__(self) -> None:
@@ -1891,3 +1998,61 @@ async def test_abort_retry_does_not_repeat_successful_stage_abort():
     assert first.physical_abort_calls == 1
     assert second.physical_abort_calls == 2
     assert second.bound == set()
+
+
+@pytest.mark.asyncio
+async def test_duplex_session_request_error_finish_is_delivered_as_request_error() -> None:
+    """A session-owned request the scheduler finished with FinishReason.ERROR
+    (e.g. its prompt could not grow past max_model_len) must reach the
+    session's consumer as a request-scoped error, not vanish: its terminal
+    outputs are not processed like other requests, and the output processor
+    may already have dropped the request state."""
+    output_queue: asyncio.Queue = asyncio.Queue()
+    orchestrator = Orchestrator(
+        request_async_queue=asyncio.Queue(),
+        output_async_queue=output_queue,
+        rpc_async_queue=asyncio.Queue(),
+        stage_pools=[],
+    )
+    duplex_state = OrchestratorRequestState(request_id="duplex-req", session_owned=True)
+    plain_state = OrchestratorRequestState(request_id="plain-req")
+    reason = "context_length_exceeded: streaming session prompt would grow to 8220 tokens, above max_model_len 8192"
+
+    await orchestrator._report_duplex_session_request_error(
+        0,
+        0,
+        OmniEngineCoreOutput(
+            request_id="duplex-req", new_token_ids=[], finish_reason=FinishReason.ERROR, stop_reason=reason
+        ),
+        duplex_state,
+    )
+    error = output_queue.get_nowait()
+    assert isinstance(error, ErrorMessage)
+    assert error.request_id == "duplex-req"
+    assert error.stage_id == 0
+    assert error.fatal is False
+    assert error.error == reason
+
+    # An ordinary segment stop, a segment-finished error and a request that is
+    # not session-owned produce nothing.
+    await orchestrator._report_duplex_session_request_error(
+        0,
+        0,
+        OmniEngineCoreOutput(request_id="duplex-req", new_token_ids=[], finish_reason=FinishReason.STOP),
+        duplex_state,
+    )
+    await orchestrator._report_duplex_session_request_error(
+        0,
+        0,
+        OmniEngineCoreOutput(
+            request_id="duplex-req", new_token_ids=[], finish_reason=FinishReason.ERROR, is_segment_finished=True
+        ),
+        duplex_state,
+    )
+    await orchestrator._report_duplex_session_request_error(
+        0,
+        0,
+        OmniEngineCoreOutput(request_id="plain-req", new_token_ids=[], finish_reason=FinishReason.ERROR),
+        plain_state,
+    )
+    assert output_queue.empty()
