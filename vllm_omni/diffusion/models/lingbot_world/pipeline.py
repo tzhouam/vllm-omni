@@ -338,7 +338,22 @@ def _uint8_frames(video: torch.Tensor) -> np.ndarray:
     # the decoder dtype, then widen, scale and round.
     frames = (video[0] / 2 + 0.5).clamp(0, 1).permute(1, 2, 3, 0)
     frames = frames.float().mul_(255).round_().to(torch.uint8)
-    return np.ascontiguousarray(frames.cpu().numpy())
+    pixels = frames.cpu().numpy()
+    frame_count, height, width, channels = pixels.shape
+    # A planar GPU result stays planar after the host copy. NumPy's generic
+    # contiguous conversion is slow for this three-channel interleave; copying
+    # each plane into its output channel preserves every byte and vectorizes it.
+    if channels == 3 and pixels.strides == (
+        height * width,
+        width,
+        1,
+        frame_count * height * width,
+    ):
+        contiguous = np.empty(pixels.shape, dtype=np.uint8)
+        for channel in range(3):
+            contiguous[..., channel] = pixels[..., channel]
+        return contiguous
+    return np.ascontiguousarray(pixels)
 
 
 @functools.lru_cache(maxsize=1)
