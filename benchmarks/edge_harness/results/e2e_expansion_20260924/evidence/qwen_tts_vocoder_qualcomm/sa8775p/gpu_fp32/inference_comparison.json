@@ -1,0 +1,51 @@
+{
+  "scope": "one Qwen3-TTS Code2Wav inference with FP32-preserving GPU option on SA8775P; no complete TTS stream",
+  "status": "component_gpu_requested_numeric_fail",
+  "compile_job_id": "jp410o3vp",
+  "inference_job_id": "jgdd38lzg",
+  "target_model_id": "mnze95don",
+  "input_dataset_id": "d7m80jl32",
+  "requested_options": "--compute_unit gpu --tflite_options allow_fp32_as_fp16=false",
+  "device": {
+    "name": "SA8775P ADP",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-android",
+      "format:auto",
+      "chipset:qualcomm-sa8775p",
+      "hexagon:v73",
+      "soc-model:52",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "output_sha256": "9196d254564a1286f56da5d415f69cb0b85d6dbbc5550f6d31b818ab2eab5b42",
+  "source_onnx_cpu_vs_sa_gpu_fp32": {
+    "relative_l2": 11.389093101414934,
+    "snr_db": -21.129782863088515,
+    "max_abs": 1.4882186353206635,
+    "cosine": -0.018527488603516624,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.9484254750023428,
+    "output_saturated_fraction_abs_ge_0_999": 0.8488958333333333
+  },
+  "sa_cpu_requested_vs_sa_gpu_fp32": {
+    "relative_l2": 11.389092347977442,
+    "snr_db": -21.12978228847954,
+    "max_abs": 1.4882185459136963,
+    "cosine": -0.01852748991918297,
+    "reference_rms": 0.08373439765610562,
+    "output_rms": 0.9484254750023428,
+    "output_saturated_fraction_abs_ge_0_999": 0.8488958333333333
+  },
+  "limits": [
+    "No actual per-node placement profile for this control.",
+    "The output is severely saturated, so component timing would not be a usable TTS measure.",
+    "The option result does not identify a specific faulty GPU operation."
+  ]
+}

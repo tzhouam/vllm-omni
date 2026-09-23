@@ -59,17 +59,20 @@ def main() -> None:
     parser.add_argument("--inference-report", type=Path, required=True)
     parser.add_argument("--device-output", type=Path, required=True)
     parser.add_argument("--output-report", type=Path, required=True)
+    parser.add_argument("--expected-compile-options", default=COMPILE_OPTIONS)
+    parser.add_argument("--expected-run-options", default="--compute_unit npu")
     args = parser.parse_args()
 
     compiled = json.loads(args.compile_report.read_text(encoding="utf-8"))
     inferred = json.loads(args.inference_report.read_text(encoding="utf-8"))
     if compiled.get("status") != "SUCCESS" or inferred.get("status") != "SUCCESS":
         raise ValueError("compile and inference must both be terminal successes")
-    if compiled.get("source_model_id") != "mq3xre4rq" or compiled.get("options") != COMPILE_OPTIONS:
+    if compiled.get("source_model_id") != "mq3xre4rq" or compiled.get("options") != args.expected_compile_options:
         raise ValueError("compile source or options differ from the pinned talker artifact")
     if inferred.get("model_id") != compiled.get("target_model_id"):
         raise ValueError("inference did not use the audited target artifact")
-    if inferred.get("input_dataset_id") != "d7dw6pgy2" or inferred.get("options") != "--compute_unit npu":
+    if (inferred.get("input_dataset_id") != "d7dw6pgy2"
+            or inferred.get("options") != args.expected_run_options):
         raise ValueError("inference fixture or requested compute unit differs")
     if inferred.get("device") != compiled.get("device"):
         raise ValueError("compile/inference device metadata differs")
@@ -140,7 +143,7 @@ def main() -> None:
         "limits": [
             "The historical source export does not attest an exact checkpoint revision.",
             "The fixture is synthetic and has no token-to-audio quality tolerance.",
-            "Requested NPU is not actual placement without a device profile.",
+            "Requested compute unit is not actual placement without a device profile.",
             "No predictor, vocoder, persistent cache loop or complete TTS stream was tested.",
         ],
     }

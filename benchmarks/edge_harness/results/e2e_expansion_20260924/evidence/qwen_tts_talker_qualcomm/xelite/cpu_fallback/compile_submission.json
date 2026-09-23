@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-23T23:45:36.274399+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mq3xre4rq",
+  "device": "Snapdragon X Elite CRD",
+  "options": "--target_runtime onnx",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "jp1njv18g",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp1njv18g/"
+}

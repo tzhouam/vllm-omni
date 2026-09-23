@@ -1,0 +1,31 @@
+{
+  "scope": "S25 hosted Cosmos latent injected into local CPU InternVLA policy with synthetic state/noise; no device-local policy or robot-task result",
+  "status": "synthetic_action_sensitivity_measured",
+  "policy_checkpoint_sha256": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+  "fixture_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "hosted_output_sha256": "69647f9fe7207dacc054330c7174d08bdcb4ecf8611f91efc1eb70065418b389",
+  "hosted_inference_job_id": "jp8ex43zp",
+  "policy_torch": "2.13.0+cpu",
+  "policy_load_seconds_not_request_timing": 34.37513727898477,
+  "encoder_calls": {
+    "source": 2,
+    "hosted": 1
+  },
+  "action_shape": [
+    1,
+    50,
+    32
+  ],
+  "source_repeat_bitwise_equal": true,
+  "action_relative_l2": 0.007421938467116418,
+  "action_max_abs": 0.01148313283920288,
+  "action_cosine": 0.9999725460323058,
+  "source_actions_sha256": "d20b4804ce549c25e46590f4057d5d9eceb9e331c7015e3fc90cf79a234bf018",
+  "hosted_actions_sha256": "cd1f1a1b8883c74e36a553b6a6d98631beaec22990b70b5114f1e35599e2ec6d",
+  "limits": [
+    "The policy ran on local CPU; the device only executed the isolated encoder fixture.",
+    "The encoder input was a synthetic pattern and policy state/noise were synthetic zeros.",
+    "No real-observation reference actions, physical units/time, or robot-task tolerance exist.",
+    "No latency, memory admission, cancellation or sustained device power gate was tested."
+  ]
+}

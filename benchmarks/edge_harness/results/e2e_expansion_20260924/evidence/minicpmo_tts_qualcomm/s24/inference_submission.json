@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-23T23:37:21.006320+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "jp2ryv3qg",
+  "target_model_id": "mqp411wgq",
+  "input_dataset_id": "d7zn8rk57",
+  "device": "Samsung Galaxy S24",
+  "options": "",
+  "kind": "inference",
+  "status": "HISTORICAL",
+  "job_id": "jp0m0646g",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp0m0646g/"
+}

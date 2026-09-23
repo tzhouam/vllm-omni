@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-23T23:38:27.062001+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mn4gjjpvn",
+  "source_sha256": "78cf64804f11ad269ee4180da61588ccc5eefe2942773227345499756e4cc229",
+  "device": "Dragonwing RB3 Gen 2 Vision Kit",
+  "options": "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "j5wl71l6p",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/j5wl71l6p/"
+}
