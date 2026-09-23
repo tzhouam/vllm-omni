@@ -114,7 +114,7 @@ def _swap_norms_to_rmsnorm_vae(vae) -> int:
 
     Collecting pipeline tests can already apply patch_wan_rms_norm process-wide before this test runs.
     """
-    from vllm_omni.diffusion.layers.norm import RMSNormVAE
+    from vllm_omni.diffusion.models.wan2_2.norm import RMSNormVAE
 
     count = 0
     for module in list(vae.decoder.modules()):
