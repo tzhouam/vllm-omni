@@ -1,0 +1,35 @@
+{
+  "timestamp_utc": "2026-09-23T23:18:50.383852+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mn4okj3rq",
+  "source_artifact": {
+    "name": "cosmos_encoder_embedded.onnx",
+    "bytes": 125112088,
+    "sha256": "656a5263f584851a1457ef6dcf60b995f7c67b056b3c90a4f33c814f7caf9ec9"
+  },
+  "upstream_export_report": "e2e_expansion_20260923/evidence/internvla_cosmos_amd_npu/export_report.json",
+  "device": {
+    "name": "Samsung Galaxy S25",
+    "os": "15",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8-elite-for-galaxy",
+      "chipset:sm8750-ac",
+      "hexagon:v79",
+      "soc-model:69",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "options": "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
+  "job_id": "jpxl4d1jp",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpxl4d1jp/",
+  "status_at_submission": "OPTIMIZING_MODEL"
+}

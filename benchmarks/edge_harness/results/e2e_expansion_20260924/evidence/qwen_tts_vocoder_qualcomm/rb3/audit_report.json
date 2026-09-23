@@ -1,0 +1,86 @@
+{
+  "scope": "one Qwen3-TTS code2wav 48,000-sample component on one retained fixture; no complete TTS stream",
+  "status": "component_executed_quality_unqualified",
+  "device": {
+    "name": "Dragonwing RB3 Gen 2 Vision Kit",
+    "os": "1.6",
+    "attributes": [
+      "os:qc_linux",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-oe-linux-gcc11",
+      "format:iot",
+      "chipset:qualcomm-qcs6490",
+      "chipset:qcs6490",
+      "chipset:qualcomm-dragonwing-qcs6490",
+      "hexagon:v68",
+      "soc-model:93",
+      "framework:qnn"
+    ]
+  },
+  "compile_job_id": "j5mmy28w5",
+  "inference_job_id": "jg9zmkv8p",
+  "profile_job_id": "jp1nj707g",
+  "target_model_id": "mn0wyzd3q",
+  "input_dataset_id": "d7m80jl32",
+  "s25_prior_inference_job_id": "jpx428ojg",
+  "requested_run_options": "--compute_unit gpu",
+  "files": {
+    "source_onnx": {
+      "bytes": 423655047,
+      "sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b"
+    },
+    "fixture": {
+      "bytes": 129721,
+      "sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d"
+    },
+    "cpu_output": {
+      "bytes": 179942,
+      "sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1"
+    },
+    "s25_output": {
+      "bytes": 115235,
+      "sha256": "4a26486d5e84a6e22d16f9b26f995b8fe645c29bbd70b103615ec35a0fcb10a0"
+    },
+    "device_output": {
+      "bytes": 113399,
+      "sha256": "476cae29892fbd6d93b8b4f3790e26bc6907cc2c8987bab3c141e1a585aea23a"
+    }
+  },
+  "cpu_source_vs_device": {
+    "relative_l2": 0.15731895608191257,
+    "snr_db": 16.06437888182974,
+    "max_abs": 0.11359542608261108,
+    "cosine": 0.988868865169743,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.07852377091606144,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "s25_gpu_vs_device": {
+    "relative_l2": 0.1529833843922324,
+    "snr_db": 16.307114711572623,
+    "max_abs": 0.11407470703125,
+    "cosine": 0.9896069628698109,
+    "reference_rms": 0.08376787228276501,
+    "output_rms": 0.07852377091606144,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "profile": {
+    "sample_count": 100,
+    "sample_min_us": 3069620,
+    "nearest_rank_p50_us": 3098543,
+    "nearest_rank_p95_us": 3132926,
+    "reported_estimated_inference_time_us": 3069620,
+    "reported_peak_memory_bytes": 326594560,
+    "compute_unit_row_counts": {
+      "CPU": 403,
+      "GPU": 335
+    }
+  },
+  "limits": [
+    "Historical source export does not attest its exact checkpoint revision.",
+    "This fixed component waveform has no listening or task-quality tolerance.",
+    "Hosted component profiling excludes talker, predictor, stage handoff, streaming, admission and sustained power/thermal behavior."
+  ]
+}

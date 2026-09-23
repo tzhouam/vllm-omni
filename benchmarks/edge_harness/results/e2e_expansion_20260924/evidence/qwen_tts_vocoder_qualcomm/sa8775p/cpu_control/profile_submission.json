@@ -1,0 +1,12 @@
+{
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "jp410o3vp",
+  "target_model_id": "mnze95don",
+  "device": "SA8775P ADP",
+  "options": "--compute_unit cpu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jp2rwv7xg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp2rwv7xg/"
+}

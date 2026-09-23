@@ -1,0 +1,31 @@
+{
+  "retrieved_utc": "2026-09-23T23:28:23.406644+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "job_id": "jgdd3zrkg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgdd3zrkg/",
+  "status": "SUCCESS",
+  "status_message": "",
+  "source_model_id": "mqyer339n",
+  "target_model_id": "mmxj098kq",
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "os": "11",
+    "attributes": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "options": "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
+  "hub_version": "aihub-2026.09.11.0"
+}

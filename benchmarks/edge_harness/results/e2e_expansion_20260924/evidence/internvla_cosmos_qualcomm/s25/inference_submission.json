@@ -1,0 +1,16 @@
+{
+  "timestamp_utc": "2026-09-23T23:21:34.357321+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "jpxl4d1jp",
+  "target_model_id": "mqkp12rxm",
+  "fixture_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "fixture_key": "pattern_pixels",
+  "device": "Samsung Galaxy S25",
+  "options": "--compute_unit npu",
+  "kind": "inference",
+  "status": "SUBMITTED",
+  "job_id": "jp8ex43zp",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp8ex43zp/",
+  "input_dataset_id": "d26qo8p57"
+}

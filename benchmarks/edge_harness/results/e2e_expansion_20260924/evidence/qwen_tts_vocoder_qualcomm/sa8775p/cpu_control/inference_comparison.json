@@ -1,0 +1,51 @@
+{
+  "scope": "one Qwen3-TTS Code2Wav inference on the exact SA8775P ADP CPU; no complete TTS stream",
+  "status": "component_cpu_numeric_parity_on_one_fixture",
+  "compile_job_id": "jp410o3vp",
+  "inference_job_id": "jp1nj7x7g",
+  "target_model_id": "mnze95don",
+  "input_dataset_id": "d7m80jl32",
+  "requested_compute_unit": "cpu",
+  "device": {
+    "name": "SA8775P ADP",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-android",
+      "format:auto",
+      "chipset:qualcomm-sa8775p",
+      "hexagon:v73",
+      "soc-model:52",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "output_sha256": "853feface7a93f7a22a0ffba8d1e297fe5a8780bd64f0444a6ce07b277246d3e",
+  "source_onnx_cpu_vs_sa_cpu": {
+    "relative_l2": 4.1337705035866275e-06,
+    "snr_db": 107.67307275926692,
+    "max_abs": 6.854534149169922e-06,
+    "cosine": 0.9999999999914584,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.08373439765610562,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "sa_cpu_vs_sa_gpu_requested": {
+    "relative_l2": 11.832416467511793,
+    "snr_db": -21.46146894384565,
+    "max_abs": 1.4882185459136963,
+    "cosine": 0.017841895688532488,
+    "reference_rms": 0.08373439765610562,
+    "output_rms": 0.988730688363501,
+    "output_saturated_fraction_abs_ge_0_999": 0.9663333333333334
+  },
+  "limits": [
+    "No actual per-node placement profile yet.",
+    "One fixed vocoder waveform has no listening-quality tolerance.",
+    "No talker, predictor, handoff or complete TTS stream tested."
+  ]
+}

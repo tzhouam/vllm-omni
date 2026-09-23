@@ -1,0 +1,40 @@
+{
+  "timestamp_utc": "2026-09-23T23:30:03.698535+00:00",
+  "qai_hub_version": "0.55.0",
+  "facility": "Qualcomm AI Hub Workbench",
+  "job_id": "jpyox7305",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpyox7305/",
+  "status": "FAILED",
+  "status_message": "Failed to profile the model: Exception during initialization: C:\\dev\\tetracode\\build\\third_party.build\\onnxruntime\\src\\onnxruntime\\core\\providers\\dml\\DmlExecutionProvider\\src\\MLOperatorAuthorImpl.cpp(2844)\\onnxruntime.dll!00007FF89C7F7164: (caller: 00007FF89C8136B0) Exception(2) tid(2264) 80070057 The parameter is incorrect.\r\n",
+  "options": "--onnx_execution_providers directml",
+  "hub_version": "aihub-2026.09.11.0",
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "os": "11",
+    "attributes": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "model_id": "mnz079ezm",
+  "shapes": {
+    "quantized": [
+      [
+        1,
+        512,
+        97
+      ],
+      "float32"
+    ]
+  }
+}
