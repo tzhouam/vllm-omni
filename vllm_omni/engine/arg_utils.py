@@ -54,9 +54,7 @@ def _register_omni_hf_configs() -> None:
     try:
         from transformers import AutoConfig
 
-        from vllm_omni.model_executor.models.breeze_tts_2.configuration_breeze_tts_2 import (
-            BreezeTTS2Config,
-        )
+        from vllm_omni.model_executor.models.breeze_tts_2.configuration_breeze import BreezeConfig
         from vllm_omni.model_executor.models.indextts2.configuration_indextts2 import (
             IndexTTS2Config,
             IndexTTS25Config,
@@ -95,6 +93,7 @@ def _register_omni_hf_configs() -> None:
         _CONFIG_REGISTRY = None
 
     for model_type, config_cls in [
+        ("breeze", BreezeConfig),
         ("dense", MingDenseConfig),
         ("bailingmm", MingMoeConfig),
         ("indextts2", IndexTTS2Config),
@@ -108,7 +107,6 @@ def _register_omni_hf_configs() -> None:
         ("glm_tts", GLMTTSConfig),
         ("omnivoice", OmniVoiceConfig),
         ("voxcpm2", VoxCPM2Config),
-        ("breeze", BreezeTTS2Config),
     ]:
         try:
             AutoConfig.register(model_type, config_cls)
@@ -223,6 +221,12 @@ class OmniEngineArgs(EngineArgs):
     # Diffusion request-mode batch admission (forwarded to OmniDiffusionConfig).
     request_batch_max_wait_ms: float = 0.0
     fa_deterministic: bool = False
+    # Tensor-parallel degree for the diffusion text encoder (forwarded to
+    # DiffusionParallelConfig via the generic diffusion fallback). Declared
+    # here so ``from_cli_args`` field filtering keeps ``--text-encoder-tp-size``
+    # for library callers (#7564); registered pipelines may consume it through
+    # their own stage_cli_aliases or deploy YAML.
+    text_encoder_tp_size: int | None = None
 
     @classmethod
     def _add_omni_specific_args(cls, parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -581,6 +585,7 @@ class OrchestratorArgs:
     step_execution: bool = False
     vae_use_slicing: bool = False
     vae_use_tiling: bool = False
+    vae_fast_path: str = "lossless"
     enable_multithread_weight_load: bool = True
     enable_broadcast_weight_load: bool = False
     num_weight_load_threads: int = 4
