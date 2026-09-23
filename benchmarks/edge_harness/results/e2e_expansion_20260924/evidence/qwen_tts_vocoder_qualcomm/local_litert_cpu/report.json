@@ -1,0 +1,34 @@
+{
+  "scope": "local x86-64 LiteRT CPU execution of one retained Code2Wav TFLite binary; no hosted-device timing or complete TTS",
+  "status": "component_cpu_numeric_parity_on_one_fixture",
+  "runtime": {
+    "ai_edge_litert": "2.2.0",
+    "numpy": "2.5.3"
+  },
+  "host": {
+    "system": "Linux",
+    "release": "6.18.33.2-microsoft-standard-WSL2",
+    "machine": "x86_64",
+    "processor": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M"
+  },
+  "threads": 4,
+  "model_sha256": "29826da6ecc1ec2efc0e3589c3cebb42b20d7e20c0975a037d9f51625d6638cd",
+  "fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "output_sha256": "c19524684abaf5da5c5f2c539a536ddba3ecc5e094c252e1dadc2804f0b482c7",
+  "source_onnx_cpu_vs_litert_cpu": {
+    "relative_l2": 3.454229291440569e-06,
+    "snr_db": 109.23297674763376,
+    "max_abs": 5.692243576049805e-06,
+    "cosine": 0.9999999999940402,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.08373440156017416,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "single_invoke_seconds_not_a_profile": 1.6104475790052675,
+  "limits": [
+    "Local x86-64 CPU execution cannot attest SA8775P or RB3 device CPU behavior.",
+    "LiteRT CPU output is not evidence that the Android GPU delegate is correct.",
+    "One fixed vocoder fixture has no listening-quality tolerance or complete-stream gate."
+  ]
+}
