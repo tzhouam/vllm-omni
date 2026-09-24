@@ -25,7 +25,11 @@ async def main() -> None:
     for name in ("model-dir", "cosmos-dir", "processor-dir", "python-bin", "log-file", "output-report"):
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--graph-file", type=Path)
-    parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos"), required=True)
+    parser.add_argument("--prefix-file", type=Path)
+    parser.add_argument("--suffix-file", type=Path)
+    parser.add_argument("--ep-dir", type=Path)
+    parser.add_argument("--dml-python-bin", type=Path)
+    parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos", "amd-npu-conv13", "amd-npu-radeon-cosmos"), required=True)
     parser.add_argument("--capacity-gib", type=int, default=30)
     parser.add_argument("--reserve-gib", type=int, default=16)
     parser.add_argument("--vram-capacity-gib", type=int)
@@ -33,6 +37,14 @@ async def main() -> None:
     args = parser.parse_args()
     if args.placement == "radeon-cosmos" and args.graph_file is None:
         parser.error("Radeon placement requires graph-file")
+    if args.placement in {"amd-npu-conv13", "amd-npu-radeon-cosmos"} and not all((
+        args.graph_file, args.prefix_file, args.suffix_file, args.ep_dir,
+    )):
+        parser.error("AMD NPU placement requires graph, prefix, suffix and EP directory")
+    if args.placement == "amd-npu-radeon-cosmos" and args.dml_python_bin is None:
+        parser.error("joint AMD placement requires a DirectML interpreter")
+    if args.placement != "amd-npu-radeon-cosmos" and args.dml_python_bin is not None:
+        parser.error("DirectML interpreter is only valid for joint AMD placement")
     if args.reserve_gib < 1 or args.capacity_gib < args.reserve_gib:
         parser.error("invalid explicit host-RAM budget")
     if args.placement == "cuda" and (
@@ -69,6 +81,10 @@ async def main() -> None:
     processor = args.processor_dir.resolve(strict=True)
     python = args.python_bin.absolute()
     graph = args.graph_file.resolve(strict=True) if args.graph_file else None
+    prefix = args.prefix_file.resolve(strict=True) if args.prefix_file else None
+    suffix = args.suffix_file.resolve(strict=True) if args.suffix_file else None
+    ep_dir = args.ep_dir.resolve(strict=True) if args.ep_dir else None
+    dml_python = args.dml_python_bin.resolve(strict=True) if args.dml_python_bin else None
     files = {
         "python": python, "model": model / "model.safetensors",
         "model_config": model / "config.json", "train_config": model / "train_config.json",
@@ -79,12 +95,20 @@ async def main() -> None:
     }
     if graph is not None:
         files["graph"] = graph
+    if args.placement in {"amd-npu-conv13", "amd-npu-radeon-cosmos"}:
+        files.update(prefix=prefix, suffix=suffix, ep_dll=ep_dir / "onnxruntime_vitisai_ep.dll")
+    if dml_python is not None:
+        files["dml_python"] = dml_python
     backend = {
         "name": "external.internvla.policy.v1", "placement": args.placement,
         "expected_cuda_device_name": cuda_before["device_name"] if cuda_before else None,
         "python_bin": str(python), "expected_torch": str(torch.__version__),
         "model_dir": str(model), "cosmos_dir": str(cosmos), "processor_dir": str(processor),
         "graph_file": str(graph) if graph else None,
+        "prefix_file": str(prefix) if prefix else None,
+        "suffix_file": str(suffix) if suffix else None,
+        "ep_dir": str(ep_dir) if ep_dir else None,
+        "dml_python_bin": str(dml_python) if dml_python else None,
         "artifact_sha256": {name: sha256(path) for name, path in files.items()},
         "log_file": str(args.log_file), "memory_overhead_bytes": 8 << 30,
         "max_input_bytes": 8 << 20, "max_action_bytes": 1 << 20,

@@ -1,0 +1,64 @@
+{
+  "scope": "fixed synthetic six-frame real-weight Cosmos CPU-prefix/Conv13 and DirectML-suffix component; not a full policy",
+  "status": "dml_suffix_component_measured",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.24.4",
+  "numpy": "2.5.3",
+  "device_id_requested": 1,
+  "warmups": 1,
+  "repeats": 10,
+  "artifact_sha256": {
+    "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+    "conv": "ced07f35fa68a909693c3049cd5e399c5aaf37acc75045442ccbf540a76dc89e",
+    "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4"
+  },
+  "dml_session_create_s": 1.2907613000134006,
+  "session_providers": [
+    "DmlExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_joint_npu_radeon\\suffix_dml_profile_2026-09-25_02-28-44.json",
+  "node_provider_events": {
+    "DmlExecutionProvider": 357,
+    "CPUExecutionProvider": 34
+  },
+  "relative_l2_vs_cpu_suffix": 6.445636843891738e-07,
+  "max_abs_vs_cpu_suffix": 1.239776611328125e-05,
+  "outputs_sha256": "fbb8309c49cf7e520f50a21f31b2913bed79fdb18a06194b34ff88228498f698",
+  "timing_s": {
+    "cpu_suffix_s": [
+      0.7882459000684321,
+      0.7707811000291258,
+      0.7909391999710351,
+      0.7697405000217259,
+      0.7943225000053644,
+      0.7573707000119612,
+      0.766634100000374,
+      0.7674106999766082,
+      0.7710204999893904,
+      0.7723994998959824
+    ],
+    "dml_suffix_s": [
+      0.13329400005750358,
+      0.6196650000056252,
+      0.13639770005829632,
+      0.5629268999909982,
+      0.1352148000150919,
+      0.5431348999263719,
+      0.13814629998523742,
+      0.5726044999901205,
+      0.1357595999725163,
+      0.561460500000976
+    ]
+  },
+  "nearest_rank_p50_p95_s": {
+    "cpu_suffix_s": [
+      0.7707811000291258,
+      0.7943225000053644
+    ],
+    "dml_suffix_s": [
+      0.13814629998523742,
+      0.6196650000056252
+    ]
+  }
+}

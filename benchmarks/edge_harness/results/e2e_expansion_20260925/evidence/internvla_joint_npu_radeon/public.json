@@ -1,0 +1,72 @@
+{
+  "entrypoint": "AsyncOmni.generate",
+  "placement": "amd-npu-radeon-cosmos",
+  "pipeline": "internvla_a1_external_whole",
+  "host_available_bytes_before": 25178693632,
+  "cuda_before": null,
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "startup_s": 126.03708749997895,
+  "request_wall_s": 4.162051200051792,
+  "outputs": [
+    {
+      "request_id": "public-internvla-1",
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "action_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0",
+      "finite": true,
+      "metadata": {
+        "observation_timestamp_ns": 1790276031806485700,
+        "generation_timestamp_ns": 1790276035949318700,
+        "observation_age_s": 4.142833,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "stage_event": {
+        "request_id": "public-internvla-1-90a70964",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "c26cb07a1486487082f589c1aa50b53f",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "c26cb07a1486487082f589c1aa50b53f",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "status": "passed"
+}

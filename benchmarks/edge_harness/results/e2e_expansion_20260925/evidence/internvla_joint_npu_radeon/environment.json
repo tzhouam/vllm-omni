@@ -1,0 +1,14 @@
+{
+  "host": "Ryzen AI 9 HX 370 laptop",
+  "os": "Windows 11",
+  "build": "26200",
+  "amd_npu_driver": "32.0.203.329",
+  "radeon_890m_driver": "32.0.22018.6001",
+  "npu_ort": "1.30.0",
+  "vitisai_ep": "1.8.63.0",
+  "directml_ort": "1.24.4",
+  "directml_device_id": 1,
+  "directml_adapter_name_from_torch_directml": "AMD Radeon(TM) 890M Graphics",
+  "power": "uncontrolled; no power telemetry",
+  "concurrency": 1
+}

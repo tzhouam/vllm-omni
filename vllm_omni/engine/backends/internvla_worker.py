@@ -34,7 +34,7 @@ def main() -> None:
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--processor-dir", type=Path, required=True)
     parser.add_argument("--cosmos-dir", type=Path, required=True)
-    parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos", "amd-npu-conv13"), required=True)
+    parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos", "amd-npu-conv13", "amd-npu-radeon-cosmos"), required=True)
     parser.add_argument("--graph", type=Path)
     parser.add_argument("--graph-sha256")
     parser.add_argument("--prefix", type=Path)
@@ -43,6 +43,9 @@ def main() -> None:
     parser.add_argument("--suffix-sha256")
     parser.add_argument("--ep-dir", type=Path)
     parser.add_argument("--ep-dll-sha256")
+    parser.add_argument("--npu-profile-prefix", type=Path)
+    parser.add_argument("--dml-python", type=Path)
+    parser.add_argument("--dml-python-sha256")
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--threads", type=int, default=8)
     parser.add_argument("--max-input-bytes", type=int, default=8 << 20)
@@ -51,11 +54,15 @@ def main() -> None:
         parser.error("invalid port, threads or input bound")
     if args.placement == "radeon-cosmos" and (args.graph is None or not args.graph_sha256):
         parser.error("Radeon route requires a graph and hash")
-    if args.placement == "amd-npu-conv13" and not all((
+    if args.placement in {"amd-npu-conv13", "amd-npu-radeon-cosmos"} and not all((
         args.graph, args.graph_sha256, args.prefix, args.prefix_sha256,
         args.suffix, args.suffix_sha256, args.ep_dir, args.ep_dll_sha256,
     )):
         parser.error("AMD NPU route requires pinned graph, prefix, suffix and EP directory")
+    if args.placement == "amd-npu-radeon-cosmos" and not all((
+        args.dml_python, args.dml_python_sha256,
+    )):
+        parser.error("joint AMD route requires a pinned DirectML interpreter")
     expected_visible = "0" if args.placement == "cuda" else ""
     if os.environ.get("CUDA_VISIBLE_DEVICES") != expected_visible:
         raise RuntimeError("InternVLA CUDA visibility differs from the placement plan")
@@ -140,7 +147,7 @@ def main() -> None:
             external.close()
             raise
 
-    if args.placement == "amd-npu-conv13":
+    if args.placement in {"amd-npu-conv13", "amd-npu-radeon-cosmos"}:
         import onnxruntime as ort
 
         paths = {
@@ -175,7 +182,9 @@ def main() -> None:
         options = ort.SessionOptions()
         options.add_provider_for_devices(devices, {})
         options.enable_profiling = True
-        options.profile_file_prefix = str(Path(tempfile.gettempdir()) / f"internvla_npu_placement_{os.getpid()}")
+        options.profile_file_prefix = str(
+            args.npu_profile_prefix or Path(tempfile.gettempdir()) / f"internvla_npu_placement_{os.getpid()}"
+        )
         npu = ort.InferenceSession(str(args.graph), sess_options=options)
         if ([item.name for item in npu.get_inputs()] != ["group_norm"]
                 or [item.name for item in npu.get_outputs()] != ["conv2d_13"]):
@@ -190,26 +199,79 @@ def main() -> None:
         if placed < 1:
             raise RuntimeError("AMD NPU Conv13 has no VitisAI node event")
         npu_report = {"device_type": str(devices[0].device.type), "provider": "vitisai",
-                      "warmup_npu_node_events": placed, "onnxruntime": ort.__version__}
-        profile.unlink(missing_ok=True)
+                      "warmup_npu_node_events": placed, "onnxruntime": ort.__version__,
+                      "profile_path": str(profile) if args.npu_profile_prefix else None}
+        if args.npu_profile_prefix is None:
+            profile.unlink(missing_ok=True)
+
+        if args.placement == "amd-npu-radeon-cosmos":
+            from vllm_omni.edge.local.external.client import ExternalWorker
+            from vllm_omni.edge.local.external.launch import ROUTE_DML, resolve
+
+            dml_python = args.dml_python.resolve(strict=True)
+            if _sha256(dml_python) != args.dml_python_sha256.lower():
+                raise RuntimeError("DirectML interpreter hash differs from plan")
+            os.environ["VLLM_OMNI_EXTERNAL_PYTHON_ORT_DML"] = str(dml_python)
+            route = resolve(ROUTE_DML)
+            if not route.available or Path(route.interpreter).resolve() != dml_python:
+                raise RuntimeError(f"pinned DirectML route unavailable: {route.reason}")
+            external = ExternalWorker(route, max_payload_bytes=64 << 20)
+            try:
+                external.start()
+                external_report = external.load(
+                    args.suffix.resolve(strict=True),
+                    example_inputs={
+                        "pixels": np.zeros((6, 3, 256, 256), dtype=np.float32),
+                        "conv2d_13": np.zeros((6, 256, 64, 64), dtype=np.float32),
+                    },
+                    device_id=1,
+                )
+                if (external_report.device_id_requested != 1
+                        or external_report.node_counts.get("DmlExecutionProvider", 0) < 1
+                        or not external_report.fraction_on_target
+                        or {item["name"] for item in external_report.inputs} != {"pixels", "conv2d_13"}
+                        or tuple(external_report.outputs[0]["shape"]) != (6, 16, 32, 32)):
+                    raise RuntimeError("Radeon suffix device, placement or graph contract differs")
+            except BaseException:
+                external.close()
+                raise
 
         class NpuConv13Encoder(torch.nn.Module):
+            def __init__(self) -> None:
+                super().__init__()
+                self.last_timing: dict[str, float] | None = None
+
             def forward(self, pixels: torch.Tensor) -> torch.Tensor:
                 if pixels.device.type != "cpu" or tuple(pixels.shape) != (6, 3, 256, 256):
                     raise ValueError("Cosmos input differs from fixed six-frame CPU contract")
                 values = np.ascontiguousarray(pixels.detach().float().numpy())
+                started = time.perf_counter()
                 boundary = prefix.run(None, {"pixels": values})[0]
+                prefix_s = time.perf_counter() - started
                 if boundary.shape != (6, 128, 64, 64):
                     raise RuntimeError("Cosmos prefix boundary shape changed")
+                started = time.perf_counter()
                 parts = [npu.run(None, {"group_norm": np.ascontiguousarray(boundary[i:i + 1])})[0]
                          for i in range(6)]
                 conv = np.concatenate(parts, axis=0)
-                latent = suffix.run(None, {"pixels": values, "conv2d_13": conv})[0]
+                npu_s = time.perf_counter() - started
+                if external is not None:
+                    output, timing = external.run({"pixels": values, "conv2d_13": conv})
+                    latent = output["latent"]
+                    self.last_timing = {
+                        "cosmos_cpu_prefix_s": prefix_s,
+                        "cosmos_npu_conv_s": npu_s,
+                        "cosmos_dml_worker_s": timing.worker_s,
+                        "cosmos_dml_round_trip_s": timing.round_trip_s,
+                    }
+                else:
+                    latent = suffix.run(None, {"pixels": values, "conv2d_13": conv})[0]
                 if latent.shape != (6, 16, 32, 32) or not np.isfinite(latent).all():
                     raise RuntimeError("AMD NPU Cosmos returned invalid latent")
                 return torch.from_numpy(latent).to(pixels.dtype)
 
-        pipeline.policy.model.cosmos._enc_model = NpuConv13Encoder()
+        npu_encoder = NpuConv13Encoder()
+        pipeline.policy.model.cosmos._enc_model = npu_encoder
 
     props = {
         "model_dir": str(model_dir), "processor_dir": str(processor_dir),
@@ -295,6 +357,8 @@ def main() -> None:
                     batch[f"observation.images.image{i}"] = torch.from_numpy(images[i].copy()).to(device=policy_device, dtype=torch.bfloat16)
                     batch[f"observation.images.image{i}_mask"] = torch.from_numpy(masks[i].copy()).to(policy_device)
                 started = time.perf_counter()
+                if args.placement == "amd-npu-radeon-cosmos":
+                    npu_encoder.last_timing = None
                 result = pipeline.forward(DiffusionRequestBatch(requests=[
                     OmniDiffusionRequest(
                         prompt="",
@@ -317,10 +381,20 @@ def main() -> None:
                 if not np.isfinite(values).all():
                     raise RuntimeError("policy returned nonfinite actions")
                 with io.BytesIO() as out:
-                    np.savez(out, actions=values, observation_timestamp_ns=np.int64(observation_ns),
-                             generation_timestamp_ns=np.int64(time.time_ns()), request_id=np.array(request_id),
-                             worker_wall_s=np.float64(time.perf_counter() - started),
-                             cuda_peak_reserved_bytes=np.int64(cuda_peak_reserved))
+                    fields = {
+                        "actions": values,
+                        "observation_timestamp_ns": np.int64(observation_ns),
+                        "generation_timestamp_ns": np.int64(time.time_ns()),
+                        "request_id": np.array(request_id),
+                        "worker_wall_s": np.float64(time.perf_counter() - started),
+                        "cuda_peak_reserved_bytes": np.int64(cuda_peak_reserved),
+                    }
+                    if args.placement == "amd-npu-radeon-cosmos":
+                        if npu_encoder.last_timing is None:
+                            raise RuntimeError("joint Cosmos encoder did not report its live handoff")
+                        fields.update({key: np.float64(value)
+                                       for key, value in npu_encoder.last_timing.items()})
+                    np.savez(out, **fields)
                     body = out.getvalue()
                 self.send_response(200)
                 self.send_header("Content-Type", "application/octet-stream")

@@ -84,6 +84,7 @@ class LoadReport:
     requested_provider_missing: str = ""
     fallback_note: str = ""
     onnxruntime: str = ""
+    device_id_requested: int | None = None
     note: str = ""
 
     @classmethod
@@ -109,6 +110,7 @@ class LoadReport:
             requested_provider_missing=str(body.get("requested_provider_missing") or ""),
             fallback_note=str(body.get("fallback_note") or ""),
             onnxruntime=str(body.get("onnxruntime") or ""),
+            device_id_requested=body.get("device_id_requested"),
             note=str(body.get("placement_unknown_reason") or ""),
         )
 
@@ -445,6 +447,7 @@ class ExternalWorker:
         profile_prefix: str | Path | None = None,
         ep_dir: str | Path | None = None,
         intra_op_num_threads: int | None = None,
+        device_id: int | None = None,
         artifact_files: list[Path] | None = None,
     ) -> LoadReport:
         """Open a graph and measure where its nodes actually ran.
@@ -465,6 +468,10 @@ class ExternalWorker:
             body["ep_dir"] = str(ep_dir)
         if intra_op_num_threads is not None:
             body["intra_op_num_threads"] = int(intra_op_num_threads)
+        if device_id is not None:
+            if self.route.ep != "dml" or device_id < 0:
+                raise ValueError("device_id requires a nonnegative DirectML route")
+            body["device_id"] = int(device_id)
         if artifact_files is not None:
             body["artifact_files"] = [
                 _launch.to_worker_path(path, is_windows=self.route.is_windows) for path in artifact_files

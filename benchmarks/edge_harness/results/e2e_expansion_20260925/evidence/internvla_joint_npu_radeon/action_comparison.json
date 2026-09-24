@@ -1,0 +1,43 @@
+{
+  "scope": "separately measured one-pattern synthetic InternVLA action outputs; no task-quality tolerance or paired speedup claim",
+  "files": {
+    "joint": {
+      "actions_sha256": "00d7eb34d603a028529d4649db8749c24fdee289d0643166bbe741fea14e3644",
+      "report_sha256": "e7e4507be29a1af1ef5a937166331b5e442c29dff8287cfcfdacf64cdea5a8a5",
+      "action_bytes_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0"
+    },
+    "cpu": {
+      "actions_sha256": "00ec090b4fc7dd3d16977554b328efa1843d08ec33f0a55a06ee66378ad89baf",
+      "report_sha256": "972aa97c65d9462c7cf942a63fd02ef85c7e9bc7f9aff52152a34e414ba19bde",
+      "action_bytes_sha256": "82dd03dc31833fda60bff6620030315bad4034089b0c6c34c9de74e1c97e8d36"
+    },
+    "npu": {
+      "actions_sha256": "6447266067321bd056e053ef9994055008a6634fd4f9bbadcae5d88c223317b7",
+      "report_sha256": "a4280faeaedd6e254772a1ec98d5c8062fe7a9275b2a81911fb652bc462dd067",
+      "action_bytes_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d"
+    },
+    "radeon": {
+      "actions_sha256": "1a5967ddd58a33ed86c1b995b6591c952a6d68701f92e62414c11ec921db9223",
+      "report_sha256": "9a8ecfcd8b8d4aefc5b426b3ee71e560f685ee8382ff4090d15bceb7fe590489",
+      "action_bytes_sha256": "c6ce59129939fdeecad9304882bddcc427834533df2aba102d69c05a72344637"
+    }
+  },
+  "comparisons": {
+    "joint_vs_cpu": {
+      "relative_l2": 0.031882442777619584,
+      "max_abs": 0.0777008980512619,
+      "cosine": 0.9995786586517054
+    },
+    "joint_vs_npu": {
+      "relative_l2": 0.013625013937036684,
+      "max_abs": 0.02460309863090515,
+      "cosine": 0.9999255736570768
+    },
+    "joint_vs_radeon": {
+      "relative_l2": 0.026135576136208254,
+      "max_abs": 0.0303497314453125,
+      "cosine": 0.9997213896081163
+    }
+  },
+  "status": "action_sensitivity_measured"
+}

@@ -68,7 +68,7 @@ class InternVLAStageClient(CrispTTSStageClient):
         self._cuda_demand_bytes = reservation.demands.get("cuda:0", 0)
         try:
             if (
-                self._placement not in {"cpu", "cuda", "radeon-cosmos", "amd-npu-conv13"} or self._max_input_bytes <= 0
+                self._placement not in {"cpu", "cuda", "radeon-cosmos", "amd-npu-conv13", "amd-npu-radeon-cosmos"} or self._max_input_bytes <= 0
                 or self._max_action_bytes <= 0 or self._request_timeout_s <= 0
                 or not 0 < self._port < 65536
             ):
@@ -88,13 +88,15 @@ class InternVLAStageClient(CrispTTSStageClient):
             self._processor_dir = Path(config["processor_dir"]).resolve(strict=True)
             self._cosmos_dir = Path(config["cosmos_dir"]).resolve(strict=True)
             self._graph = Path(config["graph_file"]).resolve(strict=True) if self._placement == "radeon-cosmos" else None
-            if self._placement == "amd-npu-conv13":
+            if self._placement in {"amd-npu-conv13", "amd-npu-radeon-cosmos"}:
                 self._graph = Path(config["graph_file"]).resolve(strict=True)
                 self._prefix = Path(config["prefix_file"]).resolve(strict=True)
                 self._suffix = Path(config["suffix_file"]).resolve(strict=True)
                 self._ep_dll = Path(config["ep_dir"]).resolve(strict=True) / "onnxruntime_vitisai_ep.dll"
             else:
                 self._prefix = self._suffix = self._ep_dll = None
+            self._dml_python = (Path(config["dml_python_bin"]).resolve(strict=True)
+                                if self._placement == "amd-npu-radeon-cosmos" else None)
             self._worker = Path(__file__).with_name("internvla_worker.py").resolve(strict=True)
             artifacts = {
                 "python": self._python,
@@ -111,6 +113,8 @@ class InternVLAStageClient(CrispTTSStageClient):
                 artifacts["graph"] = self._graph
             if self._prefix is not None:
                 artifacts.update(prefix=self._prefix, suffix=self._suffix, ep_dll=self._ep_dll)
+            if self._dml_python is not None:
+                artifacts["dml_python"] = self._dml_python
             hashes = dict(config["artifact_sha256"])
             if set(hashes) != set(artifacts):
                 raise ValueError("InternVLA artifact manifest has missing or unexpected entries")
@@ -157,6 +161,10 @@ class InternVLAStageClient(CrispTTSStageClient):
                     "--suffix", str(self._suffix), "--suffix-sha256", hashes["suffix"],
                     "--ep-dir", str(self._ep_dll.parent), "--ep-dll-sha256", hashes["ep_dll"],
                 ]
+            if self._dml_python is not None:
+                command += ["--dml-python", str(self._dml_python),
+                            "--dml-python-sha256", hashes["dml_python"],
+                            "--npu-profile-prefix", str(self._log_path.with_name(self._log_path.stem + "_npu_profile"))]
             flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
             self._proc = subprocess.Popen(
                 command, stdout=self._log_stream, stderr=subprocess.STDOUT,
@@ -178,7 +186,8 @@ class InternVLAStageClient(CrispTTSStageClient):
                 time.sleep(.2)
             with urllib.request.urlopen(base + "/props", timeout=5) as response:
                 props = json.load(response)
-            expected_external = self._placement == "radeon-cosmos"
+            expected_external = self._placement in {"radeon-cosmos", "amd-npu-radeon-cosmos"}
+            expected_npu = self._placement in {"amd-npu-conv13", "amd-npu-radeon-cosmos"}
             observed_external = props.get("external_load")
             if (
                 props.get("placement") != self._placement
@@ -188,15 +197,20 @@ class InternVLAStageClient(CrispTTSStageClient):
                 or props.get("policy_device") != ("cuda" if self._placement == "cuda" else "cpu")
                 or props.get("runtime_mode") != "real_checkpoint_loaded"
                 or props.get("policy_dtype") != "bfloat16"
-                or props.get("cosmos_dtype") != ("float32" if expected_external or self._placement == "amd-npu-conv13" else "bfloat16")
+                or props.get("cosmos_dtype") != ("float32" if expected_external or expected_npu else "bfloat16")
                 or props.get("action_shape") != [1, 50, 32]
                 or props.get("action_mode") != "delta"
                 or props.get("control_ready") is not False
                 or props.get("torch") != str(config["expected_torch"])
                 or bool(observed_external) != expected_external
-                or (expected_external and observed_external.get("device_name") != "AMD Radeon(TM) 890M Graphics")
-                or bool(props.get("npu_load")) != (self._placement == "amd-npu-conv13")
-                or (self._placement == "amd-npu-conv13" and (
+                or (self._placement == "radeon-cosmos" and observed_external.get("device_name") != "AMD Radeon(TM) 890M Graphics")
+                or (self._placement == "amd-npu-radeon-cosmos" and (
+                    observed_external.get("device_id_requested") != 1
+                    or observed_external.get("node_counts", {}).get("DmlExecutionProvider", 0) < 1
+                    or observed_external.get("fraction_on_target", 0) <= 0
+                ))
+                or bool(props.get("npu_load")) != expected_npu
+                or (expected_npu and (
                     props["npu_load"].get("provider") != "vitisai"
                     or props["npu_load"].get("warmup_npu_node_events", 0) < 1
                 ))
@@ -303,9 +317,14 @@ class InternVLAStageClient(CrispTTSStageClient):
                 timeout=self._request_timeout_s, max_bytes=self._max_action_bytes,
             )
             with np.load(io.BytesIO(data), allow_pickle=False) as response:
-                if set(response.files) != {"actions", "observation_timestamp_ns",
-                                          "generation_timestamp_ns", "request_id", "worker_wall_s",
-                                          "cuda_peak_reserved_bytes"}:
+                expected = {"actions", "observation_timestamp_ns",
+                            "generation_timestamp_ns", "request_id", "worker_wall_s",
+                            "cuda_peak_reserved_bytes"}
+                handoff_fields = {"cosmos_cpu_prefix_s", "cosmos_npu_conv_s",
+                                  "cosmos_dml_worker_s", "cosmos_dml_round_trip_s"}
+                if self._placement == "amd-npu-radeon-cosmos":
+                    expected |= handoff_fields
+                if set(response.files) != expected:
                     raise ValueError("InternVLA response fields differ from declared action contract")
                 actions = np.asarray(response["actions"])
                 observation_ns = int(response["observation_timestamp_ns"].item())
@@ -313,6 +332,8 @@ class InternVLAStageClient(CrispTTSStageClient):
                 returned_id = str(response["request_id"].item())
                 worker_wall_s = float(response["worker_wall_s"].item())
                 cuda_peak_reserved = int(response["cuda_peak_reserved_bytes"].item())
+                handoff = ({name: float(response[name].item()) for name in handoff_fields}
+                           if self._placement == "amd-npu-radeon-cosmos" else {})
             if (returned_id != request.request_id or actions.dtype != np.float32
                 or actions.shape != (1, 50, 32) or not np.isfinite(actions).all()
                 or generation_ns < observation_ns):
@@ -321,6 +342,9 @@ class InternVLAStageClient(CrispTTSStageClient):
                 raise ResourceUnavailable("InternVLA CUDA peak reservation exceeded the admitted VRAM budget")
             if self._placement != "cuda" and cuda_peak_reserved != 0:
                 raise ValueError("InternVLA non-CUDA worker reported CUDA allocation")
+            if handoff and (any(not np.isfinite(value) or value < 0 for value in handoff.values())
+                            or handoff["cosmos_dml_worker_s"] > handoff["cosmos_dml_round_trip_s"]):
+                raise ValueError("InternVLA joint handoff timing is invalid")
             ref = BufferRef(
                 "actions", str(self.stage_id), self._generation, "float32", tuple(actions.shape), int(actions.nbytes)
             )
@@ -344,7 +368,8 @@ class InternVLAStageClient(CrispTTSStageClient):
                 },
                 metrics={"policy_wall_s": time.perf_counter() - started,
                          "worker_wall_s": worker_wall_s,
-                         "cuda_peak_reserved_bytes": cuda_peak_reserved},
+                         "cuda_peak_reserved_bytes": cuda_peak_reserved,
+                         **handoff},
             )
         except asyncio.CancelledError:
             raise

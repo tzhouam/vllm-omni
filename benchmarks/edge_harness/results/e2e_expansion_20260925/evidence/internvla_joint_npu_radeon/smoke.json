@@ -1,0 +1,459 @@
+{
+  "scope": "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; synthetic patterned observations/noise; no robot-task quality claim",
+  "placement": "amd-npu-radeon-cosmos",
+  "artifact_sha256": {
+    "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+    "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+    "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+    "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+    "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+    "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+    "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+    "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+    "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+    "graph": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+    "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+    "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+    "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991",
+    "dml_python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+  },
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "host_available_bytes_before": 32484286464,
+  "cuda_before": null,
+  "warmups": 0,
+  "repeats": 1,
+  "startup_s": 127.33831899997313,
+  "execution_plan_start": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "bace46e0383b464cb92f431cce888c63",
+    "worker_pid": 66540,
+    "worker_script_sha256": "cd2a3a9e4bb8c79d51a1d5cbca13e9ef4d551278a487cbdec1b3469426120a82",
+    "artifact_sha256": {
+      "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "graph": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+      "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+      "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+      "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991",
+      "dml_python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+    },
+    "placement": "amd-npu-radeon-cosmos",
+    "worker_props": {
+      "model_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Cosmos-Tokenizer-CI8x8",
+      "placement": "amd-npu-radeon-cosmos",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "float32",
+      "policy_device": "cpu",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": null,
+      "cuda_device_index": null,
+      "cuda_allocated_after_load_bytes": null,
+      "cuda_reserved_after_load_bytes": null,
+      "policy_load_s": 61.460196499945596,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": {
+        "ep": "dml",
+        "graph_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-cosmos-onnx\\cosmos_encoder_suffix_after_conv13_20260925.onnx",
+        "device_name": "",
+        "placement_granularity": "graph_nodes",
+        "session_providers": [
+          "DmlExecutionProvider",
+          "CPUExecutionProvider"
+        ],
+        "available_providers": [
+          "DmlExecutionProvider",
+          "CPUExecutionProvider"
+        ],
+        "node_counts": {
+          "DmlExecutionProvider": 357,
+          "CPUExecutionProvider": 34
+        },
+        "total_nodes": 391,
+        "target_nodes": 357,
+        "fraction_on_target": 0.9130434782608695,
+        "session_create_s": 1.214594699908048,
+        "warmup_s": 0.22624590003397316,
+        "rss_bytes": 894857216,
+        "inputs": [
+          {
+            "name": "pixels",
+            "type": "tensor(float)",
+            "shape": [
+              6,
+              3,
+              256,
+              256
+            ]
+          },
+          {
+            "name": "conv2d_13",
+            "type": "tensor(float)",
+            "shape": [
+              6,
+              256,
+              64,
+              64
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "latent",
+            "type": "tensor(float)",
+            "shape": [
+              6,
+              16,
+              32,
+              32
+            ]
+          }
+        ],
+        "profile_path": "onnxruntime_profile__2026-09-25_02-35-48.json",
+        "ep_directory": "",
+        "requested_provider_missing": "",
+        "fallback_note": "",
+        "onnxruntime": "1.24.4",
+        "device_id_requested": 1,
+        "note": ""
+      },
+      "npu_load": {
+        "device_type": "OrtHardwareDeviceType.NPU",
+        "provider": "vitisai",
+        "warmup_npu_node_events": 1,
+        "onnxruntime": "1.30.0"
+      }
+    },
+    "loaded_rss_bytes": 10213187584,
+    "loaded_process_tree": [
+      {
+        "pid": 66540,
+        "rss_bytes": 5001216,
+        "private_bytes": 868352
+      },
+      {
+        "pid": 20920,
+        "rss_bytes": 7483392,
+        "private_bytes": 1241088
+      },
+      {
+        "pid": 62184,
+        "rss_bytes": 9293332480,
+        "private_bytes": 11387555840
+      },
+      {
+        "pid": 36220,
+        "rss_bytes": 5021696,
+        "private_bytes": 925696
+      },
+      {
+        "pid": 50536,
+        "rss_bytes": 7487488,
+        "private_bytes": 1273856
+      },
+      {
+        "pid": 37520,
+        "rss_bytes": 894861312,
+        "private_bytes": 1127006208
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 0,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "warmup_results": [],
+  "measured": [
+    {
+      "wall_s": 4.210210700053722,
+      "action_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0",
+      "stage_event": {
+        "request_id": "internvla-measured-0",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "bace46e0383b464cb92f431cce888c63",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "bace46e0383b464cb92f431cce888c63",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790274950330511000,
+        "generation_timestamp_ns": 1790274954533556800,
+        "observation_age_s": 4.2030458,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.205795300076716,
+        "worker_wall_s": 4.175148600013927,
+        "cuda_peak_reserved_bytes": 0
+      }
+    }
+  ],
+  "nearest_rank_p50_wall_s": 4.210210700053722,
+  "nearest_rank_p95_wall_s": 4.210210700053722,
+  "unique_action_hashes": [
+    "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0"
+  ],
+  "output_actions": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_joint_npu_radeon\\smoke_actions.npy",
+  "reference_comparison": {
+    "max_abs": 0.0777008980512619,
+    "relative_l2": 0.03188244625926018,
+    "cosine": 0.999578595161438
+  },
+  "execution_plan_end": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "bace46e0383b464cb92f431cce888c63",
+    "worker_pid": 66540,
+    "worker_script_sha256": "cd2a3a9e4bb8c79d51a1d5cbca13e9ef4d551278a487cbdec1b3469426120a82",
+    "artifact_sha256": {
+      "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "graph": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+      "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+      "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+      "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991",
+      "dml_python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+    },
+    "placement": "amd-npu-radeon-cosmos",
+    "worker_props": {
+      "model_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Cosmos-Tokenizer-CI8x8",
+      "placement": "amd-npu-radeon-cosmos",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "float32",
+      "policy_device": "cpu",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": null,
+      "cuda_device_index": null,
+      "cuda_allocated_after_load_bytes": null,
+      "cuda_reserved_after_load_bytes": null,
+      "policy_load_s": 61.460196499945596,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": {
+        "ep": "dml",
+        "graph_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-cosmos-onnx\\cosmos_encoder_suffix_after_conv13_20260925.onnx",
+        "device_name": "",
+        "placement_granularity": "graph_nodes",
+        "session_providers": [
+          "DmlExecutionProvider",
+          "CPUExecutionProvider"
+        ],
+        "available_providers": [
+          "DmlExecutionProvider",
+          "CPUExecutionProvider"
+        ],
+        "node_counts": {
+          "DmlExecutionProvider": 357,
+          "CPUExecutionProvider": 34
+        },
+        "total_nodes": 391,
+        "target_nodes": 357,
+        "fraction_on_target": 0.9130434782608695,
+        "session_create_s": 1.214594699908048,
+        "warmup_s": 0.22624590003397316,
+        "rss_bytes": 894857216,
+        "inputs": [
+          {
+            "name": "pixels",
+            "type": "tensor(float)",
+            "shape": [
+              6,
+              3,
+              256,
+              256
+            ]
+          },
+          {
+            "name": "conv2d_13",
+            "type": "tensor(float)",
+            "shape": [
+              6,
+              256,
+              64,
+              64
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "latent",
+            "type": "tensor(float)",
+            "shape": [
+              6,
+              16,
+              32,
+              32
+            ]
+          }
+        ],
+        "profile_path": "onnxruntime_profile__2026-09-25_02-35-48.json",
+        "ep_directory": "",
+        "requested_provider_missing": "",
+        "fallback_note": "",
+        "onnxruntime": "1.24.4",
+        "device_id_requested": 1,
+        "note": ""
+      },
+      "npu_load": {
+        "device_type": "OrtHardwareDeviceType.NPU",
+        "provider": "vitisai",
+        "warmup_npu_node_events": 1,
+        "onnxruntime": "1.30.0"
+      }
+    },
+    "loaded_rss_bytes": 10213187584,
+    "loaded_process_tree": [
+      {
+        "pid": 66540,
+        "rss_bytes": 5001216,
+        "private_bytes": 868352
+      },
+      {
+        "pid": 20920,
+        "rss_bytes": 7483392,
+        "private_bytes": 1241088
+      },
+      {
+        "pid": 62184,
+        "rss_bytes": 9293332480,
+        "private_bytes": 11387555840
+      },
+      {
+        "pid": 36220,
+        "rss_bytes": 5021696,
+        "private_bytes": 925696
+      },
+      {
+        "pid": 50536,
+        "rss_bytes": 7487488,
+        "private_bytes": 1273856
+      },
+      {
+        "pid": 37520,
+        "rss_bytes": 894861312,
+        "private_bytes": 1127006208
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 0,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

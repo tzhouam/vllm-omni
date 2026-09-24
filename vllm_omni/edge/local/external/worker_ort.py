@@ -221,7 +221,16 @@ def _make_session(body: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
         info["ep_directory"] = str(body.get("ep_dir") or npu.find_ep_directory())
         providers = [name]
     elif ep == "dml":
-        providers = ["DmlExecutionProvider"]
+        options.enable_mem_pattern = False
+        options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        device_id = body.get("device_id")
+        if device_id is None:
+            providers = ["DmlExecutionProvider"]
+        else:
+            if type(device_id) is not int or device_id < 0:
+                raise ValueError("DirectML device_id must be a nonnegative integer")
+            providers = [("DmlExecutionProvider", {"device_id": str(device_id)})]
+            info["device_id_requested"] = device_id
     elif ep == "cpu":
         providers = ["CPUExecutionProvider"]
     else:
@@ -251,10 +260,11 @@ def _make_session(body: dict[str, Any]) -> tuple[Any, dict[str, Any]]:
     # features. The node-assignment gate downstream catches that, but only
     # after a profiled run; naming it at the source turns a 0%-placement number
     # into the actual reason.
-    if providers and providers[0] not in info["session_providers"]:
-        info["requested_provider_missing"] = providers[0]
+    requested_provider = providers[0][0] if isinstance(providers[0], tuple) else providers[0]
+    if requested_provider not in info["session_providers"]:
+        info["requested_provider_missing"] = requested_provider
         info["fallback_note"] = (
-            f"{providers[0]} failed to initialise and onnxruntime silently fell "
+            f"{requested_provider} failed to initialise and onnxruntime silently fell "
             f"back to {info['session_providers']}. Anything this session computes "
             "runs there, not on the requested device."
         )
