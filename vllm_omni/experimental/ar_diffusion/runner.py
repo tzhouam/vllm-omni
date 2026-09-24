@@ -23,7 +23,11 @@ from vllm_omni.experimental.ar_diffusion.capability import (
     SupportsARDiffusionWarmup,
     supports_chunk_step_grouping,
 )
-from vllm_omni.experimental.ar_diffusion.kv_cache.config import ARDiffusionKVConfig
+from vllm_omni.experimental.ar_diffusion.kv_cache.config import (
+    ARDiffusionKVConfig,
+    contiguous_kv_gather_enabled,
+    set_contiguous_kv_gather,
+)
 from vllm_omni.experimental.ar_diffusion.kv_cache.manager import ARDiffusionKVCache
 from vllm_omni.experimental.ar_diffusion.kv_cache.state import ARDiffusionKVState
 from vllm_omni.experimental.ar_diffusion.tick_protocol import ARDiffusionTickRequest
@@ -44,6 +48,11 @@ def resolve_ar_diffusion_kv_config(od_config: OmniDiffusionConfig) -> ARDiffusio
     if isinstance(raw, dict):
         return ARDiffusionKVConfig(**{**raw, "enable": True})
     return ARDiffusionKVConfig(enable=True)
+
+
+def _prefer_config(configured: bool | None, pipeline_default: bool) -> bool:
+    """A deployment's explicit value wins; ``None`` defers to the pipeline's KV spec."""
+    return pipeline_default if configured is None else bool(configured)
 
 
 class ARDiffusionModelRunner(DiffusionModelRunner):
@@ -123,12 +132,27 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
                 f"ar_diffusion_kv_cache_spec() must return ARDiffusionKVCacheSpec, got {type(spec).__name__}"
             )
 
+        contiguous_kv_gather = _prefer_config(
+            self.ar_diffusion_kv_config.contiguous_kv_gather, spec.contiguous_kv_gather
+        )
         config = dataclasses.replace(
             self.ar_diffusion_kv_config,
             chunk_size=spec.tokens_per_frame,
             window_chunks=self.ar_diffusion_kv_config.window_chunks or spec.window_frames,
             sink_chunks=self.ar_diffusion_kv_config.sink_chunks or spec.sink_frames,
             reset_at_boundary=self.ar_diffusion_kv_config.reset_at_boundary or spec.reset_at_boundary,
+            reuse_history_staging=_prefer_config(
+                self.ar_diffusion_kv_config.reuse_history_staging, spec.reuse_history_staging
+            ),
+            contiguous_kv_gather=contiguous_kv_gather,
+        )
+        # Before the KV cache is built: its manager budgets the staging buffers from this choice.
+        set_contiguous_kv_gather(contiguous_kv_gather)
+        logger.info(
+            "AR-Diffusion KV: contiguous_kv_gather=%s (effective %s), reuse_history_staging=%s",
+            contiguous_kv_gather,
+            contiguous_kv_gather_enabled(),
+            config.reuse_history_staging,
         )
         self.ar_diffusion_kv_config = config
         self._ar_diffusion_capability = capability

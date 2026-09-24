@@ -91,6 +91,10 @@ class ARDiffusionKVCacheSpec:
     max_model_len: int = 1 << 20
     max_scratch_tokens_per_branch: int = 0
     model_owned_state_bytes_per_session: int = 0
+    # Pipeline defaults for the contiguous-K/V gather attention path and its history staging buffers; a
+    # deployment's ar_diffusion_kv_config values and VLLM_OMNI_AR_DIFFUSION_KV_GATHER take precedence.
+    contiguous_kv_gather: bool = False
+    reuse_history_staging: bool = False
 
     def __post_init__(self) -> None:
         positive_fields = {

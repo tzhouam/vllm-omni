@@ -801,6 +801,11 @@ class LingBotWorldCausalDMDPipeline(
             sink_frames=sink_frames,
             kv_branches=(ARDiffusionKVBranchSpec(self._AR_BRANCH, 0),),
             session_capacity=2,
+            # LingBot's 1560-token frame blocks are not a multiple of the FA3 K/V tile, so FA3's paged path is
+            # ~15-17% slower than the same kernel on contiguous K/V; gather once per layer and reuse the staged
+            # history across the forwards of an AR block. Deployments can still turn either off.
+            contiguous_kv_gather=True,
+            reuse_history_staging=True,
             cross_attention=(
                 ARDiffusionCrossAttentionKVSpec(
                     self._AR_TEXT_CACHE,

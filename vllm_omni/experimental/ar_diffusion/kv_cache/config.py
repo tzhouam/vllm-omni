@@ -10,14 +10,31 @@ from dataclasses import dataclass
 KV_GATHER_ENV = "VLLM_OMNI_AR_DIFFUSION_KV_GATHER"
 
 
+# The worker's resolved choice (deployment config, else the pipeline's KV spec), set once by the runner.
+_contiguous_kv_gather: bool = False
+
+
+def set_contiguous_kv_gather(enabled: bool) -> None:
+    """Record the runner-resolved gather choice for this worker process (see :func:`contiguous_kv_gather_enabled`)."""
+    global _contiguous_kv_gather
+    _contiguous_kv_gather = bool(enabled)
+
+
 def contiguous_kv_gather_enabled() -> bool:
-    """Whether the experimental contiguous-K/V gather attention path is on (``VLLM_OMNI_AR_DIFFUSION_KV_GATHER=1``).
+    """Whether the contiguous-K/V gather attention path is on.
+
+    ``VLLM_OMNI_AR_DIFFUSION_KV_GATHER=1`` / ``=0`` forces it on or off. Unset, the runner's resolved
+    ``ARDiffusionKVConfig.contiguous_kv_gather`` applies: the deployment value, else the pipeline's
+    ``ARDiffusionKVCacheSpec`` default (off unless a pipeline opts in).
 
     The one place the switch is read: the KV manager consults it when it budgets and allocates the history
     staging buffers, and the attention dispatch when it picks the path, so the two cannot disagree. It is the
     only consumer of ``ARDiffusionKVConfig.reuse_history_staging``.
     """
-    return os.environ.get(KV_GATHER_ENV, "0") == "1"
+    forced = os.environ.get(KV_GATHER_ENV)
+    if forced in ("0", "1"):
+        return forced == "1"
+    return _contiguous_kv_gather
 
 
 @dataclass
@@ -47,9 +64,12 @@ class ARDiffusionKVConfig:
     # Keep one contiguous K/V staging buffer per layer and refresh only the tokens that changed.
     # Within one AR block every forward attends the same history and differs only in the current
     # chunk, so re-gathering the whole visible window per forward re-copies bytes that did not move.
-    # Off by default: it costs two max-sequence buffers per layer, per rank. See
-    # ARDiffusionPagedForwardContext.history_staging.
-    reuse_history_staging: bool = False
+    # It costs two max-sequence buffers per layer, per rank. See ARDiffusionPagedForwardContext.history_staging.
+    # ``None`` takes the pipeline's ARDiffusionKVCacheSpec default (off unless the pipeline opts in).
+    reuse_history_staging: bool | None = None
+    # Attend a contiguous gather of the visible K/V instead of FA3's paged path (see contiguous_kv_gather_enabled).
+    # ``None`` takes the pipeline's ARDiffusionKVCacheSpec default; the environment variable still overrides.
+    contiguous_kv_gather: bool | None = None
     # Also capture the post-window-boundary (reset-cycle) forward during warm-up.
     warmup_capture_reset: bool = False
 
