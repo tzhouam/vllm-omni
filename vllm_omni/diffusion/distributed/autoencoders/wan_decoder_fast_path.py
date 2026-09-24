@@ -39,12 +39,16 @@ from torch import nn
 from vllm.logger import init_logger
 
 from vllm_omni.diffusion.distributed.autoencoders.wan_decoder_kernels import (
-    can_use_nearest_upsample_nhwc,
     can_use_wan_rmsnorm_silu,
-    canonical_nhwc,
-    nearest_upsample_nhwc,
     wan_rmsnorm_silu,
     wan_rmsnorm_silu_reference,
+)
+from vllm_omni.diffusion.distributed.autoencoders.wan_decoder_utils import (
+    _dense_channels_last_3d,
+    _is_nearest_upsample,
+    _resample_forward_channels_last,
+    _upsample_forward,
+    _upsample_forward_channels_last,
 )
 from vllm_omni.diffusion.distributed.autoencoders.wan_spatial_shard import WanDistCausalConv3d, WanDistConv2d
 
@@ -54,34 +58,6 @@ _INSTALLED_ATTR = "_vllm_omni_wan_decoder_fast_path"
 LEVELS = ("exact", "fused")
 # diffusers' WanRMS_norm, and vLLM-Omni's RMSNormVAE that patch_wan_rms_norm swaps in for every Wan-family VAE.
 _NORM_CLASSES = ("WanRMS_norm", "RMSNormVAE")
-_CACHE_T = 2  # diffusers.models.autoencoders.autoencoder_kl_wan.CACHE_T
-
-
-def _upsample_forward(self: nn.Upsample, x: torch.Tensor) -> torch.Tensor:
-    # ``WanUpsample.forward`` is ``super().forward(x.float()).type_as(x)``; a nearest gather never changes a
-    # value, so running it on ``x`` itself is the same tensor without the two casts.
-    return nn.Upsample.forward(self, x)
-
-
-def _is_nearest_upsample(module: nn.Module) -> bool:
-    return (
-        module.__class__.__name__ == "WanUpsample"
-        and isinstance(module, nn.Upsample)
-        and str(getattr(module, "mode", "")) in ("nearest", "nearest-exact")
-    )
-
-
-def _upsample_forward_channels_last(self: nn.Upsample, x: torch.Tensor) -> torch.Tensor:
-    if x.dim() == 4 and self.size is None and can_use_nearest_upsample_nhwc(x, self.scale_factor, self.mode):
-        return nearest_upsample_nhwc(x, self.scale_factor)
-    return nn.Upsample.forward(self, x)
-
-
-def _dense_channels_last_3d(x: torch.Tensor) -> bool:
-    if x.dim() != 5 or x.shape[1] <= 1:
-        return False
-    b, c, t, h, w = x.shape
-    return x.stride() == (t * h * w * c, 1, h * w * c, w * c, c)
 
 
 class FusedWanRMSNormSiLU(nn.Module):
@@ -117,57 +93,6 @@ class FusedWanRMSNormSiLU(nn.Module):
                 return wan_rmsnorm_silu(x, self.gamma, self.bias, self.scale, self.eps, self.upcast)
         bias = self.bias if self.bias is not None else self._bias_value
         return wan_rmsnorm_silu_reference(x, self.gamma, bias, self.scale, self.eps, self.upcast)
-
-
-def _interleave_time_pairs(x: torch.Tensor, b: int, c: int, t: int, h: int, w: int) -> torch.Tensor:
-    """``[B, 2C, T, H, W] -> [B, C, 2T, H, W]``: the time-conv's two channel halves interleaved along time.
-
-    Same values as the eager ``reshape / stack / reshape``; on a dense channels_last_3d input the result is
-    written channels_last_3d with one copy instead of materialising it channels-first.
-    """
-    if _dense_channels_last_3d(x):
-        out = torch.empty((b, c, t * 2, h, w), device=x.device, dtype=x.dtype, memory_format=torch.channels_last_3d)
-        out.view(b, c, t, 2, h, w).copy_(x.view(b, 2, c, t, h, w).permute(0, 2, 3, 1, 4, 5))
-        return out
-    x = x.reshape(b, 2, c, t, h, w)
-    x = torch.stack((x[:, 0], x[:, 1]), 3)
-    return x.reshape(b, c, t * 2, h, w)
-
-
-def _frames_nhwc(x: torch.Tensor) -> torch.Tensor:
-    """``[B, C, T, H, W] -> [B*T, C, H, W]`` for the 2D resample, with canonical NHWC strides when the data is
-    laid out that way (a size-1 batch leaves a degenerate stride that aten's layout test rejects)."""
-    b, c, t, h, w = x.shape
-    frames = x.permute(0, 2, 1, 3, 4).reshape(b * t, c, h, w)
-    if frames.is_contiguous(memory_format=torch.channels_last) and not canonical_nhwc(frames) and frames.stride(1) == 1:
-        frames = frames.as_strided((b * t, c, h, w), (h * w * c, 1, w * c, c))
-    return frames
-
-
-def _resample_forward_channels_last(self: nn.Module, x: torch.Tensor, feat_cache=None, feat_idx=[0]) -> torch.Tensor:  # noqa: B006
-    """``WanResample.forward`` for the upsample modes with the layout-preserving interleave and frame view."""
-    b, c, t, h, w = x.size()
-    if self.mode == "upsample3d" and feat_cache is not None:
-        idx = feat_idx[0]
-        if feat_cache[idx] is None:
-            feat_cache[idx] = "Rep"
-            feat_idx[0] += 1
-        else:
-            cache_x = x[:, :, -_CACHE_T:, :, :].clone()
-            if cache_x.shape[2] < 2 and feat_cache[idx] is not None and feat_cache[idx] != "Rep":
-                cache_x = torch.cat([feat_cache[idx][:, :, -1, :, :].unsqueeze(2).to(cache_x.device), cache_x], dim=2)
-            if cache_x.shape[2] < 2 and feat_cache[idx] is not None and feat_cache[idx] == "Rep":
-                cache_x = torch.cat([torch.zeros_like(cache_x).to(cache_x.device), cache_x], dim=2)
-            if feat_cache[idx] == "Rep":
-                x = self.time_conv(x)
-            else:
-                x = self.time_conv(x, feat_cache[idx])
-            feat_cache[idx] = cache_x
-            feat_idx[0] += 1
-            x = _interleave_time_pairs(x, b, c, t, h, w)
-    t = x.shape[2]
-    frames = self.resample(_frames_nhwc(x))
-    return frames.view(b, t, frames.size(1), frames.size(2), frames.size(3)).permute(0, 2, 1, 3, 4)
 
 
 def _install_fused(decoder: nn.Module, post_quant_conv: nn.Module | None, counts: dict[str, int]) -> None:

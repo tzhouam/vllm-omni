@@ -34,6 +34,7 @@ from diffusers.models.autoencoders.autoencoder_kl_wan import unpatchify
 from diffusers.models.autoencoders.vae import DecoderOutput
 from vllm.logger import init_logger
 
+from vllm_omni.diffusion.distributed.autoencoders.wan_decoder_utils import _persistent_input_buffer
 from vllm_omni.diffusion.models.interface import DecodedChunkConsumer
 
 logger = init_logger(__name__)
@@ -238,26 +239,6 @@ def gather_and_trim_extent(
     if expected_extent is not None and out.shape[dim] != expected_extent:
         out = _narrow_along_dim(out, dim, 0, expected_extent).contiguous()
     return out
-
-
-def _persistent_input_buffer(module: nn.Module, shape: tuple[int, ...], reference: torch.Tensor) -> torch.Tensor:
-    """One zero-initialised input buffer per conv, reallocated only when the shape, dtype or device changes.
-
-    The callers write only the activation interior and the halo slots, so the padding rows and columns stay
-    zero for the buffer's lifetime and are never filled again.
-    """
-    memory_format = getattr(module, "input_memory_format", torch.contiguous_format)
-    buf = module._input_buf
-    if (
-        buf is None
-        or buf.shape != shape
-        or buf.dtype != reference.dtype
-        or buf.device != reference.device
-        or not buf.is_contiguous(memory_format=memory_format)
-    ):
-        buf = torch.empty(shape, dtype=reference.dtype, device=reference.device, memory_format=memory_format).zero_()
-        module._input_buf = buf
-    return buf
 
 
 def _ensure_recv_buf(recv_buf: torch.Tensor | None, reference: torch.Tensor) -> torch.Tensor:
