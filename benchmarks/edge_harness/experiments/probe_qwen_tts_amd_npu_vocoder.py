@@ -105,9 +105,10 @@ def main() -> None:
         if (not report["cpu_vs_retained_reference"]["finite"]
                 or report["cpu_vs_retained_reference"]["relative_l2"] > 1e-4):
             raise ValueError("current ONNX CPU output differs from the retained reference")
+        report["status"] = "cpu_reference_pass"
+        args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         del cpu
         if args.cpu_only:
-            report["status"] = "cpu_reference_pass"
             return
 
         ep_dir = args.ep_dir.resolve(strict=True)
@@ -124,6 +125,8 @@ def main() -> None:
         options.add_provider_for_devices(devices, {})
         options.enable_profiling = True
         options.profile_file_prefix = str(args.profile_prefix)
+        report["status"] = "vitisai_session_creation_started"
+        args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         npu_started = time.perf_counter()
         npu = ort.InferenceSession(str(args.model), sess_options=options)
         report["npu_load_s"] = time.perf_counter() - npu_started

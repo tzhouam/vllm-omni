@@ -1,0 +1,28 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_node_count": 712,
+  "cut_one_based": 1,
+  "terminal_node": "node_conv1d",
+  "terminal_op": "Conv",
+  "terminal_output": "conv1d",
+  "extracted_node_count": 1,
+  "extracted_ops": {
+    "Conv": 1
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 1024\n    }\n    dim {\n      dim_value: 74\n    }\n  }\n}\n",
+  "candidate_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_cut1_20260924.onnx",
+  "candidate_bytes": 6298387,
+  "candidate_sha256": "2a11d7d43f534d0515e34249c0ae1dc140121c1e6533684bfc33ef6fee563ddc",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "status": "cpu_component_pass",
+  "cpu_output_shape": [
+    1,
+    1024,
+    74
+  ],
+  "cpu_output_finite": true,
+  "cpu_inference_s": 0.01773009996395558
+}

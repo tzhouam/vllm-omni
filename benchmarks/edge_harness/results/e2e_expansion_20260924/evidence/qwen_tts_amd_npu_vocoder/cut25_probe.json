@@ -1,0 +1,50 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_node_count": 712,
+  "cut_one_based": 25,
+  "terminal_node": "node_cat_3",
+  "terminal_op": "Concat",
+  "terminal_output": "cat_3",
+  "extracted_node_count": 18,
+  "extracted_ops": {
+    "Conv": 1,
+    "Transpose": 2,
+    "MatMul": 2,
+    "Add": 2,
+    "Pow": 1,
+    "ReduceMean": 1,
+    "Sqrt": 1,
+    "Reciprocal": 1,
+    "Mul": 2,
+    "Reshape": 1,
+    "Slice": 2,
+    "Neg": 1,
+    "Concat": 1
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 16\n    }\n    dim {\n      dim_value: 74\n    }\n    dim {\n      dim_value: 64\n    }\n  }\n}\n",
+  "candidate_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_cut25_20260924.onnx",
+  "candidate_bytes": 10536396,
+  "candidate_sha256": "bf759b46fe2f0fd42fd77a1ee286bb6f5ae9c3fb5f4125be353d51e2727a31cd",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "status": "npu_component_pass",
+  "cpu_output_shape": [
+    1,
+    16,
+    74,
+    64
+  ],
+  "cpu_output_finite": true,
+  "cpu_inference_s": 0.004494599997997284,
+  "vitisai_npu_device_count": 1,
+  "vitisai_session_create_s": 164.08298429998104,
+  "vitisai_inference_s": 0.011038600001484156,
+  "vitisai_output_finite": true,
+  "relative_l2_vs_cpu": 0.009578107362639126,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_amd_npu_vocoder\\cut25_profile_2026-09-24_18-38-11_408.json",
+  "node_providers": {
+    "vitisai": 1
+  }
+}

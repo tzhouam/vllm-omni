@@ -1,0 +1,31 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_node_count": 712,
+  "cut_one_based": 200,
+  "terminal_node": "node_slice_20",
+  "terminal_op": "Slice",
+  "terminal_output": "slice_20",
+  "extracted_node_count": 192,
+  "extracted_ops": {
+    "Conv": 1,
+    "Transpose": 17,
+    "MatMul": 29,
+    "Add": 23,
+    "Pow": 7,
+    "ReduceMean": 7,
+    "Sqrt": 7,
+    "Reciprocal": 7,
+    "Mul": 44,
+    "Reshape": 19,
+    "Slice": 13,
+    "Neg": 6,
+    "Concat": 6,
+    "Softmax": 3,
+    "Sigmoid": 3
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 16\n    }\n    dim {\n      dim_value: 74\n    }\n    dim {\n      dim_value: 32\n    }\n  }\n}\n",
+  "candidate_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_cut200_20260924.onnx",
+  "candidate_bytes": 55220296,
+  "candidate_sha256": "ac4689420f1e4d350d0eb62536a6642be58519063f453d8ddd067ab861acbda0"
+}

@@ -52,3 +52,45 @@ waveform quality, verify nonzero NPU node placement and measured coarse
 stage benefit, then connect talker, codec, state, admission, cancellation,
 and complete-stream quality gates through Omni. This compiler failure
 constrains these graphs and EP version only.
+
+## Compiler bisection and equivalent decoder rewrite
+
+A follow-up [bisection audit](bisection_report.json) extracted reachable
+prefixes from the pinned two-frame graph. All used its one fixed real-weight
+fixture on the same HX370 Windows/VitisAI stack. Each row is **one component
+inference**, with no warmup, repeated timing, waveform, or full-stream claim:
+
+| Source cut / extracted nodes | VitisAI node events | Session creation | Intermediate relative L2 versus CPU |
+|---|---:|---:|---:|
+| 25 / 18 | 1 | 164.08 s | 0.958% |
+| 50 / 50 | 1 | 301.30 s | 1.059% |
+| 100 / 97 | 1 | 330.92 s | 0.391% |
+| 200 / 192 | 1 | 395.85 s | 1.083% |
+
+The first 100-node attempt was manually stopped after about five minutes
+of active compilation; its longer retry passed. The 1% intermediate gate
+used by the probe marks cuts 50 and 200 numerically unqualified. It is a
+screening gate, not a validated waveform or listening tolerance. The
+successful cuts show that the model prefix can run on this NPU; they do
+not justify splitting a production vocoder at those boundaries.
+
+The first decoder `ConvTranspose1d` isolated with its original weights
+reproduced the exact `vaiml.dll` / LLVM `ArrayRef` assertion in
+[its raw log](local_convtranspose0_probe.log). A
+[shape-preserving rewrite](../../../../experiments/rewrite_qwen_tts_convtranspose1d.py)
+expresses that operation as `Unsqueeze → ConvTranspose2d` with a
+size-one height axis and `Squeeze`. The rewritten isolated operator was
+bitwise identical on ORT CPU and [executed as one VitisAI NPU node](local_convtranspose0_2d_probe.json)
+on a labeled synthetic activation; its NPU output differed by 1.636%
+relative L2 from CPU. That value is not a task-quality pass.
+
+Applying the same transformation to all six upsampling convolutions
+produced a [full two-frame graph](full_short_2d_rewrite.json) whose
+`[1,3840]` CPU waveform was bitwise identical to the original graph on
+the pinned fixture. The ~424 MB rewritten artifact remains outside Git;
+its SHA-256 is pinned in the report. A full-graph NPU waveform, placement
+profile and complete TTS stream are still unqualified in this evidence.
+The [extraction/probe tool](../../../../experiments/bisect_qwen_tts_vitisai_graph.py)
+records cut hashes, CPU execution, actual provider events and intermediate
+numerics. No precision, weights or checkpoint revision changed in the
+rewrite.

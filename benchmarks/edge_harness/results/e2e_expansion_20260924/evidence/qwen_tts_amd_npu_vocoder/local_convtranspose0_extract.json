@@ -1,0 +1,20 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_node_count": 712,
+  "cut_one_based": 487,
+  "terminal_node": "node_convolution",
+  "terminal_op": "ConvTranspose",
+  "terminal_output": "convolution",
+  "boundary_inputs": [
+    "permute"
+  ],
+  "extracted_node_count": 1,
+  "extracted_ops": {
+    "ConvTranspose": 1
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 1024\n    }\n    dim {\n      dim_value: 148\n    }\n  }\n}\n",
+  "candidate_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_local_convtranspose0_20260924.onnx",
+  "candidate_bytes": 8395270,
+  "candidate_sha256": "26dbbb23180ef66b4e4a3b9a7f796c8527e005b35932b8ead2572f5e1b1d4574"
+}

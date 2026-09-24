@@ -1,0 +1,113 @@
+{
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_code2wav_c2_ctx72_20260924.onnx",
+  "rewritten_sha256": "3f041942800dc22b4e0ee88cebb606d8117ff9d77f1d35e216fe185d4ad0cb90",
+  "rewritten_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_code2wav_c2_ctx72_convtranspose2d_20260924.onnx",
+  "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "input_provenance": "pinned real-weight vocoder fixture",
+  "rewritten_nodes": [
+    {
+      "node_name": "node_convolution",
+      "weight_name": "decoder.upsample.0.0.conv.weight",
+      "original_weight_dims": [
+        1024,
+        1024,
+        2
+      ],
+      "new_weight_dims": [
+        1024,
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "node_name": "node_convolution_1",
+      "weight_name": "decoder.upsample.1.0.conv.weight",
+      "original_weight_dims": [
+        1024,
+        1024,
+        2
+      ],
+      "new_weight_dims": [
+        1024,
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "node_name": "node_convolution_2",
+      "weight_name": "decoder.decoder.1.block.1.conv.weight",
+      "original_weight_dims": [
+        1536,
+        768,
+        16
+      ],
+      "new_weight_dims": [
+        1536,
+        768,
+        1,
+        16
+      ]
+    },
+    {
+      "node_name": "node_convolution_3",
+      "weight_name": "decoder.decoder.2.block.1.conv.weight",
+      "original_weight_dims": [
+        768,
+        384,
+        10
+      ],
+      "new_weight_dims": [
+        768,
+        384,
+        1,
+        10
+      ]
+    },
+    {
+      "node_name": "node_convolution_4",
+      "weight_name": "decoder.decoder.3.block.1.conv.weight",
+      "original_weight_dims": [
+        384,
+        192,
+        8
+      ],
+      "new_weight_dims": [
+        384,
+        192,
+        1,
+        8
+      ]
+    },
+    {
+      "node_name": "node_convolution_5",
+      "weight_name": "decoder.decoder.4.block.1.conv.weight",
+      "original_weight_dims": [
+        192,
+        96,
+        6
+      ],
+      "new_weight_dims": [
+        192,
+        96,
+        1,
+        6
+      ]
+    }
+  ],
+  "input_shape": [
+    1,
+    512,
+    74
+  ],
+  "output_shape": [
+    1,
+    3840
+  ],
+  "cpu_finite": true,
+  "cpu_relative_l2_vs_source": 0.0,
+  "cpu_maximum_absolute_error": 0.0,
+  "status": "cpu_rewrite_parity_pass"
+}

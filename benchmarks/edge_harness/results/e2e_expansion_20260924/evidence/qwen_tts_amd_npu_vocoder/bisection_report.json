@@ -1,0 +1,81 @@
+{
+  "date": "2026-09-24",
+  "host": "HX370 native Windows 11 build 26200; AMD integrated NPU",
+  "backend": "ONNX Runtime 1.30.0; AMD VitisAI EP 1.8.63.0",
+  "input": "pinned CustomVoice two-frame Code2Wav revision 85e237c12c027371202489a0ec509ded67b5e4b5; one fixture; batch 1; no concurrency",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "power_condition": "uncontrolled, unmeasured",
+  "prefix_results": [
+    {
+      "cut": 25,
+      "nodes": 18,
+      "model_sha256": "bf759b46fe2f0fd42fd77a1ee286bb6f5ae9c3fb5f4125be353d51e2727a31cd",
+      "npu_node_events": 1,
+      "compile_s": 164.08298429998104,
+      "inference_s": 0.011038600001484156,
+      "relative_l2_vs_cpu": 0.009578107362639126,
+      "report": "cut25_probe.json",
+      "profile": "cut25_profile_2026-09-24_18-38-11_408.json",
+      "profile_sha256": "dbdcd4eddcc3076972b4bdbf36d1a2384e76906d45fa78af097e96765df8769f"
+    },
+    {
+      "cut": 50,
+      "nodes": 50,
+      "model_sha256": "767e5c2f057137b9a2f409dee382196321621d1b4993affe3aff40906cfcd126",
+      "npu_node_events": 1,
+      "compile_s": 301.3029315000167,
+      "inference_s": 0.005353299900889397,
+      "relative_l2_vs_cpu": 0.010590704757452671,
+      "report": "cut50_probe.json",
+      "profile": "cut50_profile_2026-09-24_18-41-52_208.json",
+      "profile_sha256": "b27571537aae0ec7862ef1af0ee9e7ff89fd71b8aea6bf87f8a056532d99c82d"
+    },
+    {
+      "cut": 100,
+      "nodes": 97,
+      "model_sha256": "38ebbbce1c6551a766fa151ef3ff2bca3153a355fc1b2023d18c3e8d9fc0ba90",
+      "npu_node_events": 1,
+      "compile_s": 330.92104069993366,
+      "inference_s": 0.008062600041739643,
+      "relative_l2_vs_cpu": 0.0039061906281823333,
+      "report": "cut100_probe_retry.json",
+      "profile": "cut100_profile_retry_2026-09-24_18-47-20_111.json",
+      "profile_sha256": "4bd2ed2521260bfacfcd6ae38102708c6561d8d7a7ed518a49352f36a609c007"
+    },
+    {
+      "cut": 200,
+      "nodes": 192,
+      "model_sha256": "ac4689420f1e4d350d0eb62536a6642be58519063f453d8ddd067ab861acbda0",
+      "npu_node_events": 1,
+      "compile_s": 395.8548383000307,
+      "inference_s": 0.010179699980653822,
+      "relative_l2_vs_cpu": 0.010834368355383315,
+      "report": "cut200_probe.json",
+      "profile": "cut200_profile_2026-09-24_18-53-37_291.json",
+      "profile_sha256": "41fd99dd80d5f2e822e046ad6974d138b355dc56c08d9f6a9e30754e0d56732c"
+    }
+  ],
+  "cut100_initial_attempt": "manually stopped after about five minutes of active compiler time; same candidate passed on longer retry",
+  "isolated_original_1d": {
+    "status": "native_compiler_assertion",
+    "exit_code_hex": "0xC000001D",
+    "log": "local_convtranspose0_probe.log",
+    "log_sha256": "cb21787e73993f46657e6627f08cb74ff32514e635b908ca9928860ce57cf733"
+  },
+  "isolated_rewritten_2d": {
+    "status": "one_vitisai_node_executed",
+    "model_sha256": "c03bca763d6f19d3cadcbaf7d451dc4597623fa8d2da711cdabd30bfffbb3c97",
+    "cpu_vs_original_l2": 0,
+    "synthetic_input": true,
+    "compile_s": 111.91233259998262,
+    "npu_vs_cpu_l2": 0.01635672268431982,
+    "profile": "local_convtranspose0_2d_profile_2026-09-24_19-02-21_591.json"
+  },
+  "full_short_2d_rewrite": {
+    "status": "cpu_parity_pass_full_npu_unqualified",
+    "model_sha256": "3f041942800dc22b4e0ee88cebb606d8117ff9d77f1d35e216fe185d4ad0cb90",
+    "rewritten_nodes": 6,
+    "cpu_vs_original_waveform_l2": 0,
+    "report": "full_short_2d_rewrite.json"
+  }
+}

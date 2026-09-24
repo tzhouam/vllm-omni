@@ -1,0 +1,57 @@
+{
+  "source_sha256": "26dbbb23180ef66b4e4a3b9a7f796c8527e005b35932b8ead2572f5e1b1d4574",
+  "source_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_local_convtranspose0_20260924.onnx",
+  "rewritten_sha256": "c03bca763d6f19d3cadcbaf7d451dc4597623fa8d2da711cdabd30bfffbb3c97",
+  "rewritten_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_local_convtranspose0_2d_20260924.onnx",
+  "fixture_sha256": null,
+  "input_provenance": "synthetic fixed-seed normal",
+  "rewritten_nodes": [
+    {
+      "node_name": "node_convolution",
+      "weight_name": "decoder.upsample.0.0.conv.weight",
+      "original_weight_dims": [
+        1024,
+        1024,
+        2
+      ],
+      "new_weight_dims": [
+        1024,
+        1024,
+        1,
+        2
+      ]
+    }
+  ],
+  "input_shape": [
+    1,
+    1024,
+    74
+  ],
+  "output_shape": [
+    1,
+    1024,
+    148
+  ],
+  "cpu_finite": true,
+  "cpu_relative_l2_vs_source": 0.0,
+  "cpu_maximum_absolute_error": 0.0,
+  "status": "component_not_qualified",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "cpu_output_shape": [
+    1,
+    1024,
+    148
+  ],
+  "cpu_output_finite": true,
+  "cpu_inference_s": 0.0028513999423012137,
+  "vitisai_npu_device_count": 1,
+  "vitisai_session_create_s": 111.91233259998262,
+  "vitisai_inference_s": 0.006501700030639768,
+  "vitisai_output_finite": true,
+  "relative_l2_vs_cpu": 0.01635672268431982,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_amd_npu_vocoder\\local_convtranspose0_2d_profile_2026-09-24_19-02-21_591.json",
+  "node_providers": {
+    "vitisai": 1
+  }
+}
