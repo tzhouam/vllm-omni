@@ -1,0 +1,40 @@
+{
+  "scope": "first GroupNormalization decomposition; compiler component candidate only",
+  "source_sha256": "aafe12167d34ed0341733daf31b3e59a5635a35d702032897c82dab1bc69e070",
+  "candidate_sha256": "8342962534ee369fd5e3925c9de4470b95282af132d71808769b735f79d4ae75",
+  "candidate_bytes": 460253,
+  "fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "cpu_parity_vs_source": {
+    "ramp": {
+      "relative_l2": 6.063002666497353e-07,
+      "max_abs": 7.62939453125e-06
+    },
+    "pattern": {
+      "relative_l2": 9.976746239088234e-06,
+      "max_abs": 5.030632019042969e-05
+    }
+  },
+  "replacement": "fixed-shape group reshape, reductions, affine scale/bias",
+  "fixture_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "fixture": "pattern_pixels",
+  "hardware": "Ryzen AI 9 HX 370 AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "status": "component_not_qualified",
+  "cpu_wall_s": 0.016058400040492415,
+  "output_shape": [
+    6,
+    128,
+    64,
+    64
+  ],
+  "output_finite": true,
+  "npu_devices": 1,
+  "session_create_s": 24.616994500043802,
+  "npu_wall_s": 0.01636160002090037,
+  "relative_l2_vs_cpu": 0.0,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\internvla_cosmos_amd_npu_fp32\\prefix150_groupnorm_profile_2026-09-24_20-42-24_438.json",
+  "node_providers": {
+    "CPUExecutionProvider": 51
+  }
+}

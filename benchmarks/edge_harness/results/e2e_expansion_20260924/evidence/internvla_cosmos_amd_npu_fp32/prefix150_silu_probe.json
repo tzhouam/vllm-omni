@@ -1,0 +1,35 @@
+{
+  "scope": "first Cosmos activation rewrite; component compiler candidate only",
+  "source_sha256": "aafe12167d34ed0341733daf31b3e59a5635a35d702032897c82dab1bc69e070",
+  "output_sha256": "21c6b772445d5ab13571cbdb43718419d79f858d6ccc10fceb5446412f30832b",
+  "candidate_sha256": "21c6b772445d5ab13571cbdb43718419d79f858d6ccc10fceb5446412f30832b",
+  "output_bytes": 458202,
+  "replacement": "group_norm/(1+exp(-group_norm))",
+  "source_node_count": 150,
+  "candidate_node_count": 152,
+  "fixture_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "cpu_parity_vs_source": {
+    "ramp": {
+      "relative_l2": 6.522760443278121e-08,
+      "max_abs": 1.9073486328125e-06
+    },
+    "pattern": {
+      "relative_l2": 6.28155583550256e-08,
+      "max_abs": 4.76837158203125e-07
+    }
+  },
+  "fixture": "pattern_pixels",
+  "hardware": "Ryzen AI 9 HX 370 AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "status": "vitisai_session_creation_started",
+  "cpu_wall_s": 0.01671849994454533,
+  "output_shape": [
+    6,
+    128,
+    64,
+    64
+  ],
+  "output_finite": true,
+  "npu_devices": 1
+}

@@ -1,0 +1,18 @@
+{
+  "scope": "first GroupNormalization decomposition; compiler component candidate only",
+  "source_sha256": "aafe12167d34ed0341733daf31b3e59a5635a35d702032897c82dab1bc69e070",
+  "candidate_sha256": "8342962534ee369fd5e3925c9de4470b95282af132d71808769b735f79d4ae75",
+  "candidate_bytes": 460253,
+  "fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "cpu_parity_vs_source": {
+    "ramp": {
+      "relative_l2": 6.063002666497353e-07,
+      "max_abs": 7.62939453125e-06
+    },
+    "pattern": {
+      "relative_l2": 9.976746239088234e-06,
+      "max_abs": 5.030632019042969e-05
+    }
+  },
+  "replacement": "fixed-shape group reshape, reductions, affine scale/bias"
+}

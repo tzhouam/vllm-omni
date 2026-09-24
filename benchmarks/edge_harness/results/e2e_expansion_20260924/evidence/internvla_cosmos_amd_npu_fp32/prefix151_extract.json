@@ -1,0 +1,32 @@
+{
+  "source_sha256": "fee79864e393df35475ba243e14b4995c5651aa33e7e182cd1fda726425668b7",
+  "external_weights_sha256": "b9bc3411c10f05daec2ff977698ee100979ef756ed7f0d685275403517558b58",
+  "cut_one_based": 151,
+  "terminal_op": "Conv",
+  "terminal_name": "node_conv2d_13",
+  "terminal_output": "conv2d_13",
+  "extracted_nodes": 151,
+  "extracted_ops": {
+    "Constant": 40,
+    "Slice": 2,
+    "Concat": 6,
+    "Reshape": 4,
+    "Expand": 28,
+    "Tile": 4,
+    "Cast": 6,
+    "Pow": 2,
+    "Mul": 3,
+    "Pad": 2,
+    "Unsqueeze": 12,
+    "Shape": 12,
+    "CastLike": 12,
+    "Conv": 14,
+    "Div": 2,
+    "GroupNormalization": 1,
+    "Sigmoid": 1
+  },
+  "candidate_sha256": "f28908b7fdd8b04574f66880837f23059bad7dfd63403d8482d5d6a0c0c6efe2",
+  "candidate_bytes": 1644640,
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 6\n    }\n    dim {\n      dim_value: 256\n    }\n    dim {\n      dim_value: 64\n    }\n    dim {\n      dim_value: 64\n    }\n  }\n}\n",
+  "scope": "real-weight image encoder prefix; no complete policy or E2E claim"
+}

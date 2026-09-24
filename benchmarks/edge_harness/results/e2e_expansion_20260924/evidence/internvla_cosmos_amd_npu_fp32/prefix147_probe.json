@@ -1,0 +1,52 @@
+{
+  "source_sha256": "fee79864e393df35475ba243e14b4995c5651aa33e7e182cd1fda726425668b7",
+  "external_weights_sha256": "b9bc3411c10f05daec2ff977698ee100979ef756ed7f0d685275403517558b58",
+  "cut_one_based": 147,
+  "terminal_op": "Conv",
+  "terminal_name": "node_conv2d_12",
+  "terminal_output": "conv2d_12",
+  "extracted_nodes": 147,
+  "extracted_ops": {
+    "Constant": 40,
+    "Slice": 2,
+    "Concat": 6,
+    "Reshape": 4,
+    "Expand": 28,
+    "Tile": 4,
+    "Cast": 6,
+    "Pow": 2,
+    "Mul": 2,
+    "Pad": 2,
+    "Unsqueeze": 12,
+    "Shape": 12,
+    "CastLike": 12,
+    "Conv": 13,
+    "Div": 2
+  },
+  "candidate_sha256": "0643b996f7c287a18c8715118c8a07eff555ea2188dcad039609e6312448f289",
+  "candidate_bytes": 453919,
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 6\n    }\n    dim {\n      dim_value: 128\n    }\n    dim {\n      dim_value: 64\n    }\n    dim {\n      dim_value: 64\n    }\n  }\n}\n",
+  "scope": "real-weight image encoder prefix; no complete policy or E2E claim",
+  "fixture_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "fixture": "pattern_pixels",
+  "hardware": "Ryzen AI 9 HX 370 AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "status": "component_not_qualified",
+  "cpu_wall_s": 0.01273449999280274,
+  "output_shape": [
+    6,
+    128,
+    64,
+    64
+  ],
+  "output_finite": true,
+  "npu_devices": 1,
+  "session_create_s": 7.824343999964185,
+  "npu_wall_s": 0.011376299895346165,
+  "relative_l2_vs_cpu": 0.0,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\internvla_cosmos_amd_npu_fp32\\prefix147_profile_2026-09-24_20-36-59_807.json",
+  "node_providers": {
+    "CPUExecutionProvider": 39
+  }
+}
