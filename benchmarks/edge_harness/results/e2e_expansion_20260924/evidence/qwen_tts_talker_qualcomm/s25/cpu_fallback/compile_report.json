@@ -1,0 +1,32 @@
+{
+  "timestamp_utc": "2026-09-24T04:01:42.825770+00:00",
+  "qai_hub_version": "0.55.0",
+  "facility": "Qualcomm AI Hub Workbench",
+  "job_id": "jp2rw8xrg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp2rw8xrg/",
+  "status": "SUCCESS",
+  "status_message": "",
+  "options": "--target_runtime tflite",
+  "hub_version": "aihub-2026.09.11.0",
+  "device": {
+    "name": "Samsung Galaxy S25",
+    "os": "15",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8-elite-for-galaxy",
+      "chipset:sm8750-ac",
+      "hexagon:v79",
+      "soc-model:69",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mq3xre4rq",
+  "target_model_id": "mqy57yyrn"
+}

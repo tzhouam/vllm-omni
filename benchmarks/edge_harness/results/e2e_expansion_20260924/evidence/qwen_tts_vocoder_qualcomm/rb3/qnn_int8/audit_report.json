@@ -1,0 +1,74 @@
+{
+  "scope": "one Qwen3-TTS code2wav 48,000-sample component on one retained fixture; no complete TTS stream",
+  "status": "component_inference_numeric_measured",
+  "device": {
+    "name": "Dragonwing RB3 Gen 2 Vision Kit",
+    "os": "1.6",
+    "attributes": [
+      "os:qc_linux",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-oe-linux-gcc11",
+      "format:iot",
+      "chipset:qualcomm-qcs6490",
+      "chipset:qcs6490",
+      "chipset:qualcomm-dragonwing-qcs6490",
+      "hexagon:v68",
+      "soc-model:93",
+      "framework:qnn"
+    ]
+  },
+  "compile_job_id": "j5m0mredg",
+  "inference_job_id": "j5687626g",
+  "target_model_id": "mqvo5vvxm",
+  "input_dataset_id": "d7m80jl32",
+  "s25_prior_inference_job_id": "jpx428ojg",
+  "requested_run_options": "--compute_unit npu",
+  "files": {
+    "source_onnx": {
+      "bytes": 423655047,
+      "sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b"
+    },
+    "fixture": {
+      "bytes": 129721,
+      "sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d"
+    },
+    "cpu_output": {
+      "bytes": 179942,
+      "sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1"
+    },
+    "s25_output": {
+      "bytes": 115235,
+      "sha256": "4a26486d5e84a6e22d16f9b26f995b8fe645c29bbd70b103615ec35a0fcb10a0"
+    },
+    "device_output": {
+      "bytes": 47311,
+      "sha256": "20e2dd42e5664fc7ca30ed3088008eabc092a65985118397553be59695344153"
+    }
+  },
+  "cpu_source_vs_device": {
+    "relative_l2": 0.6693182344054783,
+    "snr_db": 3.487346864824425,
+    "max_abs": 0.5192391127347946,
+    "cosine": 0.78863698615025,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.08817981899626241,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "s25_gpu_vs_device": {
+    "relative_l2": 0.667505621356703,
+    "snr_db": 3.510901451285207,
+    "max_abs": 0.5147281289100647,
+    "cosine": 0.7896822849319023,
+    "reference_rms": 0.08376787228276501,
+    "output_rms": 0.08817981899626241,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "limits": [
+    "Historical source export does not attest its exact checkpoint revision.",
+    "This fixed component waveform has no listening or task-quality tolerance.",
+    "Hosted component jobs exclude talker, predictor, stage handoff, streaming, admission and sustained power/thermal behavior.",
+    "Requested compute unit is not verified node placement without a device profile."
+  ]
+}

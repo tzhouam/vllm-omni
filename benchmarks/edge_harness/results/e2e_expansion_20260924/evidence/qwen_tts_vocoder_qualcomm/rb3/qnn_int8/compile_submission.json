@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-24T03:48:51.345665+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mqyer339n",
+  "calibration_dataset_id": "d7m80jl32",
+  "calibration_scope": "one retained synthetic fixture only; feasibility, not representative audio calibration",
+  "device": "Dragonwing RB3 Gen 2 Vision Kit",
+  "options": "--target_runtime qnn_dlc --quantize_full_type int8 --quantize_io",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "j5m0mredg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/j5m0mredg/"
+}

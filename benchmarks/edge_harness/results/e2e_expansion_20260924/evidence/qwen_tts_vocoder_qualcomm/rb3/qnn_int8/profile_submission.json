@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-24T04:01:34.662979+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "j5m0mredg",
+  "target_model_id": "mqvo5vvxm",
+  "device": "Dragonwing RB3 Gen 2 Vision Kit",
+  "options": "--compute_unit npu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jgk24z7wg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgk24z7wg/",
+  "scope": "placement of numerically failed one-fixture-calibrated INT8 waveform only"
+}

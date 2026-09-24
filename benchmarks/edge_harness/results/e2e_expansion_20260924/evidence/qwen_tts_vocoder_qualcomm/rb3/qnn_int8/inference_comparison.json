@@ -1,0 +1,44 @@
+{
+  "scope": "one RB3 INT8 QNN vocoder inference calibrated and tested on the same single synthetic fixture; no complete TTS stream",
+  "status": "component_numeric_unqualified",
+  "source_sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b",
+  "fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "cpu_reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "device_output_sha256": "20e2dd42e5664fc7ca30ed3088008eabc092a65985118397553be59695344153",
+  "compile_job_id": "j5m0mredg",
+  "inference_job_id": "j5687626g",
+  "target_model_id": "mqvo5vvxm",
+  "calibration_dataset_id": "d7m80jl32",
+  "device": {
+    "name": "Dragonwing RB3 Gen 2 Vision Kit",
+    "os": "1.6",
+    "attributes": [
+      "os:qc_linux",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-oe-linux-gcc11",
+      "format:iot",
+      "chipset:qualcomm-qcs6490",
+      "chipset:qcs6490",
+      "chipset:qualcomm-dragonwing-qcs6490",
+      "hexagon:v68",
+      "soc-model:93",
+      "framework:qnn"
+    ]
+  },
+  "source_onnx_cpu_vs_rb3_int8": {
+    "relative_l2": 0.6693182344054783,
+    "snr_db": 3.487346864824425,
+    "max_abs": 0.5192391127347946,
+    "cosine": 0.78863698615025,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.08817981899626241,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "limits": [
+    "Calibration used only this one fixture; it is not representative audio calibration.",
+    "Requested NPU compute unit requires a placement profile.",
+    "No listening-quality tolerance or complete TTS stream was tested."
+  ]
+}

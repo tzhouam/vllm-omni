@@ -51,6 +51,9 @@ def collect(evidence_dir: Path, kind: str, client: hub.Client) -> str:
     if kind == "compile":
         report["source_model_id"] = job.model.model_id
         report["target_model_id"] = job.get_target_model().model_id if status.code == "SUCCESS" else None
+        calibration = job.calibration_dataset
+        if calibration is not None:
+            report["calibration_dataset_id"] = calibration.dataset_id
     elif kind == "inference":
         report["model_id"] = job.model.model_id
         report["input_dataset_id"] = job.inputs.dataset_id

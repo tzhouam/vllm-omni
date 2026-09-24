@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-24T03:53:30.375842+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "jgk24zvwg",
+  "target_model_id": "mq268eewn",
+  "input_dataset_id": null,
+  "device": "Samsung Galaxy S24",
+  "options": "--compute_unit cpu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jgolryzqg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgolryzqg/"
+}

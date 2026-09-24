@@ -1,0 +1,75 @@
+{
+  "scope": "one Qwen3-TTS code2wav 48,000-sample component on one retained fixture; no complete TTS stream",
+  "status": "component_inference_numeric_measured",
+  "device": {
+    "name": "Samsung Galaxy S24",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8gen3",
+      "chipset:sm8650",
+      "hexagon:v75",
+      "soc-model:57",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "compile_job_id": "jgk24zvwg",
+  "inference_job_id": "jp3z9kn35",
+  "target_model_id": "mq268eewn",
+  "input_dataset_id": "d7m80jl32",
+  "s25_prior_inference_job_id": "jpx428ojg",
+  "requested_run_options": "--compute_unit cpu",
+  "files": {
+    "source_onnx": {
+      "bytes": 423655047,
+      "sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b"
+    },
+    "fixture": {
+      "bytes": 129721,
+      "sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d"
+    },
+    "cpu_output": {
+      "bytes": 179942,
+      "sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1"
+    },
+    "s25_output": {
+      "bytes": 115235,
+      "sha256": "4a26486d5e84a6e22d16f9b26f995b8fe645c29bbd70b103615ec35a0fcb10a0"
+    },
+    "device_output": {
+      "bytes": 179512,
+      "sha256": "474c1d5d4e52b692f1c44d9696e907d3c6f5b5aa563782fe9212c7edf8df165d"
+    }
+  },
+  "cpu_source_vs_device": {
+    "relative_l2": 4.044635457885779e-06,
+    "snr_db": 107.86241230310105,
+    "max_abs": 7.227063179016113e-06,
+    "cosine": 0.9999999999918225,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.08373439724865546,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "s25_gpu_vs_device": {
+    "relative_l2": 0.04236872246018319,
+    "snr_db": 27.459092620786258,
+    "max_abs": 0.10591930150985718,
+    "cosine": 0.9991021667361724,
+    "reference_rms": 0.08376787228276501,
+    "output_rms": 0.08373439724865546,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "limits": [
+    "Historical source export does not attest its exact checkpoint revision.",
+    "This fixed component waveform has no listening or task-quality tolerance.",
+    "Hosted component jobs exclude talker, predictor, stage handoff, streaming, admission and sustained power/thermal behavior.",
+    "Requested compute unit is not verified node placement without a device profile."
+  ]
+}

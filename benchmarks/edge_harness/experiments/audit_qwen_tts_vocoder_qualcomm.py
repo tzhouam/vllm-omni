@@ -64,20 +64,23 @@ def main() -> None:
     parser.add_argument("--run-options", required=True)
     for name in (
         "source-onnx", "fixture", "cpu-output", "s25-output", "s25-inference-report", "compile-report",
-        "inference-report", "profile-report", "device-output", "output-report",
+        "inference-report", "device-output", "output-report",
     ):
         parser.add_argument(f"--{name}", type=Path, required=True)
+    parser.add_argument("--profile-report", type=Path)
     args = parser.parse_args()
     compile_report = json.loads(args.compile_report.read_text(encoding="utf-8"))
     inference = json.loads(args.inference_report.read_text(encoding="utf-8"))
-    profile = json.loads(args.profile_report.read_text(encoding="utf-8"))
+    profile = json.loads(args.profile_report.read_text(encoding="utf-8")) if args.profile_report else None
     s25_inference = json.loads(args.s25_inference_report.read_text(encoding="utf-8"))
-    if any(report.get("status") != "SUCCESS" for report in (compile_report, inference, profile)):
-        raise RuntimeError("compile, inference and profile must all succeed")
+    if any(report.get("status") != "SUCCESS" for report in (compile_report, inference)):
+        raise RuntimeError("compile and inference must both succeed")
+    if profile is not None and profile.get("status") != "SUCCESS":
+        raise RuntimeError("provided profile must succeed")
     if compile_report.get("source_model_id") != "mqyer339n" or compile_report.get("options") != args.compile_options:
         raise RuntimeError("compile did not use pinned Qwen3-TTS vocoder source/options")
     target_id = compile_report["target_model_id"]
-    if inference.get("model_id") != target_id or profile.get("model_id") != target_id:
+    if inference.get("model_id") != target_id or (profile is not None and profile.get("model_id") != target_id):
         raise RuntimeError("inference/profile used a different target artifact")
     if inference.get("input_dataset_id") != "d7m80jl32":
         raise RuntimeError("inference did not use the retained vocoder fixture")
@@ -85,10 +88,10 @@ def main() -> None:
             or s25_inference.get("input_dataset_id") != inference["input_dataset_id"]
             or s25_inference.get("device", {}).get("name") != "Samsung Galaxy S25"):
         raise RuntimeError("historical S25 output lacks matching model/device/dataset provenance")
-    for report in (compile_report, inference, profile):
+    for report in (compile_report, inference) + ((profile,) if profile is not None else ()):
         if report.get("device", {}).get("name") != args.device_name:
             raise RuntimeError("job did not use the exact requested device")
-    if inference.get("options") != args.run_options or profile.get("options") != args.run_options:
+    if inference.get("options") != args.run_options or (profile is not None and profile.get("options") != args.run_options):
         raise RuntimeError("inference/profile requested different compute options")
     files = {
         name: {"bytes": path.stat().st_size, "sha256": sha256(path)}
@@ -113,20 +116,12 @@ def main() -> None:
     cpu = read_output(args.cpu_output, "wav")
     s25 = read_output(args.s25_output, "output_0__0")
     output = read_output(args.device_output, "output_0__0")
-    execution = profile["profile"]
-    times_us = execution["execution_summary"]["all_inference_times"]
-    if not times_us or any(not isinstance(value, int) or value <= 0 for value in times_us):
-        raise RuntimeError("missing or invalid device samples")
-    units = Counter(row.get("compute_unit") for row in execution["execution_detail"])
-    if not units:
-        raise RuntimeError("no compute-unit placement detail")
     report = {
         "scope": "one Qwen3-TTS code2wav 48,000-sample component on one retained fixture; no complete TTS stream",
-        "status": "component_executed_quality_unqualified",
-        "device": profile["device"],
+        "status": "component_executed_quality_unqualified" if profile is not None else "component_inference_numeric_measured",
+        "device": inference["device"],
         "compile_job_id": compile_report["job_id"],
         "inference_job_id": inference["job_id"],
-        "profile_job_id": profile["job_id"],
         "target_model_id": target_id,
         "input_dataset_id": inference["input_dataset_id"],
         "s25_prior_inference_job_id": s25_inference["job_id"],
@@ -134,7 +129,22 @@ def main() -> None:
         "files": files,
         "cpu_source_vs_device": compare(cpu, output),
         "s25_gpu_vs_device": compare(s25, output),
-        "profile": {
+        "limits": [
+            "Historical source export does not attest its exact checkpoint revision.",
+            "This fixed component waveform has no listening or task-quality tolerance.",
+            "Hosted component jobs exclude talker, predictor, stage handoff, streaming, admission and sustained power/thermal behavior.",
+        ],
+    }
+    if profile is not None:
+        execution = profile["profile"]
+        times_us = execution["execution_summary"]["all_inference_times"]
+        if not times_us or any(not isinstance(value, int) or value <= 0 for value in times_us):
+            raise RuntimeError("missing or invalid device samples")
+        units = Counter(row.get("compute_unit") for row in execution["execution_detail"])
+        if not units:
+            raise RuntimeError("no compute-unit placement detail")
+        report["profile_job_id"] = profile["job_id"]
+        report["profile"] = {
             "sample_count": len(times_us),
             "sample_min_us": min(times_us),
             "nearest_rank_p50_us": nearest_rank(times_us, 0.50),
@@ -142,15 +152,11 @@ def main() -> None:
             "reported_estimated_inference_time_us": execution["execution_summary"]["estimated_inference_time"],
             "reported_peak_memory_bytes": execution["execution_summary"]["estimated_inference_peak_memory"],
             "compute_unit_row_counts": dict(units),
-        },
-        "limits": [
-            "Historical source export does not attest its exact checkpoint revision.",
-            "This fixed component waveform has no listening or task-quality tolerance.",
-            "Hosted component profiling excludes talker, predictor, stage handoff, streaming, admission and sustained power/thermal behavior.",
-        ],
-    }
+        }
+    else:
+        report["limits"].append("Requested compute unit is not verified node placement without a device profile.")
     args.output_report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": report["status"], "profile": report["profile"]}, indent=2))
+    print(json.dumps({"status": report["status"], "profile": report.get("profile")}, indent=2))
 
 
 if __name__ == "__main__":
