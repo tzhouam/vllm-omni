@@ -1,0 +1,32 @@
+{
+  "scope": "one real-weight Qwen3-TTS Code2Wav component window; not a complete TTS stream",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "input_shape": [
+    1,
+    512,
+    97
+  ],
+  "output_shape": [
+    1,
+    48000
+  ],
+  "model_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_code2wav_c25_20260924.onnx",
+  "fixture_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vocoder_fixture_20260924.npz",
+  "reference_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vocoder_ort_cpu_output_20260924.npz",
+  "artifact_sha256": {
+    "model": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b",
+    "fixture": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+    "reference": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1"
+  },
+  "cpu_load_s": 4.244146900018677,
+  "cpu_inference_s": 2.895080899936147,
+  "cpu_vs_retained_reference": {
+    "finite": true,
+    "relative_l2": 6.457128070061599e-07,
+    "snr_db": 123.79921199506902,
+    "maximum_absolute_error": 6.854534149169922e-07,
+    "saturation_fraction": 0.0
+  },
+  "status": "cpu_reference_pass"
+}

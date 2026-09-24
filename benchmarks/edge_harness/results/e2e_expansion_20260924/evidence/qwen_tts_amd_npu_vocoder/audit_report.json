@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-24",
+  "host": "HX370 laptop, native Windows 11 build 26200",
+  "device": "integrated AMD NPU",
+  "backend": "WindowsWorkload.EP.AMD.VitisAI.Framework.1.8 1.8.63.0, ONNX Runtime 1.30.0",
+  "precision": "FP32 ONNX graph; no graph quantization or alternate precision was silently applied",
+  "workload": "single Code2Wav component window; fixed fixture, batch 1, no concurrency",
+  "power_condition": "uncontrolled; no power measurement",
+  "status": "COMPONENT_NPU_COMPILE_FAILED_NOT_E2E",
+  "attempts": [
+    {
+      "name": "fp32",
+      "checkpoint_revision": "historical export; revision not attested",
+      "onnx_sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b",
+      "fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+      "reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+      "input_shape": [
+        1,
+        512,
+        97
+      ],
+      "output_shape": [
+        1,
+        48000
+      ],
+      "cpu_control_file": "fp32_cpu_control.json",
+      "cpu_reference_relative_l2": 6.457128070061599e-07,
+      "cpu_reference_saturation_fraction": 0.0,
+      "vitisai_process_exit_code_signed": -1073741795,
+      "vitisai_process_exit_code_hex": "0xC000001D",
+      "vitisai_log_file": "fp32_attempt1.driver.log",
+      "vitisai_log_sha256": "dcda9ae8a016e2d0bc16da81903e199fae5dd1a881d8019dc42294225f53b6de",
+      "vitisai_profile_file": "fp32_attempt1_profile_2026-09-24_18-18-30_731.json",
+      "vitisai_profile_bytes": 0,
+      "npu_inference_completed": false,
+      "npu_node_placement_verified": false,
+      "failure": "Native vaiml.dll compiler assertion: LLVM ArrayRef Index < Length, line 260; process terminated before Python report."
+    },
+    {
+      "name": "short",
+      "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+      "onnx_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+      "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+      "reference_sha256": "989307db317d77be054f684211ae0c6a2fd24d93bcd74307c597fed430ba2a37",
+      "input_shape": [
+        1,
+        512,
+        74
+      ],
+      "output_shape": [
+        1,
+        3840
+      ],
+      "cpu_control_file": "short_cpu_control.json",
+      "cpu_reference_relative_l2": 1.0450898781329582e-06,
+      "cpu_reference_saturation_fraction": 0.0,
+      "vitisai_process_exit_code_signed": -1073741795,
+      "vitisai_process_exit_code_hex": "0xC000001D",
+      "vitisai_log_file": "short_attempt1.driver.log",
+      "vitisai_log_sha256": "13bca3ea59719211a9b35319f22f280b093a07bf5d304f06cdcea36846100d9c",
+      "vitisai_profile_file": "short_attempt1_profile_2026-09-24_18-22-57_775.json",
+      "vitisai_profile_bytes": 0,
+      "npu_inference_completed": false,
+      "npu_node_placement_verified": false,
+      "failure": "Native vaiml.dll compiler assertion: LLVM ArrayRef Index < Length, line 260; process terminated before Python report."
+    }
+  ]
+}
