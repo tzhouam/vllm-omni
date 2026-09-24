@@ -33,6 +33,8 @@ def main() -> None:
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--device-name", default="Samsung Galaxy S25")
     parser.add_argument("--profile-report", type=Path)
+    parser.add_argument("--expected-compile-options", default=COMPILE_OPTIONS)
+    parser.add_argument("--expected-run-options", default="--compute_unit npu")
     args = parser.parse_args()
 
     compiled = json.loads(args.compile_report.read_text(encoding="utf-8"))
@@ -40,7 +42,8 @@ def main() -> None:
     inferred = json.loads(args.inference_report.read_text(encoding="utf-8"))
     if compiled.get("status") != "SUCCESS" or inferred.get("status") != "SUCCESS":
         raise ValueError("compile and inference must be terminal successes")
-    if compiled.get("source_model_id") != "mn4okj3rq" or compiled.get("options") != COMPILE_OPTIONS:
+    if (compiled.get("source_model_id") != "mn4okj3rq"
+            or compiled.get("options") != args.expected_compile_options):
         raise ValueError("compile used a different source or options")
     if inferred.get("model_id") != compiled.get("target_model_id"):
         raise ValueError("inference used a different target model")
@@ -48,8 +51,8 @@ def main() -> None:
         raise ValueError("compile/inference device metadata differs")
     if inferred.get("device", {}).get("name") != args.device_name:
         raise ValueError("inference did not use the requested exact device")
-    if inferred.get("options") != "--compute_unit npu":
-        raise ValueError("inference did not request NPU")
+    if inferred.get("options") != args.expected_run_options:
+        raise ValueError("inference did not request the expected compute unit")
     if (inferred.get("job_id") != submitted.get("job_id")
             or inferred.get("input_dataset_id") != submitted.get("input_dataset_id")):
         raise ValueError("inference used a different job or input dataset")
@@ -121,7 +124,7 @@ def main() -> None:
         if (profiled.get("status") != "SUCCESS"
                 or profiled.get("model_id") != compiled["target_model_id"]
                 or profiled.get("device") != inferred["device"]
-                or profiled.get("options") != "--compute_unit npu"):
+                or profiled.get("options") != args.expected_run_options):
             raise ValueError("profile did not execute the same target on the exact device")
         profile = profiled["profile"]
         summary = profile["execution_summary"]

@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-24T01:43:58.811744+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "j5mmy28w5",
+  "target_model_id": "mn0wyzd3q",
+  "input_dataset_id": "d7m80jl32",
+  "device": "Dragonwing RB3 Gen 2 Vision Kit",
+  "options": "--compute_unit cpu",
+  "kind": "inference",
+  "status": "SUBMITTED",
+  "job_id": "jglyxw4m5",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jglyxw4m5/"
+}

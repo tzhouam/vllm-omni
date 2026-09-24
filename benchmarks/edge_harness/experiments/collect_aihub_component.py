@@ -47,9 +47,12 @@ def collect(evidence_dir: Path, kind: str, client: hub.Client) -> str:
         "options": job.options,
         "hub_version": str(job.hub_version),
         "device": device_record(job.device),
-        "model_id": job.model.model_id,
     }
-    if kind == "inference":
+    if kind == "compile":
+        report["source_model_id"] = job.model.model_id
+        report["target_model_id"] = job.get_target_model().model_id if status.code == "SUCCESS" else None
+    elif kind == "inference":
+        report["model_id"] = job.model.model_id
         report["input_dataset_id"] = job.inputs.dataset_id
         if status.code == "SUCCESS":
             output_path = evidence_dir / "device_output.npz"
@@ -58,6 +61,7 @@ def collect(evidence_dir: Path, kind: str, client: hub.Client) -> str:
             np.savez_compressed(output_path, **arrays)
             report["outputs"] = output_path.name
     elif kind == "profile":
+        report["model_id"] = job.model.model_id
         report["shapes"] = job.shapes
         if status.code == "SUCCESS":
             report["profile"] = job.download_profile()
@@ -70,7 +74,7 @@ def collect(evidence_dir: Path, kind: str, client: hub.Client) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("evidence_dirs", nargs="+", type=Path)
-    parser.add_argument("--kinds", nargs="+", choices=("inference", "profile"), default=("inference", "profile"))
+    parser.add_argument("--kinds", nargs="+", choices=("compile", "inference", "profile"), default=("inference", "profile"))
     args = parser.parse_args()
     client = hub.Client()
     for directory in args.evidence_dirs:

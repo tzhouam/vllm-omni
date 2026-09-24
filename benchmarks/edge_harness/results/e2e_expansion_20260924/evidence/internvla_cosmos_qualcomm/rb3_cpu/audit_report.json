@@ -1,0 +1,54 @@
+{
+  "scope": "one six-frame Cosmos image encoder on synthetic pattern; no complete InternVLA policy",
+  "status": "component_inference_numeric_measured",
+  "device": {
+    "name": "Dragonwing RB3 Gen 2 Vision Kit",
+    "os": "1.6",
+    "attributes": [
+      "os:qc_linux",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-oe-linux-gcc11",
+      "format:iot",
+      "chipset:qualcomm-qcs6490",
+      "chipset:qcs6490",
+      "chipset:qualcomm-dragonwing-qcs6490",
+      "hexagon:v68",
+      "soc-model:93",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mn4okj3rq",
+  "target_model_id": "mno4105gm",
+  "compile_job_id": "j56878x6g",
+  "inference_job_id": "jpyoxo0l5",
+  "input_dataset_id": "d26qo8p57",
+  "requested_run_options": "--compute_unit cpu",
+  "files": {
+    "source_onnx": {
+      "bytes": 125112088,
+      "sha256": "656a5263f584851a1457ef6dcf60b995f7c67b056b3c90a4f33c814f7caf9ec9"
+    },
+    "fixture": {
+      "bytes": 2081321,
+      "sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368"
+    },
+    "device_output": {
+      "bytes": 357883,
+      "sha256": "a316ab251ff5257f9af60e80e44ea81ff6da07b83d84b618ae8837a160c83cdc"
+    }
+  },
+  "output_dtype": "float32",
+  "source_vs_device": {
+    "relative_l2": 2.196231135016446e-06,
+    "snr_db": 113.16643911886588,
+    "max_abs_error": 2.6702880859375e-05,
+    "cosine": 0.9999999999978003
+  },
+  "limits": [
+    "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
+    "The action policy, state lifecycle, admission and complete request were not run on this device.",
+    "Requested NPU is not actual per-node placement without a device profile."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-24T01:48:56.671423+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "j56878x6g",
+  "target_model_id": "mno4105gm",
+  "device": "Dragonwing RB3 Gen 2 Vision Kit",
+  "options": "--compute_unit cpu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jpvld2475",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpvld2475/"
+}

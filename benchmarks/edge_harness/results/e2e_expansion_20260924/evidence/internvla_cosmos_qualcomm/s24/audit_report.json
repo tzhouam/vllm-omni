@@ -1,0 +1,55 @@
+{
+  "scope": "one six-frame Cosmos image encoder on synthetic pattern; no complete InternVLA policy",
+  "status": "component_inference_numeric_measured",
+  "device": {
+    "name": "Samsung Galaxy S24",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8gen3",
+      "chipset:sm8650",
+      "hexagon:v75",
+      "soc-model:57",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mn4okj3rq",
+  "target_model_id": "mq33p123q",
+  "compile_job_id": "jglyxydj5",
+  "inference_job_id": "jp2rwrnqg",
+  "input_dataset_id": "d26qo8p57",
+  "requested_run_options": "--compute_unit npu",
+  "files": {
+    "source_onnx": {
+      "bytes": 125112088,
+      "sha256": "656a5263f584851a1457ef6dcf60b995f7c67b056b3c90a4f33c814f7caf9ec9"
+    },
+    "fixture": {
+      "bytes": 2081321,
+      "sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368"
+    },
+    "device_output": {
+      "bytes": 185671,
+      "sha256": "f15119b8dbeed9a5fbccd2d918dc52277606ee8bbdbf81cfdd16c77c1d24060a"
+    }
+  },
+  "output_dtype": "float32",
+  "source_vs_device": {
+    "relative_l2": 0.0006133847737886196,
+    "snr_db": 64.24534017651494,
+    "max_abs_error": 0.009660720825195312,
+    "cosine": 0.9999998119817205
+  },
+  "limits": [
+    "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
+    "The action policy, state lifecycle, admission and complete request were not run on this device.",
+    "Requested NPU is not actual per-node placement without a device profile."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-24T01:42:39.558439+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "j56878x6g",
+  "target_model_id": "mno4105gm",
+  "input_dataset_id": "d26qo8p57",
+  "device": "Dragonwing RB3 Gen 2 Vision Kit",
+  "options": "--compute_unit cpu",
+  "kind": "inference",
+  "status": "SUBMITTED",
+  "job_id": "jpyoxo0l5",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpyoxo0l5/"
+}
