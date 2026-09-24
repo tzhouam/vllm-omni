@@ -1,0 +1,107 @@
+{
+  "method": "Non-overlapping windows from each run's first sustained submission; nearest-rank percentiles; prebuffer is minimum added delay after first audio arrival to avoid all simulated underruns",
+  "runs": [
+    {
+      "source": "benchmarks/edge_harness/results/e2e_profiling_20260922/evidence/tts-cuda-windows/requests.jsonl",
+      "sustained_count": 1087,
+      "windows": [
+        {
+          "minutes": [
+            0,
+            25
+          ],
+          "requests": 1013,
+          "rtf_p50": 0.1851554088801511,
+          "rtf_p95": 0.2040304081563182,
+          "wall_s_p50": 1.4779308000579476,
+          "wall_s_p95": 1.6830153999617323,
+          "requests_with_underrun_at_ttfa": 74,
+          "required_prebuffer_ms_p50": 0.0,
+          "required_prebuffer_ms_p95": 27.297799973748624,
+          "required_prebuffer_ms_max": 170.25149995926768
+        },
+        {
+          "minutes": [
+            25,
+            27
+          ],
+          "requests": 57,
+          "rtf_p50": 0.18812342783611402,
+          "rtf_p95": 1.3556594624969875,
+          "wall_s_p50": 1.487306399969384,
+          "wall_s_p95": 10.18252599996049,
+          "requests_with_underrun_at_ttfa": 7,
+          "required_prebuffer_ms_p50": 0.0,
+          "required_prebuffer_ms_p95": 4050.0047999899834,
+          "required_prebuffer_ms_max": 4345.90249999892
+        },
+        {
+          "minutes": [
+            27,
+            30
+          ],
+          "requests": 17,
+          "rtf_p50": 1.3311034973470515,
+          "rtf_p95": 1.379991387611964,
+          "wall_s_p50": 10.378701200010255,
+          "wall_s_p95": 12.033524899976328,
+          "requests_with_underrun_at_ttfa": 17,
+          "required_prebuffer_ms_p50": 3908.2718999357894,
+          "required_prebuffer_ms_p95": 4650.390599993989,
+          "required_prebuffer_ms_max": 4650.390599993989
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/edge_harness/results/e2e_profiling_20260922/evidence/tts-cuda-wsl/requests.jsonl",
+      "sustained_count": 1269,
+      "windows": [
+        {
+          "minutes": [
+            0,
+            25
+          ],
+          "requests": 1061,
+          "rtf_p50": 0.1779203138689659,
+          "rtf_p95": 0.1839314488974838,
+          "wall_s_p50": 1.4043696869630367,
+          "wall_s_p95": 1.6077310189721175,
+          "requests_with_underrun_at_ttfa": 0,
+          "required_prebuffer_ms_p50": 0.0,
+          "required_prebuffer_ms_p95": 0.0,
+          "required_prebuffer_ms_max": 0.0
+        },
+        {
+          "minutes": [
+            25,
+            27
+          ],
+          "requests": 82,
+          "rtf_p50": 0.17973470421183219,
+          "rtf_p95": 0.18352530104392725,
+          "wall_s_p50": 1.4546086909831502,
+          "wall_s_p95": 1.6364136100164615,
+          "requests_with_underrun_at_ttfa": 0,
+          "required_prebuffer_ms_p50": 0.0,
+          "required_prebuffer_ms_p95": 0.0,
+          "required_prebuffer_ms_max": 0.0
+        },
+        {
+          "minutes": [
+            27,
+            30
+          ],
+          "requests": 126,
+          "rtf_p50": 0.17921699947021952,
+          "rtf_p95": 0.18423814749985468,
+          "wall_s_p50": 1.4107255110284314,
+          "wall_s_p95": 1.6103432949748822,
+          "requests_with_underrun_at_ttfa": 0,
+          "required_prebuffer_ms_p50": 0.0,
+          "required_prebuffer_ms_p95": 0.0,
+          "required_prebuffer_ms_max": 0.0
+        }
+      ]
+    }
+  ]
+}

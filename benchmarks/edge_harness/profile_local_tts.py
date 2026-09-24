@@ -12,6 +12,7 @@ import time
 import traceback
 from pathlib import Path
 
+from gpu_telemetry import GpuTelemetry
 from profile_local_text import HOST_ENVIRONMENT, save
 
 
@@ -51,6 +52,10 @@ async def run(args):
     save(args.out / "report.json", report)
     sampler = MemorySampler()
     sampler.start()
+    gpu_telemetry = None
+    if args.gpu_telemetry_interval_s > 0:
+        gpu_telemetry = GpuTelemetry(args.out / "gpu_telemetry.jsonl", args.gpu_telemetry_interval_s)
+        gpu_telemetry.start()
     omni = None
     try:
         cfg = Qwen3TTSConfig.from_pretrained(args.model)
@@ -196,6 +201,8 @@ async def run(args):
             omni.shutdown()
         sampler.stop()
         report["memory"] = sampler.peaks()
+        if gpu_telemetry is not None:
+            report["gpu_telemetry"] = gpu_telemetry.stop()
         report["end_unix"] = time.time()
         save(args.out / "report.json", report)
     return report["status"] == "completed"
@@ -207,6 +214,8 @@ if __name__ == "__main__":
     p.add_argument("--out", required=True, type=Path)
     p.add_argument("--repeats", default=20, type=int)
     p.add_argument("--sustained-seconds", default=1800, type=float)
+    p.add_argument("--gpu-telemetry-interval-s", default=0.0, type=float,
+                   help="Sample device-wide NVML and host telemetry; 0 disables sampling.")
     p.add_argument(
         "--length-band",
         choices=("short", "medium", "long"),

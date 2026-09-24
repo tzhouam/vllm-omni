@@ -1,0 +1,18 @@
+# Qwen3-TTS native Windows sustained playback drift
+
+The pinned Qwen3-TTS 0.6B CustomVoice CUDA profiles were complete-model `AsyncOmni` streams on an HX370 laptop with an RTX 5090 Laptop GPU. The [original native Windows report](../../../e2e_profiling_20260922/evidence/tts-cuda-windows/report.json) and [raw request events](../../../e2e_profiling_20260922/evidence/tts-cuda-windows/requests.jsonl) contain a 30-minute serial medium-prompt run. The corresponding [WSL report](../../../e2e_profiling_20260922/evidence/tts-cuda-wsl/report.json) and [raw events](../../../e2e_profiling_20260922/evidence/tts-cuda-wsl/requests.jsonl) provide a separate OS run on the same laptop. These were not concurrent or controlled for starting temperature, clocks, power policy or background load.
+
+The reproducible [analysis script](../../../../experiments/analyze_tts_sustained.py) takes each run's first sustained submission as minute zero, divides submitted requests into fixed time windows, and computes nearest-rank p50/p95 from the raw `rtf_total` and `total_wall_s` fields. It counts requests with any recorded simulated playback underrun when starting at first audio arrival. The additional prebuffer is the minimum delay after first audio arrival that would avoid underruns in each recorded chunk sequence; this is a simulation, not a sound-device test. [Machine-readable results](analysis.json) retain exact values.
+
+| OS / sustained minutes | Requests | RTF p50 / p95 | Complete wall p50 / p95 (s) | Requests with underrun | Required prebuffer p95 / max (ms) |
+|---|---:|---:|---:|---:|---:|
+| Windows 0–25 | 1,013 | 0.185 / 0.204 | 1.478 / 1.683 | 74 | 27 / 170 |
+| Windows 25–27 | 57 | 0.188 / 1.356 | 1.487 / 10.183 | 7 | 4,050 / 4,346 |
+| Windows 27–30 | 17 | 1.331 / 1.380 | 10.379 / 12.034 | 17 | 4,650 / 4,650 |
+| WSL 0–25 | 1,061 | 0.178 / 0.184 | 1.404 / 1.608 | 0 | 0 / 0 |
+| WSL 25–27 | 82 | 0.180 / 0.184 | 1.455 / 1.636 | 0 | 0 / 0 |
+| WSL 27–30 | 126 | 0.179 / 0.184 | 1.411 / 1.610 | 0 | 0 / 0 |
+
+The Windows stream changed regime around minute 26–27. In its last window, all 17 requests had RTF above real time at the median and an underrun at first-audio playback. A small jitter buffer cannot cure this late sustained throughput deficit. The recorded profile sampled memory but not a timestamped GPU clock, temperature, power or throttling timeline, so its cause is unknown. The updated [local TTS profiler](../../../../profile_local_tts.py) can sample NVML and host telemetry with `--gpu-telemetry-interval-s 1`; repeat the Windows run with that option and correlate the device-wide samples with request timestamps. GPU telemetry is whole-device and cannot attribute power or utilization to the model alone.
+
+This evidence does not qualify uninterrupted native Windows playback, speech quality, restart after cancellation, or mobile/embedded TTS. It does not establish thermal throttling or an Omni software regression as the cause.

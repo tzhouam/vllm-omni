@@ -1,0 +1,40 @@
+{
+  "timestamp_utc": "2026-09-24T01:08:02.637412+00:00",
+  "qai_hub_version": "0.55.0",
+  "facility": "Qualcomm AI Hub Workbench",
+  "job_id": "jpyoxmvr5",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpyoxmvr5/",
+  "status": "FAILED",
+  "status_message": "The process ended because it exceeded the maximum execution time. Consult the runtime log for more details.",
+  "options": "--compute_unit npu",
+  "hub_version": "aihub-2026.09.11.0",
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "os": "11",
+    "attributes": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "model_id": "mmxj098kq",
+  "shapes": {
+    "quantized": [
+      [
+        1,
+        512,
+        97
+      ],
+      "float32"
+    ]
+  }
+}

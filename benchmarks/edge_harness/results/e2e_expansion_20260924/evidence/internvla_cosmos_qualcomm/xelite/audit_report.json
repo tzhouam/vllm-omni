@@ -1,0 +1,54 @@
+{
+  "scope": "one six-frame Cosmos image encoder on synthetic pattern; no complete InternVLA policy",
+  "status": "component_inference_numeric_measured",
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "os": "11",
+    "attributes": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mn4okj3rq",
+  "target_model_id": "mmxj0w8kq",
+  "compile_job_id": "j5687wv7g",
+  "inference_job_id": "jgjr7qo8p",
+  "input_dataset_id": "d26qo8p57",
+  "requested_run_options": "--compute_unit npu",
+  "files": {
+    "source_onnx": {
+      "bytes": 125112088,
+      "sha256": "656a5263f584851a1457ef6dcf60b995f7c67b056b3c90a4f33c814f7caf9ec9"
+    },
+    "fixture": {
+      "bytes": 2081321,
+      "sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368"
+    },
+    "device_output": {
+      "bytes": 185597,
+      "sha256": "fcdb47873e7e7a7cfb9f97e6e939240925bb82f64043e91e4075606426f2dd2c"
+    }
+  },
+  "output_dtype": "float32",
+  "source_vs_device": {
+    "relative_l2": 0.000607797573531508,
+    "snr_db": 64.32482076113271,
+    "max_abs_error": 0.011388778686523438,
+    "cosine": 0.9999998154244688
+  },
+  "limits": [
+    "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
+    "The action policy, state lifecycle, admission and complete request were not run on this device.",
+    "Requested NPU is not actual per-node placement without a device profile."
+  ]
+}
