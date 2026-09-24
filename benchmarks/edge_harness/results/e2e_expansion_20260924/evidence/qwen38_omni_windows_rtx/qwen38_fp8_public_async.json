@@ -1,0 +1,58 @@
+{
+  "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+  "entrypoint": "AsyncOmni.generate",
+  "started": 1790240618.8739433,
+  "config": {
+    "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+    "language_model_only": false,
+    "max_model_len": 512,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 512,
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.8,
+    "cpu_offload_gb": 12,
+    "linear_backend": "triton",
+    "dtype": "bfloat16",
+    "stage_init_timeout": 180,
+    "init_timeout": 240
+  },
+  "startup_s": 93.87675339996349,
+  "cases": [
+    {
+      "kind": "text",
+      "wall_s": 3.2853383000474423,
+      "outputs": [
+        {
+          "request_id": "public-qwen38-text",
+          "error": null,
+          "text": "ready"
+        },
+        {
+          "request_id": "public-qwen38-text",
+          "error": null,
+          "text": "ready"
+        }
+      ],
+      "expected": "ready"
+    },
+    {
+      "kind": "image",
+      "wall_s": 17.321737900027074,
+      "outputs": [
+        {
+          "request_id": "public-qwen38-image",
+          "error": null,
+          "text": "Red"
+        },
+        {
+          "request_id": "public-qwen38-image",
+          "error": null,
+          "text": "Red"
+        }
+      ],
+      "expected": "Red"
+    }
+  ],
+  "status": "completed",
+  "ended": 1790240757.747901
+}

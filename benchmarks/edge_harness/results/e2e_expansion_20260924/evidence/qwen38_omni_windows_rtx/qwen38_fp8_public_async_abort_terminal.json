@@ -1,0 +1,92 @@
+{
+  "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+  "entrypoint": "AsyncOmni.generate",
+  "started": 1790241262.2354827,
+  "config": {
+    "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+    "language_model_only": false,
+    "max_model_len": 512,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 512,
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.8,
+    "cpu_offload_gb": 12,
+    "linear_backend": "triton",
+    "dtype": "bfloat16",
+    "stage_init_timeout": 180,
+    "init_timeout": 240
+  },
+  "startup_s": 93.32475709996652,
+  "cases": [
+    {
+      "kind": "text",
+      "wall_s": 3.298354000085965,
+      "outputs": [
+        {
+          "request_id": "public-qwen38-text",
+          "error": null,
+          "text": "ready",
+          "finished": false,
+          "stage_id": 0
+        },
+        {
+          "request_id": "public-qwen38-text",
+          "error": null,
+          "text": "ready",
+          "finished": true,
+          "stage_id": 0
+        }
+      ],
+      "expected": "ready"
+    },
+    {
+      "kind": "image",
+      "wall_s": 26.607640099944547,
+      "outputs": [
+        {
+          "request_id": "public-qwen38-image",
+          "error": null,
+          "text": "Red",
+          "finished": false,
+          "stage_id": 0
+        },
+        {
+          "request_id": "public-qwen38-image",
+          "error": null,
+          "text": "Red",
+          "finished": true,
+          "stage_id": 0
+        }
+      ],
+      "expected": "Red"
+    }
+  ],
+  "abort_check": {
+    "request_id": "public-qwen38-cancel",
+    "submitted": true,
+    "task_active_before_abort": true,
+    "emitted_before_abort": 0,
+    "emissions": [
+      {
+        "at_monotonic": 696147.5697939,
+        "text": "1",
+        "finished": false,
+        "finish_reason": null
+      },
+      {
+        "at_monotonic": 696147.5715562,
+        "text": "1",
+        "finished": true,
+        "finish_reason": "abort"
+      }
+    ],
+    "abort_started_monotonic": 696147.5670737,
+    "abort_completed_monotonic": 696147.5714223,
+    "task_error": null,
+    "remaining_request_states": 0
+  },
+  "status": "failed",
+  "error": "RuntimeError('abort did not produce only a terminal abort marker')",
+  "traceback": "Traceback (most recent call last):\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\experiments\\probe_qwen38_windows_async.py\", line 130, in main\n    raise RuntimeError(\"abort did not produce only a terminal abort marker\")\nRuntimeError: abort did not produce only a terminal abort marker\n",
+  "ended": 1790241409.4759328
+}

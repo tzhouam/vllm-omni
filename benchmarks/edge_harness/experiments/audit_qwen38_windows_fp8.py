@@ -42,6 +42,16 @@ def main() -> None:
         "qwen38_image_fp8_triton_ntfs_attempt1.driver.log",
         "qwen38_fp8_triton_ntfs_profile20.json",
         "qwen38_fp8_triton_ntfs_profile20.driver.log",
+        "qwen38_fp8_public_async.json",
+        "qwen38_fp8_public_async.driver.log",
+        "qwen38_fp8_public_async_abort.json",
+        "qwen38_fp8_public_async_abort.driver.log",
+        "qwen38_fp8_public_async_abort_timed.json",
+        "qwen38_fp8_public_async_abort_timed.driver.log",
+        "qwen38_fp8_public_async_abort_terminal.json",
+        "qwen38_fp8_public_async_abort_terminal.driver.log",
+        "qwen38_fp8_public_async_abort_recovery.json",
+        "qwen38_fp8_public_async_abort_recovery.driver.log",
     ]
     paths = {name: root / name for name in names}
     reports = {name: json.loads(paths[name].read_text(encoding="utf-8")) for name in names if name.endswith(".json")}
@@ -82,6 +92,31 @@ def main() -> None:
             raise ValueError(f"successful log lacks enough KV cache for one request: {name}")
     if profile["text_output"] != ["ready"]:
         raise ValueError("text warmup answer changed")
+    public = reports["qwen38_fp8_public_async.json"]
+    recovery = reports["qwen38_fp8_public_async_abort_recovery.json"]
+    for report in (public, recovery):
+        if report["status"] != "completed" or report["entrypoint"] != "AsyncOmni.generate":
+            raise ValueError("public AsyncOmni request did not complete")
+        cases = {case["kind"]: case for case in report["cases"]}
+        if set(cases) != {"text", "image"} or any(
+            cases[kind]["outputs"][-1]["text"] != expected
+            or ("finished" in cases[kind]["outputs"][-1] and not cases[kind]["outputs"][-1]["finished"])
+            for kind, expected in (("text", "ready"), ("image", "Red"))
+        ):
+            raise ValueError("public text/image final output changed")
+    if any(reports[name]["status"] != "failed" for name in (
+        "qwen38_fp8_public_async_abort.json",
+        "qwen38_fp8_public_async_abort_timed.json",
+        "qwen38_fp8_public_async_abort_terminal.json",
+    )):
+        raise ValueError("retained abort-probe assertion failures are missing")
+    abort = recovery["abort_check"]
+    if (not abort["task_active_before_abort"] or abort["remaining_request_states"] != 0
+            or abort["fresh_outputs"][-1] != "ready"):
+        raise ValueError("abort did not clear state and recover")
+    terminal = [row for row in abort["emissions"] if row["at_monotonic"] > abort["abort_completed_monotonic"]]
+    if len(terminal) != 1 or terminal[0]["finish_reason"] != "abort" or not terminal[0]["finished"]:
+        raise ValueError("abort did not emit one terminal marker")
     timing = {}
     for kind, expected in (("image", "Red"), ("text", "ready")):
         rows = [row for row in profile["profile"] if row["kind"] == kind]
@@ -92,7 +127,7 @@ def main() -> None:
                         "nearest_rank_p95_s": percentile(values, 0.95), "min_s": min(values), "max_s": max(values)}
     result = {
         "status": "audited_scoped_e2e",
-        "evidence_depth": "P: complete text and synthetic-image requests on native Windows RTX; no long context or broad quality claim",
+        "evidence_depth": "P: complete text and synthetic-image requests on native Windows RTX, plus public AsyncOmni and same-engine abort/recovery; no long context or broad quality claim",
         "artifact": "Qwen/Qwen3.8-27B-FP8",
         "checkpoint_revision": REVISION,
         "host": "Windows 11 build 26200; Ryzen AI 9 HX 370; RTX 5090 Laptop; driver 610.71",
@@ -105,7 +140,7 @@ def main() -> None:
             "The FP8 checkpoint and Triton backend are distinct from the NVFP4 Marlin failure.",
             "The image is a synthetic 96x96 red square and the text prompt is a single-word response; no broad multimodal or long-context quality claim follows.",
             "The 12 GiB host offload and 0.80 GPU-memory cap are declared settings, not measured loading-peak admission or a sampled power profile.",
-            "Cancellation, public AsyncOmni, concurrency, video, sustained power/thermal behavior and task quality remain unverified for this native-Windows route.",
+            "Cancellation used a terminal abort marker and a fresh request in the same engine; server-started cancellation, separate stage restart, concurrency, video, sustained power/thermal behavior and task quality remain unverified.",
         ],
     }
     (root / "fp8_audit_report.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

@@ -1,0 +1,77 @@
+{
+  "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+  "entrypoint": "AsyncOmni.generate",
+  "started": 1790240882.72909,
+  "config": {
+    "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+    "language_model_only": false,
+    "max_model_len": 512,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 512,
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.8,
+    "cpu_offload_gb": 12,
+    "linear_backend": "triton",
+    "dtype": "bfloat16",
+    "stage_init_timeout": 180,
+    "init_timeout": 240
+  },
+  "startup_s": 87.79908420005813,
+  "cases": [
+    {
+      "kind": "text",
+      "wall_s": 3.327248699963093,
+      "outputs": [
+        {
+          "request_id": "public-qwen38-text",
+          "error": null,
+          "text": "ready",
+          "finished": false,
+          "stage_id": 0
+        },
+        {
+          "request_id": "public-qwen38-text",
+          "error": null,
+          "text": "ready",
+          "finished": true,
+          "stage_id": 0
+        }
+      ],
+      "expected": "ready"
+    },
+    {
+      "kind": "image",
+      "wall_s": 17.33421260002069,
+      "outputs": [
+        {
+          "request_id": "public-qwen38-image",
+          "error": null,
+          "text": "Red",
+          "finished": false,
+          "stage_id": 0
+        },
+        {
+          "request_id": "public-qwen38-image",
+          "error": null,
+          "text": "Red",
+          "finished": true,
+          "stage_id": 0
+        }
+      ],
+      "expected": "Red"
+    }
+  ],
+  "abort_check": {
+    "request_id": "public-qwen38-cancel",
+    "submitted": true,
+    "task_active_before_abort": true,
+    "emitted_before_abort": 0,
+    "emitted_after_abort": 1,
+    "task_error": null,
+    "remaining_request_states": 0
+  },
+  "status": "failed",
+  "error": "RuntimeError('aborted request emitted late output')",
+  "traceback": "Traceback (most recent call last):\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\experiments\\probe_qwen38_windows_async.py\", line 119, in main\n    raise RuntimeError(\"aborted request emitted late output\")\nRuntimeError: aborted request emitted late output\n",
+  "ended": 1790241016.596035
+}

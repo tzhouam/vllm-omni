@@ -1,6 +1,6 @@
 {
   "status": "audited_scoped_e2e",
-  "evidence_depth": "P: complete text and synthetic-image requests on native Windows RTX; no long context or broad quality claim",
+  "evidence_depth": "P: complete text and synthetic-image requests on native Windows RTX, plus public AsyncOmni and same-engine abort/recovery; no long context or broad quality claim",
   "artifact": "Qwen/Qwen3.8-27B-FP8",
   "checkpoint_revision": "017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
   "host": "Windows 11 build 26200; Ryzen AI 9 HX 370; RTX 5090 Laptop; driver 610.71",
@@ -90,12 +90,52 @@
     "qwen38_fp8_triton_ntfs_profile20.driver.log": {
       "bytes": 38663,
       "sha256": "1a324158efe8d6a233eca69cbd4f5f8828e1cf786a976fc9300cd1a2dc56368a"
+    },
+    "qwen38_fp8_public_async.json": {
+      "bytes": 1340,
+      "sha256": "8b235e6014dfcc5f97421c9abf661082e86e0320201adcbe07727ffb511550c4"
+    },
+    "qwen38_fp8_public_async.driver.log": {
+      "bytes": 29105,
+      "sha256": "fbc87851748d7513b2e42f0648bf90f3c6d3a01b1dc4da0ad445c2512e7eeec1"
+    },
+    "qwen38_fp8_public_async_abort.json": {
+      "bytes": 2207,
+      "sha256": "6de9d799d45d42ed7b21f64a2fc93a0ea19bd60f2bfce89b751c21ccd663187f"
+    },
+    "qwen38_fp8_public_async_abort.driver.log": {
+      "bytes": 29525,
+      "sha256": "1f3477638b3cafdd5013eb922916db2e63e42ff04c2c0a692540e58c1458ed7f"
+    },
+    "qwen38_fp8_public_async_abort_timed.json": {
+      "bytes": 2433,
+      "sha256": "406725b4097829e485bcc42026e72480cdf23e51cbb9080d0ce0ff71ab7c30fe"
+    },
+    "qwen38_fp8_public_async_abort_timed.driver.log": {
+      "bytes": 29541,
+      "sha256": "e57f76b74e7f70140c3dc99512e415860b3485fc4403821eb01d3b6a98a551d1"
+    },
+    "qwen38_fp8_public_async_abort_terminal.json": {
+      "bytes": 2619,
+      "sha256": "cd7be80314b122e4ab03fd9bf53f1bedf6dc849eee46a44851ae2ef7bcb1c282"
+    },
+    "qwen38_fp8_public_async_abort_terminal.driver.log": {
+      "bytes": 29555,
+      "sha256": "b62ac62b85e347045e457a8626f132cd9ff137b459bae98ce5afa269ef91d2ce"
+    },
+    "qwen38_fp8_public_async_abort_recovery.json": {
+      "bytes": 2086,
+      "sha256": "12aecbd9eed84c114976ab32c9a796d17500a47947f37a92756737dc0310f606"
+    },
+    "qwen38_fp8_public_async_abort_recovery.driver.log": {
+      "bytes": 29216,
+      "sha256": "487c16ef1d3b2bdedbcca6531fed24c318f16873469bb790dfbef3456e52c515"
     }
   },
   "limits": [
     "The FP8 checkpoint and Triton backend are distinct from the NVFP4 Marlin failure.",
     "The image is a synthetic 96x96 red square and the text prompt is a single-word response; no broad multimodal or long-context quality claim follows.",
     "The 12 GiB host offload and 0.80 GPU-memory cap are declared settings, not measured loading-peak admission or a sampled power profile.",
-    "Cancellation, public AsyncOmni, concurrency, video, sustained power/thermal behavior and task quality remain unverified for this native-Windows route."
+    "Cancellation used a terminal abort marker and a fresh request in the same engine; server-started cancellation, separate stage restart, concurrency, video, sustained power/thermal behavior and task quality remain unverified."
   ]
 }

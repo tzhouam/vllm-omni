@@ -1,0 +1,244 @@
+INFO 09-24 17:08:19 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 17:08:19 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 17:08:23 [omni_base.py:216] [AsyncOmni] Initializing with model C:\Users\zhout\w2\Qwen3.8-27B-FP8
+INFO 09-24 17:08:23 [async_omni_engine.py:172] [AsyncOmniEngine] Initializing with model C:\Users\zhout\w2\Qwen3.8-27B-FP8
+INFO 09-24 17:08:23 [async_omni_engine.py:290] [AsyncOmniEngine] Launching Orchestrator thread with 1 stages
+INFO 09-24 17:08:24 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+WARNING 09-24 17:08:24 [utils.py:501] Dropping unknown OmniEngineArgs field 'inline_diffusion' (not declared on the dataclass)
+WARNING 09-24 17:08:24 [arg_utils.py:1801] The global random seed is set to 0. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 09-24 17:08:24 [model.py:684] Resolved architecture: Qwen3_5ForConditionalGeneration
+INFO 09-24 17:08:24 [model.py:2021] Using max model len 512
+WARNING 09-24 17:08:24 [model.py:981] Model does not support mm_device_do_normalize, forcing mm_device_do_normalize = False.
+INFO 09-24 17:08:30 [scheduler.py:277] Chunked prefill is enabled with max_num_batched_tokens=512.
+INFO 09-24 17:08:30 [config.py:625] Mamba cache mode is set to 'align' for Qwen3_5ForConditionalGeneration by default when prefix caching is enabled
+WARNING 09-24 17:08:30 [vllm.py:1211] Auto-disabled DeepGemm for model_type=qwen3_5_text on Blackwell. DeepGemm E8M0 scale format causes accuracy degradation for this architecture. Falling back to CUTLASS. To disable DeepGemm globally, set VLLM_USE_DEEP_GEMM=0.
+WARNING 09-24 17:08:30 [vllm.py:1371] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 09-24 17:08:30 [vllm.py:1406] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 09-24 17:08:30 [kernel.py:369] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 09-24 17:08:30 [vllm.py:1585] Cudagraph is disabled under eager mode
+INFO 09-24 17:08:30 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+WARNING 09-24 17:08:30 [stage_runtime.py:778] [stage_init] Stage-0 replica 0 physical devices None are not integer GPU ids; all serial LLM replicas will share one init group
+INFO 09-24 17:08:44 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 17:08:44 [patch.py:510] inductor factorable-divisibility patch: installed.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:47 [core.py:123] Initializing a V1 LLM engine (v0.29.0) with config: model='C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8', speculative_config=None, tokenizer='C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=512, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=fp8, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, per_request_spec_decode_metrics='none', kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=C:\Users\zhout\w2\Qwen3.8-27B-FP8, enable_prefix_caching=True, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['+quant_fp8', 'all', '+quant_fp8'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [512], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='triton')
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:49 [parallel_state.py:1775] world_size=1 rank=0 local_rank=0 distributed_init_method=file://C:\Users\zhout\AppData\Local\Temp/vllm_dist_3a2cbf0703ea4b12bd6133332d341d3d backend=nccl
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:08:49 [parallel_state.py:1788] Distributed backend nccl is not available; falling back to gloo.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:49 [parallel_state.py:2119] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:08:50 [gpu_ar_worker.py:120] OMNI GPUARWorker forces v1 model runner for omni hooks.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:50 [topk_topp_sampler.py:46] FlashInfer top-p/top-k sampling disabled via VLLM_USE_FLASHINFER_SAMPLER=0.
+(StageEngineCoreProc_stage0_replica0 pid=43940) [transformers] The `use_fast` parameter is deprecated and will be removed in a future version. Use `backend="torchvision"` instead of `use_fast=True`, or `backend="pil"` instead of `use_fast=False`.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:55 [base.py:138] Offloader set to UVAOffloader
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:08:55 [base.py:173] [LLM Worker 0] Sleep Mode DISABLED.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:08:55 [base.py:173] [LLM Worker 0] Sleep Mode DISABLED.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:55 [gpu_model_runner.py:5379] Starting to load model C:\Users\zhout\w2\Qwen3.8-27B-FP8...
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:56 [cuda.py:551] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:56 [mm_encoder_attention.py:372] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:56 [uva.py:65] Total CPU offloaded parameters: 0.86
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:56 [__init__.py:695] Selected TritonFp8BlockScaledMMKernel for Fp8LinearMethod
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:56 [qwen_gdn_linear_attn.py:167] Using Triton/FLA GDN prefill kernel (requested=auto, head_k_dim=128).
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:56 [qwen_gdn_linear_attn.py:519] GDN decode kernel: cuda
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:57 [cuda.py:492] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:08:57 [flash_attn.py:897] Using FlashAttention version 2
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:04 [uva.py:65] Total CPU offloaded parameters: 12.13
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:04 [weight_utils.py:863] Filesystem type for checkpoints: unknown. Checkpoint size: 28.75 GiB. Available RAM: 7.52 GiB.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:04 [weight_utils.py:893] Auto-prefetch is disabled because the filesystem (unknown) is not a recognized network FS (NFS/Lustre) and the checkpoint size (28.75 GiB) exceeds 90% of available RAM (7.52 GiB).
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:   0% Completed | 0/66 [00:00<?, ?it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:   2% Completed | 1/66 [00:00<00:44,  1.45it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:   3% Completed | 2/66 [00:00<00:29,  2.15it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:   5% Completed | 3/66 [00:01<00:24,  2.61it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:   6% Completed | 4/66 [00:01<00:20,  3.00it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:   8% Completed | 5/66 [00:01<00:19,  3.19it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:   9% Completed | 6/66 [00:02<00:18,  3.32it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  11% Completed | 7/66 [00:02<00:17,  3.32it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  12% Completed | 8/66 [00:02<00:17,  3.40it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  14% Completed | 9/66 [00:02<00:16,  3.49it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  15% Completed | 10/66 [00:03<00:15,  3.53it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  17% Completed | 11/66 [00:03<00:15,  3.53it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  18% Completed | 12/66 [00:03<00:15,  3.44it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  20% Completed | 13/66 [00:04<00:15,  3.46it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  21% Completed | 14/66 [00:04<00:14,  3.49it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  23% Completed | 15/66 [00:04<00:14,  3.52it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  24% Completed | 16/66 [00:04<00:14,  3.57it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  26% Completed | 17/66 [00:05<00:14,  3.31it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  27% Completed | 18/66 [00:05<00:13,  3.43it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  29% Completed | 19/66 [00:05<00:13,  3.50it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  30% Completed | 20/66 [00:06<00:13,  3.45it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  32% Completed | 21/66 [00:06<00:12,  3.51it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  33% Completed | 22/66 [00:06<00:12,  3.57it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  35% Completed | 23/66 [00:06<00:12,  3.58it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  36% Completed | 24/66 [00:07<00:11,  3.61it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  38% Completed | 25/66 [00:07<00:11,  3.62it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  39% Completed | 26/66 [00:07<00:10,  3.67it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  41% Completed | 27/66 [00:08<00:10,  3.69it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  42% Completed | 28/66 [00:08<00:10,  3.69it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  44% Completed | 29/66 [00:08<00:09,  3.73it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  45% Completed | 30/66 [00:08<00:09,  3.68it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  47% Completed | 31/66 [00:09<00:09,  3.67it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  48% Completed | 32/66 [00:09<00:09,  3.62it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  50% Completed | 33/66 [00:09<00:09,  3.54it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  52% Completed | 34/66 [00:09<00:09,  3.52it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  53% Completed | 35/66 [00:10<00:08,  3.56it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  55% Completed | 36/66 [00:10<00:08,  3.59it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  56% Completed | 37/66 [00:10<00:08,  3.60it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  58% Completed | 38/66 [00:11<00:07,  3.60it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  59% Completed | 39/66 [00:11<00:07,  3.59it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  61% Completed | 40/66 [00:11<00:07,  3.61it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  62% Completed | 41/66 [00:11<00:07,  3.42it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  64% Completed | 42/66 [00:12<00:06,  3.47it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  65% Completed | 43/66 [00:12<00:06,  3.51it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  67% Completed | 44/66 [00:12<00:06,  3.58it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  68% Completed | 45/66 [00:13<00:05,  3.61it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  70% Completed | 46/66 [00:13<00:05,  3.60it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  71% Completed | 47/66 [00:13<00:05,  3.59it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  73% Completed | 48/66 [00:13<00:04,  3.63it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  74% Completed | 49/66 [00:14<00:04,  3.54it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  76% Completed | 50/66 [00:14<00:04,  3.45it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  77% Completed | 51/66 [00:14<00:04,  3.26it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  79% Completed | 52/66 [00:15<00:04,  3.32it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  80% Completed | 53/66 [00:15<00:03,  3.36it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  82% Completed | 54/66 [00:15<00:03,  3.46it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  83% Completed | 55/66 [00:15<00:03,  3.50it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  85% Completed | 56/66 [00:16<00:02,  3.54it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  86% Completed | 57/66 [00:16<00:02,  3.56it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  88% Completed | 58/66 [00:16<00:02,  3.60it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  89% Completed | 59/66 [00:17<00:01,  3.55it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  91% Completed | 60/66 [00:17<00:01,  3.60it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  92% Completed | 61/66 [00:17<00:01,  3.59it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  94% Completed | 62/66 [00:17<00:01,  3.57it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  95% Completed | 63/66 [00:18<00:00,  3.50it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards:  97% Completed | 64/66 [00:18<00:00,  3.56it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards: 100% Completed | 66/66 [00:23<00:00,  1.29s/it]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+Loading safetensors checkpoint shards: 100% Completed | 66/66 [00:23<00:00,  2.82it/s]
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:28 [default_loader.py:430] Loading weights took 24.16 seconds
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:30 [gpu_model_runner.py:5471] Model loading took 16.36 GiB memory and 33.646984 seconds
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:30 [interface.py:918] Setting attention block size to 784 tokens to ensure that attention page size is >= mamba page size.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:30 [interface.py:942] Padding mamba page size by 0.13% to ensure that mamba page size and attention page size are exactly equal.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:30 [utils.py:306] Using LBNHC KV cache layout.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:31 [gpu_model_runner.py:6519] Skipping memory profiling for multimodal encoder and encoder cache.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:31 [fp8_utils.py:852] Using default W8A8 Block FP8 kernel config. Performance might be sub-optimal! Config file not found at C:\Users\zhout\w2\omni029venv\Lib\site-packages\vllm\model_executor\layers\quantization\utils\configs\N=16384,K=5120,device_name=NVIDIA_GeForce_RTX_5090_Laptop_GPU,dtype=fp8_w8a8,block_shape=[128,128].json
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:31 [fp8_utils.py:852] Using default W8A8 Block FP8 kernel config. Performance might be sub-optimal! Config file not found at C:\Users\zhout\w2\omni029venv\Lib\site-packages\vllm\model_executor\layers\quantization\utils\configs\N=5120,K=6144,device_name=NVIDIA_GeForce_RTX_5090_Laptop_GPU,dtype=fp8_w8a8,block_shape=[128,128].json
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:31 [fp8_utils.py:852] Using default W8A8 Block FP8 kernel config. Performance might be sub-optimal! Config file not found at C:\Users\zhout\w2\omni029venv\Lib\site-packages\vllm\model_executor\layers\quantization\utils\configs\N=34816,K=5120,device_name=NVIDIA_GeForce_RTX_5090_Laptop_GPU,dtype=fp8_w8a8,block_shape=[128,128].json
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:32 [fp8_utils.py:852] Using default W8A8 Block FP8 kernel config. Performance might be sub-optimal! Config file not found at C:\Users\zhout\w2\omni029venv\Lib\site-packages\vllm\model_executor\layers\quantization\utils\configs\N=5120,K=17408,device_name=NVIDIA_GeForce_RTX_5090_Laptop_GPU,dtype=fp8_w8a8,block_shape=[128,128].json
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:32 [fp8_utils.py:852] Using default W8A8 Block FP8 kernel config. Performance might be sub-optimal! Config file not found at C:\Users\zhout\w2\omni029venv\Lib\site-packages\vllm\model_executor\layers\quantization\utils\configs\N=14336,K=5120,device_name=NVIDIA_GeForce_RTX_5090_Laptop_GPU,dtype=fp8_w8a8,block_shape=[128,128].json
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:41 [base.py:148] Available KV cache memory: 1.56 GiB (device-level profiling)
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:41 [kv_cache_utils.py:2032] GPU KV cache size: 2,340 tokens, Maximum concurrency for 512 tokens per request: 4.57x
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:41 [base.py:173] [LLM Worker 0] Sleep Mode DISABLED.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:41 [kernel_warmup.py:124] JIT kernel warmup starting.
+(StageEngineCoreProc_stage0_replica0 pid=43940)
+JIT kernel warmup (2 compile keys):   0%|          | 0/1 [00:00<?, ?kernel/s]
+JIT kernel warmup (2 compile keys): 100%|██████████| 1/1 [00:00<00:00, 71.21kernel/s, ComputeSlotMappingKernel (2 keys)]
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:41 [kernel_warmup.py:134] JIT kernel warmup finished in 0.02s.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:41 [qwen_triton_warmup.py:270] Warming up Qwen Triton kernels for model_type=qwen3_5_text.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:41 [ll_bf16.py:30] cuteDSL (CUTLASS Python) not available, ll_bf16_gemm disabled
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:41 [gpu_worker.py:860] Free memory on device (22.61/23.89 GiB) on startup. Desired GPU memory utilization is (0.8, 19.11 GiB). Actual usage is 17.49 GiB for consumed memory (weights + non-torch), 0.12 GiB for peak activation, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=1455359181` (1.36 GiB) to fit into requested memory, or `--kv-cache-memory=5210257408` (4.85 GiB) to fully utilize gpu memory. Current kv cache memory in use is 1.56 GiB.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:42 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:43 [torch_utils.py:277] Reducing Torch threads from 12 to 1 for serving. Set OMP_NUM_THREADS in the external environment to override.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:43 [core.py:368] init engine (profile, create kv cache, warmup model) took 12.28 s
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:43 [scheduler.py:213] Using custom scheduler class vllm_omni.core.sched.omni_ar_scheduler.OmniARAsyncScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:43 [omni_scheduler_mixin.py:118] OMNI scheduler forces v1 model runner for omni hooks.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:43 [vllm.py:1371] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:43 [vllm.py:1406] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:43 [kernel.py:369] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:43 [vllm.py:1585] Cudagraph is disabled under eager mode
+INFO 09-24 17:09:43 [stage_runtime.py:943] [StageRuntime] Stage 0 engine startup completed
+INFO 09-24 17:09:43 [stage_engine_core_client.py:159] [StageEngineCoreClient] stage-0 [rep-0] initializing EngineCore
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:43 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+INFO 09-24 17:09:43 [stage_engine_core_client.py:215] [StageEngineCoreClient] stage-0 [rep-0] EngineCore running
+INFO 09-24 17:09:43 [stage_runtime.py:958] [StageRuntime] Stage 0 initialized
+[transformers] The `use_fast` parameter is deprecated and will be removed in a future version. Use `backend="torchvision"` instead of `use_fast=True`, or `backend="pil"` instead of `use_fast=False`.
+INFO 09-24 17:09:51 [orchestrator.py:604] [Orchestrator] Starting event loop
+INFO 09-24 17:09:51 [async_omni_engine.py:323] [AsyncOmniEngine] Orchestrator ready with 1 stages
+INFO 09-24 17:09:51 [omni_base.py:235] [AsyncOmni] AsyncOmniEngine initialized in 87.80 seconds
+INFO 09-24 17:09:51 [omni_base.py:255] [AsyncOmni] Initialized with 1 stages for model C:\Users\zhout\w2\Qwen3.8-27B-FP8
+WARNING 09-24 17:09:51 [input_processor.py:315] Passing raw prompts to InputProcessor is deprecated and will be removed in the future. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:51 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _w8a8_triton_block_scaled_mm. This causes a latency spike; consider extending warmup to cover this shape/config.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:51 [jit_monitor.py:141] Triton kernel JIT compilation during inference: layer_norm_fwd_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(StageEngineCoreProc_stage0_replica0 pid=43940) INFO 09-24 17:09:52 [prefix_cache.py:160] Omni prefix cache async-write copy stream initialized.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:53 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _causal_conv1d_update_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:09:53 [jit_monitor.py:141] Triton kernel JIT compilation during inference: fused_recurrent_gated_delta_rule_packed_decode_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:10:07 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _bilinear_pos_embed_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(StageEngineCoreProc_stage0_replica0 pid=43940) WARNING 09-24 17:10:07 [jit_monitor.py:141] Triton kernel JIT compilation during inference: rotary_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+INFO 09-24 17:10:14 [orchestrator.py:917] [Orchestrator] Aborted request(s) ['public-qwen38-cancel-878f4cb2']
+Traceback (most recent call last):
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\experiments\probe_qwen38_windows_async.py", line 119, in main
+    raise RuntimeError("aborted request emitted late output")
+RuntimeError: aborted request emitted late output
+INFO 09-24 17:10:14 [omni_base.py:781] [AsyncOmni] Shutting down
+INFO 09-24 17:10:14 [async_omni_engine.py:1807] [AsyncOmniEngine] Shutting down Orchestrator
+INFO 09-24 17:10:14 [orchestrator.py:705] [Orchestrator] Received shutdown signal
+INFO 09-24 17:10:14 [orchestrator.py:3092] [Orchestrator] Shutting down all 1 client(s)
+INFO 09-24 17:10:14 [core_client.py:689] [shutdown] MPClient: start timeout=default
+INFO 09-24 17:10:14 [core_client.py:691] [shutdown] MPClient: stopping engine manager
+INFO 09-24 17:10:14 [utils.py:626] [shutdown] Process manager: send sigterm to process StageEngineCoreProc_stage0_replica0
+INFO 09-24 17:10:16 [core_client.py:693] [shutdown] MPClient: engine manager stopped
+INFO 09-24 17:10:16 [core_client.py:694] [shutdown] MPClient: cleaning up background resources
+INFO 09-24 17:10:16 [core_client.py:696] [shutdown] MPClient: complete
+INFO 09-24 17:10:16 [stage_pool.py:1354] [StagePool] Stage 0 replica 0 shut down
