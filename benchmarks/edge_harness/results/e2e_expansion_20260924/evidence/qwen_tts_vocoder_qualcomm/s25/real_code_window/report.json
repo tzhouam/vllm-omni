@@ -1,0 +1,74 @@
+{
+  "scope": "one real generated-code 25-frame Code2Wav window on local CPU; no device execution",
+  "model_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "model_weight_sha256": "bc3c7e785eb961179c25450d1acff03f839e0002f2f3a5aeb67b5735c0fa2adb",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "onnx_sha256": "01ee1cd02e5cd264200e5c50767a1805a6180378b051ff9b7ec0d8b6c75d7989",
+  "torch": "2.13.0+cpu",
+  "onnxruntime": "1.29.0",
+  "text": "The small red square is centered on the white card. I can see its straight edges clearly, and the surrounding background is bright and uncluttered.",
+  "speaker": "Ryan",
+  "language": "English",
+  "seed": 42,
+  "generator_dtype": "bfloat16",
+  "decoder_dtype": "float32",
+  "threads": 8,
+  "generated_frames": 117,
+  "generated_audio_samples": 224640,
+  "window": {
+    "start_frame": 0,
+    "history_frames": 72,
+    "new_frames": 25
+  },
+  "files": {
+    "codes": {
+      "filename": "codes.npz",
+      "sha256": "2768b9274748d767deca67ebd4c0201b914f4839902b89d5693d39e9b8e8c946"
+    },
+    "fixture": {
+      "filename": "fixture.npz",
+      "sha256": "4220eec4ee00e5fbb0df6f195d883c6d4549accf399853c3a8e2f83821724452"
+    },
+    "eager": {
+      "filename": "eager_output.npz",
+      "sha256": "8c0c55197daa99433e8a7594525748b4e50e0570ef983dc5b76eedb56936d6d4"
+    },
+    "ort": {
+      "filename": "ort_output.npz",
+      "sha256": "df4ad896c62a0d621c9bc48120f929d3561666359a570068b01a3228354411a0"
+    },
+    "full_reference": {
+      "filename": "full_reference_segment.npz",
+      "sha256": "3571033b52c4715761b469e17915d7b1456f5c251322c8a718fad8f905d428e9"
+    }
+  },
+  "ort_vs_window_eager": {
+    "relative_l2": 1.01682301490854e-06,
+    "snr_db": 119.85509264926462,
+    "max_abs": 1.1324882507324219e-06,
+    "reference_rms": 0.0748407755479042,
+    "observed_rms": 0.074840782807901
+  },
+  "window_eager_vs_full_fp32_decoder_segment": {
+    "relative_l2": 7.264658178733583e-08,
+    "snr_db": 142.7756963116475,
+    "max_abs": 1.695007085800171e-07,
+    "reference_rms": 0.07484077531515666,
+    "observed_rms": 0.0748407755479042
+  },
+  "limits": [
+    "One generated stream and one window do not establish speech quality.",
+    "The model generates codes on local CPU; this does not test a mobile talker or handoff.",
+    "The FP32 full decoder reference is separate from the BF16 generator's waveform."
+  ],
+  "qwen_tts_sources": {
+    "wrapper": {
+      "path": "/home/zhout/project/edge_infer/scratch/qwentts_wsl_pins/qwen_tts/inference/qwen3_tts_model.py",
+      "sha256": "e1da450732857c1f5fe3e36ebab85db2f6dc6a48caaff6973f463384e30275e4"
+    },
+    "decoder": {
+      "path": "/home/zhout/project/edge_infer/scratch/qwentts_wsl_pins/qwen_tts/core/tokenizer_12hz/modeling_qwen3_tts_tokenizer_v2.py",
+      "sha256": "844e8dd8c0182ef9c6463c874631c22ef3c5a4fd1899dd657016164cc5379628"
+    }
+  }
+}

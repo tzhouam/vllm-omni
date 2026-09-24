@@ -16,14 +16,23 @@ matched its eager decoder at 1.99e-6 relative L2 on the retained synthetic
 fixture and compiled for S25 TFLite. Its GPU-requested inference returned a
 finite unsaturated waveform at 4.239% relative L2 versus local ONNX CPU,
 bitwise identical to the historical target's device output on the same fixture.
-Its own placement profile is still running; the historical target's latency
-is separate evidence.
+Its own 100-sample placement profile measured p50/p95 **0.671/1.454 s** for
+2 s audio (median component RTF **0.335**), with 403 CPU and 335 GPU rows.
+This is a separate run from the historical target's 0.839/1.157 s profile;
+neither is a complete-stream or listening-quality result.
+A [generated-code window](s25/real_code_window/README.md) from one pinned
+CustomVoice utterance matched local FP32 ONNX/eager and full-decoder segment
+within 1.02e-6 and 7.26e-8 relative L2. The same S25 GPU-requested target
+returned an unsaturated waveform at **1.153% relative L2 / 38.76 dB SNR**
+versus ONNX CPU on that real-code window. This has no listening-quality or
+full-pipeline gate.
 
 The same pinned two-frame source [compiled for X Elite QNN](xelite/qnn_short_chunk/README.md)
 and its NPU-requested inference returned an unsaturated waveform at 0.930%
-relative L2 / 40.63 dB SNR versus local ONNX CPU. Its placement profile is
-still running; this is component numerical evidence, not verified NPU node
-placement or complete TTS.
+relative L2 / 40.63 dB SNR versus local ONNX CPU. Its 100-sample placement
+profile attributed all 728 rows to NPU, but p50/p95 was **3.662/3.676 s**
+for only 0.16 s audio (median component RTF **22.89**). This is a measured
+playable-stream blocker for that artifact, not complete TTS.
 
 On [Galaxy S24](s24/tflite_short_chunk/README.md), the same pinned two-frame TFLite source matched local ONNX CPU at 5.75e-6 relative L2 when requested on CPU, but its GPU-requested output saturated every sample and differed by 24.218 relative L2. The 100-sample CPU component p50/p95 was 3.433/3.873 s for only 0.16 s audio (median RTF 21.46), with all 738 rows on CPU. The mixed CPU/GPU component measured 0.601/0.895 s with 403 CPU and 335 GPU rows, but that timing describes numerically failed audio. An [FP32-preserving delegate control](s24/tflite_short_chunk_gpu_fp32/audit_report.json) returned the same saturated waveform bitwise, so that option did not fix this artifact. Neither route is a complete S24 TTS stream.
 

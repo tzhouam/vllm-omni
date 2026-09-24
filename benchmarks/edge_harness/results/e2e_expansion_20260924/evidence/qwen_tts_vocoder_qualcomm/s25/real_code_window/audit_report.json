@@ -1,0 +1,85 @@
+{
+  "scope": "one generated-code 25-frame vocoder window on hosted S25; no device-local talker or complete stream",
+  "status": "component_numeric_measured_no_speech_quality_gate",
+  "device": {
+    "name": "Samsung Galaxy S25",
+    "os": "15",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8-elite-for-galaxy",
+      "chipset:sm8750-ac",
+      "hexagon:v79",
+      "soc-model:69",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mng2vkdrm",
+  "target_model_id": "mn4o5j17q",
+  "input_dataset_id": "d2q4y5jl7",
+  "jobs": {
+    "compile": "jgddd1zzg",
+    "inference": "j5688yryg"
+  },
+  "files": {
+    "fixture": {
+      "sha256": "4220eec4ee00e5fbb0df6f195d883c6d4549accf399853c3a8e2f83821724452",
+      "bytes": 185626
+    },
+    "device": {
+      "sha256": "7ecafcc289f098aa497f9c9eaa1da0e19879386157e8d2af7c1842e5ea1bfe46",
+      "bytes": 112200
+    },
+    "ort": {
+      "sha256": "df4ad896c62a0d621c9bc48120f929d3561666359a570068b01a3228354411a0",
+      "bytes": 179186
+    },
+    "eager": {
+      "sha256": "8c0c55197daa99433e8a7594525748b4e50e0570ef983dc5b76eedb56936d6d4",
+      "bytes": 179198
+    },
+    "full": {
+      "sha256": "3571033b52c4715761b469e17915d7b1456f5c251322c8a718fad8f905d428e9",
+      "bytes": 179207
+    }
+  },
+  "ort_cpu_vs_device": {
+    "relative_l2": 0.011533186351546298,
+    "snr_db": 38.76101381296397,
+    "max_abs": 0.011052757501602173,
+    "reference_rms": 0.074840782807901,
+    "device_rms": 0.07483006310024524,
+    "device_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "eager_cpu_vs_device": {
+    "relative_l2": 0.011533295679175895,
+    "snr_db": 38.760931476374985,
+    "max_abs": 0.011053577065467834,
+    "reference_rms": 0.0748407755479042,
+    "device_rms": 0.07483006310024524,
+    "device_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "full_fp32_decoder_segment_vs_device": {
+    "relative_l2": 0.011533293686009369,
+    "snr_db": 38.76093297745728,
+    "max_abs": 0.011053577065467834,
+    "reference_rms": 0.07484077531515666,
+    "device_rms": 0.07483006310024524,
+    "device_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "gross_numeric_failure_screen": {
+    "failed": false,
+    "criteria": "relative L2 >= 1.0 or >=10% saturated samples; not a speech-quality tolerance"
+  },
+  "limits": [
+    "One generated-code window is not a speech listening or intelligibility test.",
+    "Talker, predictor, co-resident handoff, state, cancellation and memory admission did not run on S25.",
+    "The separate placement profile used Workbench-generated same-shape input, not this fixture."
+  ]
+}

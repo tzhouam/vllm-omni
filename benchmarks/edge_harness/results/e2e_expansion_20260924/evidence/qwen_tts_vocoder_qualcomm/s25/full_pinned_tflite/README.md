@@ -20,6 +20,18 @@ The new device waveform is [bitwise identical](historical_device_parity_report.j
 to the [historical 25-frame target's](../full_tflite_gpu_profile/README.md)
 GPU output on this retained fixture. This supports numerical continuity on
 one input, not identical historical export provenance or listening quality.
-A separate [placement profile](profile_submission.json) is in progress; GPU
-node placement and latency for this revision-pinned target remain unverified.
-Complete-stream handoff and sustained behavior are also unverified.
+A separate [placement profile](profile_report.json) returned 100 component
+samples at nearest-rank p50/p95 **0.671/1.454 s** for 2 s audio, with 403 CPU
+and 335 GPU execution-detail rows and 380,100,608 bytes reported peak memory.
+The median component RTF is **0.335**. Workbench generated profile input of
+the same shape, while the numerical inference used the retained fixture; the
+[audit](audit_report.json) binds both jobs to the exact target. Complete-stream
+handoff, listening quality and sustained behavior remain unverified.
+
+A separate [real generated-code window](../real_code_window/README.md) passed
+local ONNX/eager parity at 1.02e-6 relative L2 and matched the corresponding
+full FP32 decode segment at 7.26e-8 relative L2. The same fixture has a
+successful inference on this pinned S25 target: the unsaturated device
+waveform differed from local ONNX CPU by 1.153% relative L2 / 38.76 dB SNR.
+This one real-code window is encouraging component evidence, not a speech
+quality tolerance or complete mobile stream.

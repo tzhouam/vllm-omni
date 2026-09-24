@@ -1,6 +1,6 @@
 {
   "scope": "one 2-frame Qwen3-TTS vocoder component on hosted Snapdragon X Elite CRD; no complete stream",
-  "status": "component_inference_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "Snapdragon X Elite CRD",
     "os": "11",
@@ -24,7 +24,8 @@
   "input_dataset_id": "d7ovqp0w2",
   "jobs": {
     "compile": "j5m0m22qg",
-    "inference": "jgdd3lxeg"
+    "inference": "jgdd3lxeg",
+    "profile": "jp4yyrrvp"
   },
   "route": {
     "compile_options": "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
@@ -71,7 +72,17 @@
   "limits": [
     "One fixed-window waveform has no listening-quality tolerance.",
     "The 72-frame input history, talker, predictor and stage handoff did not run on the device.",
-    "No persistent state, admission, cancellation or complete TTS stream was tested.",
-    "Requested accelerator execution is not verified node placement without a profile."
-  ]
+    "No persistent state, admission, cancellation or complete TTS stream was tested."
+  ],
+  "profile": {
+    "sample_count": 100,
+    "min_us": 3646540,
+    "nearest_rank_p50_us": 3661691,
+    "nearest_rank_p95_us": 3676170,
+    "reported_peak_memory_bytes": 15855616,
+    "compute_unit_row_counts": {
+      "NPU": 728
+    },
+    "profile_input": "Workbench generated input with audited tensor shape; the waveform inference used the retained fixture"
+  }
 }

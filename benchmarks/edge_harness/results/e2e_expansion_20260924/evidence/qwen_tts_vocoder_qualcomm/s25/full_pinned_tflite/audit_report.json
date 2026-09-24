@@ -1,6 +1,6 @@
 {
   "scope": "one 25-frame Qwen3-TTS vocoder component on hosted Samsung Galaxy S25; no complete stream",
-  "status": "component_inference_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "Samsung Galaxy S25",
     "os": "15",
@@ -25,7 +25,8 @@
   "input_dataset_id": "d2nmpxd57",
   "jobs": {
     "compile": "jgddd1zzg",
-    "inference": "jglyymx25"
+    "inference": "jglyymx25",
+    "profile": "j568847ng"
   },
   "route": {
     "compile_options": "--target_runtime tflite",
@@ -72,7 +73,18 @@
   "limits": [
     "One fixed-window waveform has no listening-quality tolerance.",
     "The 72-frame input history, talker, predictor and stage handoff did not run on the device.",
-    "No persistent state, admission, cancellation or complete TTS stream was tested.",
-    "Requested accelerator execution is not verified node placement without a profile."
-  ]
+    "No persistent state, admission, cancellation or complete TTS stream was tested."
+  ],
+  "profile": {
+    "sample_count": 100,
+    "min_us": 560210,
+    "nearest_rank_p50_us": 670776,
+    "nearest_rank_p95_us": 1453828,
+    "reported_peak_memory_bytes": 380100608,
+    "compute_unit_row_counts": {
+      "CPU": 403,
+      "GPU": 335
+    },
+    "profile_input": "Workbench generated input with audited tensor shape; the waveform inference used the retained fixture"
+  }
 }

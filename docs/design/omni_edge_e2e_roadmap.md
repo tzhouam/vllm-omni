@@ -48,8 +48,16 @@ now matches local eager CPU at 1.99e-6 relative L2 and has compiled for S25
 TFLite. Its GPU-requested inference returned an unsaturated waveform at
 4.239% relative L2 versus pinned local ONNX CPU, bitwise identical to the
 historical target's output on the same fixture. The new target's own
-node-placement profile is pending, so the historical timing does not yet
-qualify this revision-pinned artifact.
+100-sample node-placement profile measured p50/p95 0.671/1.454 s for 2 s
+audio, with 403 CPU and 335 GPU rows (median component RTF 0.335). This
+qualifies only the tested vocoder component; full co-resident streaming,
+speech quality and sustained behavior remain open.
+A [real generated-code 25-frame window](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/s25/real_code_window/README.md)
+also passed local ONNX/eager parity at 1.02e-6 relative L2 and matched its
+full FP32 decoder segment at 7.26e-8 relative L2. The corresponding S25
+GPU-requested inference returned an unsaturated waveform at 1.153% relative
+L2 / 38.76 dB SNR versus ONNX CPU. This tests one generated-code window,
+not mobile talker/vocoder co-residency or speech quality.
 On [Galaxy S24](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/s24/tflite_short_chunk/README.md),
 the same pinned two-frame TFLite source passed CPU-requested waveform parity
 at 5.75e-6 relative L2, but the GPU-requested waveform saturated completely
@@ -59,8 +67,10 @@ measured 0.601/0.895 s but failed the waveform gate. A FP32-preserving GPU
 option returned the same saturated waveform bitwise, so it did not repair
 the tested delegate artifact. A [Snapdragon X Elite short QNN graph](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/xelite/qnn_short_chunk/README.md)
 compiled and returned an unsaturated NPU-requested waveform at 0.930%
-relative L2 versus local ONNX CPU on one synthetic fixture. Its node-placement
-profile is pending. Neither changes M2 support
+relative L2 versus local ONNX CPU on one synthetic fixture. Its 100-sample
+profile attributed all 728 rows to NPU, but p50/p95 was 3.662/3.676 s for
+0.16 s audio (median component RTF 22.89). This artifact therefore fails
+the playable-stream latency gate. Neither changes M2 support
 depth before full stream and quality gates.
 
 The [Spark hosted Qualcomm component expansion](../../benchmarks/edge_harness/results/e2e_expansion_20260923/evidence/spark_s24_full_attention/README.md) advances M1 only to one real fixed-shape decoder attention layer. The same W8A16 QNN DLC ran on S24, Snapdragon X Elite CRD and SA8775P ADP NPUs with identical outputs on one pinned fixture; S25 had prior separate component evidence. On [RB3 Gen 2](../../benchmarks/edge_harness/results/e2e_expansion_20260923/evidence/spark_rb3_full_attention/README.md), the tested W8A16 graph failed QNN loading even after an exact-device compile. FP32 ONNX ran on CPU with near-source parity, while calibrated W8A8 ran on NPU but had 20.9% hidden-state relative L2 and remains numerically unqualified. These are component C results, not full M1: device-local 28-layer prefill/continuous decode, KV/ring, sampling, token quality, admission/cancellation, complete-request timing and sustained power/thermal gates remain open. AI Hub is the test facility, not a deployment dependency.
