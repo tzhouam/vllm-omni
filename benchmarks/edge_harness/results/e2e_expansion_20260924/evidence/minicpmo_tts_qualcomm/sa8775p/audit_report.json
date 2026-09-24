@@ -1,0 +1,304 @@
+{
+  "scope": "one fixed-cache 20-layer MiniCPM-o speech-head decode step; no complete multimodal stream",
+  "status": "component_inference_numeric_measured",
+  "device": {
+    "name": "SA8775P ADP",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-android",
+      "format:auto",
+      "chipset:qualcomm-sa8775p",
+      "hexagon:v73",
+      "soc-model:52",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "compile_job_id": "jpe7zlz15",
+  "inference_job_id": "jp3z9wol5",
+  "source_model_id": "mn4gjjpvn",
+  "target_model_id": "mn1lvg1zq",
+  "input_dataset_id": "d7gwxe3y2",
+  "requested_run_options": "--compute_unit npu",
+  "files": {
+    "source_onnx": {
+      "bytes": 776341465,
+      "sha256": "78cf64804f11ad269ee4180da61588ccc5eefe2942773227345499756e4cc229"
+    },
+    "fixture": {
+      "bytes": 29247541,
+      "sha256": "65919ea1f351feec33c1415a3e3db76d60bc9c2beb3d49a72af75dcb418e83b4"
+    },
+    "cpu_reference": {
+      "bytes": 148471,
+      "sha256": "902adcceadbe761d938ef2ade51cf953c8917ea1abfaee33a10c84e300c1bd96"
+    },
+    "device_output": {
+      "bytes": 105664,
+      "sha256": "0678b4a45ad04a43fa3dba60d6df30a3278502319028213a058235bad09541f3"
+    }
+  },
+  "tensor_comparison": {
+    "logits": {
+      "relative_l2": 0.003567560806952834,
+      "max_abs_error": 0.017552852630615234,
+      "source_rms": 1.4974441755558239,
+      "device_rms": 1.49778515160833,
+      "cpu_top1": 1867,
+      "device_top1": 1867,
+      "top1_matches": true
+    },
+    "k_new_0": {
+      "relative_l2": 0.0005147656431265523,
+      "max_abs_error": 0.003742694854736328,
+      "source_rms": 1.307108108274551,
+      "device_rms": 1.307038088812209
+    },
+    "v_new_0": {
+      "relative_l2": 0.00035345905779380455,
+      "max_abs_error": 0.0007248520851135254,
+      "source_rms": 0.5083994128636046,
+      "device_rms": 0.5084141361776617
+    },
+    "k_new_1": {
+      "relative_l2": 0.0005500608894909682,
+      "max_abs_error": 0.0020580291748046875,
+      "source_rms": 0.7542700462780494,
+      "device_rms": 0.7542603027325883
+    },
+    "v_new_1": {
+      "relative_l2": 0.0010050405070637515,
+      "max_abs_error": 0.00030508264899253845,
+      "source_rms": 0.0662130257652199,
+      "device_rms": 0.06622140591939649
+    },
+    "k_new_2": {
+      "relative_l2": 0.0012461611526044514,
+      "max_abs_error": 0.0056171417236328125,
+      "source_rms": 0.9817805619626084,
+      "device_rms": 0.9819102513741523
+    },
+    "v_new_2": {
+      "relative_l2": 0.0013900371877606159,
+      "max_abs_error": 0.0017390847206115723,
+      "source_rms": 0.24438175712240315,
+      "device_rms": 0.24440075632447608
+    },
+    "k_new_3": {
+      "relative_l2": 0.0041692088872177825,
+      "max_abs_error": 0.013458549976348877,
+      "source_rms": 0.9312003114105484,
+      "device_rms": 0.9324818001010153
+    },
+    "v_new_3": {
+      "relative_l2": 0.004415686592245475,
+      "max_abs_error": 0.005837738513946533,
+      "source_rms": 0.27179250329538757,
+      "device_rms": 0.2722113226474472
+    },
+    "k_new_4": {
+      "relative_l2": 0.007806370255517516,
+      "max_abs_error": 0.039246320724487305,
+      "source_rms": 1.2078244698126999,
+      "device_rms": 1.2115194303912318
+    },
+    "v_new_4": {
+      "relative_l2": 0.008498422540275942,
+      "max_abs_error": 0.01820969581604004,
+      "source_rms": 0.4929021962159226,
+      "device_rms": 0.49430772948802415
+    },
+    "k_new_5": {
+      "relative_l2": 0.00766747652531978,
+      "max_abs_error": 0.04518893361091614,
+      "source_rms": 1.0960093751879882,
+      "device_rms": 1.0970983805182493
+    },
+    "v_new_5": {
+      "relative_l2": 0.012251591482087142,
+      "max_abs_error": 0.027927041053771973,
+      "source_rms": 0.49114616760529134,
+      "device_rms": 0.4897185372549937
+    },
+    "k_new_6": {
+      "relative_l2": 0.006232619119844742,
+      "max_abs_error": 0.03511066734790802,
+      "source_rms": 1.1726536779527166,
+      "device_rms": 1.173427212942265
+    },
+    "v_new_6": {
+      "relative_l2": 0.009430287134704689,
+      "max_abs_error": 0.017375268042087555,
+      "source_rms": 0.5369044199454948,
+      "device_rms": 0.5364518269853782
+    },
+    "k_new_7": {
+      "relative_l2": 0.004003676029659081,
+      "max_abs_error": 0.024735689163208008,
+      "source_rms": 1.6917150856043028,
+      "device_rms": 1.6942078465587256
+    },
+    "v_new_7": {
+      "relative_l2": 0.007020680815137411,
+      "max_abs_error": 0.01995902508497238,
+      "source_rms": 0.8116460286615261,
+      "device_rms": 0.8107948375239711
+    },
+    "k_new_8": {
+      "relative_l2": 0.005007475836731906,
+      "max_abs_error": 0.0369257926940918,
+      "source_rms": 1.5021910590457033,
+      "device_rms": 1.5033794338233282
+    },
+    "v_new_8": {
+      "relative_l2": 0.006781734670990391,
+      "max_abs_error": 0.030480504035949707,
+      "source_rms": 0.8807572129778053,
+      "device_rms": 0.8792290592358764
+    },
+    "k_new_9": {
+      "relative_l2": 0.00492410033486205,
+      "max_abs_error": 0.01682913303375244,
+      "source_rms": 1.1054146201792987,
+      "device_rms": 1.1058413215185963
+    },
+    "v_new_9": {
+      "relative_l2": 0.007765860398483337,
+      "max_abs_error": 0.01826465129852295,
+      "source_rms": 0.6580213796976341,
+      "device_rms": 0.6567637071915982
+    },
+    "k_new_10": {
+      "relative_l2": 0.004584154593930242,
+      "max_abs_error": 0.0197451114654541,
+      "source_rms": 1.325937063058518,
+      "device_rms": 1.3267830930986437
+    },
+    "v_new_10": {
+      "relative_l2": 0.00690639583671994,
+      "max_abs_error": 0.021770477294921875,
+      "source_rms": 0.848351970479369,
+      "device_rms": 0.8467916042764727
+    },
+    "k_new_11": {
+      "relative_l2": 0.003568876099022461,
+      "max_abs_error": 0.008406057953834534,
+      "source_rms": 0.6808336872062942,
+      "device_rms": 0.6805778891840785
+    },
+    "v_new_11": {
+      "relative_l2": 0.0062608921146686085,
+      "max_abs_error": 0.008449621498584747,
+      "source_rms": 0.3676426367961426,
+      "device_rms": 0.36720307992091616
+    },
+    "k_new_12": {
+      "relative_l2": 0.004120611025694297,
+      "max_abs_error": 0.009145379066467285,
+      "source_rms": 0.6128882051701765,
+      "device_rms": 0.6123276571726385
+    },
+    "v_new_12": {
+      "relative_l2": 0.005789469448313205,
+      "max_abs_error": 0.007241338491439819,
+      "source_rms": 0.34029547623567724,
+      "device_rms": 0.33996249605749584
+    },
+    "k_new_13": {
+      "relative_l2": 0.0041062443844702284,
+      "max_abs_error": 0.008440196514129639,
+      "source_rms": 0.613775761616868,
+      "device_rms": 0.6135322120417965
+    },
+    "v_new_13": {
+      "relative_l2": 0.0064739931567895405,
+      "max_abs_error": 0.009202837944030762,
+      "source_rms": 0.36907442918730654,
+      "device_rms": 0.36852288769028935
+    },
+    "k_new_14": {
+      "relative_l2": 0.004067945603752527,
+      "max_abs_error": 0.009853065013885498,
+      "source_rms": 0.5980841827735426,
+      "device_rms": 0.597757474085897
+    },
+    "v_new_14": {
+      "relative_l2": 0.006087710181292307,
+      "max_abs_error": 0.006891041994094849,
+      "source_rms": 0.3506656009170703,
+      "device_rms": 0.3503050706758771
+    },
+    "k_new_15": {
+      "relative_l2": 0.0036772003233247075,
+      "max_abs_error": 0.008877158164978027,
+      "source_rms": 0.622821559168189,
+      "device_rms": 0.6225018228505026
+    },
+    "v_new_15": {
+      "relative_l2": 0.005430525985090655,
+      "max_abs_error": 0.00739055871963501,
+      "source_rms": 0.41823950764909973,
+      "device_rms": 0.4179159811522275
+    },
+    "k_new_16": {
+      "relative_l2": 0.003264454976257468,
+      "max_abs_error": 0.007949531078338623,
+      "source_rms": 0.6754924715823191,
+      "device_rms": 0.6754340976948906
+    },
+    "v_new_16": {
+      "relative_l2": 0.005707659819949586,
+      "max_abs_error": 0.009386241436004639,
+      "source_rms": 0.4659773620123202,
+      "device_rms": 0.465740418964803
+    },
+    "k_new_17": {
+      "relative_l2": 0.0034706820491854726,
+      "max_abs_error": 0.008044421672821045,
+      "source_rms": 0.6354120615871959,
+      "device_rms": 0.6352736448954285
+    },
+    "v_new_17": {
+      "relative_l2": 0.005771627117003953,
+      "max_abs_error": 0.012461543083190918,
+      "source_rms": 0.5384818316759848,
+      "device_rms": 0.5380992153565227
+    },
+    "k_new_18": {
+      "relative_l2": 0.0030676398017172924,
+      "max_abs_error": 0.008172482252120972,
+      "source_rms": 0.7283659936841244,
+      "device_rms": 0.7284984246418575
+    },
+    "v_new_18": {
+      "relative_l2": 0.004139600477203072,
+      "max_abs_error": 0.009913921356201172,
+      "source_rms": 0.6382820941879574,
+      "device_rms": 0.6382350948820309
+    },
+    "k_new_19": {
+      "relative_l2": 0.0037395269690038793,
+      "max_abs_error": 0.007453262805938721,
+      "source_rms": 0.5790109825658509,
+      "device_rms": 0.5792377105543774
+    },
+    "v_new_19": {
+      "relative_l2": 0.004201040698803878,
+      "max_abs_error": 0.010617375373840332,
+      "source_rms": 0.7220926350353908,
+      "device_rms": 0.7220641745739507
+    }
+  },
+  "cache_max_relative_l2": 0.012251591482087142,
+  "limits": [
+    "The historical ONNX export does not attest the exact source checkpoint revision.",
+    "One retained decode fixture cannot establish speech-token or generated-audio quality.",
+    "Actual NPU placement requires a device profile; a request or QNN artifact alone is insufficient.",
+    "Thinker, audio/vision encoders, vocoder, state loop and complete Omni request were not tested."
+  ]
+}

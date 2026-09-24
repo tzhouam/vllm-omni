@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-24T00:12:31.486172+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "jpe7zlz15",
+  "target_model_id": "mn1lvg1zq",
+  "device": "SA8775P ADP",
+  "options": "--compute_unit npu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jpvld7w75",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpvld7w75/"
+}

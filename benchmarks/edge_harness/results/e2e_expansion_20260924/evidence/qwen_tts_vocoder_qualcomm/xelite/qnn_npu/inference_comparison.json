@@ -1,0 +1,52 @@
+{
+  "scope": "one Qwen3-TTS Code2Wav output on retained fixture; no complete TTS or profile",
+  "status": "component_inference_numerically_compared",
+  "device": {
+    "name": "Snapdragon X Elite CRD",
+    "os": "11",
+    "attributes": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "compile_job_id": "jgdd3zrkg",
+  "inference_job_id": "jprl0n9ep",
+  "source_model_id": "mqyer339n",
+  "target_model_id": "mmxj098kq",
+  "input_dataset_id": "d7m80jl32",
+  "requested_run_options": "--compute_unit npu",
+  "output_sha256": "345db154c238eb4a488a672a06c84fbef6ecfc57ba0631e6ebdb3c8762b0eb0d",
+  "cpu_source_vs_xelite_npu": {
+    "relative_l2": 0.011379857331086082,
+    "snr_db": 38.87726365286192,
+    "max_abs": 0.01465548574924469,
+    "cosine": 0.9999354554131855,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.0836749709653091,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "s25_gpu_vs_xelite_npu": {
+    "relative_l2": 0.04252948781511364,
+    "snr_db": 27.426196949721074,
+    "max_abs": 0.1015625037252903,
+    "cosine": 0.9990952328935694,
+    "reference_rms": 0.08376787228276501,
+    "output_rms": 0.0836749709653091,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "limits": [
+    "No listening or task-level waveform tolerance.",
+    "NPU node-placement profile not yet measured.",
+    "Historical export lacks attested exact checkpoint revision."
+  ]
+}
