@@ -1,0 +1,23 @@
+{
+  "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+  "scope": "one synthetic-image Omni image-to-text request",
+  "start": 1790239130.280365,
+  "config": {
+    "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+    "language_model_only": false,
+    "max_model_len": 512,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 512,
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.8,
+    "cpu_offload_gb": 12.0,
+    "dtype": "bfloat16",
+    "stage_init_timeout": 180,
+    "linear_backend": "triton"
+  },
+  "outputs": [
+    "Red"
+  ],
+  "status": "completed",
+  "end": 1790239257.3718076
+}

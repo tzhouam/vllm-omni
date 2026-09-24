@@ -715,6 +715,7 @@ def test_sub_config_fields_match_structured_scopes():
         "enforce_eager",
         "language_model_only",
         "cpu_offload_gb",
+        "linear_backend",
         "max_cudagraph_capture_size",
         "enable_flashinfer_autotune",
         "enable_multithread_weight_load",
@@ -1282,12 +1283,13 @@ def test_qwen3_5_large_model_execution_overrides_have_a_stage_owner():
 
     stage = _from_pipeline_key(
         "qwen3_5",
-        cli_overrides={"language_model_only": True, "cpu_offload_gb": 2.0},
+        cli_overrides={"language_model_only": True, "cpu_offload_gb": 2.0, "linear_backend": "triton"},
     ).stage_by_id(0)
 
     args = _project_omni_stage_engine_args(stage)
     assert args["language_model_only"] is True
     assert args["cpu_offload_gb"] == 2.0
+    assert args["linear_backend"] == "triton"
 
 
 def test_diffusion_config_preserves_existing_coercion_hooks():

@@ -1,0 +1,101 @@
+{
+  "status": "audited_scoped_e2e",
+  "evidence_depth": "P: complete text and synthetic-image requests on native Windows RTX; no long context or broad quality claim",
+  "artifact": "Qwen/Qwen3.8-27B-FP8",
+  "checkpoint_revision": "017b9c7af6b5689d5dd426a76e0bc077eb5ca20a",
+  "host": "Windows 11 build 26200; Ryzen AI 9 HX 370; RTX 5090 Laptop; driver 610.71",
+  "runtime": "native vLLM 0.29.0+cu134; PyTorch 2.13.0+cu130; Triton FP8 block linear backend",
+  "configuration": {
+    "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+    "language_model_only": false,
+    "max_model_len": 512,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 512,
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.8,
+    "cpu_offload_gb": 12.0,
+    "dtype": "bfloat16",
+    "stage_init_timeout": 180,
+    "linear_backend": "triton"
+  },
+  "warmups": {
+    "image": 1,
+    "text": 1
+  },
+  "timing": {
+    "image": {
+      "n": 20,
+      "nearest_rank_p50_s": 4.183892700006254,
+      "nearest_rank_p95_s": 4.3797133000334725,
+      "min_s": 4.016021100105718,
+      "max_s": 4.443590100039728
+    },
+    "text": {
+      "n": 20,
+      "nearest_rank_p50_s": 3.069557400071062,
+      "nearest_rank_p95_s": 3.213541300036013,
+      "min_s": 3.025600800057873,
+      "max_s": 3.2830592999234796
+    }
+  },
+  "files": {
+    "fp8_copy_integrity.json": {
+      "bytes": 15237,
+      "sha256": "9915945c4b87b2fd360c458ffe1662b0a3ce51d90fa1b4f18f92e62e4566db9d"
+    },
+    "fp8_triton_probe.json": {
+      "bytes": 188,
+      "sha256": "1e3f44d0df5ae15d52a385644c057fda3755654f3a63e035d99b944b664b32b7"
+    },
+    "fp8_triton_probe.driver.log": {
+      "bytes": 405,
+      "sha256": "0db7bcab7a0fe0a04a829e6f086f432b8a620eea96bbdab9bad466c79139ebc2"
+    },
+    "qwen38_image_fp8_attempt1.json": {
+      "bytes": 6212,
+      "sha256": "e3886220a365b2a50831e7b109fb8b82c74121573dc9538c126fe1feb94ba202"
+    },
+    "qwen38_image_fp8_attempt1.driver.log": {
+      "bytes": 68051,
+      "sha256": "0846a9b5e587b0d57dea2319d05d90030894f4175e72b83068b633131924cb63"
+    },
+    "qwen38_image_fp8_triton_attempt1.json": {
+      "bytes": 3096,
+      "sha256": "e0ee3b8ceed607e1af5f2670aed3740729c96abd18e7e8210b8f7d30588e41bf"
+    },
+    "qwen38_image_fp8_triton_attempt1.driver.log": {
+      "bytes": 2622,
+      "sha256": "43ec6bdad30e58a09f68475a9343e55ed8c910876acdab68bd4ee1780a32f28b"
+    },
+    "qwen38_image_fp8_triton_attempt2.json": {
+      "bytes": 6247,
+      "sha256": "db8214d083f2880bd86e88df283cd7a345967da7ee988042ae28e5680da26e69"
+    },
+    "qwen38_image_fp8_triton_attempt2.driver.log": {
+      "bytes": 53487,
+      "sha256": "8986870dec87fb5c0fee1970a861a3a4114be3e8235177700d10f19ca3c06ceb"
+    },
+    "qwen38_image_fp8_triton_ntfs_attempt1.json": {
+      "bytes": 598,
+      "sha256": "29b730bd6701c9d58a4caf173ee32d7da625c0b8e1671a61ef7d0bc52038985b"
+    },
+    "qwen38_image_fp8_triton_ntfs_attempt1.driver.log": {
+      "bytes": 30428,
+      "sha256": "f274a896cb21066b2b5323be74603ed17c26a6f29ef477892d66b2943aa39aee"
+    },
+    "qwen38_fp8_triton_ntfs_profile20.json": {
+      "bytes": 5175,
+      "sha256": "c20c0b9c12b297361487522ac04977a2235c54d16b58ca276f0d09b66376a057"
+    },
+    "qwen38_fp8_triton_ntfs_profile20.driver.log": {
+      "bytes": 38663,
+      "sha256": "1a324158efe8d6a233eca69cbd4f5f8828e1cf786a976fc9300cd1a2dc56368a"
+    }
+  },
+  "limits": [
+    "The FP8 checkpoint and Triton backend are distinct from the NVFP4 Marlin failure.",
+    "The image is a synthetic 96x96 red square and the text prompt is a single-word response; no broad multimodal or long-context quality claim follows.",
+    "The 12 GiB host offload and 0.80 GPU-memory cap are declared settings, not measured loading-peak admission or a sampled power profile.",
+    "Cancellation, public AsyncOmni, concurrency, video, sustained power/thermal behavior and task quality remain unverified for this native-Windows route."
+  ]
+}

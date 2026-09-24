@@ -171,6 +171,7 @@ class _ModelEngineOverrides(TypedDict, total=False):
     # vLLM model execution switches needed by large conditional generators.
     language_model_only: bool
     cpu_offload_gb: float
+    linear_backend: str
 
 
 class _LoadEngineOverrides(TypedDict, total=False):
@@ -445,6 +446,7 @@ class OmniStageModelConfig(_TrackExplicitConfigFields):
     disable_autocast: bool = False
     language_model_only: bool | None = None
     cpu_offload_gb: float | None = Field(default=None, ge=0.0)
+    linear_backend: str | None = None
     # Per-stage checkpoint/tokenizer subdirectories under the model root
     # (e.g. Audex stage 0 → checkpoint_folder_audiogen). Mirrors
     # StagePipelineConfig.model_subdir/tokenizer_subdir on the legacy path.

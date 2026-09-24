@@ -1,0 +1,2 @@
+WARNING 09-24 16:24:29 [fp8_utils.py:852] Using default W8A8 Block FP8 kernel config. Performance might be sub-optimal! Config file not found at C:\Users\zhout\w2\omni029venv\Lib\site-packages\vllm\model_executor\layers\quantization\utils\configs\N=128,K=128,device_name=NVIDIA_GeForce_RTX_5090_Laptop_GPU,dtype=fp8_w8a8,block_shape=[128,128].json
+remark: fp8_utils.py:737:0: 772 instructions in function

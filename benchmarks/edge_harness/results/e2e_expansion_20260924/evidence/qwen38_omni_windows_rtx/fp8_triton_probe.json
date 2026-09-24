@@ -1,0 +1,14 @@
+{
+  "torch": "2.13.0+cu130",
+  "device": "NVIDIA GeForce RTX 5090 Laptop GPU",
+  "capability": [
+    12,
+    0
+  ],
+  "status": "pass",
+  "shape": [
+    4,
+    128
+  ],
+  "value": 128.0
+}

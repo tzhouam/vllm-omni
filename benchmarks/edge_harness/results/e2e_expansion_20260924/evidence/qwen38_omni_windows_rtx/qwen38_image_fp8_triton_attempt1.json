@@ -1,0 +1,22 @@
+{
+  "model": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3.8-27B-FP8",
+  "scope": "one synthetic-image Omni image-to-text request",
+  "start": 1790238290.0872524,
+  "config": {
+    "model": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3.8-27B-FP8",
+    "language_model_only": false,
+    "max_model_len": 512,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 512,
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.75,
+    "cpu_offload_gb": 12.0,
+    "linear_backend": "triton",
+    "dtype": "bfloat16",
+    "stage_init_timeout": 180
+  },
+  "status": "failed",
+  "error": "ValueError(\"Pipeline 'qwen3_5' has explicit engine argument(s) with no structured config owner: linear_backend\")",
+  "traceback": "Traceback (most recent call last):\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\probe_qwen35_image.py\", line 55, in main\n    engine = Omni(**config)\n             ^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\entrypoints\\omni_base.py\", line 223, in __init__\n    self.engine = AsyncOmniEngine(\n                  ^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\async_omni_engine.py\", line 228, in __init__\n    self.config_path, self.stage_configs = self._resolve_stage_configs(\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\async_omni_engine.py\", line 1101, in _resolve_stage_configs\n    load_and_resolve_stage_configs(\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\async_omni_engine.py\", line 106, in load_and_resolve_stage_configs\n    return resolve_omni_config(\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\config\\resolver.py\", line 238, in resolve_omni_config\n    structured_config = StageConfigFactory.create_from_model(\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\config\\config_factory.py\", line 401, in create_from_model\n    return VllmOmniConfig.from_pipeline_config(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\config\\omni_config.py\", line 1952, in from_pipeline_config\n    _validate_global_stage_cli_ownership(pipeline_cfg, cli_overrides)\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\config\\omni_config.py\", line 368, in _validate_global_stage_cli_ownership\n    raise ValueError(\nValueError: Pipeline 'qwen3_5' has explicit engine argument(s) with no structured config owner: linear_backend\n",
+  "end": 1790238314.2134175
+}

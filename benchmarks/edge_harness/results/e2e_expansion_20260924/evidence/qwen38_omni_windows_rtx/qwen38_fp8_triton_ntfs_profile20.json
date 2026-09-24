@@ -1,0 +1,269 @@
+{
+  "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+  "scope": "one synthetic-image Omni image-to-text request",
+  "start": 1790239341.673995,
+  "config": {
+    "model": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-FP8",
+    "language_model_only": false,
+    "max_model_len": 512,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 512,
+    "enforce_eager": true,
+    "gpu_memory_utilization": 0.8,
+    "cpu_offload_gb": 12.0,
+    "dtype": "bfloat16",
+    "stage_init_timeout": 180,
+    "linear_backend": "triton"
+  },
+  "image_wall_s": 21.38783759996295,
+  "outputs": [
+    "Red"
+  ],
+  "text_output": [
+    "ready"
+  ],
+  "profile": [
+    {
+      "kind": "image",
+      "index": 0,
+      "wall_s": 4.133468899992295,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 1,
+      "wall_s": 4.016021100105718,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 2,
+      "wall_s": 4.2073019000235945,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 3,
+      "wall_s": 4.282730099977925,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 4,
+      "wall_s": 4.183892700006254,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 5,
+      "wall_s": 4.16138189996127,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 6,
+      "wall_s": 4.3797133000334725,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 7,
+      "wall_s": 4.079896999988705,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 8,
+      "wall_s": 4.212717400048859,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 9,
+      "wall_s": 4.361481599975377,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 10,
+      "wall_s": 4.0774786999681965,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 11,
+      "wall_s": 4.225681699928828,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 12,
+      "wall_s": 4.255145900067873,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 13,
+      "wall_s": 4.11745660007,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 14,
+      "wall_s": 4.055794499930926,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 15,
+      "wall_s": 4.285271900007501,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 16,
+      "wall_s": 4.119275899953209,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 17,
+      "wall_s": 4.10115899995435,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 18,
+      "wall_s": 4.443590100039728,
+      "output": "Red"
+    },
+    {
+      "kind": "image",
+      "index": 19,
+      "wall_s": 4.244156899978407,
+      "output": "Red"
+    },
+    {
+      "kind": "text",
+      "index": 0,
+      "wall_s": 3.212381200050004,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 1,
+      "wall_s": 3.069557400071062,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 2,
+      "wall_s": 3.2830592999234796,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 3,
+      "wall_s": 3.109560800017789,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 4,
+      "wall_s": 3.0497628999873996,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 5,
+      "wall_s": 3.136529899900779,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 6,
+      "wall_s": 3.133591499994509,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 7,
+      "wall_s": 3.151807100046426,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 8,
+      "wall_s": 3.052054399973713,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 9,
+      "wall_s": 3.0596836999757215,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 10,
+      "wall_s": 3.0724688000045717,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 11,
+      "wall_s": 3.0425869999453425,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 12,
+      "wall_s": 3.025600800057873,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 13,
+      "wall_s": 3.213541300036013,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 14,
+      "wall_s": 3.09435080003459,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 15,
+      "wall_s": 3.1280745998956263,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 16,
+      "wall_s": 3.0280631000641733,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 17,
+      "wall_s": 3.0347869999241084,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 18,
+      "wall_s": 3.0556452999589965,
+      "output": "ready"
+    },
+    {
+      "kind": "text",
+      "index": 19,
+      "wall_s": 3.047056999988854,
+      "output": "ready"
+    }
+  ],
+  "status": "completed",
+  "end": 1790239617.1532626
+}

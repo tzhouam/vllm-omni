@@ -1,0 +1,30 @@
+INFO 09-24 16:25:08 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 16:25:08 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 16:25:13 [omni_base.py:216] [Omni] Initializing with model \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\Qwen3.8-27B-FP8
+INFO 09-24 16:25:13 [async_omni_engine.py:172] [AsyncOmniEngine] Initializing with model \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\Qwen3.8-27B-FP8
+Traceback (most recent call last):
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\probe_qwen35_image.py", line 55, in main
+    engine = Omni(**config)
+             ^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\entrypoints\omni_base.py", line 223, in __init__
+    self.engine = AsyncOmniEngine(
+                  ^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\async_omni_engine.py", line 228, in __init__
+    self.config_path, self.stage_configs = self._resolve_stage_configs(
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\async_omni_engine.py", line 1101, in _resolve_stage_configs
+    load_and_resolve_stage_configs(
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\async_omni_engine.py", line 106, in load_and_resolve_stage_configs
+    return resolve_omni_config(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\config\resolver.py", line 238, in resolve_omni_config
+    structured_config = StageConfigFactory.create_from_model(
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\config\config_factory.py", line 401, in create_from_model
+    return VllmOmniConfig.from_pipeline_config(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\config\omni_config.py", line 1952, in from_pipeline_config
+    _validate_global_stage_cli_ownership(pipeline_cfg, cli_overrides)
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\config\omni_config.py", line 368, in _validate_global_stage_cli_ownership
+    raise ValueError(
+ValueError: Pipeline 'qwen3_5' has explicit engine argument(s) with no structured config owner: linear_backend

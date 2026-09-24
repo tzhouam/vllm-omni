@@ -1,0 +1,556 @@
+{
+  "status": "checked",
+  "source": "/home/zhout/project/edge_infer/models/Qwen3.8-27B-FP8",
+  "copy": "/mnt/c/Users/zhout/w2/Qwen3.8-27B-FP8",
+  "file_count": 81,
+  "total_bytes": 30890049597,
+  "manifest_entries": 77,
+  "weight_files_matching_manifest": 66,
+  "stale_manifest_nonweight_files": [
+    "chat_template.jinja",
+    "generation_config.json",
+    "tokenizer_config.json"
+  ],
+  "elapsed_s": 165.86427295103204,
+  "files": [
+    {
+      "file": "chat_template.jinja",
+      "bytes": 8952,
+      "manifest_crc32": "cf59f3ab",
+      "copy_crc32": "367cbad5",
+      "source_crc32_if_manifest_differs": "367cbad5"
+    },
+    {
+      "file": "config.json",
+      "bytes": 51350,
+      "manifest_crc32": "f010e321",
+      "copy_crc32": "f010e321",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "generation_config.json",
+      "bytes": 202,
+      "manifest_crc32": "ac8d98f1",
+      "copy_crc32": "58cd7d0f",
+      "source_crc32_if_manifest_differs": "58cd7d0f"
+    },
+    {
+      "file": "layers-0.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "e3a49ca5",
+      "copy_crc32": "e3a49ca5",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-1.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "1310181e",
+      "copy_crc32": "1310181e",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-10.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "328dcf83",
+      "copy_crc32": "328dcf83",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-11.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "db568b01",
+      "copy_crc32": "db568b01",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-12.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "3314b0cc",
+      "copy_crc32": "3314b0cc",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-13.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "cc30925a",
+      "copy_crc32": "cc30925a",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-14.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "5ac81c1e",
+      "copy_crc32": "5ac81c1e",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-15.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "124fbfce",
+      "copy_crc32": "124fbfce",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-16.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "01165416",
+      "copy_crc32": "01165416",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-17.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "4c312b70",
+      "copy_crc32": "4c312b70",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-18.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "a9ce7605",
+      "copy_crc32": "a9ce7605",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-19.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "603c75e2",
+      "copy_crc32": "603c75e2",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-2.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "f3f4d0f0",
+      "copy_crc32": "f3f4d0f0",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-20.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "351ba111",
+      "copy_crc32": "351ba111",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-21.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "79171231",
+      "copy_crc32": "79171231",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-22.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "3b5eb0af",
+      "copy_crc32": "3b5eb0af",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-23.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "72de212c",
+      "copy_crc32": "72de212c",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-24.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "94842288",
+      "copy_crc32": "94842288",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-25.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "3730541d",
+      "copy_crc32": "3730541d",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-26.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "f3b6eca2",
+      "copy_crc32": "f3b6eca2",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-27.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "81996bcd",
+      "copy_crc32": "81996bcd",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-28.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "4f7edbc0",
+      "copy_crc32": "4f7edbc0",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-29.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "0a75e9a5",
+      "copy_crc32": "0a75e9a5",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-3.safetensors",
+      "bytes": 372313744,
+      "manifest_crc32": "5d630060",
+      "copy_crc32": "5d630060",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-30.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "1f866a23",
+      "copy_crc32": "1f866a23",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-31.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "46d75474",
+      "copy_crc32": "46d75474",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-32.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "fa3149dd",
+      "copy_crc32": "fa3149dd",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-33.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "15a44a27",
+      "copy_crc32": "15a44a27",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-34.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "a3d889c1",
+      "copy_crc32": "a3d889c1",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-35.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "931ef07b",
+      "copy_crc32": "931ef07b",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-36.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "4de6867b",
+      "copy_crc32": "4de6867b",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-37.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "d3506251",
+      "copy_crc32": "d3506251",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-38.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "e7aa2993",
+      "copy_crc32": "e7aa2993",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-39.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "4c135b24",
+      "copy_crc32": "4c135b24",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-4.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "ec6847a1",
+      "copy_crc32": "ec6847a1",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-40.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "63109fcb",
+      "copy_crc32": "63109fcb",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-41.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "eeb26a22",
+      "copy_crc32": "eeb26a22",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-42.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "18fcd233",
+      "copy_crc32": "18fcd233",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-43.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "67d843b6",
+      "copy_crc32": "67d843b6",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-44.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "5b2dcfe4",
+      "copy_crc32": "5b2dcfe4",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-45.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "5965a8d1",
+      "copy_crc32": "5965a8d1",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-46.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "7a72933f",
+      "copy_crc32": "7a72933f",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-47.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "8f3ff58f",
+      "copy_crc32": "8f3ff58f",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-48.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "07d9274e",
+      "copy_crc32": "07d9274e",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-49.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "69de6f44",
+      "copy_crc32": "69de6f44",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-5.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "b52e883f",
+      "copy_crc32": "b52e883f",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-50.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "a0cfc77b",
+      "copy_crc32": "a0cfc77b",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-51.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "d516cf08",
+      "copy_crc32": "d516cf08",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-52.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "cb1e950d",
+      "copy_crc32": "cb1e950d",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-53.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "655009f5",
+      "copy_crc32": "655009f5",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-54.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "cb879428",
+      "copy_crc32": "cb879428",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-55.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "47a1c95d",
+      "copy_crc32": "47a1c95d",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-56.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "f949eaae",
+      "copy_crc32": "f949eaae",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-57.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "e7404f68",
+      "copy_crc32": "e7404f68",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-58.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "85f11421",
+      "copy_crc32": "85f11421",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-59.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "d6fcd84b",
+      "copy_crc32": "d6fcd84b",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-6.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "4703449c",
+      "copy_crc32": "4703449c",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-60.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "ccead253",
+      "copy_crc32": "ccead253",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-61.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "c59d4367",
+      "copy_crc32": "c59d4367",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-62.safetensors",
+      "bytes": 383865472,
+      "manifest_crc32": "5e872803",
+      "copy_crc32": "5e872803",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-63.safetensors",
+      "bytes": 372313760,
+      "manifest_crc32": "6f41ca01",
+      "copy_crc32": "6f41ca01",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-7.safetensors",
+      "bytes": 372313744,
+      "manifest_crc32": "75b6f226",
+      "copy_crc32": "75b6f226",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-8.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "f8de3efc",
+      "copy_crc32": "f8de3efc",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "layers-9.safetensors",
+      "bytes": 383865448,
+      "manifest_crc32": "be62114d",
+      "copy_crc32": "be62114d",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "merges.txt",
+      "bytes": 3353259,
+      "manifest_crc32": "1824fcb5",
+      "copy_crc32": "1824fcb5",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "model.safetensors.index.json",
+      "bytes": 137335,
+      "manifest_crc32": "1109266c",
+      "copy_crc32": "1109266c",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "mtp.safetensors",
+      "bytes": 477202224,
+      "manifest_crc32": "837f3352",
+      "copy_crc32": "837f3352",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "outside.safetensors",
+      "bytes": 6007102112,
+      "manifest_crc32": "8dc22e46",
+      "copy_crc32": "8dc22e46",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "preprocessor_config.json",
+      "bytes": 390,
+      "manifest_crc32": "030e383a",
+      "copy_crc32": "030e383a",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "safetensors-md5sum.txt",
+      "bytes": 0,
+      "manifest_crc32": "00000000",
+      "copy_crc32": "00000000",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "tokenizer.json",
+      "bytes": 12809320,
+      "manifest_crc32": "6b61f895",
+      "copy_crc32": "6b61f895",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "tokenizer_config.json",
+      "bytes": 17928,
+      "manifest_crc32": "7adf2118",
+      "copy_crc32": "f3d608c1",
+      "source_crc32_if_manifest_differs": "f3d608c1"
+    },
+    {
+      "file": "video_preprocessor_config.json",
+      "bytes": 385,
+      "manifest_crc32": "44c041dc",
+      "copy_crc32": "44c041dc",
+      "source_crc32_if_manifest_differs": null
+    },
+    {
+      "file": "vocab.json",
+      "bytes": 6722759,
+      "manifest_crc32": "da8db314",
+      "copy_crc32": "da8db314",
+      "source_crc32_if_manifest_differs": null
+    }
+  ]
+}
