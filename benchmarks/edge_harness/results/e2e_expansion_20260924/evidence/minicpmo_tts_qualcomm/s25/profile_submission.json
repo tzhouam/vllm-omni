@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-23T23:56:59.942164+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "jp4yr9j1p",
+  "target_model_id": "mn7zvvw8m",
+  "device": "Samsung Galaxy S25",
+  "options": "--compute_unit npu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "j5687d06g",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/j5687d06g/"
+}

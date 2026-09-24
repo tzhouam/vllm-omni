@@ -1,0 +1,31 @@
+{
+  "retrieved_utc": "2026-09-23T23:58:28.870827+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "job_id": "jgolr4wqg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgolr4wqg/",
+  "status": "SUCCESS",
+  "status_message": "",
+  "source_model_id": "mq3xre4rq",
+  "target_model_id": "mmd04edvn",
+  "device": {
+    "name": "SA8775P ADP",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-android",
+      "format:auto",
+      "chipset:qualcomm-sa8775p",
+      "hexagon:v73",
+      "soc-model:52",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "options": "--target_runtime tflite",
+  "hub_version": "aihub-2026.09.11.0"
+}
