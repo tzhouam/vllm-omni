@@ -1,0 +1,54 @@
+{
+  "scope": "one six-frame Cosmos image encoder on synthetic pattern; no complete InternVLA policy",
+  "status": "component_inference_numeric_measured",
+  "device": {
+    "name": "SA8775P ADP",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-android",
+      "format:auto",
+      "chipset:qualcomm-sa8775p",
+      "hexagon:v73",
+      "soc-model:52",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mn4okj3rq",
+  "target_model_id": "mn750wz8m",
+  "compile_job_id": "j5687wx6g",
+  "inference_job_id": "jp2rwe2rg",
+  "input_dataset_id": "d26qo8p57",
+  "requested_run_options": "--compute_unit npu",
+  "files": {
+    "source_onnx": {
+      "bytes": 125112088,
+      "sha256": "656a5263f584851a1457ef6dcf60b995f7c67b056b3c90a4f33c814f7caf9ec9"
+    },
+    "fixture": {
+      "bytes": 2081321,
+      "sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368"
+    },
+    "device_output": {
+      "bytes": 185475,
+      "sha256": "b30e4a7e312a0ceaa058fa1f6fe338b3dbc21ef7ee131e9347997822eccd0f40"
+    }
+  },
+  "output_dtype": "float32",
+  "source_vs_device": {
+    "relative_l2": 0.0006133529653991887,
+    "snr_db": 64.24579061372152,
+    "max_abs_error": 0.009660720825195312,
+    "cosine": 0.9999998122677838
+  },
+  "limits": [
+    "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
+    "The action policy, state lifecycle, admission and complete request were not run on this device.",
+    "Requested NPU is not actual per-node placement without a device profile."
+  ]
+}

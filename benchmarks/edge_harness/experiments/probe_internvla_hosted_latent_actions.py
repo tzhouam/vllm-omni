@@ -29,6 +29,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("model-dir", "cosmos-dir", "processor-dir", "fixture", "device-output", "audit-report", "output"):
         parser.add_argument(f"--{name}", type=Path, required=True)
+    parser.add_argument("--device-name", default="Samsung Galaxy S25")
     args = parser.parse_args()
 
     os.environ["INTERNVLA_A1_COSMOS_DIR"] = str(args.cosmos_dir.resolve(strict=True))
@@ -48,10 +49,13 @@ def main() -> None:
     if sha256(checkpoint) != CHECKPOINT_SHA256 or sha256(args.fixture) != FIXTURE_SHA256:
         raise ValueError("checkpoint or encoder fixture differs from pinned source")
     audit = json.loads(args.audit_report.read_text(encoding="utf-8"))
-    if (audit.get("status") != "component_inference_numeric_measured"
-            or audit.get("device", {}).get("name") != "Samsung Galaxy S25"
+    if (audit.get("status") not in {
+                "component_inference_numeric_measured",
+                "component_inference_numeric_and_placement_measured",
+            }
+            or audit.get("device", {}).get("name") != args.device_name
             or audit.get("files", {}).get("device_output", {}).get("sha256") != sha256(args.device_output)):
-        raise ValueError("hosted latent lacks audited S25 provenance")
+        raise ValueError(f"hosted latent lacks audited {args.device_name} provenance")
     with np.load(args.fixture, allow_pickle=False) as fixture:
         source_latent = np.asarray(fixture["pattern_reference"])
     with np.load(args.device_output, allow_pickle=False) as output:
@@ -130,8 +134,9 @@ def main() -> None:
     hosted = hosted_actions.astype(np.float64).ravel()
     delta = source - hosted
     report = {
-        "scope": "S25 hosted Cosmos latent injected into local CPU InternVLA policy with synthetic state/noise; no device-local policy or robot-task result",
+        "scope": f"{args.device_name} hosted Cosmos latent injected into local CPU InternVLA policy with synthetic state/noise; no device-local policy or robot-task result",
         "status": "synthetic_action_sensitivity_measured",
+        "hosted_device_name": args.device_name,
         "policy_checkpoint_sha256": CHECKPOINT_SHA256,
         "fixture_sha256": FIXTURE_SHA256,
         "hosted_output_sha256": sha256(args.device_output),

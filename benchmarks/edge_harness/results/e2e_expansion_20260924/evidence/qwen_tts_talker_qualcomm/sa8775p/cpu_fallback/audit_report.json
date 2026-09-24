@@ -1,6 +1,6 @@
 {
   "scope": "one synthetic fixed-cache 28-layer Qwen3-TTS talker decode step; no complete TTS stream",
-  "status": "component_executed_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "SA8775P ADP",
     "os": "14",
@@ -394,7 +394,20 @@
   "limits": [
     "The historical source export does not attest an exact checkpoint revision.",
     "The fixture is synthetic and has no token-to-audio quality tolerance.",
-    "Requested compute unit is not actual placement without a device profile.",
     "No predictor, vocoder, persistent cache loop or complete TTS stream was tested."
-  ]
+  ],
+  "profile": {
+    "job_id": "jgdd33x6g",
+    "sample_count": 100,
+    "sample_min_us": 45688,
+    "nearest_rank_p50_us": 52635,
+    "nearest_rank_p95_us": 76925,
+    "reported_estimated_inference_time_us": 45688,
+    "reported_peak_memory_bytes": 1913794560,
+    "reported_first_load_time_us": 6679118,
+    "reported_first_load_peak_memory_bytes": 1846460416,
+    "compute_unit_row_counts": {
+      "CPU": 1800
+    }
+  }
 }

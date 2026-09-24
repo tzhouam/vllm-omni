@@ -1,6 +1,6 @@
 {
   "scope": "one fixed-cache 20-layer MiniCPM-o speech-head decode step; no complete multimodal stream",
-  "status": "component_inference_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "Dragonwing RB3 Gen 2 Vision Kit",
     "os": "1.6",
@@ -298,7 +298,20 @@
   "limits": [
     "The historical ONNX export does not attest the exact source checkpoint revision.",
     "One retained decode fixture cannot establish speech-token or generated-audio quality.",
-    "Thinker, audio/vision encoders, vocoder, state loop and complete Omni request were not tested.",
-    "Actual CPU/NPU placement requires a device profile; a request or compiled artifact alone is insufficient."
-  ]
+    "Thinker, audio/vision encoders, vocoder, state loop and complete Omni request were not tested."
+  ],
+  "profile": {
+    "job_id": "jprl00r0p",
+    "sample_count": 100,
+    "sample_min_us": 59007,
+    "nearest_rank_p50_us": 59518,
+    "nearest_rank_p95_us": 71347,
+    "reported_estimated_inference_time_us": 59007,
+    "reported_peak_memory_bytes": 820981760,
+    "reported_first_load_time_us": 275127,
+    "reported_first_load_peak_memory_bytes": 769884160,
+    "compute_unit_row_counts": {
+      "CPU": 1008
+    }
+  }
 }

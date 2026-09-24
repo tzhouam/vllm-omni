@@ -18,6 +18,7 @@ from profile_local_text import HOST_ENVIRONMENT, save
 
 async def run(args):
     import torch
+    import vllm_omni
     from transformers import AutoTokenizer
 
     from vllm_omni import AsyncOmni
@@ -35,6 +36,8 @@ async def run(args):
         "status": "running",
         "argv": sys.argv,
         "python": sys.executable,
+        "cwd": os.getcwd(),
+        "loaded_omni_path": str(Path(vllm_omni.__file__).resolve()),
         "host_environment": HOST_ENVIRONMENT,
         "platform": platform.platform(),
         "runtime": runtime_versions().to_dict(),

@@ -1,6 +1,6 @@
 {
   "scope": "one synthetic fixed-cache 28-layer Qwen3-TTS talker decode step; no complete TTS stream",
-  "status": "component_executed_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "Snapdragon X Elite CRD",
     "os": "11",
@@ -394,7 +394,20 @@
   "limits": [
     "The historical source export does not attest an exact checkpoint revision.",
     "The fixture is synthetic and has no token-to-audio quality tolerance.",
-    "Requested compute unit is not actual placement without a device profile.",
     "No predictor, vocoder, persistent cache loop or complete TTS stream was tested."
-  ]
+  ],
+  "profile": {
+    "job_id": "jp2rwed4g",
+    "sample_count": 100,
+    "sample_min_us": 142921,
+    "nearest_rank_p50_us": 191414,
+    "nearest_rank_p95_us": 309428,
+    "reported_estimated_inference_time_us": 142921,
+    "reported_peak_memory_bytes": 1928019968,
+    "reported_first_load_time_us": 2102540,
+    "reported_first_load_peak_memory_bytes": 1806598144,
+    "compute_unit_row_counts": {
+      "CPU": 1744
+    }
+  }
 }
