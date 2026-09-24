@@ -1,0 +1,11 @@
+{
+  "scope": "exact BF16 ONNX resampler on ORT CPU; provider control only",
+  "model_sha256": "7c0ba0e1aa07a167be0daf2b61602a181e456ec5954a9aa58acceccf7f6b3977",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "4b763c2ac080b75c60da22a0a819fed09ffedcbeb350065d831603b39de84bd1",
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "status": "cpu_graph_unavailable",
+  "error_type": "NotImplemented",
+  "error": "[ONNXRuntimeError] : 9 : NOT_IMPLEMENTED : Could not find an implementation for MatMul(13) node with name '/kv_proj/MatMul'"
+}

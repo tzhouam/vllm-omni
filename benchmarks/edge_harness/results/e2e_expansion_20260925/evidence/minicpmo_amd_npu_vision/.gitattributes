@@ -8,5 +8,8 @@ bf16_layer1_dml_report.json -text -diff
 bf16_attn_npu_report.json -text -diff
 late27_fp32_npu_profile.json -text -diff
 late27_fp32_npu_report.json -text -diff
+resampler_bf16_npu_profile.json -text -diff
+resampler_bf16_npu_report.json -text -diff
+resampler_bf16_cpu_report.json -text -diff
 *.log -text
 *.npz binary

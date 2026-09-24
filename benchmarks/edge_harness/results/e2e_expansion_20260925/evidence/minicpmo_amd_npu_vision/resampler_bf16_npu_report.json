@@ -1,0 +1,37 @@
+{
+  "scope": "pinned BF16 MiniCPM-o resampler on HX370 NPU; component only",
+  "model_sha256": "7c0ba0e1aa07a167be0daf2b61602a181e456ec5954a9aa58acceccf7f6b3977",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "4b763c2ac080b75c60da22a0a819fed09ffedcbeb350065d831603b39de84bd1",
+  "output_npz_sha256": "d8286f2a5da27767f20944bbd9a7cb9fdb71ebefd9772b9c20d6b83843ca245a",
+  "profile_sha256": "bbb57fab4def4799fde99a2f02771c436c1fd55f99554f4f824a702fb17308f2",
+  "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\resampler_bf16\\npu_profile_2026-09-25_07-27-02_110.json",
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "providers": [
+    "vitisai",
+    "CPUExecutionProvider"
+  ],
+  "node_counts": {
+    "vitisai": 3
+  },
+  "load_s": 85.29815589997452,
+  "cases": {
+    "red": {
+      "one_call_s": 0.05021769995801151,
+      "relative_l2_vs_bf16_torch": 0.035158419230055075,
+      "finite": true
+    },
+    "blue": {
+      "one_call_s": 0.04852569999638945,
+      "relative_l2_vs_bf16_torch": 0.03113967159174434,
+      "finite": true
+    },
+    "third": {
+      "one_call_s": 0.04602689994499087,
+      "relative_l2_vs_bf16_torch": 0.03100907593280193,
+      "finite": true
+    }
+  },
+  "status": "component_unqualified"
+}
