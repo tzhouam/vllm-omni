@@ -46,12 +46,9 @@ ExecutionProvider. `--cpu-only` reproduces the parity gate without
 starting the NPU compiler. Run the NPU case in a separate process because
 the native assertion cannot be caught by Python.
 
-Next: bisect the specific ONNX operator/subgraph that trips this VitisAI
-compiler, export a version it accepts without losing same-checkpoint
-waveform quality, verify nonzero NPU node placement and measured coarse
-stage benefit, then connect talker, codec, state, admission, cancellation,
-and complete-stream quality gates through Omni. This compiler failure
-constrains these graphs and EP version only.
+The initial compiler failure constrains these graphs and EP version only.
+The follow-up below isolates one trigger and tests a numerically equivalent
+ONNX rewrite.
 
 ## Compiler bisection and equivalent decoder rewrite
 
@@ -88,8 +85,30 @@ Applying the same transformation to all six upsampling convolutions
 produced a [full two-frame graph](full_short_2d_rewrite.json) whose
 `[1,3840]` CPU waveform was bitwise identical to the original graph on
 the pinned fixture. The ~424 MB rewritten artifact remains outside Git;
-its SHA-256 is pinned in the report. A full-graph NPU waveform, placement
-profile and complete TTS stream are still unqualified in this evidence.
+its SHA-256 is pinned in the report. A [full rewritten graph NPU attempt](full_short_2d_npu_probe.json)
+then completed with **two VitisAI NPU node events and 139 CPU node events**,
+so this was mixed execution, not an all-NPU vocoder. Its finite,
+unsaturated waveform differed from the same-graph CPU result by **15.696%
+relative L2 / 16.08 dB SNR** on the fixed fixture, failing the probe's
+1% waveform gate. Session creation took **2515.0 s**. One cold inference
+took **2.205 s** for nominal 0.16 s audio (single-sample component RTF
+**13.78**); there was no warmup or repeated latency profile. The
+[raw profile](full_short_2d_profile_2026-09-24_19-07-20_388.json)
+and [native log](full_short_2d_npu_probe.log) are retained.
+An [isolated original `Sin` node](local_sin0_probe.json) on a labeled
+synthetic activation executed entirely on ORT CPU (one CPU event, zero
+VitisAI events) with exact CPU parity; the full graph likewise lists
+CPU sine nodes. That control identifies a real fallback boundary but
+does not by itself explain the 15.696% waveform difference.
+
+The rewrite therefore fixes the isolated compiler crash and keeps CPU
+waveform behavior exact, but this mixed AMD NPU path fails numerical
+quality and is not a supported TTS stream. Next, identify which NPU
+partition or handoff causes the waveform difference, improve same-graph
+numerics without silent precision or model changes, and measure a
+useful coarse stage against CPU after warmup. Only then connect talker,
+codec, state, admission, cancellation and complete-stream quality
+through Omni.
 The [extraction/probe tool](../../../../experiments/bisect_qwen_tts_vitisai_graph.py)
 records cut hashes, CPU execution, actual provider events and intermediate
 numerics. No precision, weights or checkpoint revision changed in the

@@ -72,10 +72,38 @@
     "profile": "local_convtranspose0_2d_profile_2026-09-24_19-02-21_591.json"
   },
   "full_short_2d_rewrite": {
-    "status": "cpu_parity_pass_full_npu_unqualified",
+    "status": "cpu_parity_pass; mixed_npu_cpu_waveform_numeric_failed; not_e2e",
     "model_sha256": "3f041942800dc22b4e0ee88cebb606d8117ff9d77f1d35e216fe185d4ad0cb90",
     "rewritten_nodes": 6,
     "cpu_vs_original_waveform_l2": 0,
     "report": "full_short_2d_rewrite.json"
+  },
+  "full_short_2d_npu_run": {
+    "scope": "one cold two-frame component call, 0.16 s nominal audio; no warmup or repeated timing",
+    "report": "full_short_2d_npu_probe.json",
+    "raw_log": "full_short_2d_npu_probe.log",
+    "raw_log_sha256": "2bcc782112152ebf42053bccd21d8d49d729f36fb91b6b1e09e6d75fe6eba3b7",
+    "profile": "full_short_2d_profile_2026-09-24_19-07-20_388.json",
+    "profile_sha256": "4322b210f2e3e9c524e735d837cf77621e24248af782065dcdcb26d1a357f522",
+    "session_create_s": 2515.029476099997,
+    "single_cold_inference_s": 2.204674599925056,
+    "single_cold_component_rtf": 13.7792162495316,
+    "vitisai_node_events": 2,
+    "cpu_node_events": 139,
+    "waveform_relative_l2_vs_cpu": 0.15696028170607357,
+    "waveform_snr_db_vs_cpu": 16.084204610179135,
+    "waveform_saturation_fraction": 0.0,
+    "numeric_disposition": "failed probe 1% waveform relative-L2 gate; no listening-quality pass"
+  },
+  "isolated_sin_control": {
+    "scope": "one original Sin operator, fixed-seed synthetic tensor, not a waveform",
+    "source_sha256": "da6bfdbefab41639c15506156b56f6a68f77487f960228cdf256b39615fc2702",
+    "provider_events": {
+      "CPUExecutionProvider": 1
+    },
+    "relative_l2_vs_cpu": 0.0,
+    "report": "local_sin0_probe.json",
+    "profile": "local_sin0_profile_2026-09-24_19-51-29_472.json",
+    "profile_sha256": "c3fa9cdeafc3b4e035cccd39b999cd63784cfe5644f5a2d311aab79041147cea"
   }
 }

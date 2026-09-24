@@ -1,0 +1,54 @@
+{
+  "scope": "one real-weight Qwen3-TTS Code2Wav component window; not a complete TTS stream",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "input_shape": [
+    1,
+    512,
+    74
+  ],
+  "output_shape": [
+    1,
+    3840
+  ],
+  "model_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_code2wav_c2_ctx72_convtranspose2d_20260924.onnx",
+  "fixture_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_vocoder_qualcomm\\s25\\qnn_short_chunk\\fixture.npz",
+  "reference_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_vocoder_qualcomm\\s25\\qnn_short_chunk\\ort_output.npz",
+  "artifact_sha256": {
+    "model": "3f041942800dc22b4e0ee88cebb606d8117ff9d77f1d35e216fe185d4ad0cb90",
+    "fixture": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+    "reference": "989307db317d77be054f684211ae0c6a2fd24d93bcd74307c597fed430ba2a37"
+  },
+  "cpu_load_s": 2.416820300044492,
+  "cpu_inference_s": 1.0615151999518275,
+  "cpu_vs_retained_reference": {
+    "finite": true,
+    "relative_l2": 1.0450898781329582e-06,
+    "snr_db": 119.61692716907409,
+    "maximum_absolute_error": 3.948807716369629e-07,
+    "saturation_fraction": 0.0
+  },
+  "vitisai_npu_device_count": 1,
+  "npu_load_s": 2515.029476099997,
+  "npu_inference_s": 2.204674599925056,
+  "npu_vs_cpu": {
+    "finite": true,
+    "relative_l2": 0.15696028170607357,
+    "snr_db": 16.084204610179135,
+    "maximum_absolute_error": 0.06048398092389107,
+    "saturation_fraction": 0.0
+  },
+  "npu_vs_retained_reference": {
+    "finite": true,
+    "relative_l2": 0.1569608750593908,
+    "snr_db": 16.084171775173793,
+    "maximum_absolute_error": 0.06048431992530823,
+    "saturation_fraction": 0.0
+  },
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_amd_npu_vocoder\\full_short_2d_profile_2026-09-24_19-07-20_388.json",
+  "placement_events": {
+    "vitisai": 2,
+    "cpu": 139
+  },
+  "status": "component_not_qualified"
+}

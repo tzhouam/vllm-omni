@@ -1,0 +1,20 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_node_count": 712,
+  "cut_one_based": 521,
+  "terminal_node": "node_sin_1",
+  "terminal_op": "Sin",
+  "terminal_output": "sin_1",
+  "boundary_inputs": [
+    "mul_94"
+  ],
+  "extracted_node_count": 1,
+  "extracted_ops": {
+    "Sin": 1
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 1536\n    }\n    dim {\n      dim_value: 296\n    }\n  }\n}\n",
+  "candidate_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_local_sin0_20260924.onnx",
+  "candidate_bytes": 1640,
+  "candidate_sha256": "da6bfdbefab41639c15506156b56f6a68f77487f960228cdf256b39615fc2702"
+}
