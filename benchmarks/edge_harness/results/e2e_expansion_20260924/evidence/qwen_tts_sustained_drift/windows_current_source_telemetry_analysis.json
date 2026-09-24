@@ -1,0 +1,244 @@
+{
+  "scope": "complete-model Qwen3-TTS stream; simulated playback; telemetry covers whole GPU/host, not just this process",
+  "report": "/home/zhout/project/edge_infer/analysis/experiments/tts_windows_repo_sustained_20260924/report.json",
+  "requests": "/home/zhout/project/edge_infer/analysis/experiments/tts_windows_repo_sustained_20260924/requests.jsonl",
+  "telemetry": "/home/zhout/project/edge_infer/analysis/experiments/tts_windows_repo_sustained_20260924/gpu_telemetry.jsonl",
+  "loaded_omni_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\__init__.py",
+  "cwd": "C:\\Users\\zhout\\w2",
+  "start_unix": 1790213419.896933,
+  "sustained_wall_s": 1800.1864576999797,
+  "windows": [
+    {
+      "minutes": [
+        0,
+        25
+      ],
+      "requests": 1032,
+      "rtf_p50": 0.18155780047751388,
+      "rtf_p95": 0.19911686828490147,
+      "wall_s_p50": 1.457860799971968,
+      "wall_s_p95": 1.643669999903068,
+      "requests_with_underrun_at_ttfa": 66,
+      "required_prebuffer_ms_p50": 0.0,
+      "required_prebuffer_ms_p95": 14.208799959160388,
+      "required_prebuffer_ms_max": 93.37910000234842,
+      "device_telemetry_samples": 1437,
+      "device_telemetry": {
+        "gpu_temperature_c": {
+          "p50": 67,
+          "p95": 71,
+          "min": 59,
+          "max": 73,
+          "available_samples": 1437
+        },
+        "gpu_power_mw": {
+          "p50": 84372,
+          "p95": 100110,
+          "min": 27384,
+          "max": 124739,
+          "available_samples": 1437
+        },
+        "gpu_clock_sm_mhz": {
+          "p50": 1665,
+          "p95": 1860,
+          "min": 667,
+          "max": 2130,
+          "available_samples": 1437
+        },
+        "gpu_clock_memory_mhz": {
+          "p50": 14001,
+          "p95": 14001,
+          "min": 10820,
+          "max": 14001,
+          "available_samples": 1437
+        },
+        "gpu_utilization_pct": {
+          "p50": 89,
+          "p95": 93,
+          "min": 1,
+          "max": 95,
+          "available_samples": 1437
+        },
+        "gpu_memory_used_bytes": {
+          "p50": 14324690944,
+          "p95": 14429990912,
+          "min": 14113402880,
+          "max": 14576979968,
+          "available_samples": 1437
+        },
+        "host_available_bytes": {
+          "p50": 24801640448,
+          "p95": 25358438400,
+          "min": 23825104896,
+          "max": 25746923520,
+          "available_samples": 1437
+        },
+        "host_cpu_utilization_pct": {
+          "p50": 36.5,
+          "p95": 48.3,
+          "min": 18.2,
+          "max": 67.0,
+          "available_samples": 1437
+        }
+      },
+      "gpu_throttle_reason_counts": {
+        "0": 1,
+        "4": 1436
+      }
+    },
+    {
+      "minutes": [
+        25,
+        27
+      ],
+      "requests": 81,
+      "rtf_p50": 0.18515146990399375,
+      "rtf_p95": 0.20509856943843058,
+      "wall_s_p50": 1.489010600023903,
+      "wall_s_p95": 1.6373769999481738,
+      "requests_with_underrun_at_ttfa": 0,
+      "required_prebuffer_ms_p50": 0.0,
+      "required_prebuffer_ms_p95": 0.0,
+      "required_prebuffer_ms_max": 0.0,
+      "device_telemetry_samples": 113,
+      "device_telemetry": {
+        "gpu_temperature_c": {
+          "p50": 68,
+          "p95": 72,
+          "min": 65,
+          "max": 72,
+          "available_samples": 113
+        },
+        "gpu_power_mw": {
+          "p50": 83948,
+          "p95": 99676,
+          "min": 55896,
+          "max": 119301,
+          "available_samples": 113
+        },
+        "gpu_clock_sm_mhz": {
+          "p50": 1642,
+          "p95": 1860,
+          "min": 952,
+          "max": 1942,
+          "available_samples": 113
+        },
+        "gpu_clock_memory_mhz": {
+          "p50": 14001,
+          "p95": 14001,
+          "min": 14001,
+          "max": 14001,
+          "available_samples": 113
+        },
+        "gpu_utilization_pct": {
+          "p50": 90,
+          "p95": 93,
+          "min": 24,
+          "max": 94,
+          "available_samples": 113
+        },
+        "gpu_memory_used_bytes": {
+          "p50": 14409412608,
+          "p95": 14422978560,
+          "min": 14403514368,
+          "max": 14463062016,
+          "available_samples": 113
+        },
+        "host_available_bytes": {
+          "p50": 24687771648,
+          "p95": 26786988032,
+          "min": 24623411200,
+          "max": 26793086976,
+          "available_samples": 113
+        },
+        "host_cpu_utilization_pct": {
+          "p50": 37.0,
+          "p95": 50.8,
+          "min": 21.6,
+          "max": 57.2,
+          "available_samples": 113
+        }
+      },
+      "gpu_throttle_reason_counts": {
+        "4": 113
+      }
+    },
+    {
+      "minutes": [
+        27,
+        30
+      ],
+      "requests": 119,
+      "rtf_p50": 0.18458476890770703,
+      "rtf_p95": 0.20267389945334086,
+      "wall_s_p50": 1.4926720999646932,
+      "wall_s_p95": 1.7075016999151558,
+      "requests_with_underrun_at_ttfa": 3,
+      "required_prebuffer_ms_p50": 0.0,
+      "required_prebuffer_ms_p95": 0.0,
+      "required_prebuffer_ms_max": 26.64199998602271,
+      "device_telemetry_samples": 173,
+      "device_telemetry": {
+        "gpu_temperature_c": {
+          "p50": 68,
+          "p95": 71,
+          "min": 64,
+          "max": 72,
+          "available_samples": 173
+        },
+        "gpu_power_mw": {
+          "p50": 85861,
+          "p95": 99280,
+          "min": 32552,
+          "max": 111241,
+          "available_samples": 173
+        },
+        "gpu_clock_sm_mhz": {
+          "p50": 1672,
+          "p95": 1875,
+          "min": 1087,
+          "max": 1950,
+          "available_samples": 173
+        },
+        "gpu_clock_memory_mhz": {
+          "p50": 14001,
+          "p95": 14001,
+          "min": 10820,
+          "max": 14001,
+          "available_samples": 173
+        },
+        "gpu_utilization_pct": {
+          "p50": 89,
+          "p95": 92,
+          "min": 3,
+          "max": 94,
+          "available_samples": 173
+        },
+        "gpu_memory_used_bytes": {
+          "p50": 14448406528,
+          "p95": 14740873216,
+          "min": 14384820224,
+          "max": 14933811200,
+          "available_samples": 173
+        },
+        "host_available_bytes": {
+          "p50": 26491813888,
+          "p95": 26803175424,
+          "min": 25937293312,
+          "max": 26815836160,
+          "available_samples": 173
+        },
+        "host_cpu_utilization_pct": {
+          "p50": 38.1,
+          "p95": 51.7,
+          "min": 23.3,
+          "max": 63.2,
+          "available_samples": 173
+        }
+      },
+      "gpu_throttle_reason_counts": {
+        "4": 173
+      }
+    }
+  ]
+}
