@@ -1,6 +1,6 @@
 {
   "scope": "one fixed-cache 20-layer MiniCPM-o speech-head decode step; no complete multimodal stream",
-  "status": "component_inference_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "Samsung Galaxy S24",
     "os": "14",
@@ -299,7 +299,20 @@
   "limits": [
     "The historical ONNX export does not attest the exact source checkpoint revision.",
     "One retained decode fixture cannot establish speech-token or generated-audio quality.",
-    "Actual NPU placement requires a device profile; a request or QNN artifact alone is insufficient.",
     "Thinker, audio/vision encoders, vocoder, state loop and complete Omni request were not tested."
-  ]
+  ],
+  "profile": {
+    "job_id": "jglyx1qj5",
+    "sample_count": 100,
+    "sample_min_us": 8211,
+    "nearest_rank_p50_us": 8537,
+    "nearest_rank_p95_us": 9006,
+    "reported_estimated_inference_time_us": 8211,
+    "reported_peak_memory_bytes": 165433344,
+    "reported_first_load_time_us": 265005,
+    "reported_first_load_peak_memory_bytes": 97341440,
+    "compute_unit_row_counts": {
+      "NPU": 1029
+    }
+  }
 }

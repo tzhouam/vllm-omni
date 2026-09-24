@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import math
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -30,6 +31,8 @@ def main() -> None:
         "inference-report", "device-output", "output-report",
     ):
         parser.add_argument(f"--{name}", type=Path, required=True)
+    parser.add_argument("--device-name", default="Samsung Galaxy S25")
+    parser.add_argument("--profile-report", type=Path)
     args = parser.parse_args()
 
     compiled = json.loads(args.compile_report.read_text(encoding="utf-8"))
@@ -43,14 +46,16 @@ def main() -> None:
         raise ValueError("inference used a different target model")
     if inferred.get("device") != compiled.get("device"):
         raise ValueError("compile/inference device metadata differs")
-    if inferred.get("device", {}).get("name") != "Samsung Galaxy S25":
-        raise ValueError("inference did not use the exact Galaxy S25")
+    if inferred.get("device", {}).get("name") != args.device_name:
+        raise ValueError("inference did not use the requested exact device")
     if inferred.get("options") != "--compute_unit npu":
         raise ValueError("inference did not request NPU")
     if (inferred.get("job_id") != submitted.get("job_id")
             or inferred.get("input_dataset_id") != submitted.get("input_dataset_id")):
         raise ValueError("inference used a different job or input dataset")
-    if submitted.get("fixture_key") != "pattern_pixels":
+    if inferred.get("input_dataset_id") != "d26qo8p57":
+        raise ValueError("inference did not use the pinned pattern dataset")
+    if submitted.get("fixture_key", "pattern_pixels") != "pattern_pixels":
         raise ValueError("submission did not use the pattern fixture")
 
     files = {
@@ -108,10 +113,44 @@ def main() -> None:
         },
         "limits": [
             "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
-            "Requested NPU is not actual per-node placement without a device profile.",
             "The action policy, state lifecycle, admission and complete request were not run on this device.",
         ],
     }
+    if args.profile_report is not None:
+        profiled = json.loads(args.profile_report.read_text(encoding="utf-8"))
+        if (profiled.get("status") != "SUCCESS"
+                or profiled.get("model_id") != compiled["target_model_id"]
+                or profiled.get("device") != inferred["device"]
+                or profiled.get("options") != "--compute_unit npu"):
+            raise ValueError("profile did not execute the same target on the exact device")
+        profile = profiled["profile"]
+        summary = profile["execution_summary"]
+        samples = summary["all_inference_times"]
+        if not samples or any(not isinstance(value, int) or value <= 0 for value in samples):
+            raise ValueError("profile has no valid inference samples")
+        units = Counter(row.get("compute_unit") for row in profile["execution_detail"])
+        if not units:
+            raise ValueError("profile has no compute-unit detail")
+        ordered = sorted(samples)
+        report["profile"] = {
+            "job_id": profiled["job_id"],
+            "sample_count": len(samples),
+            "sample_min_us": ordered[0],
+            "nearest_rank_p50_us": ordered[math.ceil(0.50 * len(samples)) - 1],
+            "nearest_rank_p95_us": ordered[math.ceil(0.95 * len(samples)) - 1],
+            "reported_estimated_inference_time_us": summary["estimated_inference_time"],
+            "reported_peak_memory_bytes": summary["estimated_inference_peak_memory"],
+            "reported_first_load_time_us": summary["first_load_time"],
+            "reported_warm_load_time_us": summary["warm_load_time"],
+            "reported_first_load_peak_memory_bytes": summary["first_load_peak_memory"],
+            "reported_warm_load_peak_memory_bytes": summary["warm_load_peak_memory"],
+            "compute_unit_row_counts": dict(units),
+        }
+        report["status"] = "component_inference_numeric_and_placement_measured"
+    else:
+        report["limits"].append(
+            "Requested NPU is not actual per-node placement without a device profile."
+        )
     args.output_report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"status": report["status"], "difference": report["source_vs_device"]}, indent=2))
 

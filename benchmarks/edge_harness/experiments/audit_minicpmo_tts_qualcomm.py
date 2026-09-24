@@ -6,6 +6,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -64,6 +66,7 @@ def main() -> None:
     parser.add_argument("--inference-report", type=Path, required=True)
     parser.add_argument("--device-output", type=Path, required=True)
     parser.add_argument("--output-report", type=Path, required=True)
+    parser.add_argument("--profile-report", type=Path)
     args = parser.parse_args()
 
     compiled = json.loads(args.compile_report.read_text(encoding="utf-8"))
@@ -153,10 +156,45 @@ def main() -> None:
         "limits": [
             "The historical ONNX export does not attest the exact source checkpoint revision.",
             "One retained decode fixture cannot establish speech-token or generated-audio quality.",
-            "Actual CPU/NPU placement requires a device profile; a request or compiled artifact alone is insufficient.",
             "Thinker, audio/vision encoders, vocoder, state loop and complete Omni request were not tested.",
         ],
     }
+    if args.profile_report is not None:
+        profiled = json.loads(args.profile_report.read_text(encoding="utf-8"))
+        expected_profile_options = (
+            "--compute_unit cpu" if compiled["options"] == "--target_runtime tflite"
+            else "--compute_unit npu"
+        )
+        if (profiled.get("status") != "SUCCESS"
+                or profiled.get("model_id") != compiled["target_model_id"]
+                or profiled.get("device") != inferred["device"]
+                or profiled.get("options") != expected_profile_options):
+            raise ValueError("profile did not execute the same target, device and route")
+        summary = profiled["profile"]["execution_summary"]
+        samples = summary["all_inference_times"]
+        if not samples or any(not isinstance(value, int) or value <= 0 for value in samples):
+            raise ValueError("profile has no valid inference samples")
+        units = Counter(row.get("compute_unit") for row in profiled["profile"]["execution_detail"])
+        if not units:
+            raise ValueError("profile has no compute-unit detail")
+        ordered = sorted(samples)
+        report["profile"] = {
+            "job_id": profiled["job_id"],
+            "sample_count": len(samples),
+            "sample_min_us": ordered[0],
+            "nearest_rank_p50_us": ordered[math.ceil(0.50 * len(samples)) - 1],
+            "nearest_rank_p95_us": ordered[math.ceil(0.95 * len(samples)) - 1],
+            "reported_estimated_inference_time_us": summary["estimated_inference_time"],
+            "reported_peak_memory_bytes": summary["estimated_inference_peak_memory"],
+            "reported_first_load_time_us": summary["first_load_time"],
+            "reported_first_load_peak_memory_bytes": summary["first_load_peak_memory"],
+            "compute_unit_row_counts": dict(units),
+        }
+        report["status"] = "component_inference_numeric_and_placement_measured"
+    else:
+        report["limits"].append(
+            "Actual CPU/NPU placement requires a device profile; a request or compiled artifact alone is insufficient."
+        )
     args.output_report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "status": report["status"],

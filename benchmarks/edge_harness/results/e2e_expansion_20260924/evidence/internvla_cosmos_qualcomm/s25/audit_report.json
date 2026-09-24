@@ -1,6 +1,6 @@
 {
   "scope": "one six-frame Cosmos image encoder on synthetic pattern; no complete InternVLA policy",
-  "status": "component_inference_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "Samsung Galaxy S25",
     "os": "15",
@@ -49,7 +49,22 @@
   },
   "limits": [
     "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
-    "Requested NPU is not actual per-node placement without a device profile.",
     "The action policy, state lifecycle, admission and complete request were not run on this device."
-  ]
+  ],
+  "profile": {
+    "job_id": "jp1njvm8g",
+    "sample_count": 100,
+    "sample_min_us": 47438,
+    "nearest_rank_p50_us": 49665,
+    "nearest_rank_p95_us": 51382,
+    "reported_estimated_inference_time_us": 47438,
+    "reported_peak_memory_bytes": 158232576,
+    "reported_first_load_time_us": 20996104,
+    "reported_warm_load_time_us": 177829,
+    "reported_first_load_peak_memory_bytes": 679317504,
+    "reported_warm_load_peak_memory_bytes": 279449600,
+    "compute_unit_row_counts": {
+      "NPU": 121
+    }
+  }
 }
