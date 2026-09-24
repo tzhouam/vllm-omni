@@ -1,0 +1,16 @@
+{
+  "timestamp_utc": "2026-09-24T04:59:30.129187+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "input_name": "quantized",
+  "input_shape": [
+    1,
+    512,
+    74
+  ],
+  "input_dtype": "float32",
+  "sample_count": 1,
+  "dataset_id": "d7ovqp0w2",
+  "status": "UPLOADED"
+}

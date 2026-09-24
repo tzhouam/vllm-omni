@@ -1,0 +1,50 @@
+{
+  "scope": "one fixed two-frame Code2Wav component on HX370 WSL ORT CPU; no complete TTS stream",
+  "status": "component_cpu_profiled",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+  "python_version": "3.12.13",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "power_condition": "not recorded",
+  "ort_version": "1.29.0",
+  "provider": [
+    "CPUExecutionProvider"
+  ],
+  "threads": 4,
+  "model_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "load_s": 0.5960357000003569,
+  "rss_after_load_bytes": 638189568,
+  "warmups": 1,
+  "sample_count": 20,
+  "samples_s": [
+    1.4534642749931663,
+    1.354645981977228,
+    1.3775672700139694,
+    1.3591304540168494,
+    1.3296460009878501,
+    1.40560842998093,
+    1.4525224060053006,
+    1.3785532070323825,
+    1.3530683669960126,
+    1.3806309230276383,
+    1.3724001089576632,
+    1.3896296580205671,
+    1.3652083780034445,
+    1.374573242967017,
+    1.3268145270412788,
+    1.3424656029674225,
+    1.3449684209772386,
+    1.3345086729968898,
+    1.3748839889885858,
+    1.3425294969929382
+  ],
+  "nearest_rank_p50_s": 1.3652083780034445,
+  "nearest_rank_p95_s": 1.4525224060053006,
+  "audio_duration_s": 0.16,
+  "median_component_rtf": 8.532552362521528,
+  "limits": [
+    "The input is one retained synthetic window, and no talker or predictor ran.",
+    "This host CPU timing cannot be transplanted to the S25 or another SoC."
+  ]
+}

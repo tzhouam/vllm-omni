@@ -1,0 +1,62 @@
+{
+  "scope": "fork branch Spark 1.7B BF16 WSL CPU complete text",
+  "source_checkout": "/home/zhout/project/edge_infer/vllm-omni-edge",
+  "source_head": "8978302a1b7b86f17f45d530c544fb87bec8990d",
+  "runtime": {
+    "python": "3.12.13",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "torch": "2.13.0+cpu",
+    "vllm": "0.28.0",
+    "vllm_omni": "0.29.0rc2.dev71+g00510ce38.d20260922",
+    "vllm_omni_file": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/__init__.py",
+    "vllm_file": "/home/zhout/project/edge_infer/.venvs/omni-cpu/lib/python3.12/site-packages/vllm/__init__.py",
+    "checkouts": {
+      "/home/zhout/project/edge_infer/vllm-omni-edge": "8978302a1b7b86f17f45d530c544fb87bec8990d-dirty",
+      "/home/zhout/project/edge_infer": "758b3af238b19e2c2abc668f23a767bb835a4a22-dirty"
+    }
+  },
+  "checkpoint_revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+  "commands": "PYTHONPATH=/home/zhout/project/edge_infer/vllm-omni-edge; accept/parity CLI --max-model-len 4096 --max-tokens 128; profile script 1 warmup + 20 serial 64-token requests",
+  "code_files": [
+    {
+      "path": "vllm_omni/edge/local/engine.py",
+      "bytes": 34926,
+      "sha256": "ad2427a0a7a65201fa7463ad879ef42ac0190af76a59c88a6cb5021f9ea3a0f6"
+    },
+    {
+      "path": "vllm_omni/edge/local/plan.py",
+      "bytes": 28619,
+      "sha256": "d4665e68b47513dd62d746091e840f652270f37467da0c5c5528613a06ed9fe3"
+    },
+    {
+      "path": "vllm_omni/edge/local/cli.py",
+      "bytes": 21877,
+      "sha256": "c3b5685125b39474008df1a030779cd3e3188495af5080a189c7473f5a8041bc"
+    },
+    {
+      "path": "benchmarks/edge_harness/experiments/profile_spark_bf16_omni_cpu.py",
+      "bytes": 4857,
+      "sha256": "2af5d2b4520850c6f46a5af2db508e976c1c976dd24c50de5e3ee869917b5285"
+    }
+  ],
+  "reports": [
+    {
+      "path": "benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_bf16_wsl_cpu/accept_branch_report.json",
+      "bytes": 164113,
+      "sha256": "a26c29eab57097c598bb9a86ce1bf30bd94134e3b0f281c13add7c0a15d3e15a"
+    },
+    {
+      "path": "benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_bf16_wsl_cpu/parity_branch_report.json",
+      "bytes": 58645,
+      "sha256": "eca6ef32c708580d4dcda4584b4f5fe811bbe37a6f28dc606b053949a8c7db44"
+    },
+    {
+      "path": "benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_bf16_wsl_cpu/profile20_branch_report.json",
+      "bytes": 110420,
+      "sha256": "2dbe6ca73a3f009c5a6de26500eb7f585fd7dd732f079d8730c892ef40ee42f8"
+    }
+  ],
+  "accepted": true,
+  "greedy_exact_prompts": 12,
+  "measured_requests": 20
+}

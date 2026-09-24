@@ -1,0 +1,86 @@
+{
+  "scope": "one two-frame Qwen3-TTS vocoder component on hosted S25; no complete stream",
+  "status": "component_inference_numeric_and_placement_measured",
+  "device": {
+    "name": "Samsung Galaxy S25",
+    "os": "15",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8-elite-for-galaxy",
+      "chipset:sm8750-ac",
+      "hexagon:v79",
+      "soc-model:69",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mng2vv4em",
+  "target_model_id": "mq9yrr5yn",
+  "input_dataset_id": "d7ovqp0w2",
+  "jobs": {
+    "compile": "j56876x7g",
+    "inference": "j57e4zzrp",
+    "profile": "jpxl4jo1p"
+  },
+  "route": {
+    "compile_options": "--target_runtime tflite",
+    "run_options": "--compute_unit gpu"
+  },
+  "files": {
+    "fixture": {
+      "bytes": 129614,
+      "sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55"
+    },
+    "ort_cpu": {
+      "bytes": 14813,
+      "sha256": "989307db317d77be054f684211ae0c6a2fd24d93bcd74307c597fed430ba2a37"
+    },
+    "eager_cpu": {
+      "bytes": 14818,
+      "sha256": "542113d24feeb4ff58b895ce7d96fc7aa5240b046a3a0d1d3922c7ab23ea0a7c"
+    },
+    "device_output": {
+      "bytes": 9294,
+      "sha256": "fd62eff1aded00728b08418003a0165676b0399bca91b47398e7f54ff0e84c03"
+    }
+  },
+  "ort_cpu_vs_device": {
+    "relative_l2": 0.02325155074513613,
+    "snr_db": 32.67096153711811,
+    "max_abs": 0.008096754550933838,
+    "reference_rms": 0.04131374650145444,
+    "output_rms": 0.041393810541143945,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "eager_cpu_vs_device": {
+    "relative_l2": 0.023249718394146676,
+    "snr_db": 32.67164606030534,
+    "max_abs": 0.008095551282167435,
+    "reference_rms": 0.04131376905845152,
+    "output_rms": 0.041393810541143945,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "limits": [
+    "One fixed two-frame waveform has no listening-quality tolerance.",
+    "The 72-frame input history, talker, predictor and stage handoff did not run on the device.",
+    "No persistent state, admission, cancellation or complete TTS stream was tested."
+  ],
+  "profile": {
+    "sample_count": 100,
+    "min_us": 414816,
+    "nearest_rank_p50_us": 559081,
+    "nearest_rank_p95_us": 1051787,
+    "reported_peak_memory_bytes": 379121664,
+    "compute_unit_row_counts": {
+      "CPU": 403,
+      "GPU": 335
+    },
+    "profile_input": "Workbench generated input with audited tensor shape; the waveform inference used the retained fixture"
+  }
+}

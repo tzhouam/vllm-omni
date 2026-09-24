@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-24T04:40:12.164649+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mq3xre4rq",
+  "device": "Samsung Galaxy S25",
+  "options": "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "jgolry1kg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgolry1kg/"
+}

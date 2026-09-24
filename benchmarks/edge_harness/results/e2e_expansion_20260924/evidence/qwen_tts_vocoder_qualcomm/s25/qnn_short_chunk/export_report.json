@@ -1,0 +1,49 @@
+{
+  "scope": "one synthetic first short vocoder window; no device execution or complete TTS stream",
+  "model_snapshot": "/home/zhout/.cache/huggingface/hub/models--Qwen--Qwen3-TTS-12Hz-0.6B-CustomVoice/snapshots/85e237c12c027371202489a0ec509ded67b5e4b5",
+  "model_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "source_fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "long_cpu_reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "context_frames": 72,
+  "chunk_frames": 2,
+  "input_shape": [
+    1,
+    512,
+    74
+  ],
+  "output_shape": [
+    1,
+    3840
+  ],
+  "export_s_not_inference": 7.429020452953409,
+  "onnx_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "short_fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "eager_output_sha256": "542113d24feeb4ff58b895ce7d96fc7aa5240b046a3a0d1d3922c7ab23ea0a7c",
+  "ort_output_sha256": "989307db317d77be054f684211ae0c6a2fd24d93bcd74307c597fed430ba2a37",
+  "ort_vs_eager": {
+    "relative_l2": 2.9623994746865784e-06,
+    "snr_db": 110.56712755941491,
+    "max_abs": 1.3685785233974457e-06,
+    "reference_rms": 0.04131376905845152,
+    "output_rms": 0.04131374650145444
+  },
+  "short_eager_vs_25_frame_prefix": {
+    "relative_l2": 2.826486997305525e-06,
+    "snr_db": 110.97506016170293,
+    "max_abs": 1.3941898941993713e-06,
+    "reference_rms": 0.04131374658894702,
+    "output_rms": 0.04131376905845152
+  },
+  "limits": [
+    "The short-window graph still requires its prior 72 quantized frames from a model adapter.",
+    "Prefix agreement is tested on one retained synthetic fixture, not a speech-quality set.",
+    "CPU export parity does not establish target compilation, placement or memory admission."
+  ],
+  "model_snapshot_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "torch_version": "2.13.0+cpu",
+  "onnx_version": "1.22.0",
+  "onnxruntime_version": "1.29.0",
+  "actual_opsets": {
+    "ai.onnx": 18
+  }
+}

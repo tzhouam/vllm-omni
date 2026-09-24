@@ -1,0 +1,23 @@
+{
+  "status": "verified",
+  "repo": "XHToken/Spark-X2.5-1.7B",
+  "revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+  "format": "dense BF16 safetensors",
+  "index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "config_sha256": "16aa5d3619d0d893e7157f2499675430844eb7b383c80ecc1b3e8e8928a75d52",
+  "files": [
+    {
+      "file": "model-00001-of-00002.safetensors",
+      "bytes": 1997108320,
+      "sha256": "b1629719b3f6de5de922abb3c90e45927550dd6f790f43030dc812cafce1af87",
+      "tensor_count": 116
+    },
+    {
+      "file": "model-00002-of-00002.safetensors",
+      "bytes": 1418232176,
+      "sha256": "3537675bfb657cb6d1f70bb1fab9b83fcb79ce5693f2557992548eb6d2bf13a0",
+      "tensor_count": 110
+    }
+  ],
+  "weights_outside_git": true
+}

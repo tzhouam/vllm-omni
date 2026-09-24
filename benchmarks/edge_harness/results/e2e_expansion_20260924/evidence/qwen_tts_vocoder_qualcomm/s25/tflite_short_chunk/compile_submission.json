@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-24T05:04:49.276829+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mng2vv4em",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "device": "Samsung Galaxy S25",
+  "options": "--target_runtime tflite",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "j56876x7g",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/j56876x7g/"
+}
