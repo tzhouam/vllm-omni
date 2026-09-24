@@ -1,0 +1,95 @@
+{
+  "status": "audited_scoped_e2e",
+  "evidence_depth": "P: WSL CPU Omni complete text and synthetic-image requests",
+  "checkpoint": "ggml-org/Qwen3.8-27B-GGUF",
+  "revision": "efbb3b1f70a21d97fd4495240648405f7228554f",
+  "quantization": "Q4_K_M language model + Q8_0 vision projector",
+  "model_sha256": "c600de0300ae8a0eb3a6c0b8b5561b8b96f16bd2c863c2a66c42de29d391a747",
+  "mmproj_sha256": "2e968a6af97ce35d8971890b257b9b7edabf20ad91450501fa53162a19ee33eb",
+  "server_sha256": "0d6bb6ade8da8f3231917ce23261da5331333df0007dc4bda74c00e0774e092c",
+  "host": "Ryzen AI 9 HX 370, Ubuntu 26.04 on WSL2, 30.91 GiB WSL RAM quota",
+  "runtime": "Omni checkout through Linux vLLM 0.29; llama.cpp b10849 CPU-only build, --no-repack",
+  "scope": "2048 context, 128 max new tokens, concurrency one, one 96x96 red PNG and one short text instruction",
+  "startup_s": 11.45404783997219,
+  "reserved_host_ram_bytes": 25769803776,
+  "loaded_rss_bytes": 20026531840,
+  "timing": {
+    "text": {
+      "n": 20,
+      "p50_s": 1.9337806559633464,
+      "p95_s": 1.983029014954809,
+      "min_s": 1.8979981419979595,
+      "max_s": 2.0445767869823612
+    },
+    "image": {
+      "n": 20,
+      "p50_s": 3.6416604099795222,
+      "p95_s": 3.788667813001666,
+      "min_s": 3.564662608958315,
+      "max_s": 3.81039645295823
+    }
+  },
+  "files": {
+    "hardware_runtime.json": {
+      "bytes": 627,
+      "sha256": "df65f32090c0f0ff3bf3db6cb2b8e3060138ee3136bff9074d4da60f3eec3958"
+    },
+    "profile20.driver.log": {
+      "bytes": 608,
+      "sha256": "ecc46c7d39d9d8e84cd860579d48b305fecb2a5fd50b1e2475865e82ca84f849"
+    },
+    "profile20.json": {
+      "bytes": 32936,
+      "sha256": "d81554c7f7d8e9e782f5b99b0716a5ca60d3fd1eacd0a5366e413ca6f8931b64"
+    },
+    "profile20.server.log": {
+      "bytes": 144420,
+      "sha256": "0324cff765b7ca890ad994b66a634233ce4ff19a956ea1d54c2c0402d7fa056e"
+    },
+    "smoke.driver.log": {
+      "bytes": 1541,
+      "sha256": "3e9046f4b6cf81c9510e73d3e61d48dc4cdee6414ab81e74950f5aa4a9e8f345"
+    },
+    "smoke.json": {
+      "bytes": 557,
+      "sha256": "d05ba97947654feed445b47cd5d043500f452612d0dd97c0f797181c4e8324cf"
+    },
+    "smoke2.driver.log": {
+      "bytes": 1541,
+      "sha256": "7d6e4c2bf144315044991bbcf7dc5ef6e1d6e1927d693f86b9df188d1e0fc9e4"
+    },
+    "smoke2.json": {
+      "bytes": 557,
+      "sha256": "fb197382bc717af111c54d26464f682897f7fdbd3cb4aafea2b1b5b7377c3486"
+    },
+    "smoke3.driver.log": {
+      "bytes": 6058,
+      "sha256": "402d41f730c3cb64d6caea2522f39263d231139d9b12f78001a1e81809d70da9"
+    },
+    "smoke3.json": {
+      "bytes": 728,
+      "sha256": "6e472ab0816f9c9b1cfe220636b318c1697c94386276869b58bb80c14c464591"
+    },
+    "smoke3.server.log": {
+      "bytes": 19265,
+      "sha256": "cc6919d965657beb5ea5ef279a590449293b6121cf8ea42689f3e8a1e20ff047"
+    },
+    "smoke4.driver.log": {
+      "bytes": 608,
+      "sha256": "88e7a14179c1ecc860b0e4a7c1a74081cb84fc424f42d6a0af0ff109804a7b54"
+    },
+    "smoke4.json": {
+      "bytes": 6366,
+      "sha256": "24dd653a4ffaf392a828a394d243758af83c194f97606f6e064a45319d8f73db"
+    },
+    "smoke4.server.log": {
+      "bytes": 35797,
+      "sha256": "6f765837700c4210378d4128fae8781e3a7fe0616513ce4d88eac073307910ca"
+    }
+  },
+  "limits": [
+    "The prompts produce two completion tokens; long-context, 128-token output and broad quality remain unqualified.",
+    "No public AsyncOmni, cancellation/restart, sampled loading/request memory peak, concurrency or sustained power/thermal profile was run.",
+    "The WSL quota, no-repack option and Linux llama.cpp b10849 differ from the native Windows CPU setup; latencies are not a paired OS comparison."
+  ]
+}

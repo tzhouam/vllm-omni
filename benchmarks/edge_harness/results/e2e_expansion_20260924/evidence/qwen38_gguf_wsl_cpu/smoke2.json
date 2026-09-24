@@ -1,0 +1,11 @@
+{
+  "scope": "one pinned Qwen3.8 27B Q4_K_M GGUF + Q8 vision projector through Omni whole-session llama.cpp",
+  "device": "cpu",
+  "available_host_ram_before_bytes": 29934391296,
+  "reserved_host_ram_bytes": 30064771072,
+  "repeats": 1,
+  "model_file": "/home/zhout/project/edge_infer/models/Qwen3.8-27B-GGUF/Qwen3.8-27B-Q4_K_M.gguf",
+  "mmproj_file": "/home/zhout/project/edge_infer/models/Qwen3.8-27B-GGUF/mmproj-Qwen3.8-27B-Q8_0.gguf",
+  "status": "failed",
+  "error": "MemoryError: available native host RAM is below the declared Qwen3.8 reservation"
+}

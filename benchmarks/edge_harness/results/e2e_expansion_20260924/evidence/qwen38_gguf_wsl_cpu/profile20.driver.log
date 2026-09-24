@@ -1,0 +1,6 @@
+INFO 09-24 18:09:18 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 18:09:18 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 18:09:18 [patch.py:589] [cumem-cuda] CuMemAllocator._python_free_callback patched: asleep guard extended to all platforms.
+INFO 09-24 18:09:19 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+WARNING 09-24 18:09:19 [stage_init_utils.py:1887] [stage_init] Failed to load transfer config: [Errno 21] Is a directory: '/home/zhout/project/edge_infer/vllm-omni-edge'
+{"status": "completed", "error": null}

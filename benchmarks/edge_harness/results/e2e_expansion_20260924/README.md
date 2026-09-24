@@ -56,6 +56,16 @@ artifact hashes, CPU/Radeon model and vision placement, and ledger release
 were checked. These two-token responses do not settle long-context quality,
 memory peaks, public entrypoint, cancellation or sustained performance.
 
+The same pinned model also passed a [WSL CPU no-repack Omni profile](evidence/qwen38_gguf_wsl_cpu/README.md).
+Two 28 GiB pre-admission refusals and a 27 GiB loaded-RSS refusal were
+retained. Disabling llama.cpp's CPU weight repacking removed a 9,180 MiB
+buffer, allowing an explicit 24 GiB reservation within WSL's 30.91 GiB quota.
+One warmup of each type plus 20/20 text and 20/20 image requests passed at
+nearest-rank p50/p95 **1.934/1.983 s text** and **3.642/3.789 s image**.
+The Linux CPU-only server build, quota and no-repack setting differ from the
+native Windows runs, so these are distinct configurations rather than a paired
+OS speed comparison.
+
 A [native Windows RTX Qwen3-TTS Omni hybrid run](evidence/qwen_tts_windows_rtx/README.md)
 adds a separate GGUF/Vulkan complete-WAV path with RTX talker/codec and CPU
 FP32 code predictor. Two named requests, 20/20 serial outputs, public audio,

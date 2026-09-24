@@ -155,6 +155,8 @@ class LlamaCppTextStageClient(StageClientBase):
                 "--reasoning", "off", "--no-webui", "--fit", "off",
                 "--cache-ram", "0", "-lv", "4",
             ]
+            if config.get("disable_repack", False):
+                command.append("--no-repack")
             if self._mmproj is not None:
                 command.extend(["--mmproj", str(self._mmproj)])
                 if self._placement == "cpu":
@@ -243,6 +245,7 @@ class LlamaCppTextStageClient(StageClientBase):
                 "reserved_bytes": dict(reservation.demands),
                 "memory_pool": self._memory_pool,
                 "memory_overhead_bytes": overhead,
+                "disable_repack": bool(config.get("disable_repack", False)),
                 "context_tokens": self._context_tokens,
                 "max_new_tokens": self._max_new_tokens,
                 "max_io_bytes": self._max_io_bytes,

@@ -25,6 +25,7 @@ async def main() -> None:
         parser.add_argument("--" + key.replace("_", "-"), required=True)
     parser.add_argument("--expected-device-name")
     parser.add_argument("--ggml-vk-visible-devices")
+    parser.add_argument("--no-repack", action="store_true")
     parser.add_argument("--reserve-gib", type=int, default=28)
     parser.add_argument("--repeats", type=int, default=1)
     args = parser.parse_args()
@@ -65,6 +66,7 @@ async def main() -> None:
             "device": args.device,
             "expected_device_name": args.expected_device_name,
             "ggml_vk_visible_devices": args.ggml_vk_visible_devices,
+            "disable_repack": args.no_repack,
             "context_tokens": 2048,
             "max_new_tokens": 128,
             "max_io_bytes": 1 << 20,

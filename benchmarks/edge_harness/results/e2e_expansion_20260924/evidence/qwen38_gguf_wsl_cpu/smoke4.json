@@ -1,0 +1,236 @@
+{
+  "scope": "one pinned Qwen3.8 27B Q4_K_M GGUF + Q8 vision projector through Omni whole-session llama.cpp",
+  "device": "cpu",
+  "available_host_ram_before_bytes": 29979381760,
+  "reserved_host_ram_bytes": 25769803776,
+  "repeats": 1,
+  "model_file": "/home/zhout/project/edge_infer/models/Qwen3.8-27B-GGUF/Qwen3.8-27B-Q4_K_M.gguf",
+  "mmproj_file": "/home/zhout/project/edge_infer/models/Qwen3.8-27B-GGUF/mmproj-Qwen3.8-27B-Q8_0.gguf",
+  "startup_s": 25.010701490973588,
+  "execution_plan": {
+    "backend": "external.llamacpp.multimodal.v1",
+    "stage_id": 0,
+    "worker_generation": "b9aa9595fd0f48b081c982d1cb597a69",
+    "model_sha256": "c600de0300ae8a0eb3a6c0b8b5561b8b96f16bd2c863c2a66c42de29d391a747",
+    "mmproj_sha256": "2e968a6af97ce35d8971890b257b9b7edabf20ad91450501fa53162a19ee33eb",
+    "server_sha256": "0d6bb6ade8da8f3231917ce23261da5331333df0007dc4bda74c00e0774e092c",
+    "model_alias": "/home/zhout/project/edge_infer/models/Qwen3.8-27B-GGUF/Qwen3.8-27B-Q4_K_M.gguf",
+    "requested_device": "cpu",
+    "expected_device_name": null,
+    "layer_assignments": 0,
+    "offloaded_layers": null,
+    "model_buffer_devices": [],
+    "all_model_buffers": [
+      "CPU_Mapped"
+    ],
+    "vision_backends": [
+      "CPU"
+    ],
+    "cpu_only_layout": true,
+    "worker_pid": 346310,
+    "loaded_rss_bytes": 20026560512,
+    "reserved_bytes": {
+      "host_ram": 25769803776
+    },
+    "memory_pool": "host_ram",
+    "memory_overhead_bytes": 4294967296,
+    "disable_repack": true,
+    "context_tokens": 2048,
+    "max_new_tokens": 128,
+    "max_io_bytes": 1048576,
+    "max_image_bytes": 262144,
+    "image_token_reserve": 512,
+    "request_capacity": 1,
+    "stateful_session": "llama.cpp-owned; reset for each complete request",
+    "evidence": "B"
+  },
+  "checks": [
+    {
+      "kind": "text",
+      "wall_s": 1.958196632040199,
+      "answer": "ready",
+      "expected": "ready",
+      "stage_event": {
+        "request_id": "text-493858057328167",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "b9aa9595fd0f48b081c982d1cb597a69",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 1.946947110001929,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "wall_s": 3.556307617982384,
+      "answer": "Red",
+      "expected": "Red",
+      "stage_event": {
+        "request_id": "image-493860015612375",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "b9aa9595fd0f48b081c982d1cb597a69",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 3.5440641850000247,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 37,
+          "total_tokens": 39,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "text_warmup": {
+    "kind": "text",
+    "wall_s": 1.9051429200335406,
+    "answer": "ready",
+    "expected": "ready",
+    "stage_event": {
+      "request_id": "text-493863571993703",
+      "stage_id": 0,
+      "epoch": 3,
+      "seq": 1,
+      "kind": "text",
+      "worker_generation": "b9aa9595fd0f48b081c982d1cb597a69",
+      "buffers": [],
+      "terminal": true,
+      "error": null
+    },
+    "metrics": {
+      "llamacpp_wall_s": 1.8953040880151093,
+      "usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 19,
+        "total_tokens": 21,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  },
+  "text_measured": [
+    {
+      "kind": "text",
+      "wall_s": 1.9479502299800515,
+      "answer": "ready",
+      "expected": "ready",
+      "stage_event": {
+        "request_id": "text-493865477197598",
+        "stage_id": 0,
+        "epoch": 4,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "b9aa9595fd0f48b081c982d1cb597a69",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 1.939045864972286,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "nearest_rank_p50_text_wall_s": 1.9479502299800515,
+  "nearest_rank_p95_text_wall_s": 1.9479502299800515,
+  "image_warmup": {
+    "kind": "image",
+    "wall_s": 3.6417471549939364,
+    "answer": "Red",
+    "expected": "Red",
+    "stage_event": {
+      "request_id": "image-493867425252186",
+      "stage_id": 0,
+      "epoch": 5,
+      "seq": 1,
+      "kind": "text",
+      "worker_generation": "b9aa9595fd0f48b081c982d1cb597a69",
+      "buffers": [],
+      "terminal": true,
+      "error": null
+    },
+    "metrics": {
+      "llamacpp_wall_s": 3.629429625987541,
+      "usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 37,
+        "total_tokens": 39,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  },
+  "image_measured": [
+    {
+      "kind": "image",
+      "wall_s": 3.647124751994852,
+      "answer": "Red",
+      "expected": "Red",
+      "stage_event": {
+        "request_id": "image-493871067080776",
+        "stage_id": 0,
+        "epoch": 6,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "b9aa9595fd0f48b081c982d1cb597a69",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 3.640121451986488,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 37,
+          "total_tokens": 39,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "nearest_rank_p50_image_wall_s": 3.647124751994852,
+  "nearest_rank_p95_image_wall_s": 3.647124751994852,
+  "status": "completed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 29979381760
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

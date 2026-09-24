@@ -1,0 +1,62 @@
+INFO 09-24 18:06:08 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 18:06:08 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 18:06:08 [patch.py:589] [cumem-cuda] CuMemAllocator._python_free_callback patched: asleep guard extended to all platforms.
+INFO 09-24 18:06:09 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+WARNING 09-24 18:06:09 [stage_init_utils.py:1887] [stage_init] Failed to load transfer config: [Errno 21] Is a directory: '/home/zhout/project/edge_infer/vllm-omni-edge'
+ERROR 09-24 18:06:53 [stage_runtime.py:265] [StageRuntime] Stage initialization failed; shutting down 0 initialized client(s)
+ERROR 09-24 18:06:53 [stage_runtime.py:265] Traceback (most recent call last):
+ERROR 09-24 18:06:53 [stage_runtime.py:265]   File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 252, in initialize
+ERROR 09-24 18:06:53 [stage_runtime.py:265]     initialized_clients = self._initialize_stage_replicas(stage_plans, self._stage_init_timeout)
+ERROR 09-24 18:06:53 [stage_runtime.py:265]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 09-24 18:06:53 [stage_runtime.py:265]   File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 589, in _initialize_stage_replicas
+ERROR 09-24 18:06:53 [stage_runtime.py:265]     raise primary_exc
+ERROR 09-24 18:06:53 [stage_runtime.py:265]   File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 550, in _init_group
+ERROR 09-24 18:06:53 [stage_runtime.py:265]     client = self._initialize_replica(
+ERROR 09-24 18:06:53 [stage_runtime.py:265]              ^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 09-24 18:06:53 [stage_runtime.py:265]   File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 817, in _initialize_replica
+ERROR 09-24 18:06:53 [stage_runtime.py:265]     return create_graph_client(
+ERROR 09-24 18:06:53 [stage_runtime.py:265]            ^^^^^^^^^^^^^^^^^^^^
+ERROR 09-24 18:06:53 [stage_runtime.py:265]   File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/backends/__init__.py", line 19, in create_graph_client
+ERROR 09-24 18:06:53 [stage_runtime.py:265]     return LlamaCppMultimodalStageClient(metadata, backend, ledger, reservation)
+ERROR 09-24 18:06:53 [stage_runtime.py:265]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ERROR 09-24 18:06:53 [stage_runtime.py:265]   File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/backends/llamacpp.py", line 466, in __init__
+ERROR 09-24 18:06:53 [stage_runtime.py:265]     super().__init__(metadata, config, ledger, reservation)
+ERROR 09-24 18:06:53 [stage_runtime.py:265]   File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/backends/llamacpp.py", line 224, in __init__
+ERROR 09-24 18:06:53 [stage_runtime.py:265]     raise ResourceUnavailable("loaded llama.cpp process RSS exceeds stage reservation")
+ERROR 09-24 18:06:53 [stage_runtime.py:265] vllm_omni.engine.resource_ledger.ResourceUnavailable: loaded llama.cpp process RSS exceeds stage reservation
+{"status": "failed", "error": "ResourceUnavailable: loaded llama.cpp process RSS exceeds stage reservation"}
+Traceback (most recent call last):
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_omni_llamacpp_qwen38.py", line 151, in <module>
+    asyncio.run(main())
+  File "/home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_omni_llamacpp_qwen38.py", line 86, in main
+    runtime.initialize()
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 278, in initialize
+    raise exc
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 252, in initialize
+    initialized_clients = self._initialize_stage_replicas(stage_plans, self._stage_init_timeout)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 589, in _initialize_stage_replicas
+    raise primary_exc
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 550, in _init_group
+    client = self._initialize_replica(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/stage_runtime.py", line 817, in _initialize_replica
+    return create_graph_client(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/backends/__init__.py", line 19, in create_graph_client
+    return LlamaCppMultimodalStageClient(metadata, backend, ledger, reservation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/backends/llamacpp.py", line 466, in __init__
+    super().__init__(metadata, config, ledger, reservation)
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/engine/backends/llamacpp.py", line 224, in __init__
+    raise ResourceUnavailable("loaded llama.cpp process RSS exceeds stage reservation")
+vllm_omni.engine.resource_ledger.ResourceUnavailable: loaded llama.cpp process RSS exceeds stage reservation

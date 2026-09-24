@@ -1,0 +1,14 @@
+{
+  "captured_utc": "2026-09-24T10:12:23Z",
+  "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "kernel": "6.18.33.2-microsoft-standard-WSL2",
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+  "wsl_memory_total_bytes": 33184976896,
+  "wsl_memory_available_after_profile_bytes": 31320154112,
+  "vllm_package": "0.29.0",
+  "omni_package": "0.29.0rc2.dev71+g00510ce38.d20260922",
+  "llama_cpp_build": 10849,
+  "llama_cpp_commit": "e71b80510",
+  "server_sha256": "0d6bb6ade8da8f3231917ce23261da5331333df0007dc4bda74c00e0774e092c",
+  "gpu_visibility": "CUDA_VISIBLE_DEVICES empty; server -dev none -ngl 0"
+}

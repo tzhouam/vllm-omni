@@ -1,0 +1,19 @@
+INFO 09-24 18:04:39 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 18:04:39 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 18:04:39 [patch.py:589] [cumem-cuda] CuMemAllocator._python_free_callback patched: asleep guard extended to all platforms.
+{"status": "failed", "error": "MemoryError: available native host RAM is below the declared Qwen3.8 reservation"}
+Traceback (most recent call last):
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_omni_llamacpp_qwen38.py", line 151, in <module>
+    asyncio.run(main())
+  File "/home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_omni_llamacpp_qwen38.py", line 55, in main
+    raise MemoryError("available native host RAM is below the declared Qwen3.8 reservation")
+MemoryError: available native host RAM is below the declared Qwen3.8 reservation
