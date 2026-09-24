@@ -1,0 +1,13 @@
+{
+  "scope": "one generated-code two-frame NPU-prefix plus CPU-suffix waveform against long CPU decode",
+  "model_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "source_25_frame_onnx_sha256": "01ee1cd02e5cd264200e5c50767a1805a6180378b051ff9b7ec0d8b6c75d7989",
+  "long_reference_sha256": "df4ad896c62a0d621c9bc48120f929d3561666359a570068b01a3228354411a0",
+  "handoff_report_sha256": "55df6b18041609f62ab44633b201eaeeb7844f2a4e00070df3a4474c75411af0",
+  "waveforms_sha256": "75df66b6406ffdb92734ad66bfe31837b934163c5347b54ce64636de34bd2532",
+  "start_frame": 23,
+  "cpu_short_vs_long_relative_l2": 3.9668146832961854e-07,
+  "npu_prefix_cpu_suffix_vs_long_relative_l2": 0.00012117981004649706,
+  "zero_boundary_cpu_suffix_vs_long_relative_l2": 0.01997784229777524,
+  "status": "one_window_numerical_audit"
+}

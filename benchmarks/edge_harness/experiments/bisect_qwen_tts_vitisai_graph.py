@@ -83,7 +83,8 @@ def probe(args: argparse.Namespace) -> None:
             raise ValueError("fixture hash changed")
         with np.load(args.fixture, allow_pickle=False) as source:
             quantized = np.ascontiguousarray(source["quantized"])
-        if quantized.shape != (1, 512, 74) or quantized.dtype != np.float32:
+        if (quantized.ndim != 3 or quantized.shape[:2] != (1, 512)
+                or quantized.shape[2] <= 0 or quantized.dtype != np.float32):
             raise ValueError("fixture shape/dtype changed")
         fixture_hash = args.expected_fixture_sha256
     report.update({
@@ -96,6 +97,8 @@ def probe(args: argparse.Namespace) -> None:
     write_report(args.report, report)
     cpu = ort.InferenceSession(str(args.model), providers=["CPUExecutionProvider"])
     cpu_input = cpu.get_inputs()[0]
+    if quantized is not None and cpu_input.shape != list(quantized.shape):
+        raise ValueError("candidate ONNX input shape differs from pinned fixture")
     if args.synthetic_input:
         shape = cpu_input.shape
         if any(not isinstance(size, int) or size <= 0 for size in shape):

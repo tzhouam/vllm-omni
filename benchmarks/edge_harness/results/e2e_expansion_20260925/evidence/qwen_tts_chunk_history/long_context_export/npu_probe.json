@@ -1,0 +1,60 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "235da9f3bc3828255442b7e21215e6935963f564849b1fbcc942550cf351e721",
+  "source_node_count": 717,
+  "cut_one_based": 105,
+  "terminal_node": "node_Add_340",
+  "terminal_op": "Add",
+  "terminal_output": "val_340",
+  "boundary_inputs": [
+    "quantized"
+  ],
+  "extracted_node_count": 102,
+  "extracted_ops": {
+    "Conv": 1,
+    "Transpose": 9,
+    "MatMul": 13,
+    "Add": 12,
+    "And": 4,
+    "Pow": 3,
+    "ReduceMean": 3,
+    "Sqrt": 3,
+    "Reciprocal": 3,
+    "Mul": 22,
+    "Reshape": 10,
+    "Slice": 8,
+    "Neg": 4,
+    "Concat": 4,
+    "Where": 1,
+    "Softmax": 1,
+    "Sigmoid": 1
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 16\n    }\n    dim {\n      dim_value: 97\n    }\n    dim {\n      dim_value: 97\n    }\n  }\n}\n",
+  "candidate_file": "/home/zhout/project/edge_infer/models/qwen3tts_vitisai_cut105_ctx95_20260925.onnx",
+  "candidate_bytes": 27658429,
+  "candidate_sha256": "1c894d26988d556a23d8ac586bd5a3fee8d4150a16db877a14d0b8032b3c8c5a",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "fixture_sha256": "4220eec4ee00e5fbb0df6f195d883c6d4549accf399853c3a8e2f83821724452",
+  "input_provenance": "pinned real-weight vocoder fixture",
+  "status": "npu_component_numeric_pass",
+  "cpu_output_shape": [
+    1,
+    16,
+    97,
+    97
+  ],
+  "cpu_output_finite": true,
+  "cpu_inference_s": 0.005274299997836351,
+  "vitisai_npu_device_count": 1,
+  "vitisai_session_create_s": 348.46048310003243,
+  "vitisai_inference_s": 0.007486900081858039,
+  "vitisai_output_finite": true,
+  "relative_l2_vs_cpu": 0.003906190628182335,
+  "paired_output_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\qwen_tts_chunk_history\\long_context_export\\paired_outputs.npz",
+  "paired_output_sha256": "8c08ecaf3ccdfff6c2250ff88a5b07ae5503e012fd4e53ab84ae590f2ce4932d",
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\qwen_tts_chunk_history\\long_context_export\\npu_profile_2026-09-25_02-07-49_953.json",
+  "node_providers": {
+    "vitisai": 1
+  }
+}

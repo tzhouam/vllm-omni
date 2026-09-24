@@ -1,0 +1,24 @@
+{
+  "host": "HX370 laptop",
+  "os": "Windows 11",
+  "os_build": "26200",
+  "npu_device": "NPU Compute Accelerator Device",
+  "npu_driver": "32.0.203.329",
+  "ort": "1.30.0",
+  "provider": "VitisAI",
+  "ep_package": "WindowsWorkload.EP.AMD.VitisAI.Framework.1.8",
+  "ep_version": "1.8.63.0",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "precision": "FP32 ONNX source with provider selected internal precision",
+  "input_shape": [
+    1,
+    512,
+    97
+  ],
+  "output_shape": [
+    1,
+    3840
+  ],
+  "concurrency": 1,
+  "power_condition": "uncontrolled; no power measurement"
+}

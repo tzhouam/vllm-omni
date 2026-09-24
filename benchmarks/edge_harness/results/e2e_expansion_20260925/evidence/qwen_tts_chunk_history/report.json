@@ -1,0 +1,67 @@
+{
+  "scope": "one generated-code later two-frame CPU history sweep; no NPU, stream or performance profile",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "source_25_frame_onnx_sha256": "01ee1cd02e5cd264200e5c50767a1805a6180378b051ff9b7ec0d8b6c75d7989",
+  "fixture_sha256": "4220eec4ee00e5fbb0df6f195d883c6d4549accf399853c3a8e2f83821724452",
+  "long_reference_sha256": "df4ad896c62a0d621c9bc48120f929d3561666359a570068b01a3228354411a0",
+  "start_frame": 23,
+  "threads": 4,
+  "torch_version": "2.13.0+cpu",
+  "outputs_sha256": "7384e21d5b434375b03a680e7c1063c4d4a333c51a0d8ee62f343f56ee7e0aa3",
+  "rows": [
+    {
+      "history_frames": 72,
+      "window_start_frame": 23,
+      "window_end_exclusive_frame": 97,
+      "input_shape": [
+        1,
+        512,
+        74
+      ],
+      "waveform_relative_l2_vs_long_25_frame_cpu": 0.03512401154656899,
+      "waveform_max_abs_vs_long_25_frame_cpu": 0.012329250574111938,
+      "one_eager_forward_s_not_profile": 2.0196516810101457
+    },
+    {
+      "history_frames": 80,
+      "window_start_frame": 15,
+      "window_end_exclusive_frame": 97,
+      "input_shape": [
+        1,
+        512,
+        82
+      ],
+      "waveform_relative_l2_vs_long_25_frame_cpu": 0.020814066796301878,
+      "waveform_max_abs_vs_long_25_frame_cpu": 0.01074889488518238,
+      "one_eager_forward_s_not_profile": 2.0469160359934904
+    },
+    {
+      "history_frames": 88,
+      "window_start_frame": 7,
+      "window_end_exclusive_frame": 97,
+      "input_shape": [
+        1,
+        512,
+        90
+      ],
+      "waveform_relative_l2_vs_long_25_frame_cpu": 0.009132404367245705,
+      "waveform_max_abs_vs_long_25_frame_cpu": 0.004905629903078079,
+      "one_eager_forward_s_not_profile": 2.48672672099201
+    },
+    {
+      "history_frames": 95,
+      "window_start_frame": 0,
+      "window_end_exclusive_frame": 97,
+      "input_shape": [
+        1,
+        512,
+        97
+      ],
+      "waveform_relative_l2_vs_long_25_frame_cpu": 1.5555186074281366e-06,
+      "waveform_max_abs_vs_long_25_frame_cpu": 1.1064112186431885e-06,
+      "one_eager_forward_s_not_profile": 2.55585283896653
+    }
+  ],
+  "status": "cpu_history_sweep_pass"
+}

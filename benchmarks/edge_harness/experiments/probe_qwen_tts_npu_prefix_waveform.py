@@ -42,7 +42,9 @@ def main() -> None:
 
     extraction = json.loads(args.prefix_report.read_text(encoding="utf-8-sig"))
     observed = json.loads(args.npu_report.read_text(encoding="utf-8-sig"))
-    if (extraction["cut_one_based"] != 100 or extraction["terminal_output"] != "val_340"
+    boundary_name = extraction["terminal_output"]
+    if (extraction["cut_one_based"] not in (100, 105)
+            or boundary_name != "val_340"
             or extraction["source_sha256"] != sha256(args.source)
             or extraction["candidate_sha256"] != sha256(args.prefix_model)
             or observed["candidate_sha256"] != extraction["candidate_sha256"]
@@ -58,9 +60,12 @@ def main() -> None:
     with np.load(args.paired_output, allow_pickle=False) as pair:
         cpu_boundary = np.ascontiguousarray(pair["cpu"])
         npu_boundary = np.ascontiguousarray(pair["npu"])
-    if (values.shape != (1, 512, 74) or values.dtype != np.float32
+    if (values.shape not in ((1, 512, 74), (1, 512, 97))
+            or values.dtype != np.float32
             or reference_wave.shape != (1, 3840)
-            or cpu_boundary.shape != npu_boundary.shape != (1, 16, 74, 74)
+            or cpu_boundary.shape != npu_boundary.shape
+            or cpu_boundary.ndim != 4 or cpu_boundary.shape[:2] != (1, 16)
+            or cpu_boundary.shape[2:] != (values.shape[2], values.shape[2])
             or not np.isfinite(npu_boundary).all()):
         raise ValueError("fixed two-frame Code2Wav input/output contract changed")
 
@@ -73,7 +78,7 @@ def main() -> None:
         input_name = source.graph.input[0].name
         output_name = source.graph.output[0].name
         suffix = onnx.utils.Extractor(source).extract_model(
-            [input_name, extraction["terminal_output"]], [output_name]
+            [input_name, boundary_name], [output_name]
         )
         onnx.checker.check_model(suffix)
         args.suffix_output.parent.mkdir(parents=True, exist_ok=True)
@@ -81,7 +86,7 @@ def main() -> None:
     full_cpu = ort.InferenceSession(str(args.source), providers=["CPUExecutionProvider"])
     prefix_cpu = ort.InferenceSession(str(args.prefix_model), providers=["CPUExecutionProvider"])
     suffix_cpu = ort.InferenceSession(str(args.suffix_output), providers=["CPUExecutionProvider"])
-    if ({item.name for item in suffix_cpu.get_inputs()} != {input_name, "val_340"}
+    if ({item.name for item in suffix_cpu.get_inputs()} != {input_name, boundary_name}
             or [item.name for item in suffix_cpu.get_outputs()] != [output_name]):
         raise ValueError("extracted suffix contract changed")
     full = full_cpu.run(None, {input_name: values})[0]
@@ -89,13 +94,13 @@ def main() -> None:
     if relative_l2(prefix_control, cpu_boundary) > 1e-5:
         raise ValueError("captured CPU prefix differs from exact candidate")
     started = time.perf_counter()
-    cpu_wave = suffix_cpu.run(None, {input_name: values, "val_340": cpu_boundary})[0]
+    cpu_wave = suffix_cpu.run(None, {input_name: values, boundary_name: cpu_boundary})[0]
     cpu_suffix_s = time.perf_counter() - started
     started = time.perf_counter()
-    npu_wave = suffix_cpu.run(None, {input_name: values, "val_340": npu_boundary})[0]
+    npu_wave = suffix_cpu.run(None, {input_name: values, boundary_name: npu_boundary})[0]
     npu_suffix_s = time.perf_counter() - started
     zero_wave = suffix_cpu.run(None, {
-        input_name: values, "val_340": np.zeros_like(cpu_boundary)
+        input_name: values, boundary_name: np.zeros_like(cpu_boundary)
     })[0]
     if (full.shape != cpu_wave.shape or full.shape != npu_wave.shape
             or full.shape != zero_wave.shape
@@ -143,9 +148,9 @@ def main() -> None:
         calls = (
             ("cpu_full_s", full_cpu, {input_name: values}, full),
             ("cpu_suffix_s", suffix_cpu,
-             {input_name: values, "val_340": cpu_boundary}, cpu_wave),
+             {input_name: values, boundary_name: cpu_boundary}, cpu_wave),
             ("npu_captured_suffix_s", suffix_cpu,
-             {input_name: values, "val_340": npu_boundary}, npu_wave),
+             {input_name: values, boundary_name: npu_boundary}, npu_wave),
         )
         for index in range(args.profile_requests):
             for name, session, inputs, expected in (

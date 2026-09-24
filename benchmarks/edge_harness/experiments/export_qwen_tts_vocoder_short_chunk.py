@@ -2,8 +2,8 @@
 """Export and numerically gate a fixed Qwen3-TTS Code2Wav window.
 
 The retained reference graph takes 72 context frames plus 25 new frames.
-This experiment keeps the same decoder and 72-frame history while selecting
-1-25 new frames, before any device compilation or performance claim.
+This experiment keeps the same decoder while selecting 1-25 new frames and
+their explicit history, before any device compilation or performance claim.
 """
 
 from __future__ import annotations
@@ -103,16 +103,22 @@ def main() -> None:
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--chunk-frames", type=int, default=2)
     parser.add_argument("--context-frames", type=int, default=72)
+    parser.add_argument("--start-frame", type=int, default=0,
+                        help="Offset within the retained 25 generated frames")
     args = parser.parse_args()
-    if args.chunk_frames <= 0 or args.context_frames != 72 or args.chunk_frames > 25:
-        raise ValueError("this fixture supports 72 history frames and 1-25 new frames")
+    if (not 1 <= args.chunk_frames <= 25
+            or not 0 <= args.start_frame <= 25 - args.chunk_frames
+            or not 1 <= args.context_frames <= 72 + args.start_frame):
+        raise ValueError("history/new-frame window exceeds the retained 72+25 frames")
     with np.load(args.fixture, allow_pickle=False) as source:
         if source.files != ["quantized"]:
             raise ValueError("unexpected retained fixture")
         full_input = np.asarray(source["quantized"])
     if full_input.shape != (1, 512, 97) or full_input.dtype != np.float32:
         raise ValueError("retained vocoder fixture differs from expected shape/dtype")
-    short_input = np.ascontiguousarray(full_input[:, :, : args.context_frames + args.chunk_frames])
+    window_end = 72 + args.start_frame + args.chunk_frames
+    window_start = 72 + args.start_frame - args.context_frames
+    short_input = np.ascontiguousarray(full_input[:, :, window_start:window_end])
     if not np.isfinite(short_input).all():
         raise ValueError("fixture contains nonfinite values")
 
@@ -144,7 +150,10 @@ def main() -> None:
     with np.load(args.long_reference, allow_pickle=False) as reference:
         if reference.files != ["wav"] or reference["wav"].shape != (1, 48000):
             raise ValueError("long-window reference differs from retained CPU output")
-        long_prefix = np.asarray(reference["wav"][:, : expected_shape[1]])
+        long_segment = np.asarray(reference["wav"][
+            :, args.start_frame * model.hop:
+            args.start_frame * model.hop + expected_shape[1]
+        ])
     for path, key, value in (
         (args.fixture_output, "quantized", short_input),
         (args.eager_output, "wav", eager),
@@ -153,7 +162,7 @@ def main() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         np.savez_compressed(path, **{key: value})
     report = {
-        "scope": "one synthetic first short vocoder window; no device execution or complete TTS stream",
+        "scope": "one fixed short vocoder window; no device execution or complete TTS stream",
         "model_snapshot": str(args.model.resolve()),
         "model_snapshot_revision": args.model.resolve().name,
         "model_weight_sha256": sha256(args.model / "speech_tokenizer" / "model.safetensors"),
@@ -166,6 +175,9 @@ def main() -> None:
         "long_cpu_reference_sha256": sha256(args.long_reference),
         "context_frames": args.context_frames,
         "chunk_frames": args.chunk_frames,
+        "start_frame": args.start_frame,
+        "window_start_frame": window_start,
+        "window_end_exclusive_frame": window_end,
         "input_shape": list(short_input.shape),
         "output_shape": list(expected_shape),
         "export_s_not_inference": export_s,
@@ -174,17 +186,19 @@ def main() -> None:
         "eager_output_sha256": sha256(args.eager_output),
         "ort_output_sha256": sha256(args.ort_output),
         "ort_vs_eager": compare(eager, observed),
-        "short_eager_vs_25_frame_prefix": compare(long_prefix, eager),
+        "short_eager_vs_25_frame_segment": compare(long_segment, eager),
         "limits": [
-            "The short-window graph still requires its prior 72 quantized frames from a model adapter.",
-            "Prefix agreement is tested on one retained synthetic fixture, not a speech-quality set.",
+            "The short-window graph still requires its prior quantized frames from a model adapter.",
+            "Segment agreement is tested on one retained fixture, not a speech-quality set.",
             "CPU export parity does not establish target compilation, placement or memory admission.",
         ],
     }
+    if args.start_frame == 0:
+        report["short_eager_vs_25_frame_prefix"] = report["short_eager_vs_25_frame_segment"]
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"ort_vs_eager": report["ort_vs_eager"],
-                      "short_vs_long": report["short_eager_vs_25_frame_prefix"]}, indent=2))
+                      "short_vs_long": report["short_eager_vs_25_frame_segment"]}, indent=2))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,52 @@
+{
+  "scope": "one fixed short vocoder window; no device execution or complete TTS stream",
+  "model_snapshot": "/home/zhout/.cache/huggingface/hub/models--Qwen--Qwen3-TTS-12Hz-0.6B-CustomVoice/snapshots/85e237c12c027371202489a0ec509ded67b5e4b5",
+  "model_snapshot_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "model_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "torch_version": "2.13.0+cpu",
+  "onnx_version": "1.22.0",
+  "onnxruntime_version": "1.29.0",
+  "actual_opsets": {
+    "ai.onnx": 18
+  },
+  "source_fixture_sha256": "4220eec4ee00e5fbb0df6f195d883c6d4549accf399853c3a8e2f83821724452",
+  "long_cpu_reference_sha256": "df4ad896c62a0d621c9bc48120f929d3561666359a570068b01a3228354411a0",
+  "context_frames": 95,
+  "chunk_frames": 2,
+  "start_frame": 23,
+  "window_start_frame": 0,
+  "window_end_exclusive_frame": 97,
+  "input_shape": [
+    1,
+    512,
+    97
+  ],
+  "output_shape": [
+    1,
+    3840
+  ],
+  "export_s_not_inference": 7.479770236997865,
+  "onnx_sha256": "235da9f3bc3828255442b7e21215e6935963f564849b1fbcc942550cf351e721",
+  "short_fixture_sha256": "4220eec4ee00e5fbb0df6f195d883c6d4549accf399853c3a8e2f83821724452",
+  "eager_output_sha256": "79fee752808f6af1d85c20393c7722cdcade909001ab47e521771911b28b0baf",
+  "ort_output_sha256": "35127dbfcdfed90243824fcbf4c35e20c4545da7dd5b4c9bd69644da5d5afe6e",
+  "ort_vs_eager": {
+    "relative_l2": 1.5128345262561805e-06,
+    "snr_db": 116.40417144963482,
+    "max_abs": 1.1399388313293457e-06,
+    "reference_rms": 0.0872508894782779,
+    "output_rms": 0.08725090886024084
+  },
+  "short_eager_vs_25_frame_segment": {
+    "relative_l2": 1.51283419019432e-06,
+    "snr_db": 116.40417337912314,
+    "max_abs": 1.1399388313293457e-06,
+    "reference_rms": 0.08725090886024084,
+    "output_rms": 0.0872508894782779
+  },
+  "limits": [
+    "The short-window graph still requires its prior quantized frames from a model adapter.",
+    "Segment agreement is tested on one retained fixture, not a speech-quality set.",
+    "CPU export parity does not establish target compilation, placement or memory admission."
+  ]
+}
