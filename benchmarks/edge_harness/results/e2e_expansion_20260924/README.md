@@ -34,6 +34,12 @@ nearest-rank wall p50/p95 **0.294/0.302 s**, along with public AsyncOmni text,
 context refusal and fresh-stage recovery after server-started cancellation.
 This is a different artifact/runtime from the earlier 4B BF16 CUDA profile.
 
+The [native Windows Qwen3.8-27B NVFP4 startup attempt](evidence/qwen38_omni_windows_rtx/README.md)
+loaded all three shards under vLLM 0.29 but failed in Marlin post-load scale
+permutation with an unsupported PTX toolchain error. Driver 610.71 reports
+CUDA 13.3 while the installed Windows vLLM wheel was built with CUDA 13.4.
+No native image/text inference completed; the WSL pass remains separate.
+
 A [native Windows Qwen3-TTS hybrid restart probe](evidence/qwen_tts_omni_windows_restart/README.md)
 also confirmed backend prefill before cancellation. The worker and host-RAM
 reservation drained; a fresh Omni stage with the same pinned Radeon Vulkan0

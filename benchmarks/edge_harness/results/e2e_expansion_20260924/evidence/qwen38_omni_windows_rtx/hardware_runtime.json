@@ -1,0 +1,33 @@
+{
+  "installed_vllm": "0.29.0",
+  "os": {
+    "Caption": "Microsoft Windows 11 家庭版 中文版",
+    "BuildNumber": "26200",
+    "TotalVisibleMemorySize": 66185068
+  },
+  "installed_vllm_wheel": "vllm-0.29.0+cu134-cp312-cp312-win_amd64.whl",
+  "triton": "3.8.0",
+  "gpus": [
+    {
+      "Name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "DriverVersion": "32.0.16.1071"
+    },
+    {
+      "Name": "AMD Radeon(TM) 890M Graphics",
+      "DriverVersion": "32.0.22018.6001"
+    }
+  ],
+  "nvcc": "13.4.59",
+  "nvidia_smi_header": "Thu Sep 24 15:50:03 2026       \r\n+-----------------------------------------------------------------------------------------+\r\n| NVIDIA-SMI 610.71                 KMD Version: 610.71        CUDA UMD Version: 13.3     |",
+  "cpu": {
+    "Name": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M           ",
+    "NumberOfCores": 12,
+    "NumberOfLogicalProcessors": 24
+  },
+  "power_scheme": "电源方案 GUID: 27fa6203-3987-4dcc-918d-748559d549ec  (Performance)",
+  "torch": "2.13.0+cu130",
+  "captured_at": "2026-09-24T15:50:03.3415588+08:00",
+  "torch_cuda": "13.0",
+  "installed_vllm_wheel_sha256": "17b3dc7753f85561d9488e6ffe42b48e459d2d551d8aa788ab652e0a1c6cf77a",
+  "cuda_path": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4"
+}

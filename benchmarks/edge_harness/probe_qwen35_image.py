@@ -64,7 +64,10 @@ def main():
         if engine is not None:
             engine.close()
         record["end"] = time.time()
+        args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    if record["status"] != "completed":
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
