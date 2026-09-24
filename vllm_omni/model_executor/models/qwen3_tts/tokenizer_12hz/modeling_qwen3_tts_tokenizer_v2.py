@@ -1048,6 +1048,63 @@ class Qwen3TTSTokenizerV2Decoder(Qwen3TTSTokenizerV2DecoderPreTrainedModel):
         caches["suffix_frames"] = int(codes.shape[-1])
         return wav.clamp(min=-1, max=1)
 
+    def decode_xvec_exact(self, codes: torch.Tensor, caches: dict) -> torch.Tensor:
+        """Append x-vector codec frames to a real sliding KV cache.
+
+        The older eager path replays at most ``sliding_window`` input frames
+        through every transformer layer. That loses information carried by
+        earlier layers once a request crosses the window boundary. This path
+        retains each layer's KV state and only the causal-convolution and
+        downstream-audio context needed for the next chunk.
+        """
+        if int(caches.get("prefix_frames", -1)) != 0:
+            raise ValueError("exact x-vector decoder requires zero prefix frames")
+        new_frames = int(codes.shape[-1])
+        first = "exact_xvec_transformer_cache" not in caches
+        max_new_frames = int(getattr(self, "_incremental_chunk_frames", 25))
+        if new_frames < 1 or (not first and new_frames > max_new_frames):
+            raise ValueError(f"exact x-vector suffix expected 1..{max_new_frames} frames")
+
+        quantized = self.quantizer.decode(codes)
+        if first:
+            conv = self.pre_conv(quantized).transpose(1, 2)
+            transformer_cache = DynamicCache(config=self.config)
+            caches["exact_xvec_transformer_cache"] = transformer_cache
+            caches["decoder_prefix_frames"] = 0
+            caches["suffix_frames"] = 0
+        else:
+            previous = caches["exact_xvec_quantized_tail"]
+            conv = self.pre_conv(torch.cat([previous, quantized], dim=-1))
+            conv = conv[:, :, -new_frames:].transpose(1, 2)
+            transformer_cache = caches["exact_xvec_transformer_cache"]
+
+        new_hidden = self.pre_transformer(
+            inputs_embeds=conv,
+            past_key_values=transformer_cache,
+            use_cache=True,
+        ).last_hidden_state
+        hidden = (
+            new_hidden if first else
+            torch.cat([caches["exact_xvec_hidden_tail"], new_hidden], dim=1)
+        )
+        caches["exact_xvec_quantized_tail"] = (
+            quantized if first else torch.cat([previous, quantized], dim=-1)
+        )[:, :, -_CONV_CONTEXT_FRAME:]
+        caches["exact_xvec_hidden_tail"] = hidden[:, -_DOWNSTREAM_CONTEXT_FRAME:, :]
+        # Keep the existing first-chunk and cleanup contract for callers that
+        # inspect this key. Grouped decoding routes exact requests to eager.
+        caches["suffix_quantized"] = caches["exact_xvec_quantized_tail"]
+        caches["suffix_frames"] += new_frames
+
+        hidden = hidden.permute(0, 2, 1)
+        for blocks in self.upsample:
+            for block in blocks:
+                hidden = block(hidden)
+        wav = hidden
+        for block in self.decoder:
+            wav = block(wav)
+        return wav[..., -new_frames * self.total_upsample:].clamp(min=-1, max=1)
+
     def _decode_suffix(
         self,
         new_codes: torch.Tensor,
@@ -1151,6 +1208,9 @@ class Qwen3TTSTokenizerV2Decoder(Qwen3TTSTokenizerV2DecoderPreTrainedModel):
         if caches is None or caches.get("_is_dummy_run", False):
             return self._forward_exact(codes)
 
+        if caches.get("exact_xvec_kv", False):
+            return self.decode_xvec_exact(codes, caches)
+
         prefix_frames = int(caches["prefix_frames"])
         if prefix_frames < 0:
             raise ValueError(
@@ -1242,6 +1302,9 @@ class Qwen3TTSTokenizerV2Decoder(Qwen3TTSTokenizerV2DecoderPreTrainedModel):
         outputs: list[torch.Tensor | None] = [None] * len(codes_list)
         groups: dict[tuple[str, int], list[int]] = {}
         for index, (codes, cache) in enumerate(zip(codes_list, request_caches, strict=True)):
+            if cache.get("exact_xvec_kv", False):
+                groups.setdefault(("eager", 0), []).append(index)
+                continue
             if "suffix_quantized" not in cache:
                 prefix_frames = int(cache["prefix_frames"])
                 suffix_frames = int(codes.shape[-1]) - prefix_frames

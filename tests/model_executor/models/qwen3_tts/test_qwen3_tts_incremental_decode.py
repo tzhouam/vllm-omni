@@ -442,6 +442,48 @@ def test_xvec_rolling_matches_truncated_suffix_window():
     )
 
 
+def test_exact_xvec_kv_matches_full_decode_beyond_sliding_window():
+    torch.manual_seed(57)
+    config = Qwen3TTSTokenizerV2DecoderConfig(
+        codebook_size=32,
+        hidden_size=16,
+        latent_dim=16,
+        codebook_dim=16,
+        num_attention_heads=2,
+        num_key_value_heads=2,
+        intermediate_size=32,
+        num_hidden_layers=1,
+        num_quantizers=2,
+        decoder_dim=32,
+        upsample_rates=(8, 5, 4, 3),
+        upsampling_ratios=(2, 2),
+        sliding_window=72,
+    )
+    decoder = Qwen3TTSTokenizerV2Decoder(config).eval()
+    decoder._incremental_chunk_frames = 25
+    codes = torch.randint(0, config.codebook_size, (1, config.num_quantizers, 101))
+    cache = {"prefix_frames": 0, "exact_xvec_kv": True}
+    outputs = []
+    with torch.inference_mode():
+        full = decoder._forward_exact(codes)
+        start = 0
+        for frames in (1, 25, 25, 25, 25):
+            chunk = codes[..., start:start + frames]
+            [output] = decoder.batched_chunked_decode(
+                chunk, [frames], caches=[cache], chunk_size=300,
+                left_context_size=25,
+            )
+            outputs.append(output)
+            start += frames
+    assert start == codes.shape[-1]
+    assert cache["suffix_frames"] == 101
+    assert cache["exact_xvec_quantized_tail"].shape[-1] == 2
+    assert cache["exact_xvec_hidden_tail"].shape[1] == 12
+    assert cache["exact_xvec_transformer_cache"].get_seq_length() == 101
+    assert cache["exact_xvec_transformer_cache"].layers[0].keys.shape[-2] <= 71
+    torch.testing.assert_close(torch.cat(outputs, dim=-1), full.reshape(1, -1), atol=1e-5, rtol=1e-4)
+
+
 def test_icl_rolling_matches_reference_plus_truncated_suffix_window():
     torch.manual_seed(6)
     config = Qwen3TTSTokenizerV2DecoderConfig(

@@ -268,6 +268,16 @@ def test_request_aware_forward_passes_only_delta_frames_to_decoder():
         (1, _NUM_QUANTIZERS, 3),
         (1, _NUM_QUANTIZERS, 2),
     ]
+    assert model._decoder_state_cache["rid"]["exact_xvec_kv"] is True
+
+
+def test_cuda_request_does_not_enable_cpu_exact_xvec_cache():
+    model = _make_model(async_chunk=True, device=torch.device("cuda"))
+    model.forward(
+        input_ids=torch.arange(6, dtype=torch.long),
+        runtime_additional_information=[{"meta": {"request_id": "rid", "left_context_size": 0}}],
+    )
+    assert not model._decoder_state_cache["rid"].get("exact_xvec_kv", False)
 
 
 def test_four_frame_first_chunk_uses_configured_initial_size_without_ramp():
