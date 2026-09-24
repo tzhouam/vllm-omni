@@ -484,6 +484,55 @@ def test_exact_xvec_kv_matches_full_decode_beyond_sliding_window():
     torch.testing.assert_close(torch.cat(outputs, dim=-1), full.reshape(1, -1), atol=1e-5, rtol=1e-4)
 
 
+def test_segmented_wrapper_routes_exact_xvec_state_to_decoder():
+    wrapper = CUDAGraphDecoderWrapper.__new__(CUDAGraphDecoderWrapper)
+    calls = []
+    wrapper.decoder = _decoder_stub(
+        decode_xvec_exact=lambda codes, cache: calls.append((codes, cache)) or codes.float()
+    )
+    codes = torch.ones(1, 2, 3)
+    cache = {"prefix_frames": 0, "exact_xvec_kv": True}
+    output = wrapper._decode_request_fallback(codes, cache)
+    assert calls == [(codes, cache)]
+    torch.testing.assert_close(output, codes)
+
+
+def test_segmented_wrapper_exact_xvec_keeps_two_requests_separate():
+    torch.manual_seed(59)
+    decoder = _make_small_decoder()
+    decoder._incremental_chunk_frames = 25
+    wrapper = CUDAGraphDecoderWrapper.__new__(CUDAGraphDecoderWrapper)
+    wrapper.decoder = decoder
+    wrapper.async_chunk = True
+    wrapper.prefix_length = 72
+    wrapper.initial_chunk_frames = 1
+    wrapper.codec_chunk_frames = 25
+    wrapper._icl_previous_frames_by_target = {}
+    wrapper._xvec_previous_frames_by_target = {}
+    wrapper._decode_icl_prefix_batch = lambda *_args: None
+    wrapper._decode_xvec_prefix_batch = lambda *_args: None
+    wrapper._decode_suffix_batch = lambda *_args: None
+    wrapper._suppress_stats = False
+    codes = torch.randint(0, decoder.config.codebook_size, (2, decoder.config.num_quantizers, 101))
+    caches = [{"prefix_frames": 0, "exact_xvec_kv": True} for _ in range(2)]
+    outputs = [[], []]
+    with torch.inference_mode():
+        references = [decoder._forward_exact(codes[i:i + 1]).reshape(1, -1) for i in range(2)]
+        start = 0
+        for frames in (1, 25, 25, 25, 25):
+            chunks = wrapper.batched_chunked_decode_with_cudagraph(
+                codes[:, :, start:start + frames], [frames, frames], caches=caches,
+            )
+            for row, chunk in enumerate(chunks):
+                outputs[row].append(chunk)
+            start += frames
+    assert start == 101
+    assert all(cache["suffix_frames"] == 101 for cache in caches)
+    assert caches[0]["exact_xvec_transformer_cache"] is not caches[1]["exact_xvec_transformer_cache"]
+    for row, reference in enumerate(references):
+        torch.testing.assert_close(torch.cat(outputs[row], dim=-1), reference, atol=1e-5, rtol=1e-4)
+
+
 def test_icl_rolling_matches_reference_plus_truncated_suffix_window():
     torch.manual_seed(6)
     config = Qwen3TTSTokenizerV2DecoderConfig(

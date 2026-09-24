@@ -405,11 +405,11 @@ class Qwen3TTSCode2Wav(nn.Module):
                             f"{ref_req_id!r}: cached={cached_prefix_frames}, current={ref_ctx_frames}"
                         )
                 if (is_new_state and state["prefix_frames"] == 0
-                        and not state.get("_is_dummy_run", False)
-                        and self.vllm_config.device_config.device.type == "cpu"):
+                        and not state.get("_is_dummy_run", False)):
                     # The exact x-vector cache preserves earlier transformer
                     # information across the 72-frame attention boundary.
-                    # CUDA graph buckets retain their existing execution path.
+                    # Stateful CUDA requests use the wrapper's eager fallback;
+                    # stateless graph buckets retain their execution path.
                     state["exact_xvec_kv"] = True
             valid_indices.append(i)
 

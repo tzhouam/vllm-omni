@@ -888,6 +888,8 @@ class CUDAGraphDecoderWrapper:
             self._suppress_stats = previous_suppression
 
     def _decode_request_fallback(self, codes: torch.Tensor, cache: dict) -> torch.Tensor:
+        if cache.get("exact_xvec_kv", False):
+            return self.decoder.decode_xvec_exact(codes, cache)
         if "suffix_quantized" not in cache:
             if int(cache["prefix_frames"]) == 0:
                 return self.decoder._decode_xvec_first_chunk(codes, cache)
