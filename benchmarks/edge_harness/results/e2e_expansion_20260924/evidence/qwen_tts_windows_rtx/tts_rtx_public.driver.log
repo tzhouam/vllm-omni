@@ -1,0 +1,62 @@
+INFO 09-24 16:03:21 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 16:03:21 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 16:03:25 [omni_base.py:216] [AsyncOmni] Initializing with model C:\Users\zhout\w2\models\Qwen3-TTS-0.6B-85e237c
+INFO 09-24 16:03:25 [async_omni_engine.py:172] [AsyncOmniEngine] Initializing with model C:\Users\zhout\w2\models\Qwen3-TTS-0.6B-85e237c
+ERROR 09-24 16:03:25 [repo_utils.py:119] Error parsing config for C:\Users\zhout\w2\models\Qwen3-TTS-0.6B-85e237c: The checkpoint you are trying to load has model type `qwen3_tts` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.
+
+ERROR 09-24 16:03:25 [repo_utils.py:119]
+
+ERROR 09-24 16:03:25 [repo_utils.py:119] You can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`, retrying 1 of 2
+ERROR 09-24 16:03:27 [repo_utils.py:117] Error parsing config for C:\Users\zhout\w2\models\Qwen3-TTS-0.6B-85e237c: The checkpoint you are trying to load has model type `qwen3_tts` but Transformers does not recognize this architecture. This could be because of an issue with the checkpoint, or because your version of Transformers is out of date.
+
+ERROR 09-24 16:03:27 [repo_utils.py:117]
+
+ERROR 09-24 16:03:27 [repo_utils.py:117] You can update Transformers with the command `pip install --upgrade transformers`. If this does not work, and the checkpoint is very new, then there may not be a release version that supports this model yet. In this case, you can get the most up-to-date code by installing Transformers from source with the command `pip install git+https://github.com/huggingface/transformers.git`
+INFO 09-24 16:03:27 [async_omni_engine.py:290] [AsyncOmniEngine] Launching Orchestrator thread with 1 stages
+INFO 09-24 16:03:27 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+INFO 09-24 16:03:27 [initialization.py:356] Loaded OmniTransferConfig with 0 connector configurations
+INFO 09-24 16:03:31 [orchestrator.py:604] [Orchestrator] Starting event loop
+INFO 09-24 16:03:31 [async_omni_engine.py:323] [AsyncOmniEngine] Orchestrator ready with 1 stages
+INFO 09-24 16:03:31 [omni_base.py:235] [AsyncOmni] AsyncOmniEngine initialized in 6.60 seconds
+INFO 09-24 16:03:31 [omni_base.py:255] [AsyncOmni] Initialized with 1 stages for model C:\Users\zhout\w2\models\Qwen3-TTS-0.6B-85e237c
+INFO 09-24 16:03:35 [omni_base.py:781] [AsyncOmni] Shutting down
+INFO 09-24 16:03:35 [async_omni_engine.py:1807] [AsyncOmniEngine] Shutting down Orchestrator
+INFO 09-24 16:03:35 [orchestrator.py:705] [Orchestrator] Received shutdown signal
+INFO 09-24 16:03:35 [orchestrator.py:3092] [Orchestrator] Shutting down all 1 client(s)
+INFO 09-24 16:03:35 [stage_pool.py:1354] [StagePool] Stage 0 replica 0 shut down
+{
+  "entrypoint": "AsyncOmni.generate",
+  "pipeline": "qwen3_tts_crisp_hybrid",
+  "memory_budget": {
+    "capacities": {
+      "host_ram": 17179869184,
+      "gpu_vram": 17179869184
+    },
+    "demands": {
+      "host_ram": 8589934592,
+      "gpu_vram": 4294967296
+    }
+  },
+  "startup_s": 6.601007299963385,
+  "request_wall_s": 3.8559913999633864,
+  "outputs": [
+    {
+      "request_id": "public-tts-1",
+      "sample_rate": 24000,
+      "frames": 65280,
+      "pcm_sha256": "d3d071531e2574b933c8acf18e2a0344c8961493bd17c63662307270a99d265c",
+      "stage_event": {
+        "request_id": "public-tts-1-9b478507",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "ba82b3743db54744ae58909bc3311bf8",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "status": "passed"
+}

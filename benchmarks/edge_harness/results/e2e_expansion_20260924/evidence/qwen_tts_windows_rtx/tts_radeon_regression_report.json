@@ -1,0 +1,198 @@
+{
+  "scope": "complete resident Qwen3-TTS CustomVoice text-to-WAV through Omni StageRuntime/StagePool",
+  "placement": "AMD Radeon(TM) 890M Graphics Vulkan talker/codec + CPU FP32 code predictor",
+  "warmup_count": 0,
+  "measured_count": 1,
+  "memory_budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 8589934592
+    }
+  },
+  "startup_s": 5.5705983999650925,
+  "execution_plan": {
+    "backend": "external.crisp.tts.v1",
+    "stage_id": 0,
+    "worker_generation": "9ef43464d674477fb5edf0e9765a757d",
+    "worker_pid": 14816,
+    "artifact_sha256": {
+      "server_sha256": "999c6af252077195adb723b96da9ee5d3cd291dc7c7a4b32dc493ae148035529",
+      "talker_sha256": "5227dcbc4df7c5533341d111cc469fa491a48e722b23dd10f553181b52dff2d9",
+      "codec_sha256": "70dc95dbfdd9aa5d9d406236ff771d061bf17b0cda02a72513953355606e719b",
+      "punc_sha256": "faf4a43e3135bc307a66194685af00f756e6f4c28c7d9e2dd8f3517cddca5c45"
+    },
+    "placement": "Radeon Vulkan0 talker/codec + CPU FP32 code predictor",
+    "expected_gpu_name": "AMD Radeon(TM) 890M Graphics",
+    "ggml_vk_visible_devices": "1",
+    "gpu_memory_pool": null,
+    "gpu_memory_overhead_bytes": null,
+    "loaded_rss_bytes": 2726912000,
+    "reserved_bytes": {
+      "host_ram": 8589934592
+    },
+    "memory_overhead_bytes": 5368709120,
+    "max_text_bytes": 4096,
+    "max_wav_bytes": 4194304,
+    "max_audio_s": 10.0,
+    "voice": "ryan",
+    "seed": 42,
+    "request_capacity": 1,
+    "stateful_session": "CrispASR-owned; complete WAV per request",
+    "evidence": "B"
+  },
+  "checks": [
+    {
+      "text": "Hello from the local computer.",
+      "wall_s": 3.384064600104466,
+      "frames": 61440,
+      "duration_s": 2.56,
+      "pcm_sha256": "57f60228e2b456f6dfefc7e49df862c7bff6ba7cf39231ef1824f615948a1539",
+      "stage_event": {
+        "request_id": "tts-691816156000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "9ef43464d674477fb5edf0e9765a757d",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    },
+    {
+      "text": "The blue car is parked beside the library.",
+      "wall_s": 4.117532499949448,
+      "frames": 76800,
+      "duration_s": 3.2,
+      "pcm_sha256": "4832877787577d2e47b51f325a09e17df37b7f2a95ed5297b37259977286476d",
+      "stage_event": {
+        "request_id": "tts-691819546000000",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "9ef43464d674477fb5edf0e9765a757d",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "warmups": [],
+  "measured": [
+    {
+      "text": "Hello from the local computer.",
+      "wall_s": 3.296963999979198,
+      "frames": 61440,
+      "duration_s": 2.56,
+      "pcm_sha256": "57f60228e2b456f6dfefc7e49df862c7bff6ba7cf39231ef1824f615948a1539",
+      "stage_event": {
+        "request_id": "tts-691823656000000",
+        "stage_id": 0,
+        "epoch": 3,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "9ef43464d674477fb5edf0e9765a757d",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "nearest_rank_p50_wall_s": 3.296963999979198,
+  "nearest_rank_p95_wall_s": 3.296963999979198,
+  "all_same_pcm_sha256": true,
+  "abort_check": {
+    "prefills_before_abort_request": 3,
+    "prefills_after_abort_request_start": 4,
+    "stale_output": false,
+    "worker_exited": true,
+    "ledger_after_abort": {
+      "capacities": {
+        "host_ram": 17179869184
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    }
+  },
+  "restart_check": {
+    "first_runtime_ledger_after_shutdown": {
+      "capacities": {
+        "host_ram": 17179869184
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "fresh_startup_s": 5.100862400024198,
+    "fresh_server_log": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_windows_rtx\\tts_radeon_regression_server_restart.log",
+    "fresh_execution_plan": {
+      "backend": "external.crisp.tts.v1",
+      "stage_id": 0,
+      "worker_generation": "46d98233701146dd82f01c37bdd6b773",
+      "worker_pid": 7728,
+      "artifact_sha256": {
+        "server_sha256": "999c6af252077195adb723b96da9ee5d3cd291dc7c7a4b32dc493ae148035529",
+        "talker_sha256": "5227dcbc4df7c5533341d111cc469fa491a48e722b23dd10f553181b52dff2d9",
+        "codec_sha256": "70dc95dbfdd9aa5d9d406236ff771d061bf17b0cda02a72513953355606e719b",
+        "punc_sha256": "faf4a43e3135bc307a66194685af00f756e6f4c28c7d9e2dd8f3517cddca5c45"
+      },
+      "placement": "Radeon Vulkan0 talker/codec + CPU FP32 code predictor",
+      "expected_gpu_name": "AMD Radeon(TM) 890M Graphics",
+      "ggml_vk_visible_devices": "1",
+      "gpu_memory_pool": null,
+      "gpu_memory_overhead_bytes": null,
+      "loaded_rss_bytes": 2726957056,
+      "reserved_bytes": {
+        "host_ram": 8589934592
+      },
+      "memory_overhead_bytes": 5368709120,
+      "max_text_bytes": 4096,
+      "max_wav_bytes": 4194304,
+      "max_audio_s": 10.0,
+      "voice": "ryan",
+      "seed": 42,
+      "request_capacity": 1,
+      "stateful_session": "CrispASR-owned; complete WAV per request",
+      "evidence": "B"
+    },
+    "fresh_request": {
+      "text": "Hello from the local computer.",
+      "wall_s": 3.3378395000472665,
+      "frames": 61440,
+      "duration_s": 2.56,
+      "pcm_sha256": "57f60228e2b456f6dfefc7e49df862c7bff6ba7cf39231ef1824f615948a1539",
+      "stage_event": {
+        "request_id": "tts-691832468000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "46d98233701146dd82f01c37bdd6b773",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    },
+    "same_pcm_as_before_abort": true,
+    "late_output": false
+  },
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

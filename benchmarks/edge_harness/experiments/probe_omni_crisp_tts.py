@@ -39,6 +39,7 @@ async def main() -> None:
     ):
         parser.add_argument("--" + name.replace("_", "-"), required=True)
     parser.add_argument("--expected-gpu-name", default="AMD Radeon(TM) 890M Graphics")
+    parser.add_argument("--ggml-vk-visible-devices", default="1")
     parser.add_argument("--warmups", type=int, default=1)
     parser.add_argument("--repeats", type=int, default=20)
     parser.add_argument("--abort-check", action="store_true")
@@ -46,9 +47,16 @@ async def main() -> None:
                         help="After in-flight cancellation, start a fresh stage and verify audio")
     parser.add_argument("--capacity-gib", type=int, default=16)
     parser.add_argument("--reserve-gib", type=int, default=8)
+    parser.add_argument("--gpu-capacity-gib", type=int, default=0)
+    parser.add_argument("--gpu-reserve-gib", type=int, default=0)
     args = parser.parse_args()
     if args.warmups < 0 or args.repeats <= 0 or args.reserve_gib <= 0 or args.capacity_gib < args.reserve_gib:
         parser.error("invalid warmup/repeat count or memory budget")
+    if args.expected_gpu_name == "NVIDIA GeForce RTX 5090 Laptop GPU":
+        if args.ggml_vk_visible_devices != "0" or args.gpu_reserve_gib < 4 or args.gpu_capacity_gib < args.gpu_reserve_gib:
+            parser.error("RTX route requires Vulkan device 0 and at least 4 GiB reserved GPU VRAM")
+    elif args.gpu_capacity_gib or args.gpu_reserve_gib:
+        parser.error("Radeon shared-RAM route must not declare discrete GPU VRAM")
     if args.restart_check and not args.abort_check:
         parser.error("--restart-check requires --abort-check")
 
@@ -68,7 +76,7 @@ async def main() -> None:
         "punc_sha256": args.punc_sha256,
         "log_file": args.server_log,
         "expected_gpu_name": args.expected_gpu_name,
-        "ggml_vk_visible_devices": "1",
+        "ggml_vk_visible_devices": args.ggml_vk_visible_devices,
         "memory_overhead_bytes": 5 << 30,
         "max_text_bytes": 4096,
         "max_wav_bytes": 4 << 20,
@@ -78,14 +86,21 @@ async def main() -> None:
         "voice": "ryan",
         "seed": 42,
     }
+    capacities = {"host_ram": args.capacity_gib << 30}
+    demands = {"host_ram": args.reserve_gib << 30}
+    if args.gpu_reserve_gib:
+        capacities["gpu_vram"] = args.gpu_capacity_gib << 30
+        demands["gpu_vram"] = args.gpu_reserve_gib << 30
+        backend["gpu_memory_pool"] = "gpu_vram"
+        backend["gpu_memory_overhead_bytes"] = 2 << 30
     deploy = DeployConfig(
         async_chunk=False,
         stages=[StageDeployConfig(
             stage_id=0,
             backend=backend,
             resource_budget={
-                "capacities": {"host_ram": args.capacity_gib << 30},
-                "demands": {"host_ram": args.reserve_gib << 30},
+                "capacities": capacities,
+                "demands": demands,
             },
         )],
     )
@@ -94,7 +109,7 @@ async def main() -> None:
     runtime = StageRuntime(configs, "local-qwen-tts-crisp", "", stage_init_timeout=180, async_chunk=False)
     report = {
         "scope": "complete resident Qwen3-TTS CustomVoice text-to-WAV through Omni StageRuntime/StagePool",
-        "placement": "Radeon Vulkan talker/codec + CPU FP32 code predictor",
+        "placement": f"{args.expected_gpu_name} Vulkan talker/codec + CPU FP32 code predictor",
         "warmup_count": args.warmups,
         "measured_count": args.repeats,
         "memory_budget": deploy.stages[0].resource_budget,

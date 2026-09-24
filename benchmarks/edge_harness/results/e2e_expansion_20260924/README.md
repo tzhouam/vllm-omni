@@ -40,6 +40,14 @@ permutation with an unsupported PTX toolchain error. Driver 610.71 reports
 CUDA 13.3 while the installed Windows vLLM wheel was built with CUDA 13.4.
 No native image/text inference completed; the WSL pass remains separate.
 
+A [native Windows RTX Qwen3-TTS Omni hybrid run](evidence/qwen_tts_windows_rtx/README.md)
+adds a separate GGUF/Vulkan complete-WAV path with RTX talker/codec and CPU
+FP32 code predictor. Two named requests, 20/20 serial outputs, public audio,
+in-flight cancellation/fresh-stage restart and an undersized GPU-VRAM refusal
+passed. The 2.72 s first utterance measured nearest-rank p50/p95 wall
+**3.153/3.231 s**; pinned Whisper tiny.en transcribed it exactly. This route
+does not establish playable streaming or replace the CUDA sustained audit.
+
 A [native Windows Qwen3-TTS hybrid restart probe](evidence/qwen_tts_omni_windows_restart/README.md)
 also confirmed backend prefill before cancellation. The worker and host-RAM
 reservation drained; a fresh Omni stage with the same pinned Radeon Vulkan0

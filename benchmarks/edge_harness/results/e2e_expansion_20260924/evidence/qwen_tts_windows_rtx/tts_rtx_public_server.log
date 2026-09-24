@@ -1,0 +1,79 @@
+crispasr 0.8.35 (git 00c9e752, Release) [backends: cpu,vulkan]
+=== build info ===
+  version       : 0.8.35
+  git sha       : 00c9e752
+  git date      : 2026-09-21T20:44:31Z
+  git subject   : release-_bump_VERSION_to_0.8.35
+  build date    : 2026-09-21T21:04:24Z
+  build type    : Release
+  compiler      : msvc 1951
+  os            : windows
+  arch          : x86_64
+  ggml backends : cpu,vulkan
+
+=== runtime env ===
+  PATH                         = C:\Users\zhout\w2\omni029venv\Lib\site-packages\cv2\../../x64/vc17/bin;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell;C:\Users\zhout\.codex\tmp\arg0\codex-arg0hEiqWp;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\libheif\libheif\bin;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\jxrlib\jxrlib\bin;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\poppler\Library\bin;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\bin\override;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.4\bin\x64;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.4\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Program Files\Git\cmd;C:\Program Files\NVIDIA Corporation\Nsight Compute 2026.3.0\;C:\Users\zhout\.cargo\bin;C:\Users\zhout\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\zhout\AppData\Local\Programs\Python\Python312\;C:\Users\zhout\AppData\Local\Programs\Python\Launcher\;c:\Users\zhout\AppData\Local\Programs\cursor\resources\app\codeBin;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\powershell;C:\Users\zhout\AppData\Local\Microsoft\WindowsApps;C:\Users\zhout\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\bin\fallback;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin;C:\Users\zhout\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd;C:\Users\zhout\AppData\Local\OpenAI\Codex\bin\d5b459afd5dcd195;C:\Users\zhout\AppData\Local\OpenAI\Codex\bin\80f78947ad880e6e
+  LD_LIBRARY_PATH              = (unset)
+  LIBRARY_PATH                 = (unset)
+  CUDA_HOME                    = (unset)
+  CUDA_PATH                    = C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.4
+  CUDA_VISIBLE_DEVICES         = 0
+  NVIDIA_VISIBLE_DEVICES       = (unset)
+  NVIDIA_DRIVER_CAPABILITIES   = (unset)
+  GGML_CUDA_DEBUG              = 1
+  GGML_VK_VISIBLE_DEVICES      = 0
+  GGML_VK_PIPELINE_CACHE_DEBUG = 1
+  CRISPASR_USE_CUDA_COMPAT     = (unset)
+  CRISPASR_BACKEND             = (unset)
+  CRISPASR_CACHE_DIR           = (unset)
+
+=== ggml backends + devices ===
+ggml_vulkan: Found 1 Vulkan devices:
+ggml_vulkan: 0 = NVIDIA GeForce RTX 5090 Laptop GPU (NVIDIA) | uma: 0 | fp16: 1 | bf16: 1 | fp4: 0 | warp size: 32 | shared memory: 49152 | int dot: 1 | matrix cores: NV_coopmat2
+  registered backends: 2
+    [0] Vulkan (devices: 1)
+    [1] CPU (devices: 1)
+  registered devices : 2
+    [0] gpu    name=Vulkan0 desc=NVIDIA GeForce RTX 5090 Laptop GPU mem=23369/24137 MiB id=0000:64:00.0
+    [1] cpu    name=CPU desc=AMD Ryzen AI 9 HX 370 w/ Radeon 890M            mem=29344/64633 MiB id=?
+
+cpu-isa: OK — built for AVX2/FMA/F16C/BMI2/AVX; host CPU supports the build's ISA baseline
+crispasr_init_gpu_backend: using preferred GPU backend: Vulkan0
+qwen3_tts: code_pred CPU-pinned (72 tensors, 432 MB, copy=f32)
+qwen3_tts: kv cache 448 MiB (head_dim=128 max_ctx=4096 n_kv=8 n_layers=28)
+qwen3_tts: loaded C:\Users\zhout\w2\models\crisp_qwen3tts_0.6b\qwen3-tts-12hz-0.6b-customvoice-q8_0.gguf  (talker 28L/1024  code_pred 5L  vocab 3072)
+qwen3_tts: codec: GPU default - loading weights onto Vulkan0
+qwen3_tts: codec loaded from 'C:\Users\zhout\w2\models\crisp_qwen3tts_0.6b\qwen3-tts-tokenizer-12hz.gguf'  (8L d=512/1024  rvq=16)
+qwen3_tts: codec encoder loaded (SEANet+xfmr+RVQ)
+crispasr[qwen3-tts]: codec loaded from 'C:\Users\zhout\w2\models\crisp_qwen3tts_0.6b\qwen3-tts-tokenizer-12hz.gguf'
+crispasr-server: warmup completed in 0 ms
+crispasr-server: backend 'qwen3-tts-customvoice' loaded, model 'C:\Users\zhout\w2\models\crisp_qwen3tts_0.6b\qwen3-tts-12hz-0.6b-customvoice-q8_0.gguf'
+fireredpunc: 12L, d=768, ffn=3072, heads=12, vocab=21128, labels=5
+crispasr_init_gpu_backend: using preferred GPU backend: Vulkan0
+crispasr-server: loaded punctuation model 'C:\Users\zhout\.cache\crispasr\fireredpunc-q4_k.gguf'
+
+crispasr-server: listening on 127.0.0.1:61973
+  POST /inference                  — upload audio (native JSON)
+  POST /v1/audio/transcriptions    — OpenAI-compatible API
+  POST /v1/audio/speech            — TTS (OpenAI-compatible)
+  POST /load                       — hot-swap model
+  GET  /health                     — server status
+  GET  /backends                   — list backends
+  GET  /v1/models                  — model info
+  GET  /v1/voices                  — list voices in --voice-dir
+       /voices, /v1/audio/voices   — aliases (llama-swap compat)
+  POST /v1/voices                  — upload voice file (multipart)
+  DELETE /v1/voices/:name          — delete voice file
+crispasr-server: warning: --voice-dir not set; /v1/voices will return empty and /v1/audio/speech will reject requests with a 'voice' field
+
+crispasr: warning: 'qwen3-tts-customvoice' does not record whether its preset voice belongs to a real person, so no spoken AI
+  disclosure was added. If the voice is that of an identifiable individual, the output is a
+  deep fake under EU AI Act Art. 3(60) and you carry the Art. 50(4) duty to disclose it.
+  Pass --speaker-identity real_person to have CrispASR prepend the disclosure, or
+  --speaker-identity synthetic to silence this.
+qwen3_tts: selected CustomVoice speaker 'ryan' (spk_id=3061)
+crispasr[qwen3-tts]: CustomVoice speaker = 'ryan' (available: aiden, dylan, eric, ono_anna, ryan, serena, sohee, uncle_fu, vivian)
+qwen3_tts[customvoice]: prefill role=3 + bridge=5 + text=7 + final=1 = T=16 trailing=1
+qwen3_tts: produced 34 frames × 16 codebooks = 544 codes
+qwen3_tts: perf — codes=3525 ms  codec=256 ms  total=3782 ms  audio=2.7 s  rtf=1.390
+crispasr-server: synthesized 2.7s audio in 3.80s (RTF=1.40) voice='<startup>' speed=1.00 format=wav model='<unset>' chunks=1 sr=24000Hz

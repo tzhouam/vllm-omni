@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "scope": "RTX TTS 3 GiB GPU-VRAM demand is refused before server launch",
+  "artifact_sha256": {
+    "server_sha256": "999c6af252077195adb723b96da9ee5d3cd291dc7c7a4b32dc493ae148035529",
+    "talker_sha256": "5227dcbc4df7c5533341d111cc469fa491a48e722b23dd10f553181b52dff2d9",
+    "codec_sha256": "70dc95dbfdd9aa5d9d406236ff771d061bf17b0cda02a72513953355606e719b",
+    "punc_sha256": "faf4a43e3135bc307a66194685af00f756e6f4c28c7d9e2dd8f3517cddca5c45"
+  },
+  "declared_gpu_reservation_bytes": 3221225472,
+  "declared_gpu_overhead_bytes": 2147483648,
+  "error": "ResourceUnavailable: TTS weights plus GPU state/workspace/headroom exceed GPU-VRAM reservation",
+  "server_log_created": false,
+  "ledger_after_refusal": {
+    "capacities": {
+      "host_ram": 17179869184,
+      "gpu_vram": 17179869184
+    },
+    "reserved": {
+      "host_ram": 0,
+      "gpu_vram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

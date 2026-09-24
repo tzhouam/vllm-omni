@@ -134,15 +134,27 @@ class CrispTTSStageClient(StageClientBase):
             self._expected_gpu_name = str(config["expected_gpu_name"])
             if not self._expected_gpu_name:
                 raise ValueError("hybrid TTS stage requires expected_gpu_name")
-            if self._expected_gpu_name != "AMD Radeon(TM) 890M Graphics" or str(
-                config.get("ggml_vk_visible_devices", "1")
-            ) != "1":
-                raise ValueError("this shared-RAM hybrid route is qualified only for the HX370 Radeon 890M")
+            visible_device = str(config.get("ggml_vk_visible_devices", "1"))
+            if self._expected_gpu_name == "AMD Radeon(TM) 890M Graphics" and visible_device == "1":
+                gpu_label = "Radeon"
+                gpu_memory_overhead = None  # iGPU shares the admitted host RAM.
+            elif self._expected_gpu_name == "NVIDIA GeForce RTX 5090 Laptop GPU" and visible_device == "0":
+                gpu_label = "RTX 5090 Laptop"
+                gpu_pool = str(config.get("gpu_memory_pool", "gpu_vram"))
+                gpu_demand = reservation.demands.get(gpu_pool)
+                gpu_memory_overhead = int(config.get("gpu_memory_overhead_bytes", 0))
+                if (gpu_pool == self._memory_pool or gpu_demand is None
+                        or gpu_memory_overhead < (2 << 30)):
+                    raise ResourceUnavailable("discrete TTS route requires a distinct GPU-VRAM reservation and 2 GiB overhead")
+                if size + gpu_memory_overhead > gpu_demand:
+                    raise ResourceUnavailable("TTS weights plus GPU state/workspace/headroom exceed GPU-VRAM reservation")
+            else:
+                raise ValueError("CrispASR GPU name and visible Vulkan device do not match a qualified route")
             self._log_path = Path(config["log_file"]).resolve()
             self._log_path.parent.mkdir(parents=True, exist_ok=True)
             self._log_stream = self._log_path.open("wb")
             env = os.environ.copy()
-            env["GGML_VK_VISIBLE_DEVICES"] = str(config.get("ggml_vk_visible_devices", "1"))
+            env["GGML_VK_VISIBLE_DEVICES"] = visible_device
             env["CRISPASR_QWEN3_TTS_VULKAN_NATIVE"] = "1"
             env["CRISPASR_QWEN3_TTS_CP_BACKEND"] = "cpu-f32"
             command = [
@@ -150,7 +162,7 @@ class CrispTTSStageClient(StageClientBase):
                 "--backend", "qwen3-tts-customvoice", "-m", str(self._talker),
                 "--codec-model", str(self._codec), "--voice", self._voice,
                 "--punc-model", str(self._punc),
-                "--gpu-backend", "vulkan", "-dev", "1", "--no-flash-attn",
+                "--gpu-backend", "vulkan", "-dev", visible_device, "--no-flash-attn",
                 "-n", "96", "--seed", str(self._seed), "--verbose",
             ]
             flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
@@ -183,7 +195,7 @@ class CrispTTSStageClient(StageClientBase):
                 and "falling back to CPU" not in log_text
             )
             if not placement:
-                raise RuntimeError("REFUSE_DEVICE_PLACEMENT: CrispASR hybrid route differs from declared CPU+Radeon")
+                raise RuntimeError("REFUSE_DEVICE_PLACEMENT: CrispASR hybrid route differs from declared CPU+GPU")
             import psutil
 
             self._loaded_rss_bytes = int(psutil.Process(self._proc.pid).memory_info().rss)
@@ -196,9 +208,11 @@ class CrispTTSStageClient(StageClientBase):
                 "worker_generation": self._generation,
                 "worker_pid": self._proc.pid,
                 "artifact_sha256": {label: digest for label, (_, digest) in expected.items()},
-                "placement": "Radeon Vulkan0 talker/codec + CPU FP32 code predictor",
+                "placement": f"{gpu_label} Vulkan0 talker/codec + CPU FP32 code predictor",
                 "expected_gpu_name": self._expected_gpu_name,
                 "ggml_vk_visible_devices": env["GGML_VK_VISIBLE_DEVICES"],
+                "gpu_memory_pool": gpu_pool if gpu_memory_overhead is not None else None,
+                "gpu_memory_overhead_bytes": gpu_memory_overhead,
                 "loaded_rss_bytes": self._loaded_rss_bytes,
                 "reserved_bytes": dict(reservation.demands),
                 "memory_overhead_bytes": overhead,

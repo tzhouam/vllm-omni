@@ -1,0 +1,127 @@
+INFO 09-24 16:12:41 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 16:12:41 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 16:12:44 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+WARNING 09-24 16:12:44 [stage_init_utils.py:1887] [stage_init] Failed to load transfer config: [Errno 13] Permission denied: 'C:\\Users\\zhout'
+{
+  "scope": "complete resident Qwen3-TTS CustomVoice text-to-WAV through Omni StageRuntime/StagePool",
+  "placement": "NVIDIA GeForce RTX 5090 Laptop GPU Vulkan talker/codec + CPU FP32 code predictor",
+  "warmup_count": 0,
+  "measured_count": 1,
+  "memory_budget": {
+    "capacities": {
+      "host_ram": 17179869184,
+      "gpu_vram": 17179869184
+    },
+    "demands": {
+      "host_ram": 8589934592,
+      "gpu_vram": 4294967296
+    }
+  },
+  "startup_s": 3.8103566999780014,
+  "execution_plan": {
+    "backend": "external.crisp.tts.v1",
+    "stage_id": 0,
+    "worker_generation": "052b83e9c0bb4151899f68230d6ed5d2",
+    "worker_pid": 54816,
+    "artifact_sha256": {
+      "server_sha256": "999c6af252077195adb723b96da9ee5d3cd291dc7c7a4b32dc493ae148035529",
+      "talker_sha256": "5227dcbc4df7c5533341d111cc469fa491a48e722b23dd10f553181b52dff2d9",
+      "codec_sha256": "70dc95dbfdd9aa5d9d406236ff771d061bf17b0cda02a72513953355606e719b",
+      "punc_sha256": "faf4a43e3135bc307a66194685af00f756e6f4c28c7d9e2dd8f3517cddca5c45"
+    },
+    "placement": "RTX 5090 Laptop Vulkan0 talker/codec + CPU FP32 code predictor",
+    "expected_gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "ggml_vk_visible_devices": "0",
+    "gpu_memory_pool": "gpu_vram",
+    "gpu_memory_overhead_bytes": 2147483648,
+    "loaded_rss_bytes": 714149888,
+    "reserved_bytes": {
+      "host_ram": 8589934592,
+      "gpu_vram": 4294967296
+    },
+    "memory_overhead_bytes": 5368709120,
+    "max_text_bytes": 4096,
+    "max_wav_bytes": 4194304,
+    "max_audio_s": 10.0,
+    "voice": "ryan",
+    "seed": 42,
+    "request_capacity": 1,
+    "stateful_session": "CrispASR-owned; complete WAV per request",
+    "evidence": "B"
+  },
+  "checks": [
+    {
+      "text": "Hello from the local computer.",
+      "wall_s": 3.4533328999532387,
+      "frames": 65280,
+      "duration_s": 2.72,
+      "pcm_sha256": "d3d071531e2574b933c8acf18e2a0344c8961493bd17c63662307270a99d265c",
+      "stage_event": {
+        "request_id": "tts-692304250000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "052b83e9c0bb4151899f68230d6ed5d2",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    },
+    {
+      "text": "The blue car is parked beside the library.",
+      "wall_s": 3.995061399997212,
+      "frames": 76800,
+      "duration_s": 3.2,
+      "pcm_sha256": "91d66409f7b3e0c5bdaa45e2091b60b8e1c3cdd64c3909d1a7878f2e9de0043f",
+      "stage_event": {
+        "request_id": "tts-692307703000000",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "052b83e9c0bb4151899f68230d6ed5d2",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "warmups": [],
+  "measured": [
+    {
+      "text": "Hello from the local computer.",
+      "wall_s": 3.2714283999521285,
+      "frames": 65280,
+      "duration_s": 2.72,
+      "pcm_sha256": "d3d071531e2574b933c8acf18e2a0344c8961493bd17c63662307270a99d265c",
+      "stage_event": {
+        "request_id": "tts-692311703000000",
+        "stage_id": 0,
+        "epoch": 3,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "052b83e9c0bb4151899f68230d6ed5d2",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "nearest_rank_p50_wall_s": 3.2714283999521285,
+  "nearest_rank_p95_wall_s": 3.2714283999521285,
+  "all_same_pcm_sha256": true,
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 17179869184,
+      "gpu_vram": 17179869184
+    },
+    "reserved": {
+      "host_ram": 0,
+      "gpu_vram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

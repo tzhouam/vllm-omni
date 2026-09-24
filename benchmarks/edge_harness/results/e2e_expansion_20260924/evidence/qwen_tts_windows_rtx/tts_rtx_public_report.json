@@ -1,0 +1,36 @@
+{
+  "entrypoint": "AsyncOmni.generate",
+  "pipeline": "qwen3_tts_crisp_hybrid",
+  "memory_budget": {
+    "capacities": {
+      "host_ram": 17179869184,
+      "gpu_vram": 17179869184
+    },
+    "demands": {
+      "host_ram": 8589934592,
+      "gpu_vram": 4294967296
+    }
+  },
+  "startup_s": 6.601007299963385,
+  "request_wall_s": 3.8559913999633864,
+  "outputs": [
+    {
+      "request_id": "public-tts-1",
+      "sample_rate": 24000,
+      "frames": 65280,
+      "pcm_sha256": "d3d071531e2574b933c8acf18e2a0344c8961493bd17c63662307270a99d265c",
+      "stage_event": {
+        "request_id": "public-tts-1-9b478507",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "ba82b3743db54744ae58909bc3311bf8",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "status": "passed"
+}

@@ -1,0 +1,117 @@
+{
+  "status": "passed",
+  "scope": "RTX complete-request TTS, 20 serial outputs, public API, in-flight cancel/restart, GPU admission refusal and Radeon regression",
+  "profile_nearest_rank_p50_wall_s": 3.152671999996528,
+  "profile_nearest_rank_p95_wall_s": 3.231357399956323,
+  "rtx_pcm_sha256": "d3d071531e2574b933c8acf18e2a0344c8961493bd17c63662307270a99d265c",
+  "radeon_pcm_sha256": "57f60228e2b456f6dfefc7e49df862c7bff6ba7cf39231ef1824f615948a1539",
+  "server_prefill_counts": {
+    "smoke": 3,
+    "postguard": 3,
+    "profile": 24,
+    "restart": 1,
+    "public": 1,
+    "radeon": 4,
+    "radeon_restart": 1
+  },
+  "files": {
+    "tts_rtx_postguard_report.json": {
+      "bytes": 3746,
+      "sha256": "d221decd60692e0321e849fe04cb2c33f1ecdf103a351b20885bc4cdfc443c8b"
+    },
+    "tts_rtx_postguard.wav": {
+      "bytes": 130604,
+      "sha256": "b650492ec4ad4d34fdd07c63517fe846a8c6a762e7d7c5d552b9a4bf88189013"
+    },
+    "tts_radeon_regression_report.json": {
+      "bytes": 6284,
+      "sha256": "7703703a91606a701d42d7247c594ae5306c60c6056e4483413d697fa5aa5b7e"
+    },
+    "tts_radeon_regression.wav": {
+      "bytes": 122924,
+      "sha256": "1bb9590f367ab531c66fc20d9b8aed9f0477fde67f2bdbe16e60de5a40b17e27"
+    },
+    "tts_rtx_postguard_server.log": {
+      "bytes": 7305,
+      "sha256": "d6c38c755d7d65fdb6ffdbb9f3fd5c439d9b55247e5b15b685e18f64994e524d"
+    },
+    "tts_rtx_profile20_report.json": {
+      "bytes": 17276,
+      "sha256": "8a1a911989568c0ddba20bac8a09d300d44756f052d511a4a67bef41933cd968"
+    },
+    "tts_radeon_regression_server_restart.log": {
+      "bytes": 6562,
+      "sha256": "fd0e94336d87079e93e65aa4453fac7824f8e5701e93791a2dc28beacdab1c3a"
+    },
+    "tts_rtx_public.driver.log": {
+      "bytes": 4069,
+      "sha256": "73ca196d9b6cd037a286ac98029ac7c160a5846712d8c46045b55072e08a9488"
+    },
+    "tts_rtx_public_server.log": {
+      "bytes": 6569,
+      "sha256": "7df3ec94f0d769d527acf26b4b5555022e6e43a4078b6ac75a5e2fff07934e60"
+    },
+    "tts_rtx_smoke.wav": {
+      "bytes": 130604,
+      "sha256": "b650492ec4ad4d34fdd07c63517fe846a8c6a762e7d7c5d552b9a4bf88189013"
+    },
+    "tts_rtx_smoke_server.log": {
+      "bytes": 7308,
+      "sha256": "9d3ac3c749afd899c87012237160562b987bc88b0312a754202f5e34bb94a025"
+    },
+    "tts_radeon_regression_server.log": {
+      "bytes": 7387,
+      "sha256": "9dffd1df8f1183409ad7eacbb5bfbbb58cf04f2eb45ee1e429586364f0640ad0"
+    },
+    "tts_rtx_profile20_server_restart.log": {
+      "bytes": 6569,
+      "sha256": "ee8f76054bf7ea15602ad8e7431fe50a62099fcc90efc27c73587f39be334035"
+    },
+    "tts_rtx_postguard.driver.log": {
+      "bytes": 4155,
+      "sha256": "e524d880c3930a88dd75600312b746b513d16a4876f12d03ce4a9291aaebe067"
+    },
+    "tts_rtx_smoke_asr.json": {
+      "bytes": 694,
+      "sha256": "55260137e40adbbd6d11244e6687f5f3d797eb82a07a6e6f0e16a522e844fc40"
+    },
+    "tts_rtx_refused_3gib.json": {
+      "bytes": 941,
+      "sha256": "2ae1f4cc446d296f51ed0482fc10c57c6326087d25002565451ba0b3d4ed2d46"
+    },
+    "tts_rtx_smoke_report.json": {
+      "bytes": 3746,
+      "sha256": "fc72ae8bd3f917384d2c717cfc343f4224c47eef363c2a3706b4e49d77c33a79"
+    },
+    "tts_rtx_profile20_server.log": {
+      "bytes": 14742,
+      "sha256": "31c35379a529585223d494d3f85795b5a73b493042012a5921c22f4688aee2c8"
+    },
+    "tts_rtx_profile20.wav": {
+      "bytes": 130604,
+      "sha256": "b650492ec4ad4d34fdd07c63517fe846a8c6a762e7d7c5d552b9a4bf88189013"
+    },
+    "tts_rtx_profile20.driver.log": {
+      "bytes": 17829,
+      "sha256": "b4a1a23faa6f5f06803036889a0faa0fa7c1b485921959dae935f98b1f1b859a"
+    },
+    "tts_radeon_regression.driver.log": {
+      "bytes": 6837,
+      "sha256": "b31f23ea2f9dca7e9557c62b44e8384d3fc69e08ffbc6079b137f9495ad13c48"
+    },
+    "hardware.json": {
+      "bytes": 649,
+      "sha256": "a0a7e3dbfc350f23ad452aecd7d6ef4d460f58e83dfa25bdcf74de94f55ba9e6"
+    },
+    "tts_rtx_public_report.json": {
+      "bytes": 880,
+      "sha256": "fabf007dd52245cabc0246db717047659af5501451077f3e7f08c09f8408a736"
+    }
+  },
+  "limits": [
+    "ASR exact transcription is an intelligibility proxy, not speaker or perceptual quality qualification.",
+    "The backend emits complete WAVs and has no playable chunk stream.",
+    "Declared GPU-VRAM admission is not a measured device-memory loading peak.",
+    "One fresh-stage restart is not same-session continuation or sustained recovery qualification."
+  ]
+}
