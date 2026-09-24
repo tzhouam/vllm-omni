@@ -1,0 +1,14 @@
+WARNING:root:Please consider to run pre-processing before quantization. Refer to example: https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md 
+WARNING:root:Expected bias 'val_26' to be an initializer
+WARNING:root:Expected bias 'val_31' to be an initializer
+WARNING:root:Expected bias 'val_37' to be an initializer
+WARNING:root:Expected bias 'val_42' to be an initializer
+WARNING:root:Expected bias 'val_47' to be an initializer
+WARNING:root:Expected bias 'val_52' to be an initializer
+WARNING:root:Expected bias 'val_76' to be an initializer
+WARNING:root:Expected bias 'val_81' to be an initializer
+WARNING:root:Expected bias 'val_86' to be an initializer
+WARNING:root:Expected bias 'val_91' to be an initializer
+WARNING:root:Expected bias 'val_96' to be an initializer
+WARNING:root:Expected bias 'val_101' to be an initializer
+WARNING:root:Please consider pre-processing before quantization. See https://github.com/microsoft/onnxruntime-inference-examples/blob/main/quantization/image_classification/cpu/ReadMe.md 

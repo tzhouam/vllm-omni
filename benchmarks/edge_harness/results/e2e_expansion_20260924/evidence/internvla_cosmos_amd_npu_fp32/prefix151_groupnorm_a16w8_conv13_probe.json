@@ -1,0 +1,44 @@
+{
+  "scope": "real-weight Cosmos prefix A16W8 QDQ CPU candidate; no NPU or policy claim",
+  "source_sha256": "d50ff3e4655949b89c976c64820fb222328521ca634b7534d1876d8b11fb6c6b",
+  "fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "candidate_sha256": "56c1b0c34721137856d241369ff5e09914df4562d3ac4a7ef5c053ec4ad2483d",
+  "candidate_bytes": 766630,
+  "quantize_s": 0.6985155999427661,
+  "quantization": "QDQ Conv+MatMul A16W8, per-channel weights, MinMax on pinned ramp and pattern",
+  "nodes_to_quantize": [
+    "node_conv2d_13"
+  ],
+  "cpu_parity_vs_source": {
+    "ramp": {
+      "relative_l2": 0.0061947929981353645,
+      "max_abs": 0.21496548876166344
+    },
+    "pattern": {
+      "relative_l2": 0.005286508165600726,
+      "max_abs": 0.1415814496576786
+    }
+  },
+  "status": "component_not_qualified",
+  "fixture_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "fixture": "pattern_pixels",
+  "hardware": "Ryzen AI 9 HX 370 AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "cpu_wall_s": 0.061466900049708784,
+  "output_shape": [
+    6,
+    256,
+    64,
+    64
+  ],
+  "output_finite": true,
+  "npu_devices": 1,
+  "session_create_s": 28.991450599976815,
+  "npu_wall_s": 0.050960399908944964,
+  "relative_l2_vs_cpu": 0.0,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\internvla_cosmos_amd_npu_fp32\\prefix151_groupnorm_a16w8_conv13_profile_2026-09-24_20-49-13_074.json",
+  "node_providers": {
+    "CPUExecutionProvider": 58
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "scope": "real-weight Cosmos prefix A8W8 QDQ CPU candidate; no NPU or policy claim",
+  "source_sha256": "d50ff3e4655949b89c976c64820fb222328521ca634b7534d1876d8b11fb6c6b",
+  "fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "candidate_sha256": "a5ca9d0ef3e18c3cf9f496d48874b15439655113993c9cd22807a0d4d6c18ca8",
+  "candidate_bytes": 614037,
+  "quantize_s": 0.6756565000396222,
+  "quantization": "QDQ Conv+MatMul A8W8, per-channel weights, MinMax on pinned ramp and pattern",
+  "cpu_parity_vs_source": {
+    "ramp": {
+      "relative_l2": 0.041038942195002814,
+      "max_abs": 0.4073772430419922
+    },
+    "pattern": {
+      "relative_l2": 0.02883931846083374,
+      "max_abs": 0.3842897415161133
+    }
+  },
+  "status": "cpu_candidate_numeric_fail"
+}
