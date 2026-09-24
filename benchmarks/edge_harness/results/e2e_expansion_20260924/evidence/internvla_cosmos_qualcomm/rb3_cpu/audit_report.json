@@ -1,6 +1,6 @@
 {
   "scope": "one six-frame Cosmos image encoder on synthetic pattern; no complete InternVLA policy",
-  "status": "component_inference_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "Dragonwing RB3 Gen 2 Vision Kit",
     "os": "1.6",
@@ -48,7 +48,22 @@
   },
   "limits": [
     "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
-    "The action policy, state lifecycle, admission and complete request were not run on this device.",
-    "Requested NPU is not actual per-node placement without a device profile."
-  ]
+    "The action policy, state lifecycle, admission and complete request were not run on this device."
+  ],
+  "profile": {
+    "job_id": "jpvld2475",
+    "sample_count": 46,
+    "sample_min_us": 12982566,
+    "nearest_rank_p50_us": 13017507,
+    "nearest_rank_p95_us": 13053146,
+    "reported_estimated_inference_time_us": 12982566,
+    "reported_peak_memory_bytes": 220680192,
+    "reported_first_load_time_us": 130552,
+    "reported_warm_load_time_us": 131945,
+    "reported_first_load_peak_memory_bytes": 14336000,
+    "reported_warm_load_peak_memory_bytes": 16273408,
+    "compute_unit_row_counts": {
+      "CPU": 590
+    }
+  }
 }

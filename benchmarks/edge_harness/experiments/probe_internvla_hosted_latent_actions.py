@@ -38,6 +38,9 @@ def main() -> None:
 
     import numpy as np
     import torch
+    import transformers
+    import vllm
+    import vllm_omni
 
     from vllm_omni.diffusion.data import OmniDiffusionConfig
     from vllm_omni.diffusion.registry import initialize_model
@@ -142,6 +145,9 @@ def main() -> None:
         "hosted_output_sha256": sha256(args.device_output),
         "hosted_inference_job_id": audit["inference_job_id"],
         "policy_torch": torch.__version__,
+        "policy_vllm": vllm.__version__,
+        "policy_transformers": transformers.__version__,
+        "loaded_omni_path": str(Path(vllm_omni.__file__).resolve()),
         "policy_load_seconds_not_request_timing": load_seconds,
         "encoder_calls": {"source": source_encoder.calls, "hosted": hosted_encoder.calls},
         "action_shape": list(source_actions.shape),

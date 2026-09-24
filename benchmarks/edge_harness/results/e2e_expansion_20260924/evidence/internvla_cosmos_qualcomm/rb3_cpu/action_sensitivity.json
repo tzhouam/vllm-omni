@@ -1,0 +1,35 @@
+{
+  "scope": "Dragonwing RB3 Gen 2 Vision Kit hosted Cosmos latent injected into local CPU InternVLA policy with synthetic state/noise; no device-local policy or robot-task result",
+  "status": "synthetic_action_sensitivity_measured",
+  "hosted_device_name": "Dragonwing RB3 Gen 2 Vision Kit",
+  "policy_checkpoint_sha256": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+  "fixture_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "hosted_output_sha256": "a316ab251ff5257f9af60e80e44ea81ff6da07b83d84b618ae8837a160c83cdc",
+  "hosted_inference_job_id": "jpyoxo0l5",
+  "policy_torch": "2.13.0+cpu",
+  "policy_vllm": "0.28.0",
+  "policy_transformers": "5.14.1",
+  "loaded_omni_path": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/__init__.py",
+  "policy_load_seconds_not_request_timing": 30.431364054966252,
+  "encoder_calls": {
+    "source": 2,
+    "hosted": 1
+  },
+  "action_shape": [
+    1,
+    50,
+    32
+  ],
+  "source_repeat_bitwise_equal": true,
+  "action_relative_l2": 0.005941975079977283,
+  "action_max_abs": 0.007475033402442932,
+  "action_cosine": 0.9999823489916904,
+  "source_actions_sha256": "d20b4804ce549c25e46590f4057d5d9eceb9e331c7015e3fc90cf79a234bf018",
+  "hosted_actions_sha256": "66234e929748b1b3207ba7f56884d02f7a4fba37cd4d07ca50a428fd2fd25e5c",
+  "limits": [
+    "The policy ran on local CPU; the device only executed the isolated encoder fixture.",
+    "The encoder input was a synthetic pattern and policy state/noise were synthetic zeros.",
+    "No real-observation reference actions, physical units/time, or robot-task tolerance exist.",
+    "No latency, memory admission, cancellation or sustained device power gate was tested."
+  ]
+}

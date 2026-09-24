@@ -1,0 +1,4272 @@
+{
+  "timestamp_utc": "2026-09-24T02:08:48.053990+00:00",
+  "qai_hub_version": "0.55.0",
+  "facility": "Qualcomm AI Hub Workbench",
+  "job_id": "jpvld2475",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpvld2475/",
+  "status": "SUCCESS",
+  "status_message": "",
+  "options": "--compute_unit cpu",
+  "hub_version": "aihub-2026.09.11.0",
+  "device": {
+    "name": "Dragonwing RB3 Gen 2 Vision Kit",
+    "os": "1.6",
+    "attributes": [
+      "os:qc_linux",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-oe-linux-gcc11",
+      "format:iot",
+      "chipset:qualcomm-qcs6490",
+      "chipset:qcs6490",
+      "chipset:qualcomm-dragonwing-qcs6490",
+      "hexagon:v68",
+      "soc-model:93",
+      "framework:qnn"
+    ]
+  },
+  "model_id": "mno4105gm",
+  "shapes": {
+    "pixels": [
+      [
+        6,
+        3,
+        256,
+        256
+      ],
+      "float32"
+    ]
+  },
+  "profile": {
+    "execution_summary": {
+      "estimated_inference_time": 12982566,
+      "estimated_inference_peak_memory": 220680192,
+      "first_load_time": 130552,
+      "first_load_peak_memory": 14336000,
+      "warm_load_time": 131945,
+      "warm_load_peak_memory": 16273408,
+      "compile_time": 0,
+      "compile_peak_memory": 0,
+      "compile_memory_increase_range": [
+        0,
+        0
+      ],
+      "compile_memory_peak_range": [
+        0,
+        0
+      ],
+      "first_load_memory_increase_range": [
+        9411760,
+        10212432
+      ],
+      "first_load_memory_peak_range": [
+        11440128,
+        12240800
+      ],
+      "warm_load_memory_increase_range": [
+        11477856,
+        12280336
+      ],
+      "warm_load_memory_peak_range": [
+        13373440,
+        14175920
+      ],
+      "inference_memory_increase_range": [
+        18446744073633488768,
+        18446744073640473584
+      ],
+      "inference_memory_peak_range": [
+        199315456,
+        206300272
+      ],
+      "all_compile_times": [],
+      "all_first_load_times": [
+        130552
+      ],
+      "all_warm_load_times": [
+        131945
+      ],
+      "all_inference_times": [
+        13197758,
+        13053146,
+        13054601,
+        13046414,
+        13028558,
+        13038385,
+        13001573,
+        13030523,
+        13010998,
+        13019902,
+        13012821,
+        13034535,
+        12990579,
+        13017507,
+        12987732,
+        13018414,
+        12982566,
+        13017527,
+        13007792,
+        13049766,
+        13002728,
+        13006213,
+        13049041,
+        13005698,
+        12993838,
+        13018106,
+        12983672,
+        13019884,
+        12990205,
+        13010153,
+        12990440,
+        13009828,
+        13030636,
+        12995752,
+        13005850,
+        13018146,
+        12997406,
+        13019318,
+        13038113,
+        13000281,
+        13024498,
+        13030252,
+        12995367,
+        13028581,
+        13008019,
+        13017707
+      ]
+    },
+    "execution_detail": [
+      {
+        "name": "Cast_630",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 54,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_632",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_282",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_284",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_253",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_255",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_166",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_168",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_137",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_139",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_pad",
+        "type": "Pad",
+        "compute_unit": "CPU",
+        "execution_time": 1476,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_30",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 1738,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_34",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 376,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_33",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 2353,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_29",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 983,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_32",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 381,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_31",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 339,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_cat",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 4922,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_div",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 907,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_pad_1",
+        "type": "Pad",
+        "compute_unit": "CPU",
+        "execution_time": 1061,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_36",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 1036,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_40",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 456,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_39",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 428,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_35",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 949,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_38",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 438,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_Conv_37",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 363,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_cat_1",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 987,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_div_1",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 998,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_12",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 69131,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_121",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_120",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_118",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_119",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_122",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_116",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 2725,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_123",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 20,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_124",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_125",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1289,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_132",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 4778,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_128",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 23,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_126",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 7054,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_127",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1194,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_129",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_115",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_130",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_131",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_133",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2102,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_117",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_134",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_135",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_136",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_141",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2612,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_138",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 50,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_140",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_142",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2581,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_143",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_2/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4478,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_13",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 360464,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_150",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_149",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_147",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_148",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_151",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_145",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_152",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_153",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_154",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1897,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_161",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 4659,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_157",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 64,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_155",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 7851,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_156",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1965,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_158",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 59,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_144",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_159",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 63,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_160",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_162",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 4603,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_146",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 49,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_163",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 43,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_164",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_165",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 37,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_170",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 4985,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_167",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 51,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_169",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_171",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 4970,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_172",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 54,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_3/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 8736,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_15",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 42734,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_14",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 758054,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_224",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_226",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_195",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_197",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_179",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_178",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_176",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_177",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_180",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_174",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 3634,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_181",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_182",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_183",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 2101,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_190",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 5714,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_186",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 20,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_184",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 7963,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_185",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 2140,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_187",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 65,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_173",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_188",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 63,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_189",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 44,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_191",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 4647,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_175",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 49,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_192",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 47,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_193",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_194",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 35,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_199",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 5027,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_196",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 50,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_198",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 45,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_200",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 4888,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_201",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_4/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 9018,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_16",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 755640,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_208",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_207",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 7,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_205",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 7,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_206",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_209",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_203",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_210",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_211",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_212",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 2884,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_219",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 4599,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_215",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 33,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_213",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 4820,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_214",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1973,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_216",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 72,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_202",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 37,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_217",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 61,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_218",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_220",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 4643,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_204",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 50,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_221",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_222",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_223",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 37,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_228",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 5100,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_225",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 50,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_227",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_229",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 4965,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_230",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_5/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 8390,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_17",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 754642,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_18",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 188442,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_237",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_236",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 19,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_234",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 7,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_235",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_238",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_232",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 875,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_239",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_240",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_241",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 620,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_248",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 999,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_244",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_242",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 1275,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_243",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 597,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_245",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 33,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_231",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_246",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_247",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_249",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 981,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_233",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_250",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_251",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_252",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_257",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 1448,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_254",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 50,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_256",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_258",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 1408,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_259",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 55,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_6/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 2315,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_19",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 383341,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_266",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_265",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 22,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_263",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_264",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_267",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_261",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_268",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_269",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_270",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1044,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_277",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2125,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_273",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_271",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 4730,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_272",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1044,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_274",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_260",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_275",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_276",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_278",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2143,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_262",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_279",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_280",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_281",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_286",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 4603,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_283",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_285",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_287",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2618,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_288",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_7/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 5325,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_21",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 39930,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_20",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 772515,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_340",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_342",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_311",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_313",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_295",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_294",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 7,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_292",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_293",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_296",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_290",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 1823,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_297",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_298",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_299",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1175,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_306",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2152,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_302",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_300",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2526,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_301",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1130,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_303",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 64,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_289",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_304",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 61,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_305",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 43,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_307",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2280,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_291",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 50,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_308",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_309",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 37,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_310",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 35,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_315",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2773,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_312",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 54,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_314",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_316",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2712,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_317",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 54,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_8/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4355,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_22",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 775380,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_324",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_323",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_321",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_322",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_325",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_319",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_326",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_327",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_328",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1073,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_335",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2115,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_331",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 19,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_329",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2959,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_330",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1158,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_332",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_318",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_333",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_334",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_336",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2119,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_320",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_337",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 22,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_338",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_339",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_344",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2689,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_341",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_343",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_345",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2681,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_346",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_9/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4550,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_23",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 771198,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_398",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 23,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_400",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_369",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_371",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_353",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_352",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_350",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 7,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_351",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_354",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_348",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 1717,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_355",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_356",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_357",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1157,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_364",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2103,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_360",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 22,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_358",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 8951,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_359",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1079,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_361",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_347",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_362",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_363",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_365",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2103,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_349",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_366",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 22,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_367",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_368",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_373",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2747,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_370",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 28,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_372",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_374",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2636,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_375",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_10/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4490,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_24",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 770254,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_382",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_381",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_379",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_380",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_383",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_377",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_384",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_385",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_386",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1042,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_393",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2329,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_389",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 65,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_387",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2539,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_388",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1124,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_390",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 62,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_376",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 37,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_391",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 62,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_392",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_394",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2278,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_378",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 50,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_395",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 44,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_396",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_397",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 34,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_402",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2706,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_399",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_401",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_403",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2743,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_404",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_11/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4322,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_25",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 769516,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_456",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_458",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_427",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_429",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_411",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_410",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_408",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_409",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_412",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_406",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 1851,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_413",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_414",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_415",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1224,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_422",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2200,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_418",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 21,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_416",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2555,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_417",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1182,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_419",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 27,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_405",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_420",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_421",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_423",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2104,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_407",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_424",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_425",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_426",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_431",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2825,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_428",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_430",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_432",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2627,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_433",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 28,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_12/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4882,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_26",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 775901,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_440",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_439",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_437",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_438",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_441",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_435",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_442",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_443",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_444",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1051,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_451",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2498,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_447",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 64,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_445",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2483,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_446",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1217,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_448",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 70,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_434",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_449",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 59,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_450",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 41,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_452",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2250,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_436",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 49,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_453",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_454",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_455",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 36,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_460",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2843,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_457",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 90,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_459",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_461",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2652,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_462",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 54,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_13/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4519,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_27",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 771443,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_514",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_516",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_485",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_487",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_469",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_468",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_466",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_467",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_470",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_464",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 1815,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_471",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_472",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_473",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1206,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_480",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2318,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_476",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 22,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_474",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2477,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_475",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1133,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_477",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 66,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_463",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_478",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 61,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_479",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 43,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_481",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2238,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_465",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 48,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_482",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 41,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_483",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_484",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 34,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_489",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2745,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_486",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 55,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_488",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_490",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2736,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_491",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 51,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_14/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4418,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_28",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 770415,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_498",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_497",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 7,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_495",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_496",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_499",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_493",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_500",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_501",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_502",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1055,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_509",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 5112,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_505",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 24,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_503",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2410,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_504",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1082,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_506",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 34,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_492",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_507",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_508",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_510",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2259,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_494",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 49,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_511",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_512",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_513",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 36,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_518",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2829,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_515",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 52,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_517",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_519",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2728,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_520",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_15/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4320,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_29",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 768878,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_543",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_545",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_527",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_526",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_524",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_525",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_528",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_522",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 1836,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_529",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_530",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_531",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1210,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_538",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2101,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_534",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_532",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2405,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_533",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1159,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_535",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 21,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_521",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_536",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_537",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_539",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2268,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_523",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 48,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_540",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_541",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_542",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 37,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_547",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2799,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_544",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 64,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_546",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_548",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2749,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_549",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 52,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_32",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 82476,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_view_6",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 19,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_31",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 83130,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_view_5",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_30",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 83742,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_view_4",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 21,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_bmm/MatmulTransposeFusion//MatMulScaleFusion/",
+        "type": "FusedMatMul",
+        "compute_unit": "CPU",
+        "execution_time": 102663,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_softmax",
+        "type": "Softmax",
+        "compute_unit": "CPU",
+        "execution_time": 6800,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_bmm_1/MatmulTransposeFusion/",
+        "type": "FusedMatMul",
+        "compute_unit": "CPU",
+        "execution_time": 96553,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_view_7",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_33",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 87140,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_601",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 17,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_603",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_572",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_574",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_556",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_555",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_553",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_554",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_557",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_551",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 1831,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_558",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_559",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_560",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1197,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_567",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2144,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_563",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 24,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_561",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2496,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_562",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1092,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_564",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 66,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_550",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_565",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 61,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_566",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 36,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_568",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2239,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_552",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 47,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_569",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 40,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_570",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 39,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_571",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 36,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_576",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2729,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_573",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 54,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_575",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 38,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_577",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2758,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_578",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 53,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_17/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4447,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_34",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 776359,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_585",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_584",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_582",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_583",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_586",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_580",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_587",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_588",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_589",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1031,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_596",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 4624,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_592",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 25,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_590",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2396,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_591",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1167,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_593",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 33,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_579",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 11,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_594",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_595",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_597",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2292,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_581",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_598",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_599",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_600",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_605",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2671,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_602",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 26,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_604",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 13,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_606",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2675,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_607",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 30,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_18/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4533,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_35",
+        "type": "FusedConv",
+        "compute_unit": "CPU",
+        "execution_time": 770960,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_614",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_613",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_611",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 6,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_612",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 12,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Concat_615",
+        "type": "Concat",
+        "compute_unit": "CPU",
+        "execution_time": 14,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_609",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 7,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_616",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_617",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 8,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_618",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1097,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_625",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 2140,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_621",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_619",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2440,
+        "execution_cycles": 0
+      },
+      {
+        "name": "ReduceMean_620",
+        "type": "ReduceMean",
+        "compute_unit": "CPU",
+        "execution_time": 1097,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sub_622",
+        "type": "Sub",
+        "compute_unit": "CPU",
+        "execution_time": 20,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_608",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_623",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Sqrt_624",
+        "type": "Sqrt",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Div_626",
+        "type": "Div",
+        "compute_unit": "CPU",
+        "execution_time": 2298,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Shape_610",
+        "type": "Shape",
+        "compute_unit": "CPU",
+        "execution_time": 15,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_627",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 16,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_628",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_629",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 9,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Mul_634",
+        "type": "Mul",
+        "compute_unit": "CPU",
+        "execution_time": 2667,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Cast_631",
+        "type": "Cast",
+        "compute_unit": "CPU",
+        "execution_time": 36,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_633",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 10,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Add_635",
+        "type": "Add",
+        "compute_unit": "CPU",
+        "execution_time": 2781,
+        "execution_cycles": 0
+      },
+      {
+        "name": "Reshape_636",
+        "type": "Reshape",
+        "compute_unit": "CPU",
+        "execution_time": 18,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_mul_19/QuickGeluFusion/",
+        "type": "QuickGelu",
+        "compute_unit": "CPU",
+        "execution_time": 4419,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_36",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 32243,
+        "execution_cycles": 0
+      },
+      {
+        "name": "node_conv2d_37",
+        "type": "Conv",
+        "compute_unit": "CPU",
+        "execution_time": 245,
+        "execution_cycles": 0
+      }
+    ]
+  }
+}
