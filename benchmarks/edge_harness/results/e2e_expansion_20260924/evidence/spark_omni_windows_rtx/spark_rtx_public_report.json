@@ -1,0 +1,25 @@
+{
+  "device": "Vulkan0",
+  "entrypoint": "AsyncOmni.generate",
+  "startup_s": 4.636806800030172,
+  "request_wall_s": 0.0785447999369353,
+  "outputs": [
+    {
+      "request_id": "public-spark-1",
+      "text": "Paris",
+      "error": null,
+      "stage_event": {
+        "request_id": "public-spark-1-ab6d27b0",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "454f5f7a5f7f4ed08dc071c6e48fa7b6",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "status": "passed"
+}

@@ -27,6 +27,13 @@ confirmed server task start before cancellation on both HX370 CPU and Radeon
 Paris and cleared the ledger without stale output. This is fresh-stage
 recovery, not same-session token continuation.
 
+A separate [native Windows RTX Spark GGUF Omni run](evidence/spark_omni_windows_rtx/README.md)
+used the pinned 1.7B Q4_K_M artifact on RTX Vulkan0 with 29/29 layers
+offloaded. Two named requests and 20/20 serial inventory requests passed at
+nearest-rank wall p50/p95 **0.294/0.302 s**, along with public AsyncOmni text,
+context refusal and fresh-stage recovery after server-started cancellation.
+This is a different artifact/runtime from the earlier 4B BF16 CUDA profile.
+
 A [native Windows Qwen3-TTS hybrid restart probe](evidence/qwen_tts_omni_windows_restart/README.md)
 also confirmed backend prefill before cancellation. The worker and host-RAM
 reservation drained; a fresh Omni stage with the same pinned Radeon Vulkan0

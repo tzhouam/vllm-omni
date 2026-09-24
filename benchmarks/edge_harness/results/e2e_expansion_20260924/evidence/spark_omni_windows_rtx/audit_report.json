@@ -1,0 +1,50 @@
+{
+  "scope": "one in-flight cancel and fresh-stage restart per selected native Windows Spark placement",
+  "checkpoint": "Spark-X2.5-1.7B Q4_K_M",
+  "model_sha256": "902bde2522394954ac17821b3e5fd0df02defbc6944f122253f2580acf0503f4",
+  "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+  "routes": {
+    "rtx": {
+      "status": "passed",
+      "device": "Vulkan0",
+      "old_generation": "282c7a01719b4a6f8601bc570d738acd",
+      "new_generation": "5bcf7d739b31445ca318db4ebb62dc0d",
+      "first_server_task_starts": 25,
+      "second_server_task_starts": 1,
+      "started_before_cancel": true,
+      "fresh_answer": "Paris",
+      "ledger_cleared": true,
+      "files": {
+        "spark_rtx_report.json": {
+          "bytes": 22821,
+          "sha256": "053325f10bb193d85b3e05808adbe39fa65f6719883c6539162def841f9c054b"
+        },
+        "spark_rtx_server.log": {
+          "bytes": 97597,
+          "sha256": "207dde5ae742071d45c8daf46afbde6d065b002123676d63e3da48926908dcd4"
+        },
+        "spark_rtx_server_restart.log": {
+          "bytes": 17422,
+          "sha256": "55951e2eb4e7c7fa8ec32d5793b605ab5278aee41e5a75ec5427e19bf55f6df2"
+        },
+        "spark_rtx_public_report.json": {
+          "bytes": 575,
+          "sha256": "b660f07cc07b7be673d3f4474804bb90e014a3c4350ab69603d2dbdf34e6e615"
+        },
+        "spark_rtx_public_server.log": {
+          "bytes": 17860,
+          "sha256": "ea3a447c6a967f91695f9b777656364efb7611f1784a38ef2814740175a22da6"
+        },
+        "hardware.json": {
+          "bytes": 712,
+          "sha256": "1dca2d69bd5e5f9416fd82ffe571bf78f3f0f3683054985699de1cdc467bf6f5"
+        }
+      }
+    }
+  },
+  "limits": [
+    "A fresh StageRuntime is created after cancellation; no same-session state migration is claimed.",
+    "The backend returns complete requests rather than incremental token events.",
+    "This is one restart per placement, not concurrent or sustained recovery qualification."
+  ]
+}

@@ -1,0 +1,868 @@
+{
+  "scope": "complete Spark GGUF text requests through Omni StageRuntime/StagePool and external llama.cpp backend",
+  "model_file": "C:\\Users\\zhout\\w2\\models\\Spark-X2.5-1.7B-Q4_K_M.gguf",
+  "device": "Vulkan0",
+  "memory_budget": {
+    "capacities": {
+      "host_ram": 12884901888
+    },
+    "demands": {
+      "host_ram": 4294967296
+    }
+  },
+  "warmup_count": 1,
+  "measured_count": 20,
+  "startup_s": 4.318676199996844,
+  "execution_plan": {
+    "backend": "external.llamacpp.text.v1",
+    "stage_id": 0,
+    "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+    "model_sha256": "902bde2522394954ac17821b3e5fd0df02defbc6944f122253f2580acf0503f4",
+    "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+    "model_alias": "C:\\Users\\zhout\\w2\\models\\Spark-X2.5-1.7B-Q4_K_M.gguf",
+    "requested_device": "Vulkan0",
+    "expected_device_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "layer_assignments": 0,
+    "offloaded_layers": [
+      "29",
+      "29"
+    ],
+    "model_buffer_devices": [
+      "Vulkan0"
+    ],
+    "all_model_buffers": [
+      "CPU_Mapped",
+      "Vulkan0"
+    ],
+    "cpu_only_layout": false,
+    "worker_pid": 27832,
+    "loaded_rss_bytes": 1315659776,
+    "reserved_bytes": {
+      "host_ram": 4294967296
+    },
+    "memory_pool": "host_ram",
+    "memory_overhead_bytes": 2147483648,
+    "context_tokens": 4096,
+    "max_new_tokens": 96,
+    "max_io_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "llama.cpp-owned; reset for each complete request",
+    "evidence": "B"
+  },
+  "checks": [
+    {
+      "case": "short",
+      "answer": "Paris",
+      "expected": "Paris",
+      "correct": true,
+      "wall_s": 1.7769259000197053,
+      "stage_event": {
+        "request_id": "short-689815328000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 1.7583635998889804,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 28,
+          "total_tokens": 30,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 17.901490499963984,
+      "stage_event": {
+        "request_id": "inventory_120-689817093000000",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 17.87532019999344,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "warmups": [
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.29373169993050396,
+      "stage_event": {
+        "request_id": "inventory_120-689835000000000",
+        "stage_id": 0,
+        "epoch": 3,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.2651509999996051,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "measured": [
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2865268000168726,
+      "stage_event": {
+        "request_id": "inventory_120-689835296000000",
+        "stage_id": 0,
+        "epoch": 4,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.2669058999745175,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2893492999719456,
+      "stage_event": {
+        "request_id": "inventory_120-689835578000000",
+        "stage_id": 0,
+        "epoch": 5,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27183760004118085,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.28382519993465394,
+      "stage_event": {
+        "request_id": "inventory_120-689835875000000",
+        "stage_id": 0,
+        "epoch": 6,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27105989994015545,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.3027259000809863,
+      "stage_event": {
+        "request_id": "inventory_120-689836156000000",
+        "stage_id": 0,
+        "epoch": 7,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.274257899960503,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2817173000657931,
+      "stage_event": {
+        "request_id": "inventory_120-689836453000000",
+        "stage_id": 0,
+        "epoch": 8,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.2784007000736892,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.3015463000629097,
+      "stage_event": {
+        "request_id": "inventory_120-689836734000000",
+        "stage_id": 0,
+        "epoch": 9,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27437610004562885,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.29846129997167736,
+      "stage_event": {
+        "request_id": "inventory_120-689837046000000",
+        "stage_id": 0,
+        "epoch": 10,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.273285900009796,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2964489000150934,
+      "stage_event": {
+        "request_id": "inventory_120-689837343000000",
+        "stage_id": 0,
+        "epoch": 11,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.26956820010673255,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.29894329991657287,
+      "stage_event": {
+        "request_id": "inventory_120-689837640000000",
+        "stage_id": 0,
+        "epoch": 12,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27105360000859946,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.30097049998585135,
+      "stage_event": {
+        "request_id": "inventory_120-689837937000000",
+        "stage_id": 0,
+        "epoch": 13,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27357179997488856,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2792213000357151,
+      "stage_event": {
+        "request_id": "inventory_120-689838234000000",
+        "stage_id": 0,
+        "epoch": 14,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.275405399966985,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2862992000300437,
+      "stage_event": {
+        "request_id": "inventory_120-689838515000000",
+        "stage_id": 0,
+        "epoch": 15,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27145970007404685,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.29433399997651577,
+      "stage_event": {
+        "request_id": "inventory_120-689838796000000",
+        "stage_id": 0,
+        "epoch": 16,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.2681397000560537,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.28620390000287443,
+      "stage_event": {
+        "request_id": "inventory_120-689839093000000",
+        "stage_id": 0,
+        "epoch": 17,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.2698075999505818,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2980151999508962,
+      "stage_event": {
+        "request_id": "inventory_120-689839390000000",
+        "stage_id": 0,
+        "epoch": 18,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.2700446000089869,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.28881499997805804,
+      "stage_event": {
+        "request_id": "inventory_120-689839687000000",
+        "stage_id": 0,
+        "epoch": 19,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27371939993463457,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.30004889995325357,
+      "stage_event": {
+        "request_id": "inventory_120-689839968000000",
+        "stage_id": 0,
+        "epoch": 20,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27181100007146597,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.30038180004339665,
+      "stage_event": {
+        "request_id": "inventory_120-689840265000000",
+        "stage_id": 0,
+        "epoch": 21,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.272594099980779,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.2962783999973908,
+      "stage_event": {
+        "request_id": "inventory_120-689840578000000",
+        "stage_id": 0,
+        "epoch": 22,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27253059996291995,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 0.28055280004628,
+      "stage_event": {
+        "request_id": "inventory_120-689840859000000",
+        "stage_id": 0,
+        "epoch": 23,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.27748849999625236,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "nearest_rank_p50_wall_s": 0.29433399997651577,
+  "nearest_rank_p95_wall_s": 0.3015463000629097,
+  "context_check": {
+    "rejected": true,
+    "error": "ResourceUnavailable: Spark prompt plus generation bound exceeds context; refusing truncation",
+    "recovery": {
+      "case": "short",
+      "answer": "Paris",
+      "expected": "Paris",
+      "correct": true,
+      "wall_s": 0.0876456000842154,
+      "stage_event": {
+        "request_id": "short-689841171000000",
+        "stage_id": 0,
+        "epoch": 24,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "282c7a01719b4a6f8601bc570d738acd",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.06669519993010908,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 28,
+          "total_tokens": 30,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  },
+  "abort_check": {
+    "abort_case": "inventory_120",
+    "server_tasks_before_abort_request": 24,
+    "server_tasks_after_abort_request_start": 25,
+    "stale_output": false,
+    "worker_exited": true,
+    "ledger_after_abort": {
+      "capacities": {
+        "host_ram": 12884901888
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    }
+  },
+  "restart_check": {
+    "first_runtime_ledger_after_shutdown": {
+      "capacities": {
+        "host_ram": 12884901888
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "fresh_startup_s": 1.9317048999946564,
+    "fresh_server_log": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\spark_omni_windows_rtx\\spark_rtx_server_restart.log",
+    "fresh_execution_plan": {
+      "backend": "external.llamacpp.text.v1",
+      "stage_id": 0,
+      "worker_generation": "5bcf7d739b31445ca318db4ebb62dc0d",
+      "model_sha256": "902bde2522394954ac17821b3e5fd0df02defbc6944f122253f2580acf0503f4",
+      "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+      "model_alias": "C:\\Users\\zhout\\w2\\models\\Spark-X2.5-1.7B-Q4_K_M.gguf",
+      "requested_device": "Vulkan0",
+      "expected_device_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "layer_assignments": 0,
+      "offloaded_layers": [
+        "29",
+        "29"
+      ],
+      "model_buffer_devices": [
+        "Vulkan0"
+      ],
+      "all_model_buffers": [
+        "CPU_Mapped",
+        "Vulkan0"
+      ],
+      "cpu_only_layout": false,
+      "worker_pid": 14332,
+      "loaded_rss_bytes": 1258029056,
+      "reserved_bytes": {
+        "host_ram": 4294967296
+      },
+      "memory_pool": "host_ram",
+      "memory_overhead_bytes": 2147483648,
+      "context_tokens": 4096,
+      "max_new_tokens": 96,
+      "max_io_bytes": 1048576,
+      "request_capacity": 1,
+      "stateful_session": "llama.cpp-owned; reset for each complete request",
+      "evidence": "B"
+    },
+    "fresh_request": {
+      "case": "short",
+      "answer": "Paris",
+      "expected": "Paris",
+      "correct": true,
+      "wall_s": 0.0995224000653252,
+      "stage_event": {
+        "request_id": "short-689843609000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "5bcf7d739b31445ca318db4ebb62dc0d",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.08163970010355115,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 28,
+          "total_tokens": 30,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    "late_output": false
+  },
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 12884901888
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

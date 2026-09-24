@@ -1,0 +1,26 @@
+{
+  "power_scheme": "电源方案 GUID: 27fa6203-3987-4dcc-918d-748559d549ec  (Performance)",
+  "captured_at": "2026-09-24T15:33:02.6756902+08:00",
+  "gpus": [
+    {
+      "Name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "DriverVersion": "32.0.16.1071",
+      "AdapterRAM": 4293918720
+    },
+    {
+      "Name": "AMD Radeon(TM) 890M Graphics",
+      "DriverVersion": "32.0.22018.6001",
+      "AdapterRAM": 536870912
+    }
+  ],
+  "cpu": {
+    "Name": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M           ",
+    "NumberOfCores": 12,
+    "NumberOfLogicalProcessors": 24
+  },
+  "os": {
+    "Caption": "Microsoft Windows 11 家庭版 中文版",
+    "BuildNumber": "26200",
+    "TotalVisibleMemorySize": 66185068
+  }
+}
