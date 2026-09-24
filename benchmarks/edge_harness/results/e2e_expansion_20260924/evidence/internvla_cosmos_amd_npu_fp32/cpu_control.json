@@ -1,0 +1,52 @@
+{
+  "scope": "real InternVLA Cosmos CI8x8 fixed-shape encoder component only; no action-policy E2E claim",
+  "hardware": "Ryzen AI 9 HX 370 AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnx": "1.22.0",
+  "onnxruntime": "1.30.0",
+  "source_sha256": "fee79864e393df35475ba243e14b4995c5651aa33e7e182cd1fda726425668b7",
+  "external_weights_sha256": "b9bc3411c10f05daec2ff977698ee100979ef756ed7f0d685275403517558b58",
+  "fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "input_shape": [
+    6,
+    3,
+    256,
+    256
+  ],
+  "output_shape": [
+    6,
+    16,
+    32,
+    32
+  ],
+  "quantization": "FP32 source, VitisAI automatic BF16 candidate",
+  "quantized_op_types": [
+    "Conv",
+    "MatMul"
+  ],
+  "per_channel": false,
+  "max_relative_l2_gate": 0.001,
+  "source_cpu_parity": {
+    "ramp": {
+      "max_abs": 1.5974044799804688e-05,
+      "relative_l2": 8.73707802280739e-07
+    },
+    "pattern": {
+      "max_abs": 2.8371810913085938e-05,
+      "relative_l2": 2.2867125923021193e-06
+    }
+  },
+  "quantized_sha256": "fee79864e393df35475ba243e14b4995c5651aa33e7e182cd1fda726425668b7",
+  "quantized_bytes": 502735,
+  "quantized_cpu_parity": {
+    "ramp": {
+      "max_abs": 1.5974044799804688e-05,
+      "relative_l2": 8.73707802280739e-07
+    },
+    "pattern": {
+      "max_abs": 2.8371810913085938e-05,
+      "relative_l2": 2.2867125923021193e-06
+    }
+  },
+  "status": "passed_cpu_component"
+}

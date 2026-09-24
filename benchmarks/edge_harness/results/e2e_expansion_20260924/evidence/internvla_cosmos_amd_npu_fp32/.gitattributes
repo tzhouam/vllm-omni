@@ -1,0 +1,2 @@
+*.log binary -eol
+*profile*.json binary -eol
