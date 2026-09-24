@@ -1,0 +1,21 @@
+{
+  "scope": "one synthetic 25-frame Code2Wav waveform parity check; no device stream",
+  "pinned_checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "pinned_decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "source_onnx_sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b",
+  "fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "ort_output_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "eager_output_bytes_sha256": "e9ba192799da2927ca69499566284d516b3e0609589cf1721f3a3e4b00788bd9",
+  "torch_version": "2.13.0+cpu",
+  "eager_vs_historical_onnx_cpu": {
+    "relative_l2": 1.890093262834244e-06,
+    "snr_db": 114.47033531828137,
+    "max_abs": 2.9355287551879883e-06,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.08373438508072073
+  },
+  "limits": [
+    "Numerical agreement on one fixture cannot prove the historical ONNX export's exact checkpoint revision.",
+    "One synthetic latent window cannot establish listening quality or multi-chunk history."
+  ]
+}

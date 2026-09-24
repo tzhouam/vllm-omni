@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-24T05:40:00.137498+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mng2vv4em",
+  "device": "Samsung Galaxy S24",
+  "options": "--target_runtime tflite",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "jgolr0d4g",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgolr0d4g/"
+}

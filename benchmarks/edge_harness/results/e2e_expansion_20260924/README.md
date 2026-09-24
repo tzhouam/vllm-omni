@@ -18,6 +18,32 @@ was **0.559/1.052 s** for 0.16 s audio, with 403 CPU and 335 GPU placement
 rows and a median component RTF of 3.49. Listening quality and playable
 complete-stream behavior remain open.
 
+An additional [Spark BF16 restart probe](evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
+cancelled after eight token events, rejected the retired session handle and
+verified that a fresh session produced the same 128 greedy token IDs with no
+late events. For S25, the historical [25-frame TFLite GPU-requested vocoder](evidence/qwen_tts_vocoder_qualcomm/s25/full_tflite_gpu_profile/README.md)
+has a newly measured 100-sample p50/p95 **0.839/1.157 s** for 2 s of audio,
+with mixed CPU/GPU placement and component median RTF **0.420**. Its 4.24%
+same-fixture waveform relative L2, unknown exact checkpoint revision and
+missing full-stream gates prevent a mobile TTS support claim.
+The pinned CustomVoice eager 25-frame decoder now matches the historical
+ONNX CPU waveform at 1.89e-6 relative L2 on that fixture, without proving
+the source export's revision.
+A [fresh 25-frame export](evidence/qwen_tts_vocoder_qualcomm/s25/full_pinned_tflite/README.md)
+from that pinned snapshot matches local eager CPU at 1.99e-6 relative L2 and
+has compiled to S25 TFLite. Its GPU-requested inference and placement
+profile are pending, separate from the historical target's measurements.
+
+The same pinned [two-frame graph on Galaxy S24](evidence/qwen_tts_vocoder_qualcomm/s24/tflite_short_chunk/README.md)
+matched local ONNX CPU at 5.75e-6 relative L2 when requested on CPU, while
+its GPU-requested waveform was fully saturated at 24.218 relative L2. The
+100-sample CPU component p50/p95 was 3.433/3.873 s for 0.16 s audio (RTF
+21.46); the numerically failed mixed CPU/GPU route measured 0.601/0.895 s.
+A FP32-preserving GPU control returned the same saturated waveform bitwise.
+A
+[Snapdragon X Elite FP16 QNN short graph](evidence/qwen_tts_vocoder_qualcomm/xelite/qnn_short_chunk/README.md)
+compiled, with NPU inference still pending. These are component-only results.
+
 The [Qwen3-TTS vocoder study](evidence/qwen_tts_vocoder_qualcomm/README.md) reuses a retained fixed-shape Code2Wav export and historical Workbench input to test numerical behavior on SA8775P and other Qualcomm settings. The fresh SA8775P GPU-requested inference produces a saturated waveform, while the same binary's CPU-requested output on the exact SA device matches ONNX CPU within 4.13e-6 relative L2. Its 100-sample CPU-requested component profile had p50/p95 5.384/5.534 s with all 738 execution-detail rows on CPU. A FP32-preserving GPU-option control still saturated 84.89% of samples, so that option did not repair the tested path. RB3 GPU-requested execution produces an unsaturated but 15.73%-divergent waveform; its fresh 100-sample mixed CPU/GPU component p50/p95 was 3.099/3.133 s, not a usable TTS timing claim. On the exact RB3 device, the same binary requested on CPU matched original ONNX CPU within 4.13e-6 relative L2 on the retained fixture; its 47-sample component profile measured p50/p95 12.727/13.424 s with all 738 execution-detail rows on CPU. This is a major streaming-latency blocker. A single-fixture-calibrated RB3 INT8 QNN vocoder returned a finite but 66.93%-relative-L2 divergent waveform (3.49 dB SNR) versus ONNX CPU; its 100-sample component profile was p50/p95 1.971/1.992 s with all 728 execution-detail rows on NPU; these timings describe numerically unqualified audio. X Elite ONNX CPU output matches the local ONNX Runtime reference on the retained fixture; its 94-sample component p50/p95 was 6.384/6.644 s with all execution-detail rows on CPU. Corrected X Elite DirectML inference and profile both failed during provider initialization; separate FP16 QNN DLC inference returned an unsaturated waveform at 1.138% relative L2 / 38.88 dB SNR against original ONNX CPU; its placement profile timed out during QNN graph preparation without samples. A separate SA8775P FP16 QNN vocoder compile passed, but same-fixture NPU-requested inference failed after compilation without a waveform or placement samples. Fresh S24 and S25 CPU-requested TFLite vocoder inferences matched ONNX CPU within 4.04e-6 relative L2 on the retained fixture. S25 measured 100 component samples at p50/p95 4.418/4.641 s with all 738 execution-detail rows on CPU; S24 measured 100 at 4.826/4.958 s with all 738 rows on CPU. Separate explicit INT8 and W8A16 QDQ ONNX exports checked on local ORT CPU failed the same-fixture numerical gate at 246.97% and 331.83% waveform relative L2, respectively. S25 CPU talker inference preserved token 80 and its 100-sample component profile measured p50/p95 30.161/31.301 ms with all 1,800 rows on CPU. No complete on-device TTS stream or model-quality qualification is claimed.
 
 A local HX370 x86-64 LiteRT CPU control of the identical SA/RB3 TFLite binary matched the original ONNX CPU waveform within 3.45e-6 relative L2. The SA saturation is therefore not universal to the converted artifact; the exact SA CPU control passed numerical and placement checks, while the faulty GPU delegate operation remains unidentified.

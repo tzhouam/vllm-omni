@@ -1,0 +1,32 @@
+{
+  "timestamp_utc": "2026-09-24T05:42:48.154755+00:00",
+  "qai_hub_version": "0.55.0",
+  "facility": "Qualcomm AI Hub Workbench",
+  "job_id": "jgolr0d4g",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgolr0d4g/",
+  "status": "SUCCESS",
+  "status_message": "",
+  "options": "--target_runtime tflite",
+  "hub_version": "aihub-2026.09.11.0",
+  "device": {
+    "name": "Samsung Galaxy S24",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8gen3",
+      "chipset:sm8650",
+      "hexagon:v75",
+      "soc-model:57",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mng2vv4em",
+  "target_model_id": "mn1l6jxzq"
+}

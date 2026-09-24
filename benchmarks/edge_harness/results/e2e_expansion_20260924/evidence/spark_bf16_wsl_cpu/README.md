@@ -37,6 +37,15 @@ checkout (`3834de310`, package `0.28.1.dev154`) with the same vLLM 0.28.0
 and checkpoint. Its 4.808/5.089 s wall p50/p95 and 19.88 s acceptance load
 are distinct run observations, not the fork-branch timing.
 
+A separate [fork-branch restart probe](restart_branch_report.json) verified
+the state lifecycle after cancelling generation at eight token events. The
+backend reported zero in-flight requests and delivered no retired-epoch
+events. Reusing the old session handle was explicitly refused as stale; a
+fresh session then produced the **exact same 128 greedy token IDs** as the
+pre-cancel request. The [probe script](../../../../experiments/verify_spark_bf16_restart.py)
+records the two token-sequence hashes, state refusal and runtime provenance.
+This covers one prompt and one cancellation depth, not concurrent recovery.
+
 Reproduce from the repository root with the installed CPU environment, after
 downloading the pinned checkpoint into the path below:
 
@@ -52,6 +61,10 @@ export PYTHONPATH=/home/zhout/project/edge_infer/vllm-omni-edge
   benchmarks/edge_harness/experiments/profile_spark_bf16_omni_cpu.py \
   --model /home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16 \
   --report /tmp/spark_bf16_profile_repeat.json
+/home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python \
+  benchmarks/edge_harness/experiments/verify_spark_bf16_restart.py \
+  --model /home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16 \
+  --report /tmp/spark_bf16_restart_repeat.json
 ```
 
 This validates one complete text path and cancellation on WSL CPU. It does

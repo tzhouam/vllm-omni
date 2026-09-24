@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-24T05:47:10.611599+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mng2vv4em",
+  "device": "Snapdragon X Elite CRD",
+  "options": "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "j5m0m22qg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/j5m0m22qg/"
+}

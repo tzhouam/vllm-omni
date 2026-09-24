@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-24T06:08:12.774185+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "target_model_id": "mqeyv2w7m",
+  "device": "Snapdragon X Elite CRD",
+  "options": "--compute_unit npu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jp4yyrrvp",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp4yyrrvp/"
+}

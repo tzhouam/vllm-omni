@@ -93,6 +93,8 @@ def main() -> None:
             raise RuntimeError("job did not use the exact requested device")
     if inference.get("options") != args.run_options or (profile is not None and profile.get("options") != args.run_options):
         raise RuntimeError("inference/profile requested different compute options")
+    if profile is not None and profile.get("shapes") != {"quantized": [[1, 512, 97], "float32"]}:
+        raise RuntimeError("profile did not use the pinned 97-frame input contract")
     files = {
         name: {"bytes": path.stat().st_size, "sha256": sha256(path)}
         for name, path in {
@@ -116,6 +118,7 @@ def main() -> None:
     cpu = read_output(args.cpu_output, "wav")
     s25 = read_output(args.s25_output, "output_0__0")
     output = read_output(args.device_output, "output_0__0")
+    same_s25_output = args.s25_output.resolve() == args.device_output.resolve()
     report = {
         "scope": "one Qwen3-TTS code2wav 48,000-sample component on one retained fixture; no complete TTS stream",
         "status": "component_executed_quality_unqualified" if profile is not None else "component_inference_numeric_measured",
@@ -128,7 +131,9 @@ def main() -> None:
         "requested_run_options": args.run_options,
         "files": files,
         "cpu_source_vs_device": compare(cpu, output),
-        "s25_gpu_vs_device": compare(s25, output),
+        "s25_gpu_vs_device": None if same_s25_output else compare(s25, output),
+        "s25_comparison_note": ("same retained S25 output; no independent device comparison"
+                                if same_s25_output else "independent hosted output comparison"),
         "limits": [
             "Historical source export does not attest its exact checkpoint revision.",
             "This fixed component waveform has no listening or task-quality tolerance.",
@@ -152,6 +157,7 @@ def main() -> None:
             "reported_estimated_inference_time_us": execution["execution_summary"]["estimated_inference_time"],
             "reported_peak_memory_bytes": execution["execution_summary"]["estimated_inference_peak_memory"],
             "compute_unit_row_counts": dict(units),
+            "profile_input": "Workbench generated input with pinned tensor shape; waveform inference used the retained fixture",
         }
     else:
         report["limits"].append("Requested compute unit is not verified node placement without a device profile.")

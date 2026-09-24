@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-24T05:48:19.985733+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "target_model_id": "mn1l6jxzq",
+  "device": "Samsung Galaxy S24",
+  "options": "--compute_unit gpu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jpxl4j21p",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jpxl4j21p/"
+}

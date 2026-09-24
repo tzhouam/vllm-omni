@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-24T05:48:17.772085+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "target_model_id": "mn1l6jxzq",
+  "device": "Samsung Galaxy S24",
+  "options": "--compute_unit cpu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jp4y1o0vp",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp4y1o0vp/"
+}

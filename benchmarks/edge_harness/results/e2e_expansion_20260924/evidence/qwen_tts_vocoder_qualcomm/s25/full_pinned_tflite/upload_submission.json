@@ -1,0 +1,18 @@
+{
+  "timestamp_utc": "2026-09-24T06:16:12.386056+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_path_outside_git": "/home/zhout/project/edge_infer/models/qwen3tts_code2wav_c25_pinned_20260924.onnx",
+  "source_sha256": "01ee1cd02e5cd264200e5c50767a1805a6180378b051ff9b7ec0d8b6c75d7989",
+  "source_model_id": "mng2vkdrm",
+  "input_shape": [
+    1,
+    512,
+    97
+  ],
+  "output_shape": [
+    1,
+    48000
+  ],
+  "status": "UPLOADED"
+}

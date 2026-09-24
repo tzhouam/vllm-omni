@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Export and numerically gate a shorter Qwen3-TTS Code2Wav window.
+"""Export and numerically gate a fixed Qwen3-TTS Code2Wav window.
 
-The retained 25-frame graph takes 72 context frames plus 25 new frames. This
-experiment keeps the same decoder and 72-frame history while reducing the new
-chunk to two frames, before any device compilation or performance claim.
+The retained reference graph takes 72 context frames plus 25 new frames.
+This experiment keeps the same decoder and 72-frame history while selecting
+1-25 new frames, before any device compilation or performance claim.
 """
 
 from __future__ import annotations

@@ -26,6 +26,16 @@ records the raw samples. A hosted S25 artifact must independently pass
 numerical, node-placement, memory and complete-stream gates before it can be
 called supported.
 
+A local [history-length numerical screen](history_sweep_report.json) on the
+same checkpoint and synthetic first window tested 72, 64, 48, 32, 24, 16 and
+8 prior frames while keeping two new frames. Reducing history to 64 frames
+already changed the 3,840-sample waveform by **7.31% relative L2** versus
+the 72-frame baseline; 32 frames changed it by **39.56%**. This one-window
+result does not establish a quality threshold, but it rules out treating a
+simple history cut as numerically equivalent. The
+[probe](../../../../../../experiments/probe_qwen_tts_vocoder_history.py)
+records the pinned inputs and every comparison.
+
 The source [upload](upload_submission.json) and [one-sample dataset](dataset_submission.json)
 were compiled to an [S25 FP16 QNN DLC](compile_report.json). Its
 [NPU-requested same-fixture inference](inference_report.json) **failed** with

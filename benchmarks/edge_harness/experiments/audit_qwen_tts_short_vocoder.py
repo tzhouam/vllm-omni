@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit a two-frame Code2Wav S25 candidate against its local CPU export."""
+"""Audit a fixed-window Code2Wav candidate against its local CPU export."""
 
 from __future__ import annotations
 
@@ -18,13 +18,13 @@ def sha256(path: Path) -> str:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def waveform(path: Path, name: str) -> np.ndarray:
+def waveform(path: Path, name: str, expected_shape: tuple[int, int]) -> np.ndarray:
     with np.load(path, allow_pickle=False) as data:
         if data.files != [name]:
             raise ValueError(f"{path}: expected one output named {name}")
         value = np.asarray(data[name])
-    if value.shape != (1, 3840) or value.dtype != np.float32 or not np.isfinite(value).all():
-        raise ValueError(f"{path}: expected finite float32[1,3840], got {value.shape}/{value.dtype}")
+    if value.shape != expected_shape or value.dtype != np.float32 or not np.isfinite(value).all():
+        raise ValueError(f"{path}: expected finite float32{expected_shape}, got {value.shape}/{value.dtype}")
     return value
 
 
@@ -50,6 +50,7 @@ def main() -> None:
                  "device-output", "output-report"):
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--profile-report", type=Path)
+    parser.add_argument("--expected-device", default="Samsung Galaxy S25")
     parser.add_argument("--expected-compile-options", default="--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16")
     parser.add_argument("--expected-run-options", default="--compute_unit npu")
     args = parser.parse_args()
@@ -59,15 +60,17 @@ def main() -> None:
     compile_job = json.loads(args.compile_report.read_text())
     inference = json.loads(args.inference_report.read_text())
     profile = json.loads(args.profile_report.read_text()) if args.profile_report else None
-    if export["context_frames"] != 72 or export["chunk_frames"] != 2:
-        raise ValueError("export differs from the tested two-frame window")
+    if (export["context_frames"] != 72 or not 1 <= export["chunk_frames"] <= 25
+            or export["input_shape"] != [1, 512, 72 + export["chunk_frames"]]
+            or export["output_shape"] != [1, 1920 * export["chunk_frames"]]):
+        raise ValueError("export differs from the tested fixed-window contract")
     if (upload["source_sha256"] != export["onnx_sha256"]
             or compile_job["source_model_id"] != upload["source_model_id"]
             or compile_job["status"] != "SUCCESS"
             or compile_job["options"] != args.expected_compile_options):
         raise ValueError("compile does not use the verified short-window artifact")
     if (dataset["fixture_sha256"] != export["short_fixture_sha256"]
-            or dataset["input_shape"] != [1, 512, 74]
+            or dataset["input_shape"] != export["input_shape"]
             or dataset["sample_count"] != 1
             or sha256(args.fixture) != dataset["fixture_sha256"]):
         raise ValueError("hosted input is not the retained short-window fixture")
@@ -76,17 +79,21 @@ def main() -> None:
             or inference["input_dataset_id"] != dataset["dataset_id"]
             or inference["options"] != args.expected_run_options
             or inference["device"] != compile_job["device"]
-            or inference["device"]["name"] != "Samsung Galaxy S25"):
-        raise ValueError("inference differs from the exact S25 target/fixture/route")
+            or inference["device"]["name"] != args.expected_device):
+        raise ValueError("inference differs from the exact target/fixture/route")
     if (sha256(args.cpu_output) != export["ort_output_sha256"]
             or sha256(args.eager_output) != export["eager_output_sha256"]):
         raise ValueError("local CPU outputs differ from export parity evidence")
-    cpu = waveform(args.cpu_output, "wav")
-    eager = waveform(args.eager_output, "wav")
-    hosted = waveform(args.device_output, "output_0__0")
+    expected_shape = tuple(export["output_shape"])
+    cpu = waveform(args.cpu_output, "wav", expected_shape)
+    eager = waveform(args.eager_output, "wav", expected_shape)
+    hosted = waveform(args.device_output, "output_0__0", expected_shape)
+    cpu_comparison = compare(cpu, hosted)
+    gross_numeric_failure = (cpu_comparison["relative_l2"] >= 1.0
+                             or cpu_comparison["output_saturated_fraction_abs_ge_0_999"] >= 0.1)
     report = {
-        "scope": "one two-frame Qwen3-TTS vocoder component on hosted S25; no complete stream",
-        "status": "component_inference_numeric_measured",
+        "scope": f"one {export['chunk_frames']}-frame Qwen3-TTS vocoder component on hosted {args.expected_device}; no complete stream",
+        "status": "component_gross_numeric_failure" if gross_numeric_failure else "component_inference_numeric_measured",
         "device": inference["device"],
         "source_model_id": compile_job["source_model_id"],
         "target_model_id": compile_job["target_model_id"],
@@ -97,10 +104,14 @@ def main() -> None:
                   for name, path in {"fixture": args.fixture, "ort_cpu": args.cpu_output,
                                      "eager_cpu": args.eager_output,
                                      "device_output": args.device_output}.items()},
-        "ort_cpu_vs_device": compare(cpu, hosted),
+        "ort_cpu_vs_device": cpu_comparison,
         "eager_cpu_vs_device": compare(eager, hosted),
+        "gross_numeric_failure_screen": {
+            "failed": gross_numeric_failure,
+            "criteria": "relative L2 >= 1.0 or fraction |sample| >= 0.999 at least 0.1; this is not a speech-quality acceptance threshold",
+        },
         "limits": [
-            "One fixed two-frame waveform has no listening-quality tolerance.",
+            "One fixed-window waveform has no listening-quality tolerance.",
             "The 72-frame input history, talker, predictor and stage handoff did not run on the device.",
             "No persistent state, admission, cancellation or complete TTS stream was tested.",
         ],
@@ -110,7 +121,7 @@ def main() -> None:
                 or profile["model_id"] != inference["model_id"]
                 or profile["device"] != inference["device"]
                 or profile["options"] != inference["options"]
-                or profile["shapes"] != {"quantized": [[1, 512, 74], "float32"]}):
+                or profile["shapes"] != {"quantized": [export["input_shape"], "float32"]}):
             raise ValueError("placement profile did not use the audited device/artifact")
         execution = profile["profile"]
         samples = execution["execution_summary"]["all_inference_times"]
@@ -130,7 +141,8 @@ def main() -> None:
             "compute_unit_row_counts": dict(units),
             "profile_input": "Workbench generated input with audited tensor shape; the waveform inference used the retained fixture",
         }
-        report["status"] = "component_inference_numeric_and_placement_measured"
+        report["status"] = ("component_gross_numeric_failure_with_placement_profile"
+                            if gross_numeric_failure else "component_inference_numeric_and_placement_measured")
     else:
         report["limits"].append("Requested accelerator execution is not verified node placement without a profile.")
     args.output_report.write_text(json.dumps(report, indent=2) + "\n")

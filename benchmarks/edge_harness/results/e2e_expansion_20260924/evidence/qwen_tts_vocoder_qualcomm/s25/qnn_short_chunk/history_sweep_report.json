@@ -1,0 +1,169 @@
+{
+  "scope": "one synthetic two-frame Code2Wav window; local CPU numerical screen only",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "checkpoint_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "source_fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "long_reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "torch_version": "2.13.0+cpu",
+  "rows": [
+    {
+      "history_frames": 72,
+      "input_shape": [
+        1,
+        512,
+        74
+      ],
+      "vs_72_history": {
+        "relative_l2": 0.0,
+        "snr_db": null,
+        "max_abs": 0.0,
+        "reference_rms": 0.04131376992063296,
+        "output_rms": 0.04131376992063296
+      },
+      "vs_25_frame_reference_prefix": {
+        "relative_l2": 2.3953175306044127e-06,
+        "snr_db": 112.41273814061603,
+        "max_abs": 8.544884622097015e-07,
+        "reference_rms": 0.04131374658894702,
+        "output_rms": 0.04131376992063296
+      }
+    },
+    {
+      "history_frames": 64,
+      "input_shape": [
+        1,
+        512,
+        66
+      ],
+      "vs_72_history": {
+        "relative_l2": 0.07314781220082396,
+        "snr_db": 22.715973175686237,
+        "max_abs": 0.029364341869950294,
+        "reference_rms": 0.04131376992063296,
+        "output_rms": 0.04137138712579574
+      },
+      "vs_25_frame_reference_prefix": {
+        "relative_l2": 0.07314669728852428,
+        "snr_db": 22.71610556623493,
+        "max_abs": 0.029363619163632393,
+        "reference_rms": 0.04131374658894702,
+        "output_rms": 0.04137138712579574
+      }
+    },
+    {
+      "history_frames": 48,
+      "input_shape": [
+        1,
+        512,
+        50
+      ],
+      "vs_72_history": {
+        "relative_l2": 0.15985885548973935,
+        "snr_db": 15.925266013769726,
+        "max_abs": 0.06841851770877838,
+        "reference_rms": 0.04131376992063296,
+        "output_rms": 0.04178483839881755
+      },
+      "vs_25_frame_reference_prefix": {
+        "relative_l2": 0.15985809288172675,
+        "snr_db": 15.925307449978025,
+        "max_abs": 0.06841817498207092,
+        "reference_rms": 0.04131374658894702,
+        "output_rms": 0.04178483839881755
+      }
+    },
+    {
+      "history_frames": 32,
+      "input_shape": [
+        1,
+        512,
+        34
+      ],
+      "vs_72_history": {
+        "relative_l2": 0.3955958405987473,
+        "snr_db": 8.054965666800932,
+        "max_abs": 0.16915886104106903,
+        "reference_rms": 0.04131376992063296,
+        "output_rms": 0.04334846939066081
+      },
+      "vs_25_frame_reference_prefix": {
+        "relative_l2": 0.3955953168940037,
+        "snr_db": 8.054977165517931,
+        "max_abs": 0.1691584438085556,
+        "reference_rms": 0.04131374658894702,
+        "output_rms": 0.04334846939066081
+      }
+    },
+    {
+      "history_frames": 24,
+      "input_shape": [
+        1,
+        512,
+        26
+      ],
+      "vs_72_history": {
+        "relative_l2": 0.39665520929029785,
+        "snr_db": 8.031736754636619,
+        "max_abs": 0.16314568370580673,
+        "reference_rms": 0.04131376992063296,
+        "output_rms": 0.04308058984078091
+      },
+      "vs_25_frame_reference_prefix": {
+        "relative_l2": 0.39665474559562586,
+        "snr_db": 8.03174690855117,
+        "max_abs": 0.16314562410116196,
+        "reference_rms": 0.04131374658894702,
+        "output_rms": 0.04308058984078091
+      }
+    },
+    {
+      "history_frames": 16,
+      "input_shape": [
+        1,
+        512,
+        18
+      ],
+      "vs_72_history": {
+        "relative_l2": 0.690332954037814,
+        "snr_db": 3.2188278888852677,
+        "max_abs": 0.28049134463071823,
+        "reference_rms": 0.04131376992063296,
+        "output_rms": 0.044361933300582454
+      },
+      "vs_25_frame_reference_prefix": {
+        "relative_l2": 0.6903328674490854,
+        "snr_db": 3.2188289783598227,
+        "max_abs": 0.28049128502607346,
+        "reference_rms": 0.04131374658894702,
+        "output_rms": 0.044361933300582454
+      }
+    },
+    {
+      "history_frames": 8,
+      "input_shape": [
+        1,
+        512,
+        10
+      ],
+      "vs_72_history": {
+        "relative_l2": 1.2951780385046339,
+        "snr_db": -2.2465894351485622,
+        "max_abs": 0.49505019187927246,
+        "reference_rms": 0.04131376992063296,
+        "output_rms": 0.04548139356756025
+      },
+      "vs_25_frame_reference_prefix": {
+        "relative_l2": 1.2951785701778178,
+        "snr_db": -2.2465930007229558,
+        "max_abs": 0.4950501322746277,
+        "reference_rms": 0.04131374658894702,
+        "output_rms": 0.04548139356756025
+      }
+    }
+  ],
+  "limits": [
+    "One synthetic first window cannot establish multi-chunk history or speech quality.",
+    "No smaller-history graph was exported, compiled or executed on a device.",
+    "CPU forward timing was not measured as a performance profile."
+  ]
+}

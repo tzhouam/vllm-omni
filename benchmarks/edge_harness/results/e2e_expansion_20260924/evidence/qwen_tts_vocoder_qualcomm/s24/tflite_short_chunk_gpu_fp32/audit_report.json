@@ -1,0 +1,78 @@
+{
+  "scope": "one two-frame Qwen3-TTS vocoder component on hosted Samsung Galaxy S24; no complete stream",
+  "status": "component_gross_numeric_failure",
+  "device": {
+    "name": "Samsung Galaxy S24",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8gen3",
+      "chipset:sm8650",
+      "hexagon:v75",
+      "soc-model:57",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "source_model_id": "mng2vv4em",
+  "target_model_id": "mn1l6jxzq",
+  "input_dataset_id": "d7ovqp0w2",
+  "jobs": {
+    "compile": "jgolr0d4g",
+    "inference": "j5m0myqdg"
+  },
+  "route": {
+    "compile_options": "--target_runtime tflite",
+    "run_options": "--compute_unit gpu --tflite_options allow_fp32_as_fp16=false"
+  },
+  "files": {
+    "fixture": {
+      "bytes": 129614,
+      "sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55"
+    },
+    "ort_cpu": {
+      "bytes": 14813,
+      "sha256": "989307db317d77be054f684211ae0c6a2fd24d93bcd74307c597fed430ba2a37"
+    },
+    "eager_cpu": {
+      "bytes": 14818,
+      "sha256": "542113d24feeb4ff58b895ce7d96fc7aa5240b046a3a0d1d3922c7ab23ea0a7c"
+    },
+    "device_output": {
+      "bytes": 271,
+      "sha256": "31351e406fc85422c884bf20d6bab9042dc3b53a63f8ff129e3d9b69e307fa47"
+    }
+  },
+  "ort_cpu_vs_device": {
+    "relative_l2": 24.21776698878969,
+    "snr_db": -27.682681926301676,
+    "max_abs": 1.253519594669342,
+    "reference_rms": 0.04131374650145444,
+    "output_rms": 1.0,
+    "output_saturated_fraction_abs_ge_0_999": 1.0
+  },
+  "eager_cpu_vs_device": {
+    "relative_l2": 24.217753780026253,
+    "snr_db": -27.68267718887511,
+    "max_abs": 1.2535196542739868,
+    "reference_rms": 0.04131376905845152,
+    "output_rms": 1.0,
+    "output_saturated_fraction_abs_ge_0_999": 1.0
+  },
+  "gross_numeric_failure_screen": {
+    "failed": true,
+    "criteria": "relative L2 >= 1.0 or fraction |sample| >= 0.999 at least 0.1; this is not a speech-quality acceptance threshold"
+  },
+  "limits": [
+    "One fixed two-frame waveform has no listening-quality tolerance.",
+    "The 72-frame input history, talker, predictor and stage handoff did not run on the device.",
+    "No persistent state, admission, cancellation or complete TTS stream was tested.",
+    "Requested accelerator execution is not verified node placement without a profile."
+  ]
+}

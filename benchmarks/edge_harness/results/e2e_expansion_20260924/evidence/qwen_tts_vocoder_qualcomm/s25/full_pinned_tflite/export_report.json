@@ -1,0 +1,49 @@
+{
+  "scope": "one synthetic first short vocoder window; no device execution or complete TTS stream",
+  "model_snapshot": "/home/zhout/.cache/huggingface/hub/models--Qwen--Qwen3-TTS-12Hz-0.6B-CustomVoice/snapshots/85e237c12c027371202489a0ec509ded67b5e4b5",
+  "model_snapshot_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "model_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "torch_version": "2.13.0+cpu",
+  "onnx_version": "1.22.0",
+  "onnxruntime_version": "1.29.0",
+  "actual_opsets": {
+    "ai.onnx": 18
+  },
+  "source_fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "long_cpu_reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "context_frames": 72,
+  "chunk_frames": 25,
+  "input_shape": [
+    1,
+    512,
+    97
+  ],
+  "output_shape": [
+    1,
+    48000
+  ],
+  "export_s_not_inference": 7.794216125039384,
+  "onnx_sha256": "01ee1cd02e5cd264200e5c50767a1805a6180378b051ff9b7ec0d8b6c75d7989",
+  "short_fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "eager_output_sha256": "0b4ddaf66d1cb737a2a101db1c1e7fa5871e4a73164a607afe029197a854058c",
+  "ort_output_sha256": "e6c1f321ed752e6c2dec3586e7e80cdf43f18487c25a74acc7eddfd61f4f9f98",
+  "ort_vs_eager": {
+    "relative_l2": 1.9864268690782795e-06,
+    "snr_db": 114.03854838000912,
+    "max_abs": 3.473949618637562e-06,
+    "reference_rms": 0.083734386044337,
+    "output_rms": 0.0837343916262634
+  },
+  "short_eager_vs_25_frame_prefix": {
+    "relative_l2": 1.9738840224118284e-06,
+    "snr_db": 114.09356736672443,
+    "max_abs": 3.4702243283391e-06,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.083734386044337
+  },
+  "limits": [
+    "The short-window graph still requires its prior 72 quantized frames from a model adapter.",
+    "Prefix agreement is tested on one retained synthetic fixture, not a speech-quality set.",
+    "CPU export parity does not establish target compilation, placement or memory admission."
+  ]
+}

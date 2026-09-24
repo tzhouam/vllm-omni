@@ -19,6 +19,10 @@ adds a complete pinned dense checkpoint to the fork-branch M0 text route. Twelve
 one warmup plus 20 serial 64-token requests measured complete-request
 p50/p95 **5.411/5.751 s** and TTFT **0.129/0.146 s** on HX370 WSL CPU.
 This closes only the stated BF16 text workload, not M1 mobile generation.
+An [M0 restart probe](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
+then verified explicit stale-handle rejection after cancellation and exact
+128-token greedy output in a fresh session, with no late event. Concurrent
+recovery and sustained behavior remain open.
 For M2, a [two-frame S25 vocoder export](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/s25/qnn_short_chunk/README.md)
 matched local eager/ONNX CPU on one fixed window, but its FP16 QNN DLC failed
 NPU-requested inference at the hosted device-memory limit. The earlier
@@ -30,6 +34,30 @@ fixture. Its 100-sample component profile measured p50/p95 0.559/1.052 s
 for 0.16 s audio, with 403 CPU and 335 GPU node rows and median component
 RTF 3.49. It still needs listening quality and playable complete streaming
 before M2 can advance.
+The historical [25-frame S25 TFLite target](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/s25/full_tflite_gpu_profile/README.md)
+has a new mixed CPU/GPU component p50/p95 of 0.839/1.157 s for 2 s audio,
+median RTF 0.420. This is the stronger throughput candidate, but its retained
+waveform differs from ONNX CPU by 4.24% relative L2 on one synthetic fixture,
+its source revision is not attested, and no co-resident talker/predictor stream
+or listening-quality gate passed.
+The pinned current CustomVoice eager decoder matched that 25-frame ONNX CPU
+waveform at 1.89e-6 relative L2 on the same fixture, narrowing the model
+continuity question without proving the historical export revision.
+A [fresh revision-pinned 25-frame export](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/s25/full_pinned_tflite/README.md)
+now matches local eager CPU at 1.99e-6 relative L2 and has compiled for S25
+TFLite. Its GPU-requested numerical inference and node-placement profile are
+pending. This avoids promoting the historical artifact's timing to a
+revision-qualified deployment claim.
+On [Galaxy S24](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/s24/tflite_short_chunk/README.md),
+the same pinned two-frame TFLite source passed CPU-requested waveform parity
+at 5.75e-6 relative L2, but the GPU-requested waveform saturated completely
+at 24.218 relative L2. The 100-sample short CPU component p50/p95 was
+3.433/3.873 s for 0.16 s audio (median RTF 21.46); the mixed CPU/GPU route
+measured 0.601/0.895 s but failed the waveform gate. A FP32-preserving GPU
+option returned the same saturated waveform bitwise, so it did not repair
+the tested delegate artifact. A [Snapdragon X Elite short QNN graph](../../benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/qwen_tts_vocoder_qualcomm/xelite/qnn_short_chunk/README.md)
+compiled, with NPU-requested inference pending. Neither changes M2 support
+depth before full stream and quality gates.
 
 The [Spark hosted Qualcomm component expansion](../../benchmarks/edge_harness/results/e2e_expansion_20260923/evidence/spark_s24_full_attention/README.md) advances M1 only to one real fixed-shape decoder attention layer. The same W8A16 QNN DLC ran on S24, Snapdragon X Elite CRD and SA8775P ADP NPUs with identical outputs on one pinned fixture; S25 had prior separate component evidence. On [RB3 Gen 2](../../benchmarks/edge_harness/results/e2e_expansion_20260923/evidence/spark_rb3_full_attention/README.md), the tested W8A16 graph failed QNN loading even after an exact-device compile. FP32 ONNX ran on CPU with near-source parity, while calibrated W8A8 ran on NPU but had 20.9% hidden-state relative L2 and remains numerically unqualified. These are component C results, not full M1: device-local 28-layer prefill/continuous decode, KV/ring, sampling, token quality, admission/cancellation, complete-request timing and sustained power/thermal gates remain open. AI Hub is the test facility, not a deployment dependency.
 

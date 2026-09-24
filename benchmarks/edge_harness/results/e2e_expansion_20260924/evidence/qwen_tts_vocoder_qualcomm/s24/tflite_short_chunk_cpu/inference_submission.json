@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-24T05:43:21.059740+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "target_model_id": "mn1l6jxzq",
+  "input_dataset_id": "d7ovqp0w2",
+  "device": "Samsung Galaxy S24",
+  "options": "--compute_unit cpu",
+  "kind": "inference",
+  "status": "SUBMITTED",
+  "job_id": "j5qlyknmp",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/j5qlyknmp/"
+}
