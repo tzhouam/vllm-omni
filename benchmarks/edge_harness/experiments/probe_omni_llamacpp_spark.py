@@ -11,6 +11,7 @@ import argparse
 import asyncio
 import json
 import math
+import re
 import time
 from pathlib import Path
 from types import SimpleNamespace
@@ -38,9 +39,13 @@ async def main() -> None:
     parser.add_argument("--reserve-gib", type=int, default=4)
     parser.add_argument("--abort-check", action="store_true")
     parser.add_argument("--context-check", action="store_true")
+    parser.add_argument("--restart-check", action="store_true",
+                        help="After in-flight cancellation, start a fresh stage and verify a request")
     args = parser.parse_args()
     if args.warmups < 0 or args.repeats <= 0 or args.capacity_gib < args.reserve_gib or args.reserve_gib < 4:
         parser.error("invalid serial profile or explicit memory budget")
+    if args.restart_check and not args.abort_check:
+        parser.error("--restart-check requires --abort-check")
 
     from vllm_omni.config.stage_config import (
         DeployConfig,
@@ -158,22 +163,89 @@ async def main() -> None:
                 raise RuntimeError("llama.cpp accepted a prompt beyond the declared context")
             report["context_check"]["recovery"] = await request_one(*cases[0])
         if args.abort_check:
+            def started_server_tasks() -> int:
+                log = args.server_log.read_text(encoding="utf-8", errors="replace")
+                return len(re.findall(
+                    r"slot launch_slot_: id\s+\d+ \| task \d+ \| processing task",
+                    log,
+                ))
+
+            tasks_before_abort = started_server_tasks()
             request_id = f"abort-{time.monotonic_ns()}"
             await pool.submit_initial(
                 request_id, state,
-                {"text": "Count from one upward and continue until the token limit.", "max_tokens": 96},
+                {"text": inventory, "max_tokens": 96},
             )
-            await asyncio.sleep(0.01)
+            deadline = time.monotonic() + 10
+            while started_server_tasks() <= tasks_before_abort:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("abort request did not reach the owned llama.cpp server")
+                await asyncio.sleep(0.02)
+            premature = pool.poll_graph_output(0)
+            if premature is not None:
+                premature.release_stage_buffers()
+                raise RuntimeError("abort request completed before in-flight cancellation")
             await pool.abort_requests([request_id])
             await asyncio.sleep(0.1)
             stale = pool.poll_graph_output(0)
             report["abort_check"] = {
+                "abort_case": "inventory_120",
+                "server_tasks_before_abort_request": tasks_before_abort,
+                "server_tasks_after_abort_request_start": started_server_tasks(),
                 "stale_output": stale is not None,
                 "worker_exited": pool.stage_client._proc.poll() is not None,
                 "ledger_after_abort": runtime.resource_ledger.snapshot(),
             }
+            if stale is not None:
+                stale.release_stage_buffers()
             if stale is not None or not report["abort_check"]["worker_exited"]:
                 raise RuntimeError("llama.cpp cancel did not drain worker and stale output")
+            if args.restart_check:
+                old_generation = report["execution_plan"]["worker_generation"]
+                runtime.shutdown()
+                released = runtime.resource_ledger.snapshot()
+                if released["reserved"]["host_ram"] or released["quarantined"]:
+                    raise RuntimeError("cancelled stage retained a host-RAM reservation")
+                restart_log = args.server_log.with_name(
+                    args.server_log.stem + "_restart" + args.server_log.suffix
+                )
+                restart_deploy = DeployConfig(
+                    async_chunk=False,
+                    stages=[StageDeployConfig(
+                        stage_id=0,
+                        backend={**backend, "log_file": str(restart_log)},
+                        resource_budget=deploy.stages[0].resource_budget,
+                    )],
+                )
+                restart_configs = [
+                    stage.to_omegaconf()
+                    for stage in merge_pipeline_deploy(pipeline, restart_deploy)
+                ]
+                runtime = StageRuntime(
+                    restart_configs, "local-spark-gguf-restart", "",
+                    stage_init_timeout=120, async_chunk=False,
+                )
+                restarted_at = time.perf_counter()
+                runtime.initialize()
+                fresh_startup_s = time.perf_counter() - restarted_at
+                pool = runtime.stage_pools[0]
+                state = SimpleNamespace(sampling_params_list=[None])
+                new_plan = pool.stage_client.execution_plan
+                if new_plan["worker_generation"] == old_generation:
+                    raise RuntimeError("restart reused the cancelled worker generation")
+                restarted = await request_one(*cases[0])
+                late = pool.poll_graph_output(0)
+                report["restart_check"] = {
+                    "first_runtime_ledger_after_shutdown": released,
+                    "fresh_startup_s": fresh_startup_s,
+                    "fresh_server_log": str(restart_log),
+                    "fresh_execution_plan": new_plan,
+                    "fresh_request": restarted,
+                    "late_output": late is not None,
+                }
+                if late is not None:
+                    late.release_stage_buffers()
+                    raise RuntimeError("restart emitted an extra output")
         report["status"] = "passed"
     except BaseException as exc:
         report["status"] = "failed"

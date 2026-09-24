@@ -21,7 +21,13 @@ complete-stream behavior remain open.
 An additional [Spark BF16 restart probe](evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
 cancelled after eight token events, rejected the retired session handle and
 verified that a fresh session produced the same 128 greedy token IDs with no
-late events. For S25, the historical [25-frame TFLite GPU-requested vocoder](evidence/qwen_tts_vocoder_qualcomm/s25/full_tflite_gpu_profile/README.md)
+late events. A [native Windows Spark GGUF restart probe](evidence/spark_omni_windows_restart/README.md)
+confirmed server task start before cancellation on both HX370 CPU and Radeon
+890M Vulkan1, then loaded the same artifact in a fresh Omni stage, returned
+Paris and cleared the ledger without stale output. This is fresh-stage
+recovery, not same-session token continuation.
+
+For S25, the historical [25-frame TFLite GPU-requested vocoder](evidence/qwen_tts_vocoder_qualcomm/s25/full_tflite_gpu_profile/README.md)
 has a newly measured 100-sample p50/p95 **0.839/1.157 s** for 2 s of audio,
 with mixed CPU/GPU placement and component median RTF **0.420**. Its 4.24%
 same-fixture waveform relative L2, unknown exact checkpoint revision and

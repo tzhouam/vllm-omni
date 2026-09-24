@@ -1,0 +1,251 @@
+{
+  "scope": "complete Spark GGUF text requests through Omni StageRuntime/StagePool and external llama.cpp backend",
+  "model_file": "C:\\Users\\zhout\\w2\\models\\Spark-X2.5-1.7B-Q4_K_M.gguf",
+  "device": "Vulkan1",
+  "memory_budget": {
+    "capacities": {
+      "host_ram": 12884901888
+    },
+    "demands": {
+      "host_ram": 4294967296
+    }
+  },
+  "warmup_count": 0,
+  "measured_count": 1,
+  "startup_s": 3.1089909001020715,
+  "execution_plan": {
+    "backend": "external.llamacpp.text.v1",
+    "stage_id": 0,
+    "worker_generation": "bad1ece82058464bb849c4d4d8233330",
+    "model_sha256": "902bde2522394954ac17821b3e5fd0df02defbc6944f122253f2580acf0503f4",
+    "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+    "model_alias": "C:\\Users\\zhout\\w2\\models\\Spark-X2.5-1.7B-Q4_K_M.gguf",
+    "requested_device": "Vulkan1",
+    "expected_device_name": "AMD Radeon(TM) 890M Graphics",
+    "layer_assignments": 0,
+    "offloaded_layers": [
+      "29",
+      "29"
+    ],
+    "model_buffer_devices": [
+      "Vulkan1"
+    ],
+    "all_model_buffers": [
+      "Vulkan1",
+      "Vulkan_Host"
+    ],
+    "cpu_only_layout": false,
+    "worker_pid": 50344,
+    "loaded_rss_bytes": 1644072960,
+    "reserved_bytes": {
+      "host_ram": 4294967296
+    },
+    "memory_pool": "host_ram",
+    "memory_overhead_bytes": 2147483648,
+    "context_tokens": 4096,
+    "max_new_tokens": 96,
+    "max_io_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "llama.cpp-owned; reset for each complete request",
+    "evidence": "B"
+  },
+  "checks": [
+    {
+      "case": "short",
+      "answer": "Paris",
+      "expected": "Paris",
+      "correct": true,
+      "wall_s": 0.2012867999728769,
+      "stage_event": {
+        "request_id": "short-688393843000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "bad1ece82058464bb849c4d4d8233330",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.18573420005850494,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 28,
+          "total_tokens": 30,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 2.721963300020434,
+      "stage_event": {
+        "request_id": "inventory_120-688394031000000",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "bad1ece82058464bb849c4d4d8233330",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 2.7165678000310436,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "warmups": [],
+  "measured": [
+    {
+      "case": "inventory_120",
+      "answer": "1511",
+      "expected": "1511",
+      "correct": true,
+      "wall_s": 2.7230667000403628,
+      "stage_event": {
+        "request_id": "inventory_120-688396765000000",
+        "stage_id": 0,
+        "epoch": 3,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "bad1ece82058464bb849c4d4d8233330",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 2.692699500010349,
+        "usage": {
+          "completion_tokens": 5,
+          "prompt_tokens": 2463,
+          "total_tokens": 2468,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "nearest_rank_p50_wall_s": 2.7230667000403628,
+  "nearest_rank_p95_wall_s": 2.7230667000403628,
+  "abort_check": {
+    "stale_output": false,
+    "worker_exited": true,
+    "ledger_after_abort": {
+      "capacities": {
+        "host_ram": 12884901888
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    }
+  },
+  "restart_check": {
+    "first_runtime_ledger_after_shutdown": {
+      "capacities": {
+        "host_ram": 12884901888
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "fresh_startup_s": 2.520516899996437,
+    "fresh_server_log": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\spark_omni_windows_restart\\radeon_v2_server_restart.log",
+    "fresh_execution_plan": {
+      "backend": "external.llamacpp.text.v1",
+      "stage_id": 0,
+      "worker_generation": "c8387a3ba9f047c7b282dfea553a7668",
+      "model_sha256": "902bde2522394954ac17821b3e5fd0df02defbc6944f122253f2580acf0503f4",
+      "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+      "model_alias": "C:\\Users\\zhout\\w2\\models\\Spark-X2.5-1.7B-Q4_K_M.gguf",
+      "requested_device": "Vulkan1",
+      "expected_device_name": "AMD Radeon(TM) 890M Graphics",
+      "layer_assignments": 0,
+      "offloaded_layers": [
+        "29",
+        "29"
+      ],
+      "model_buffer_devices": [
+        "Vulkan1"
+      ],
+      "all_model_buffers": [
+        "Vulkan1",
+        "Vulkan_Host"
+      ],
+      "cpu_only_layout": false,
+      "worker_pid": 16564,
+      "loaded_rss_bytes": 1643921408,
+      "reserved_bytes": {
+        "host_ram": 4294967296
+      },
+      "memory_pool": "host_ram",
+      "memory_overhead_bytes": 2147483648,
+      "context_tokens": 4096,
+      "max_new_tokens": 96,
+      "max_io_bytes": 1048576,
+      "request_capacity": 1,
+      "stateful_session": "llama.cpp-owned; reset for each complete request",
+      "evidence": "B"
+    },
+    "fresh_request": {
+      "case": "short",
+      "answer": "Paris",
+      "expected": "Paris",
+      "correct": true,
+      "wall_s": 0.19192340003792197,
+      "stage_event": {
+        "request_id": "short-688402375000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "c8387a3ba9f047c7b282dfea553a7668",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 0.17687359999399632,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 28,
+          "total_tokens": 30,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    "late_output": false
+  },
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 12884901888
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

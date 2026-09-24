@@ -1,0 +1,63 @@
+{
+  "scope": "one in-flight cancel and fresh-stage restart per native Windows Spark placement",
+  "checkpoint": "Spark-X2.5-1.7B Q4_K_M",
+  "model_sha256": "902bde2522394954ac17821b3e5fd0df02defbc6944f122253f2580acf0503f4",
+  "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+  "routes": {
+    "cpu": {
+      "status": "passed",
+      "device": "cpu",
+      "old_generation": "2ff1298272904e81afa406b3c4361654",
+      "new_generation": "464ec54f6eac420b86f5ee5bb27db2cf",
+      "first_server_task_starts": 4,
+      "second_server_task_starts": 1,
+      "started_before_cancel": true,
+      "fresh_answer": "Paris",
+      "ledger_cleared": true,
+      "files": {
+        "cpu_v4_report.json": {
+          "bytes": 6906,
+          "sha256": "3b47fdf72040d9c6d62d8dc46c1080d1332874c5904eaa83af6e5815b4681fa6"
+        },
+        "cpu_v4_server.log": {
+          "bytes": 26687,
+          "sha256": "e03d4468206c171a3ecac2ce8af6910c76286b2207e3cf6b8ef4cf89cbf0be3d"
+        },
+        "cpu_v4_server_restart.log": {
+          "bytes": 17235,
+          "sha256": "1d6661b9512ccb197c012003e64702e7dee0f8b47b310b9909fbecb7ce3f2341"
+        }
+      }
+    },
+    "radeon": {
+      "status": "passed",
+      "device": "Vulkan1",
+      "old_generation": "e96bf7f656d24b39bcf5744e577cc073",
+      "new_generation": "171ce688813848b38ffa8f66ec236618",
+      "first_server_task_starts": 4,
+      "second_server_task_starts": 1,
+      "started_before_cancel": true,
+      "fresh_answer": "Paris",
+      "ledger_cleared": true,
+      "files": {
+        "radeon_v4_report.json": {
+          "bytes": 7024,
+          "sha256": "85232352c3a988ea89cf703485feb6c58a9e1b4124d2ab3f6efcd7d406f78fee"
+        },
+        "radeon_v4_server.log": {
+          "bytes": 26466,
+          "sha256": "a14f34b001aa62a1860a3519866a7dc127d35b6cae6a18059781e52ebe0d2918"
+        },
+        "radeon_v4_server_restart.log": {
+          "bytes": 17502,
+          "sha256": "7bc88261a85c320dea2c0bedf84ad849c4f8bca9385ba99451d2ab0e3cec6b66"
+        }
+      }
+    }
+  },
+  "limits": [
+    "A fresh StageRuntime is created after cancellation; no same-session state migration is claimed.",
+    "The backend returns complete requests rather than incremental token events.",
+    "This is one restart per placement, not concurrent or sustained recovery qualification."
+  ]
+}
