@@ -1,0 +1,78 @@
+{
+  "scope": "measured HX370 BF16 layer 27 attention residual plus Torch BF16 MLP and vision suffix; component-only offline replay",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "export_report_sha256": "cfac82d3e7d1a9c2c3e4c467207f6d334274d116a3fde1011e7b34add3b8184f",
+  "npu_report_sha256": "44b086ff2a822985d3fb1163b6c7cb19a4b2aea3a20321197b6e758dbee650d7",
+  "reference_sha256": "ea31d28f9c59e96a84aef12695cd14c4d4a552b5f1b1c019370cc42a5631a96f",
+  "npu_output_sha256": "bbe413e06f9ab38793cbaf328299ce44817339f05450e7b2d6444c6ab5452b8a",
+  "prior_one_output_sha256": null,
+  "layer_index": 26,
+  "resampler_replayed": true,
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "threads": 8,
+  "cases": {
+    "red": {
+      "instrumented_full_matches_original_npu_bitwise": null,
+      "npu_attention_vs_torch_relative_l2": 0.004357432984586146,
+      "npu_full_vs_torch_relative_l2": 0.007134083509355197,
+      "cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2": 0.0052425627681030275,
+      "npu_full_vs_cpu_bf16_mlp_on_npu_attention_relative_l2": 0.0055189793347768185,
+      "hybrid_after27_relative_l2": 0.0052425627681030275,
+      "hybrid_post_norm_relative_l2": 0.00867149560784914,
+      "npu_full_after27_relative_l2": 0.007134083509355197,
+      "npu_full_post_norm_relative_l2": 0.010586203419347212,
+      "finite": true,
+      "hybrid_resampler_relative_l2": 0.014769225369532032,
+      "npu_full_resampler_relative_l2": 0.015506038291491239,
+      "resampler_output_shape": [
+        1,
+        64,
+        4096
+      ],
+      "resampler_finite": true
+    },
+    "blue": {
+      "instrumented_full_matches_original_npu_bitwise": null,
+      "npu_attention_vs_torch_relative_l2": 0.004730153892209863,
+      "npu_full_vs_torch_relative_l2": 0.00752914117997383,
+      "cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2": 0.0057876351193012565,
+      "npu_full_vs_cpu_bf16_mlp_on_npu_attention_relative_l2": 0.005590580416929323,
+      "hybrid_after27_relative_l2": 0.0057876351193012565,
+      "hybrid_post_norm_relative_l2": 0.009247649757977129,
+      "npu_full_after27_relative_l2": 0.00752914117997383,
+      "npu_full_post_norm_relative_l2": 0.01106797132543618,
+      "finite": true,
+      "hybrid_resampler_relative_l2": 0.015561810696278112,
+      "npu_full_resampler_relative_l2": 0.016625186245955555,
+      "resampler_output_shape": [
+        1,
+        64,
+        4096
+      ],
+      "resampler_finite": true
+    },
+    "third": {
+      "instrumented_full_matches_original_npu_bitwise": null,
+      "npu_attention_vs_torch_relative_l2": 0.005183688322904457,
+      "npu_full_vs_torch_relative_l2": 0.008127958786924837,
+      "cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2": 0.00623324122388949,
+      "npu_full_vs_cpu_bf16_mlp_on_npu_attention_relative_l2": 0.005673255188801873,
+      "hybrid_after27_relative_l2": 0.00623324122388949,
+      "hybrid_post_norm_relative_l2": 0.009026858987385417,
+      "npu_full_after27_relative_l2": 0.008127958786924837,
+      "npu_full_post_norm_relative_l2": 0.0109287228118624,
+      "finite": true,
+      "hybrid_resampler_relative_l2": 0.01461651974372354,
+      "npu_full_resampler_relative_l2": 0.01494399112988139,
+      "resampler_output_shape": [
+        1,
+        64,
+        4096
+      ],
+      "resampler_finite": true
+    }
+  },
+  "status": "attention_component_pass_on_three_fixed_images; vision_suffix_unqualified"
+}

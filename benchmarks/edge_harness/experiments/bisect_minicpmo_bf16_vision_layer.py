@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Locate the HX370 BF16 SigLIP layer-one error at its attention boundary.
+"""Locate HX370 BF16 SigLIP layer error at its attention boundary.
 
 The intermediate output changes graph observability and may change provider
 compilation. Compare its full-layer output with the earlier one-output graph
@@ -85,7 +85,20 @@ def export(args) -> None:
                  for key in source.keys() if key.startswith("vpm.")}
     model.load_state_dict(state, strict=True)
     model.eval().to(torch.bfloat16)
-    layer = model.encoder.layers[0]
+    if not 0 <= args.layer_index < len(model.encoder.layers):
+        raise ValueError("layer index exceeds the checkpoint's vision encoder")
+    layer = model.encoder.layers[args.layer_index]
+    if args.layer_index:
+        if args.layer_inputs is None:
+            raise ValueError("--layer-inputs is required for a later layer")
+        with torch.inference_mode():
+            for name, hidden in inputs.items():
+                state = torch.from_numpy(hidden).to(torch.bfloat16)
+                for preceding in model.encoder.layers[:args.layer_index]:
+                    state = preceding(state, None)[0]
+                inputs[name] = np.ascontiguousarray(state.float().numpy())
+        args.layer_inputs.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(args.layer_inputs, **inputs)
 
     class AttentionBoundary(torch.nn.Module):
         def __init__(self, source_layer):
@@ -145,10 +158,12 @@ def export(args) -> None:
     args.reference.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(args.reference, **references)
     report = {
-        "scope": "real-weight BF16 SigLIP layer one with attention residual and full output; component only",
+        "scope": f"real-weight BF16 SigLIP layer {args.layer_index + 1} with attention residual and full output; component only",
         "model_revision": REVISION,
         "shard_sha256": SHARD_SHA,
         "fixture_sha256": FIXTURE_SHA,
+        "layer_index": args.layer_index,
+        "layer_inputs_sha256": sha256(args.layer_inputs) if args.layer_index else None,
         "direct_sha256": sha256(args.direct_output),
         "wrapped_sha256": sha256(args.output),
         "reference_sha256": sha256(args.reference),
@@ -168,6 +183,15 @@ def run(args) -> None:
 
     inputs = fixtures(args)
     exported = json.loads(args.export_report.read_text(encoding="utf-8-sig"))
+    layer_index = exported.get("layer_index", 0)
+    if layer_index:
+        if args.layer_inputs is None or sha256(args.layer_inputs) != exported["layer_inputs_sha256"]:
+            raise ValueError("later-layer activation artifact changed")
+        with np.load(args.layer_inputs, allow_pickle=False) as data:
+            inputs = {name: np.ascontiguousarray(data[name]) for name in FIXTURE_SHA}
+        if any(value.shape != (1, 1024, 1152) or value.dtype != np.float32
+               for value in inputs.values()):
+            raise ValueError("later-layer activation contract changed")
     if sha256(args.model) != exported["wrapped_sha256"]:
         raise ValueError("instrumented ONNX artifact changed")
     if sha256(args.reference) != exported["reference_sha256"]:
@@ -218,8 +242,10 @@ def run(args) -> None:
     args.output_npz.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(args.output_npz, **outputs)
     report = {
-        "scope": "real-weight BF16 SigLIP layer one attention boundary on HX370 NPU; component only",
+        "scope": f"real-weight BF16 SigLIP layer {layer_index + 1} attention boundary on HX370 NPU; component only",
         "model_sha256": sha256(args.model),
+        "layer_index": layer_index,
+        "layer_inputs_sha256": exported.get("layer_inputs_sha256"),
         "reference_sha256": sha256(args.reference),
         "fixture_sha256": FIXTURE_SHA,
         "output_npz_sha256": sha256(args.output_npz),
@@ -257,6 +283,7 @@ def audit(args) -> None:
             or measured["reference_sha256"] != sha256(args.reference)
             or measured["output_npz_sha256"] != sha256(args.npu_output)
             or measured["node_counts"].get("vitisai", 0) < 1
+            or exported.get("layer_index", 0) != measured.get("layer_index", 0)
             or sha256(shard) != SHARD_SHA
             or metadata.read_text(encoding="utf-8").splitlines()[0] != REVISION):
         raise ValueError("checkpoint or measured attention boundary changed")
@@ -264,8 +291,10 @@ def audit(args) -> None:
         reference = {key: np.ascontiguousarray(data[key]) for key in data.files}
     with np.load(args.npu_output, allow_pickle=False) as data:
         npu = {key: np.ascontiguousarray(data[key]) for key in data.files}
-    with np.load(args.prior_output, allow_pickle=False) as data:
-        prior = {key: np.ascontiguousarray(data[key]) for key in data.files}
+    prior = None
+    if args.prior_output is not None:
+        with np.load(args.prior_output, allow_pickle=False) as data:
+            prior = {key: np.ascontiguousarray(data[key]) for key in data.files}
 
     sys.path.insert(0, str(args.model_dir.resolve()))
     from modeling_navit_siglip import SiglipVisionConfig, SiglipVisionTransformer
@@ -281,12 +310,36 @@ def audit(args) -> None:
     model.load_state_dict(state, strict=True)
     model.eval().to(torch.bfloat16)
     del state
-    layer = model.encoder.layers[0]
+    layer_index = exported.get("layer_index", 0)
+    if layer_index == 0 and args.prior_output is None:
+        raise ValueError("--prior-output is required for the layer-one audit")
+    layer = model.encoder.layers[layer_index]
+    resampler = None
+    if args.resampler:
+        import importlib
+
+        sys.path.insert(0, str(args.model_dir.resolve().parent))
+        Resampler = importlib.import_module(
+            args.model_dir.name + ".modeling_minicpmo").Resampler
+        full_config = json.loads((args.model_dir / "config.json").read_text(encoding="utf-8"))
+        embed_dim = full_config["hidden_size"]
+        resampler = Resampler(
+            num_queries=full_config["query_num"], embed_dim=embed_dim,
+            num_heads=embed_dim // 128, kv_dim=vision_config.hidden_size,
+            adaptive=True,
+        )
+        with safe_open(shard, framework="pt", device="cpu") as source:
+            resampler_state = {
+                key[len("resampler."):]: source.get_tensor(key)
+                for key in source.keys() if key.startswith("resampler.")
+            }
+        resampler.load_state_dict(resampler_state, strict=True)
+        resampler.eval().to(torch.bfloat16)
 
     def suffix(boundary):
         with torch.inference_mode():
             hidden = torch.from_numpy(boundary).to(torch.bfloat16)
-            for remaining in model.encoder.layers[1:]:
+            for remaining in model.encoder.layers[layer_index + 1:]:
                 hidden = remaining(hidden, None)[0]
             raw = hidden.float().numpy()
             normalized = model.post_layernorm(hidden).float().numpy()
@@ -300,15 +353,39 @@ def audit(args) -> None:
         source_full = reference[name + "_full"]
         if (attn.shape != (1, 1024, 1152)
                 or full.shape != attn.shape
-                or not np.array_equal(full, prior[name])):
+                or (prior is not None and not np.array_equal(full, prior[name]))):
             raise ValueError(f"{name} instrumented NPU full output changed")
         with torch.inference_mode():
             hidden = torch.from_numpy(attn).to(torch.bfloat16)
             hybrid = (hidden + layer.mlp(layer.layer_norm2(hidden))).float().numpy()
         source_raw, source_norm = suffix(source_full)
         hybrid_raw, hybrid_norm = suffix(hybrid)
+        npu_full_raw, npu_full_norm = suffix(full)
+        resampler_errors = {}
+        if resampler is not None:
+            tgt_sizes = torch.tensor([[32, 32]], dtype=torch.long)
+            with torch.inference_mode():
+                def resample(normalized):
+                    return resampler(
+                        torch.from_numpy(normalized).to(torch.bfloat16),
+                        tgt_sizes).float().numpy()
+
+                source_resampled = resample(source_norm)
+                hybrid_resampled = resample(hybrid_norm)
+                npu_full_resampled = resample(npu_full_norm)
+            resampler_errors = {
+                "hybrid_resampler_relative_l2": relative_l2(
+                    source_resampled, hybrid_resampled),
+                "npu_full_resampler_relative_l2": relative_l2(
+                    source_resampled, npu_full_resampled),
+                "resampler_output_shape": list(source_resampled.shape),
+                "resampler_finite": bool(np.isfinite(source_resampled).all()
+                                         and np.isfinite(hybrid_resampled).all()
+                                         and np.isfinite(npu_full_resampled).all()),
+            }
         cases[name] = {
-            "instrumented_full_matches_original_npu_bitwise": True,
+            "instrumented_full_matches_original_npu_bitwise": (
+                True if prior is not None else None),
             "npu_attention_vs_torch_relative_l2": relative_l2(source_attn, attn),
             "npu_full_vs_torch_relative_l2": relative_l2(source_full, full),
             "cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2":
@@ -317,29 +394,42 @@ def audit(args) -> None:
                 relative_l2(hybrid, full),
             "hybrid_after27_relative_l2": relative_l2(source_raw, hybrid_raw),
             "hybrid_post_norm_relative_l2": relative_l2(source_norm, hybrid_norm),
-            "finite": bool(np.isfinite(hybrid_norm).all()),
+            "npu_full_after27_relative_l2": relative_l2(source_raw, npu_full_raw),
+            "npu_full_post_norm_relative_l2": relative_l2(source_norm, npu_full_norm),
+            "finite": bool(np.isfinite(hybrid_norm).all()
+                           and np.isfinite(npu_full_norm).all()),
+            **resampler_errors,
         }
+    component_pass = all(
+        case["finite"]
+        and case["npu_attention_vs_torch_relative_l2"] <= .01
+        and case["cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2"] <= .01
+        for case in cases.values())
+    suffix_pass = all(case["hybrid_post_norm_relative_l2"] <= .01
+                      and (resampler is None or (
+                          case["resampler_finite"]
+                          and case["hybrid_resampler_relative_l2"] <= .01))
+                      for case in cases.values())
     report = {
-        "scope": "measured HX370 BF16 attention residual plus Torch BF16 MLP and vision suffix; component-only offline replay",
+        "scope": f"measured HX370 BF16 layer {layer_index + 1} attention residual plus Torch BF16 MLP and vision suffix; component-only offline replay",
         "model_revision": REVISION,
         "shard_sha256": SHARD_SHA,
         "export_report_sha256": sha256(args.export_report),
         "npu_report_sha256": sha256(args.npu_report),
         "reference_sha256": sha256(args.reference),
         "npu_output_sha256": sha256(args.npu_output),
-        "prior_one_output_sha256": sha256(args.prior_output),
+        "prior_one_output_sha256": sha256(args.prior_output) if args.prior_output else None,
+        "layer_index": layer_index,
+        "resampler_replayed": resampler is not None,
         "torch": torch.__version__,
         "platform": platform.platform(),
         "threads": args.threads,
         "cases": cases,
         "status": (
+            "attention_hybrid_postnorm_numeric_pass_on_three_fixed_images"
+            if component_pass and suffix_pass else
             "attention_component_pass_on_three_fixed_images; vision_suffix_unqualified"
-            if all(case["finite"]
-                   and case["npu_attention_vs_torch_relative_l2"] <= .01
-                   and case["cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2"] <= .01
-                   and case["hybrid_post_norm_relative_l2"] > .01
-                   for case in cases.values())
-            else "attention_component_or_suffix_requires_review"),
+            if component_pass else "attention_component_or_suffix_requires_review"),
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -359,10 +449,13 @@ def main() -> None:
             sub.add_argument("--model-dir", type=Path, required=True)
             sub.add_argument("--direct-output", type=Path, required=True)
             sub.add_argument("--output", type=Path, required=True)
+            sub.add_argument("--layer-index", type=int, default=0)
+            sub.add_argument("--layer-inputs", type=Path)
             sub.add_argument("--threads", type=int, default=8)
         else:
             sub.add_argument("--model", type=Path, required=True)
             sub.add_argument("--export-report", type=Path, required=True)
+            sub.add_argument("--layer-inputs", type=Path)
             sub.add_argument("--ep-dir", type=Path, required=True)
             sub.add_argument("--profile-prefix", type=Path, required=True)
             sub.add_argument("--output-npz", type=Path, required=True)
@@ -370,11 +463,12 @@ def main() -> None:
     auditor.add_argument("--model-dir", type=Path, required=True)
     auditor.add_argument("--reference", type=Path, required=True)
     auditor.add_argument("--npu-output", type=Path, required=True)
-    auditor.add_argument("--prior-output", type=Path, required=True)
+    auditor.add_argument("--prior-output", type=Path)
     auditor.add_argument("--export-report", type=Path, required=True)
     auditor.add_argument("--npu-report", type=Path, required=True)
     auditor.add_argument("--report", type=Path, required=True)
     auditor.add_argument("--threads", type=int, default=8)
+    auditor.add_argument("--resampler", action="store_true")
     args = parser.parse_args()
     if args.command == "export":
         if not 1 <= args.threads <= 24:

@@ -1,0 +1,46 @@
+{
+  "scope": "real-weight BF16 SigLIP layer 27 attention boundary on HX370 NPU; component only",
+  "model_sha256": "37c17644840d9ec9f8154d762b28e014b6f4aa524c48b9b0e3759309e2633f3b",
+  "layer_index": 26,
+  "layer_inputs_sha256": "61a28d3cae38413fe2feb7161118fe7421f1a452bc2fa2b523c34a65007c339d",
+  "reference_sha256": "ea31d28f9c59e96a84aef12695cd14c4d4a552b5f1b1c019370cc42a5631a96f",
+  "fixture_sha256": {
+    "red": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+    "blue": "37fa24a0f99ca5b9b8105211f6b9dc4d28a8aece43ef3d68384c9c52ea32fe78",
+    "third": "ded8164dde9cbefd8fd53c859d7cff1693072e8cac95607ed5b161293350b348"
+  },
+  "output_npz_sha256": "bbe413e06f9ab38793cbaf328299ce44817339f05450e7b2d6444c6ab5452b8a",
+  "profile_sha256": "c0e0b05265f8ea377950bd753c4d107eb81beec4264821078ae619b238cce49f",
+  "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\late27\\npu_profile_2026-09-25_05-05-40_025.json",
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "providers": [
+    "vitisai",
+    "CPUExecutionProvider"
+  ],
+  "node_counts": {
+    "vitisai": 3
+  },
+  "load_s": 317.64649189997,
+  "cases": {
+    "red": {
+      "one_call_s": 0.03206669993232936,
+      "attention_relative_l2": 0.004357432984586146,
+      "full_relative_l2": 0.007134083509355197,
+      "finite": true
+    },
+    "blue": {
+      "one_call_s": 0.02874019998125732,
+      "attention_relative_l2": 0.004730153892209863,
+      "full_relative_l2": 0.00752914117997383,
+      "finite": true
+    },
+    "third": {
+      "one_call_s": 0.027872899896465242,
+      "attention_relative_l2": 0.005183688322904457,
+      "full_relative_l2": 0.008127958786924837,
+      "finite": true
+    }
+  },
+  "status": "attention_boundary_npu_measured"
+}
