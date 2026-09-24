@@ -26,6 +26,7 @@ from vllm.model_executor.models.utils import AutoWeightsLoader
 
 from vllm_omni.diffusion.data import DiffusionOutput, OmniDiffusionConfig
 from vllm_omni.diffusion.distributed.autoencoders.autoencoder_kl_wan import DistributedAutoencoderKLWan
+from vllm_omni.diffusion.distributed.autoencoders.wan_decoder_conv_kernels import install_triton_conv3d_96
 from vllm_omni.diffusion.distributed.autoencoders.wan_decoder_fast_path import install_wan_decoder_fast_path
 from vllm_omni.diffusion.distributed.autoencoders.wan_spatial_shard import install_wan_spatial_shard_decode
 from vllm_omni.diffusion.distributed.utils import get_local_device
@@ -746,6 +747,16 @@ class LingBotWorldCausalDMDPipeline(
             # already use the stage dtype, so no autocast parameter cast is needed.
             counts = install_wan_decoder_fast_path(self.vae, conv_dtype=None, level=fast_path_level)
             logger.info("LingBot World VAE decode fast path installed: %s", counts)
+        triton_conv96 = model_config.get("lingbot_vae_triton_conv96", False)
+        if not isinstance(triton_conv96, bool):
+            raise ValueError("model_config.lingbot_vae_triton_conv96 must be a bool.")
+        if triton_conv96:
+            if fast_path_level != "fused":
+                raise ValueError("lingbot_vae_triton_conv96 needs lingbot_vae_decode_fast_path: fused (channels_last).")
+            # Not bit-identical to cuDNN (K reduction order), so it shares the fused level's quality gate.
+            logger.info(
+                "LingBot World VAE Triton 96-channel conv installed on %d convs", install_triton_conv3d_96(self.vae)
+            )
         self.setup_diffusion_pipeline_profiler(
             profiler_targets=[
                 "vae.encode",
