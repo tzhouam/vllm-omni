@@ -9,6 +9,7 @@ before transferring any conclusion to that graph.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -91,14 +92,20 @@ def export(args) -> None:
     if args.layer_index:
         if args.layer_inputs is None:
             raise ValueError("--layer-inputs is required for a later layer")
-        with torch.inference_mode():
-            for name, hidden in inputs.items():
-                state = torch.from_numpy(hidden).to(torch.bfloat16)
-                for preceding in model.encoder.layers[:args.layer_index]:
-                    state = preceding(state, None)[0]
-                inputs[name] = np.ascontiguousarray(state.float().numpy())
-        args.layer_inputs.parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(args.layer_inputs, **inputs)
+        if args.reuse_layer_inputs_sha256:
+            if sha256(args.layer_inputs) != args.reuse_layer_inputs_sha256.lower():
+                raise ValueError("reused late-layer activations changed")
+            with np.load(args.layer_inputs, allow_pickle=False) as source:
+                inputs = {name: np.ascontiguousarray(source[name]) for name in FIXTURE_SHA}
+        else:
+            with torch.inference_mode():
+                for name, hidden in inputs.items():
+                    state = torch.from_numpy(hidden).to(torch.bfloat16)
+                    for preceding in model.encoder.layers[:args.layer_index]:
+                        state = preceding(state, None)[0]
+                    inputs[name] = np.ascontiguousarray(state.float().numpy())
+            args.layer_inputs.parent.mkdir(parents=True, exist_ok=True)
+            np.savez_compressed(args.layer_inputs, **inputs)
 
     class AttentionBoundary(torch.nn.Module):
         def __init__(self, source_layer):
@@ -113,64 +120,91 @@ def export(args) -> None:
                 self.source_layer.layer_norm2(after_attention))
             return after_attention, after_layer
 
-    boundary = AttentionBoundary(layer).eval()
+    compute_dtype = torch.float32 if args.compute_dtype == "fp32" else torch.bfloat16
+    boundary = AttentionBoundary(
+        copy.deepcopy(layer).float() if args.compute_dtype == "fp32" else layer
+    ).eval()
     references = {}
     with torch.inference_mode():
         for name, hidden in inputs.items():
-            after_attention, after_layer = boundary(
-                torch.from_numpy(hidden).to(torch.bfloat16))
+            after_attention, after_layer = boundary(torch.from_numpy(hidden).to(compute_dtype))
             references[name + "_attention"] = after_attention.float().numpy()
             references[name + "_full"] = after_layer.float().numpy()
         args.direct_output.parent.mkdir(parents=True, exist_ok=True)
         started = time.perf_counter()
         torch.onnx.export(
-            boundary, (torch.from_numpy(inputs["red"]).to(torch.bfloat16),),
-            str(args.direct_output), input_names=["hidden"],
+            boundary, (torch.from_numpy(inputs["red"]).to(compute_dtype),),
+            str(args.direct_output),
+            input_names=["hidden_fp32" if args.compute_dtype == "fp32" else "hidden"],
             output_names=["after_attention", "after_layer"],
             opset_version=17, dynamo=False, do_constant_folding=True,
         )
         export_s = time.perf_counter() - started
     for name in FIXTURE_SHA:
         if not np.array_equal(references[name + "_full"],
-                              layer(torch.from_numpy(inputs[name]).to(torch.bfloat16), None)[0].float().detach().numpy()):
-            raise ValueError("instrumented layer changed Torch BF16 output")
+                              boundary.source_layer(
+                                  torch.from_numpy(inputs[name]).to(compute_dtype), None
+                              )[0].float().detach().numpy()):
+            raise ValueError("instrumented layer changed Torch output")
     graph = onnx.load(args.direct_output)
     onnx.checker.check_model(graph)
-    if (graph.graph.input[0].type.tensor_type.elem_type != TensorProto.BFLOAT16
-            or any(output.type.tensor_type.elem_type != TensorProto.BFLOAT16
+    expected_type = TensorProto.FLOAT if args.compute_dtype == "fp32" else TensorProto.BFLOAT16
+    if (graph.graph.input[0].type.tensor_type.elem_type != expected_type
+            or any(output.type.tensor_type.elem_type != expected_type
                    for output in graph.graph.output)):
-        raise ValueError("instrumented graph did not retain BF16 tensors")
-    graph.graph.input[0].name = "hidden_fp32"
-    graph.graph.input[0].type.tensor_type.elem_type = TensorProto.FLOAT
-    graph.graph.node.insert(0, helper.make_node(
-        "Cast", ["hidden_fp32"], ["hidden"],
-        to=TensorProto.BFLOAT16, name="input_to_bf16"))
-    for output in graph.graph.output:
-        internal = output.name
-        output.name = internal + "_fp32"
-        output.type.tensor_type.elem_type = TensorProto.FLOAT
-        graph.graph.node.append(helper.make_node(
-            "Cast", [internal], [output.name], to=TensorProto.FLOAT,
-            name=internal + "_to_fp32"))
+        raise ValueError("instrumented graph did not retain requested precision")
+    if args.compute_dtype == "bf16":
+        graph.graph.input[0].name = "hidden_fp32"
+        graph.graph.input[0].type.tensor_type.elem_type = TensorProto.FLOAT
+        graph.graph.node.insert(0, helper.make_node(
+            "Cast", ["hidden_fp32"], ["hidden"],
+            to=TensorProto.BFLOAT16, name="input_to_bf16"))
+        for output in graph.graph.output:
+            internal = output.name
+            output.name = internal + "_fp32"
+            output.type.tensor_type.elem_type = TensorProto.FLOAT
+            graph.graph.node.append(helper.make_node(
+                "Cast", [internal], [output.name], to=TensorProto.FLOAT,
+                name=internal + "_to_fp32"))
     onnx.checker.check_model(graph)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     onnx.save(graph, args.output)
     args.reference.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(args.reference, **references)
+    ort_cpu_parity = None
+    if args.compute_dtype == "fp32":
+        import onnxruntime as ort
+
+        session = ort.InferenceSession(str(args.output), providers=["CPUExecutionProvider"])
+        ort_cpu_parity = {}
+        for name, hidden in inputs.items():
+            attention, full = session.run(None, {"hidden_fp32": hidden})
+            if (attention.shape != references[name + "_attention"].shape
+                    or full.shape != references[name + "_full"].shape
+                    or not np.isfinite(attention).all() or not np.isfinite(full).all()):
+                raise ValueError("FP32 ONNX CPU output contract failed")
+            ort_cpu_parity[name] = {
+                "attention_relative_l2": relative_l2(references[name + "_attention"], attention),
+                "full_relative_l2": relative_l2(references[name + "_full"], full),
+            }
+        if max(value for case in ort_cpu_parity.values() for value in case.values()) > 1e-4:
+            raise ValueError("FP32 ONNX CPU export differs from Torch reference")
     report = {
-        "scope": f"real-weight BF16 SigLIP layer {args.layer_index + 1} with attention residual and full output; component only",
+        "scope": f"real-weight {args.compute_dtype.upper()} SigLIP layer {args.layer_index + 1} with attention residual and full output; component only",
         "model_revision": REVISION,
         "shard_sha256": SHARD_SHA,
         "fixture_sha256": FIXTURE_SHA,
         "layer_index": args.layer_index,
+        "compute_dtype": args.compute_dtype,
         "layer_inputs_sha256": sha256(args.layer_inputs) if args.layer_index else None,
         "direct_sha256": sha256(args.direct_output),
         "wrapped_sha256": sha256(args.output),
         "reference_sha256": sha256(args.reference),
+        "ort_cpu_parity": ort_cpu_parity,
         "export_s": export_s,
         "torch": torch.__version__,
         "platform": platform.platform(),
-        "status": "bf16_attention_boundary_exported",
+        "status": f"{args.compute_dtype}_attention_boundary_exported",
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -242,7 +276,8 @@ def run(args) -> None:
     args.output_npz.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(args.output_npz, **outputs)
     report = {
-        "scope": f"real-weight BF16 SigLIP layer {layer_index + 1} attention boundary on HX370 NPU; component only",
+        "scope": f"real-weight {exported.get('compute_dtype', 'bf16').upper()} SigLIP layer {layer_index + 1} attention boundary on HX370 NPU; component only",
+        "compute_dtype": exported.get("compute_dtype", "bf16"),
         "model_sha256": sha256(args.model),
         "layer_index": layer_index,
         "layer_inputs_sha256": exported.get("layer_inputs_sha256"),
@@ -451,6 +486,8 @@ def main() -> None:
             sub.add_argument("--output", type=Path, required=True)
             sub.add_argument("--layer-index", type=int, default=0)
             sub.add_argument("--layer-inputs", type=Path)
+            sub.add_argument("--reuse-layer-inputs-sha256")
+            sub.add_argument("--compute-dtype", choices=("bf16", "fp32"), default="bf16")
             sub.add_argument("--threads", type=int, default=8)
         else:
             sub.add_argument("--model", type=Path, required=True)

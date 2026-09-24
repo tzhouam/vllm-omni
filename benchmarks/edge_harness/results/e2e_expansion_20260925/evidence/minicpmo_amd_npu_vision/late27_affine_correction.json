@@ -1,0 +1,165 @@
+{
+  "scope": "offline affine correction fit on measured NPU attention residuals; no new NPU execution",
+  "reference_sha256": "ea31d28f9c59e96a84aef12695cd14c4d4a552b5f1b1c019370cc42a5631a96f",
+  "npu_output_sha256": "bbe413e06f9ab38793cbaf328299ce44817339f05450e7b2d6444c6ab5452b8a",
+  "layer_inputs_sha256": "61a28d3cae38413fe2feb7161118fe7421f1a452bc2fa2b523c34a65007c339d",
+  "shape": [
+    1,
+    1024,
+    1152
+  ],
+  "cases": {
+    "fp32_resampler_cpu_control": {
+      "red": {
+        "resampler_relative_l2_vs_bf16": 0.010819358724300827
+      },
+      "blue": {
+        "resampler_relative_l2_vs_bf16": 0.009300025825732833
+      },
+      "third": {
+        "resampler_relative_l2_vs_bf16": 0.008776965689768263
+      }
+    },
+    "fp32_last_layer_cpu_control": {
+      "red": {
+        "full_relative_l2_vs_bf16": 0.002307653903753306,
+        "postnorm_relative_l2_vs_bf16": 0.004006265115705204,
+        "resampler_relative_l2_vs_bf16": 0.00912184378413035
+      },
+      "blue": {
+        "full_relative_l2_vs_bf16": 0.0023753230040159576,
+        "postnorm_relative_l2_vs_bf16": 0.004078451003074694,
+        "resampler_relative_l2_vs_bf16": 0.008321234563640378
+      },
+      "third": {
+        "full_relative_l2_vs_bf16": 0.002285145110786379,
+        "postnorm_relative_l2_vs_bf16": 0.003973297741512817,
+        "resampler_relative_l2_vs_bf16": 0.008832261275210715
+      }
+    },
+    "fp32_last_layer_npu": {
+      "red": {
+        "attention_relative_l2_vs_fp32_torch": 0.004069271328936027,
+        "full_relative_l2_vs_fp32_torch": 0.0066833663696297075,
+        "attention_cpu_bf16_mlp_resampler_relative_l2_vs_bf16": 0.015258582240464256,
+        "full_resampler_relative_l2_vs_bf16": 0.01549171468615969
+      },
+      "blue": {
+        "attention_relative_l2_vs_fp32_torch": 0.004433139499654012,
+        "full_relative_l2_vs_fp32_torch": 0.00699144646608484,
+        "attention_cpu_bf16_mlp_resampler_relative_l2_vs_bf16": 0.014839384281930098,
+        "full_resampler_relative_l2_vs_bf16": 0.015510918258250276
+      },
+      "third": {
+        "attention_relative_l2_vs_fp32_torch": 0.004894364394443087,
+        "full_relative_l2_vs_fp32_torch": 0.007652822088048362,
+        "attention_cpu_bf16_mlp_resampler_relative_l2_vs_bf16": 0.015116124320484559,
+        "full_resampler_relative_l2_vs_bf16": 0.015185475780814486
+      }
+    },
+    "fp32_npu_channel_affine": {
+      "train": [
+        "red",
+        "blue"
+      ],
+      "held_out": "third",
+      "relative_l2": {
+        "red": {
+          "attention_vs_bf16_torch": 0.0035307774476992237,
+          "resampler_vs_bf16_torch": 0.014072993636302291
+        },
+        "blue": {
+          "attention_vs_bf16_torch": 0.004032643628590556,
+          "resampler_vs_bf16_torch": 0.014114115422323116
+        },
+        "third": {
+          "attention_vs_bf16_torch": 0.004561877373936238,
+          "resampler_vs_bf16_torch": 0.0141337006890116
+        }
+      }
+    },
+    "global_affine": {
+      "train": [
+        "red",
+        "blue"
+      ],
+      "held_out": "third",
+      "scale_min_max": [
+        0.99946948347133,
+        0.99946948347133
+      ],
+      "offset_min_max": [
+        -3.387873389306545e-05,
+        -3.387873389306545e-05
+      ],
+      "relative_l2": {
+        "red": {
+          "attention_uncorrected": 0.004357432984586146,
+          "attention_corrected": 0.004334298545018985,
+          "postnorm_corrected": 0.008671504107778163,
+          "resampler_uncorrected": 0.014769225369532032,
+          "resampler_corrected": 0.014817230821893027
+        },
+        "blue": {
+          "attention_uncorrected": 0.004730153892209863,
+          "attention_corrected": 0.004691425986186619,
+          "postnorm_corrected": 0.009247412174963245,
+          "resampler_uncorrected": 0.015561810696278112,
+          "resampler_corrected": 0.01549550589986708
+        },
+        "third": {
+          "attention_uncorrected": 0.005183688322904457,
+          "attention_corrected": 0.005116764787058368,
+          "postnorm_corrected": 0.009026592989951805,
+          "resampler_uncorrected": 0.01461651974372354,
+          "resampler_corrected": 0.014626416657085476
+        }
+      }
+    },
+    "channel_affine": {
+      "train": [
+        "red",
+        "blue"
+      ],
+      "held_out": "third",
+      "scale_min_max": [
+        0.9928789360910723,
+        1.0031644562921407
+      ],
+      "offset_min_max": [
+        -0.050272746031467364,
+        0.06400710549760191
+      ],
+      "relative_l2": {
+        "red": {
+          "attention_uncorrected": 0.004357432984586146,
+          "attention_corrected": 0.00362405527506499,
+          "postnorm_corrected": 0.007743604518628975,
+          "resampler_uncorrected": 0.014769225369532032,
+          "resampler_corrected": 0.013415352085716283
+        },
+        "blue": {
+          "attention_uncorrected": 0.004730153892209863,
+          "attention_corrected": 0.004144198130345982,
+          "postnorm_corrected": 0.008582591682929576,
+          "resampler_uncorrected": 0.015561810696278112,
+          "resampler_corrected": 0.014795213896229127
+        },
+        "third": {
+          "attention_uncorrected": 0.005183688322904457,
+          "attention_corrected": 0.004639492625859547,
+          "postnorm_corrected": 0.008481522588932209,
+          "resampler_uncorrected": 0.01461651974372354,
+          "resampler_corrected": 0.014494754241373708
+        }
+      }
+    }
+  },
+  "fp32_npu_provenance": {
+    "export_report_sha256": "3f0d0aa9eed6d1fd5fe484b55d07aaac44ab75cd0247bd02c21c042333dc4b93",
+    "reference_sha256": "95772e675431764a331f5d12943de552cb19f9642a5ef10090445ad66450fb98",
+    "npu_report_sha256": "32d2bf78b8b678d4964e53148fd3130f2eb8d58a7509b6f956c6173b6301cdd2",
+    "npu_output_sha256": "307ba1a4d80f76774cfc58e6e17fbf5f5a7161d21e2a700e911bac6d0ff651c9",
+    "vitisai_node_events": 3
+  }
+}

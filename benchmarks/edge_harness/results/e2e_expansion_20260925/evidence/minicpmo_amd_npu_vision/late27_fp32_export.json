@@ -1,0 +1,34 @@
+{
+  "scope": "real-weight FP32 SigLIP layer 27 with attention residual and full output; component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "fixture_sha256": {
+    "red": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+    "blue": "37fa24a0f99ca5b9b8105211f6b9dc4d28a8aece43ef3d68384c9c52ea32fe78",
+    "third": "ded8164dde9cbefd8fd53c859d7cff1693072e8cac95607ed5b161293350b348"
+  },
+  "layer_index": 26,
+  "compute_dtype": "fp32",
+  "layer_inputs_sha256": "61a28d3cae38413fe2feb7161118fe7421f1a452bc2fa2b523c34a65007c339d",
+  "direct_sha256": "54dae2b12357ff730775bc419d9ecfb90069455a3ca22c73cf60ef29b3d7b203",
+  "wrapped_sha256": "54dae2b12357ff730775bc419d9ecfb90069455a3ca22c73cf60ef29b3d7b203",
+  "reference_sha256": "95772e675431764a331f5d12943de552cb19f9642a5ef10090445ad66450fb98",
+  "ort_cpu_parity": {
+    "red": {
+      "attention_relative_l2": 1.0941474821277309e-07,
+      "full_relative_l2": 2.5067081266751796e-07
+    },
+    "blue": {
+      "attention_relative_l2": 1.2123892494555077e-07,
+      "full_relative_l2": 2.4702387500960316e-07
+    },
+    "third": {
+      "attention_relative_l2": 1.244083373765947e-07,
+      "full_relative_l2": 2.600915181522954e-07
+    }
+  },
+  "export_s": 0.4602176110493019,
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "status": "fp32_attention_boundary_exported"
+}
