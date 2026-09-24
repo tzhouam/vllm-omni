@@ -56,6 +56,7 @@ from vllm_omni.diffusion.models.lingbot_world.camera import (
     resolve_trusted_action_directory,
 )
 from vllm_omni.diffusion.models.lingbot_world.dmd_block import ARBlockContext, LingBotDMDBlockRunner
+from vllm_omni.diffusion.models.lingbot_world.fp8_input_quant import install_one_pass_fp8_input_quant
 from vllm_omni.diffusion.models.lingbot_world.transformer import (
     CameraModulationCache,
     CausalLingBotWorldTransformer3DModel,
@@ -662,6 +663,13 @@ class LingBotWorldCausalDMDPipeline(
             quant_config=getattr(od_config, "quantization_config", None),
             prefix="transformer",
         )
+        one_pass_quant = model_config.get("lingbot_fp8_one_pass_input_quant", False)
+        if not isinstance(one_pass_quant, bool):
+            raise ValueError("model_config.lingbot_fp8_one_pass_input_quant must be a bool.")
+        if one_pass_quant:
+            # Bit-identical FP8 payload and scales; see fp8_input_quant for which linears qualify.
+            counts = install_one_pass_fp8_input_quant(self.transformer)
+            logger.info("LingBot World one-pass FP8 input quant installed: %s", counts)
 
         scheduler_config = _load_json(model, "scheduler/scheduler_config.json", local_files_only)
         _validate_scheduler_config(scheduler_config)
