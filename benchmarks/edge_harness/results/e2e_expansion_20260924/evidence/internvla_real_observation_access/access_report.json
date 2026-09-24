@@ -9,5 +9,17 @@
     "status": "inaccessible_or_absent",
     "http_status": 404,
     "exception_type": "RepositoryNotFoundError"
+  },
+  "official_example_archive": {
+    "checked_utc": "2026-09-24T00:48:33.364235+00:00",
+    "documentation_url": "https://docs.vllm.ai/projects/vllm-omni/en/latest/user_guide/examples/offline_inference/internvla_a1/",
+    "dataset_repo_id": "InternRobotics/InternData-A1",
+    "repo_type": "dataset",
+    "path": "real_lerobotv30/genie1/Genie1-Place_Markpen.tar.gz",
+    "result": {
+      "status": "gated_access_denied",
+      "http_status": 403,
+      "exception_type": "GatedRepoError"
+    }
   }
 }
