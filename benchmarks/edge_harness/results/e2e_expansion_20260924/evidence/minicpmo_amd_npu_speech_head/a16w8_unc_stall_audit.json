@@ -1,0 +1,19 @@
+{
+  "scope": "MiniCPM-o real-weight speech-head A16W8 MatMul QDQ preparation on Windows via WSL UNC",
+  "date_local": "2026-09-24",
+  "source_model_sha256": "78cf64804f11ad269ee4180da61588ccc5eefe2942773227345499756e4cc229",
+  "fixture_sha256": "65919ea1f351feec33c1415a3e3db76d60bc9c2beb3d49a72af75dcb418e83b4",
+  "reference_sha256": "902adcceadbe761d938ef2ade51cf953c8917ea1abfaee33a10c84e300c1bd96",
+  "route": "Windows Python 3.12, ONNX Runtime 1.30.0, model and output on WSL UNC",
+  "process_start_local": "2026-09-24 21:06:51",
+  "last_observed_local_approximately": "2026-09-24 21:12",
+  "child_pid": 58136,
+  "cpu_seconds_at_two_consecutive_checks": 14.0625,
+  "read_transfer_bytes_at_two_consecutive_checks": 1618480038,
+  "write_transfer_bytes_at_two_consecutive_checks": 820,
+  "candidate_file_observed": false,
+  "report_status_before_stop": "quantization_started",
+  "stop": "agent stopped the unchanged process after roughly six minutes; unified exec session then returned exit code -1",
+  "conclusion": "No quantized artifact or numerical result. The route stalled in this attempt; this does not show model or quantization incompatibility.",
+  "next_control": "Repeat with exact hashed inputs and output on native NTFS."
+}

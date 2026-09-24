@@ -47,6 +47,8 @@ def main() -> None:
     for name in ("model", "fixture", "reference"):
         parser.add_argument(f"--expected-{name}-sha256", required=True)
     parser.add_argument("--cpu-only", action="store_true")
+    parser.add_argument("--candidate-report", type=Path)
+    parser.add_argument("--candidate-cpu-relative-l2-gate", type=float, default=1e-4)
     args = parser.parse_args()
     import onnxruntime as ort
 
@@ -55,11 +57,18 @@ def main() -> None:
     for name, actual in artifact_hashes.items():
         if actual != getattr(args, f"expected_{name}_sha256"):
             raise ValueError(f"{name} hash changed")
+    candidate = None
+    if args.candidate_report is not None:
+        candidate = json.loads(args.candidate_report.read_text(encoding="utf-8"))
+        if candidate.get("model_sha256") != "78cf64804f11ad269ee4180da61588ccc5eefe2942773227345499756e4cc229" or candidate.get("candidate_sha256") != artifact_hashes["model"]:
+            raise ValueError("candidate does not derive from pinned MiniCPM-o source")
     report = {
         "scope": "real-weight one-step MiniCPM-o 4.5 speech head, fixed 256-token cache; not complete MiniCPM-o",
         "os": platform.platform(),
         "onnxruntime_version": ort.__version__,
         "artifact_sha256": artifact_hashes,
+        "candidate_quantization": candidate.get("nodes_to_quantize") if candidate else None,
+        "candidate_cpu_relative_l2_gate": args.candidate_cpu_relative_l2_gate,
         "status": "started",
     }
     write_report(args.report, report)
@@ -86,8 +95,8 @@ def main() -> None:
         values["relative_l2"] for name, values in report["cpu_vs_retained_reference"].items()
         if name != "logits")
     if (not all(values["finite"] for values in report["cpu_vs_retained_reference"].values())
-            or report["cpu_vs_retained_reference"]["logits"]["relative_l2"] > 1e-4
-            or cpu_cache_max > 1e-4):
+            or report["cpu_vs_retained_reference"]["logits"]["relative_l2"] > args.candidate_cpu_relative_l2_gate
+            or cpu_cache_max > args.candidate_cpu_relative_l2_gate):
         raise ValueError("local CPU speech-head output differs from retained reference")
     report["status"] = "cpu_reference_pass"
     write_report(args.report, report)
