@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-24T00:25:46.492184+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_compile_job_id": "jp1njv18g",
+  "target_model_id": "mnwv5rp3q",
+  "device": "Snapdragon X Elite CRD",
+  "options": "--compute_unit cpu",
+  "kind": "profile",
+  "status": "SUBMITTED",
+  "job_id": "jp2rwed4g",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp2rwed4g/"
+}

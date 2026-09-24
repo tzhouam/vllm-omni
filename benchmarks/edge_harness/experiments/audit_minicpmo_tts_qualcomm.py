@@ -17,6 +17,7 @@ REFERENCE_SHA256 = "902adcceadbe761d938ef2ade51cf953c8917ea1abfaee33a10c84e300c1
 COMPILE_OPTIONS = {
     "--target_runtime qnn_context_binary --quantize_full_type float16",
     "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
+    "--target_runtime tflite",
 }
 INPUT_NAMES = ["x", "cos", "sin", "mask"] + [
     name for layer in range(20) for name in (f"k_cache_{layer}", f"v_cache_{layer}")
@@ -73,6 +74,15 @@ def main() -> None:
         raise ValueError("compile source/options differ from the pinned speech-head artifact")
     if inferred.get("model_id") != compiled.get("target_model_id"):
         raise ValueError("inference used a different target artifact")
+    if compiled["options"] == "--target_runtime tflite":
+        allowed_run_options = {"--compute_unit cpu"}
+    elif compiled["options"].startswith("--target_runtime qnn_dlc"):
+        allowed_run_options = {"--compute_unit npu"}
+    else:
+        # Historical S24 context-binary inference did not record a run option.
+        allowed_run_options = {"", "--compute_unit npu"}
+    if inferred.get("options") not in allowed_run_options:
+        raise ValueError("inference compute request differs from the compiled target route")
     if inferred.get("input_dataset_id") not in {"d7gwxe3y2", "d7zn8rk57"}:
         raise ValueError("inference did not use a retained matching fixture dataset")
     if (compiled.get("device", {}).get("name") != args.device_name
@@ -143,7 +153,7 @@ def main() -> None:
         "limits": [
             "The historical ONNX export does not attest the exact source checkpoint revision.",
             "One retained decode fixture cannot establish speech-token or generated-audio quality.",
-            "Actual NPU placement requires a device profile; a request or QNN artifact alone is insufficient.",
+            "Actual CPU/NPU placement requires a device profile; a request or compiled artifact alone is insufficient.",
             "Thinker, audio/vision encoders, vocoder, state loop and complete Omni request were not tested.",
         ],
     }

@@ -1,0 +1,31 @@
+{
+  "retrieved_utc": "2026-09-24T00:23:45.508631+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "job_id": "j5m0m8oqg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/j5m0m8oqg/",
+  "status": "SUCCESS",
+  "status_message": "",
+  "source_model_id": "mn4gjjpvn",
+  "target_model_id": "mnwv5d7wq",
+  "device": {
+    "name": "Dragonwing RB3 Gen 2 Vision Kit",
+    "os": "1.6",
+    "attributes": [
+      "os:qc_linux",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-oe-linux-gcc11",
+      "format:iot",
+      "chipset:qualcomm-qcs6490",
+      "chipset:qcs6490",
+      "chipset:qualcomm-dragonwing-qcs6490",
+      "hexagon:v68",
+      "soc-model:93",
+      "framework:qnn"
+    ]
+  },
+  "options": "--target_runtime tflite",
+  "hub_version": "aihub-2026.09.11.0"
+}
