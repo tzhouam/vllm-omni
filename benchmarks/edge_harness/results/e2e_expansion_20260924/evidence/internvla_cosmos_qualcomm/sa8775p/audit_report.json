@@ -1,6 +1,6 @@
 {
   "scope": "one six-frame Cosmos image encoder on synthetic pattern; no complete InternVLA policy",
-  "status": "component_inference_numeric_measured",
+  "status": "component_inference_numeric_and_placement_measured",
   "device": {
     "name": "SA8775P ADP",
     "os": "14",
@@ -48,7 +48,22 @@
   },
   "limits": [
     "The fixture is synthetic; no real-observation or action-quality tolerance is established.",
-    "The action policy, state lifecycle, admission and complete request were not run on this device.",
-    "Requested NPU is not actual per-node placement without a device profile."
-  ]
+    "The action policy, state lifecycle, admission and complete request were not run on this device."
+  ],
+  "profile": {
+    "job_id": "jpe7z7ov5",
+    "sample_count": 100,
+    "sample_min_us": 114779,
+    "nearest_rank_p50_us": 116021,
+    "nearest_rank_p95_us": 116327,
+    "reported_estimated_inference_time_us": 114779,
+    "reported_peak_memory_bytes": 116924416,
+    "reported_first_load_time_us": 105214319,
+    "reported_warm_load_time_us": 469698,
+    "reported_first_load_peak_memory_bytes": 659845120,
+    "reported_warm_load_peak_memory_bytes": 268201984,
+    "compute_unit_row_counts": {
+      "NPU": 121
+    }
+  }
 }

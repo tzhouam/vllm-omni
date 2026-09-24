@@ -1,0 +1,273 @@
+{
+  "status": "failed",
+  "argv": [
+    "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\profile_local_tts.py",
+    "--model",
+    "C:\\Users\\zhout\\w2\\models\\Qwen3-TTS-0.6B-85e237c",
+    "--out",
+    "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\analysis\\experiments\\tts_windows_telemetry_20260924",
+    "--repeats",
+    "1",
+    "--length-band",
+    "medium",
+    "--concurrency",
+    "1",
+    "--sustained-seconds",
+    "1800",
+    "--gpu-telemetry-interval-s",
+    "1"
+  ],
+  "python": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+  "host_environment": {
+    "VLLM_CUDART_SO_PATH": "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\torch\\lib\\cudart64_13.dll",
+    "VLLM_CACHE_ROOT": "C:\\Users\\zhout\\c29",
+    "PYTHONUTF8": "1"
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "runtime": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.13.0+cu130",
+    "vllm": "0.29.0",
+    "vllm_omni": "0.29.0",
+    "vllm_omni_file": "C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\__init__.py",
+    "vllm_file": "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\vllm\\__init__.py",
+    "checkouts": {}
+  },
+  "settings": {
+    "model": "C:\\Users\\zhout\\w2\\models\\Qwen3-TTS-0.6B-85e237c",
+    "out": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\analysis\\experiments\\tts_windows_telemetry_20260924",
+    "repeats": 1,
+    "sustained_seconds": 1800.0,
+    "gpu_telemetry_interval_s": 1.0,
+    "length_band": "medium",
+    "concurrency": 1
+  },
+  "start_unix": 1790211568.3760028,
+  "requests": 0,
+  "cache_condition": "existing disk/JIT caches; not cold disk",
+  "quality_gate": "finite PCM checks only; ASR/speaker/listening reference gates pending",
+  "playback_scope": "arrival-based simulated playback; no sound-device measurement",
+  "terminal_audio": "DELTA output required; terminal audio is included once in complete playback metrics and archived separately",
+  "prompts": {
+    "short": {
+      "prompt_token_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "additional_information": {
+        "task_type": [
+          "CustomVoice"
+        ],
+        "text": [
+          "Hello, this is a speech test."
+        ],
+        "language": [
+          "English"
+        ],
+        "speaker": [
+          "Vivian"
+        ]
+      }
+    },
+    "medium": {
+      "prompt_token_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "additional_information": {
+        "task_type": [
+          "CustomVoice"
+        ],
+        "text": [
+          "The garden has trees, flowers, and a small pond. We walk along the path and listen to the birds."
+        ],
+        "language": [
+          "English"
+        ],
+        "speaker": [
+          "Vivian"
+        ]
+      }
+    },
+    "long": {
+      "prompt_token_ids": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "additional_information": {
+        "task_type": [
+          "CustomVoice"
+        ],
+        "text": [
+          "Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. "
+        ],
+        "language": [
+          "English"
+        ],
+        "speaker": [
+          "Vivian"
+        ]
+      }
+    }
+  },
+  "error": "RuntimeError(\"Orchestrator initialization failed: Engine core initialization failed. See root cause above. Failed proc(s): {'StageEngineCoreProc_stage1_replica0': 1}\")",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\threading.py\", line 1075, in _bootstrap_inner\n    self.run()\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\threading.py\", line 1012, in run\n    self._target(*self._args, **self._kwargs)\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\async_omni_engine.py\", line 462, in _bootstrap_orchestrator\n    loop.run_until_complete(_run_orchestrator())\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\asyncio\\base_events.py\", line 691, in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\async_omni_engine.py\", line 419, in _run_orchestrator\n    self._initialize_stages(stage_init_timeout)\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\async_omni_engine.py\", line 345, in _initialize_stages\n    self._initialize_stages_impl(stage_init_timeout)\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\async_omni_engine.py\", line 366, in _initialize_stages_impl\n    self._runtime.initialize()\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\stage_runtime.py\", line 264, in initialize\n    raise exc\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\stage_runtime.py\", line 245, in initialize\n    initialized_clients = self._initialize_stage_replicas(stage_plans, self._stage_init_timeout)\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\stage_runtime.py\", line 517, in _initialize_stage_replicas\n    raise primary_exc\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\stage_runtime.py\", line 478, in _init_group\n    client = self._initialize_replica(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\stage_runtime.py\", line 743, in _initialize_replica\n    return self._initialize_local_llm_replica(plan, stage_init_timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\stage_runtime.py\", line 849, in _initialize_local_llm_replica\n    launch_stack.close()\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 618, in close\n    self.__exit__(None, None, None)\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 610, in __exit__\n    raise exc_details[1]\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 595, in __exit__\n    if cb(*exc_details):\n       ^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\contextlib.py\", line 144, in __exit__\n    next(self.gen)\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\stage_engine_startup.py\", line 1211, in launch_stage_replica\n    wait_for_engine_startup(\n  File \"C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\vllm\\v1\\engine\\utils.py\", line 1307, in wait_for_engine_startup\n    raise RuntimeError(\nRuntimeError: Engine core initialization failed. See root cause above. Failed proc(s): {'StageEngineCoreProc_stage1_replica0': 1}\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\profile_local_tts.py\", line 86, in run\n    omni = AsyncOmni(model=args.model, deploy_profile=\"edge\", stage_init_timeout=180)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\entrypoints\\async_omni.py\", line 156, in __init__\n    OmniBase.__init__(self, model=model, **kwargs)\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\entrypoints\\omni_base.py\", line 223, in __init__\n    self.engine = AsyncOmniEngine(\n                  ^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\async_omni_engine.py\", line 300, in __init__\n    self._wait_for_orchestrator_init(startup_future, startup_timeout)\n  File \"C:\\Users\\zhout\\w2\\vllm-omni-src-0.29.0\\vllm_omni\\engine\\async_omni_engine.py\", line 533, in _wait_for_orchestrator_init\n    startup_future.result(\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\concurrent\\futures\\_base.py\", line 456, in result\n    return self.__get_result()\n           ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\concurrent\\futures\\_base.py\", line 401, in __get_result\n    raise self._exception\nRuntimeError: Orchestrator initialization failed: Engine core initialization failed. See root cause above. Failed proc(s): {'StageEngineCoreProc_stage1_replica0': 1}\n",
+  "memory": {
+    "samples": 2681,
+    "interval_s": 0.25,
+    "note": "peaks are lower bounds: anything shorter than interval_s is missed. nvml_device_used is the whole card including other processes; tree_pss includes a share of file-backed pages. These three counters are different accountings and must not be summed.",
+    "nvml_device_used_peak": 3278577664,
+    "nvml_device_used_min": 3262193664,
+    "tree_rss_peak": 3045744640,
+    "tree_pss_peak": 0,
+    "host_available_min": 26667917312
+  },
+  "gpu_telemetry": {
+    "path": "gpu_telemetry.jsonl",
+    "samples": 893,
+    "interval_s": 1.0,
+    "error": null,
+    "scope": "whole GPU/host; not attributable to this process; sampled values may miss peaks"
+  },
+  "end_unix": 1790212492.9256425
+}
