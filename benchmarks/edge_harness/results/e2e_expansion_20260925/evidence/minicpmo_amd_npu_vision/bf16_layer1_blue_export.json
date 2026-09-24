@@ -1,0 +1,20 @@
+{
+  "scope": "real-weight MiniCPM-o SigLIP BF16 layer 1, fixed layer3_blue_fixture vision activation; component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "fixture_sha256": "37fa24a0f99ca5b9b8105211f6b9dc4d28a8aece43ef3d68384c9c52ea32fe78",
+  "direct_sha256": "58919d088a7f1516d657ea8f0c03e8101325deba6b7ab0417c4ee25c51627348",
+  "wrapped_sha256": "6fe2bfa6ce6af5857e88066534b006935b3716f7206c278c35d0460ae58e7ae5",
+  "reference_sha256": "309bc1a8dee3146e0970eb5513d679b154edfea27a632cc0d4b553d1ca5a9a9e",
+  "input_output_shape": [
+    1,
+    1024,
+    1152
+  ],
+  "internal_precision": "BF16",
+  "external_precision": "FP32 casts",
+  "export_s": 0.2112161199329421,
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "status": "bf16_onnx_exported; NPU execution separate"
+}

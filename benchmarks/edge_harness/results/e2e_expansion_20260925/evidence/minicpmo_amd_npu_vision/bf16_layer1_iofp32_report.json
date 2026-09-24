@@ -1,0 +1,24 @@
+{
+  "scope": "one real-weight MiniCPM-o SigLIP BF16 layer; exact HX370 VitisAI session/inference feasibility only",
+  "model_sha256": "6fe2bfa6ce6af5857e88066534b006935b3716f7206c278c35d0460ae58e7ae5",
+  "model_bytes": 30487066,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "ep_dll": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider\\onnxruntime_vitisai_ep.dll",
+  "status": "ran",
+  "npu_devices": 1,
+  "load_s": 325.20621590001974,
+  "providers": [
+    "vitisai",
+    "CPUExecutionProvider"
+  ],
+  "run_s": 0.03572409995831549,
+  "output_dtype": "float32",
+  "finite": true,
+  "output_npz_sha256": "5f893d8fe50de81c0aa3762f9e0141fee149ab2368cb045befb73452c84fd641",
+  "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\bf16_layer1_iofp32_report_2026-09-25_04-07-08_402.json",
+  "profile_sha256": "a0a39d165ac4f8794c679d9e02f69d0da70a7166d169a8eb115d3f426cba712a",
+  "node_counts": {
+    "vitisai": 1
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "scope": "one real-weight MiniCPM-o BF16 SigLIP layer on fixed red-square activation, HX370 NPU component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "source_shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "fixture_sha256": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+  "direct_bf16_onnx_sha256": "58919d088a7f1516d657ea8f0c03e8101325deba6b7ab0417c4ee25c51627348",
+  "wrapped_bf16_onnx_sha256": "6fe2bfa6ce6af5857e88066534b006935b3716f7206c278c35d0460ae58e7ae5",
+  "reference_npz_sha256": "6bbe44bbdcecca5fe81eea024abf1580e0dc19f8c754dcfb9c9a013479205d5a",
+  "npu_output_npz_sha256": "5f893d8fe50de81c0aa3762f9e0141fee149ab2368cb045befb73452c84fd641",
+  "profile_sha256": "a0a39d165ac4f8794c679d9e02f69d0da70a7166d169a8eb115d3f426cba712a",
+  "input_output_shape": [
+    1,
+    1024,
+    1152
+  ],
+  "precision": "BF16 inside ONNX; FP32 boundary casts for ORT Python binding",
+  "onnxruntime_cpu_direct_status": "session_creation_failed_missing_bf16_matmul",
+  "windows_direct_bf16_input_status": "Numpy_type 256 can't be converted to MLDataType.",
+  "npu_node_counts": {
+    "vitisai": 1
+  },
+  "native_npu_session_creation_s": 325.20621590001974,
+  "native_one_call_s": 0.03572409995831549,
+  "npu_vs_bf16_torch_relative_l2": 0.011819290186192391,
+  "npu_vs_bf16_torch_max_abs": 0.4375,
+  "npu_vs_bf16_torch_cosine": 0.9999311605814386,
+  "finite": true,
+  "hardware": "Ryzen AI 9 HX 370 integrated AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "npu_driver": "32.0.203.329",
+  "vitisai_appx": "1.8.63.0",
+  "onnxruntime": "1.30.0",
+  "samples": 1,
+  "power": "not measured",
+  "status": "npu_placement_pass_numeric_1pct_gate_failed_not_e2e"
+}

@@ -1,0 +1,17 @@
+{
+  "scope": "one real-weight MiniCPM-o SigLIP BF16 layer; exact HX370 VitisAI session/inference feasibility only",
+  "model_sha256": "58919d088a7f1516d657ea8f0c03e8101325deba6b7ab0417c4ee25c51627348",
+  "model_bytes": 30486919,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "ep_dll": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider\\onnxruntime_vitisai_ep.dll",
+  "status": "failed",
+  "npu_devices": 1,
+  "load_s": 321.9442463000305,
+  "providers": [
+    "vitisai",
+    "CPUExecutionProvider"
+  ],
+  "error_type": "RuntimeError",
+  "error": "Numpy_type 256 can't be converted to MLDataType."
+}

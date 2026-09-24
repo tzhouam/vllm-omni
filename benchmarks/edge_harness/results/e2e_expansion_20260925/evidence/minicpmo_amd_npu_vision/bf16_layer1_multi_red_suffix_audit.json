@@ -1,0 +1,18 @@
+{
+  "scope": "measured HX370 BF16 NPU layer 1 plus unchanged BF16 Torch layers 2..27 and post-layernorm; component only",
+  "case": "red",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "reference_sha256": "6bbe44bbdcecca5fe81eea024abf1580e0dc19f8c754dcfb9c9a013479205d5a",
+  "npu_output_sha256": "a70753e2968417e46ce1bbaa4fa8fe1e27212c90d77a3a7782cd1576c7781a29",
+  "export_report_sha256": "6f4fb797ceb3eeea38047614ed309632efae327fb3a68460c352e00dee44623b",
+  "npu_report_sha256": "a68c75a211d7dfe844c774092d7543a4148415cfce13846bb148898e34e8f29c",
+  "boundary_relative_l2": 0.011819290186192391,
+  "after27_relative_l2": 0.13863353704581768,
+  "post_norm_relative_l2": 0.21034757369560322,
+  "finite": true,
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "threads": 8,
+  "status": "bf16_suffix_replay_measured_not_e2e"
+}

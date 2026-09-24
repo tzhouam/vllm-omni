@@ -1,0 +1,9 @@
+{
+  "scope": "one BF16 SigLIP layer ONNX Runtime CPU load feasibility",
+  "model_sha256": "58919d088a7f1516d657ea8f0c03e8101325deba6b7ab0417c4ee25c51627348",
+  "onnxruntime": "1.29.0",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "status": "session_creation_failed",
+  "error_type": "NotImplemented",
+  "error": "[ONNXRuntimeError] : 9 : NOT_IMPLEMENTED : Could not find an implementation for MatMul(13) node with name '/layers.0/self_attn/MatMul'"
+}
