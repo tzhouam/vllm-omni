@@ -1,0 +1,32 @@
+{
+  "scope": "MiniCPM-o 4.5 real-weight 27-layer vision prefix on a retained synthetic image; component export only",
+  "status": "fp32_vision_prefix_cpu_parity_pass",
+  "model_config_sha256": "b0c03cf9f0cfc1178ade50e4ba62727ca7a77aa6a6a71eda6668d8f289e96c1d",
+  "model_source_sha256": "1a40a58cb7dfa93f723685f860d1cf3caf3a0ecf52b7904db0c4007aacd1536f",
+  "source_shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "layers": 27,
+  "input_shape": [
+    1,
+    1024,
+    1152
+  ],
+  "output_shape": [
+    1,
+    1024,
+    1152
+  ],
+  "precision_change": "checkpoint BF16 to explicit FP32 ONNX",
+  "torch_fp32_vs_bf16_relative_l2": 0.05311414748892395,
+  "ort_fp32_vs_torch_fp32_relative_l2": 9.242943906409291e-06,
+  "export_s": 10.70190389698837,
+  "output_sha256": "534641cb3589df399b90f78c4fb3629079f824224eb0bd65801d26725cb16134",
+  "output_bytes": 1646081657,
+  "fixture_sha256": "07ddbdc3cb911382d766beea7e95e992827471243f920eec757b5be916f1d32e",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "onnxruntime": "1.29.0",
+  "threads": 8,
+  "next_gate": "A16W8 numerical calibration and actual AMD NPU node placement; then complete-vision and downstream model quality"
+}

@@ -1,0 +1,55 @@
+{
+  "scope": "four real-weight MiniCPM-o vision layers on one fixed synthetic image; component only",
+  "source_sha256": "bd3e7802a78a930c5cd3e8e1a9888ab73e3fa865d6f831e492e169cdd24540be",
+  "fixture_sha256": "feb8740e588f2305793d7402f26959f3c53f46c41f581c5c6c1141209085cce5",
+  "input_role": "held_out",
+  "calibration_fixture_sha256": "9e58e815ccf46039b28d70f1b952f79ccc27b97a57ab44eaed50bd5218f6bcd2",
+  "candidate_sha256": "9773f836ecec746cbd5a5ffa0cc5163c6696748609f77f6e98456b9586f2b80f",
+  "candidate_bytes": 107044201,
+  "quantization": "A16W8 per-channel QDQ MatMul/Gemm, MinMax calibrated on one retained image activation",
+  "last_layer_quantization_excluded": true,
+  "quantization_s": null,
+  "candidate_cpu_vs_fp32_relative_l2": 0.0686393671117591,
+  "candidate_cpu_vs_source_bf16_relative_l2": 0.06928734987751803,
+  "candidate_cpu_p50_ms": 564.9493000237271,
+  "candidate_cpu_p95_ms": 573.2899999711663,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "samples": 20,
+  "npu": {
+    "device_type": "OrtHardwareDeviceType.NPU",
+    "providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "load_s": 15.25270479999017,
+    "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\heldout_npu_profile_2026-09-25_03-21-07_770.json",
+    "profile_sha256": "4571b1f0a3efc63608c32711c2de00262054713535687d4667e601023f6085fe",
+    "node_counts": {
+      "CPUExecutionProvider": 2860,
+      "vitisai": 300
+    },
+    "p50_ms": 236.6528999991715,
+    "p95_ms": 253.7663000402972,
+    "max_relative_l2_vs_qdq_cpu": 0.0004919002006472981,
+    "max_relative_l2_vs_source_fp32": 0.0686405886617686
+  },
+  "status": "cpu_candidate_only_or_npu_unqualified",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "source_opsets": [
+    [
+      "",
+      17
+    ]
+  ],
+  "candidate_opsets": [
+    [
+      "",
+      21
+    ]
+  ],
+  "layout": "[batch, patches, hidden] = [1, 1024, 1152] FP32 input/output",
+  "candidate_calibration_fixture_sha256": [
+    "9e58e815ccf46039b28d70f1b952f79ccc27b97a57ab44eaed50bd5218f6bcd2"
+  ]
+}

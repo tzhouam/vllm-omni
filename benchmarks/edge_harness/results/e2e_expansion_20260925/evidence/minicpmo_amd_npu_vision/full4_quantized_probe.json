@@ -1,0 +1,52 @@
+{
+  "scope": "four real-weight MiniCPM-o vision layers on one fixed synthetic image; component only",
+  "source_sha256": "bd3e7802a78a930c5cd3e8e1a9888ab73e3fa865d6f831e492e169cdd24540be",
+  "fixture_sha256": "9e58e815ccf46039b28d70f1b952f79ccc27b97a57ab44eaed50bd5218f6bcd2",
+  "candidate_sha256": "a12ce484c89c6a701a3c4499f8c9f1f2d838305a5a9ff208589d3bd852a232cc",
+  "candidate_bytes": 61433654,
+  "quantization": "A16W8 per-channel QDQ MatMul/Gemm, MinMax calibrated on one retained image activation",
+  "quantization_s": 5.685619399999268,
+  "candidate_cpu_vs_fp32_relative_l2": 0.010480079658181667,
+  "candidate_cpu_vs_source_bf16_relative_l2": 0.01517300673621922,
+  "candidate_cpu_p50_ms": 616.2737000267953,
+  "candidate_cpu_p95_ms": 641.0848998930305,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "samples": 20,
+  "npu": {
+    "device_type": "OrtHardwareDeviceType.NPU",
+    "providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "load_s": 18.439408499980345,
+    "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\npu_profile_2026-09-25_03-12-16_649.json",
+    "profile_sha256": "99b0b529944fb2f0f5f17edcc53b9902e80fe03c7a057d77d81e417c77c641ca",
+    "node_counts": {
+      "CPUExecutionProvider": 2800,
+      "vitisai": 400
+    },
+    "p50_ms": 207.86730002146214,
+    "p95_ms": 226.95659997407347,
+    "max_relative_l2_vs_qdq_cpu": 0.000563997612030698,
+    "max_relative_l2_vs_source_fp32": 0.010480620909957246
+  },
+  "status": "cpu_candidate_only_or_npu_unqualified",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "source_opsets": [
+    [
+      "",
+      17
+    ]
+  ],
+  "candidate_opsets": [
+    [
+      "",
+      21
+    ]
+  ],
+  "layout": "[batch, patches, hidden] = [1, 1024, 1152] FP32 input/output",
+  "candidate_calibration_fixture_sha256": [
+    "9e58e815ccf46039b28d70f1b952f79ccc27b97a57ab44eaed50bd5218f6bcd2"
+  ]
+}

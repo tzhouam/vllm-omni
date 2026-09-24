@@ -1,0 +1,10 @@
+{
+  "host": "Ryzen AI 9 HX 370 laptop",
+  "os": "Windows 11",
+  "build": "26200",
+  "amd_npu_driver": "32.0.203.329",
+  "vitisai_ep": "1.8.63.0",
+  "onnxruntime": "1.30.0",
+  "power": "uncontrolled; no power telemetry",
+  "concurrency": 1
+}
