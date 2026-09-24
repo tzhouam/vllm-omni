@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "scope": "captured_real_activation_component_handoff_only; no vLLM generation",
+  "source_model": "XHToken/Spark-X2.5-1.7B",
+  "source_revision": "448e61eb392c00f2c403185c5b56d5e0665bfaab",
+  "graph_sha256": "e2ae9c3fd7071e8ff628f209e6140c8a023bfaad59814b80a936c6b263f33eaf",
+  "fixture_sha256": "cfa2ed8439f8fe01730319667bfd01abf2e39cf5851490346a0331304cf63194",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "started_unix": 1790256850.7572515,
+  "ended_unix": 1790256862.2745373,
+  "concurrency": 1,
+  "warmup": "one profiled stage-open inference",
+  "repeats": 20,
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 7,
+      "vitisai": 1
+    },
+    "total_nodes": 8,
+    "target_nodes": 1,
+    "fraction_on_target": 0.125,
+    "session_create_s": 9.403020199970342,
+    "warmup_s": 0.009945599944330752,
+    "rss_bytes": 1388044288,
+    "inputs": [
+      {
+        "name": "x",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1,
+          2048
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "logits_concatenated",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          131072
+        ]
+      }
+    ],
+    "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_wsl_handoff_20260924\\spark_output_head__2026-09-24_21-34-12_461.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "note": ""
+  },
+  "planner_budget_bytes": 1946171217,
+  "worker_peak_rss_bytes": 3772710912,
+  "planner_bounds_observed_worker_peak": false,
+  "worker_stats": {
+    "runs": 20,
+    "total_run_s": 0.15533599990885705,
+    "rss_bytes": 1388576768,
+    "peak_rss_bytes": 3772710912,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 9.403020199970342,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "warmup_s": 0.009945599944330752,
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_wsl_handoff_20260924\\spark_output_head__2026-09-24_21-34-12_461.json",
+      "node_counts": {
+        "CPUExecutionProvider": 7,
+        "vitisai": 1
+      },
+      "total_nodes": 8,
+      "target_nodes": 1,
+      "fraction_on_target": 0.125,
+      "rss_bytes": 1388044288
+    }
+  },
+  "samples": [
+    {
+      "case": 0,
+      "worker_s": 0.007377700065262616,
+      "round_trip_s": 0.009568655048497021,
+      "transport_s": 0.0021909549832344055,
+      "top1_match": true,
+      "relative_l2": 0.001443614994003632,
+      "snr_db": 56.81097231641212,
+      "finite": true
+    },
+    {
+      "case": 1,
+      "worker_s": 0.014116600039415061,
+      "round_trip_s": 0.01786319602979347,
+      "transport_s": 0.0037465959903784096,
+      "top1_match": true,
+      "relative_l2": 0.0015170559239574516,
+      "snr_db": 56.37996818626326,
+      "finite": true
+    },
+    {
+      "case": 2,
+      "worker_s": 0.007283699931576848,
+      "round_trip_s": 0.010878357978072017,
+      "transport_s": 0.0035946580464951694,
+      "top1_match": true,
+      "relative_l2": 0.0015266268717542052,
+      "snr_db": 56.32534194832648,
+      "finite": true
+    },
+    {
+      "case": 3,
+      "worker_s": 0.007335099973715842,
+      "round_trip_s": 0.009677037014625967,
+      "transport_s": 0.0023419370409101248,
+      "top1_match": true,
+      "relative_l2": 0.0016926384872324013,
+      "snr_db": 55.42871576712098,
+      "finite": true
+    },
+    {
+      "case": 0,
+      "worker_s": 0.009215199970640242,
+      "round_trip_s": 0.011737869994249195,
+      "transport_s": 0.0025226700236089528,
+      "top1_match": true,
+      "relative_l2": 0.001443614994003632,
+      "snr_db": 56.81097231641212,
+      "finite": true
+    },
+    {
+      "case": 1,
+      "worker_s": 0.007274799980223179,
+      "round_trip_s": 0.009568480949383229,
+      "transport_s": 0.00229368096916005,
+      "top1_match": true,
+      "relative_l2": 0.0015170559239574516,
+      "snr_db": 56.37996818626326,
+      "finite": true
+    },
+    {
+      "case": 2,
+      "worker_s": 0.007285400060936809,
+      "round_trip_s": 0.00858421198790893,
+      "transport_s": 0.001298811926972121,
+      "top1_match": true,
+      "relative_l2": 0.0015266268717542052,
+      "snr_db": 56.32534194832648,
+      "finite": true
+    },
+    {
+      "case": 3,
+      "worker_s": 0.0073954000836238265,
+      "round_trip_s": 0.008681737002916634,
+      "transport_s": 0.0012863369192928076,
+      "top1_match": true,
+      "relative_l2": 0.0016926384872324013,
+      "snr_db": 55.42871576712098,
+      "finite": true
+    },
+    {
+      "case": 0,
+      "worker_s": 0.007249100017361343,
+      "round_trip_s": 0.008569985046051443,
+      "transport_s": 0.0013208850286900997,
+      "top1_match": true,
+      "relative_l2": 0.001443614994003632,
+      "snr_db": 56.81097231641212,
+      "finite": true
+    },
+    {
+      "case": 1,
+      "worker_s": 0.007275399984791875,
+      "round_trip_s": 0.008637132996227592,
+      "transport_s": 0.0013617330114357173,
+      "top1_match": true,
+      "relative_l2": 0.0015170559239574516,
+      "snr_db": 56.37996818626326,
+      "finite": true
+    },
+    {
+      "case": 2,
+      "worker_s": 0.007916299975477159,
+      "round_trip_s": 0.00976823503151536,
+      "transport_s": 0.0018519350560382009,
+      "top1_match": true,
+      "relative_l2": 0.0015266268717542052,
+      "snr_db": 56.32534194832648,
+      "finite": true
+    },
+    {
+      "case": 3,
+      "worker_s": 0.007309399894438684,
+      "round_trip_s": 0.008967903966549784,
+      "transport_s": 0.0016585040721111,
+      "top1_match": true,
+      "relative_l2": 0.0016926384872324013,
+      "snr_db": 55.42871576712098,
+      "finite": true
+    },
+    {
+      "case": 0,
+      "worker_s": 0.007310600019991398,
+      "round_trip_s": 0.008550070982892066,
+      "transport_s": 0.0012394709629006684,
+      "top1_match": true,
+      "relative_l2": 0.001443614994003632,
+      "snr_db": 56.81097231641212,
+      "finite": true
+    },
+    {
+      "case": 1,
+      "worker_s": 0.007279000012204051,
+      "round_trip_s": 0.008475098002236336,
+      "transport_s": 0.0011960979900322855,
+      "top1_match": true,
+      "relative_l2": 0.0015170559239574516,
+      "snr_db": 56.37996818626326,
+      "finite": true
+    },
+    {
+      "case": 2,
+      "worker_s": 0.007250499911606312,
+      "round_trip_s": 0.00837226997828111,
+      "transport_s": 0.0011217700666747987,
+      "top1_match": true,
+      "relative_l2": 0.0015266268717542052,
+      "snr_db": 56.32534194832648,
+      "finite": true
+    },
+    {
+      "case": 3,
+      "worker_s": 0.007373100030235946,
+      "round_trip_s": 0.00848073698580265,
+      "transport_s": 0.0011076369555667043,
+      "top1_match": true,
+      "relative_l2": 0.0016926384872324013,
+      "snr_db": 55.42871576712098,
+      "finite": true
+    },
+    {
+      "case": 0,
+      "worker_s": 0.007254999945871532,
+      "round_trip_s": 0.012689509021583945,
+      "transport_s": 0.005434509075712413,
+      "top1_match": true,
+      "relative_l2": 0.001443614994003632,
+      "snr_db": 56.81097231641212,
+      "finite": true
+    },
+    {
+      "case": 1,
+      "worker_s": 0.0072981000412255526,
+      "round_trip_s": 0.008576658030506223,
+      "transport_s": 0.0012785579892806709,
+      "top1_match": true,
+      "relative_l2": 0.0015170559239574516,
+      "snr_db": 56.37996818626326,
+      "finite": true
+    },
+    {
+      "case": 2,
+      "worker_s": 0.007278200006112456,
+      "round_trip_s": 0.00851735903415829,
+      "transport_s": 0.0012391590280458331,
+      "top1_match": true,
+      "relative_l2": 0.0015266268717542052,
+      "snr_db": 56.32534194832648,
+      "finite": true
+    },
+    {
+      "case": 3,
+      "worker_s": 0.007257399964146316,
+      "round_trip_s": 0.008399434969760478,
+      "transport_s": 0.0011420350056141615,
+      "top1_match": true,
+      "relative_l2": 0.0016926384872324013,
+      "snr_db": 55.42871576712098,
+      "finite": true
+    }
+  ],
+  "metrics": {
+    "worker_s": {
+      "p50": 0.007285400060936809,
+      "p95": 0.009215199970640242
+    },
+    "transport_s": {
+      "p50": 0.0013208850286900997,
+      "p95": 0.0037465959903784096
+    },
+    "round_trip_s": {
+      "p50": 0.008637132996227592,
+      "p95": 0.012689509021583945
+    }
+  },
+  "power_thermal": "not measured"
+}
