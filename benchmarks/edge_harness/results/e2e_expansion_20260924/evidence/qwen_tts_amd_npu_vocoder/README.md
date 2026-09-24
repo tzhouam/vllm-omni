@@ -101,14 +101,42 @@ VitisAI events) with exact CPU parity; the full graph likewise lists
 CPU sine nodes. That control identifies a real fallback boundary but
 does not by itself explain the 15.696% waveform difference.
 
+A real-weight [cut at source node 486](cut486_probe_paired.json), just
+before the first decoder transposed convolution, executed one NPU
+partition and one CPU node. Its `[1,1024,74]` activation differed from
+CPU by **2.265% relative L2** on the pinned input. Feeding the captured
+CPU activation into the [original CPU decoder suffix](decoder_suffix_extract.json)
+reproduced the retained waveform at `1.05e-6` relative L2. Feeding
+the captured NPU activation through that **same** CPU decoder yielded a
+[waveform](boundary_handoff_report.json) **9.689% relative L2 /
+20.27 dB SNR** from the CPU-boundary control. The paired activations
+and output waveforms are pinned in the audit report. This is one
+fixed-shape component handoff, without streaming, representative
+quality or a warm performance profile.
+
 The rewrite therefore fixes the isolated compiler crash and keeps CPU
-waveform behavior exact, but this mixed AMD NPU path fails numerical
-quality and is not a supported TTS stream. Next, identify which NPU
-partition or handoff causes the waveform difference, improve same-graph
-numerics without silent precision or model changes, and measure a
-useful coarse stage against CPU after warmup. Only then connect talker,
-codec, state, admission, cancellation and complete-stream quality
-through Omni.
+waveform behavior exact, but the NPU prefix already misses the waveform
+gate and the full mixed AMD NPU route differs still more. [AMD's
+model-support documentation](https://ryzenai.docs.amd.com/projects/WinML/en/latest/model_support.html)
+states that its VitisAI EP automatically converts float CNN and
+Transformer models to BF16 during compilation. That makes compiled
+precision a candidate explanation, **not a diagnosis established by
+these profiles**. An [unvectorized-layout control](cut486_unvectorized_probe.json)
+kept the same source graph, input and cut while setting AMD's
+[documented VitisAI option](https://ryzenai.docs.amd.com/projects/WinML/en/stable/modelrun.html)
+`preferred_data_storage=unvectorized` with `optimize_level=1`.
+It still executed one NPU partition and one CPU node, and its
+pre-decoder difference rose to **2.287%**. The
+[same CPU decoder handoff](boundary_unvectorized_handoff_report.json)
+produced a waveform **10.074%** from the CPU-boundary control.
+This setting did not fix the one-fixture quality failure.
+
+Next, isolate which NPU prefix operations cause the boundary error,
+test a numerically justified precision or calibrated QDQ alternative
+against the same waveform gate, and measure a useful coarse stage
+against CPU after warmup. Only then connect talker, codec,
+state, admission, cancellation and complete-stream quality through
+Omni.
 The [extraction/probe tool](../../../../experiments/bisect_qwen_tts_vitisai_graph.py)
 records cut hashes, CPU execution, actual provider events and intermediate
 numerics. No precision, weights or checkpoint revision changed in the

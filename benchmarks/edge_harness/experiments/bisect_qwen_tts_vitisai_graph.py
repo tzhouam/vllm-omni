@@ -124,12 +124,22 @@ def probe(args: argparse.Namespace) -> None:
     devices = [device for device in ort.get_ep_devices()
                if device.ep_name == "vitisai" and str(device.device.type).endswith("NPU")]
     report["vitisai_npu_device_count"] = len(devices)
+    provider_options: dict[str, str] = {}
+    if args.config_file is not None:
+        if args.expected_config_sha256 is None:
+            raise ValueError("expected config hash is required")
+        config_hash = sha256(args.config_file)
+        if config_hash != args.expected_config_sha256:
+            raise ValueError("VitisAI config hash changed")
+        provider_options["config_file"] = str(args.config_file.resolve(strict=True))
+        report["vitisai_config_sha256"] = config_hash
+        report["vitisai_config_file"] = provider_options["config_file"]
     report["status"] = "vitisai_session_creation_started"
     write_report(args.report, report)
     if not devices:
         raise RuntimeError("VitisAI EP did not expose an NPU device")
     options = ort.SessionOptions()
-    options.add_provider_for_devices(devices, {})
+    options.add_provider_for_devices(devices, provider_options)
     options.enable_profiling = True
     options.profile_file_prefix = str(args.profile_prefix)
     started = time.perf_counter()
@@ -146,6 +156,13 @@ def probe(args: argparse.Namespace) -> None:
     report["relative_l2_vs_cpu"] = float(
         np.linalg.norm((actual - cpu_output).astype(np.float64))
         / max(np.linalg.norm(cpu_output.astype(np.float64)), 1e-12))
+    if args.save_output is not None:
+        if args.save_output.suffix.lower() != ".npz":
+            raise ValueError("paired output path must end in .npz")
+        args.save_output.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(args.save_output, cpu=cpu_output, npu=actual)
+        report["paired_output_file"] = str(args.save_output.resolve())
+        report["paired_output_sha256"] = sha256(args.save_output)
     profile_path = Path(session.end_profiling())
     report["profile_file"] = str(profile_path)
     events = json.loads(profile_path.read_text(encoding="utf-8"))
@@ -183,6 +200,9 @@ def main() -> None:
     execution.add_argument("--ep-dir", type=Path, required=True)
     execution.add_argument("--report", type=Path, required=True)
     execution.add_argument("--profile-prefix", type=Path, required=True)
+    execution.add_argument("--config-file", type=Path)
+    execution.add_argument("--expected-config-sha256")
+    execution.add_argument("--save-output", type=Path)
     execution.add_argument("--cpu-only", action="store_true")
     args = parser.parse_args()
     (extract if args.command == "extract" else probe)(args)

@@ -1,0 +1,56 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_node_count": 712,
+  "cut_one_based": 486,
+  "terminal_node": "node_permute",
+  "terminal_op": "Transpose",
+  "terminal_output": "permute",
+  "boundary_inputs": [
+    "quantized"
+  ],
+  "extracted_node_count": 486,
+  "extracted_ops": {
+    "Conv": 1,
+    "Transpose": 42,
+    "MatMul": 74,
+    "Add": 59,
+    "Pow": 17,
+    "ReduceMean": 17,
+    "Sqrt": 17,
+    "Reciprocal": 17,
+    "Mul": 114,
+    "Reshape": 48,
+    "Slice": 32,
+    "Neg": 16,
+    "Concat": 16,
+    "Softmax": 8,
+    "Sigmoid": 8
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 1024\n    }\n    dim {\n      dim_value: 74\n    }\n  }\n}\n",
+  "candidate_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_vitisai_cut486_20260924.onnx",
+  "candidate_bytes": 129699474,
+  "candidate_sha256": "2f538d2f6b07fbfaccd98bc0e4976774aa24541fc29d4d7ba1a7231fe26ee2b7",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "input_provenance": "pinned real-weight vocoder fixture",
+  "status": "component_not_qualified",
+  "cpu_output_shape": [
+    1,
+    1024,
+    74
+  ],
+  "cpu_output_finite": true,
+  "cpu_inference_s": 0.017427499988116324,
+  "vitisai_npu_device_count": 1,
+  "vitisai_session_create_s": 339.4604613999836,
+  "vitisai_inference_s": 0.02154380001593381,
+  "vitisai_output_finite": true,
+  "relative_l2_vs_cpu": 0.022648927310346952,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_amd_npu_vocoder\\cut486_profile_2026-09-24_19-54-03_356.json",
+  "node_providers": {
+    "vitisai": 1,
+    "CPUExecutionProvider": 1
+  }
+}

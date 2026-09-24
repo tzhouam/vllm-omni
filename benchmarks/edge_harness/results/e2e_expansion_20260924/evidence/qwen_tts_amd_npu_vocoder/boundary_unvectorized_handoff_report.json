@@ -1,0 +1,37 @@
+{
+  "scope": "one fixed two-frame Code2Wav component, NPU prefix to CPU decoder; not full TTS",
+  "host": "Windows-11-10.0.26200-SP0",
+  "onnxruntime_version": "1.30.0",
+  "artifact_sha256": {
+    "decoder": "47197c1c1fdad6c4afc65a4debdbef4727be08dec16bfc7760449a6b7e4ad77d",
+    "paired_activations": "dd959e80b929faff3f6c4b78ba3b1ddeb56ef12872f21647abf943e82683ab99",
+    "reference": "989307db317d77be054f684211ae0c6a2fd24d93bcd74307c597fed430ba2a37"
+  },
+  "waves_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\qwen_tts_amd_npu_vocoder\\boundary_unvectorized_cpu_decoder_waves.npz",
+  "waves_sha256": "c865adca83c6c965ae04f87f582289dcb09eaebf0c4f29141210923812e4df97",
+  "decoder_load_s": 1.843498699949123,
+  "cpu_prefix_cpu_decoder_inference_s": 1.5668787000468,
+  "npu_prefix_cpu_decoder_inference_s": 1.5851562999887392,
+  "cpu_prefix_cpu_decoder_vs_reference": {
+    "finite": true,
+    "relative_l2": 1.0450898781329582e-06,
+    "snr_db": 119.61692716907409,
+    "max_absolute_error": 3.948807716369629e-07,
+    "saturation_fraction": 0.0
+  },
+  "npu_prefix_cpu_decoder_vs_cpu": {
+    "finite": true,
+    "relative_l2": 0.10074478283629539,
+    "snr_db": 19.935548699086937,
+    "max_absolute_error": 0.03414871357381344,
+    "saturation_fraction": 0.0
+  },
+  "npu_prefix_cpu_decoder_vs_reference": {
+    "finite": true,
+    "relative_l2": 0.10074532000977492,
+    "snr_db": 19.93550238584878,
+    "max_absolute_error": 0.0341490525752306,
+    "saturation_fraction": 0.0
+  },
+  "numeric_disposition": "single_fixture_waveform_gate_failed"
+}

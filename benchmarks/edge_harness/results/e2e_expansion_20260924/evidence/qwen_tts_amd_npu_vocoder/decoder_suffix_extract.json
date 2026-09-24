@@ -1,0 +1,33 @@
+{
+  "scope": "compiler bisection component, not a vocoder waveform or TTS stream",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "source_node_count": 712,
+  "cut_one_based": 712,
+  "terminal_node": "node_slice_43",
+  "terminal_op": "Slice",
+  "terminal_output": "wav",
+  "boundary_inputs": [
+    "permute"
+  ],
+  "extracted_node_count": 226,
+  "extracted_ops": {
+    "ConvTranspose": 6,
+    "Conv": 28,
+    "Transpose": 4,
+    "LayerNormalization": 2,
+    "MatMul": 4,
+    "Add": 49,
+    "Div": 2,
+    "Erf": 2,
+    "Mul": 64,
+    "Sin": 29,
+    "Pow": 29,
+    "Slice": 5,
+    "Clip": 1,
+    "Reshape": 1
+  },
+  "output_type": "tensor_type {\n  elem_type: 1\n  shape {\n    dim {\n      dim_value: 1\n    }\n    dim {\n      dim_value: 3840\n    }\n  }\n}\n",
+  "candidate_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\qwen3tts_code2wav_decoder_suffix_20260924.onnx",
+  "candidate_bytes": 293985582,
+  "candidate_sha256": "47197c1c1fdad6c4afc65a4debdbef4727be08dec16bfc7760449a6b7e4ad77d"
+}

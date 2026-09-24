@@ -105,5 +105,53 @@
     "report": "local_sin0_probe.json",
     "profile": "local_sin0_profile_2026-09-24_19-51-29_472.json",
     "profile_sha256": "c3fa9cdeafc3b4e035cccd39b999cd63784cfe5644f5a2d311aab79041147cea"
+  },
+  "predecoder_cut486": {
+    "scope": "one pinned two-frame fixture; original source output permute before first ConvTranspose",
+    "extracted_nodes": 486,
+    "source_model_sha256": "2f538d2f6b07fbfaccd98bc0e4976774aa24541fc29d4d7ba1a7231fe26ee2b7",
+    "cpu_output_shape": [
+      1,
+      1024,
+      74
+    ],
+    "vitisai_node_events": 1,
+    "cpu_node_events": 1,
+    "npu_vs_cpu_activation_relative_l2": 0.022648927310346952,
+    "session_create_s": 309.33176179998554,
+    "paired_activations": "cut486_paired_outputs.npz",
+    "paired_activations_sha256": "8d63c79268917643514d45546f0902bd0eb645a90421d0a7f0dadcfadb420bc8",
+    "report": "cut486_probe_paired.json",
+    "profile": "cut486_profile_paired_2026-09-24_20-00-14_728.json",
+    "profile_sha256": "334cf3b95ac80bb98ecf225c8b410bf0f056775297cf2afe2de59bed5ac0f8c4"
+  },
+  "original_cpu_decoder_handoff": {
+    "scope": "same one pinned two-frame fixture; original ONNX decoder suffix run on CPU with CPU and NPU boundary activations",
+    "decoder_sha256": "47197c1c1fdad6c4afc65a4debdbef4727be08dec16bfc7760449a6b7e4ad77d",
+    "cpu_boundary_cpu_decoder_vs_reference_relative_l2": 1.0450898781329582e-06,
+    "npu_boundary_cpu_decoder_vs_cpu_relative_l2": 0.09688616076322398,
+    "npu_boundary_cpu_decoder_snr_db": 20.274765064433943,
+    "numeric_disposition": "single_fixture_waveform_gate_failed",
+    "waves": "boundary_cpu_decoder_waves.npz",
+    "waves_sha256": "81fa2317524f6d31894e36a5d614d9984476fc9ad59b917d5f3b56c76e5bf111",
+    "report": "boundary_handoff_report.json"
+  },
+  "predecoder_unvectorized_control": {
+    "config": "vaiml_unvectorized_config.json",
+    "config_sha256": "c25a757791e14fb4689999adb52c59fb9059c8d746634702d9b15f36a5ff57ef",
+    "scope": "same pinned two-frame fixture and cut486; documented VitisAI preferred_data_storage=unvectorized, optimize_level=1",
+    "npu_vs_cpu_activation_relative_l2": 0.022869136975246635,
+    "npu_boundary_cpu_decoder_vs_cpu_waveform_relative_l2": 0.10074478283629539,
+    "numeric_disposition": "single_fixture_waveform_gate_failed",
+    "session_create_s": 350.0577001000056,
+    "paired_activations": "cut486_unvectorized_paired.npz",
+    "paired_activations_sha256": "dd959e80b929faff3f6c4b78ba3b1ddeb56ef12872f21647abf943e82683ab99",
+    "waves": "boundary_unvectorized_cpu_decoder_waves.npz",
+    "waves_sha256": "c865adca83c6c965ae04f87f582289dcb09eaebf0c4f29141210923812e4df97",
+    "profile": "cut486_unvectorized_profile_2026-09-24_20-09-18_599.json",
+    "profile_sha256": "aa4cd30bc246791d848ef209372520dbfa4505c3453f18fac404957ca4884ebc",
+    "npu_report": "cut486_unvectorized_probe.json",
+    "handoff_report": "boundary_unvectorized_handoff_report.json",
+    "documentation": "https://ryzenai.docs.amd.com/projects/WinML/en/stable/modelrun.html"
   }
 }
