@@ -1,0 +1,37 @@
+{
+  "scope": "one Workbench QDQ vocoder export on local ONNX Runtime CPU; no device-local or complete TTS stream",
+  "status": "qdq_cpu_numeric_measured",
+  "quantize_job_id": "jpe7z9vv5",
+  "target_model_id": "mnz027ppm",
+  "calibration_dataset_id": "d7m80jl32",
+  "source_sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b",
+  "fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "cpu_reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "target_archive_sha256": "9c75a63ed635a19b34e3f5579c436cb758c7d8c04f10dccb8718ff893676812f",
+  "target_onnx_sha256": "603f7832be406981043c80bbc596013c5ce1228bdab8c13cad15a01d13e1fc9b",
+  "target_external_data_sha256": "f6f0852af820e89eae4d9c7f447616a3fe69349a3ea09cb0f8b3ec4b4692a9a7",
+  "cpu_qdq_output_sha256": "46d37d2709767b37041f82bbacfb47196d4cd304f7d90c90cf9cff50a0e991a7",
+  "ort_version": "1.29.0",
+  "provider": [
+    "CPUExecutionProvider"
+  ],
+  "intra_op_threads": 4,
+  "graph_optimization_level": "ORT_ENABLE_BASIC",
+  "default_ORT_ENABLE_ALL_error": null,
+  "load_s_not_request_timing": 0.7923304750001989,
+  "one_inference_s_not_profile": 2.851856153982226,
+  "source_onnx_cpu_vs_qdq_cpu": {
+    "relative_l2": 3.3183207930502525,
+    "snr_db": -10.418367368047388,
+    "max_abs": 0.9454415440559387,
+    "cosine": 0.03147418017131908,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.2675889179396874,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "limits": [
+    "One synthetic calibration fixture cannot establish audio quality or generalization.",
+    "The explicit QDQ quantize job and compile-time INT8 conversion are distinct artifacts.",
+    "This local CPU run is not an embedded-device profile or complete TTS stream."
+  ]
+}

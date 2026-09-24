@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-09-24T04:19:42.415415+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mqyer339n",
+  "calibration_dataset_id": "d7m80jl32",
+  "calibration_scope": "one retained synthetic fixture only; numerical isolation, not representative calibration",
+  "weights_dtype": "INT8",
+  "activations_dtype": "INT8",
+  "kind": "quantize",
+  "status": "SUBMITTED",
+  "job_id": "jgdd3wozg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgdd3wozg/"
+}

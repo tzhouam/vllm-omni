@@ -1,6 +1,6 @@
 {
   "scope": "one Qwen3-TTS code2wav 48,000-sample component on one retained fixture; no complete TTS stream",
-  "status": "component_inference_numeric_measured",
+  "status": "component_executed_quality_unqualified",
   "device": {
     "name": "Samsung Galaxy S24",
     "os": "14",
@@ -69,7 +69,18 @@
   "limits": [
     "Historical source export does not attest its exact checkpoint revision.",
     "This fixed component waveform has no listening or task-quality tolerance.",
-    "Hosted component jobs exclude talker, predictor, stage handoff, streaming, admission and sustained power/thermal behavior.",
-    "Requested compute unit is not verified node placement without a device profile."
-  ]
+    "Hosted component jobs exclude talker, predictor, stage handoff, streaming, admission and sustained power/thermal behavior."
+  ],
+  "profile_job_id": "jgolryzqg",
+  "profile": {
+    "sample_count": 100,
+    "sample_min_us": 3583045,
+    "nearest_rank_p50_us": 4826441,
+    "nearest_rank_p95_us": 4957846,
+    "reported_estimated_inference_time_us": 3583045,
+    "reported_peak_memory_bytes": 851140608,
+    "compute_unit_row_counts": {
+      "CPU": 738
+    }
+  }
 }

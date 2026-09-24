@@ -1,0 +1,15 @@
+{
+  "timestamp_utc": "2026-09-24T04:23:27.355806+00:00",
+  "qai_hub_version": "0.55.0",
+  "facility": "Qualcomm AI Hub Workbench",
+  "job_id": "jgdd3wozg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgdd3wozg/",
+  "status": "SUCCESS",
+  "status_message": "",
+  "options": "",
+  "hub_version": "aihub-2026.09.11.0",
+  "device": null,
+  "source_model_id": "mqyer339n",
+  "target_model_id": "mmxjy02eq",
+  "calibration_dataset_id": "d7m80jl32"
+}

@@ -46,7 +46,7 @@ def collect(evidence_dir: Path, kind: str, client: hub.Client) -> str:
         "status_message": status.message or "",
         "options": job.options,
         "hub_version": str(job.hub_version),
-        "device": device_record(job.device),
+        "device": device_record(job.device) if kind != "quantize" else None,
     }
     if kind == "compile":
         report["source_model_id"] = job.model.model_id
@@ -54,6 +54,10 @@ def collect(evidence_dir: Path, kind: str, client: hub.Client) -> str:
         calibration = job.calibration_dataset
         if calibration is not None:
             report["calibration_dataset_id"] = calibration.dataset_id
+    elif kind == "quantize":
+        report["source_model_id"] = job.model.model_id
+        report["target_model_id"] = job.get_target_model().model_id if status.code == "SUCCESS" else None
+        report["calibration_dataset_id"] = job.calibration_dataset.dataset_id
     elif kind == "inference":
         report["model_id"] = job.model.model_id
         report["input_dataset_id"] = job.inputs.dataset_id
@@ -77,7 +81,7 @@ def collect(evidence_dir: Path, kind: str, client: hub.Client) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("evidence_dirs", nargs="+", type=Path)
-    parser.add_argument("--kinds", nargs="+", choices=("compile", "inference", "profile"), default=("inference", "profile"))
+    parser.add_argument("--kinds", nargs="+", choices=("compile", "quantize", "inference", "profile"), default=("inference", "profile"))
     args = parser.parse_args()
     client = hub.Client()
     for directory in args.evidence_dirs:

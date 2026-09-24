@@ -1,0 +1,46 @@
+{
+  "scope": "one Workbench QDQ vocoder export on local ONNX Runtime CPU; no device-local or complete TTS stream",
+  "status": "qdq_cpu_numeric_measured",
+  "quantize_job_id": "jgdd3wozg",
+  "target_model_id": "mmxjy02eq",
+  "calibration_dataset_id": "d7m80jl32",
+  "source_sha256": "7c07666229c6d404894132e22f784525e3212a49efad55ddd532eda5286c2b2b",
+  "fixture_sha256": "dfca9e8d2a724a568a31b6cd18ff6a52fdc205fd34e13cbf1cd75f0f7937e82d",
+  "cpu_reference_sha256": "8de78b94b59f01e49852f7706adbd2508a9976b8e2705cfd3b94d07bb3606cb1",
+  "target_archive_sha256": "fa8ad4de21a3cf3ed827fd5e23cf17927a2a3a1cb90e4c3549006c7c42ab8fcd",
+  "target_onnx_sha256": "62f75168157d17fdf5b1a2d72d4ec81905b1882d7b774c8c07222e438767e15e",
+  "target_external_data_sha256": "6888ac19a6926cbdd882d46a97600163004d275e4d46c3628f09958f4135edbe",
+  "cpu_qdq_output_sha256": "1ed9ede8624d298407f113e4bae6abc1369bc738c31dd885e3be44f0806dcaae",
+  "ort_version": "1.29.0",
+  "provider": [
+    "CPUExecutionProvider"
+  ],
+  "intra_op_threads": 4,
+  "graph_optimization_level": "ORT_ENABLE_BASIC",
+  "default_ORT_ENABLE_ALL_error": "[ONNXRuntimeError] : 1 : FAIL : This is an invalid model. Error: two nodes with same node name (node_conv1d_28).",
+  "load_s_not_request_timing": 0.7988796539721079,
+  "one_inference_s_not_profile": 2.6945875309756957,
+  "source_onnx_cpu_vs_qdq_cpu": {
+    "relative_l2": 2.4697067275308098,
+    "snr_db": -7.85290769533888,
+    "max_abs": 0.835921049118042,
+    "cosine": 0.00806358545261374,
+    "reference_rms": 0.08373439205485074,
+    "output_rms": 0.1897651139057339,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  },
+  "limits": [
+    "One synthetic calibration fixture cannot establish audio quality or generalization.",
+    "The explicit QDQ quantize job and compile-time INT8 conversion are distinct artifacts.",
+    "This local CPU run is not an embedded-device profile or complete TTS stream."
+  ],
+  "qdq_cpu_vs_distinct_hosted_output": {
+    "relative_l2": 1.1039196558426072,
+    "snr_db": -0.8587493248572766,
+    "max_abs": 0.7946391403675079,
+    "cosine": -0.00291841482975198,
+    "reference_rms": 0.1897651139057339,
+    "output_rms": 0.08817981899626241,
+    "output_saturated_fraction_abs_ge_0_999": 0.0
+  }
+}
