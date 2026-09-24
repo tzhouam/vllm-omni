@@ -1,0 +1,112 @@
+{
+  "scope": "one real-weight two-frame Code2Wav NPU prefix plus unchanged CPU suffix on one pinned fixture; not complete TTS",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "fixture_sha256": "77aea3554c51b9daf808748257ebfc5e0496172c4d34c8267288be984d8a0f55",
+  "reference_sha256": "989307db317d77be054f684211ae0c6a2fd24d93bcd74307c597fed430ba2a37",
+  "prefix_sha256": "38ebbbce1c6551a766fa151ef3ff2bca3153a355fc1b2023d18c3e8d9fc0ba90",
+  "paired_output_sha256": "33bbca2bbcd4ca67a5ea591ce17e9092ed1281be1102f8aada862693d2e6bf2c",
+  "suffix_sha256": "2d2c1e0033ca6e324c5e503c2be55147a5a0a03fde864b8c7be4ee80f29758c6",
+  "suffix_bytes": 419361943,
+  "onnxruntime": "1.30.0",
+  "npu_node_events": 1,
+  "prefix_boundary_relative_l2": 0.0039061906281823333,
+  "prefix_boundary_cpu_max_abs": 3.4028234663852886e+38,
+  "prefix_boundary_npu_max_abs": 3.3895313892515355e+38,
+  "full_cpu_vs_retained_reference_relative_l2": 1.0450898781329582e-06,
+  "cpu_suffix_vs_full_cpu_relative_l2": 0.0,
+  "npu_prefix_cpu_suffix_waveform_relative_l2": 0.0005890080717375889,
+  "npu_prefix_cpu_suffix_waveform_max_abs": 0.0002239113673567772,
+  "zero_boundary_cpu_suffix_waveform_relative_l2": 0.04861885555102335,
+  "npu_prefix_cpu_suffix_waveform_snr_db": 64.59757232666016,
+  "cpu_suffix_one_call_s": 1.4624876999296248,
+  "npu_injected_cpu_suffix_one_call_s": 1.4159388999687508,
+  "status": "measured_one_fixture",
+  "waveforms_sha256": "b30e7542168082f3d79152b95854a53f29fba1c7665d24609140f14af0c1964e",
+  "repeated_cpu_only_profile": {
+    "scope": "same-process fixed-fixture CPU full graph versus CPU suffix with captured NPU tensor; NPU not rerun per request",
+    "warmup": "one correctness call for each route before measurement",
+    "requests": 20,
+    "seconds": {
+      "cpu_full_s": [
+        1.4872674000216648,
+        1.4927507999818772,
+        1.4827575999079272,
+        1.502143600024283,
+        1.506423999904655,
+        1.5254244999960065,
+        1.5129642999963835,
+        1.5191407999955118,
+        1.4869171000318602,
+        1.5487311000470072,
+        1.5387640000553802,
+        1.5184603000525385,
+        1.532832899945788,
+        1.5249613999621943,
+        1.563769800006412,
+        1.5462273000739515,
+        1.5301522000227123,
+        1.5353405999485403,
+        1.5471736999461427,
+        1.5414601999800652
+      ],
+      "cpu_suffix_s": [
+        1.5215054999571294,
+        1.481896199984476,
+        1.4890020999591798,
+        1.5051409000298008,
+        1.5028471999103203,
+        1.495149299968034,
+        1.4969567999942228,
+        1.5518659999361262,
+        1.5261453000130132,
+        1.5175269999308512,
+        1.5538553999504074,
+        1.5042239999165758,
+        1.539136000094004,
+        1.5401615999871865,
+        1.530231700045988,
+        1.5377089999383315,
+        1.5653809000505134,
+        1.5742223000852391,
+        1.576332199969329,
+        1.5246984999394044
+      ],
+      "npu_captured_suffix_s": [
+        1.5035958000225946,
+        1.490284499945119,
+        1.465534699964337,
+        1.4794685000088066,
+        1.503755500074476,
+        1.4954073000699282,
+        1.495186600019224,
+        1.5458058000076562,
+        1.5009318999946117,
+        1.515884399996139,
+        1.5260765999555588,
+        1.5267492000712082,
+        1.521371899987571,
+        1.5757617999333888,
+        1.5049586000386626,
+        1.540215100045316,
+        1.5431940000271425,
+        1.5563782000681385,
+        1.5467172000790015,
+        1.5345295999431983
+      ]
+    },
+    "nearest_rank_p50_p95_s": {
+      "cpu_full_s": [
+        1.5249613999621943,
+        1.5487311000470072
+      ],
+      "cpu_suffix_s": [
+        1.5246984999394044,
+        1.5742223000852391
+      ],
+      "npu_captured_suffix_s": [
+        1.515884399996139,
+        1.5563782000681385
+      ]
+    }
+  }
+}

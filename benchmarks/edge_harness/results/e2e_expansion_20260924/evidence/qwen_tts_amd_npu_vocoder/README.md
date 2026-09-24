@@ -141,3 +141,11 @@ The [extraction/probe tool](../../../../experiments/bisect_qwen_tts_vitisai_grap
 records cut hashes, CPU execution, actual provider events and intermediate
 numerics. No precision, weights or checkpoint revision changed in the
 rewrite.
+
+**2026-09-25 correction:** the statement above that “the NPU prefix already
+misses the waveform gate” applies to the measured cut-486 pre-decoder
+prefix, not every earlier prefix. A [fresh cut-100 NPU-prefix plus unchanged
+CPU-suffix waveform handoff](../../../e2e_expansion_20260925/evidence/qwen_tts_amd_npu_cut100_waveform/README.md)
+passes the provisional one-fixture gate at 0.0589% waveform relative L2.
+This does not change the cut-486/full-mixed failures or establish complete
+TTS support.

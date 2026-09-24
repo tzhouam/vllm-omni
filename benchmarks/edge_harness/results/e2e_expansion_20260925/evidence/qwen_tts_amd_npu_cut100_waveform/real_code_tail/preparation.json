@@ -1,0 +1,12 @@
+{
+  "scope": "two-frame Code2Wav input derived from one real generated CPU Qwen3-TTS code stream at start frame 23; no NPU yet",
+  "source_sha256": "e563541bf77200ac4c4ca9d6e01cd7e25c09f9274233a8d82eeccc57580830d2",
+  "real_25_frame_fixture_sha256": "4220eec4ee00e5fbb0df6f195d883c6d4549accf399853c3a8e2f83821724452",
+  "model_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "start_frame": 23,
+  "onnxruntime": "1.30.0",
+  "fixture_sha256": "a11440c77d81f4b450e7f515a8a530d6ecb696837188d9a54c75f411c377eb5d",
+  "cpu_reference_sha256": "cbabb7614a5ec93bf0d51577f7a1814f0210b445837e99750e4e82ef5962b0c4",
+  "short_wave_vs_matching_25_frame_segment_relative_l2": 0.03512372790354436,
+  "status": "real_code_short_fixture_prepared"
+}
