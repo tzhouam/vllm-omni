@@ -1,0 +1,54 @@
+[
+  {
+    "name": "chat_short",
+    "prompt": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What is the capital of France? Answer in one word.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+  },
+  {
+    "name": "chat_tools",
+    "prompt": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.## Tools\nYou have access to the following functions:\n<tools>\n{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\", \"description\": \"City name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"city\"]}}\n</tools>\n\nYou are a helpful assistant with tools.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What is the weather in Shenzhen right now, in celsius?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+  },
+  {
+    "name": "chat_long",
+    "prompt": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Here is an inventory listing.\nItem 1: the code for warehouse district 1 is 1007. Item 2: the code for warehouse district 2 is 1014. Item 3: the code for warehouse district 3 is 1021. Item 4: the code for warehouse district 4 is 1028. Item 5: the code for warehouse district 5 is 1035. Item 6: the code for warehouse district 6 is 1042. Item 7: the code for warehouse district 7 is 1049. Item 8: the code for warehouse district 8 is 1056. Item 9: the code for warehouse district 9 is 1063. Item 10: the code for warehouse district 10 is 1070. Item 11: the code for warehouse district 11 is 1077. Item 12: the code for warehouse district 12 is 1084. Item 13: the code for warehouse district 13 is 1091. Item 14: the code for warehouse district 14 is 1098. Item 15: the code for warehouse district 15 is 1105. Item 16: the code for warehouse district 16 is 1112. Item 17: the code for warehouse district 17 is 1119. Item 18: the code for warehouse district 18 is 1126. Item 19: the code for warehouse district 19 is 1133. Item 20: the code for warehouse district 20 is 1140. Item 21: the code for warehouse district 21 is 1147. Item 22: the code for warehouse district 22 is 1154. Item 23: the code for warehouse district 23 is 1161. Item 24: the code for warehouse district 24 is 1168. Item 25: the code for warehouse district 25 is 1175. Item 26: the code for warehouse district 26 is 1182. Item 27: the code for warehouse district 27 is 1189. Item 28: the code for warehouse district 28 is 1196. Item 29: the code for warehouse district 29 is 1203. Item 30: the code for warehouse district 30 is 1210. Item 31: the code for warehouse district 31 is 1217. Item 32: the code for warehouse district 32 is 1224. Item 33: the code for warehouse district 33 is 1231. Item 34: the code for warehouse district 34 is 1238. Item 35: the code for warehouse district 35 is 1245. Item 36: the code for warehouse district 36 is 1252. Item 37: the code for warehouse district 37 is 1259. Item 38: the code for warehouse district 38 is 1266. Item 39: the code for warehouse district 39 is 1273. Item 40: the code for warehouse district 40 is 1280. Item 41: the code for warehouse district 41 is 1287. Item 42: the code for warehouse district 42 is 1294. Item 43: the code for warehouse district 43 is 1301. Item 44: the code for warehouse district 44 is 1308. Item 45: the code for warehouse district 45 is 1315. Item 46: the code for warehouse district 46 is 1322. Item 47: the code for warehouse district 47 is 1329. Item 48: the code for warehouse district 48 is 1336. Item 49: the code for warehouse district 49 is 1343. Item 50: the code for warehouse district 50 is 1350. Item 51: the code for warehouse district 51 is 1357. Item 52: the code for warehouse district 52 is 1364. Item 53: the code for warehouse district 53 is 1371. Item 54: the code for warehouse district 54 is 1378. Item 55: the code for warehouse district 55 is 1385. Item 56: the code for warehouse district 56 is 1392. Item 57: the code for warehouse district 57 is 1399. Item 58: the code for warehouse district 58 is 1406. Item 59: the code for warehouse district 59 is 1413. Item 60: the code for warehouse district 60 is 1420. Item 61: the code for warehouse district 61 is 1427. Item 62: the code for warehouse district 62 is 1434. Item 63: the code for warehouse district 63 is 1441. Item 64: the code for warehouse district 64 is 1448. Item 65: the code for warehouse district 65 is 1455. Item 66: the code for warehouse district 66 is 1462. Item 67: the code for warehouse district 67 is 1469. Item 68: the code for warehouse district 68 is 1476. Item 69: the code for warehouse district 69 is 1483. Item 70: the code for warehouse district 70 is 1490. Item 71: the code for warehouse district 71 is 1497. Item 72: the code for warehouse district 72 is 1504. Item 73: the code for warehouse district 73 is 1511. Item 74: the code for warehouse district 74 is 1518. Item 75: the code for warehouse district 75 is 1525. Item 76: the code for warehouse district 76 is 1532. Item 77: the code for warehouse district 77 is 1539. Item 78: the code for warehouse district 78 is 1546. Item 79: the code for warehouse district 79 is 1553. Item 80: the code for warehouse district 80 is 1560. Item 81: the code for warehouse district 81 is 1567. Item 82: the code for warehouse district 82 is 1574. Item 83: the code for warehouse district 83 is 1581. Item 84: the code for warehouse district 84 is 1588. Item 85: the code for warehouse district 85 is 1595. Item 86: the code for warehouse district 86 is 1602. Item 87: the code for warehouse district 87 is 1609. Item 88: the code for warehouse district 88 is 1616. Item 89: the code for warehouse district 89 is 1623. Item 90: the code for warehouse district 90 is 1630. Item 91: the code for warehouse district 91 is 1637. Item 92: the code for warehouse district 92 is 1644. Item 93: the code for warehouse district 93 is 1651. Item 94: the code for warehouse district 94 is 1658. Item 95: the code for warehouse district 95 is 1665. Item 96: the code for warehouse district 96 is 1672. Item 97: the code for warehouse district 97 is 1679. Item 98: the code for warehouse district 98 is 1686. Item 99: the code for warehouse district 99 is 1693. Item 100: the code for warehouse district 100 is 1700. Item 101: the code for warehouse district 101 is 1707. Item 102: the code for warehouse district 102 is 1714. Item 103: the code for warehouse district 103 is 1721. Item 104: the code for warehouse district 104 is 1728. Item 105: the code for warehouse district 105 is 1735. Item 106: the code for warehouse district 106 is 1742. Item 107: the code for warehouse district 107 is 1749. Item 108: the code for warehouse district 108 is 1756. Item 109: the code for warehouse district 109 is 1763. Item 110: the code for warehouse district 110 is 1770. Item 111: the code for warehouse district 111 is 1777. Item 112: the code for warehouse district 112 is 1784. Item 113: the code for warehouse district 113 is 1791. Item 114: the code for warehouse district 114 is 1798. Item 115: the code for warehouse district 115 is 1805. Item 116: the code for warehouse district 116 is 1812. Item 117: the code for warehouse district 117 is 1819. Item 118: the code for warehouse district 118 is 1826. Item 119: the code for warehouse district 119 is 1833. Item 120: the code for warehouse district 120 is 1840.\nWhat is the code for warehouse district 73? Answer with just the number.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+  },
+  {
+    "name": "plain_0",
+    "prompt": "The capital of Australia is"
+  },
+  {
+    "name": "plain_1",
+    "prompt": "In 1969, the Apollo 11 mission"
+  },
+  {
+    "name": "plain_2",
+    "prompt": "def fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n"
+  },
+  {
+    "name": "plain_3",
+    "prompt": "The three laws of thermodynamics state that"
+  },
+  {
+    "name": "plain_4",
+    "prompt": "To make a proper espresso you need"
+  },
+  {
+    "name": "plain_5",
+    "prompt": "The difference between TCP and UDP is"
+  },
+  {
+    "name": "plain_6",
+    "prompt": "Photosynthesis converts"
+  },
+  {
+    "name": "plain_7",
+    "prompt": "A binary search tree is a data structure that"
+  },
+  {
+    "name": "plain_8",
+    "prompt": "The Treaty of Westphalia was signed in"
+  },
+  {
+    "name": "heldout_weather",
+    "prompt": "Describe how rain forms in two clear sentences for a middle-school student."
+  }
+]

@@ -59,6 +59,15 @@ A same-engine cancellation after eight token events then passed backend abort,
 retired-epoch cleanup, stale-handle rejection and an identical 128-token
 fresh-session request with the NPU hybrid still active.
 
+The final [post-final-norm Spark CPU+AMD NPU route](evidence/spark_amd_npu_live_split/README.md)
+keeps vLLM's original CPU RMSNorm before a recalibrated NPU projection, then
+explicitly re-ranks the NPU top-64 with resident BF16 CPU weights for greedy
+decoding. It repaired the earlier weather mismatch, passed 12/12 fixed and
+6/6 prompts excluded from its calibration at 128 tokens each, and passed a
+separate 20/20 repeated-request timing run at 4.984/5.075 s p50/p95.
+Same-engine cancellation and fresh-session restart passed. This is scoped
+HX370 CPU+AMD NPU text E2E evidence, not a release or speedup qualification.
+
 An additional [Spark BF16 restart probe](evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
 cancelled after eight token events, rejected the retired session handle and
 verified that a fresh session produced the same 128 greedy token IDs with no

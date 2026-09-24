@@ -21,8 +21,11 @@ The checkpoint stores QKV pre-fused as a single ``q_k_v_proj``; load_weights
 splits it so vLLM's sharded ``QKVParallelLinear`` can take it.
 """
 
+import atexit
+import json
 import os
 from collections.abc import Iterable
+from pathlib import Path
 
 import torch
 from torch import nn
@@ -475,6 +478,11 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
         self.config = config
         self.quant_config = quant_config
         external_head_spec = os.environ.get("VLLM_OMNI_SPARK_EXTERNAL_HEAD_SPEC")
+        external_head_layout = (
+            json.loads(Path(external_head_spec).read_text()).get(
+                "input_layout", "pre_final_norm"
+            ) if external_head_spec else None
+        )
         if external_head_spec and (
             vllm_config.parallel_config.tensor_parallel_size != 1
             or vllm_config.parallel_config.pipeline_parallel_size != 1
@@ -483,7 +491,7 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
 
         self.model = Spark2_5Model(
             vllm_config=vllm_config, prefix=maybe_prefix(prefix, "model"),
-            defer_final_norm=bool(external_head_spec),
+            defer_final_norm=external_head_layout == "pre_final_norm",
         )
         self.lm_head = ParallelLMHead(
             config.vocab_size,
@@ -496,12 +504,21 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
 
         self.logits_processor = LogitsProcessor(config.vocab_size)
         self._external_head = None
+        self._cpu_norm_capture_file = None
         if external_head_spec:
             from vllm_omni.edge.local.spark_external_head import SparkExternalOutputHead
 
             self._external_head = SparkExternalOutputHead(
                 vllm_config.model_config.model, external_head_spec
             )
+        capture_path = os.environ.get("VLLM_OMNI_SPARK_CPU_NORM_CAPTURE_BIN")
+        if capture_path:
+            if external_head_spec:
+                raise ValueError("Spark CPU norm capture requires the unsplit BF16 path")
+            destination = Path(capture_path)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            self._cpu_norm_capture_file = destination.open("wb", buffering=0)
+            atexit.register(self._cpu_norm_capture_file.close)
         self.make_empty_intermediate_tensors = (
             self.model.make_empty_intermediate_tensors
         )
@@ -530,7 +547,10 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
             compare = len(self._external_head.reference_comparisons) < self._external_head.reference_compare_limit
             refine = self._external_head.cpu_refine_top_k > 0
             if compare or refine:
-                normalized = self.model.norm(hidden_states)
+                normalized = (
+                    self.model.norm(hidden_states)
+                    if self._external_head.input_layout == "pre_final_norm" else hidden_states
+                )
                 reference = self.logits_processor(self.lm_head, normalized) if compare else None
                 if reference is not None:
                     self._external_head.compare_reference(logits, reference)
@@ -539,6 +559,12 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
                         logits, normalized, self.lm_head.weight, reference
                     )
             return logits
+        if self._cpu_norm_capture_file is not None:
+            if hidden_states.device.type != "cpu" or tuple(hidden_states.shape) != (1, 2048):
+                raise ValueError("Spark CPU norm capture requires one CPU token of width 2048")
+            self._cpu_norm_capture_file.write(
+                hidden_states.detach().float().contiguous().numpy().tobytes()
+            )
         return self.logits_processor(self.lm_head, hidden_states)
 
     def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:

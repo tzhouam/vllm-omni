@@ -62,7 +62,10 @@ async def probe(args: argparse.Namespace) -> dict:
         spec["graph"], fmt=FORMAT_ONNX_A16W8, opset=21,
         source_model="XHToken/Spark-X2.5-1.7B",
         source_revision="448e61eb392c00f2c403185c5b56d5e0665bfaab",
-        component="spark_output_head", exporter="probe_spark_amd_npu_lm_head.py --composite-with-norm",
+        component="spark_output_head",
+        exporter=("probe_spark_amd_npu_lm_head.py --composite-shards"
+                  if spec.get("input_layout") == "post_final_norm"
+                  else "probe_spark_amd_npu_lm_head.py --composite-with-norm"),
     )
     if graph.sha256 != spec["graph_sha256"] or spec.get("cpu_refine_top_k") != 64:
         raise ValueError("held-out hybrid run requires the pinned 64-candidate NPU graph")

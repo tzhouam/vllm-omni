@@ -1,0 +1,14 @@
+{
+  "scope": "recalibration only; numerical and NPU placement checks pending",
+  "source_sha256": "632ed244cbdeadc99b3d6790bb35e5ce3827682ff8989778914712ca090fd897",
+  "input_name": "normalized_x_offset_0",
+  "calibration_sha256": "adc7609993c81e956d4a712c27d414902b626d222f2eb1b1d3c0bec20d484422",
+  "calibration_samples": 58,
+  "calibration_min": -41.5,
+  "calibration_max": 19.375,
+  "weight_quantization_per_channel": true,
+  "output_sha256": "0e711ed95d64d1f929117a2f90425b0a92702b1bff6d4945cec56bd21f2a602a",
+  "output_bytes": 269095662,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0"
+}

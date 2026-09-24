@@ -27,7 +27,7 @@ def main() -> None:
     parser.add_argument("--new-graph", type=Path, required=True)
     parser.add_argument("--capture", type=Path, required=True)
     parser.add_argument("--capture-report", type=Path, required=True)
-    parser.add_argument("--reference-worker", type=Path, required=True)
+    parser.add_argument("--reference-worker", type=Path)
     parser.add_argument("--calibration-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--indices", type=int, nargs="+", required=True)
@@ -35,20 +35,24 @@ def main() -> None:
 
     capture_report = json.loads(args.capture_report.read_text())
     capture_sha = sha256(args.capture)
-    if capture_report["captured_activations"]["sha256"] != capture_sha:
+    recorded_capture_sha = capture_report.get("capture_sha256") or capture_report["captured_activations"]["sha256"]
+    if recorded_capture_sha != capture_sha:
         raise ValueError("live activation capture changed")
     with np.load(args.capture, allow_pickle=False) as archive:
         activations = archive["x"].copy()
     calibration = json.loads(args.calibration_manifest.read_text())
-    if calibration["live_capture_sha256"] != capture_sha:
+    if (calibration.get("live_capture_sha256") or calibration.get("capture_sha256")) != capture_sha:
         raise ValueError("calibration and validation captures differ")
     calibrated_indices = set(calibration["selected_capture_indices"])
-    comparisons = {
-        row["call_index"]: row
-        for row in json.loads(args.reference_worker.read_text())["reference_comparisons"]
-    }
-    if not all(0 <= i < len(activations) and i in comparisons for i in args.indices):
-        raise ValueError("validation index has no live BF16 reference")
+    comparisons = (
+        {row["call_index"]: row
+         for row in json.loads(args.reference_worker.read_text())["reference_comparisons"]}
+        if args.reference_worker else {}
+    )
+    if not all(0 <= i < len(activations) and (not comparisons or i in comparisons)
+               for i in args.indices):
+        raise ValueError("validation index is outside capture or BF16 reference")
+    input_name = calibration.get("input_name", "x")
 
     sessions = {
         name: ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
@@ -57,16 +61,16 @@ def main() -> None:
     rows = []
     for index in args.indices:
         x = activations[index]
-        outputs = {name: session.run(None, {"x": x})[0].reshape(-1)
+        outputs = {name: session.run(None, {input_name: x})[0].reshape(-1)
                    for name, session in sessions.items()}
-        reference = comparisons[index]
+        reference = comparisons.get(index)
         source = outputs["source"]
         rows.append({
             "index": index,
             "calibration_member": index in calibrated_indices,
             "activation_min": float(x.min()),
             "activation_max": float(x.max()),
-            "bf16_top1_on_live_trajectory": reference["cpu_top1"],
+            "bf16_top1_on_live_trajectory": reference["cpu_top1"] if reference else None,
             "source_fp32_top1": int(source.argmax()),
             **{
                 name + "_top1": int(outputs[name].argmax())

@@ -117,3 +117,83 @@ records their SHA-256 digests and the
 [same-graph provider check](../../../../experiments/compare_spark_npu_qdq_provider.py),
 [CPU numeric check](../../../../experiments/validate_spark_recalibration.py),
 and [held-out request probe](../../../../experiments/probe_spark_heldout_hybrid.py).
+
+## After-normalization boundary and independent-prompt recovery
+
+The preceding hybrid deferred Spark's final norm and sent the pre-norm sum to
+an NPU graph containing its own norm. Its `heldout_weather` output differed
+from three stable unsplit BF16 CPU repeats despite exact sparse/full CPU
+scores *on the hybrid's own activations*. A second, explicit stage boundary
+now leaves vLLM's original final RMSNorm in place and sends its normalized
+single-token tensor to a four-shard A16W8 NPU projection. The resident BF16
+CPU head still re-ranks the NPU top-64 candidates for **greedy decoding
+only**. This preserves the exact vLLM decoder, norm, KV, sampler and state
+path. Both the NPU projection and CPU re-rank are reported; this is a joint
+CPU+NPU route, not an NPU-only output head. Moving the boundary and replacing
+the artifact happened together, so these experiments do not isolate which
+change caused the earlier weather mismatch.
+
+The historical four-sample normalized-input graph failed a live
+[weather control](postnorm_weather.json): its NPU top-64 contained the BF16
+winner on only 3/128 steps. The unsplit BF16 CPU run then
+[captured](postnorm_cpu_capture.json) **1,665** exact post-final-norm
+activations across the 12 acceptance prompts and weather (13×128 output
+steps plus one extra long-prompt graph input). Its 12 acceptance token hashes
+matched the earlier CPU reference, and weather matched three stable CPU
+repeats. The captured tensor range was −41.5 to 19.375, unlike the small
+original calibration. The retained [activation array](postnorm_cpu_capture.npz)
+has SHA-256 `f76dfc221f52ef5c4f3cb23fa2f51f51c8fd05aad6d4ed32da178cfb22b864c4`.
+
+A [58-sample calibration](postnorm_calibration_manifest.json) of the pinned
+four-shard normalized-input source produced per-channel A16W8 graph SHA-256
+`0e711ed95d64d1f929117a2f90425b0a92702b1bff6d4945cec56bd21f2a602a`.
+The [quantization report](postnorm_recalibration_report.json) pins its source
+and input hashes. A [66-activation ORT CPU check](postnorm_cpu_validation.json)
+matched the FP32 source top token on all 66 selected inputs; source-relative
+logits L2 had median 0.086% and maximum 0.164%, compared with 0.647% median
+and 6.881% maximum for the original graph on the same inputs. A separate
+[VitisAI-versus-ORT CPU replay](postnorm_provider_vs_qdq.json) matched top-1
+on 7/7 sampled real activations, with maximum same-graph relative L2 below
+3.5e-6. ORT profiling verified one VitisAI partition and six CPU graph nodes.
+
+The rebuilt route passed the formerly failing
+[paired weather request](postnorm_weather_recal.json), matching the unsplit
+BF16 CPU sequence for all 128 tokens. Its
+[12-prompt live acceptance](postnorm_accept12.json) matched **12/12** exact
+128-token CPU sequences. Across 1,536 measured output steps, the BF16 winner
+was in the NPU top-64 candidates, sparse BF16 scoring equaled the full
+resident BF16 head, and the refined top token equaled that full head on every
+step. The worker made 1,537 graph/re-rank calls, including one non-output
+long-prompt call. Because these 12 prompts contributed calibration samples,
+they are not a held-out task-quality result. Six
+[independent prompts](postnorm_heldout_prompts.json) excluded from this
+calibration passed [paired unsplit-CPU versus hybrid requests](postnorm_heldout.json)
+at **6/6** exact 128-token sequences and 768/768 top-64 recall and exact
+sparse/full CPU head scores. The single weather prompt was part of
+calibration and is reported separately, not counted in that 6/6 figure.
+
+The [separate timing run](postnorm_profile20.json) completed one warmup plus
+20/20 repeated 28-prompt-token/64-output-token requests with the same token
+sequence as the BF16 CPU reference. Nearest-rank whole-request wall p50/p95
+was **4.984/5.075 s**, TTFT **0.126/0.133 s**, NPU graph-stage round trip
+**9.426/9.886 ms** per call, and sparse BF16 CPU re-rank **1.161/1.544 ms**
+per call. The plans jointly reserved **13.694 GB** of shared host RAM before
+loading; the NPU worker peak RSS was **3.781 GB**. The separate unsplit BF16
+CPU 20-request profile was 5.411/5.751 s, but these runs were not paired for
+cache, power or thermal state, so no speedup claim follows. The timed hybrid
+run did not execute the diagnostic full CPU head per token. A final
+[same-engine cancellation/restart](postnorm_restart.json) passed backend
+abort after eight streamed token events, no late events, stale-handle
+rejection, and an identical 128-token request through a fresh session with
+the NPU stage still active.
+
+This is **scoped E2E P evidence for Spark text on this HX370 CPU+AMD NPU
+configuration**. It does not qualify general text quality, stochastic
+sampling, concurrent traffic, mid-NPU-call cancellation, recovery from an
+NPU-worker crash, longer context transitions, sustained power/thermal
+behavior or a beneficial split versus the unsplit backend. The full graph
+remains in local NTFS storage at the path and SHA-256 in
+[the final experiment spec](spec_postnorm_accept12.json); source and
+calibration fixtures plus the CPU capture are retained with hashes. The
+one-step [stage-open input fixture](postnorm_stage_input.npz) is also retained
+with the same SHA-256 as the NTFS input named in the spec.

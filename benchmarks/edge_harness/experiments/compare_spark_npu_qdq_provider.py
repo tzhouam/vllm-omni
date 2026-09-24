@@ -33,6 +33,7 @@ def main() -> None:
     parser.add_argument("--profile-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--indices", type=int, nargs="+", default=[2, 7, 8, 16, 32, 64, 127])
+    parser.add_argument("--input-name", choices=("x", "normalized_x_offset_0"), default="x")
     parser.add_argument(
         "--expected-graph-sha256", type=str,
         default="e2ae9c3fd7071e8ff628f209e6140c8a023bfaad59814b80a936c6b263f33eaf",
@@ -40,12 +41,13 @@ def main() -> None:
     args = parser.parse_args()
 
     prior = json.loads(args.capture_report.read_text())
-    recorded = prior.get("captured_activations", {})
+    recorded = prior.get("captured_activations") or {"sha256": prior.get("capture_sha256")}
     if recorded.get("sha256") != sha256(args.capture):
         raise ValueError("captured live activations changed")
     with np.load(args.capture, allow_pickle=False) as archive:
         activations = archive["x"].copy()
-    if activations.ndim != 4 or activations.shape[1:] != (1, 1, 2048):
+    expected_tail = (1, 1, 2048) if args.input_name == "x" else (1, 2048)
+    if activations.shape[1:] != expected_tail:
         raise ValueError("unexpected Spark activation shape")
     if min(args.indices) < 0 or max(args.indices) >= len(activations):
         raise ValueError("requested index is outside capture")
@@ -55,7 +57,9 @@ def main() -> None:
         source_model="XHToken/Spark-X2.5-1.7B",
         source_revision="448e61eb392c00f2c403185c5b56d5e0665bfaab",
         component="spark_output_head",
-        exporter="probe_spark_amd_npu_lm_head.py --composite-with-norm",
+        exporter=("probe_spark_amd_npu_lm_head.py --composite-with-norm"
+                  if args.input_name == "x"
+                  else "probe_spark_amd_npu_lm_head.py --composite-shards"),
     )
     if artifact.sha256 != args.expected_graph_sha256:
         raise ValueError("Spark graph differs from the requested artifact")
@@ -70,13 +74,15 @@ def main() -> None:
     args.profile_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     with ExternalStage(plan) as stage:
-        placement = stage.open({"x": activations[args.indices[0]]}, profile_dir=args.profile_dir)
+        placement = stage.open(
+            {args.input_name: activations[args.indices[0]]}, profile_dir=args.profile_dir
+        )
         if placement.target_nodes < 1 or placement.ep != "vitisai":
             raise RuntimeError("VitisAI placement was not verified")
         for index in args.indices:
             x = activations[index]
-            expected = cpu.run(None, {"x": x})[0]
-            outputs, timing = stage.run({"x": x})
+            expected = cpu.run(None, {args.input_name: x})[0]
+            outputs, timing = stage.run({args.input_name: x})
             actual = outputs["logits_concatenated"]
             rows.append({
                 "index": index,

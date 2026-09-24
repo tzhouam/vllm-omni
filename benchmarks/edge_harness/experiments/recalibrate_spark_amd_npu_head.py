@@ -20,7 +20,10 @@ from onnxruntime.quantization import (
 )
 
 
-SOURCE_SHA = "1a426841ebb0e1255268b7c796bfcbe44072cf65613e47cfdf0c9d807746518b"
+SOURCE_SHA_BY_INPUT = {
+    "x": "1a426841ebb0e1255268b7c796bfcbe44072cf65613e47cfdf0c9d807746518b",
+    "normalized_x_offset_0": "632ed244cbdeadc99b3d6790bb35e5ce3827682ff8989778914712ca090fd897",
+}
 
 
 def sha256(path: Path) -> str:
@@ -32,14 +35,15 @@ def sha256(path: Path) -> str:
 
 
 class SparkCalibrationReader(CalibrationDataReader):
-    def __init__(self, samples: np.ndarray) -> None:
+    def __init__(self, samples: np.ndarray, input_name: str) -> None:
         self.samples = samples
+        self.input_name = input_name
         self.index = 0
 
     def get_next(self) -> dict[str, np.ndarray] | None:
         if self.index >= len(self.samples):
             return None
-        sample = {"x": self.samples[self.index]}
+        sample = {self.input_name: self.samples[self.index]}
         self.index += 1
         return sample
 
@@ -55,9 +59,11 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--per-channel", action="store_true")
+    parser.add_argument("--input-name", choices=tuple(SOURCE_SHA_BY_INPUT), default="x")
     args = parser.parse_args()
 
-    if sha256(args.source) != SOURCE_SHA:
+    source_sha = SOURCE_SHA_BY_INPUT[args.input_name]
+    if sha256(args.source) != source_sha:
         raise ValueError("pinned pre-quantization Spark graph changed")
     manifest = json.loads(args.calibration_manifest.read_text())
     calibration_sha = sha256(args.calibration)
@@ -65,12 +71,13 @@ def main() -> None:
         raise ValueError("calibration inputs changed")
     with np.load(args.calibration, allow_pickle=False) as archive:
         samples = archive["x"].copy()
-    if (samples.dtype != np.float32 or samples.ndim != 4
-        or samples.shape[1:] != (1, 1, 2048)):
-        raise ValueError("expected float32 [N,1,1,2048] pre-final-norm activations")
+    expected_tail = (1, 1, 2048) if args.input_name == "x" else (1, 2048)
+    if (samples.dtype != np.float32 or samples.ndim != len(expected_tail) + 1
+        or samples.shape[1:] != expected_tail):
+        raise ValueError(f"expected float32 [N,{','.join(map(str, expected_tail))}] activations")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     quantize_static(
-        str(args.source), str(args.output), SparkCalibrationReader(samples),
+        str(args.source), str(args.output), SparkCalibrationReader(samples, args.input_name),
         quant_format=QuantFormat.QDQ,
         activation_type=QuantType.QUInt16,
         weight_type=QuantType.QInt8,
@@ -80,7 +87,8 @@ def main() -> None:
     )
     report = {
         "scope": "recalibration only; numerical and NPU placement checks pending",
-        "source_sha256": SOURCE_SHA,
+        "source_sha256": source_sha,
+        "input_name": args.input_name,
         "calibration_sha256": calibration_sha,
         "calibration_samples": len(samples),
         "calibration_min": float(samples.min()),

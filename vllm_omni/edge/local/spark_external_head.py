@@ -39,6 +39,10 @@ class SparkExternalOutputHead:
         spec = json.loads(Path(spec_path).read_text())
         if spec.get("schema_version") != 1:
             raise ValueError("Spark external-head spec has an unknown schema")
+        self.input_layout = spec.get("input_layout", "pre_final_norm")
+        if self.input_layout not in ("pre_final_norm", "post_final_norm"):
+            raise ValueError("Spark external-head input layout is unknown")
+        self.input_name = "x" if self.input_layout == "pre_final_norm" else "normalized_x_offset_0"
         graph = Path(spec["graph"])
         fixture = Path(spec["fixture"])
         model_index = Path(model_dir) / "model.safetensors.index.json"
@@ -54,25 +58,52 @@ class SparkExternalOutputHead:
             or not all(row.get("bitwise_equal_after_conversion") for row in identity["comparisons"])):
             raise ValueError("Spark external head does not match this BF16 checkpoint")
         calibration = {"fixture_sha256": spec["fixture_sha256"], "samples": 4}
+        if self.input_layout == "post_final_norm":
+            source_fixture = Path(spec["source_calibration_fixture"])
+            if _sha256(source_fixture) != spec["source_calibration_sha256"]:
+                raise ValueError("Spark normalized-head source calibration changed")
+            calibration = {
+                "source_fixture_sha256": spec["source_calibration_sha256"],
+                "example_fixture_sha256": spec["fixture_sha256"],
+                "samples": 4,
+            }
         if spec.get("calibration_manifest"):
             manifest_path = Path(spec["calibration_manifest"])
             if _sha256(manifest_path) != spec["calibration_manifest_sha256"]:
                 raise ValueError("Spark external-head calibration manifest changed")
             manifest = json.loads(manifest_path.read_text())
             calibration_path = Path(spec["calibration_inputs"])
-            if (_sha256(calibration_path) != manifest["calibration_sha256"]
-                or manifest["old_fixture_sha256"] != spec["fixture_sha256"]):
+            if _sha256(calibration_path) != manifest["calibration_sha256"]:
                 raise ValueError("Spark external-head calibration inputs changed")
+            if self.input_layout == "pre_final_norm":
+                if manifest["old_fixture_sha256"] != spec["fixture_sha256"]:
+                    raise ValueError("Spark pre-norm calibration fixture changed")
+            elif (manifest["input_name"] != self.input_name
+                  or manifest["source_sha256"] !=
+                  "632ed244cbdeadc99b3d6790bb35e5ce3827682ff8989778914712ca090fd897"):
+                raise ValueError("Spark post-norm calibration does not match the source graph")
             calibration = {
                 "inputs_sha256": manifest["calibration_sha256"],
                 "manifest_sha256": spec["calibration_manifest_sha256"],
                 "samples": manifest["shape"][0],
             }
+            if spec.get("quantization_report"):
+                quantization_path = Path(spec["quantization_report"])
+                if _sha256(quantization_path) != spec["quantization_report_sha256"]:
+                    raise ValueError("Spark external-head quantization report changed")
+                quantization = json.loads(quantization_path.read_text())
+                if (quantization["output_sha256"] != spec["graph_sha256"]
+                    or quantization["calibration_sha256"] != manifest["calibration_sha256"]
+                    or quantization["source_sha256"] != manifest["source_sha256"]):
+                    raise ValueError("Spark graph does not match its quantization record")
         artifact = build_graph_artifact(
             graph, fmt=FORMAT_ONNX_A16W8, opset=21,
             source_model="XHToken/Spark-X2.5-1.7B",
             source_revision="448e61eb392c00f2c403185c5b56d5e0665bfaab",
-            component="spark_output_head", exporter="probe_spark_amd_npu_lm_head.py --composite-with-norm",
+            component="spark_output_head",
+            exporter=("probe_spark_amd_npu_lm_head.py --composite-with-norm"
+                      if self.input_layout == "pre_final_norm"
+                      else "probe_spark_amd_npu_lm_head.py --composite-shards"),
             calibration=calibration,
         )
         plan = plan_external_stage(
@@ -83,12 +114,16 @@ class SparkExternalOutputHead:
         if not plan.admitted:
             raise RuntimeError(plan.summary())
         with np.load(fixture, allow_pickle=False) as archive:
-            example = archive["x"][0].copy()
-        if example.shape != (1, 1, 2048):
+            example = (
+                archive["x"][0].copy() if self.input_layout == "pre_final_norm"
+                else archive[self.input_name].copy()
+            )
+        expected_shape = (1, 1, 2048) if self.input_layout == "pre_final_norm" else (1, 2048)
+        if example.shape != expected_shape:
             raise ValueError("Spark external-head fixture has unexpected shape")
         stage = ExternalStage(plan)
         try:
-            placement = stage.open({"x": example}, profile_dir=spec.get("profile_dir"))
+            placement = stage.open({self.input_name: example}, profile_dir=spec.get("profile_dir"))
         except BaseException:
             stage.close()
             raise
@@ -117,10 +152,12 @@ class SparkExternalOutputHead:
                 "the experimental Spark NPU head requires one CPU token with hidden size 2048; "
                 f"received {tuple(hidden_states.shape)} on {hidden_states.device}"
             )
-        x = hidden_states.detach().float().contiguous().numpy().reshape(1, 1, 2048)
+        x = hidden_states.detach().float().contiguous().numpy().reshape(
+            (1, 1, 2048) if self.input_layout == "pre_final_norm" else (1, 2048)
+        )
         if self.capture_path is not None:
             self.captured_activations.append(x.copy())
-        outputs, timing = self.stage.run({"x": x})
+        outputs, timing = self.stage.run({self.input_name: x})
         logits = outputs["logits_concatenated"]
         if logits.shape != (1, 131072) or not np.isfinite(logits).all():
             raise RuntimeError("Spark NPU head returned invalid full logits")
@@ -207,6 +244,7 @@ class SparkExternalOutputHead:
             "ended_unix": time.time(),
             "plan": self.plan.to_dict(),
             "placement": self.placement.to_dict(),
+            "input_layout": self.input_layout,
             "calls": self.calls,
             "reference_comparisons": self.reference_comparisons,
             "cpu_refine_top_k": self.cpu_refine_top_k,
