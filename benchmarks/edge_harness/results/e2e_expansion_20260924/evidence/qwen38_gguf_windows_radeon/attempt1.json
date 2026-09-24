@@ -1,0 +1,21 @@
+{
+  "scope": "one pinned Qwen3.8 27B Q4_K_M GGUF + Q8 vision projector through Omni whole-session llama.cpp",
+  "device": "Vulkan1",
+  "available_host_ram_before_bytes": 37161082880,
+  "reserved_host_ram_bytes": 30064771072,
+  "repeats": 1,
+  "model_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\Qwen3.8-27B-Q4_K_M.gguf",
+  "mmproj_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\mmproj-Qwen3.8-27B-Q8_0.gguf",
+  "status": "failed",
+  "error": "ValueError: llama.cpp executable or GGUF differs from the declared artifact hash",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 37161082880
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

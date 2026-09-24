@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Bounded, complete-request llama.cpp text stage owned by StageRuntime.
+"""Bounded, complete-request llama.cpp text and optional image stage owned by StageRuntime.
 
 The llama-server subprocess owns its weights and KV. Omni owns the admission
 reservation, request identity, output acknowledgement and process lifetime.
@@ -9,8 +9,11 @@ This v1 backend deliberately has one slot and no incremental output contract.
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import dataclasses
 import hashlib
+import io
 import json
 import os
 import re
@@ -34,6 +37,7 @@ _LAYER_ASSIGNMENT = re.compile(r"load_tensors: layer\s+\d+ assigned to device (\
 _OFFLOADED_LAYERS = re.compile(r"load_tensors: offloaded (\d+)/(\d+) layers to GPU")
 _MODEL_BUFFER = re.compile(r"load_tensors:\s+(Vulkan\d+) model buffer size")
 _ANY_MODEL_BUFFER = re.compile(r"load_tensors:\s+(\S+) model buffer size")
+_CLIP_BACKEND = re.compile(r"clip_ctx: CLIP using (\S+) backend")
 
 
 def _digest(path: Path) -> str:
@@ -84,6 +88,8 @@ class LlamaCppTextStageClient(StageClientBase):
         self._output: OmniRequestOutput | None = None
         self._epoch = 0
         self._max_io_bytes = int(config.get("max_io_bytes", 1 << 20))
+        self._max_image_bytes = int(config.get("max_image_bytes", 0))
+        self._image_token_reserve = int(config.get("image_token_reserve", 0))
         self._max_new_tokens = int(config.get("max_new_tokens", 96))
         self._context_tokens = int(config.get("context_tokens", 4096))
         self._request_timeout_s = float(config.get("request_timeout_s", 120))
@@ -110,9 +116,25 @@ class LlamaCppTextStageClient(StageClientBase):
             self._expected_binary_sha = str(config["server_sha256"]).lower()
             if _digest(self._model) != self._expected_model_sha or _digest(self._binary) != self._expected_binary_sha:
                 raise ValueError("llama.cpp executable or GGUF differs from the declared artifact hash")
+            self._mmproj = None
+            self._expected_mmproj_sha = None
+            if config.get("mmproj_file") is not None:
+                if config.get("name") != "external.llamacpp.multimodal.v1":
+                    raise ValueError("a vision projector requires the multimodal llama.cpp backend")
+                self._mmproj = Path(config["mmproj_file"]).resolve(strict=True)
+                self._expected_mmproj_sha = str(config["mmproj_sha256"]).lower()
+                if _digest(self._mmproj) != self._expected_mmproj_sha:
+                    raise ValueError("llama.cpp vision projector differs from the declared artifact hash")
+                if self._max_image_bytes <= 0 or self._image_token_reserve <= 0:
+                    raise ValueError("multimodal llama.cpp stage requires image byte and token bounds")
+            elif self._max_image_bytes or self._image_token_reserve:
+                raise ValueError("image bounds require a pinned multimodal projector")
             overhead = int(config["memory_overhead_bytes"])
-            if overhead <= 0 or self._model.stat().st_size + overhead > reservation.demands[self._memory_pool]:
-                raise ResourceUnavailable("GGUF plus declared KV/workspace/transfer/headroom exceeds reservation")
+            artifact_bytes = self._model.stat().st_size + (
+                self._mmproj.stat().st_size if self._mmproj is not None else 0
+            )
+            if overhead <= 0 or artifact_bytes + overhead > reservation.demands[self._memory_pool]:
+                raise ResourceUnavailable("GGUF and projector plus declared KV/workspace/transfer/headroom exceed reservation")
             if self._placement != "cpu" and not re.fullmatch(r"Vulkan\d+", self._placement):
                 raise ValueError("llama.cpp device must be cpu or an explicit Vulkan index")
             expected_device_name = config.get("expected_device_name")
@@ -133,6 +155,10 @@ class LlamaCppTextStageClient(StageClientBase):
                 "--reasoning", "off", "--no-webui", "--fit", "off",
                 "--cache-ram", "0", "-lv", "4",
             ]
+            if self._mmproj is not None:
+                command.extend(["--mmproj", str(self._mmproj)])
+                if self._placement == "cpu":
+                    command.append("--no-mmproj-offload")
             flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
             self._proc = subprocess.Popen(
                 command, stdout=self._log_stream, stderr=subprocess.STDOUT,
@@ -162,6 +188,7 @@ class LlamaCppTextStageClient(StageClientBase):
             offloaded = _OFFLOADED_LAYERS.findall(log_text)
             device_buffers = _MODEL_BUFFER.findall(log_text)
             all_model_buffers = _ANY_MODEL_BUFFER.findall(log_text)
+            vision_backends = _CLIP_BACKEND.findall(log_text)
             if self._placement == "cpu":
                 # CPU-only llama.cpp builds can omit the offload-count line.
                 # Require positive CPU tensor-buffer evidence in that layout;
@@ -188,14 +215,19 @@ class LlamaCppTextStageClient(StageClientBase):
                     or (assignments and any(name != self._placement for name in assignments))
                 ):
                     raise RuntimeError("REFUSE_DEVICE_PLACEMENT: llama.cpp layer assignment differs from requested GPU")
+            if self._mmproj is not None:
+                expected_vision_backend = "CPU" if self._placement == "cpu" else self._placement
+                if vision_backends != [expected_vision_backend]:
+                    raise RuntimeError("REFUSE_DEVICE_PLACEMENT: vision projector backend differs from requested device")
             self._loaded_rss_bytes = self._process_rss_bytes()
             if self._loaded_rss_bytes > reservation.demands[self._memory_pool]:
                 raise ResourceUnavailable("loaded llama.cpp process RSS exceeds stage reservation")
             self.execution_plan = {
-                "backend": "external.llamacpp.text.v1",
+                "backend": "external.llamacpp.multimodal.v1" if self._mmproj is not None else "external.llamacpp.text.v1",
                 "stage_id": self.stage_id,
                 "worker_generation": self._generation,
                 "model_sha256": self._expected_model_sha,
+                "mmproj_sha256": self._expected_mmproj_sha,
                 "server_sha256": self._expected_binary_sha,
                 "model_alias": self._model_alias,
                 "requested_device": self._placement,
@@ -204,6 +236,7 @@ class LlamaCppTextStageClient(StageClientBase):
                 "offloaded_layers": offloaded[-1] if offloaded else None,
                 "model_buffer_devices": device_buffers,
                 "all_model_buffers": all_model_buffers,
+                "vision_backends": vision_backends,
                 "cpu_only_layout": cpu_only_layout if self._placement == "cpu" else False,
                 "worker_pid": self._proc.pid,
                 "loaded_rss_bytes": self._loaded_rss_bytes,
@@ -213,6 +246,8 @@ class LlamaCppTextStageClient(StageClientBase):
                 "context_tokens": self._context_tokens,
                 "max_new_tokens": self._max_new_tokens,
                 "max_io_bytes": self._max_io_bytes,
+                "max_image_bytes": self._max_image_bytes,
+                "image_token_reserve": self._image_token_reserve,
                 "request_capacity": 1,
                 "stateful_session": "llama.cpp-owned; reset for each complete request",
                 "evidence": "B",
@@ -233,7 +268,28 @@ class LlamaCppTextStageClient(StageClientBase):
         if not isinstance(prompt, dict) or not isinstance(prompt.get("text"), str) or not prompt["text"]:
             raise ValueError("llama.cpp prompt must contain nonempty text from its model adapter")
         text = prompt["text"]
-        if len(text.encode("utf-8")) > self._max_io_bytes:
+        image_data_url = prompt.get("image_data_url")
+        if image_data_url is not None:
+            if self._mmproj is None:
+                raise ValueError("llama.cpp text stage does not accept images")
+            prefix = "data:image/png;base64,"
+            if not isinstance(image_data_url, str) or not image_data_url.startswith(prefix):
+                raise ValueError("llama.cpp multimodal stage requires a PNG data URL")
+            if len(image_data_url.encode("utf-8")) > self._max_io_bytes:
+                raise ResourceUnavailable("PNG data URL exceeds admitted I/O bound")
+            try:
+                image_bytes = base64.b64decode(image_data_url[len(prefix):], validate=True)
+                from PIL import Image
+
+                with Image.open(io.BytesIO(image_bytes)) as image:
+                    if image.format != "PNG" or image.width * image.height > 1024 * 1024:
+                        raise ValueError("PNG image exceeds admitted format or pixel bound")
+                    image.verify()
+            except (OSError, ValueError, SyntaxError, binascii.Error) as exc:
+                raise ValueError("invalid or oversized PNG image") from exc
+            if len(image_bytes) > self._max_image_bytes:
+                raise ResourceUnavailable("PNG image exceeds admitted image byte bound")
+        if len(text.encode("utf-8")) + (len(image_data_url.encode("utf-8")) if image_data_url else 0) > self._max_io_bytes:
             raise ResourceUnavailable("llama.cpp prompt exceeds admitted I/O bound")
         max_tokens = int(prompt.get("max_tokens", self._max_new_tokens))
         if not 0 < max_tokens <= self._max_new_tokens:
@@ -251,26 +307,34 @@ class LlamaCppTextStageClient(StageClientBase):
         token_ids = tokens.get("tokens")
         if not isinstance(token_ids, list) or not all(isinstance(item, int) for item in token_ids):
             raise ValueError("llama.cpp returned invalid prompt tokenization")
-        # Leave a conservative allowance for the Spark chat template and stop markers.
-        if len(token_ids) + max_tokens + 64 > self._context_tokens:
-            raise ResourceUnavailable("Spark prompt plus generation bound exceeds context; refusing truncation")
+        # The projector owns actual image patching; reserve a conservative bound
+        # before submission rather than relying on server-side truncation.
+        image_tokens = self._image_token_reserve if image_data_url is not None else 0
+        if len(token_ids) + max_tokens + image_tokens + 64 > self._context_tokens:
+            raise ResourceUnavailable("llama.cpp prompt, image and generation bounds exceed context; refusing truncation")
         self._epoch += 1
         epoch = self._epoch
         request = StageRequest(request_id, self.stage_id, epoch, self._generation)
         self._active = request_id
         self._task = asyncio.create_task(
-            self._run(request, text, max_tokens), name=f"llamacpp-{self.stage_id}-{request_id}"
+            self._run(request, text, max_tokens, image_data_url), name=f"llamacpp-{self.stage_id}-{request_id}"
         )
 
-    async def _run(self, request: StageRequest, text: str, max_tokens: int) -> None:
+    async def _run(self, request: StageRequest, text: str, max_tokens: int, image_data_url: str | None) -> None:
         try:
             started = time.perf_counter()
+            content: str | list[dict] = text
+            if image_data_url is not None:
+                content = [
+                    {"type": "text", "text": text},
+                    {"type": "image_url", "image_url": {"url": image_data_url}},
+                ]
             result = await asyncio.to_thread(
                 _json_request,
                 self._base_url + "/v1/chat/completions",
                 {
                     "model": self._model_alias,
-                    "messages": [{"role": "user", "content": text}],
+                    "messages": [{"role": "user", "content": content}],
                     "temperature": 0,
                     "max_tokens": max_tokens,
                     "stream": False,
@@ -391,3 +455,12 @@ class LlamaCppTextStageClient(StageClientBase):
             )
         else:
             self._ledger.release(self._reservation, drained=drained)
+
+
+class LlamaCppMultimodalStageClient(LlamaCppTextStageClient):
+    """The same bounded whole-session controller with a pinned vision projector."""
+
+    def __init__(self, metadata, config: dict, ledger, reservation) -> None:
+        if config.get("mmproj_file") is None:
+            raise ValueError("multimodal llama.cpp stage requires a pinned mmproj_file")
+        super().__init__(metadata, config, ledger, reservation)

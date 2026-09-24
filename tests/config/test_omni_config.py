@@ -128,6 +128,13 @@ def test_vllm_omni_config_from_pipeline_config_matches_merge_pipeline_deploy(mod
     pipeline = _resolve_pipeline_or_skip(model_type)
     legacy_deploy = _load_default_deploy(pipeline)
 
+    if any(stage.execution_type == StageExecutionType.GRAPH for stage in pipeline.stages) and not legacy_deploy.stages:
+        # External whole-session stages deliberately have no default backend or
+        # memory budget. Their typed config must reject a bare pipeline.
+        with pytest.raises(ValueError, match="graph stage requires backend and resource_budget"):
+            VllmOmniConfig.from_pipeline_config(pipeline)
+        return
+
     legacy_stages = merge_pipeline_deploy(pipeline, legacy_deploy)
     omni_config = VllmOmniConfig.from_pipeline_config(pipeline)
 

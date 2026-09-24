@@ -1,0 +1,172 @@
+{
+  "status": "audited_scoped_e2e",
+  "evidence_depth": "P: native Windows Omni complete text and synthetic-image requests on CPU and Radeon 890M",
+  "checkpoint": "ggml-org/Qwen3.8-27B-GGUF",
+  "revision": "efbb3b1f70a21d97fd4495240648405f7228554f",
+  "quantization": "Q4_K_M language model + Q8_0 vision projector",
+  "model_sha256": "c600de0300ae8a0eb3a6c0b8b5561b8b96f16bd2c863c2a66c42de29d391a747",
+  "mmproj_sha256": "2e968a6af97ce35d8971890b257b9b7edabf20ad91450501fa53162a19ee33eb",
+  "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+  "host": "Ryzen AI 9 HX 370, Windows 11 build 26200, Radeon 890M; AC power",
+  "runtime": "Omni checkout through native vLLM 0.29 StageRuntime; llama.cpp b11124 Vulkan build",
+  "scope": "2048 context, 128 max new tokens, concurrency one, one 96x96 red PNG and one short text instruction",
+  "results": {
+    "cpu": {
+      "startup_s": 23.185623500030488,
+      "reserved_host_ram_bytes": 30064771072,
+      "loaded_rss_bytes": 28981010432,
+      "timing": {
+        "text": {
+          "n": 20,
+          "p50_s": 1.655743799987249,
+          "p95_s": 1.6966776999179274,
+          "min_s": 1.582237399998121,
+          "max_s": 1.7119219000451267
+        },
+        "image": {
+          "n": 20,
+          "p50_s": 2.925325399963185,
+          "p95_s": 2.975715099950321,
+          "min_s": 2.8879853000398725,
+          "max_s": 3.0155663000186905
+        }
+      }
+    },
+    "radeon": {
+      "startup_s": 26.58887199999299,
+      "reserved_host_ram_bytes": 30064771072,
+      "loaded_rss_bytes": 20523040768,
+      "timing": {
+        "text": {
+          "n": 20,
+          "p50_s": 3.1007748999400064,
+          "p95_s": 3.1810430000768974,
+          "min_s": 3.078838699962944,
+          "max_s": 3.22189080005046
+        },
+        "image": {
+          "n": 20,
+          "p50_s": 5.160053700092249,
+          "p95_s": 5.220207100035623,
+          "min_s": 5.123778800014406,
+          "max_s": 5.229563200031407
+        }
+      }
+    }
+  },
+  "files": {
+    "qwen38_gguf_windows_cpu/attempt1.driver.log": {
+      "bytes": 6220,
+      "sha256": "bcea2806b8f363080671552949ea1e00102feedf7afb9011f0ed972a09ef8417"
+    },
+    "qwen38_gguf_windows_cpu/attempt1.json": {
+      "bytes": 698,
+      "sha256": "f23a09fc0c3f65d3479d3f7db2256b4b9c19a11192d474a3e840b9e58920e92e"
+    },
+    "qwen38_gguf_windows_cpu/attempt1.server.log": {
+      "bytes": 18582,
+      "sha256": "03c26023465f3712edf33987aaa540cc349e8f1eb7623a6789cae462927c66ba"
+    },
+    "qwen38_gguf_windows_cpu/attempt2.driver.log": {
+      "bytes": 448,
+      "sha256": "0466eec6c7364776241815e93ebfd6226e469f94dfc32b3aa933b6d0ad75cdf3"
+    },
+    "qwen38_gguf_windows_cpu/attempt2.json": {
+      "bytes": 4793,
+      "sha256": "f3aeb110774f1fc471f86776eff0c6a9f96812e340c4629a75898acfcae73a33"
+    },
+    "qwen38_gguf_windows_cpu/attempt2.server.log": {
+      "bytes": 29893,
+      "sha256": "4338c0088baa20a474ca17d5a31bac913d59267287b918ae6c15ca2c50777367"
+    },
+    "qwen38_gguf_windows_cpu/hardware_runtime.json": {
+      "bytes": 794,
+      "sha256": "8204c926bec9205427a8b160ab7f82205b3ec04b324c7217fa36ee93f557a04b"
+    },
+    "qwen38_gguf_windows_cpu/placement_verify.driver.log": {
+      "bytes": 448,
+      "sha256": "1cd11a3c24dbb9caf6152fef4370ddd9408333859e1d1f015871002d29dc139a"
+    },
+    "qwen38_gguf_windows_cpu/placement_verify.json": {
+      "bytes": 6340,
+      "sha256": "e130e3ad6b6cf1463a02a23d1b2826fd443bd21ca677bb41d285a08405753084"
+    },
+    "qwen38_gguf_windows_cpu/placement_verify.server.log": {
+      "bytes": 34980,
+      "sha256": "55d09245662664cd4a496a23e4a1f3768085473ad7e013446ddf5008e0764a0b"
+    },
+    "qwen38_gguf_windows_cpu/profile20.driver.log": {
+      "bytes": 448,
+      "sha256": "13f203e76fbf77ce675d61364564781477e74c46b9548e34b0ad8d3bdf18a12e"
+    },
+    "qwen38_gguf_windows_cpu/profile20.json": {
+      "bytes": 32864,
+      "sha256": "4fb10833814dfedb19ac9d531bbf4865caf04c8250f9a547e106fa1248294455"
+    },
+    "qwen38_gguf_windows_cpu/profile20.server.log": {
+      "bytes": 143454,
+      "sha256": "0a07eb9a4d875279f9880157d5ae7484968ff660859ac5b38fd40c53e4debc45"
+    },
+    "qwen38_gguf_windows_cpu/spark_text_regression.driver.log": {
+      "bytes": 3818,
+      "sha256": "8f20177a76413fe0d5b972cb64f17724724801106fca9307783bce7de90d0702"
+    },
+    "qwen38_gguf_windows_cpu/spark_text_regression.json": {
+      "bytes": 4188,
+      "sha256": "98f6a38393d2fa6fc34108f36a83481bb5396352899ffb5c1cdefde012dd6cb1"
+    },
+    "qwen38_gguf_windows_cpu/spark_text_regression.server.log": {
+      "bytes": 24190,
+      "sha256": "7c32b7d1f876b917fe9fb7924782548ea715411002d7b60f2103d68f89e1db27"
+    },
+    "qwen38_gguf_windows_radeon/attempt1.driver.log": {
+      "bytes": 6179,
+      "sha256": "f4eee8ea87279c9b1378d8ff8d3948a3ded2fcbb7598c7e4c86b7587b3bc56eb"
+    },
+    "qwen38_gguf_windows_radeon/attempt1.json": {
+      "bytes": 707,
+      "sha256": "2966b2507ff65fe0fd4c0fa2b096fb1afaa2a2751021e82bf0cb15b7de095a85"
+    },
+    "qwen38_gguf_windows_radeon/attempt2.driver.log": {
+      "bytes": 448,
+      "sha256": "4b93d32862f61b522b3c34d35e866742f57ead185ad5d24db1d0b675ae99127c"
+    },
+    "qwen38_gguf_windows_radeon/attempt2.json": {
+      "bytes": 6343,
+      "sha256": "6e97e44a240193b1d5f8949394043635a85ad20bc1d35c2c6ee8999e5addc908"
+    },
+    "qwen38_gguf_windows_radeon/attempt2.server.log": {
+      "bytes": 35340,
+      "sha256": "f2addeeef6172d10114ac3f894464a01075414183c38b9138251562ae3b9e5ca"
+    },
+    "qwen38_gguf_windows_radeon/placement_verify.driver.log": {
+      "bytes": 448,
+      "sha256": "2cdcbc1e99d4b3acd508ffd848a61f28d5970a41af5b44d3f18bbcb559643ab2"
+    },
+    "qwen38_gguf_windows_radeon/placement_verify.json": {
+      "bytes": 6387,
+      "sha256": "d6a4885efe20694e75d773f6e25ed1447a85a9209cb81016da09fa132bf0947a"
+    },
+    "qwen38_gguf_windows_radeon/placement_verify.server.log": {
+      "bytes": 35630,
+      "sha256": "07bf30deefa08e1fe43dc337b61ad20381b1a8bc5cf1efdcfcce0998053551f4"
+    },
+    "qwen38_gguf_windows_radeon/profile20.driver.log": {
+      "bytes": 448,
+      "sha256": "99fc9f5f09f236319ba163101b10332f465ddecf09895c2296bf5ff9b540d143"
+    },
+    "qwen38_gguf_windows_radeon/profile20.json": {
+      "bytes": 32892,
+      "sha256": "1980f4a4599ef195efbbcf80f2c42a865436bc750c958600c66071ec0786e28f"
+    },
+    "qwen38_gguf_windows_radeon/profile20.server.log": {
+      "bytes": 144352,
+      "sha256": "4b7f6ece51200d7765d7d0c9ad63a906d0af4a95f92288c9cbe4cfa3b746d84a"
+    }
+  },
+  "limits": [
+    "The prompts produce two completion tokens; no long-context, 128-token output or broad quality claim follows.",
+    "No public AsyncOmni, cancellation/restart, sampled loading/runtime memory peak, power, thermal, concurrency or sustained profile was run for this GGUF route.",
+    "Windows CPU and Radeon use different actual placement, so timings do not establish an isolated accelerator speedup."
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "scope": "one pinned Qwen3.8 27B Q4_K_M GGUF + Q8 vision projector through Omni whole-session llama.cpp",
+  "device": "cpu",
+  "available_host_ram_before_bytes": 34448453632,
+  "reserved_host_ram_bytes": 30064771072,
+  "repeats": 1,
+  "model_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\Qwen3.8-27B-Q4_K_M.gguf",
+  "mmproj_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\mmproj-Qwen3.8-27B-Q8_0.gguf",
+  "startup_s": 23.015178800094873,
+  "execution_plan": {
+    "backend": "external.llamacpp.multimodal.v1",
+    "stage_id": 0,
+    "worker_generation": "a54baa519aff40349b3a7f77b7c2bd85",
+    "model_sha256": "c600de0300ae8a0eb3a6c0b8b5561b8b96f16bd2c863c2a66c42de29d391a747",
+    "mmproj_sha256": "2e968a6af97ce35d8971890b257b9b7edabf20ad91450501fa53162a19ee33eb",
+    "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+    "model_alias": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\Qwen3.8-27B-Q4_K_M.gguf",
+    "requested_device": "cpu",
+    "expected_device_name": null,
+    "layer_assignments": 0,
+    "offloaded_layers": [
+      "0",
+      "65"
+    ],
+    "model_buffer_devices": [],
+    "all_model_buffers": [
+      "CPU_Mapped",
+      "CPU_REPACK"
+    ],
+    "cpu_only_layout": false,
+    "worker_pid": 27040,
+    "loaded_rss_bytes": 28979863552,
+    "reserved_bytes": {
+      "host_ram": 30064771072
+    },
+    "memory_pool": "host_ram",
+    "memory_overhead_bytes": 4294967296,
+    "context_tokens": 2048,
+    "max_new_tokens": 128,
+    "max_io_bytes": 1048576,
+    "max_image_bytes": 262144,
+    "image_token_reserve": 512,
+    "request_capacity": 1,
+    "stateful_session": "llama.cpp-owned; reset for each complete request",
+    "evidence": "B"
+  },
+  "checks": [
+    {
+      "kind": "text",
+      "wall_s": 1.9555211000842974,
+      "answer": "ready",
+      "expected": "ready",
+      "stage_event": {
+        "request_id": "text-697698203000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "a54baa519aff40349b3a7f77b7c2bd85",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 1.9276152000529692,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "wall_s": 3.4772072000196204,
+      "answer": "Red",
+      "expected": "Red",
+      "stage_event": {
+        "request_id": "image-697700156000000",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "a54baa519aff40349b3a7f77b7c2bd85",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 3.474111600080505,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 37,
+          "total_tokens": 39,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "warmup": {
+    "kind": "image",
+    "wall_s": 3.332926100003533,
+    "answer": "Red",
+    "expected": "Red",
+    "stage_event": {
+      "request_id": "image-697703640000000",
+      "stage_id": 0,
+      "epoch": 3,
+      "seq": 1,
+      "kind": "text",
+      "worker_generation": "a54baa519aff40349b3a7f77b7c2bd85",
+      "buffers": [],
+      "terminal": true,
+      "error": null
+    },
+    "metrics": {
+      "llamacpp_wall_s": 3.3186083000618964,
+      "usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 37,
+        "total_tokens": 39,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  },
+  "measured": [
+    {
+      "kind": "image",
+      "wall_s": 2.923302000039257,
+      "answer": "Red",
+      "expected": "Red",
+      "stage_event": {
+        "request_id": "image-697706968000000",
+        "stage_id": 0,
+        "epoch": 4,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "a54baa519aff40349b3a7f77b7c2bd85",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 2.909990999964066,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 37,
+          "total_tokens": 39,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "nearest_rank_p50_image_wall_s": 2.923302000039257,
+  "nearest_rank_p95_image_wall_s": 2.923302000039257,
+  "status": "completed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 34448453632
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

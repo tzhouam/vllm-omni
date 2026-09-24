@@ -1,0 +1,5 @@
+INFO 09-24 17:43:40 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 17:43:40 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 17:43:43 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+WARNING 09-24 17:43:43 [stage_init_utils.py:1887] [stage_init] Failed to load transfer config: [Errno 13] Permission denied: 'C:\\Users\\zhout'
+{"status": "completed", "error": null}

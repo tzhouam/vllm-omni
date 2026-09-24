@@ -1,0 +1,28 @@
+{
+  "captured_utc": "2026-09-24T09:51:47.0941113Z",
+  "os_caption": "Microsoft Windows 11 家庭版 中文版",
+  "os_version": "10.0.26200",
+  "os_build": "26200",
+  "total_visible_memory_kib": 66185068,
+  "available_memory_mib": 14799,
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M           ",
+  "gpus": [
+    {
+      "Name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "DriverVersion": "32.0.16.1071",
+      "AdapterRAM": 4293918720
+    },
+    {
+      "Name": "AMD Radeon(TM) 890M Graphics",
+      "DriverVersion": "32.0.22018.6001",
+      "AdapterRAM": 536870912
+    }
+  ],
+  "battery": {
+    "BatteryStatus": 2,
+    "EstimatedChargeRemaining": 100
+  },
+  "python": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+  "llama_cpp_build": 11124,
+  "llama_cpp_commit": "1a679828f"
+}

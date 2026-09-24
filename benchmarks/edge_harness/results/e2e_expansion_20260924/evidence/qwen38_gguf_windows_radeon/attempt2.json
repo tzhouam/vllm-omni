@@ -1,0 +1,238 @@
+{
+  "scope": "one pinned Qwen3.8 27B Q4_K_M GGUF + Q8 vision projector through Omni whole-session llama.cpp",
+  "device": "Vulkan1",
+  "available_host_ram_before_bytes": 36552982528,
+  "reserved_host_ram_bytes": 30064771072,
+  "repeats": 1,
+  "model_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\Qwen3.8-27B-Q4_K_M.gguf",
+  "mmproj_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\mmproj-Qwen3.8-27B-Q8_0.gguf",
+  "startup_s": 29.576012299978174,
+  "execution_plan": {
+    "backend": "external.llamacpp.multimodal.v1",
+    "stage_id": 0,
+    "worker_generation": "004f752d4d81425fb3fbc6f26a966304",
+    "model_sha256": "c600de0300ae8a0eb3a6c0b8b5561b8b96f16bd2c863c2a66c42de29d391a747",
+    "mmproj_sha256": "2e968a6af97ce35d8971890b257b9b7edabf20ad91450501fa53162a19ee33eb",
+    "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+    "model_alias": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\Qwen3.8-27B-Q4_K_M.gguf",
+    "requested_device": "Vulkan1",
+    "expected_device_name": "AMD Radeon(TM) 890M Graphics",
+    "layer_assignments": 0,
+    "offloaded_layers": [
+      "65",
+      "65"
+    ],
+    "model_buffer_devices": [
+      "Vulkan1"
+    ],
+    "all_model_buffers": [
+      "Vulkan1",
+      "Vulkan_Host"
+    ],
+    "cpu_only_layout": false,
+    "worker_pid": 55112,
+    "loaded_rss_bytes": 20551163904,
+    "reserved_bytes": {
+      "host_ram": 30064771072
+    },
+    "memory_pool": "host_ram",
+    "memory_overhead_bytes": 4294967296,
+    "context_tokens": 2048,
+    "max_new_tokens": 128,
+    "max_io_bytes": 1048576,
+    "max_image_bytes": 262144,
+    "image_token_reserve": 512,
+    "request_capacity": 1,
+    "stateful_session": "llama.cpp-owned; reset for each complete request",
+    "evidence": "B"
+  },
+  "checks": [
+    {
+      "kind": "text",
+      "wall_s": 3.1345314999343827,
+      "answer": "ready",
+      "expected": "ready",
+      "stage_event": {
+        "request_id": "text-698021250000000",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "004f752d4d81425fb3fbc6f26a966304",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 3.117617000010796,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "wall_s": 5.859286499908194,
+      "answer": "Red",
+      "expected": "Red",
+      "stage_event": {
+        "request_id": "image-698024390000000",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "004f752d4d81425fb3fbc6f26a966304",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 5.840846000006422,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 37,
+          "total_tokens": 39,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "text_warmup": {
+    "kind": "text",
+    "wall_s": 2.8274330999702215,
+    "answer": "ready",
+    "expected": "ready",
+    "stage_event": {
+      "request_id": "text-698030250000000",
+      "stage_id": 0,
+      "epoch": 3,
+      "seq": 1,
+      "kind": "text",
+      "worker_generation": "004f752d4d81425fb3fbc6f26a966304",
+      "buffers": [],
+      "terminal": true,
+      "error": null
+    },
+    "metrics": {
+      "llamacpp_wall_s": 2.8055487000383437,
+      "usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 19,
+        "total_tokens": 21,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  },
+  "text_measured": [
+    {
+      "kind": "text",
+      "wall_s": 2.825282000005245,
+      "answer": "ready",
+      "expected": "ready",
+      "stage_event": {
+        "request_id": "text-698033078000000",
+        "stage_id": 0,
+        "epoch": 4,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "004f752d4d81425fb3fbc6f26a966304",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 2.8064068999374285,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 19,
+          "total_tokens": 21,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "nearest_rank_p50_text_wall_s": 2.825282000005245,
+  "nearest_rank_p95_text_wall_s": 2.825282000005245,
+  "image_warmup": {
+    "kind": "image",
+    "wall_s": 4.541140599991195,
+    "answer": "Red",
+    "expected": "Red",
+    "stage_event": {
+      "request_id": "image-698035890000000",
+      "stage_id": 0,
+      "epoch": 5,
+      "seq": 1,
+      "kind": "text",
+      "worker_generation": "004f752d4d81425fb3fbc6f26a966304",
+      "buffers": [],
+      "terminal": true,
+      "error": null
+    },
+    "metrics": {
+      "llamacpp_wall_s": 4.5391232999973,
+      "usage": {
+        "completion_tokens": 2,
+        "prompt_tokens": 37,
+        "total_tokens": 39,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    }
+  },
+  "image_measured": [
+    {
+      "kind": "image",
+      "wall_s": 4.605218600016087,
+      "answer": "Red",
+      "expected": "Red",
+      "stage_event": {
+        "request_id": "image-698040437000000",
+        "stage_id": 0,
+        "epoch": 6,
+        "seq": 1,
+        "kind": "text",
+        "worker_generation": "004f752d4d81425fb3fbc6f26a966304",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      },
+      "metrics": {
+        "llamacpp_wall_s": 4.582050899975002,
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 37,
+          "total_tokens": 39,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      }
+    }
+  ],
+  "nearest_rank_p50_image_wall_s": 4.605218600016087,
+  "nearest_rank_p95_image_wall_s": 4.605218600016087,
+  "status": "completed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 36552982528
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

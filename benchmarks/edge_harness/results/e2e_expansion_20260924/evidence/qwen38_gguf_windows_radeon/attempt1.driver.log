@@ -1,0 +1,81 @@
+INFO 09-24 17:46:38 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-24 17:46:39 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-24 17:46:42 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+WARNING 09-24 17:46:42 [stage_init_utils.py:1887] [stage_init] Failed to load transfer config: [Errno 13] Permission denied: 'C:\\Users\\zhout'
+ERROR 09-24 17:46:55 [stage_runtime.py:265] [StageRuntime] Stage initialization failed; shutting down 0 initialized client(s)
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265] Traceback (most recent call last):
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]   File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 252, in initialize
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]     initialized_clients = self._initialize_stage_replicas(stage_plans, self._stage_init_timeout)
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]   File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 589, in _initialize_stage_replicas
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]     raise primary_exc
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]   File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 550, in _init_group
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]     client = self._initialize_replica(
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]              ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]   File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 817, in _initialize_replica
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]     return create_graph_client(
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]            ^^^^^^^^^^^^^^^^^^^^
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]   File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\__init__.py", line 19, in create_graph_client
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]     return LlamaCppMultimodalStageClient(metadata, backend, ledger, reservation)
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]   File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\llamacpp.py", line 459, in __init__
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]     super().__init__(metadata, config, ledger, reservation)
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]   File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\llamacpp.py", line 117, in __init__
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265]     raise ValueError("llama.cpp executable or GGUF differs from the declared artifact hash")
+
+ERROR 09-24 17:46:55 [stage_runtime.py:265] ValueError: llama.cpp executable or GGUF differs from the declared artifact hash
+{"status": "failed", "error": "ValueError: llama.cpp executable or GGUF differs from the declared artifact hash"}
+Traceback (most recent call last):
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\experiments\probe_omni_llamacpp_qwen38.py", line 151, in <module>
+    asyncio.run(main())
+  File "C:\Users\zhout\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\zhout\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zhout\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\experiments\probe_omni_llamacpp_qwen38.py", line 86, in main
+    runtime.initialize()
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 278, in initialize
+    raise exc
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 252, in initialize
+    initialized_clients = self._initialize_stage_replicas(stage_plans, self._stage_init_timeout)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 589, in _initialize_stage_replicas
+    raise primary_exc
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 550, in _init_group
+    client = self._initialize_replica(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\stage_runtime.py", line 817, in _initialize_replica
+    return create_graph_client(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\__init__.py", line 19, in create_graph_client
+    return LlamaCppMultimodalStageClient(metadata, backend, ledger, reservation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\llamacpp.py", line 459, in __init__
+    super().__init__(metadata, config, ledger, reservation)
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\llamacpp.py", line 117, in __init__
+    raise ValueError("llama.cpp executable or GGUF differs from the declared artifact hash")
+ValueError: llama.cpp executable or GGUF differs from the declared artifact hash

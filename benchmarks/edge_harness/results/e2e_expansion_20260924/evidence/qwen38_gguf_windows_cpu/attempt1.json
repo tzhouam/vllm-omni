@@ -1,0 +1,21 @@
+{
+  "scope": "one pinned Qwen3.8 27B Q4_K_M GGUF + Q8 vision projector through Omni whole-session llama.cpp",
+  "device": "cpu",
+  "available_host_ram_before_bytes": 34436251648,
+  "reserved_host_ram_bytes": 24696061952,
+  "repeats": 1,
+  "model_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\Qwen3.8-27B-Q4_K_M.gguf",
+  "mmproj_file": "C:\\Users\\zhout\\w2\\Qwen3.8-27B-GGUF\\mmproj-Qwen3.8-27B-Q8_0.gguf",
+  "status": "failed",
+  "error": "ResourceUnavailable: loaded llama.cpp process RSS exceeds stage reservation",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 34436251648
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

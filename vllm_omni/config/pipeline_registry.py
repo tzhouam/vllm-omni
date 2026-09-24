@@ -111,6 +111,7 @@ from vllm_omni.model_executor.models.qwen2_5_omni.pipeline import (
     QWEN2_5_OMNI_PIPELINE,
     QWEN2_5_OMNI_THINKER_ONLY_PIPELINE,
 )
+from vllm_omni.model_executor.models.qwen3_8_gguf.pipeline import QWEN3_8_GGUF_MULTIMODAL_PIPELINE
 from vllm_omni.model_executor.models.qwen3_omni.pipeline import (
     QWEN3_OMNI_THINKER_ONLY_PIPELINE,
     resolve_qwen3_omni_pipeline,
@@ -160,6 +161,7 @@ OMNI_PIPELINES: dict[str, PipelineConfig | PipelineResolverFunc] = {
     # resolves every model (see the M0 local text mode).
     "llama": LLAMA_PIPELINE,
     "qwen3_5": QWEN3_5_PIPELINE,
+    "qwen3_8_gguf_multimodal": QWEN3_8_GGUF_MULTIMODAL_PIPELINE,
     "spark2_5": SPARK2_5_PIPELINE,
     "spark2_5_gguf_text": SPARK2_5_GGUF_TEXT_PIPELINE,
     "step_audio_2": STEP_AUDIO2_PIPELINE,

@@ -38,7 +38,23 @@ The [native Windows Qwen3.8-27B NVFP4 startup attempt](evidence/qwen38_omni_wind
 loaded all three shards under vLLM 0.29 but failed in Marlin post-load scale
 permutation with an unsupported PTX toolchain error. Driver 610.71 reports
 CUDA 13.3 while the installed Windows vLLM wheel was built with CUDA 13.4.
-No native image/text inference completed; the WSL pass remains separate.
+No native NVFP4 image/text inference completed; the WSL pass remains separate.
+
+The separate official [FP8/Triton Windows RTX recovery](evidence/qwen38_omni_windows_rtx/README.md)
+did complete 20/20 measured text and 20/20 synthetic image requests through
+Omni, plus public AsyncOmni text/image and same-engine abort recovery. This is
+a different checkpoint and backend from the unresolved NVFP4 PTX failure.
+
+Pinned [Qwen3.8 Q4_K_M GGUF native Windows CPU](evidence/qwen38_gguf_windows_cpu/README.md)
+and [Radeon 890M](evidence/qwen38_gguf_windows_radeon/README.md) routes now
+pass complete short text and image-to-text requests through the same Omni
+stage contract. Each passed 20/20 measured requests of each type after one
+warmup. CPU p50/p95 complete-request wall time was **1.656/1.697 s text** and
+**2.925/2.976 s image**; Radeon was **3.101/3.181 s text** and
+**5.160/5.220 s image**. The 28 GiB shared-host-RAM reservation, pinned
+artifact hashes, CPU/Radeon model and vision placement, and ledger release
+were checked. These two-token responses do not settle long-context quality,
+memory peaks, public entrypoint, cancellation or sustained performance.
 
 A [native Windows RTX Qwen3-TTS Omni hybrid run](evidence/qwen_tts_windows_rtx/README.md)
 adds a separate GGUF/Vulkan complete-WAV path with RTX talker/codec and CPU
