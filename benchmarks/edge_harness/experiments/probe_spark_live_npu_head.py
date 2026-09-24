@@ -71,17 +71,28 @@ async def probe(args: argparse.Namespace) -> dict:
     ):
         raise RuntimeError(f"joint shared-RAM budget refused: {capacity}")
     reference = json.loads(args.reference_profile.read_text())
-    if args.max_tokens != reference["max_new_tokens"]:
-        raise ValueError("output length must match the CPU reference profile")
+    prompts = acceptance_prompts()
+    if args.prompt_set in ("all", "selected"):
+        if (args.max_tokens != reference.get("acceptance", {}).get("min_tokens_required")
+            or len(reference.get("requests", [])) != len(prompts)
+            or args.measured_requests != (len(prompts) if args.prompt_set == "all" else 1)
+            or args.warmup_requests != 0
+            or not 0 <= args.prompt_index < len(prompts)):
+            raise ValueError("acceptance runs require 128 tokens, one run per selected prompt and no warmup")
+        reference_ids = [row["output_token_ids"] for row in reference["requests"]]
+    else:
+        if args.max_tokens != reference.get("max_new_tokens"):
+            raise ValueError("output length must match the CPU reference profile")
+        reference_ids = None
     worker_report.unlink(missing_ok=True)
-    expected_hash = reference["runs"][0]["token_ids_sha256"]
-    name, prompt = acceptance_prompts()[0]
+    expected_hash = reference["runs"][0]["token_ids_sha256"] if reference_ids is None else None
     report = {
         "status": "running", "scope": "serial complete text requests with live vLLM decoder and AMD NPU output head",
         "started_unix": time.time(), "model": str(args.model),
         "spec": str(args.spec), "runtime": runtime_versions().to_dict(),
         "cpu_plan": cpu.to_dict(), "npu_plan": npu.to_dict(), "capacity": capacity,
-        "reference_token_ids_sha256": expected_hash, "prompt_name": name,
+        "reference_token_ids_sha256": expected_hash,
+        "prompt_set": args.prompt_set,
         "warmup_count": args.warmup_requests,
         "measured_count": args.measured_requests,
         "max_new_tokens": args.max_tokens,
@@ -93,6 +104,16 @@ async def probe(args: argparse.Namespace) -> dict:
         engine = LocalTextEngine(cpu)
         await engine.start()
         for run_index in range(args.warmup_requests + args.measured_requests):
+            prompt_index = (
+                run_index if args.prompt_set == "all"
+                else args.prompt_index if args.prompt_set == "selected"
+                else 0
+            )
+            name, prompt = prompts[prompt_index]
+            run_expected_hash = (
+                hashlib.sha256(json.dumps(reference_ids[prompt_index]).encode()).hexdigest()
+                if reference_ids is not None else expected_hash
+            )
             session = engine.open_session()
             try:
                 started = time.perf_counter()
@@ -105,17 +126,28 @@ async def probe(args: argparse.Namespace) -> dict:
                 record = engine.records[request_id]
                 row = {
                     "kind": "warmup" if run_index < args.warmup_requests else "measured",
+                    "prompt_name": name,
                     "prompt_tokens": record.prompt_tokens,
                     "output_tokens": record.output_tokens,
                     "output_token_ids": record.output_token_ids,
+                    "text": record.text,
                     "token_ids_sha256": hashlib.sha256(json.dumps(record.output_token_ids).encode()).hexdigest(),
+                    "reference_token_ids_sha256": run_expected_hash,
                     "wall_s": time.perf_counter() - started,
                     "ttft_s": record.ttft_s,
                     "error": record.error,
                     "cancelled": record.cancelled,
                     "finished": record.finished,
                 }
-                row["token_ids_match_reference"] = row["token_ids_sha256"] == expected_hash
+                row["token_ids_match_reference"] = row["token_ids_sha256"] == run_expected_hash
+                if reference_ids is not None:
+                    expected = reference_ids[prompt_index]
+                    actual = record.output_token_ids
+                    row["token_agreement_fraction"] = sum(a == b for a, b in zip(actual, expected)) / len(expected)
+                    row["first_divergence_index"] = next(
+                        (i for i, (a, b) in enumerate(zip(actual, expected)) if a != b),
+                        None,
+                    )
                 report["runs"].append(row)
                 if record.error or record.cancelled or not record.finished or record.output_tokens != args.max_tokens:
                     raise RuntimeError(f"live split request {run_index} did not complete")
@@ -126,11 +158,17 @@ async def probe(args: argparse.Namespace) -> dict:
         def nearest_rank(values: list[float], fraction: float) -> float:
             ordered = sorted(values)
             return ordered[max(0, math.ceil(fraction * len(ordered)) - 1)]
-        report["nearest_rank_p50_wall_s"] = nearest_rank([row["wall_s"] for row in measured], .5)
-        report["nearest_rank_p95_wall_s"] = nearest_rank([row["wall_s"] for row in measured], .95)
-        report["nearest_rank_p50_ttft_s"] = nearest_rank([row["ttft_s"] for row in measured], .5)
-        report["nearest_rank_p95_ttft_s"] = nearest_rank([row["ttft_s"] for row in measured], .95)
+        if args.prompt_set == "first":
+            report["nearest_rank_p50_wall_s"] = nearest_rank([row["wall_s"] for row in measured], .5)
+            report["nearest_rank_p95_wall_s"] = nearest_rank([row["wall_s"] for row in measured], .95)
+            report["nearest_rank_p50_ttft_s"] = nearest_rank([row["ttft_s"] for row in measured], .5)
+            report["nearest_rank_p95_ttft_s"] = nearest_rank([row["ttft_s"] for row in measured], .95)
         report["all_runs_match_reference"] = all(row["token_ids_match_reference"] for row in report["runs"])
+        report["exact_match_count"] = sum(row["token_ids_match_reference"] for row in measured)
+        if reference_ids is not None:
+            report["mean_token_agreement_fraction"] = sum(
+                row["token_agreement_fraction"] for row in measured
+            ) / len(measured)
         if len(report["runs"]) == 1:
             row = report["runs"][0]
             report.update({
@@ -159,8 +197,8 @@ async def probe(args: argparse.Namespace) -> dict:
             report["npu_worker_peak_rss_bytes"] = worker.get("worker_stats", {}).get("peak_rss_bytes")
         if report["status"] == "completed":
             placement = report.get("npu_placement") or {}
-            if (report.get("npu_worker_runs") != (
-                (args.warmup_requests + args.measured_requests) * args.max_tokens
+            if ((report.get("npu_worker_runs") or 0) < sum(
+                row["output_tokens"] for row in report["runs"]
             ) or placement.get("target_nodes", 0) < 1
                 or placement.get("ep") != "vitisai"):
                 report["status"] = "failed"
@@ -182,13 +220,16 @@ def main() -> None:
     parser.add_argument("--reference-profile", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--max-tokens", type=int, default=64)
+    parser.add_argument("--prompt-set", choices=("first", "all", "selected"), default="first")
+    parser.add_argument("--prompt-index", type=int, default=0)
     parser.add_argument("--warmup-requests", type=int, default=0)
     parser.add_argument("--measured-requests", type=int, default=1)
     args = parser.parse_args()
     result = asyncio.run(probe(args))
     print(json.dumps({key: result.get(key) for key in (
         "status", "measured_count", "nearest_rank_p50_wall_s", "nearest_rank_p95_wall_s",
-        "all_runs_match_reference", "npu_worker_runs"
+        "all_runs_match_reference", "exact_match_count", "mean_token_agreement_fraction",
+        "npu_worker_runs"
     )}, indent=2))
 
 

@@ -527,10 +527,17 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
     def compute_logits(self, hidden_states: torch.Tensor) -> torch.Tensor | None:
         if self._external_head is not None:
             logits = self._external_head.compute_logits(hidden_states)
-            if len(self._external_head.reference_comparisons) < self._external_head.reference_compare_limit:
+            compare = len(self._external_head.reference_comparisons) < self._external_head.reference_compare_limit
+            refine = self._external_head.cpu_refine_top_k > 0
+            if compare or refine:
                 normalized = self.model.norm(hidden_states)
-                reference = self.logits_processor(self.lm_head, normalized)
-                self._external_head.compare_reference(logits, reference)
+                reference = self.logits_processor(self.lm_head, normalized) if compare else None
+                if reference is not None:
+                    self._external_head.compare_reference(logits, reference)
+                if refine:
+                    logits = self._external_head.refine_candidates(
+                        logits, normalized, self.lm_head.weight, reference
+                    )
             return logits
         return self.logits_processor(self.lm_head, hidden_states)
 

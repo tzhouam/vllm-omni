@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "calibration_sha256": "0dcf42ad9467a88e03832acf686091b03a3d02315511b1b3ff24c94fac22d844",
+  "shape": [
+    10,
+    1,
+    1,
+    2048
+  ],
+  "old_fixture_sha256": "cfa2ed8439f8fe01730319667bfd01abf2e39cf5851490346a0331304cf63194",
+  "live_capture_sha256": "043074671d10dd71f90f96374c0fb4c9bd769db906c533b99e8dc655141c1477",
+  "plain6_indices": [
+    0,
+    7,
+    8,
+    16,
+    32,
+    64
+  ],
+  "heldout_plain6_indices": [
+    2,
+    6,
+    20,
+    48,
+    80,
+    127
+  ],
+  "min": -9.5,
+  "max": 36.0
+}

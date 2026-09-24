@@ -46,6 +46,19 @@ output index 22 in a CPU BF16 top-logit tie. An on-trajectory diagnostic agreed
 on 63/64 head top-1 choices. The split remains numerically unqualified, and
 the separate CPU profile does not establish a paired speedup.
 
+A further [recalibration and explicitly greedy-only NPU+CPU candidate route](evidence/spark_amd_npu_live_split/README.md)
+reproduced all 12 fixed 128-token BF16 CPU acceptance sequences by using the
+AMD NPU full head to retrieve 64 candidates and the resident BF16 CPU head
+to re-rank those candidates. A separate 20/20 repeated 64-token run measured
+5.356/5.580 s p50/p95 whole-request wall time. Six prompts outside the
+calibration set matched only 5/6 separate unsplit CPU sequences, even though
+the sparse re-rank agreed with the full resident BF16 head on the hybrid's
+own live activations. The route is scoped experimental E2E and remains
+unqualified for general Spark use, non-greedy sampling and sustained power.
+A same-engine cancellation after eight token events then passed backend abort,
+retired-epoch cleanup, stale-handle rejection and an identical 128-token
+fresh-session request with the NPU hybrid still active.
+
 An additional [Spark BF16 restart probe](evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
 cancelled after eight token events, rejected the retired session handle and
 verified that a fresh session produced the same 128 greedy token IDs with no

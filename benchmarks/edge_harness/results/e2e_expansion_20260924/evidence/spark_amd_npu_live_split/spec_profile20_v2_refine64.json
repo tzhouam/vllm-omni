@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "graph": "/mnt/c/Users/zhout/w2/spark_npu_recal_20260924/graph_v2_pc.onnx",
+  "graph_sha256": "88321b607a6def7f2a76824009a322f1bfa9f60f34c2b93344c3de498d9d6072",
+  "fixture": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260923/evidence/spark_amd_npu_output_head/real_acts_lmhead.npz",
+  "fixture_sha256": "cfa2ed8439f8fe01730319667bfd01abf2e39cf5851490346a0331304cf63194",
+  "checkpoint_index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "source_graph_sha256": "f5f0c31eb438e9940ab242da8bf6f0f5dad6ebc9f6ef02d5475c21b744e595bc",
+  "weight_identity_report": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_amd_npu_wsl_handoff/weight_identity.json",
+  "worker_peak_rss_hint_bytes": 3772710912,
+  "profile_dir": "/mnt/c/Users/zhout/w2/spark_npu_live_split_20260924",
+  "report_path": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_amd_npu_live_split/worker_profile20_v2_refine64.json",
+  "reference_compare_limit": 0,
+  "calibration_manifest": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_amd_npu_live_split/recalibration_v2_manifest.json",
+  "calibration_manifest_sha256": "0fac4ce4a597c30ca10f071e5ce69e1c448f4b1dab9ad2590edc363eaf67e99d",
+  "calibration_inputs": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_amd_npu_live_split/recalibration_v2_inputs.npz",
+  "cpu_refine_top_k": 64,
+  "sampling_contract": "greedy-only"
+}

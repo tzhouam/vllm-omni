@@ -1,0 +1,26 @@
+[
+  {
+    "name": "heldout_explain",
+    "prompt": "Explain in three numbered sentences why a model should be tested on a real device before calling it supported."
+  },
+  {
+    "name": "heldout_translate",
+    "prompt": "Translate to French: The small robot crossed the room and stopped beside the window."
+  },
+  {
+    "name": "heldout_code",
+    "prompt": "In Python, what does a context manager do? Give a short example using with."
+  },
+  {
+    "name": "heldout_math",
+    "prompt": "A battery stores 18 Wh and a device draws 6 W continuously. How many hours can it run? Show the calculation."
+  },
+  {
+    "name": "heldout_weather",
+    "prompt": "Describe how rain forms in two clear sentences for a middle-school student."
+  },
+  {
+    "name": "heldout_json",
+    "prompt": "Return JSON with keys city, temperature_c, and unit for this reading: Beijing, 21 degrees Celsius."
+  }
+]

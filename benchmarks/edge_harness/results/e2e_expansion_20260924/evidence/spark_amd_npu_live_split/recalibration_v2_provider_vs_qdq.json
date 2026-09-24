@@ -1,0 +1,176 @@
+{
+  "graph_sha256": "88321b607a6def7f2a76824009a322f1bfa9f60f34c2b93344c3de498d9d6072",
+  "capture_sha256": "fdf515a5d6d88c5d17d0edf32142d8d6a1ff91bfc67f45415cffa35da23a82ed",
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_recal_20260924/graph_v2_pc.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 7,
+      "vitisai": 1
+    },
+    "total_nodes": 8,
+    "target_nodes": 1,
+    "fraction_on_target": 0.125,
+    "session_create_s": 10.927110600052401,
+    "warmup_s": 0.00989280000794679,
+    "rss_bytes": 1389985792,
+    "inputs": [
+      {
+        "name": "x",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1,
+          2048
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "logits_concatenated",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          131072
+        ]
+      }
+    ],
+    "profile_path": "C:\\Users\\zhout\\w2\\spark_recal_v2_provider_20260924\\spark_output_head__2026-09-24_23-07-56_718.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "note": ""
+  },
+  "worker_stats": {
+    "runs": 6,
+    "total_run_s": 0.04938459990080446,
+    "rss_bytes": 1390518272,
+    "peak_rss_bytes": 3779244032,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 10.927110600052401,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "warmup_s": 0.00989280000794679,
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_recal_v2_provider_20260924\\spark_output_head__2026-09-24_23-07-56_718.json",
+      "node_counts": {
+        "CPUExecutionProvider": 7,
+        "vitisai": 1
+      },
+      "total_nodes": 8,
+      "target_nodes": 1,
+      "fraction_on_target": 0.125,
+      "rss_bytes": 1389985792
+    }
+  },
+  "rows": [
+    {
+      "index": 46,
+      "activation_min": -1.5,
+      "activation_max": 1.5390625,
+      "qdq_cpu_top1": 198,
+      "vitisai_top1": 198,
+      "vitisai_vs_qdq_cpu_relative_l2": 9.464864888286684e-06,
+      "worker_s": 0.007911299937404692,
+      "round_trip_s": 0.012237115995958447,
+      "transport_s": 0.004325816058553755
+    },
+    {
+      "index": 726,
+      "activation_min": -7.0625,
+      "activation_max": 2.53125,
+      "qdq_cpu_top1": 1740,
+      "vitisai_top1": 1740,
+      "vitisai_vs_qdq_cpu_relative_l2": 1.1077338967879768e-05,
+      "worker_s": 0.008122799918055534,
+      "round_trip_s": 0.010586343996692449,
+      "transport_s": 0.0024635440786369145
+    },
+    {
+      "index": 769,
+      "activation_min": -19.125,
+      "activation_max": 7.15625,
+      "qdq_cpu_top1": 13294,
+      "vitisai_top1": 13294,
+      "vitisai_vs_qdq_cpu_relative_l2": 8.5530336946249e-06,
+      "worker_s": 0.00842430000193417,
+      "round_trip_s": 0.010308786004316062,
+      "transport_s": 0.001884486002381891
+    },
+    {
+      "index": 1026,
+      "activation_min": -15.875,
+      "activation_max": 4.25,
+      "qdq_cpu_top1": 275,
+      "vitisai_top1": 275,
+      "vitisai_vs_qdq_cpu_relative_l2": 1.0447906788613182e-05,
+      "worker_s": 0.008585099945776165,
+      "round_trip_s": 0.010918795014731586,
+      "transport_s": 0.0023336950689554214
+    },
+    {
+      "index": 1293,
+      "activation_min": -9.875,
+      "activation_max": 5.46875,
+      "qdq_cpu_top1": 614,
+      "vitisai_top1": 614,
+      "vitisai_vs_qdq_cpu_relative_l2": 8.455054739897605e-06,
+      "worker_s": 0.00811340007930994,
+      "round_trip_s": 0.010006175027228892,
+      "transport_s": 0.0018927749479189515
+    },
+    {
+      "index": 1505,
+      "activation_min": -11.1875,
+      "activation_max": 6.5625,
+      "qdq_cpu_top1": 614,
+      "vitisai_top1": 614,
+      "vitisai_vs_qdq_cpu_relative_l2": 9.087767466553487e-06,
+      "worker_s": 0.008227700018323958,
+      "round_trip_s": 0.010509383981116116,
+      "transport_s": 0.002281683962792158
+    }
+  ]
+}

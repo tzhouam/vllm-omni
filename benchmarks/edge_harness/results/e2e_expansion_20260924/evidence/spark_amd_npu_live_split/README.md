@@ -21,3 +21,99 @@ PYTHONPATH=. /home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python \
   --report benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_amd_npu_live_split/profile20.json \
   --max-tokens 64 --warmup-requests 1 --measured-requests 20
 ```
+
+## Broader acceptance, recalibration, and explicit CPU candidate re-rank
+
+The original four-activation A16W8 calibration did not generalize to the
+12-prompt BF16 text acceptance set. All 12 requests completed 128 output
+tokens, but only **4/12** matched the unsplit CPU token sequences. The raw
+[request report](accept12.json) says `failed` because the first harness version
+required exactly 1,536 NPU calls; the [worker report](worker_accept12.json)
+records 1,537 calls and all 12 request records are complete. The additional
+call occurs in the long-prompt run. The corrected harness checks at least one
+NPU call per generated token and retains the original raw report. A focused
+[`plain_6` capture](plain6.json) exposed live activations reaching 35–36,
+versus a maximum of 4.178 in the original four calibration inputs. The old
+QDQ graph reproduced its bad logits on ORT CPU; VitisAI and ORT CPU agreed
+closely on the *same* graph. This isolated the principal failure to the tested
+calibration, rather than proving a general NPU execution defect.
+
+Two pinned per-channel W8 candidates were built from the bitwise-verified
+source head. [Calibration v1](recalibration_manifest.json) combined the four
+original samples with six live `plain_6` activations. Its graph SHA-256 is
+`497e8974d3e1faa6f66715dfa692172bdb304f1de0fffe12a09fd91afdafdd2e`.
+The [v1 12-prompt run](accept12_per_channel.json) matched **7/12** exact BF16
+sequences; the old graph had matched 4/12. A second
+[48-sample calibration](recalibration_v2_manifest.json) added live activation
+extremes and divergence-neighbor steps from the 12-prompt capture. Its graph
+SHA-256 is
+`88321b607a6def7f2a76824009a322f1bfa9f60f34c2b93344c3de498d9d6072`.
+The [65-activation ORT CPU check](recalibration_v2_validation.json) reduced
+the worst source-relative L2 from 2.597% for v1 to 0.259% for v2 on that
+selection, while four BF16 top-token mismatches remained. The
+[VitisAI-versus-QDQ replay](recalibration_v2_provider_vs_qdq.json) verified
+one NPU and seven CPU graph nodes on v2, with same-graph numerical checks.
+The [v2 live 12-prompt run](accept12_v2.json) matched **8/12** exact CPU
+sequences. Same-live-activation NPU versus resident BF16 head top-1 matched
+1,532/1,536 measured output steps; logits relative L2 nearest-rank p50/p95
+was 0.181%/0.208%, maximum 0.865%. The BF16 winner was within NPU top-64
+on all 1,536 measured steps. These 12 prompts overlap the calibration set,
+so this is not a held-out quality result.
+
+An **explicit greedy-only hybrid** now treats the v2 NPU head as a 64-token
+candidate retriever. The already resident BF16 CPU head re-scores only those
+64 weight rows, and the sampler receives those scores with all other token
+logits masked. This CPU work is recorded in
+[the worker report](worker_accept12_v2_refine64.json), rather than being
+reported as NPU-only execution. The [12-prompt hybrid run](accept12_v2_refine64.json)
+matched **12/12** unsplit BF16 token sequences, 128 tokens each. On all 1,536
+measured output steps, the BF16 top token was in the NPU top-64 set, sparse
+BF16 scores equaled full-head BF16 scores exactly, and the re-rank changed six
+NPU top choices. There were 1,537 worker calls because the long prompt added
+one non-output call. The [separate 20-request profile](profile20_v2_refine64.json)
+passed 20/20 repeated 64-token complete requests after one warmup, at
+nearest-rank whole-request wall p50/p95 **5.356/5.580 s** and TTFT
+**0.131/0.151 s**. Its graph-stage round trip was 9.768/10.190 ms p50/p95;
+the sparse CPU re-rank was 1.108/1.747 ms p50/p95 per call. The 13.694 GB
+joint CPU/NPU shared-RAM budget was admitted; the worker peak RSS was
+3.780 GB. The independent BF16 CPU 20-request profile was 5.411/5.751 s,
+but the runs were not paired for power, cache, or thermal state, so no
+speedup is established. The timed run did not execute the full CPU comparison
+head on each token.
+
+A separate [hybrid cancellation/restart probe](restart_v2_refine64.json)
+completed a 128-token greedy request, cancelled a longer request after eight
+observed token events, and completed the same 128-token sequence with a fresh
+session handle in the same engine. The backend abort and zero in-flight count
+were recorded; the retired epoch delivered no late output and the stale
+handle was rejected. The [NPU worker report](worker_restart_v2_refine64.json)
+records 266 graph and CPU re-rank calls with one VitisAI plus seven CPU nodes.
+The cancellation occurred after tokens had started streaming; it does not
+isolate a cancellation precisely during an NPU graph call or test recovery
+from a crashed NPU worker.
+
+Six [prompts outside the calibration set](heldout_prompts.json) were run first
+on unsplit BF16 CPU, then through the hybrid under explicit joint admission.
+The [paired request record](heldout_v2_refine64.json) matched **5/6** complete
+token sequences. On the hybrid trajectory, NPU top-64 contained the resident
+BF16 winner, and sparse scoring matched the full resident BF16 head on all
+768 measured steps. `heldout_weather` diverged from the separate CPU run at
+zero-based output index 25. Three independent unsplit CPU repeats of that
+prompt had the same original token sequence
+([raw repeat](heldout_weather_cpu_repeat.json)); the cause of the hybrid's
+different activation or token choice is not yet isolated. This is a real
+held-out failure, so the hybrid remains **scoped experimental E2E**, not a
+qualified general Spark CPU+NPU route. It is also not a stochastic-sampling
+implementation: masking to the NPU top-64 is intended only for greedy
+decoding. Mid-graph cancellation, NPU-worker failure recovery, broader
+quality/context, and sustained power/thermal behavior remain open.
+
+The calibration input arrays and captured live activations are retained in
+this evidence directory with hashes in their manifests and worker reports.
+The large ONNX graphs remain in local NTFS artifact storage at the paths in
+the [v2 experiment spec](spec_accept12_v2_refine64.json); this repository
+records their SHA-256 digests and the
+[recalibration](../../../../experiments/recalibrate_spark_amd_npu_head.py),
+[same-graph provider check](../../../../experiments/compare_spark_npu_qdq_provider.py),
+[CPU numeric check](../../../../experiments/validate_spark_recalibration.py),
+and [held-out request probe](../../../../experiments/probe_spark_heldout_hybrid.py).

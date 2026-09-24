@@ -1,0 +1,187 @@
+{
+  "graph_sha256": "e2ae9c3fd7071e8ff628f209e6140c8a023bfaad59814b80a936c6b263f33eaf",
+  "capture_sha256": "043074671d10dd71f90f96374c0fb4c9bd769db906c533b99e8dc655141c1477",
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 7,
+      "vitisai": 1
+    },
+    "total_nodes": 8,
+    "target_nodes": 1,
+    "fraction_on_target": 0.125,
+    "session_create_s": 10.921762299956754,
+    "warmup_s": 0.010167400003410876,
+    "rss_bytes": 1386045440,
+    "inputs": [
+      {
+        "name": "x",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1,
+          2048
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "logits_concatenated",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          131072
+        ]
+      }
+    ],
+    "profile_path": "C:\\Users\\zhout\\w2\\spark_plain6_provider_check_20260924\\spark_output_head__2026-09-24_22-46-07_145.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "note": ""
+  },
+  "worker_stats": {
+    "runs": 7,
+    "total_run_s": 0.05728589999489486,
+    "rss_bytes": 1386598400,
+    "peak_rss_bytes": 3772043264,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 10.921762299956754,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "warmup_s": 0.010167400003410876,
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_plain6_provider_check_20260924\\spark_output_head__2026-09-24_22-46-07_145.json",
+      "node_counts": {
+        "CPUExecutionProvider": 7,
+        "vitisai": 1
+      },
+      "total_nodes": 8,
+      "target_nodes": 1,
+      "fraction_on_target": 0.125,
+      "rss_bytes": 1386045440
+    }
+  },
+  "rows": [
+    {
+      "index": 2,
+      "activation_min": -2.734375,
+      "activation_max": 3.28125,
+      "qdq_cpu_top1": 12091,
+      "vitisai_top1": 12091,
+      "vitisai_vs_qdq_cpu_relative_l2": 9.211334145220462e-06,
+      "worker_s": 0.008011700003407896,
+      "round_trip_s": 0.013014102005399764,
+      "transport_s": 0.005002402001991868
+    },
+    {
+      "index": 7,
+      "activation_min": -4.84375,
+      "activation_max": 35.0,
+      "qdq_cpu_top1": 0,
+      "vitisai_top1": 0,
+      "vitisai_vs_qdq_cpu_relative_l2": 8.548965706722811e-05,
+      "worker_s": 0.008231000043451786,
+      "round_trip_s": 0.01105278602335602,
+      "transport_s": 0.0028217859799042344
+    },
+    {
+      "index": 8,
+      "activation_min": -4.4375,
+      "activation_max": 35.0,
+      "qdq_cpu_top1": 0,
+      "vitisai_top1": 0,
+      "vitisai_vs_qdq_cpu_relative_l2": 9.10799135453999e-05,
+      "worker_s": 0.008261899929493666,
+      "round_trip_s": 0.010349711985327303,
+      "transport_s": 0.0020878120558336377
+    },
+    {
+      "index": 16,
+      "activation_min": -4.21875,
+      "activation_max": 36.0,
+      "qdq_cpu_top1": 0,
+      "vitisai_top1": 0,
+      "vitisai_vs_qdq_cpu_relative_l2": 0.00010447097884025425,
+      "worker_s": 0.008196100010536611,
+      "round_trip_s": 0.013943135971203446,
+      "transport_s": 0.005747035960666835
+    },
+    {
+      "index": 32,
+      "activation_min": -4.1875,
+      "activation_max": 30.0,
+      "qdq_cpu_top1": 0,
+      "vitisai_top1": 0,
+      "vitisai_vs_qdq_cpu_relative_l2": 9.753515041666105e-05,
+      "worker_s": 0.008288600016385317,
+      "round_trip_s": 0.010188208019826561,
+      "transport_s": 0.0018996080034412444
+    },
+    {
+      "index": 64,
+      "activation_min": -4.125,
+      "activation_max": 36.0,
+      "qdq_cpu_top1": 0,
+      "vitisai_top1": 0,
+      "vitisai_vs_qdq_cpu_relative_l2": 8.032933692447841e-05,
+      "worker_s": 0.008237499976530671,
+      "round_trip_s": 0.010315215971786529,
+      "transport_s": 0.0020777159952558577
+    },
+    {
+      "index": 127,
+      "activation_min": -4.15625,
+      "activation_max": 30.0,
+      "qdq_cpu_top1": 0,
+      "vitisai_top1": 0,
+      "vitisai_vs_qdq_cpu_relative_l2": 8.977240941021591e-05,
+      "worker_s": 0.008059100015088916,
+      "round_trip_s": 0.009817290003411472,
+      "transport_s": 0.001758189988322556
+    }
+  ]
+}

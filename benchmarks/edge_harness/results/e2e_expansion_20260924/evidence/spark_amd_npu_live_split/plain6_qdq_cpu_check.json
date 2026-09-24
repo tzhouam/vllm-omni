@@ -1,0 +1,78 @@
+{
+  "graph": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+  "scope": "selected live plain_6 activations against BF16 checkpoint head",
+  "rows": [
+    {
+      "index": 0,
+      "activation_min": -9.5,
+      "activation_max": 4.625,
+      "qdq_cpu_relative_l2": 0.04468883201479912,
+      "qdq_cpu_top1": 28714,
+      "bf16_top1": 13619
+    },
+    {
+      "index": 2,
+      "activation_min": -2.734375,
+      "activation_max": 3.28125,
+      "qdq_cpu_relative_l2": 0.0025607894640415907,
+      "qdq_cpu_top1": 12091,
+      "bf16_top1": 12091
+    },
+    {
+      "index": 6,
+      "activation_min": -6.625,
+      "activation_max": 3.9375,
+      "qdq_cpu_relative_l2": 0.0025176983326673508,
+      "qdq_cpu_top1": 198,
+      "bf16_top1": 198
+    },
+    {
+      "index": 7,
+      "activation_min": -4.84375,
+      "activation_max": 35.0,
+      "qdq_cpu_relative_l2": 0.7485825419425964,
+      "qdq_cpu_top1": 0,
+      "bf16_top1": 787
+    },
+    {
+      "index": 8,
+      "activation_min": -4.4375,
+      "activation_max": 35.0,
+      "qdq_cpu_relative_l2": 0.809156596660614,
+      "qdq_cpu_top1": 0,
+      "bf16_top1": 787
+    },
+    {
+      "index": 16,
+      "activation_min": -4.21875,
+      "activation_max": 36.0,
+      "qdq_cpu_relative_l2": 0.8742311000823975,
+      "qdq_cpu_top1": 0,
+      "bf16_top1": 787
+    },
+    {
+      "index": 32,
+      "activation_min": -4.1875,
+      "activation_max": 30.0,
+      "qdq_cpu_relative_l2": 0.8667922616004944,
+      "qdq_cpu_top1": 0,
+      "bf16_top1": 0
+    },
+    {
+      "index": 64,
+      "activation_min": -4.125,
+      "activation_max": 36.0,
+      "qdq_cpu_relative_l2": 0.8469818234443665,
+      "qdq_cpu_top1": 0,
+      "bf16_top1": 787
+    },
+    {
+      "index": 127,
+      "activation_min": -4.15625,
+      "activation_max": 30.0,
+      "qdq_cpu_relative_l2": 0.841316282749176,
+      "qdq_cpu_top1": 0,
+      "bf16_top1": 787
+    }
+  ]
+}
