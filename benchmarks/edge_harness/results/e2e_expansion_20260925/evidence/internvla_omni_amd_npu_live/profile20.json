@@ -1,0 +1,1332 @@
+{
+  "scope": "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; synthetic patterned observations/noise; no robot-task quality claim",
+  "placement": "amd-npu-conv13",
+  "artifact_sha256": {
+    "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+    "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+    "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+    "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+    "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+    "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+    "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+    "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+    "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+    "graph": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+    "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+    "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+    "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991"
+  },
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "host_available_bytes_before": 25909243904,
+  "cuda_before": null,
+  "warmups": 1,
+  "repeats": 20,
+  "startup_s": 123.07026360009331,
+  "execution_plan_start": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+    "worker_pid": 39456,
+    "worker_script_sha256": "a439ec24a48e2b4cd4e3eb2b53432b38e5980be02db658893bce1ad5741f5232",
+    "artifact_sha256": {
+      "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "graph": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+      "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+      "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+      "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991"
+    },
+    "placement": "amd-npu-conv13",
+    "worker_props": {
+      "model_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Cosmos-Tokenizer-CI8x8",
+      "placement": "amd-npu-conv13",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "float32",
+      "policy_device": "cpu",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": null,
+      "cuda_device_index": null,
+      "cuda_allocated_after_load_bytes": null,
+      "cuda_reserved_after_load_bytes": null,
+      "policy_load_s": 58.93228990002535,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": null,
+      "npu_load": {
+        "device": "<onnxruntime.capi.onnxruntime_pybind11_state.OrtHardwareDevice object at 0x0000021C9F32F870>",
+        "provider": "vitisai",
+        "warmup_npu_node_events": 1,
+        "onnxruntime": "1.30.0"
+      }
+    },
+    "loaded_rss_bytes": 9306624000,
+    "loaded_process_tree": [
+      {
+        "pid": 39456,
+        "rss_bytes": 5001216,
+        "private_bytes": 876544
+      },
+      {
+        "pid": 18184,
+        "rss_bytes": 7479296,
+        "private_bytes": 1232896
+      },
+      {
+        "pid": 4264,
+        "rss_bytes": 9294143488,
+        "private_bytes": 11384135680
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 0,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "warmup_results": [
+    {
+      "wall_s": 4.7974278999026865,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-warmup-0",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269653430628000,
+        "generation_timestamp_ns": 1790269658220281800,
+        "observation_age_s": 4.7896538,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.79020159994252,
+        "worker_wall_s": 4.752491599996574,
+        "cuda_peak_reserved_bytes": 0
+      }
+    }
+  ],
+  "measured": [
+    {
+      "wall_s": 4.711256299982779,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-0",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269658228283800,
+        "generation_timestamp_ns": 1790269662936009600,
+        "observation_age_s": 4.7077258,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.706813200027682,
+        "worker_wall_s": 4.670965799945407,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.693835900048725,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-1",
+        "stage_id": 0,
+        "epoch": 3,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269662940015300,
+        "generation_timestamp_ns": 1790269667629758700,
+        "observation_age_s": 4.6897434,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.686935900012031,
+        "worker_wall_s": 4.654594799969345,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.645375000080094,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-2",
+        "stage_id": 0,
+        "epoch": 4,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269667633761100,
+        "generation_timestamp_ns": 1790269672275887900,
+        "observation_age_s": 4.6421268,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.638623700011522,
+        "worker_wall_s": 4.6272543000523,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.677003899938427,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-3",
+        "stage_id": 0,
+        "epoch": 5,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269672278892600,
+        "generation_timestamp_ns": 1790269676953015200,
+        "observation_age_s": 4.6741226,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.6709650999400765,
+        "worker_wall_s": 4.659501300076954,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.749533600057475,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-4",
+        "stage_id": 0,
+        "epoch": 6,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269676956009200,
+        "generation_timestamp_ns": 1790269681702595300,
+        "observation_age_s": 4.7465861,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.741948300041258,
+        "worker_wall_s": 4.709628199925646,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.720376999932341,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-5",
+        "stage_id": 0,
+        "epoch": 7,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269681706589000,
+        "generation_timestamp_ns": 1790269686423052100,
+        "observation_age_s": 4.7164631,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.715613799984567,
+        "worker_wall_s": 4.689458299893886,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.69690450001508,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-6",
+        "stage_id": 0,
+        "epoch": 8,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269686427053700,
+        "generation_timestamp_ns": 1790269691120357200,
+        "observation_age_s": 4.6933035,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.690086100017652,
+        "worker_wall_s": 4.676848100032657,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.760925199952908,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-7",
+        "stage_id": 0,
+        "epoch": 9,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269691123356600,
+        "generation_timestamp_ns": 1790269695881220700,
+        "observation_age_s": 4.7578641,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.753872999921441,
+        "worker_wall_s": 4.726652699988335,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.670794099918567,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-8",
+        "stage_id": 0,
+        "epoch": 10,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269695885229500,
+        "generation_timestamp_ns": 1790269700551903200,
+        "observation_age_s": 4.6666737,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.6643128000432625,
+        "worker_wall_s": 4.652895100065507,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.719522499945015,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-9",
+        "stage_id": 0,
+        "epoch": 11,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269700555906200,
+        "generation_timestamp_ns": 1790269705271619800,
+        "observation_age_s": 4.7157136,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.71449359995313,
+        "worker_wall_s": 4.680389799992554,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.735316600068472,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-10",
+        "stage_id": 0,
+        "epoch": 12,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269705275617000,
+        "generation_timestamp_ns": 1790269710007875400,
+        "observation_age_s": 4.7322584,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.729017600067891,
+        "worker_wall_s": 4.717150300042704,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.7106071000453085,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-11",
+        "stage_id": 0,
+        "epoch": 13,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269710010871900,
+        "generation_timestamp_ns": 1790269714718791400,
+        "observation_age_s": 4.7079195,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.7044018999440596,
+        "worker_wall_s": 4.693924400024116,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.739735299954191,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-12",
+        "stage_id": 0,
+        "epoch": 14,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269714721787000,
+        "generation_timestamp_ns": 1790269719458022400,
+        "observation_age_s": 4.7362354,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.734891000087373,
+        "worker_wall_s": 4.698798299999908,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.732862600008957,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-13",
+        "stage_id": 0,
+        "epoch": 15,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269719462020000,
+        "generation_timestamp_ns": 1790269724190981600,
+        "observation_age_s": 4.7289616,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.7259361000033095,
+        "worker_wall_s": 4.692921199952252,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.723678900045343,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-14",
+        "stage_id": 0,
+        "epoch": 16,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269724194981800,
+        "generation_timestamp_ns": 1790269728915245300,
+        "observation_age_s": 4.7202635,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.717632899992168,
+        "worker_wall_s": 4.70555760001298,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.728784200036898,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-15",
+        "stage_id": 0,
+        "epoch": 17,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269728918245200,
+        "generation_timestamp_ns": 1790269733643527000,
+        "observation_age_s": 4.7252818,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.722615399979986,
+        "worker_wall_s": 4.6954912999644876,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.7239360000239685,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-16",
+        "stage_id": 0,
+        "epoch": 18,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269733647527300,
+        "generation_timestamp_ns": 1790269738367765800,
+        "observation_age_s": 4.7202385,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.717571699991822,
+        "worker_wall_s": 4.688673099968582,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.666843999992125,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-17",
+        "stage_id": 0,
+        "epoch": 19,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269738371761900,
+        "generation_timestamp_ns": 1790269743034463400,
+        "observation_age_s": 4.6627015,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.660342600080185,
+        "worker_wall_s": 4.634351700078696,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.723192800069228,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-18",
+        "stage_id": 0,
+        "epoch": 20,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269743038465400,
+        "generation_timestamp_ns": 1790269747758317500,
+        "observation_age_s": 4.7198521,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.716763500007801,
+        "worker_wall_s": 4.705129299894907,
+        "cuda_peak_reserved_bytes": 0
+      }
+    },
+    {
+      "wall_s": 4.681802700040862,
+      "action_sha256": "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d",
+      "stage_event": {
+        "request_id": "internvla-measured-19",
+        "stage_id": 0,
+        "epoch": 21,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "a747029f6ee048d19a9c0d6854706cf0",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790269747762318300,
+        "generation_timestamp_ns": 1790269752440506700,
+        "observation_age_s": 4.6781884,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "metrics": {
+        "policy_wall_s": 4.675288600032218,
+        "worker_wall_s": 4.663090500049293,
+        "cuda_peak_reserved_bytes": 0
+      }
+    }
+  ],
+  "nearest_rank_p50_wall_s": 4.719522499945015,
+  "nearest_rank_p95_wall_s": 4.749533600057475,
+  "unique_action_hashes": [
+    "60212fca37e6b7e5124106d83d5cbbde240fd621be029d9d53c34c8251af257d"
+  ],
+  "output_actions": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_omni_amd_npu_live\\profile20_actions.npy",
+  "reference_comparison": {
+    "max_abs": 0.08700329065322876,
+    "relative_l2": 0.03176342323422432,
+    "cosine": 0.9995214939117432
+  },
+  "execution_plan_end": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "a747029f6ee048d19a9c0d6854706cf0",
+    "worker_pid": 39456,
+    "worker_script_sha256": "a439ec24a48e2b4cd4e3eb2b53432b38e5980be02db658893bce1ad5741f5232",
+    "artifact_sha256": {
+      "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "graph": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+      "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+      "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+      "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991"
+    },
+    "placement": "amd-npu-conv13",
+    "worker_props": {
+      "model_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Cosmos-Tokenizer-CI8x8",
+      "placement": "amd-npu-conv13",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "float32",
+      "policy_device": "cpu",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": null,
+      "cuda_device_index": null,
+      "cuda_allocated_after_load_bytes": null,
+      "cuda_reserved_after_load_bytes": null,
+      "policy_load_s": 58.93228990002535,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": null,
+      "npu_load": {
+        "device": "<onnxruntime.capi.onnxruntime_pybind11_state.OrtHardwareDevice object at 0x0000021C9F32F870>",
+        "provider": "vitisai",
+        "warmup_npu_node_events": 1,
+        "onnxruntime": "1.30.0"
+      }
+    },
+    "loaded_rss_bytes": 9306624000,
+    "loaded_process_tree": [
+      {
+        "pid": 39456,
+        "rss_bytes": 5001216,
+        "private_bytes": 876544
+      },
+      {
+        "pid": 18184,
+        "rss_bytes": 7479296,
+        "private_bytes": 1232896
+      },
+      {
+        "pid": 4264,
+        "rss_bytes": 9294143488,
+        "private_bytes": 11384135680
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 0,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "abort_check": {
+    "stale_output": false,
+    "ledger": {
+      "capacities": {
+        "host_ram": 17179869184
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    }
+  },
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

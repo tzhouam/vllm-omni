@@ -1,0 +1,43 @@
+{
+  "scope": "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; synthetic patterned observations/noise; no robot-task quality claim",
+  "placement": "amd-npu-conv13",
+  "artifact_sha256": {
+    "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+    "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+    "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+    "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+    "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+    "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+    "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+    "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+    "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+    "graph": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+    "prefix": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+    "suffix": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+    "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991"
+  },
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "host_available_bytes_before": 22514053120,
+  "cuda_before": null,
+  "warmups": 0,
+  "repeats": 1,
+  "status": "failed",
+  "error": "RuntimeError: InternVLA worker exited during load; see \\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_omni_amd_npu_live\\smoke_worker.log",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

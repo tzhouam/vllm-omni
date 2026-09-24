@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Bounded whole-policy InternVLA stage on CPU, CUDA or CPU plus Radeon Cosmos.
+"""Bounded whole-policy InternVLA stage with explicit local placements.
 
 The existing Omni diffusion policy owns action semantics. StageRuntime owns
 shared-RAM admission, one in-flight request, terminal output and cancellation.
@@ -68,7 +68,7 @@ class InternVLAStageClient(CrispTTSStageClient):
         self._cuda_demand_bytes = reservation.demands.get("cuda:0", 0)
         try:
             if (
-                self._placement not in {"cpu", "cuda", "radeon-cosmos"} or self._max_input_bytes <= 0
+                self._placement not in {"cpu", "cuda", "radeon-cosmos", "amd-npu-conv13"} or self._max_input_bytes <= 0
                 or self._max_action_bytes <= 0 or self._request_timeout_s <= 0
                 or not 0 < self._port < 65536
             ):
@@ -88,6 +88,13 @@ class InternVLAStageClient(CrispTTSStageClient):
             self._processor_dir = Path(config["processor_dir"]).resolve(strict=True)
             self._cosmos_dir = Path(config["cosmos_dir"]).resolve(strict=True)
             self._graph = Path(config["graph_file"]).resolve(strict=True) if self._placement == "radeon-cosmos" else None
+            if self._placement == "amd-npu-conv13":
+                self._graph = Path(config["graph_file"]).resolve(strict=True)
+                self._prefix = Path(config["prefix_file"]).resolve(strict=True)
+                self._suffix = Path(config["suffix_file"]).resolve(strict=True)
+                self._ep_dll = Path(config["ep_dir"]).resolve(strict=True) / "onnxruntime_vitisai_ep.dll"
+            else:
+                self._prefix = self._suffix = self._ep_dll = None
             self._worker = Path(__file__).with_name("internvla_worker.py").resolve(strict=True)
             artifacts = {
                 "python": self._python,
@@ -102,6 +109,8 @@ class InternVLAStageClient(CrispTTSStageClient):
             }
             if self._graph is not None:
                 artifacts["graph"] = self._graph
+            if self._prefix is not None:
+                artifacts.update(prefix=self._prefix, suffix=self._suffix, ep_dll=self._ep_dll)
             hashes = dict(config["artifact_sha256"])
             if set(hashes) != set(artifacts):
                 raise ValueError("InternVLA artifact manifest has missing or unexpected entries")
@@ -142,6 +151,12 @@ class InternVLAStageClient(CrispTTSStageClient):
             ]
             if self._graph is not None:
                 command += ["--graph", str(self._graph), "--graph-sha256", hashes["graph"]]
+            if self._prefix is not None:
+                command += [
+                    "--prefix", str(self._prefix), "--prefix-sha256", hashes["prefix"],
+                    "--suffix", str(self._suffix), "--suffix-sha256", hashes["suffix"],
+                    "--ep-dir", str(self._ep_dll.parent), "--ep-dll-sha256", hashes["ep_dll"],
+                ]
             flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
             self._proc = subprocess.Popen(
                 command, stdout=self._log_stream, stderr=subprocess.STDOUT,
@@ -173,13 +188,18 @@ class InternVLAStageClient(CrispTTSStageClient):
                 or props.get("policy_device") != ("cuda" if self._placement == "cuda" else "cpu")
                 or props.get("runtime_mode") != "real_checkpoint_loaded"
                 or props.get("policy_dtype") != "bfloat16"
-                or props.get("cosmos_dtype") != ("float32" if expected_external else "bfloat16")
+                or props.get("cosmos_dtype") != ("float32" if expected_external or self._placement == "amd-npu-conv13" else "bfloat16")
                 or props.get("action_shape") != [1, 50, 32]
                 or props.get("action_mode") != "delta"
                 or props.get("control_ready") is not False
                 or props.get("torch") != str(config["expected_torch"])
                 or bool(observed_external) != expected_external
                 or (expected_external and observed_external.get("device_name") != "AMD Radeon(TM) 890M Graphics")
+                or bool(props.get("npu_load")) != (self._placement == "amd-npu-conv13")
+                or (self._placement == "amd-npu-conv13" and (
+                    props["npu_load"].get("provider") != "vitisai"
+                    or props["npu_load"].get("warmup_npu_node_events", 0) < 1
+                ))
                 or (self._placement == "cuda" and (
                     props.get("cuda_device_name") != config.get("expected_cuda_device_name")
                     or props.get("cuda_device_index") != 0

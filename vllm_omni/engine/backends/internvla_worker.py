@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-"""InternVLA action worker on CPU/CUDA with an optional Radeon Cosmos encoder.
+"""InternVLA action worker on CPU/CUDA with optional local encoder backends.
 
 The policy remains the existing Omni diffusion implementation. Requests carry
 explicit normalized camera histories and state; the worker owns policy state
-and, for the hybrid route, Omni's existing external DirectML graph worker.
+and, for hybrid routes, DirectML or a pinned ORT/VitisAI encoder component.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ import hashlib
 import io
 import json
 import os
+import tempfile
 import time
 import traceback
 import zipfile
@@ -33,9 +34,15 @@ def main() -> None:
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--processor-dir", type=Path, required=True)
     parser.add_argument("--cosmos-dir", type=Path, required=True)
-    parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos"), required=True)
+    parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos", "amd-npu-conv13"), required=True)
     parser.add_argument("--graph", type=Path)
     parser.add_argument("--graph-sha256")
+    parser.add_argument("--prefix", type=Path)
+    parser.add_argument("--prefix-sha256")
+    parser.add_argument("--suffix", type=Path)
+    parser.add_argument("--suffix-sha256")
+    parser.add_argument("--ep-dir", type=Path)
+    parser.add_argument("--ep-dll-sha256")
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--threads", type=int, default=8)
     parser.add_argument("--max-input-bytes", type=int, default=8 << 20)
@@ -44,6 +51,11 @@ def main() -> None:
         parser.error("invalid port, threads or input bound")
     if args.placement == "radeon-cosmos" and (args.graph is None or not args.graph_sha256):
         parser.error("Radeon route requires a graph and hash")
+    if args.placement == "amd-npu-conv13" and not all((
+        args.graph, args.graph_sha256, args.prefix, args.prefix_sha256,
+        args.suffix, args.suffix_sha256, args.ep_dir, args.ep_dll_sha256,
+    )):
+        parser.error("AMD NPU route requires pinned graph, prefix, suffix and EP directory")
     expected_visible = "0" if args.placement == "cuda" else ""
     if os.environ.get("CUDA_VISIBLE_DEVICES") != expected_visible:
         raise RuntimeError("InternVLA CUDA visibility differs from the placement plan")
@@ -88,6 +100,7 @@ def main() -> None:
 
     external = None
     external_report = None
+    npu_report = None
     if args.placement == "radeon-cosmos":
         from vllm_omni.edge.local.external.client import ExternalWorker
         from vllm_omni.edge.local.external.launch import ROUTE_TORCH_DML, resolve
@@ -127,11 +140,82 @@ def main() -> None:
             external.close()
             raise
 
+    if args.placement == "amd-npu-conv13":
+        import onnxruntime as ort
+
+        paths = {
+            "graph": (args.graph, args.graph_sha256),
+            "prefix": (args.prefix, args.prefix_sha256),
+            "suffix": (args.suffix, args.suffix_sha256),
+        }
+        for name, (path, digest) in paths.items():
+            if _sha256(path.resolve(strict=True)) != digest.lower():
+                raise RuntimeError(f"AMD NPU {name} graph hash differs from plan")
+        ep_dir = args.ep_dir.resolve(strict=True)
+        ep_dll = ep_dir / "onnxruntime_vitisai_ep.dll"
+        if not ep_dll.is_file():
+            raise FileNotFoundError(ep_dll)
+        if _sha256(ep_dll) != args.ep_dll_sha256.lower():
+            raise RuntimeError("VitisAI EP DLL hash differs from plan")
+        os.environ["PATH"] = str(ep_dir) + os.pathsep + os.environ.get("PATH", "")
+        if hasattr(os, "add_dll_directory"):
+            os.add_dll_directory(str(ep_dir))
+        ort.register_execution_provider_library("vitisai", str(ep_dll))
+        devices = [device for device in ort.get_ep_devices()
+                   if device.ep_name == "vitisai" and str(device.device.type).endswith("NPU")]
+        if not devices:
+            raise RuntimeError("VitisAI NPU device unavailable")
+        prefix = ort.InferenceSession(str(args.prefix), providers=["CPUExecutionProvider"])
+        suffix = ort.InferenceSession(str(args.suffix), providers=["CPUExecutionProvider"])
+        if ([item.name for item in prefix.get_inputs()] != ["pixels"]
+                or [item.name for item in prefix.get_outputs()] != ["group_norm"]
+                or {item.name for item in suffix.get_inputs()} != {"pixels", "conv2d_13"}
+                or [item.name for item in suffix.get_outputs()] != ["latent"]):
+            raise RuntimeError("Cosmos encoder graph boundary differs from plan")
+        options = ort.SessionOptions()
+        options.add_provider_for_devices(devices, {})
+        options.enable_profiling = True
+        options.profile_file_prefix = str(Path(tempfile.gettempdir()) / f"internvla_npu_placement_{os.getpid()}")
+        npu = ort.InferenceSession(str(args.graph), sess_options=options)
+        if ([item.name for item in npu.get_inputs()] != ["group_norm"]
+                or [item.name for item in npu.get_outputs()] != ["conv2d_13"]):
+            raise RuntimeError("NPU Conv13 graph boundary differs from plan")
+        warm = np.zeros((1, 128, 64, 64), dtype=np.float32)
+        npu.run(None, {"group_norm": warm})
+        profile = Path(npu.end_profiling())
+        events = json.loads(profile.read_text(encoding="utf-8"))
+        placed = sum(event.get("cat") == "Node" and
+                     (event.get("args") or {}).get("provider") == "vitisai"
+                     for event in events)
+        if placed < 1:
+            raise RuntimeError("AMD NPU Conv13 has no VitisAI node event")
+        npu_report = {"device_type": str(devices[0].device.type), "provider": "vitisai",
+                      "warmup_npu_node_events": placed, "onnxruntime": ort.__version__}
+        profile.unlink(missing_ok=True)
+
+        class NpuConv13Encoder(torch.nn.Module):
+            def forward(self, pixels: torch.Tensor) -> torch.Tensor:
+                if pixels.device.type != "cpu" or tuple(pixels.shape) != (6, 3, 256, 256):
+                    raise ValueError("Cosmos input differs from fixed six-frame CPU contract")
+                values = np.ascontiguousarray(pixels.detach().float().numpy())
+                boundary = prefix.run(None, {"pixels": values})[0]
+                if boundary.shape != (6, 128, 64, 64):
+                    raise RuntimeError("Cosmos prefix boundary shape changed")
+                parts = [npu.run(None, {"group_norm": np.ascontiguousarray(boundary[i:i + 1])})[0]
+                         for i in range(6)]
+                conv = np.concatenate(parts, axis=0)
+                latent = suffix.run(None, {"pixels": values, "conv2d_13": conv})[0]
+                if latent.shape != (6, 16, 32, 32) or not np.isfinite(latent).all():
+                    raise RuntimeError("AMD NPU Cosmos returned invalid latent")
+                return torch.from_numpy(latent).to(pixels.dtype)
+
+        pipeline.policy.model.cosmos._enc_model = NpuConv13Encoder()
+
     props = {
         "model_dir": str(model_dir), "processor_dir": str(processor_dir),
         "cosmos_dir": str(cosmos_dir), "placement": args.placement,
         "torch": torch.__version__, "policy_dtype": "bfloat16",
-        "cosmos_dtype": "float32" if external is not None else "bfloat16",
+        "cosmos_dtype": "float32" if external is not None or npu_report is not None else "bfloat16",
         "policy_device": policy_device, "runtime_mode": pipeline.runtime_mode(),
         "cuda_device_name": torch.cuda.get_device_name(0) if policy_device == "cuda" else None,
         "cuda_device_index": torch.cuda.current_device() if policy_device == "cuda" else None,
@@ -143,6 +227,7 @@ def main() -> None:
         "action_joint_order": "unverified", "action_step_s": None,
         "control_ready": False,
         "external_load": external_report.to_dict() if external_report else None,
+        "npu_load": npu_report,
     }
 
     class Handler(BaseHTTPRequestHandler):
