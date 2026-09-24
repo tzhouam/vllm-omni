@@ -31,6 +31,7 @@ ledger; an unreported worker is a hole in the budget, not a rounding error.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from math import ceil
 from pathlib import Path
 from typing import Any
 
@@ -96,6 +97,8 @@ class StagePlan:
     reservations: list[MemoryReservation] = field(default_factory=list)
     refusals: list[Refusal] = field(default_factory=list)
     min_fraction_on_target: float = MIN_FRACTION_ON_TARGET
+    worker_peak_rss_hint_bytes: int | None = None
+    observed_worker_peak_rss_bytes: int | None = None
     report: LoadReport | None = None
 
     @property
@@ -114,6 +117,8 @@ class StagePlan:
             "reservations": [r.to_dict() for r in self.reservations],
             "refusals": [r.to_dict() for r in self.refusals],
             "min_fraction_on_target": self.min_fraction_on_target,
+            "worker_peak_rss_hint_bytes": self.worker_peak_rss_hint_bytes,
+            "observed_worker_peak_rss_bytes": self.observed_worker_peak_rss_bytes,
             "budget_bytes": self.budget_bytes,
             "admitted": self.admitted,
             "report": self.report.to_dict() if self.report else None,
@@ -152,7 +157,21 @@ class StagePlan:
         return "\n".join(lines)
 
 
-def _reservations_for(artifact: GraphArtifact, route: _launch.Route, pool: str) -> list[MemoryReservation]:
+def _reservations_for(
+    artifact: GraphArtifact,
+    route: _launch.Route,
+    pool: str,
+    worker_peak_rss_hint_bytes: int | None = None,
+) -> list[MemoryReservation]:
+    # Working-set peak includes resident graph pages. The separate graph-file
+    # reservation already charges those bytes, so charge the remaining peak to
+    # the worker. A measured hint is device/EP-specific and gets 10% headroom.
+    runtime_bytes = WORKER_BASE_BYTES.get(route.name, 256 * MiB)
+    if worker_peak_rss_hint_bytes is not None:
+        runtime_bytes = max(
+            runtime_bytes,
+            max(0, ceil(worker_peak_rss_hint_bytes * 1.10) - artifact.bytes),
+        )
     return [
         MemoryReservation(
             pool=pool,
@@ -166,7 +185,7 @@ def _reservations_for(artifact: GraphArtifact, route: _launch.Route, pool: str) 
         MemoryReservation(
             pool=pool,
             purpose="worker runtime",
-            bytes=WORKER_BASE_BYTES.get(route.name, 256 * MiB),
+            bytes=runtime_bytes,
             lifetime="session",
             reclaimable="on_release",
             evidence="E",
@@ -178,6 +197,11 @@ def _reservations_for(artifact: GraphArtifact, route: _launch.Route, pool: str) 
                 "this same system RAM and do not appear in the worker's working "
                 "set, so the measured figure is a lower bound for this pool, "
                 "not a total"
+                + (
+                    f"; includes 10% headroom on measured worker peak "
+                    f"{worker_peak_rss_hint_bytes} bytes after subtracting graph file bytes"
+                    if worker_peak_rss_hint_bytes is not None else ""
+                )
             ),
         ),
         MemoryReservation(
@@ -229,6 +253,7 @@ def plan_external_stage(
     require: str | None = None,
     min_fraction_on_target: float = MIN_FRACTION_ON_TARGET,
     pool_capacity_bytes: int | None = None,
+    worker_peak_rss_hint_bytes: int | None = None,
 ) -> StagePlan:
     """Choose a device for one exported graph, or refuse with reasons.
 
@@ -242,8 +267,16 @@ def plan_external_stage(
     Every device that was rejected leaves a refusal behind even when a later
     one succeeds, so the record says what was considered, not only what won.
     """
-    plan = StagePlan(artifact=artifact, device=None, route=None,
-                     min_fraction_on_target=min_fraction_on_target)
+    if worker_peak_rss_hint_bytes is not None:
+        if worker_peak_rss_hint_bytes <= 0:
+            raise ValueError("worker peak RSS hint must be positive")
+        if require is None:
+            raise ValueError("worker peak RSS hint is device-specific; require a device")
+    plan = StagePlan(
+        artifact=artifact, device=None, route=None,
+        min_fraction_on_target=min_fraction_on_target,
+        worker_peak_rss_hint_bytes=worker_peak_rss_hint_bytes,
+    )
 
     candidates = [d for d in devices if d.kind in ("gpu_integrated", "npu")]
     if require:
@@ -312,7 +345,9 @@ def plan_external_stage(
             )
             continue
 
-        reservations = _reservations_for(artifact, route, device.memory_pool)
+        reservations = _reservations_for(
+            artifact, route, device.memory_pool, worker_peak_rss_hint_bytes
+        )
         capacity = (
             pool_capacity_bytes
             if pool_capacity_bytes is not None
@@ -432,11 +467,36 @@ class ExternalStage:
             self.close()
             raise PlacementRefused(refusal, report)
 
-        # Close the ledger loop the way M0 does: the budget was an upper bound,
-        # and this is the measurement it is checked against.
-        for reservation in self.plan.reservations:
-            if reservation.purpose == "worker runtime" and report.rss_bytes:
-                reservation.actual_upper_bound_bytes = report.rss_bytes
+        # A settled RSS can be much smaller than VitisAI's compilation/load
+        # peak. Check the worker's own high-water mark before admitting runs.
+        try:
+            stats = self._worker.stats()
+        except BaseException:
+            self.close()
+            raise
+        peak = int(stats.get("peak_rss_bytes") or 0)
+        self.plan.observed_worker_peak_rss_bytes = peak or None
+        runtime = next(r for r in self.plan.reservations if r.purpose == "worker runtime")
+        graph = next(r for r in self.plan.reservations if r.purpose == "graph weights")
+        if peak:
+            runtime.actual_upper_bound_bytes = max(0, peak - graph.bytes)
+        if not peak or peak > runtime.bytes + graph.bytes:
+            refusal = Refusal(
+                REFUSE_CAPACITY,
+                self.plan.device.device_id if self.plan.device else "-",
+                (
+                    f"worker load peak {peak / MiB:.0f} MiB exceeds graph+runtime "
+                    f"reservation {(runtime.bytes + graph.bytes) / MiB:.0f} MiB"
+                    if peak else "worker load peak RSS was not reported"
+                ),
+                "record a device/EP-specific load peak, reserve it with "
+                "worker_peak_rss_hint_bytes, and recheck shared host RAM before launch",
+            )
+            self.plan.refusals.append(refusal)
+            self.close()
+            raise PlacementRefused(refusal, report)
+
+        # The measured peak is now bounded by the pre-load plan.
         return report
 
     def run(self, inputs: dict[str, np.ndarray]) -> tuple[dict[str, np.ndarray], RunTiming]:

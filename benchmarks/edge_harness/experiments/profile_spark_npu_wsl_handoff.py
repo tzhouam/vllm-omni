@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import inspect
 import json
 import math
 import platform
@@ -48,7 +49,15 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--profile-dir", type=Path, required=True)
     parser.add_argument("--repeats", type=int, default=20)
+    parser.add_argument("--worker-peak-rss-hint-bytes", type=int, default=None)
     args = parser.parse_args()
+    checkout = Path(__file__).resolve().parents[3]
+    stage_source = Path(inspect.getfile(plan_external_stage)).resolve()
+    if stage_source != checkout / "vllm_omni/edge/local/external/stage.py":
+        raise RuntimeError(
+            f"loaded Omni stage from {stage_source}, not this checkout; "
+            "run with PYTHONPATH=. from the repository root"
+        )
     if args.repeats < 1:
         parser.error("--repeats must be positive")
     if sha256(args.graph) != GRAPH_SHA or sha256(args.fixture) != FIXTURE_SHA:
@@ -76,6 +85,7 @@ def main() -> None:
         require="npu:amd",
         # This composite has one fused NPU partition and seven CPU nodes.
         min_fraction_on_target=0.125,
+        worker_peak_rss_hint_bytes=args.worker_peak_rss_hint_bytes,
     )
     if not plan.admitted:
         raise RuntimeError(plan.summary())
@@ -119,6 +129,7 @@ def main() -> None:
         "graph_sha256": GRAPH_SHA,
         "fixture_sha256": FIXTURE_SHA,
         "platform": platform.platform(),
+        "omni_stage_source": str(stage_source),
         "started_unix": started,
         "ended_unix": time.time(),
         "concurrency": 1,
@@ -126,6 +137,7 @@ def main() -> None:
         "repeats": args.repeats,
         "placement": placement.to_dict(),
         "planner_budget_bytes": plan.budget_bytes,
+        "worker_peak_rss_hint_bytes": args.worker_peak_rss_hint_bytes,
         "worker_peak_rss_bytes": worker_stats.get("peak_rss_bytes"),
         "planner_bounds_observed_worker_peak": plan.budget_bytes >= worker_stats.get("peak_rss_bytes", 0),
         "worker_stats": worker_stats,

@@ -23,6 +23,7 @@ from vllm_omni.edge.local.external.stage import (
 )
 from vllm_omni.edge.local.manifest import build_graph_artifact
 from vllm_omni.edge.local.plan import (
+    REFUSE_CAPACITY,
     REFUSE_EP_PLACEMENT,
     REFUSE_NO_ARTIFACT,
     REFUSE_NO_DEVICE,
@@ -104,8 +105,59 @@ def test_open_verifies_placement_and_closes_the_ledger(a16w8_graph, npu_device, 
         report = stage.open({"x": np.ones(4, np.float32)}, profile_dir=tmp_path)
         assert report.fraction_on_target == 1.0
     runtime = next(r for r in plan.reservations if r.purpose == "worker runtime")
-    assert runtime.actual_upper_bound_bytes == 111 * 2**20
+    assert runtime.actual_upper_bound_bytes == 122 * 2**20 - plan.artifact.bytes
     assert runtime.bytes >= runtime.actual_upper_bound_bytes, "budget must bound the measurement"
+
+
+def test_load_peak_over_budget_refuses_before_any_measured_run(
+    a16w8_graph, npu_device, fake_route, tmp_path
+):
+    fake_route(stats={"peak_rss_bytes": 4 * 2**30})
+    plan = plan_external_stage(_artifact(a16w8_graph), [npu_device], require="npu:amd")
+    with pytest.raises(PlacementRefused) as error:
+        ExternalStage(plan).open({"x": np.ones(4, np.float32)}, profile_dir=tmp_path)
+    assert error.value.refusal.code == REFUSE_CAPACITY
+    assert plan.observed_worker_peak_rss_bytes == 4 * 2**30
+    assert plan.budget_bytes < plan.observed_worker_peak_rss_bytes
+
+
+def test_measured_peak_hint_is_reserved_and_checked_before_load(
+    a16w8_graph, npu_device, fake_route, tmp_path
+):
+    peak = 4 * 2**30
+    artifact = _artifact(a16w8_graph)
+    refused = plan_external_stage(
+        artifact, [npu_device], require="npu:amd",
+        worker_peak_rss_hint_bytes=peak, pool_capacity_bytes=peak,
+    )
+    assert not refused.admitted and refused.refusals[0].code == REFUSE_CAPACITY
+
+    fake_route(stats={"peak_rss_bytes": peak})
+    plan = plan_external_stage(
+        artifact, [npu_device], require="npu:amd",
+        worker_peak_rss_hint_bytes=peak,
+    )
+    assert plan.admitted and plan.budget_bytes > peak
+    with ExternalStage(plan) as stage:
+        stage.open({"x": np.ones(4, np.float32)}, profile_dir=tmp_path)
+        outputs, _ = stage.run({"x": np.ones(4, np.float32)})
+        assert "x_out" in outputs
+    assert plan.observed_worker_peak_rss_bytes == peak
+
+
+def test_unreported_load_peak_is_refused(a16w8_graph, npu_device, fake_route, tmp_path):
+    fake_route(stats={"peak_rss_bytes": 0})
+    plan = plan_external_stage(_artifact(a16w8_graph), [npu_device], require="npu:amd")
+    with pytest.raises(PlacementRefused, match="not reported") as error:
+        ExternalStage(plan).open({"x": np.ones(4, np.float32)}, profile_dir=tmp_path)
+    assert error.value.refusal.code == REFUSE_CAPACITY
+
+
+def test_peak_hint_requires_a_specific_device(a16w8_graph, npu_device):
+    with pytest.raises(ValueError, match="device-specific"):
+        plan_external_stage(
+            _artifact(a16w8_graph), [npu_device], worker_peak_rss_hint_bytes=2**30
+        )
 
 
 def test_declined_graph_is_refused_even_though_it_ran(a16w8_graph, npu_device, fake_route, tmp_path):

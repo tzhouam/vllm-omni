@@ -364,6 +364,9 @@ def _synthetic_inputs(graph: str, spec: tuple[dict[str, Any], ...], fmt: str) ->
 
 def cmd_external(args: argparse.Namespace) -> int:
     """Plan an exported graph onto the iGPU or the NPU, and prove the placement."""
+    if args.worker_peak_rss_hint_bytes is not None and not args.device:
+        print("--worker-peak-rss-hint-bytes requires --device: the peak is device-specific")
+        return 2
     import numpy as np
 
     from vllm_omni.edge.local.external.stage import (
@@ -387,6 +390,7 @@ def cmd_external(args: argparse.Namespace) -> int:
         artifact, devices,
         prefer=args.prefer, require=args.device,
         min_fraction_on_target=args.min_placement,
+        worker_peak_rss_hint_bytes=args.worker_peak_rss_hint_bytes,
     )
     print(plan.summary())
     record: dict[str, Any] = {
@@ -503,6 +507,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--prefer", default=None, help="try this device id first, then fall through")
     sp.add_argument("--min-placement", type=float, default=0.5,
                     help="fraction of the graph the target EP must take for the placement to count")
+    sp.add_argument("--worker-peak-rss-hint-bytes", type=int, default=None,
+                    help="measured load peak for --device on this EP/driver; reserves it before launch")
     sp.add_argument("--inputs", default=None, help=".npz of real inputs; otherwise synthesized")
     sp.add_argument("--runs", type=int, default=10)
     sp.add_argument("--profile-dir", default=None, help="where ORT writes its placement profile")

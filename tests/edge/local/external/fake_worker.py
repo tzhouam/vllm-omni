@@ -93,16 +93,18 @@ def main() -> int:
                 {f"{k}_out": (v * scale) for k, v in tensors.items()},
             )
         elif op == proto.OP_STATS:
+            stats = {
+                "runs": 1,
+                "total_run_s": 0.001,
+                "rss_bytes": 111 * 2**20,
+                "peak_rss_bytes": 122 * 2**20,
+                "report": {},
+            }
+            stats.update(config.get("stats", {}))
             proto.send_message(
                 sock,
                 proto.OP_OK,
-                {
-                    "runs": 1,
-                    "total_run_s": 0.001,
-                    "rss_bytes": 111 * 2**20,
-                    "peak_rss_bytes": 122 * 2**20,
-                    "report": {},
-                },
+                stats,
             )
         elif op == proto.OP_CLOSE:
             proto.send_message(sock, proto.OP_OK, {})

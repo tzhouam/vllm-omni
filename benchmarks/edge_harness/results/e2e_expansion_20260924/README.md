@@ -18,6 +18,15 @@ was **0.559/1.052 s** for 0.16 s audio, with 403 CPU and 335 GPU placement
 rows and a median component RTF of 3.49. Listening quality and playable
 complete-stream behavior remain open.
 
+An [HX370 Spark AMD NPU output-head handoff probe](evidence/spark_amd_npu_wsl_handoff/README.md)
+replayed four captured real activations across WSL and native Windows through
+Omni's external stage. A measured worker-load peak now drives a 5.492 GB
+isolated-stage reservation; 20/20 source top-1 matches and 9.037/11.754 ms
+p50/p95 graph-stage round trips passed. Without the peak hint, the same graph
+was refused after load because its peak exceeded the generic reservation.
+This remains component transport, not live Spark generation or joint
+vLLM+NPU memory admission.
+
 An additional [Spark BF16 restart probe](evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
 cancelled after eight token events, rejected the retired session handle and
 verified that a fresh session produced the same 128 greedy token IDs with no
