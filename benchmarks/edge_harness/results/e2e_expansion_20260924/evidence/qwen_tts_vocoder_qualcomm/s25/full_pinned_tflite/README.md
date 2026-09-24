@@ -13,9 +13,13 @@ reproduces this graph with `--chunk-frames 25`.
 
 The [source upload](upload_submission.json) and [one-sample input dataset](dataset_submission.json)
 were submitted to Qualcomm AI Hub Workbench. The [S25 TFLite compile](compile_report.json)
-succeeded; [GPU-requested inference](inference_submission.json) and a separate
-[placement profile](profile_submission.json) are pending on that target.
-Device numerical waveform quality, node placement,
-complete-stream handoff and sustained behavior remain unverified for this
-revision-pinned artifact. The [historical 25-frame target](../full_tflite_gpu_profile/README.md)
-is separate despite the local same-fixture numerical continuity.
+and [GPU-requested inference](inference_report.json) succeeded on that exact
+target. The [waveform audit](audit_report.json) measured **4.239% relative L2**
+and **27.46 dB SNR** versus local ONNX Runtime CPU, with no saturated samples.
+The new device waveform is [bitwise identical](historical_device_parity_report.json)
+to the [historical 25-frame target's](../full_tflite_gpu_profile/README.md)
+GPU output on this retained fixture. This supports numerical continuity on
+one input, not identical historical export provenance or listening quality.
+A separate [placement profile](profile_submission.json) is in progress; GPU
+node placement and latency for this revision-pinned target remain unverified.
+Complete-stream handoff and sustained behavior are also unverified.

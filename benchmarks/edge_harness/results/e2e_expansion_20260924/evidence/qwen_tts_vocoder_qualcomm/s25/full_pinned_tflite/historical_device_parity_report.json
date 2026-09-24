@@ -1,0 +1,16 @@
+{
+  "scope": "one retained synthetic 25-frame fixture; historical and revision-pinned S25 GPU-requested TFLite outputs",
+  "new_output_sha256": "4a26486d5e84a6e22d16f9b26f995b8fe645c29bbd70b103615ec35a0fcb10a0",
+  "historical_output_sha256": "4a26486d5e84a6e22d16f9b26f995b8fe645c29bbd70b103615ec35a0fcb10a0",
+  "output_shape": [
+    1,
+    48000
+  ],
+  "dtype": "float32",
+  "bitwise_equal": true,
+  "maximum_absolute_difference": 0.0,
+  "limits": [
+    "Bitwise same output on one fixture does not prove identical graph provenance for historical export.",
+    "No listening-quality gate or complete stream is established."
+  ]
+}

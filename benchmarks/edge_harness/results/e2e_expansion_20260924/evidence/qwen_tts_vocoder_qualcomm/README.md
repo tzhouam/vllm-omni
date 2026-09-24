@@ -10,7 +10,22 @@ matched that historical ONNX CPU waveform at **1.89e-6 relative L2** on the
 same fixture, strengthening numerical continuity without proving the
 historical export revision.
 
-On [Galaxy S24](s24/tflite_short_chunk/README.md), the same pinned two-frame TFLite source matched local ONNX CPU at 5.75e-6 relative L2 when requested on CPU, but its GPU-requested output saturated every sample and differed by 24.218 relative L2. The 100-sample CPU component p50/p95 was 3.433/3.873 s for only 0.16 s audio (median RTF 21.46), with all 738 rows on CPU. The mixed CPU/GPU component measured 0.601/0.895 s with 403 CPU and 335 GPU rows, but that timing describes numerically failed audio. A FP32-preserving delegate control remains pending; neither route is a complete S24 TTS stream.
+A [revision-pinned 25-frame export](s25/full_pinned_tflite/README.md) from
+CustomVoice revision `85e237c12c027371202489a0ec509ded67b5e4b5`
+matched its eager decoder at 1.99e-6 relative L2 on the retained synthetic
+fixture and compiled for S25 TFLite. Its GPU-requested inference returned a
+finite unsaturated waveform at 4.239% relative L2 versus local ONNX CPU,
+bitwise identical to the historical target's device output on the same fixture.
+Its own placement profile is still running; the historical target's latency
+is separate evidence.
+
+The same pinned two-frame source [compiled for X Elite QNN](xelite/qnn_short_chunk/README.md)
+and its NPU-requested inference returned an unsaturated waveform at 0.930%
+relative L2 / 40.63 dB SNR versus local ONNX CPU. Its placement profile is
+still running; this is component numerical evidence, not verified NPU node
+placement or complete TTS.
+
+On [Galaxy S24](s24/tflite_short_chunk/README.md), the same pinned two-frame TFLite source matched local ONNX CPU at 5.75e-6 relative L2 when requested on CPU, but its GPU-requested output saturated every sample and differed by 24.218 relative L2. The 100-sample CPU component p50/p95 was 3.433/3.873 s for only 0.16 s audio (median RTF 21.46), with all 738 rows on CPU. The mixed CPU/GPU component measured 0.601/0.895 s with 403 CPU and 335 GPU rows, but that timing describes numerically failed audio. An [FP32-preserving delegate control](s24/tflite_short_chunk_gpu_fp32/audit_report.json) returned the same saturated waveform bitwise, so that option did not fix this artifact. Neither route is a complete S24 TTS stream.
 
 The historical Workbench source model `mqyer339n` is a 423,655,047-byte ONNX graph with one FP32 input `[1,512,97]` and one 48,000-sample output. The [manifest](artifact_manifest.json) pins its SHA256, the retained Workbench fixture dataset `d7m80jl32`, a local ONNX Runtime 1.29 CPU output, compiled target downloads, and the prior [S25 GPU output](s25_reference_output.npz). The source export script identifies the Qwen3-TTS 0.6B CustomVoice model family, but did not attest the exact checkpoint revision; these results must not be promoted to a revision-qualified release claim. Large source/target artifacts and the fixture remain outside Git under `/home/zhout/project/edge_infer/models/`.
 
