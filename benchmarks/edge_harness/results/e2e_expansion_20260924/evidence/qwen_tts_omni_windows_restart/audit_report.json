@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "scope": "one native Windows hybrid TTS cancellation after backend prefill and fresh StageRuntime request",
+  "old_generation": "a8d34f360d81401d81ee9b2da7b2a647",
+  "new_generation": "b620c98d9023499b958178d3c626fd51",
+  "first_server_prefills": 4,
+  "fresh_server_prefills": 1,
+  "fresh_pcm_sha256": "57f60228e2b456f6dfefc7e49df862c7bff6ba7cf39231ef1824f615948a1539",
+  "ledger_cleared": true,
+  "files": {
+    "tts_restart_report.json": {
+      "bytes": 6122,
+      "sha256": "6affe36b168ddcea713ebe1a98a327bd5f0b5eb833626a39235945d509e9af6e"
+    },
+    "tts_restart_server.log": {
+      "bytes": 7387,
+      "sha256": "67253d6dfa6a0a0c368869deb1412c15e00630ce2c05be64e29c82353edaccea"
+    },
+    "tts_restart_server_restart.log": {
+      "bytes": 6562,
+      "sha256": "be940c180220aebc6b25bc4a176167a72624f968c322b305da3cf4124674dc9e"
+    },
+    "tts_restart.wav": {
+      "bytes": 122924,
+      "sha256": "1bb9590f367ab531c66fc20d9b8aed9f0477fde67f2bdbe16e60de5a40b17e27"
+    },
+    "hardware.json": {
+      "bytes": 712,
+      "sha256": "6d211d37d1743fd2de0a43f3ec298ec43510a8bf5f5b4fda09d5df4610092ad6"
+    }
+  },
+  "limits": [
+    "The stage returns a complete WAV, not incremental playable audio.",
+    "A fresh StageRuntime starts after cancellation; no same-session state migration is claimed.",
+    "One recovery case is not concurrency or sustained reliability qualification."
+  ]
+}

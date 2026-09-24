@@ -1,4 +1,4 @@
-# 2026-09-24 Qualcomm component expansion
+# 2026-09-24 E2E and component expansion
 
 A separate [complete Spark 1.7B BF16 WSL CPU run](evidence/spark_bf16_wsl_cpu/README.md)
 now uses both verified upstream weight shards in the fork-branch Omni local text
@@ -26,6 +26,13 @@ confirmed server task start before cancellation on both HX370 CPU and Radeon
 890M Vulkan1, then loaded the same artifact in a fresh Omni stage, returned
 Paris and cleared the ledger without stale output. This is fresh-stage
 recovery, not same-session token continuation.
+
+A [native Windows Qwen3-TTS hybrid restart probe](evidence/qwen_tts_omni_windows_restart/README.md)
+also confirmed backend prefill before cancellation. The worker and host-RAM
+reservation drained; a fresh Omni stage with the same pinned Radeon Vulkan0
+talker/codec and CPU predictor returned the identical 24 kHz PCM under a new
+generation. This adds one recovery case to the earlier 20-request profile,
+without establishing playable streaming or a new latency distribution.
 
 For S25, the historical [25-frame TFLite GPU-requested vocoder](evidence/qwen_tts_vocoder_qualcomm/s25/full_tflite_gpu_profile/README.md)
 has a newly measured 100-sample p50/p95 **0.839/1.157 s** for 2 s of audio,

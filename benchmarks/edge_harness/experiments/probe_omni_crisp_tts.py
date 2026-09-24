@@ -42,11 +42,15 @@ async def main() -> None:
     parser.add_argument("--warmups", type=int, default=1)
     parser.add_argument("--repeats", type=int, default=20)
     parser.add_argument("--abort-check", action="store_true")
+    parser.add_argument("--restart-check", action="store_true",
+                        help="After in-flight cancellation, start a fresh stage and verify audio")
     parser.add_argument("--capacity-gib", type=int, default=16)
     parser.add_argument("--reserve-gib", type=int, default=8)
     args = parser.parse_args()
     if args.warmups < 0 or args.repeats <= 0 or args.reserve_gib <= 0 or args.capacity_gib < args.reserve_gib:
         parser.error("invalid warmup/repeat count or memory budget")
+    if args.restart_check and not args.abort_check:
+        parser.error("--restart-check requires --abort-check")
 
     from vllm_omni.config.stage_config import DeployConfig, StageDeployConfig, merge_pipeline_deploy
     from vllm_omni.engine.stage_runtime import StageRuntime
@@ -149,18 +153,85 @@ async def main() -> None:
         report["nearest_rank_p95_wall_s"] = _rank(walls, 0.95)
         report["all_same_pcm_sha256"] = len({row["pcm_sha256"] for row in report["measured"]}) == 1
         if args.abort_check:
+            def started_tts_prefills() -> int:
+                log = Path(args.server_log).read_text(encoding="utf-8", errors="replace")
+                return log.count("qwen3_tts[customvoice]: prefill role=")
+
+            prefills_before_abort = started_tts_prefills()
             request_id = f"tts-abort-{time.monotonic_ns()}"
             await pool.submit_initial(request_id, state, {"text": second, "voice": "ryan", "seed": 42})
-            await asyncio.sleep(0.01)
+            deadline = time.monotonic() + 10
+            while started_tts_prefills() <= prefills_before_abort:
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("abort request did not reach the owned TTS server")
+                await asyncio.sleep(0.02)
+            premature = pool.poll_graph_output(0)
+            if premature is not None:
+                premature.release_stage_buffers()
+                raise RuntimeError("TTS request completed before in-flight cancellation")
             await pool.abort_requests([request_id])
             await asyncio.sleep(0.1)
+            stale = pool.poll_graph_output(0)
             report["abort_check"] = {
-                "stale_output": pool.poll_graph_output(0) is not None,
+                "prefills_before_abort_request": prefills_before_abort,
+                "prefills_after_abort_request_start": started_tts_prefills(),
+                "stale_output": stale is not None,
                 "worker_exited": pool.stage_client._proc.poll() is not None,
                 "ledger_after_abort": runtime.resource_ledger.snapshot(),
             }
+            if stale is not None:
+                stale.release_stage_buffers()
             if report["abort_check"]["stale_output"] or not report["abort_check"]["worker_exited"]:
                 raise RuntimeError("CrispASR cancellation left stale output or live worker")
+            if args.restart_check:
+                old_generation = report["execution_plan"]["worker_generation"]
+                runtime.shutdown()
+                released = runtime.resource_ledger.snapshot()
+                if released["reserved"]["host_ram"] or released["quarantined"]:
+                    raise RuntimeError("cancelled TTS stage retained a host-RAM reservation")
+                server_log = Path(args.server_log)
+                restart_log = server_log.with_name(
+                    server_log.stem + "_restart" + server_log.suffix
+                )
+                restart_deploy = DeployConfig(
+                    async_chunk=False,
+                    stages=[StageDeployConfig(
+                        stage_id=0,
+                        backend={**backend, "log_file": str(restart_log)},
+                        resource_budget=deploy.stages[0].resource_budget,
+                    )],
+                )
+                restart_configs = [
+                    stage.to_omegaconf()
+                    for stage in merge_pipeline_deploy(pipeline, restart_deploy)
+                ]
+                runtime = StageRuntime(
+                    restart_configs, "local-qwen-tts-crisp-restart", "",
+                    stage_init_timeout=180, async_chunk=False,
+                )
+                restarted_at = time.perf_counter()
+                runtime.initialize()
+                fresh_startup_s = time.perf_counter() - restarted_at
+                pool = runtime.stage_pools[0]
+                state = SimpleNamespace(sampling_params_list=[None])
+                fresh_plan = pool.stage_client.execution_plan
+                if fresh_plan["worker_generation"] == old_generation:
+                    raise RuntimeError("restart reused the cancelled TTS worker generation")
+                restarted = await request_one(first)
+                late = pool.poll_graph_output(0)
+                report["restart_check"] = {
+                    "first_runtime_ledger_after_shutdown": released,
+                    "fresh_startup_s": fresh_startup_s,
+                    "fresh_server_log": str(restart_log),
+                    "fresh_execution_plan": fresh_plan,
+                    "fresh_request": restarted,
+                    "same_pcm_as_before_abort": restarted["pcm_sha256"] == report["checks"][0]["pcm_sha256"],
+                    "late_output": late is not None,
+                }
+                if late is not None:
+                    late.release_stage_buffers()
+                if late is not None or not report["restart_check"]["same_pcm_as_before_abort"]:
+                    raise RuntimeError("fresh TTS stage emitted extra or changed audio")
         report["status"] = "passed"
     except BaseException as exc:
         report["status"] = "failed"
