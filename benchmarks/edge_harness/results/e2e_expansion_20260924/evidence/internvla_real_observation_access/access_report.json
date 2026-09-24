@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-09-24T00:40:50.575177+00:00",
+  "checkpoint_train_config_sha256": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+  "dataset_repo_id": "a2d_real/a2d_pen_holder",
+  "repo_type": "dataset",
+  "huggingface_hub_version": "1.30.0",
+  "authenticated": true,
+  "result": {
+    "status": "inaccessible_or_absent",
+    "http_status": 404,
+    "exception_type": "RepositoryNotFoundError"
+  }
+}

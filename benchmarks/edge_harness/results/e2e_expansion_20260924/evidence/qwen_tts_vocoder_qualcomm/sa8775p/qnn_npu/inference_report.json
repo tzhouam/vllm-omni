@@ -1,0 +1,31 @@
+{
+  "timestamp_utc": "2026-09-24T00:41:44.947819+00:00",
+  "qai_hub_version": "0.55.0",
+  "facility": "Qualcomm AI Hub Workbench",
+  "job_id": "jp2rwemxg",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jp2rwemxg/",
+  "status": "FAILED",
+  "status_message": "Failed to fully run the model, failed after compiling.",
+  "options": "--compute_unit npu",
+  "hub_version": "aihub-2026.09.11.0",
+  "device": {
+    "name": "SA8775P ADP",
+    "os": "14",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-android",
+      "format:auto",
+      "chipset:qualcomm-sa8775p",
+      "hexagon:v73",
+      "soc-model:52",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "model_id": "mqvovl9lm",
+  "input_dataset_id": "d7m80jl32"
+}
