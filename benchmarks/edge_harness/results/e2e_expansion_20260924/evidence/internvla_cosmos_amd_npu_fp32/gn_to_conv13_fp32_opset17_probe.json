@@ -1,0 +1,75 @@
+{
+  "scope": "real-weight Cosmos Sigmoid+Mul+Conv subgraph with CPU-produced activation; no full encoder or policy claim",
+  "source_sha256": "fee79864e393df35475ba243e14b4995c5651aa33e7e182cd1fda726425668b7",
+  "weights_sha256": "b9bc3411c10f05daec2ff977698ee100979ef756ed7f0d685275403517558b58",
+  "source_fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "prefix148_sha256": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+  "prefix151_sha256": "f28908b7fdd8b04574f66880837f23059bad7dfd63403d8482d5d6a0c0c6efe2",
+  "candidate_sha256": "86b3f2773d49303f1272705d4e322be147c42dd785772216998bf01693473f15",
+  "candidate_bytes": 1181338,
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "boundary_fixtures_bytes": 6668907,
+  "boundary_shapes": {
+    "ramp": {
+      "output_finite": true,
+      "output_shape": [
+        6,
+        256,
+        64,
+        64
+      ],
+      "relative_l2_vs_source_prefix151": 0.0
+    },
+    "pattern": {
+      "output_finite": true,
+      "output_shape": [
+        6,
+        256,
+        64,
+        64
+      ],
+      "relative_l2_vs_source_prefix151": 0.0
+    }
+  },
+  "extracted_ops": [
+    "Sigmoid",
+    "Mul",
+    "Conv"
+  ],
+  "fp32_boundary_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "quantization": "FP32, converted to opset 17",
+  "candidate_cpu_parity_vs_fp32": {
+    "ramp": 0.0,
+    "pattern": 0.0
+  },
+  "hardware": "Ryzen AI 9 HX 370 AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "status": "component_not_qualified",
+  "cpu_output_shape": [
+    6,
+    256,
+    64,
+    64
+  ],
+  "cpu_output_finite": true,
+  "npu_devices": 1,
+  "session_create_s": 43.852786600007676,
+  "inference_wall_s": 0.023478700080886483,
+  "relative_l2_vs_cpu": 0.0,
+  "max_abs_vs_cpu": 0.0,
+  "cpu_range": [
+    -9.91190242767334,
+    8.00805950164795
+  ],
+  "vitisai_range": [
+    -9.91190242767334,
+    8.00805950164795
+  ],
+  "cosine_vs_cpu": 0.9999999999999976,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260924\\evidence\\internvla_cosmos_amd_npu_fp32\\gn_to_conv13_fp32_opset17_profile_2026-09-24_21-00-16_037.json",
+  "node_providers": {
+    "CPUExecutionProvider": 4
+  },
+  "metadata_note": "candidate_bytes corrected from preparation source size using pinned candidate report; raw log and placement profile unchanged"
+}

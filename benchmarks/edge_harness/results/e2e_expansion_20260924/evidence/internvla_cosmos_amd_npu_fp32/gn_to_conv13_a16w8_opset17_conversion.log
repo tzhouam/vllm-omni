@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\experiments\convert_internvla_boundary_opset.py", line 73, in <module>
+    main()
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\experiments\convert_internvla_boundary_opset.py", line 40, in main
+    converted = onnx.version_converter.convert_version(original, args.target_opset)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zhout\npu-ep\Lib\site-packages\onnx\version_converter.py", line 39, in convert_version
+    converted_model_str = C.convert_version(model_str, target_version)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: D:\a\onnx\onnx\onnx/version_converter/adapters/type_restriction.h:56: isUnallowed: Assertion `std::find(std::begin(unallowed_types_), std::end(unallowed_types_), val->elemType()) == std::end(unallowed_types_)` failed: DataType (4) of Input or Output of operator 'QuantizeLinear' is unallowed for Opset Version 20.

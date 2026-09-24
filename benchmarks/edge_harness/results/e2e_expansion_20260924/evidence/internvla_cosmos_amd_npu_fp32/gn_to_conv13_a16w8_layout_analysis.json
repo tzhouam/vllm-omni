@@ -1,0 +1,30 @@
+{
+  "scope": "single paired real-weight convolution output; simple layout hypotheses only",
+  "paired_sha256": "c108accf75ac895dccfc873e626c6de14c93a8f45855949e9be5ef67be6e89f7",
+  "candidate_metrics": {
+    "identity": {
+      "relative_l2": 4.494765456253061,
+      "cosine": -0.00331672802733914
+    },
+    "nhwc_memory_interpretation": {
+      "relative_l2": 4.531619325168173,
+      "cosine": -0.04130172056339865
+    },
+    "height_width_swap": {
+      "relative_l2": 4.495061277414923,
+      "cosine": -0.0036203936824631016
+    },
+    "reverse_channels": {
+      "relative_l2": 4.524243013320393,
+      "cosine": -0.033674185779941156
+    },
+    "channel_block16_transpose": {
+      "relative_l2": 4.524895974423075,
+      "cosine": -0.03434888418769409
+    },
+    "channel_block32_transpose": {
+      "relative_l2": 4.527574927683393,
+      "cosine": -0.03711803997995965
+    }
+  }
+}

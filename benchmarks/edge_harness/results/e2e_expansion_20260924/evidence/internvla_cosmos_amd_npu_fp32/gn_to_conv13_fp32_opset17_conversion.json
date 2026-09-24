@@ -1,0 +1,30 @@
+{
+  "scope": "isolated real-weight Cosmos stage opset compatibility candidate; no full encoder or policy claim",
+  "source_candidate_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "source_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "candidate_sha256": "86b3f2773d49303f1272705d4e322be147c42dd785772216998bf01693473f15",
+  "candidate_bytes": 1181338,
+  "source_opset": [
+    [
+      "",
+      21
+    ]
+  ],
+  "target_opset": [
+    [
+      "",
+      17
+    ]
+  ],
+  "quantization": "FP32, converted to opset 17",
+  "relative_l2_vs_original_cpu": {
+    "ramp": 0.0,
+    "pattern": 0.0
+  },
+  "relative_l2_vs_fp32_cpu": {
+    "ramp": 0.0,
+    "pattern": 0.0
+  },
+  "status": "cpu_conversion_pass"
+}

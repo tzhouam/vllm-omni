@@ -1,0 +1,39 @@
+{
+  "scope": "real-weight Cosmos Sigmoid+Mul+Conv subgraph with CPU-produced activation; no full encoder or policy claim",
+  "source_sha256": "fee79864e393df35475ba243e14b4995c5651aa33e7e182cd1fda726425668b7",
+  "weights_sha256": "b9bc3411c10f05daec2ff977698ee100979ef756ed7f0d685275403517558b58",
+  "source_fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "prefix148_sha256": "07d1a1fcf33c6731a5c2cc3c629b31f8ba32ae58ed939fae5254fb935c4e5b62",
+  "prefix151_sha256": "f28908b7fdd8b04574f66880837f23059bad7dfd63403d8482d5d6a0c0c6efe2",
+  "candidate_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "candidate_bytes": 1186964,
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "boundary_fixtures_bytes": 6668907,
+  "boundary_shapes": {
+    "ramp": {
+      "output_finite": true,
+      "output_shape": [
+        6,
+        256,
+        64,
+        64
+      ],
+      "relative_l2_vs_source_prefix151": 0.0
+    },
+    "pattern": {
+      "output_finite": true,
+      "output_shape": [
+        6,
+        256,
+        64,
+        64
+      ],
+      "relative_l2_vs_source_prefix151": 0.0
+    }
+  },
+  "extracted_ops": [
+    "Sigmoid",
+    "Mul",
+    "Conv"
+  ]
+}
