@@ -1,0 +1,11 @@
+{
+  "captured_local": "2026-09-25T00:29:27",
+  "os_caption": "Microsoft Windows 11 家庭版 中文版",
+  "os_build": "26200",
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M           ",
+  "npu_device": "NPU Compute Accelerator Device",
+  "npu_driver_version": "32.0.203.329",
+  "vitisai_package": "WindowsWorkload.EP.AMD.VitisAI.Framework.1.8",
+  "vitisai_package_version": "1.8.63.0",
+  "power_condition": "not controlled or sampled for this component experiment"
+}

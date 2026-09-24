@@ -1,0 +1,43 @@
+{
+  "scope": "one real MiniCPM-o speech-token projection on HX370 AMD NPU; CPU retains speech state; not E2E",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "candidate_sha256": "ca4f9a95af4933363e05da5391681a6dabfbeb5e123bc6fb1ad3875df675118e",
+  "activation_sha256": "2304a867cfb9d232212a93a046cd8e789438a6085eeffec0480ebdd28cc00309",
+  "status": "component_npu_numeric_pass",
+  "npu_session_create_s": 1.5400195999536663,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_projection\\npu_profile_2026-09-25_00-22-28_853.json",
+  "node_providers": {
+    "CPUExecutionProvider": 63,
+    "vitisai": 21
+  },
+  "warmup": 1,
+  "samples_ms": [
+    0.3112000413239002,
+    0.31889998354017735,
+    0.3197999903932214,
+    0.3205999964848161,
+    0.3223000094294548,
+    0.328300055116415,
+    0.3293000627309084,
+    0.33829989843070507,
+    0.34170004073530436,
+    0.3499999875202775,
+    0.3525000065565109,
+    0.358999939635396,
+    0.36129995714873075,
+    0.3648001002147794,
+    0.36720000207424164,
+    0.3845000173896551,
+    0.38620003033429384,
+    0.3980000037699938,
+    0.40959997568279505,
+    0.5524000152945518
+  ],
+  "npu_step_p50_ms": 0.3499999875202775,
+  "npu_step_p95_ms": 0.40959997568279505,
+  "npu_vs_candidate_cpu_relative_l2": 5.650527938200968e-06,
+  "npu_vs_fp32_relative_l2": 0.008609564297824904,
+  "npu_top1": 1867,
+  "cpu_top1": 1867
+}

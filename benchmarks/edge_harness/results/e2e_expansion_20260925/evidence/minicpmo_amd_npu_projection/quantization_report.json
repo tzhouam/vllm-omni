@@ -1,0 +1,13 @@
+{
+  "scope": "single-fixture A16W8 speech-token projection candidate; not representative calibration or E2E",
+  "source_projection_sha256": "c81c2cdd5ca4af4e4ca398baf83a685518a42b649ebc26cd198d3d85a0799f70",
+  "activation_sha256": "2304a867cfb9d232212a93a046cd8e789438a6085eeffec0480ebdd28cc00309",
+  "candidate_sha256": "ca4f9a95af4933363e05da5391681a6dabfbeb5e123bc6fb1ad3875df675118e",
+  "candidate_bytes": 5073759,
+  "onnxruntime": "1.30.0",
+  "quantization_s": 0.5505822999402881,
+  "calibration": "one captured normalized real-model activation, MinMax per-channel A16W8 QDQ",
+  "cpu_relative_l2_from_fp32": 0.00860954315310854,
+  "cpu_top1": 1867,
+  "status": "cpu_candidate_numeric_pass"
+}
