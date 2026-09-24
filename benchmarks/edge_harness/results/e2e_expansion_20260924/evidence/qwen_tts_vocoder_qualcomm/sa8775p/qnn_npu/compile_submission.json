@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-09-24T00:07:58.387288+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "qai_hub_version": "0.55.0",
+  "source_model_id": "mqyer339n",
+  "device": "SA8775P ADP",
+  "options": "--target_runtime qnn_dlc --qnn_options default_graph_htp_precision=FLOAT16",
+  "kind": "compile",
+  "status": "SUBMITTED",
+  "job_id": "jgjr7q21p",
+  "url": "https://workbench.aihub.qualcomm.com/jobs/jgjr7q21p/"
+}
