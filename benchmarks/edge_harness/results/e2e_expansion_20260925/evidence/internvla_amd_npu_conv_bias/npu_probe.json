@@ -1,0 +1,63 @@
+{
+  "scope": "real Cosmos Sigmoid+Mul+Conv13 with unchanged FP32 bias moved to a following Add; component only",
+  "source_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "candidate_sha256": "c2aa9f48280922a3f2a3903e1b98af2a66d967f0da819136191288695b1f1528",
+  "candidate_bytes": 304936,
+  "rewritten_ops": [
+    "Sigmoid",
+    "Mul",
+    "Conv",
+    "Add"
+  ],
+  "cpu_parity_vs_source": {
+    "ramp": {
+      "relative_l2": 0.0,
+      "max_absolute_error": 0.0,
+      "finite": true
+    },
+    "pattern": {
+      "relative_l2": 0.0,
+      "max_absolute_error": 0.0,
+      "finite": true
+    }
+  },
+  "onnxruntime": "1.30.0",
+  "status": "component_not_qualified",
+  "fp32_boundary_sha256": "df075b7db1f2c4121883ba3e0306fb9edca58dcfa2d2f684ce713118ebfbd3c2",
+  "quantization": "A16W8 Conv13 QDQ per-channel, two pinned real activations MinMax",
+  "candidate_cpu_parity_vs_fp32": {
+    "ramp": 0.00619468988507782,
+    "pattern": 0.005285996434429179
+  },
+  "hardware": "Ryzen AI 9 HX 370 AMD NPU",
+  "os": "Windows-11-10.0.26200-SP0",
+  "cpu_output_shape": [
+    6,
+    256,
+    64,
+    64
+  ],
+  "cpu_output_finite": true,
+  "npu_devices": 1,
+  "session_create_s": 1.5357332000276074,
+  "inference_wall_s": 0.02902909996919334,
+  "relative_l2_vs_cpu": 2.3108258428538,
+  "max_abs_vs_cpu": 16.35658884048462,
+  "cpu_range": [
+    -9.899604797363281,
+    8.001847267150879
+  ],
+  "vitisai_range": [
+    -10.357175827026367,
+    8.060827255249023
+  ],
+  "cosine_vs_cpu": 0.034507920850509355,
+  "paired_sha256": "d37be92df3189fdb2733bfbb5863224bacf4542bd2f967b9c177e3b2025fbe3d",
+  "paired_bytes": 2202984,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_amd_npu_conv_bias\\profile_2026-09-25_00-34-44_950.json",
+  "node_providers": {
+    "CPUExecutionProvider": 4,
+    "vitisai": 1
+  }
+}

@@ -1,0 +1,2 @@
+*.json binary -eol
+*.log binary -eol

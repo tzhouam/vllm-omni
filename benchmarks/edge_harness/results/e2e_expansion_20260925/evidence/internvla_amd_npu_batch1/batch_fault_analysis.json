@@ -1,0 +1,92 @@
+{
+  "scope": "batch-index diagnosis on pinned six-frame real-weight Cosmos Conv13 candidate outputs; not full encoder",
+  "fixture_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "pattern_input_frames_equal_to_first": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "ramp_input_frames_equal_to_first": [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "original_bias_inside_qdq": {
+    "paired_sha256": "c108accf75ac895dccfc873e626c6de14c93a8f45855949e9be5ef67be6e89f7",
+    "frame_relative_l2": [
+      1.1144980537498214e-05,
+      4.92376886216706,
+      4.92376886216706,
+      4.92376886216706,
+      4.92376886216706,
+      4.92376886216706
+    ],
+    "frame_cosine": [
+      0.999999999937895,
+      -0.04552664069231971,
+      -0.04552664069231971,
+      -0.04552664069231971,
+      -0.04552664069231971,
+      -0.04552664069231971
+    ],
+    "npu_frame_std": [
+      2.1470045895034486,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "cpu_frames_equal_to_first": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "npu_frames_1_to_5_identical": true
+  },
+  "rewritten_bias_outside_qdq": {
+    "paired_sha256": "d37be92df3189fdb2733bfbb5863224bacf4542bd2f967b9c177e3b2025fbe3d",
+    "frame_relative_l2": [
+      1.027170016207619e-05,
+      2.531382881189669,
+      2.531382881189669,
+      2.531382881189669,
+      2.531382881189669,
+      2.531382881189669
+    ],
+    "frame_cosine": [
+      0.9999999999472857,
+      -0.049322965794367554,
+      -0.049322965794367554,
+      -0.049322965794367554,
+      -0.049322965794367554,
+      -0.049322965794367554
+    ],
+    "npu_frame_std": [
+      2.1469960029585526,
+      4.814057271315535,
+      4.814057271315535,
+      4.814057271315535,
+      4.814057271315535,
+      4.814057271315535
+    ],
+    "cpu_frames_equal_to_first": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "npu_frames_1_to_5_identical": true
+  }
+}

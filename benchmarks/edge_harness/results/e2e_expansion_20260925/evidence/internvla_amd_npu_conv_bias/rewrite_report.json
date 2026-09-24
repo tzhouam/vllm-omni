@@ -1,0 +1,27 @@
+{
+  "scope": "real Cosmos Sigmoid+Mul+Conv13 with unchanged FP32 bias moved to a following Add; component only",
+  "source_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "candidate_sha256": "df075b7db1f2c4121883ba3e0306fb9edca58dcfa2d2f684ce713118ebfbd3c2",
+  "candidate_bytes": 1187000,
+  "rewritten_ops": [
+    "Sigmoid",
+    "Mul",
+    "Conv",
+    "Add"
+  ],
+  "cpu_parity_vs_source": {
+    "ramp": {
+      "relative_l2": 0.0,
+      "max_absolute_error": 0.0,
+      "finite": true
+    },
+    "pattern": {
+      "relative_l2": 0.0,
+      "max_absolute_error": 0.0,
+      "finite": true
+    }
+  },
+  "onnxruntime": "1.29.0",
+  "status": "cpu_rewrite_pass"
+}

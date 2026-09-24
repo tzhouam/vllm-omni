@@ -1,0 +1,28 @@
+{
+  "scope": "real Cosmos encoder CPU suffix with one HX370 NPU Conv13 output injected; synthetic six-frame fixtures, no full policy",
+  "source_sha256": "fee79864e393df35475ba243e14b4995c5651aa33e7e182cd1fda726425668b7",
+  "weights_sha256": "b9bc3411c10f05daec2ff977698ee100979ef756ed7f0d685275403517558b58",
+  "fixtures_sha256": "dcbaf1391ca914d4bbccc1cb384daf05666e771d9cdae90c4f069ec8fcf05368",
+  "npu_boundary_sha256": "64a77fa5c20d55b103b8b08134f137ee8f42bdc18452214da00609b69e374e66",
+  "suffix_sha256": "d26ac3c3784b0dee09b1e205e3806418f7f3cd40e74ad8ff9a8c12bfd75285d4",
+  "suffix_bytes": 123912650,
+  "latent_output_sha256": "d63ea16b124fde1196d7eb28fe63b653841a96d3c900c3facf4c69127f23556c",
+  "onnxruntime": "1.29.0",
+  "metrics": {
+    "ramp": {
+      "cpu_suffix_vs_full_relative_l2": 0.0,
+      "npu_boundary_vs_cpu_boundary_relative_l2": 0.00619477346086289,
+      "npu_injected_latent_vs_full_relative_l2": 0.00806997182316329,
+      "npu_injected_latent_cosine": 0.999967452557098,
+      "cpu_suffix_one_inference_s": 0.5542921900050715
+    },
+    "pattern": {
+      "cpu_suffix_vs_full_relative_l2": 0.0,
+      "npu_boundary_vs_cpu_boundary_relative_l2": 0.005287110180949109,
+      "npu_injected_latent_vs_full_relative_l2": 0.005618756723447192,
+      "npu_injected_latent_cosine": 0.9999842432228522,
+      "cpu_suffix_one_inference_s": 0.5260075890109874
+    }
+  },
+  "status": "encoder_suffix_numeric_reported"
+}

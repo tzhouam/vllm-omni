@@ -1,0 +1,32 @@
+{
+  "scope": "HX370 AMD NPU Conv13 boundary latent injected into real local CPU InternVLA policy; synthetic input and zero noise only",
+  "status": "synthetic_action_sensitivity_measured",
+  "policy_checkpoint_sha256": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+  "latent_output_sha256": "d63ea16b124fde1196d7eb28fe63b653841a96d3c900c3facf4c69127f23556c",
+  "policy_torch": "2.13.0+cpu",
+  "policy_vllm": "0.28.0",
+  "policy_transformers": "5.14.1",
+  "loaded_omni_path": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/__init__.py",
+  "policy_load_seconds_not_request_timing": 30.610854450962506,
+  "encoder_calls": {
+    "source": 2,
+    "npu": 1
+  },
+  "action_shape": [
+    1,
+    50,
+    32
+  ],
+  "source_repeat_bitwise_equal": true,
+  "action_relative_l2": 0.008759983021653308,
+  "action_max_abs": 0.01038581132888794,
+  "action_cosine": 0.999973376550915,
+  "source_actions_sha256": "83affda45d5e395a578bea4b09974aadc96289d711f3867bb1c1b0cb5b5717f3",
+  "npu_actions_sha256": "50dcff4579d669c3a81855a0fef99edb573c75731d34d6649ed8f1479f43a049",
+  "limits": [
+    "The policy and encoder suffix ran on CPU; only the isolated Conv13 boundary ran on AMD NPU.",
+    "The NPU boundary came from a retained synthetic pattern, not the live policy input.",
+    "No real-observation reference actions or physical units/time/task tolerance exist.",
+    "No complete-request latency, admission, cancellation or sustained power gate was tested."
+  ]
+}

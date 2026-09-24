@@ -1,0 +1,22 @@
+/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/version.py:55: RuntimeWarning: vLLM and vLLM-Omni appear to have mismatched major/minor versions:
+ --> vLLM-Omni version 0.29.0rc2.dev71+g00510ce38.d20260922
+ --> vLLM version 0.28.0
+This will likely cause compatibility issues.
+  warn_if_misaligned_vllm_version()
+W0925 00:46:19.357000 3046357 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 00:46:19.381000 3046357 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+INFO 09-25 00:46:20 [importing.py:53] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+WARNING 09-25 00:46:20 [importing.py:65] Triton is installed, but doesn't include CPU backend. Disabling Triton.
+INFO 09-25 00:46:20 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+INFO 09-25 00:46:21 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 00:46:21 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 00:46:21 [patch.py:646] CPU AOT compile-cache load shim installed: compiled models are reused across engine starts instead of being recompiled.
+INFO 09-25 00:46:22 [patch.py:756] CPU weight-load memory release installed (set VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable).
+INFO 09-25 00:46:25 [pipeline_internvla_a1.py:164] Loading InternVLA-A1 weights from /home/zhout/project/edge_infer/models/InternVLA-A1-3B-FT-Place_Markpen
+{
+  "status": "synthetic_action_sensitivity_measured",
+  "action_relative_l2": 0.008759983021653308,
+  "action_max_abs": 0.01038581132888794,
+  "action_cosine": 0.999973376550915,
+  "source_repeat_bitwise_equal": true
+}

@@ -1,0 +1,13 @@
+{
+  "scope": "real-weight Cosmos activation-to-convolution subgraph QDQ candidate; no full encoder or policy claim",
+  "source_sha256": "df075b7db1f2c4121883ba3e0306fb9edca58dcfa2d2f684ce713118ebfbd3c2",
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "candidate_sha256": "c2aa9f48280922a3f2a3903e1b98af2a66d967f0da819136191288695b1f1528",
+  "candidate_bytes": 304936,
+  "quantization": "A16W8 Conv13 QDQ per-channel, two pinned real activations MinMax",
+  "relative_l2_vs_fp32_cpu": {
+    "ramp": 0.00619468988507782,
+    "pattern": 0.005285996434429179
+  },
+  "status": "cpu_candidate_numeric_pass"
+}

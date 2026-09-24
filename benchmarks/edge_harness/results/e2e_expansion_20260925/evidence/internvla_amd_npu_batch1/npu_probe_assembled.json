@@ -1,0 +1,93 @@
+{
+  "scope": "real Cosmos Conv13 six-frame boundary through six batch-one AMD NPU calls; not full encoder or policy",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "source_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "batch1_fp32_sha256": "ced07f35fa68a909693c3049cd5e399c5aaf37acc75045442ccbf540a76dc89e",
+  "candidate_sha256": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "status": "component_npu_numeric_pass",
+  "npu_session_create_s": 1.5309084999607876,
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_amd_npu_batch1\\profile_assembled_2026-09-25_00-42-15_911.json",
+  "node_providers": {
+    "CPUExecutionProvider": 57,
+    "vitisai": 19
+  },
+  "warmup": 1,
+  "measured_frames": 12,
+  "frame_wall_ms": [
+    1.73329992685467,
+    1.826800056733191,
+    1.8437000690028071,
+    1.844199956394732,
+    2.4142999900504947,
+    2.440500073134899,
+    2.459899988025427,
+    2.473499975167215,
+    2.5586000410839915,
+    3.1177999917417765,
+    13.568200054578483,
+    24.520000093616545
+  ],
+  "frame_wall_p50_ms": 2.440500073134899,
+  "frame_wall_p95_ms": 24.520000093616545,
+  "six_frame_sequential_npu_sum_ms": {
+    "ramp": 37.52470016479492,
+    "pattern": 23.27610005158931
+  },
+  "repeated_pattern_requests": 1,
+  "repeated_pattern_cpu_batch6_wall_ms": [
+    30.03519994672388
+  ],
+  "repeated_pattern_npu_six_batch1_wall_ms": [
+    28.92389998305589
+  ],
+  "repeated_pattern_cpu_p50_p95_ms": [
+    30.03519994672388,
+    30.03519994672388
+  ],
+  "repeated_pattern_npu_p50_p95_ms": [
+    28.92389998305589,
+    28.92389998305589
+  ],
+  "npu_vs_qdq_cpu_relative_l2": {
+    "ramp": [
+      1.7208468628428403e-05,
+      1.5391576909074436e-05,
+      1.1140793657032935e-05,
+      1.0595611489141572e-05,
+      1.486900226609181e-05,
+      1.7135898236886697e-05
+    ],
+    "pattern": [
+      1.1144980537498214e-05,
+      1.1144980537498214e-05,
+      1.1144980537498214e-05,
+      1.1144980537498214e-05,
+      1.1144980537498214e-05,
+      1.1144980537498214e-05
+    ]
+  },
+  "npu_vs_fp32_batch6_relative_l2": {
+    "ramp": [
+      0.0075357101469731725,
+      0.006169535752346208,
+      0.004439727471721409,
+      0.0046553524770502185,
+      0.007210362986603414,
+      0.009492298158490571
+    ],
+    "pattern": [
+      0.005287110180949138,
+      0.005287110180949138,
+      0.005287110180949138,
+      0.005287110180949138,
+      0.005287110180949138,
+      0.005287110180949138
+    ]
+  },
+  "max_npu_vs_qdq_cpu_relative_l2": 1.7208468628428403e-05,
+  "max_npu_vs_fp32_batch6_relative_l2": 0.009492298158490571,
+  "assembled_outputs_sha256": "64a77fa5c20d55b103b8b08134f137ee8f42bdc18452214da00609b69e374e66",
+  "assembled_outputs_bytes": 21261706
+}

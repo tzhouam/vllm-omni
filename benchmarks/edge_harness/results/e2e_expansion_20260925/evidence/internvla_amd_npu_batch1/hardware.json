@@ -1,0 +1,9 @@
+{
+  "captured_local": "2026-09-25T00:41:17",
+  "os_build": "26200",
+  "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+  "npu_device": "NPU Compute Accelerator Device",
+  "npu_driver_version": "32.0.203.329",
+  "vitisai_package_version": "1.8.63.0",
+  "power_condition": "not controlled or sampled"
+}

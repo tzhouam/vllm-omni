@@ -1,0 +1,10 @@
+{
+  "scope": "first local CPU policy action-sensitivity attempt; environment import failure before model load",
+  "status": "failed_before_policy_load",
+  "python": "/home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python",
+  "working_directory": "/home/zhout/project/edge_infer/vllm-omni-edge",
+  "pythonpath_override": null,
+  "imported_omni_source": "/home/zhout/project/edge_infer/vllm-omni",
+  "error": "ImportError: cannot import name check_model_inputs from transformers.models.qwen3_vl.modeling_qwen3_vl; InternVLAA1Pipeline was absent from the diffusion registry",
+  "resolution": "Reran with PYTHONPATH set to the current vllm-omni-edge checkout; policy load and action-sensitivity probe completed. The reproducer now rejects a different imported Omni checkout."
+}

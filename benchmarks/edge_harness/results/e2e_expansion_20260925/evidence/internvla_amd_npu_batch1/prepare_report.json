@@ -1,0 +1,35 @@
+{
+  "scope": "real Cosmos Sigmoid+Mul+Conv13 rebatch from six to one; CPU parity only",
+  "source_sha256": "ff2ebad2c59a472b561536fa49cdd8bc43cf8e7bcf000a8ff4420f8e3a4766c8",
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "candidate_sha256": "ced07f35fa68a909693c3049cd5e399c5aaf37acc75045442ccbf540a76dc89e",
+  "candidate_bytes": 1186964,
+  "batch_dim_changed_for": [
+    "group_norm",
+    "conv2d_13",
+    "group_norm",
+    "sigmoid",
+    "mul_2",
+    "conv2d_13"
+  ],
+  "onnxruntime": "1.29.0",
+  "cpu_batch1_vs_batch6_relative_l2": {
+    "ramp": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "pattern": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "status": "cpu_rebatch_pass"
+}

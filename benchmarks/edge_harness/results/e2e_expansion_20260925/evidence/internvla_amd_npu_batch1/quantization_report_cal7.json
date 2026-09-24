@@ -1,0 +1,37 @@
+{
+  "scope": "real Cosmos Conv13 batch-one A16W8 QDQ on seven synthetic calibration frames; component only",
+  "source_sha256": "ced07f35fa68a909693c3049cd5e399c5aaf37acc75045442ccbf540a76dc89e",
+  "boundary_fixtures_sha256": "7bca8b4dcafa0ab0d45387e95a4d3e844f04f296f9253a4d4ac54ab5682d068c",
+  "candidate_sha256": "2ae37f405cb7cb469f01d7022c0e789650e486d81279713715d0e9808af15f67",
+  "candidate_bytes": 307187,
+  "onnxruntime": "1.30.0",
+  "quantization_s": 0.13658859999850392,
+  "calibration_frames": [
+    "ramp:0",
+    "ramp:1",
+    "ramp:2",
+    "ramp:3",
+    "ramp:4",
+    "ramp:5",
+    "pattern:0"
+  ],
+  "cpu_qdq_vs_fp32_relative_l2": {
+    "ramp": [
+      0.0075356796480839,
+      0.006169500391868212,
+      0.004439731020724899,
+      0.004655395943311174,
+      0.007210363463150362,
+      0.009492351880442397
+    ],
+    "pattern": [
+      0.005286484248436912,
+      0.005286484248436912,
+      0.005286484248436912,
+      0.005286484248436912,
+      0.005286484248436912,
+      0.005286484248436912
+    ]
+  },
+  "status": "cpu_candidate_numeric_pass"
+}
