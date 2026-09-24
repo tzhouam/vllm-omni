@@ -1,0 +1,21 @@
+{
+  "scope": "analytical ONNX ReferenceEvaluator attempt for the BF16 resampler; not an execution-equivalent backend",
+  "model_sha256": "7c0ba0e1aa07a167be0daf2b61602a181e456ec5954a9aa58acceccf7f6b3977",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "torch_reference_sha256": "4b763c2ac080b75c60da22a0a819fed09ffedcbeb350065d831603b39de84bd1",
+  "npu_output_sha256": "d8286f2a5da27767f20944bbd9a7cb9fdb71ebefd9772b9c20d6b83843ca245a",
+  "onnx": "1.22.0",
+  "matmul_reference_override": "FP32 accumulation rounded to declared BF16 output",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "evaluator_load_s": 0.25514084903988987,
+  "cases": {
+    "red": {
+      "reference_evaluator_s": 3.4944125700276345,
+      "onnx_vs_torch_bf16_relative_l2": 0.7194609087311796,
+      "npu_vs_onnx_relative_l2": 0.47244981462367713,
+      "npu_vs_torch_bf16_relative_l2": 0.035158419230055075
+    }
+  },
+  "peak_process_rss_kib": 607476,
+  "status": "reference_evaluator_unqualified"
+}

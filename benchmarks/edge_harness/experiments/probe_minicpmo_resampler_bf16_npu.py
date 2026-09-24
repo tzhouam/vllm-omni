@@ -90,9 +90,10 @@ def export(args: argparse.Namespace) -> None:
     del state
 
     class FixedResampler(torch.nn.Module):
-        def __init__(self, module):
+        def __init__(self, module, trace):
             super().__init__()
             self.module = module
+            self.trace = trace
             self.register_buffer("key_padding_mask", torch.zeros((1, 1024), dtype=torch.bool))
 
         def forward(self, hidden):
@@ -100,7 +101,19 @@ def export(args: argparse.Namespace) -> None:
             # Its dynamic pad_sequence has no ONNX symbolic despite no padding
             # being needed at this fixed 1024-patch bucket.
             module = self.module
-            keys = module.ln_kv(module.kv_proj(hidden)).permute(1, 0, 2)
+            if not self.trace:
+                # Keep the original export path byte-for-byte reproducible.
+                keys = module.ln_kv(module.kv_proj(hidden)).permute(1, 0, 2)
+                query = module.ln_q(module.query).unsqueeze(1)
+                position = module.pos_embed[:32, :32, :].reshape(1024, -1)
+                position = position.to(hidden.dtype).unsqueeze(1)
+                attended = module.attn(
+                    query, keys + position, keys,
+                    key_padding_mask=self.key_padding_mask,
+                )[0]
+                return module.ln_post(attended.permute(1, 0, 2)) @ module.proj
+            projected = module.kv_proj(hidden)
+            keys = module.ln_kv(projected).permute(1, 0, 2)
             query = module.ln_q(module.query).unsqueeze(1)
             position = module.pos_embed[:32, :32, :].reshape(1024, -1)
             position = position.to(hidden.dtype).unsqueeze(1)
@@ -108,9 +121,15 @@ def export(args: argparse.Namespace) -> None:
                 query, keys + position, keys,
                 key_padding_mask=self.key_padding_mask,
             )[0]
-            return module.ln_post(attended.permute(1, 0, 2)) @ module.proj
+            attended = attended.permute(1, 0, 2)
+            postnorm = module.ln_post(attended)
+            embedding = postnorm @ module.proj
+            if self.trace:
+                return projected, keys.permute(1, 0, 2), attended, postnorm, embedding
+            return embedding
 
-    fixed = FixedResampler(resampler).eval()
+    fixed = FixedResampler(resampler, args.trace).eval()
+    output_names = ("projected", "keys", "attended", "postnorm", "embedding") if args.trace else ("embedding",)
     normalized = {}
     references = {}
     with np.load(args.late27_reference, allow_pickle=False) as source:
@@ -123,12 +142,16 @@ def export(args: argparse.Namespace) -> None:
                 hidden = postnorm(torch.from_numpy(full).to(torch.bfloat16))
                 output = fixed(hidden)
                 source_output = resampler(hidden, torch.tensor([[32, 32]], dtype=torch.long))
-                if not torch.equal(output, source_output):
+                final_output = output[-1] if args.trace else output
+                if not torch.equal(final_output, source_output):
                     raise ValueError(f"fixed-shape wrapper changed {name} BF16 resampler output")
                 normalized[name] = np.ascontiguousarray(hidden.float().numpy())
-                references[name] = np.ascontiguousarray(output.float().numpy())
-    if any(value.shape != (1, 64, config["hidden_size"]) or not np.isfinite(value).all()
-           for value in references.values()):
+                references[name] = np.ascontiguousarray(final_output.float().numpy())
+                if args.trace:
+                    for stage, tensor in zip(output_names, output):
+                        references[name + "_" + stage] = np.ascontiguousarray(tensor.float().numpy())
+    if any(references[name].shape != (1, 64, config["hidden_size"])
+           or not np.isfinite(references[name]).all() for name in CASES):
         raise ValueError("BF16 resampler reference contract failed")
 
     args.inputs.parent.mkdir(parents=True, exist_ok=True)
@@ -141,25 +164,30 @@ def export(args: argparse.Namespace) -> None:
         torch.onnx.export(
             fixed, (torch.from_numpy(normalized["red"]).to(torch.bfloat16),),
             str(args.direct_output), input_names=["hidden_bf16"],
-            output_names=["embedding_bf16"], opset_version=17,
+            output_names=[stage + "_bf16" for stage in output_names], opset_version=17,
             dynamo=False, do_constant_folding=True,
         )
     export_s = time.perf_counter() - started
     graph = onnx.load(args.direct_output)
     onnx.checker.check_model(graph)
     if (graph.graph.input[0].type.tensor_type.elem_type != TensorProto.BFLOAT16
-            or graph.graph.output[0].type.tensor_type.elem_type != TensorProto.BFLOAT16):
+            or len(graph.graph.output) != len(output_names)
+            or any(output.type.tensor_type.elem_type != TensorProto.BFLOAT16
+                   for output in graph.graph.output)):
         raise ValueError("export did not retain BF16 boundaries")
     graph.graph.input[0].name = "hidden_fp32"
     graph.graph.input[0].type.tensor_type.elem_type = TensorProto.FLOAT
-    graph.graph.output[0].name = "embedding_fp32"
-    graph.graph.output[0].type.tensor_type.elem_type = TensorProto.FLOAT
     graph.graph.node.insert(0, helper.make_node(
         "Cast", ["hidden_fp32"], ["hidden_bf16"],
         to=TensorProto.BFLOAT16, name="input_to_bf16"))
-    graph.graph.node.append(helper.make_node(
-        "Cast", ["embedding_bf16"], ["embedding_fp32"],
-        to=TensorProto.FLOAT, name="output_to_fp32"))
+    for output in graph.graph.output:
+        original = output.name
+        output.name = original.replace("_bf16", "_fp32")
+        output.type.tensor_type.elem_type = TensorProto.FLOAT
+        graph.graph.node.append(helper.make_node(
+            "Cast", [original], [output.name],
+            to=TensorProto.FLOAT,
+            name=original + "_to_fp32" if args.trace else "output_to_fp32"))
     onnx.checker.check_model(graph)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     onnx.save(graph, args.output)
@@ -176,6 +204,8 @@ def export(args: argparse.Namespace) -> None:
         "output_shape": [1, 64, config["hidden_size"]],
         "internal_precision": "BF16",
         "external_precision": "FP32 casts",
+        "outputs": list(output_names),
+        "trace": bool(args.trace),
         "export_s": export_s,
         "torch": torch.__version__,
         "platform": platform.platform(),
@@ -197,7 +227,7 @@ def run(args: argparse.Namespace) -> None:
     with np.load(args.inputs, allow_pickle=False) as data:
         inputs = {name: np.ascontiguousarray(data[name]) for name in CASES}
     with np.load(args.reference, allow_pickle=False) as data:
-        reference = {name: np.ascontiguousarray(data[name]) for name in CASES}
+        reference = {name: np.ascontiguousarray(data[name]) for name in data.files}
     if any(inputs[name].shape != (1, 1024, 1152)
            or inputs[name].dtype != np.float32
            or reference[name].shape != (1, 64, 4096)
@@ -225,14 +255,24 @@ def run(args: argparse.Namespace) -> None:
     cases = {}
     for name in CASES:
         started = time.perf_counter()
-        observed = session.run(None, {"hidden_fp32": inputs[name]})[0]
+        result = session.run(None, {"hidden_fp32": inputs[name]})
         call_s = time.perf_counter() - started
+        if len(result) != len(exported.get("outputs", ["embedding"])):
+            raise ValueError("instrumented resampler output count changed")
+        for stage, observed in zip(exported.get("outputs", ["embedding"]), result):
+            outputs[name + "_" + stage] = observed
+        observed = result[-1]
         outputs[name] = observed
         cases[name] = {
             "one_call_s": call_s,
             "relative_l2_vs_bf16_torch": relative_l2(reference[name], observed),
             "finite": bool(np.isfinite(observed).all()),
         }
+        if exported.get("trace"):
+            cases[name]["stage_relative_l2_vs_bf16_torch"] = {
+                stage: relative_l2(reference[name + "_" + stage], value)
+                for stage, value in zip(exported["outputs"], result)
+            }
     profile = Path(session.end_profiling())
     events = json.loads(profile.read_text(encoding="utf-8-sig"))
     counts = {}
@@ -324,6 +364,7 @@ def main() -> None:
             p.add_argument("--reference", type=Path, required=True)
             p.add_argument("--report", type=Path, required=True)
             p.add_argument("--threads", type=int, default=8)
+            p.add_argument("--trace", action="store_true")
         else:
             p.add_argument("--model", type=Path, required=True)
             p.add_argument("--inputs", type=Path, required=True)

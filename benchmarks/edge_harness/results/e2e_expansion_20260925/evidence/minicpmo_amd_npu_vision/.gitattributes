@@ -11,5 +11,7 @@ late27_fp32_npu_report.json -text -diff
 resampler_bf16_npu_profile.json -text -diff
 resampler_bf16_npu_report.json -text -diff
 resampler_bf16_cpu_report.json -text -diff
+resampler_bf16_trace_npu_profile.json -text -diff
+resampler_bf16_trace_npu_report.json -text -diff
 *.log -text
 *.npz binary

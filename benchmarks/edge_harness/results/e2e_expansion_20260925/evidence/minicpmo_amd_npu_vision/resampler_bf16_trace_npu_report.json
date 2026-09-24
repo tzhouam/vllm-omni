@@ -1,0 +1,58 @@
+{
+  "scope": "pinned BF16 MiniCPM-o resampler on HX370 NPU; component only",
+  "model_sha256": "4c6791e275dbd7289edb8b044b32cc92af987eddd1c99dd09ca957be8ee4c45f",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "output_npz_sha256": "fde547178d91d16476f27e24210bbc3d3fec0609c2a3f907b4986b623d3669b3",
+  "profile_sha256": "f8512c09e7de003bfa12a84980d95ebc6e2da67203ec9a68bc945eac32d6089f",
+  "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\resampler_bf16_trace\\npu_profile_2026-09-25_07-39-47_094.json",
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "providers": [
+    "vitisai",
+    "CPUExecutionProvider"
+  ],
+  "node_counts": {
+    "vitisai": 3
+  },
+  "load_s": 86.35252199997194,
+  "cases": {
+    "red": {
+      "one_call_s": 0.0596315999282524,
+      "relative_l2_vs_bf16_torch": 0.035158419230055075,
+      "finite": true,
+      "stage_relative_l2_vs_bf16_torch": {
+        "projected": 0.00832841500322587,
+        "keys": 0.009667927440123002,
+        "attended": 0.011039447811855368,
+        "postnorm": 0.007563737292444928,
+        "embedding": 0.035158419230055075
+      }
+    },
+    "blue": {
+      "one_call_s": 0.051293900003656745,
+      "relative_l2_vs_bf16_torch": 0.03113967159174434,
+      "finite": true,
+      "stage_relative_l2_vs_bf16_torch": {
+        "projected": 0.008477274451170807,
+        "keys": 0.009407656127385292,
+        "attended": 0.012709555409356107,
+        "postnorm": 0.008298573592080494,
+        "embedding": 0.03113967159174434
+      }
+    },
+    "third": {
+      "one_call_s": 0.05336739995982498,
+      "relative_l2_vs_bf16_torch": 0.03100907593280193,
+      "finite": true,
+      "stage_relative_l2_vs_bf16_torch": {
+        "projected": 0.008691078135604626,
+        "keys": 0.009522645122971454,
+        "attended": 0.012787832873153703,
+        "postnorm": 0.008283164657801148,
+        "embedding": 0.03100907593280193
+      }
+    }
+  },
+  "status": "component_unqualified"
+}

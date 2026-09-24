@@ -1,0 +1,33 @@
+{
+  "scope": "pinned BF16 MiniCPM-o postnorm-to-resampler graph; component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "late27_reference_sha256": "ea31d28f9c59e96a84aef12695cd14c4d4a552b5f1b1c019370cc42a5631a96f",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "direct_sha256": "02742ece6f99ecaf66fecf683a2a5be60c23e8640f4af9184292dbfab6dd108c",
+  "wrapped_sha256": "4c6791e275dbd7289edb8b044b32cc92af987eddd1c99dd09ca957be8ee4c45f",
+  "input_shape": [
+    1,
+    1024,
+    1152
+  ],
+  "output_shape": [
+    1,
+    64,
+    4096
+  ],
+  "internal_precision": "BF16",
+  "external_precision": "FP32 casts",
+  "outputs": [
+    "projected",
+    "keys",
+    "attended",
+    "postnorm",
+    "embedding"
+  ],
+  "trace": true,
+  "export_s": 2.453230774961412,
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43"
+}

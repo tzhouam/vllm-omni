@@ -1,0 +1,52 @@
+{
+  "scope": "offline exact BF16 CPU projection replay from measured HX370 NPU postnorm; component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "trace_export_report_sha256": "8b05f94de45a84434a7dda06e6ce7562373de76bdb79fd82c352dba3558b071f",
+  "trace_npu_report_sha256": "fd863ec8c27fb96d42c3e5e9d586edaa60ff9d643982c9a3de75b45d4b94943e",
+  "trace_npu_output_sha256": "fde547178d91d16476f27e24210bbc3d3fec0609c2a3f907b4986b623d3669b3",
+  "trace_reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "original_npu_output_sha256": "d8286f2a5da27767f20944bbd9a7cb9fdb71ebefd9772b9c20d6b83843ca245a",
+  "original_reference_sha256": "4b763c2ac080b75c60da22a0a819fed09ffedcbeb350065d831603b39de84bd1",
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "cases": {
+    "red": {
+      "trace_final_bitwise_equal_to_uninstrumented": true,
+      "source_cpu_projection_bitwise_equal": true,
+      "npu_postnorm_relative_l2_vs_bf16": 0.007563737292444928,
+      "npu_postnorm_cpu_projection_relative_l2_vs_bf16": 0.021526169783635533,
+      "npu_final_relative_l2_vs_bf16": 0.035158419230055075,
+      "npu_final_relative_l2_vs_same_postnorm_cpu_projection": 0.02698172915916695
+    },
+    "blue": {
+      "trace_final_bitwise_equal_to_uninstrumented": true,
+      "source_cpu_projection_bitwise_equal": true,
+      "npu_postnorm_relative_l2_vs_bf16": 0.008298573592080494,
+      "npu_postnorm_cpu_projection_relative_l2_vs_bf16": 0.02019035847846531,
+      "npu_final_relative_l2_vs_bf16": 0.03113967159174434,
+      "npu_final_relative_l2_vs_same_postnorm_cpu_projection": 0.022963615207218246
+    },
+    "third": {
+      "trace_final_bitwise_equal_to_uninstrumented": true,
+      "source_cpu_projection_bitwise_equal": true,
+      "npu_postnorm_relative_l2_vs_bf16": 0.008283164657801148,
+      "npu_postnorm_cpu_projection_relative_l2_vs_bf16": 0.020136897757228,
+      "npu_final_relative_l2_vs_bf16": 0.03100907593280193,
+      "npu_final_relative_l2_vs_same_postnorm_cpu_projection": 0.02292197610499161
+    }
+  },
+  "postnorm_channel_affine_cpu_projection": {
+    "train": [
+      "red",
+      "blue"
+    ],
+    "held_out": "third",
+    "relative_l2_vs_bf16": {
+      "red": 0.019813277575017264,
+      "blue": 0.018810847104370577,
+      "third": 0.0195367040202843
+    }
+  },
+  "status": "postnorm_split_numeric_failed"
+}
