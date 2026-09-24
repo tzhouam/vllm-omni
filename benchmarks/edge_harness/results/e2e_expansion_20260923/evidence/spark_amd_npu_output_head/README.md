@@ -30,4 +30,4 @@ C:\Users\zhout\npu-ep\Scripts\python.exe benchmarks/edge_harness/experiments/pro
   --composite-with-norm --output-dir C:\Users\zhout\w2\spark_npu_lmhead_repro
 ```
 
-Next gate: connect this exact component to a vLLM Spark stage, include transfer/synchronization and full memory loading in admission, validate numerical and token quality across prompts and context lengths, then profile complete generation, cancellation, repeated use and sustained power. Retain whole-model execution on its current backend unless the measured split benefits the full request.
+Follow-up: a [live CPU decoder + AMD NPU head experiment](../../../e2e_expansion_20260924/evidence/spark_amd_npu_live_split/README.md) connected this component to vLLM with joint memory admission and completed 20 measured requests. Exact greedy-token parity failed at one quantization-sensitive BF16 top-logit tie. Broader quality, cancellation, paired whole-request benefit and sustained power remain open, so this split is not qualified.

@@ -26,4 +26,4 @@ PYTHONPATH=. /home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python benchmark
   --report benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_amd_npu_cpu_coresidency/report.json
 ```
 
-Next gate: an explicitly admitted vLLM decode path must hand **its own current pre-final-norm activation** to this head, preserve token/KV/cancellation behavior, and beat or justify the unsplit complete-request latency and memory cost. Until that happens, the AMD NPU Spark cell remains **NOT E2E**.
+Follow-up: a [live CPU decoder + AMD NPU head run](../spark_amd_npu_live_split/README.md) now handed current pre-final-norm activations across this boundary for 20 measured complete requests. Exact greedy-token parity failed at a BF16 top-logit tie, and cancellation plus paired latency/power remain open. The split is therefore still **not qualified**.

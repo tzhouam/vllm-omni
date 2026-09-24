@@ -27,4 +27,4 @@ PYTHONPATH=. /home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python benchmark
   --worker-peak-rss-hint-bytes 3772710912 --repeats 20
 ```
 
-Next gate: admit the *combined* vLLM+NPU load under current Windows/WSL shared RAM, connect the pre-final-norm activation to the live vLLM Spark decode path without changing checkpoint/precision or state semantics, then compare whole-request latency, token parity, cancellation and sustained memory/power against the unsplit backend. The current disposition remains **NOT E2E**.
+Follow-up: the [live split experiment](../spark_amd_npu_live_split/README.md) admitted the combined vLLM+NPU load and completed 20 measured whole text requests with live NPU-head calls. It failed exact greedy-token parity at a BF16 top-logit tie; cancellation, paired latency and sustained power remain open. The current split remains **not qualified**.

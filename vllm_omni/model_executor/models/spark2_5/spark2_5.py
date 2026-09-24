@@ -328,13 +328,17 @@ class Spark2_5Model(nn.Module):
         },
     )
 
-    def __init__(self, *, vllm_config: VllmConfig, prefix: str = ""):
+    def __init__(
+        self, *, vllm_config: VllmConfig, prefix: str = "",
+        defer_final_norm: bool = False,
+    ):
         super().__init__()
         config = vllm_config.model_config.hf_config
         cache_config = vllm_config.cache_config
         quant_config = vllm_config.quant_config
         self.config = config
         self.quant_config = quant_config
+        self.defer_final_norm = defer_final_norm
 
         self.embed_tokens = VocabParallelEmbedding(
             config.vocab_size,
@@ -383,6 +387,11 @@ class Spark2_5Model(nn.Module):
                 {"hidden_states": hidden_states, "residual": residual}
             )
 
+        if self.defer_final_norm:
+            # The explicitly selected external output-head graph owns this
+            # final RMS norm. Keep vLLM's decoder/KV and return its exact
+            # pre-norm residual sum; a graph failure must fail the request.
+            return hidden_states + residual if residual is not None else hidden_states
         hidden_states, _ = self.norm(hidden_states, residual)
         return hidden_states
 
@@ -465,9 +474,16 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
         quant_config = vllm_config.quant_config
         self.config = config
         self.quant_config = quant_config
+        external_head_spec = os.environ.get("VLLM_OMNI_SPARK_EXTERNAL_HEAD_SPEC")
+        if external_head_spec and (
+            vllm_config.parallel_config.tensor_parallel_size != 1
+            or vllm_config.parallel_config.pipeline_parallel_size != 1
+        ):
+            raise ValueError("the experimental Spark external head requires TP=PP=1")
 
         self.model = Spark2_5Model(
-            vllm_config=vllm_config, prefix=maybe_prefix(prefix, "model")
+            vllm_config=vllm_config, prefix=maybe_prefix(prefix, "model"),
+            defer_final_norm=bool(external_head_spec),
         )
         self.lm_head = ParallelLMHead(
             config.vocab_size,
@@ -479,6 +495,13 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
             self.lm_head = self.lm_head.tie_weights(self.model.embed_tokens)
 
         self.logits_processor = LogitsProcessor(config.vocab_size)
+        self._external_head = None
+        if external_head_spec:
+            from vllm_omni.edge.local.spark_external_head import SparkExternalOutputHead
+
+            self._external_head = SparkExternalOutputHead(
+                vllm_config.model_config.model, external_head_spec
+            )
         self.make_empty_intermediate_tensors = (
             self.model.make_empty_intermediate_tensors
         )
@@ -502,6 +525,13 @@ class Spark2_5ForCausalLM(nn.Module, SupportsLoRA, SupportsPP):
         return self.model(input_ids, positions, intermediate_tensors, inputs_embeds)
 
     def compute_logits(self, hidden_states: torch.Tensor) -> torch.Tensor | None:
+        if self._external_head is not None:
+            logits = self._external_head.compute_logits(hidden_states)
+            if len(self._external_head.reference_comparisons) < self._external_head.reference_compare_limit:
+                normalized = self.model.norm(hidden_states)
+                reference = self.logits_processor(self.lm_head, normalized)
+                self._external_head.compare_reference(logits, reference)
+            return logits
         return self.logits_processor(self.lm_head, hidden_states)
 
     def load_weights(self, weights: Iterable[tuple[str, torch.Tensor]]) -> set[str]:

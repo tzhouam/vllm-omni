@@ -1,0 +1,1309 @@
+{
+  "scope": "opt-in live vLLM Spark decode output-head split",
+  "started_unix": 1790259144.5377362,
+  "ended_unix": 1790259155.3684762,
+  "plan": {
+    "artifact": {
+      "path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+      "sha256": "e2ae9c3fd7071e8ff628f209e6140c8a023bfaad59814b80a936c6b263f33eaf",
+      "bytes": 268449617,
+      "fmt": "onnx:a16w8",
+      "opset": 21,
+      "source_model": "XHToken/Spark-X2.5-1.7B",
+      "source_revision": "448e61eb392c00f2c403185c5b56d5e0665bfaab",
+      "component": "spark_output_head",
+      "exporter": "probe_spark_amd_npu_lm_head.py --composite-with-norm",
+      "input_spec": [],
+      "output_spec": [],
+      "calibration": {
+        "fixture_sha256": "cfa2ed8439f8fe01730319667bfd01abf2e39cf5851490346a0331304cf63194",
+        "samples": 4
+      },
+      "parity": {
+        "previous_top1_matches": 4
+      },
+      "notes": ""
+    },
+    "device": {
+      "device_id": "npu:amd",
+      "kind": "npu",
+      "vendor": "amd",
+      "name": "NPU Compute Accelerator Device",
+      "backend": "ort:vitisai",
+      "runnable": true,
+      "memory_pool": "host_ram",
+      "memory_bytes": 0,
+      "compute_capability": null,
+      "weight_formats": [
+        "onnx:a16w8"
+      ],
+      "evidence": "B",
+      "reason": "An MCDM device; WSL2's GPU-PV forwards WDDM display adapters only, so it has no device node here and nothing installed inside WSL reaches it. It does work from a Windows-side process -- onnxruntime>=1.25 plus the WindowsWorkload.EP.AMD.VitisAI.Framework appx, loading onnxruntime_vitisai_ep.dll (not the RyzenAI *Light* EP beside it) with its own directory on the DLL search path, against an A16W8-quantized opset-21 graph. Measured 5.3x the CPU on a 1024x2048x2048 GEMM. See vllm_omni/edge/npu_ryzenai.py.",
+      "masked": false,
+      "extra": {
+        "source": "wsl-interop",
+        "probe_route": "ryzenai-ep-windows",
+        "host_pool_bytes": 33184976896,
+        "host_pool_available_bytes": 29012594688,
+        "worker_route": "ort-vitisai",
+        "worker_interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+        "routes": [
+          {
+            "name": "ort-vitisai",
+            "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+            "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+            "ep": "vitisai",
+            "is_windows": true,
+            "available": true,
+            "reason": "",
+            "extra": null
+          }
+        ],
+        "executes": "exported graphs, not checkpoints",
+        "dedicated_vram_bytes": 0
+      }
+    },
+    "route": {
+      "name": "ort-vitisai",
+      "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+      "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+      "ep": "vitisai",
+      "is_windows": true,
+      "available": true,
+      "reason": "",
+      "extra": null
+    },
+    "reservations": [
+      {
+        "pool": "host_ram",
+        "purpose": "graph weights",
+        "bytes": 268449617,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "D",
+        "note": "the exported file, onnx:a16w8, sha e2ae9c3fd707",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker runtime",
+        "bytes": 3881532387,
+        "lifetime": "session",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "interpreter plus execution provider in the worker process; measured 270 MiB for a VitisAI session on a 2 MiB graph and 369 MiB for a DirectML session on the 27B vision tower. NOTE: on an integrated GPU the device allocations come out of this same system RAM and do not appear in the worker's working set, so the measured figure is a lower bound for this pool, not a total; includes 10% headroom on measured worker peak 3772710912 bytes after subtracting graph file bytes",
+        "actual_upper_bound_bytes": 3503487151
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker workspace",
+        "bytes": 268435456,
+        "lifetime": "request",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "activations and EP scratch; not separable by any counter here",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "external reserve",
+        "bytes": 1073741824,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "E",
+        "note": "host RAM this engine does not control; the Windows side included",
+        "actual_upper_bound_bytes": null
+      }
+    ],
+    "refusals": [],
+    "min_fraction_on_target": 0.125,
+    "worker_peak_rss_hint_bytes": 3772710912,
+    "observed_worker_peak_rss_bytes": 3771936768,
+    "budget_bytes": 5492159284,
+    "admitted": true,
+    "report": {
+      "ep": "vitisai",
+      "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+      "device_name": "",
+      "placement_granularity": "graph_nodes",
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "node_counts": {
+        "CPUExecutionProvider": 7,
+        "vitisai": 1
+      },
+      "total_nodes": 8,
+      "target_nodes": 1,
+      "fraction_on_target": 0.125,
+      "session_create_s": 9.58976659993641,
+      "warmup_s": 0.009850000031292439,
+      "rss_bytes": 1387368448,
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_live_split_20260924\\spark_output_head__2026-09-24_22-12-14_927.json",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "requested_provider_missing": "",
+      "fallback_note": "",
+      "onnxruntime": "1.30.0",
+      "note": ""
+    }
+  },
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 7,
+      "vitisai": 1
+    },
+    "total_nodes": 8,
+    "target_nodes": 1,
+    "fraction_on_target": 0.125,
+    "session_create_s": 9.58976659993641,
+    "warmup_s": 0.009850000031292439,
+    "rss_bytes": 1387368448,
+    "inputs": [
+      {
+        "name": "x",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1,
+          2048
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "logits_concatenated",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          131072
+        ]
+      }
+    ],
+    "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_live_split_20260924\\spark_output_head__2026-09-24_22-12-14_927.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "note": ""
+  },
+  "calls": [
+    {
+      "worker_s": 0.008365399902686477,
+      "round_trip_s": 0.011193694022949785,
+      "transport_s": 0.0028282941202633083
+    },
+    {
+      "worker_s": 0.008004400064237416,
+      "round_trip_s": 0.0100890799658373,
+      "transport_s": 0.002084679901599884
+    },
+    {
+      "worker_s": 0.00822600000537932,
+      "round_trip_s": 0.009823267988394946,
+      "transport_s": 0.0015972679830156267
+    },
+    {
+      "worker_s": 0.008156800060532987,
+      "round_trip_s": 0.009651205036789179,
+      "transport_s": 0.0014944049762561917
+    },
+    {
+      "worker_s": 0.008002800052054226,
+      "round_trip_s": 0.01052009197883308,
+      "transport_s": 0.002517291926778853
+    },
+    {
+      "worker_s": 0.008098599966615438,
+      "round_trip_s": 0.009648808976635337,
+      "transport_s": 0.0015502090100198984
+    },
+    {
+      "worker_s": 0.007873800001107156,
+      "round_trip_s": 0.009072582994122058,
+      "transport_s": 0.0011987829930149019
+    },
+    {
+      "worker_s": 0.007854000083170831,
+      "round_trip_s": 0.009512151998933405,
+      "transport_s": 0.0016581519157625735
+    },
+    {
+      "worker_s": 0.00792789994738996,
+      "round_trip_s": 0.009754326019901782,
+      "transport_s": 0.001826426072511822
+    },
+    {
+      "worker_s": 0.008178199990652502,
+      "round_trip_s": 0.009911429020576179,
+      "transport_s": 0.0017332290299236774
+    },
+    {
+      "worker_s": 0.007964899996295571,
+      "round_trip_s": 0.009356747032143176,
+      "transport_s": 0.0013918470358476043
+    },
+    {
+      "worker_s": 0.008076500031165779,
+      "round_trip_s": 0.009652682987507433,
+      "transport_s": 0.001576182956341654
+    },
+    {
+      "worker_s": 0.007980099995620549,
+      "round_trip_s": 0.009282592043746263,
+      "transport_s": 0.001302492048125714
+    },
+    {
+      "worker_s": 0.008071399992331862,
+      "round_trip_s": 0.00943503895541653,
+      "transport_s": 0.001363638963084668
+    },
+    {
+      "worker_s": 0.008251399965956807,
+      "round_trip_s": 0.009520723018795252,
+      "transport_s": 0.0012693230528384447
+    },
+    {
+      "worker_s": 0.008018000051379204,
+      "round_trip_s": 0.009308870998211205,
+      "transport_s": 0.0012908709468320012
+    },
+    {
+      "worker_s": 0.007829800015315413,
+      "round_trip_s": 0.009187798015773296,
+      "transport_s": 0.0013579980004578829
+    },
+    {
+      "worker_s": 0.008195800008252263,
+      "round_trip_s": 0.009532568044960499,
+      "transport_s": 0.0013367680367082357
+    },
+    {
+      "worker_s": 0.007918999996036291,
+      "round_trip_s": 0.009644769947044551,
+      "transport_s": 0.0017257699510082603
+    },
+    {
+      "worker_s": 0.007999400026164949,
+      "round_trip_s": 0.009308088978286833,
+      "transport_s": 0.0013086889521218836
+    },
+    {
+      "worker_s": 0.008270499994978309,
+      "round_trip_s": 0.009746901981998235,
+      "transport_s": 0.0014764019870199263
+    },
+    {
+      "worker_s": 0.00789250002708286,
+      "round_trip_s": 0.009301424026489258,
+      "transport_s": 0.0014089239994063973
+    },
+    {
+      "worker_s": 0.007804699940606952,
+      "round_trip_s": 0.009246907022316009,
+      "transport_s": 0.001442207081709057
+    },
+    {
+      "worker_s": 0.007985200034454465,
+      "round_trip_s": 0.009456326020881534,
+      "transport_s": 0.0014711259864270687
+    },
+    {
+      "worker_s": 0.008117999997921288,
+      "round_trip_s": 0.009546038985718042,
+      "transport_s": 0.0014280389877967536
+    },
+    {
+      "worker_s": 0.007959699956700206,
+      "round_trip_s": 0.009560643986333162,
+      "transport_s": 0.0016009440296329558
+    },
+    {
+      "worker_s": 0.00808659999165684,
+      "round_trip_s": 0.009853801981080323,
+      "transport_s": 0.0017672019894234836
+    },
+    {
+      "worker_s": 0.008302000002004206,
+      "round_trip_s": 0.010000011010561138,
+      "transport_s": 0.0016980110085569322
+    },
+    {
+      "worker_s": 0.007951400009915233,
+      "round_trip_s": 0.010193755966611207,
+      "transport_s": 0.002242355956695974
+    },
+    {
+      "worker_s": 0.007918099989183247,
+      "round_trip_s": 0.009300611971411854,
+      "transport_s": 0.001382511982228607
+    },
+    {
+      "worker_s": 0.007783299894072115,
+      "round_trip_s": 0.009262667037546635,
+      "transport_s": 0.0014793671434745193
+    },
+    {
+      "worker_s": 0.008087599999271333,
+      "round_trip_s": 0.0095484729972668,
+      "transport_s": 0.001460872997995466
+    },
+    {
+      "worker_s": 0.008105400018393993,
+      "round_trip_s": 0.009705086005851626,
+      "transport_s": 0.001599685987457633
+    },
+    {
+      "worker_s": 0.007975099957548082,
+      "round_trip_s": 0.010504036967176944,
+      "transport_s": 0.002528937009628862
+    },
+    {
+      "worker_s": 0.007799300015904009,
+      "round_trip_s": 0.009262470994144678,
+      "transport_s": 0.0014631709782406688
+    },
+    {
+      "worker_s": 0.008070699987001717,
+      "round_trip_s": 0.009399614005815238,
+      "transport_s": 0.0013289140188135207
+    },
+    {
+      "worker_s": 0.007949399994686246,
+      "round_trip_s": 0.009785817004740238,
+      "transport_s": 0.0018364170100539923
+    },
+    {
+      "worker_s": 0.007812200114130974,
+      "round_trip_s": 0.009311415022239089,
+      "transport_s": 0.0014992149081081152
+    },
+    {
+      "worker_s": 0.007842599996365607,
+      "round_trip_s": 0.00904340302804485,
+      "transport_s": 0.0012008030316792428
+    },
+    {
+      "worker_s": 0.00815919996239245,
+      "round_trip_s": 0.0095895059639588,
+      "transport_s": 0.0014303060015663505
+    },
+    {
+      "worker_s": 0.007915199967101216,
+      "round_trip_s": 0.009503414039500058,
+      "transport_s": 0.0015882140723988414
+    },
+    {
+      "worker_s": 0.008160899975337088,
+      "round_trip_s": 0.009684722987003624,
+      "transport_s": 0.0015238230116665363
+    },
+    {
+      "worker_s": 0.007912300061434507,
+      "round_trip_s": 0.00943563599139452,
+      "transport_s": 0.0015233359299600124
+    },
+    {
+      "worker_s": 0.008067000075243413,
+      "round_trip_s": 0.011240634019486606,
+      "transport_s": 0.0031736339442431927
+    },
+    {
+      "worker_s": 0.007807499961927533,
+      "round_trip_s": 0.009214388963300735,
+      "transport_s": 0.0014068890013732016
+    },
+    {
+      "worker_s": 0.007934299996122718,
+      "round_trip_s": 0.009261437982786447,
+      "transport_s": 0.001327137986663729
+    },
+    {
+      "worker_s": 0.0079293999588117,
+      "round_trip_s": 0.009399186994414777,
+      "transport_s": 0.0014697870356030762
+    },
+    {
+      "worker_s": 0.008048700052313507,
+      "round_trip_s": 0.00932368403300643,
+      "transport_s": 0.001274983980692923
+    },
+    {
+      "worker_s": 0.007832500035874546,
+      "round_trip_s": 0.009200940025039017,
+      "transport_s": 0.0013684399891644716
+    },
+    {
+      "worker_s": 0.008168700034730136,
+      "round_trip_s": 0.009772758989129215,
+      "transport_s": 0.001604058954399079
+    },
+    {
+      "worker_s": 0.007980499998666346,
+      "round_trip_s": 0.009533923002891243,
+      "transport_s": 0.0015534230042248964
+    },
+    {
+      "worker_s": 0.008121900027617812,
+      "round_trip_s": 0.009571885981131345,
+      "transport_s": 0.0014499859535135329
+    },
+    {
+      "worker_s": 0.008038099971599877,
+      "round_trip_s": 0.009487697971053421,
+      "transport_s": 0.0014495979994535446
+    },
+    {
+      "worker_s": 0.007987899938598275,
+      "round_trip_s": 0.009456171013880521,
+      "transport_s": 0.0014682710752822459
+    },
+    {
+      "worker_s": 0.0080733000067994,
+      "round_trip_s": 0.00948869698913768,
+      "transport_s": 0.0014153969823382795
+    },
+    {
+      "worker_s": 0.007739500026218593,
+      "round_trip_s": 0.009255975019186735,
+      "transport_s": 0.001516474992968142
+    },
+    {
+      "worker_s": 0.008215899928472936,
+      "round_trip_s": 0.010235909023322165,
+      "transport_s": 0.002020009094849229
+    },
+    {
+      "worker_s": 0.0076920000137761235,
+      "round_trip_s": 0.009405171032994986,
+      "transport_s": 0.001713171019218862
+    },
+    {
+      "worker_s": 0.008154500043019652,
+      "round_trip_s": 0.009698969020973891,
+      "transport_s": 0.0015444689779542387
+    },
+    {
+      "worker_s": 0.007817199919372797,
+      "round_trip_s": 0.009154503990430385,
+      "transport_s": 0.0013373040710575879
+    },
+    {
+      "worker_s": 0.008052400080487132,
+      "round_trip_s": 0.009413748048245907,
+      "transport_s": 0.0013613479677587748
+    },
+    {
+      "worker_s": 0.008151100017130375,
+      "round_trip_s": 0.009437896020244807,
+      "transport_s": 0.001286796003114432
+    },
+    {
+      "worker_s": 0.00818409991916269,
+      "round_trip_s": 0.009661643009167165,
+      "transport_s": 0.001477543090004474
+    },
+    {
+      "worker_s": 0.00795340002514422,
+      "round_trip_s": 0.009421255032066256,
+      "transport_s": 0.0014678550069220364
+    }
+  ],
+  "reference_comparisons": [
+    {
+      "call_index": 0,
+      "cpu_top1": 3066,
+      "npu_top1": 3066,
+      "top1_equal": true,
+      "relative_l2": 0.0025461148470640182,
+      "cpu_top1_logit": -1.5390625,
+      "npu_at_cpu_top1": -1.5015827417373657,
+      "cpu_at_npu_top1": -1.5390625,
+      "npu_top1_logit": -1.5015827417373657
+    },
+    {
+      "call_index": 1,
+      "cpu_top1": 599,
+      "npu_top1": 599,
+      "top1_equal": true,
+      "relative_l2": 0.0023591178469359875,
+      "cpu_top1_logit": -0.373046875,
+      "npu_at_cpu_top1": -0.40405455231666565,
+      "cpu_at_npu_top1": -0.373046875,
+      "npu_top1_logit": -0.40405455231666565
+    },
+    {
+      "call_index": 2,
+      "cpu_top1": 5509,
+      "npu_top1": 5509,
+      "top1_equal": true,
+      "relative_l2": 0.002377136144787073,
+      "cpu_top1_logit": 1.1328125,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 1.1328125,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 3,
+      "cpu_top1": 39,
+      "npu_top1": 39,
+      "top1_equal": true,
+      "relative_l2": 0.002455632435157895,
+      "cpu_top1_logit": 0.400390625,
+      "npu_at_cpu_top1": 0.30781736969947815,
+      "cpu_at_npu_top1": 0.400390625,
+      "npu_top1_logit": 0.30781736969947815
+    },
+    {
+      "call_index": 4,
+      "cpu_top1": 518,
+      "npu_top1": 518,
+      "top1_equal": true,
+      "relative_l2": 0.0026491046883165836,
+      "cpu_top1_logit": 0.56640625,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.56640625,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 5,
+      "cpu_top1": 4766,
+      "npu_top1": 4766,
+      "top1_equal": true,
+      "relative_l2": 0.00250723073258996,
+      "cpu_top1_logit": -0.052734375,
+      "npu_at_cpu_top1": -0.059440597891807556,
+      "cpu_at_npu_top1": -0.052734375,
+      "npu_top1_logit": -0.059440597891807556
+    },
+    {
+      "call_index": 6,
+      "cpu_top1": 390,
+      "npu_top1": 390,
+      "top1_equal": true,
+      "relative_l2": 0.002666243351995945,
+      "cpu_top1_logit": 0.287109375,
+      "npu_at_cpu_top1": 0.263236939907074,
+      "cpu_at_npu_top1": 0.287109375,
+      "npu_top1_logit": 0.263236939907074
+    },
+    {
+      "call_index": 7,
+      "cpu_top1": 275,
+      "npu_top1": 275,
+      "top1_equal": true,
+      "relative_l2": 0.0024706546682864428,
+      "cpu_top1_logit": -0.057861328125,
+      "npu_at_cpu_top1": -0.08916089683771133,
+      "cpu_at_npu_top1": -0.057861328125,
+      "npu_top1_logit": -0.08916089683771133
+    },
+    {
+      "call_index": 8,
+      "cpu_top1": 11862,
+      "npu_top1": 11862,
+      "top1_equal": true,
+      "relative_l2": 0.0034261655528098345,
+      "cpu_top1_logit": 1.640625,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 1.640625,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 9,
+      "cpu_top1": 314,
+      "npu_top1": 314,
+      "top1_equal": true,
+      "relative_l2": 0.0028397166170179844,
+      "cpu_top1_logit": -0.275390625,
+      "npu_at_cpu_top1": -0.3934401571750641,
+      "cpu_at_npu_top1": -0.275390625,
+      "npu_top1_logit": -0.3934401571750641
+    },
+    {
+      "call_index": 10,
+      "cpu_top1": 17349,
+      "npu_top1": 17349,
+      "top1_equal": true,
+      "relative_l2": 0.002627240726724267,
+      "cpu_top1_logit": 1.28125,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 1.28125,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 11,
+      "cpu_top1": 44,
+      "npu_top1": 44,
+      "top1_equal": true,
+      "relative_l2": 0.002494113752618432,
+      "cpu_top1_logit": 2.171875,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 2.171875,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 12,
+      "cpu_top1": 74288,
+      "npu_top1": 74288,
+      "top1_equal": true,
+      "relative_l2": 0.00246127275750041,
+      "cpu_top1_logit": 0.37890625,
+      "npu_at_cpu_top1": 0.0,
+      "cpu_at_npu_top1": 0.37890625,
+      "npu_top1_logit": 0.0
+    },
+    {
+      "call_index": 13,
+      "cpu_top1": 304,
+      "npu_top1": 304,
+      "top1_equal": true,
+      "relative_l2": 0.004012252204120159,
+      "cpu_top1_logit": 0.83984375,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.83984375,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 14,
+      "cpu_top1": 1135,
+      "npu_top1": 1135,
+      "top1_equal": true,
+      "relative_l2": 0.0035388164687901735,
+      "cpu_top1_logit": 0.64453125,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.64453125,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 15,
+      "cpu_top1": 5240,
+      "npu_top1": 5240,
+      "top1_equal": true,
+      "relative_l2": 0.0026230954099446535,
+      "cpu_top1_logit": 1.3671875,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 1.3671875,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 16,
+      "cpu_top1": 1848,
+      "npu_top1": 1848,
+      "top1_equal": true,
+      "relative_l2": 0.0023622342851012945,
+      "cpu_top1_logit": 0.4296875,
+      "npu_at_cpu_top1": 0.3637198507785797,
+      "cpu_at_npu_top1": 0.4296875,
+      "npu_top1_logit": 0.3637198507785797
+    },
+    {
+      "call_index": 17,
+      "cpu_top1": 4358,
+      "npu_top1": 4358,
+      "top1_equal": true,
+      "relative_l2": 0.002397289266809821,
+      "cpu_top1_logit": -0.44140625,
+      "npu_at_cpu_top1": -0.47552478313446045,
+      "cpu_at_npu_top1": -0.44140625,
+      "npu_top1_logit": -0.47552478313446045
+    },
+    {
+      "call_index": 18,
+      "cpu_top1": 275,
+      "npu_top1": 275,
+      "top1_equal": true,
+      "relative_l2": 0.00244580558501184,
+      "cpu_top1_logit": 0.6640625,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.6640625,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 19,
+      "cpu_top1": 6787,
+      "npu_top1": 6787,
+      "top1_equal": true,
+      "relative_l2": 0.0023887541610747576,
+      "cpu_top1_logit": 0.609375,
+      "npu_at_cpu_top1": 0.5731772184371948,
+      "cpu_at_npu_top1": 0.609375,
+      "npu_top1_logit": 0.5731772184371948
+    },
+    {
+      "call_index": 20,
+      "cpu_top1": 2029,
+      "npu_top1": 2029,
+      "top1_equal": true,
+      "relative_l2": 0.002454102039337158,
+      "cpu_top1_logit": -0.287109375,
+      "npu_at_cpu_top1": -0.263236939907074,
+      "cpu_at_npu_top1": -0.287109375,
+      "npu_top1_logit": -0.263236939907074
+    },
+    {
+      "call_index": 21,
+      "cpu_top1": 417,
+      "npu_top1": 417,
+      "top1_equal": true,
+      "relative_l2": 0.002478098263964057,
+      "cpu_top1_logit": 0.4140625,
+      "npu_at_cpu_top1": 0.4458044767379761,
+      "cpu_at_npu_top1": 0.4140625,
+      "npu_top1_logit": 0.4458044767379761
+    },
+    {
+      "call_index": 22,
+      "cpu_top1": 275,
+      "npu_top1": 518,
+      "top1_equal": false,
+      "relative_l2": 0.0024216067977249622,
+      "cpu_top1_logit": -2.640625,
+      "npu_at_cpu_top1": -2.6896870136260986,
+      "cpu_at_npu_top1": -2.640625,
+      "npu_top1_logit": -2.5863735675811768
+    },
+    {
+      "call_index": 23,
+      "cpu_top1": 110949,
+      "npu_top1": 110949,
+      "top1_equal": true,
+      "relative_l2": 0.0028870576061308384,
+      "cpu_top1_logit": 3.234375,
+      "npu_at_cpu_top1": 0.0,
+      "cpu_at_npu_top1": 3.234375,
+      "npu_top1_logit": 0.0
+    },
+    {
+      "call_index": 24,
+      "cpu_top1": 4348,
+      "npu_top1": 4348,
+      "top1_equal": true,
+      "relative_l2": 0.0028765173628926277,
+      "cpu_top1_logit": -0.1611328125,
+      "npu_at_cpu_top1": -0.14930912852287292,
+      "cpu_at_npu_top1": -0.1611328125,
+      "npu_top1_logit": -0.14930912852287292
+    },
+    {
+      "call_index": 25,
+      "cpu_top1": 2964,
+      "npu_top1": 2964,
+      "top1_equal": true,
+      "relative_l2": 0.0035954690538346767,
+      "cpu_top1_logit": 0.024658203125,
+      "npu_at_cpu_top1": 0.06368635594844818,
+      "cpu_at_npu_top1": 0.024658203125,
+      "npu_top1_logit": 0.06368635594844818
+    },
+    {
+      "call_index": 26,
+      "cpu_top1": 679,
+      "npu_top1": 679,
+      "top1_equal": true,
+      "relative_l2": 0.002349531278014183,
+      "cpu_top1_logit": -0.265625,
+      "npu_at_cpu_top1": -0.15709300339221954,
+      "cpu_at_npu_top1": -0.265625,
+      "npu_top1_logit": -0.15709300339221954
+    },
+    {
+      "call_index": 27,
+      "cpu_top1": 1633,
+      "npu_top1": 1633,
+      "top1_equal": true,
+      "relative_l2": 0.0024638143368065357,
+      "cpu_top1_logit": 1.3671875,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 1.3671875,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 28,
+      "cpu_top1": 312,
+      "npu_top1": 312,
+      "top1_equal": true,
+      "relative_l2": 0.0024554594419896603,
+      "cpu_top1_logit": 1.3203125,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 1.3203125,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 29,
+      "cpu_top1": 6340,
+      "npu_top1": 6340,
+      "top1_equal": true,
+      "relative_l2": 0.0029880667570978403,
+      "cpu_top1_logit": -1.359375,
+      "npu_at_cpu_top1": -1.4662014245986938,
+      "cpu_at_npu_top1": -1.359375,
+      "npu_top1_logit": -1.4662014245986938
+    },
+    {
+      "call_index": 30,
+      "cpu_top1": 488,
+      "npu_top1": 488,
+      "top1_equal": true,
+      "relative_l2": 0.0024698602501302958,
+      "cpu_top1_logit": -2.140625,
+      "npu_at_cpu_top1": -2.0598998069763184,
+      "cpu_at_npu_top1": -2.140625,
+      "npu_top1_logit": -2.0598998069763184
+    },
+    {
+      "call_index": 31,
+      "cpu_top1": 304,
+      "npu_top1": 304,
+      "top1_equal": true,
+      "relative_l2": 0.0025568059645593166,
+      "cpu_top1_logit": 0.359375,
+      "npu_at_cpu_top1": 0.2844657301902771,
+      "cpu_at_npu_top1": 0.359375,
+      "npu_top1_logit": 0.2844657301902771
+    },
+    {
+      "call_index": 32,
+      "cpu_top1": 1135,
+      "npu_top1": 1135,
+      "top1_equal": true,
+      "relative_l2": 0.002476684981957078,
+      "cpu_top1_logit": -1.6875,
+      "npu_at_cpu_top1": -1.6438156366348267,
+      "cpu_at_npu_top1": -1.6875,
+      "npu_top1_logit": -1.6438156366348267
+    },
+    {
+      "call_index": 33,
+      "cpu_top1": 5240,
+      "npu_top1": 5240,
+      "top1_equal": true,
+      "relative_l2": 0.00248377351090312,
+      "cpu_top1_logit": 0.66796875,
+      "npu_at_cpu_top1": 0.474817156791687,
+      "cpu_at_npu_top1": 0.66796875,
+      "npu_top1_logit": 0.474817156791687
+    },
+    {
+      "call_index": 34,
+      "cpu_top1": 27,
+      "npu_top1": 27,
+      "top1_equal": true,
+      "relative_l2": 0.0024255840107798576,
+      "cpu_top1_logit": 0.2021484375,
+      "npu_at_cpu_top1": 0.21724122762680054,
+      "cpu_at_npu_top1": 0.2021484375,
+      "npu_top1_logit": 0.21724122762680054
+    },
+    {
+      "call_index": 35,
+      "cpu_top1": 4358,
+      "npu_top1": 4358,
+      "top1_equal": true,
+      "relative_l2": 0.002394367940723896,
+      "cpu_top1_logit": 0.63671875,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.63671875,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 36,
+      "cpu_top1": 275,
+      "npu_top1": 275,
+      "top1_equal": true,
+      "relative_l2": 0.0023733365815132856,
+      "cpu_top1_logit": -0.32421875,
+      "npu_at_cpu_top1": -0.3651351034641266,
+      "cpu_at_npu_top1": -0.32421875,
+      "npu_top1_logit": -0.3651351034641266
+    },
+    {
+      "call_index": 37,
+      "cpu_top1": 4625,
+      "npu_top1": 4625,
+      "top1_equal": true,
+      "relative_l2": 0.002397865755483508,
+      "cpu_top1_logit": -1.28125,
+      "npu_at_cpu_top1": -1.176074743270874,
+      "cpu_at_npu_top1": -1.28125,
+      "npu_top1_logit": -1.176074743270874
+    },
+    {
+      "call_index": 38,
+      "cpu_top1": 6787,
+      "npu_top1": 6787,
+      "top1_equal": true,
+      "relative_l2": 0.0025440591853111982,
+      "cpu_top1_logit": -1.3828125,
+      "npu_at_cpu_top1": -1.4074684381484985,
+      "cpu_at_npu_top1": -1.3828125,
+      "npu_top1_logit": -1.4074684381484985
+    },
+    {
+      "call_index": 39,
+      "cpu_top1": 390,
+      "npu_top1": 390,
+      "top1_equal": true,
+      "relative_l2": 0.002474337350577116,
+      "cpu_top1_logit": 0.146484375,
+      "npu_at_cpu_top1": 0.08986852318048477,
+      "cpu_at_npu_top1": 0.146484375,
+      "npu_top1_logit": 0.08986852318048477
+    },
+    {
+      "call_index": 40,
+      "cpu_top1": 518,
+      "npu_top1": 518,
+      "top1_equal": true,
+      "relative_l2": 0.0028041715268045664,
+      "cpu_top1_logit": 0.17578125,
+      "npu_at_cpu_top1": 0.1507243812084198,
+      "cpu_at_npu_top1": 0.17578125,
+      "npu_top1_logit": 0.1507243812084198
+    },
+    {
+      "call_index": 41,
+      "cpu_top1": 110949,
+      "npu_top1": 110949,
+      "top1_equal": true,
+      "relative_l2": 0.002526522148400545,
+      "cpu_top1_logit": 1.8203125,
+      "npu_at_cpu_top1": 0.0,
+      "cpu_at_npu_top1": 1.8203125,
+      "npu_top1_logit": 0.0
+    },
+    {
+      "call_index": 42,
+      "cpu_top1": 4348,
+      "npu_top1": 4348,
+      "top1_equal": true,
+      "relative_l2": 0.002821835922077298,
+      "cpu_top1_logit": 0.75390625,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.75390625,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 43,
+      "cpu_top1": 4,
+      "npu_top1": 4,
+      "top1_equal": true,
+      "relative_l2": 0.002376415068283677,
+      "cpu_top1_logit": 0.796875,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.796875,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 44,
+      "cpu_top1": 110949,
+      "npu_top1": 110949,
+      "top1_equal": true,
+      "relative_l2": 0.004133254289627075,
+      "cpu_top1_logit": 1.4765625,
+      "npu_at_cpu_top1": 0.0,
+      "cpu_at_npu_top1": 1.4765625,
+      "npu_top1_logit": 0.0
+    },
+    {
+      "call_index": 45,
+      "cpu_top1": 1,
+      "npu_top1": 1,
+      "top1_equal": true,
+      "relative_l2": 0.0024165106005966663,
+      "cpu_top1_logit": -0.9453125,
+      "npu_at_cpu_top1": -0.9390199184417725,
+      "cpu_at_npu_top1": -0.9453125,
+      "npu_top1_logit": -0.9390199184417725
+    },
+    {
+      "call_index": 46,
+      "cpu_top1": 7,
+      "npu_top1": 7,
+      "top1_equal": true,
+      "relative_l2": 0.002423637080937624,
+      "cpu_top1_logit": -0.58203125,
+      "npu_at_cpu_top1": -0.5901602506637573,
+      "cpu_at_npu_top1": -0.58203125,
+      "npu_top1_logit": -0.5901602506637573
+    },
+    {
+      "call_index": 47,
+      "cpu_top1": 1,
+      "npu_top1": 1,
+      "top1_equal": true,
+      "relative_l2": 0.02815529704093933,
+      "cpu_top1_logit": -2.125,
+      "npu_at_cpu_top1": -1.678489327430725,
+      "cpu_at_npu_top1": -2.125,
+      "npu_top1_logit": -1.678489327430725
+    },
+    {
+      "call_index": 48,
+      "cpu_top1": 7,
+      "npu_top1": 7,
+      "top1_equal": true,
+      "relative_l2": 0.002358429366722703,
+      "cpu_top1_logit": -1.0078125,
+      "npu_at_cpu_top1": -1.0571935176849365,
+      "cpu_at_npu_top1": -1.0078125,
+      "npu_top1_logit": -1.0571935176849365
+    },
+    {
+      "call_index": 49,
+      "cpu_top1": 1,
+      "npu_top1": 1,
+      "top1_equal": true,
+      "relative_l2": 0.0023673383984714746,
+      "cpu_top1_logit": -2.75,
+      "npu_at_cpu_top1": -2.7222378253936768,
+      "cpu_at_npu_top1": -2.75,
+      "npu_top1_logit": -2.7222378253936768
+    },
+    {
+      "call_index": 50,
+      "cpu_top1": 7,
+      "npu_top1": 7,
+      "top1_equal": true,
+      "relative_l2": 0.002359195612370968,
+      "cpu_top1_logit": -2.46875,
+      "npu_at_cpu_top1": -2.488013505935669,
+      "cpu_at_npu_top1": -2.46875,
+      "npu_top1_logit": -2.488013505935669
+    },
+    {
+      "call_index": 51,
+      "cpu_top1": 1,
+      "npu_top1": 1,
+      "top1_equal": true,
+      "relative_l2": 0.002388377906754613,
+      "cpu_top1_logit": -7.09375,
+      "npu_at_cpu_top1": -7.117303848266602,
+      "cpu_at_npu_top1": -7.09375,
+      "npu_top1_logit": -7.117303848266602
+    },
+    {
+      "call_index": 52,
+      "cpu_top1": 7,
+      "npu_top1": 7,
+      "top1_equal": true,
+      "relative_l2": 0.002374932635575533,
+      "cpu_top1_logit": -2.453125,
+      "npu_at_cpu_top1": -2.486598253250122,
+      "cpu_at_npu_top1": -2.453125,
+      "npu_top1_logit": -2.486598253250122
+    },
+    {
+      "call_index": 53,
+      "cpu_top1": 198,
+      "npu_top1": 198,
+      "top1_equal": true,
+      "relative_l2": 0.002463214797899127,
+      "cpu_top1_logit": -7.09375,
+      "npu_at_cpu_top1": -7.1123504638671875,
+      "cpu_at_npu_top1": -7.09375,
+      "npu_top1_logit": -7.1123504638671875
+    },
+    {
+      "call_index": 54,
+      "cpu_top1": 110949,
+      "npu_top1": 110949,
+      "top1_equal": true,
+      "relative_l2": 0.0024562375620007515,
+      "cpu_top1_logit": -7.59375,
+      "npu_at_cpu_top1": -7.585697650909424,
+      "cpu_at_npu_top1": -7.59375,
+      "npu_top1_logit": -7.585697650909424
+    },
+    {
+      "call_index": 55,
+      "cpu_top1": 1,
+      "npu_top1": 1,
+      "top1_equal": true,
+      "relative_l2": 0.0037090731784701347,
+      "cpu_top1_logit": -0.061767578125,
+      "npu_at_cpu_top1": 0.0658092349767685,
+      "cpu_at_npu_top1": -0.061767578125,
+      "npu_top1_logit": 0.0658092349767685
+    },
+    {
+      "call_index": 56,
+      "cpu_top1": 7,
+      "npu_top1": 7,
+      "top1_equal": true,
+      "relative_l2": 0.0031110516283661127,
+      "cpu_top1_logit": -0.373046875,
+      "npu_at_cpu_top1": -0.3941477835178375,
+      "cpu_at_npu_top1": -0.373046875,
+      "npu_top1_logit": -0.3941477835178375
+    },
+    {
+      "call_index": 57,
+      "cpu_top1": 198,
+      "npu_top1": 198,
+      "top1_equal": true,
+      "relative_l2": 0.009917845018208027,
+      "cpu_top1_logit": -1.421875,
+      "npu_at_cpu_top1": -1.391900658607483,
+      "cpu_at_npu_top1": -1.421875,
+      "npu_top1_logit": -1.391900658607483
+    },
+    {
+      "call_index": 58,
+      "cpu_top1": 110949,
+      "npu_top1": 110949,
+      "top1_equal": true,
+      "relative_l2": 0.0053758881986141205,
+      "cpu_top1_logit": -1.2578125,
+      "npu_at_cpu_top1": -1.3877756595611572,
+      "cpu_at_npu_top1": -1.2578125,
+      "npu_top1_logit": -1.3877756595611572
+    },
+    {
+      "call_index": 59,
+      "cpu_top1": 1,
+      "npu_top1": 1,
+      "top1_equal": true,
+      "relative_l2": 0.020012933760881424,
+      "cpu_top1_logit": 0.337890625,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.337890625,
+      "npu_top1_logit": 0.5852068662643433
+    },
+    {
+      "call_index": 60,
+      "cpu_top1": 7,
+      "npu_top1": 7,
+      "top1_equal": true,
+      "relative_l2": 0.0028599028009921312,
+      "cpu_top1_logit": 0.193359375,
+      "npu_at_cpu_top1": 0.2639445662498474,
+      "cpu_at_npu_top1": 0.193359375,
+      "npu_top1_logit": 0.2639445662498474
+    },
+    {
+      "call_index": 61,
+      "cpu_top1": 198,
+      "npu_top1": 198,
+      "top1_equal": true,
+      "relative_l2": 0.01662682741880417,
+      "cpu_top1_logit": -0.294921875,
+      "npu_at_cpu_top1": -0.2653598189353943,
+      "cpu_at_npu_top1": -0.294921875,
+      "npu_top1_logit": -0.2653598189353943
+    },
+    {
+      "call_index": 62,
+      "cpu_top1": 110949,
+      "npu_top1": 110949,
+      "top1_equal": true,
+      "relative_l2": 0.00525874737650156,
+      "cpu_top1_logit": 0.1513671875,
+      "npu_at_cpu_top1": -0.023534489795565605,
+      "cpu_at_npu_top1": 0.1513671875,
+      "npu_top1_logit": -0.023534489795565605
+    },
+    {
+      "call_index": 63,
+      "cpu_top1": 1,
+      "npu_top1": 1,
+      "top1_equal": true,
+      "relative_l2": 0.023977600038051605,
+      "cpu_top1_logit": 0.24609375,
+      "npu_at_cpu_top1": 0.5852068662643433,
+      "cpu_at_npu_top1": 0.24609375,
+      "npu_top1_logit": 0.5852068662643433
+    }
+  ],
+  "worker_stats": {
+    "runs": 64,
+    "total_run_s": 0.5128060000715777,
+    "rss_bytes": 1387909120,
+    "peak_rss_bytes": 3771936768,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 9.58976659993641,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "warmup_s": 0.009850000031292439,
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_live_split_20260924\\spark_output_head__2026-09-24_22-12-14_927.json",
+      "node_counts": {
+        "CPUExecutionProvider": 7,
+        "vitisai": 1
+      },
+      "total_nodes": 8,
+      "target_nodes": 1,
+      "fraction_on_target": 0.125,
+      "rss_bytes": 1387368448
+    }
+  }
+}

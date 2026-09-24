@@ -1,0 +1,603 @@
+{
+  "scope": "opt-in live vLLM Spark decode output-head split",
+  "started_unix": 1790258763.3065805,
+  "ended_unix": 1790258773.178653,
+  "plan": {
+    "artifact": {
+      "path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+      "sha256": "e2ae9c3fd7071e8ff628f209e6140c8a023bfaad59814b80a936c6b263f33eaf",
+      "bytes": 268449617,
+      "fmt": "onnx:a16w8",
+      "opset": 21,
+      "source_model": "XHToken/Spark-X2.5-1.7B",
+      "source_revision": "448e61eb392c00f2c403185c5b56d5e0665bfaab",
+      "component": "spark_output_head",
+      "exporter": "probe_spark_amd_npu_lm_head.py --composite-with-norm",
+      "input_spec": [],
+      "output_spec": [],
+      "calibration": {
+        "fixture_sha256": "cfa2ed8439f8fe01730319667bfd01abf2e39cf5851490346a0331304cf63194",
+        "samples": 4
+      },
+      "parity": {
+        "previous_top1_matches": 4
+      },
+      "notes": ""
+    },
+    "device": {
+      "device_id": "npu:amd",
+      "kind": "npu",
+      "vendor": "amd",
+      "name": "NPU Compute Accelerator Device",
+      "backend": "ort:vitisai",
+      "runnable": true,
+      "memory_pool": "host_ram",
+      "memory_bytes": 0,
+      "compute_capability": null,
+      "weight_formats": [
+        "onnx:a16w8"
+      ],
+      "evidence": "B",
+      "reason": "An MCDM device; WSL2's GPU-PV forwards WDDM display adapters only, so it has no device node here and nothing installed inside WSL reaches it. It does work from a Windows-side process -- onnxruntime>=1.25 plus the WindowsWorkload.EP.AMD.VitisAI.Framework appx, loading onnxruntime_vitisai_ep.dll (not the RyzenAI *Light* EP beside it) with its own directory on the DLL search path, against an A16W8-quantized opset-21 graph. Measured 5.3x the CPU on a 1024x2048x2048 GEMM. See vllm_omni/edge/npu_ryzenai.py.",
+      "masked": false,
+      "extra": {
+        "source": "wsl-interop",
+        "probe_route": "ryzenai-ep-windows",
+        "host_pool_bytes": 33184976896,
+        "host_pool_available_bytes": 29000491008,
+        "worker_route": "ort-vitisai",
+        "worker_interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+        "routes": [
+          {
+            "name": "ort-vitisai",
+            "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+            "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+            "ep": "vitisai",
+            "is_windows": true,
+            "available": true,
+            "reason": "",
+            "extra": null
+          }
+        ],
+        "executes": "exported graphs, not checkpoints",
+        "dedicated_vram_bytes": 0
+      }
+    },
+    "route": {
+      "name": "ort-vitisai",
+      "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+      "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+      "ep": "vitisai",
+      "is_windows": true,
+      "available": true,
+      "reason": "",
+      "extra": null
+    },
+    "reservations": [
+      {
+        "pool": "host_ram",
+        "purpose": "graph weights",
+        "bytes": 268449617,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "D",
+        "note": "the exported file, onnx:a16w8, sha e2ae9c3fd707",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker runtime",
+        "bytes": 3881532387,
+        "lifetime": "session",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "interpreter plus execution provider in the worker process; measured 270 MiB for a VitisAI session on a 2 MiB graph and 369 MiB for a DirectML session on the 27B vision tower. NOTE: on an integrated GPU the device allocations come out of this same system RAM and do not appear in the worker's working set, so the measured figure is a lower bound for this pool, not a total; includes 10% headroom on measured worker peak 3772710912 bytes after subtracting graph file bytes",
+        "actual_upper_bound_bytes": 3506555055
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker workspace",
+        "bytes": 268435456,
+        "lifetime": "request",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "activations and EP scratch; not separable by any counter here",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "external reserve",
+        "bytes": 1073741824,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "E",
+        "note": "host RAM this engine does not control; the Windows side included",
+        "actual_upper_bound_bytes": null
+      }
+    ],
+    "refusals": [],
+    "min_fraction_on_target": 0.125,
+    "worker_peak_rss_hint_bytes": 3772710912,
+    "observed_worker_peak_rss_bytes": 3775004672,
+    "budget_bytes": 5492159284,
+    "admitted": true,
+    "report": {
+      "ep": "vitisai",
+      "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+      "device_name": "",
+      "placement_granularity": "graph_nodes",
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "node_counts": {
+        "CPUExecutionProvider": 7,
+        "vitisai": 1
+      },
+      "total_nodes": 8,
+      "target_nodes": 1,
+      "fraction_on_target": 0.125,
+      "session_create_s": 10.790420099976473,
+      "warmup_s": 0.009790900046937168,
+      "rss_bytes": 1389957120,
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_live_split_20260924\\spark_output_head__2026-09-24_22-05-52_494.json",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "requested_provider_missing": "",
+      "fallback_note": "",
+      "onnxruntime": "1.30.0",
+      "note": ""
+    }
+  },
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_graph_bundle_with_norm_20260923/graph.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 7,
+      "vitisai": 1
+    },
+    "total_nodes": 8,
+    "target_nodes": 1,
+    "fraction_on_target": 0.125,
+    "session_create_s": 10.790420099976473,
+    "warmup_s": 0.009790900046937168,
+    "rss_bytes": 1389957120,
+    "inputs": [
+      {
+        "name": "x",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1,
+          2048
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "logits_concatenated",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          131072
+        ]
+      }
+    ],
+    "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_live_split_20260924\\spark_output_head__2026-09-24_22-05-52_494.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "note": ""
+  },
+  "calls": [
+    {
+      "worker_s": 0.008060900028795004,
+      "round_trip_s": 0.010898430016823113,
+      "transport_s": 0.002837529988028109
+    },
+    {
+      "worker_s": 0.007843900006264448,
+      "round_trip_s": 0.009879937977530062,
+      "transport_s": 0.002036037971265614
+    },
+    {
+      "worker_s": 0.007882799953222275,
+      "round_trip_s": 0.009725298034027219,
+      "transport_s": 0.001842498080804944
+    },
+    {
+      "worker_s": 0.00810160010587424,
+      "round_trip_s": 0.009735458006616682,
+      "transport_s": 0.0016338579007424414
+    },
+    {
+      "worker_s": 0.008183599915355444,
+      "round_trip_s": 0.009721835027448833,
+      "transport_s": 0.001538235112093389
+    },
+    {
+      "worker_s": 0.00809870008379221,
+      "round_trip_s": 0.009814247023314238,
+      "transport_s": 0.001715546939522028
+    },
+    {
+      "worker_s": 0.007857699994929135,
+      "round_trip_s": 0.00947146100224927,
+      "transport_s": 0.0016137610073201358
+    },
+    {
+      "worker_s": 0.00811490009073168,
+      "round_trip_s": 0.009583303006365895,
+      "transport_s": 0.0014684029156342149
+    },
+    {
+      "worker_s": 0.008125500055029988,
+      "round_trip_s": 0.009397456014994532,
+      "transport_s": 0.0012719559599645436
+    },
+    {
+      "worker_s": 0.008119800011627376,
+      "round_trip_s": 0.009803854976780713,
+      "transport_s": 0.0016840549651533365
+    },
+    {
+      "worker_s": 0.008148199995048344,
+      "round_trip_s": 0.009533156990073621,
+      "transport_s": 0.0013849569950252771
+    },
+    {
+      "worker_s": 0.007877199910581112,
+      "round_trip_s": 0.009382418007589877,
+      "transport_s": 0.0015052180970087647
+    },
+    {
+      "worker_s": 0.0076855000806972384,
+      "round_trip_s": 0.009113612992223352,
+      "transport_s": 0.0014281129115261137
+    },
+    {
+      "worker_s": 0.008153399918228388,
+      "round_trip_s": 0.009548658039420843,
+      "transport_s": 0.0013952581211924553
+    },
+    {
+      "worker_s": 0.007833800045773387,
+      "round_trip_s": 0.009408087003976107,
+      "transport_s": 0.0015742869582027197
+    },
+    {
+      "worker_s": 0.008126400061883032,
+      "round_trip_s": 0.009585916996002197,
+      "transport_s": 0.001459516934119165
+    },
+    {
+      "worker_s": 0.007923500030301511,
+      "round_trip_s": 0.009335631970316172,
+      "transport_s": 0.0014121319400146604
+    },
+    {
+      "worker_s": 0.007988000055775046,
+      "round_trip_s": 0.009435918007511646,
+      "transport_s": 0.0014479179517365992
+    },
+    {
+      "worker_s": 0.007938000024296343,
+      "round_trip_s": 0.009512889024335891,
+      "transport_s": 0.0015748890000395477
+    },
+    {
+      "worker_s": 0.0079993000254035,
+      "round_trip_s": 0.00945016200421378,
+      "transport_s": 0.0014508619788102806
+    },
+    {
+      "worker_s": 0.007936100009828806,
+      "round_trip_s": 0.009408821002580225,
+      "transport_s": 0.0014727209927514195
+    },
+    {
+      "worker_s": 0.008113700081594288,
+      "round_trip_s": 0.00939635100075975,
+      "transport_s": 0.0012826509191654623
+    },
+    {
+      "worker_s": 0.008112199953757226,
+      "round_trip_s": 0.009491124015767127,
+      "transport_s": 0.0013789240620099008
+    },
+    {
+      "worker_s": 0.008026800001971424,
+      "round_trip_s": 0.009303884988185018,
+      "transport_s": 0.0012770849862135947
+    },
+    {
+      "worker_s": 0.008106500026769936,
+      "round_trip_s": 0.009357329981867224,
+      "transport_s": 0.001250829955097288
+    },
+    {
+      "worker_s": 0.00793089997023344,
+      "round_trip_s": 0.00919922097818926,
+      "transport_s": 0.0012683210079558194
+    },
+    {
+      "worker_s": 0.007922500022687018,
+      "round_trip_s": 0.009606957028154284,
+      "transport_s": 0.0016844570054672658
+    },
+    {
+      "worker_s": 0.00815180002246052,
+      "round_trip_s": 0.010136283002793789,
+      "transport_s": 0.0019844829803332686
+    },
+    {
+      "worker_s": 0.008201599936001003,
+      "round_trip_s": 0.009595407987944782,
+      "transport_s": 0.001393808051943779
+    },
+    {
+      "worker_s": 0.008099200087599456,
+      "round_trip_s": 0.009652314998675138,
+      "transport_s": 0.0015531149110756814
+    },
+    {
+      "worker_s": 0.00808810000307858,
+      "round_trip_s": 0.009426594013348222,
+      "transport_s": 0.0013384940102696419
+    },
+    {
+      "worker_s": 0.0081279999576509,
+      "round_trip_s": 0.009410302969627082,
+      "transport_s": 0.0012823030119761825
+    },
+    {
+      "worker_s": 0.007890100008808076,
+      "round_trip_s": 0.009333486028481275,
+      "transport_s": 0.0014433860196731985
+    },
+    {
+      "worker_s": 0.00811459997203201,
+      "round_trip_s": 0.009461183042731136,
+      "transport_s": 0.0013465830706991255
+    },
+    {
+      "worker_s": 0.00804499990772456,
+      "round_trip_s": 0.009408088983036578,
+      "transport_s": 0.0013630890753120184
+    },
+    {
+      "worker_s": 0.007801800034940243,
+      "round_trip_s": 0.009241271007340401,
+      "transport_s": 0.0014394709724001586
+    },
+    {
+      "worker_s": 0.007797099999152124,
+      "round_trip_s": 0.0092971510021016,
+      "transport_s": 0.0015000510029494762
+    },
+    {
+      "worker_s": 0.007963899988681078,
+      "round_trip_s": 0.009639955998864025,
+      "transport_s": 0.001676056010182947
+    },
+    {
+      "worker_s": 0.007944099954329431,
+      "round_trip_s": 0.009169163007754833,
+      "transport_s": 0.0012250630534254014
+    },
+    {
+      "worker_s": 0.008101099985651672,
+      "round_trip_s": 0.009438806970138103,
+      "transport_s": 0.0013377069844864309
+    },
+    {
+      "worker_s": 0.007873599999584258,
+      "round_trip_s": 0.009309512039180845,
+      "transport_s": 0.0014359120395965874
+    },
+    {
+      "worker_s": 0.007866799947805703,
+      "round_trip_s": 0.009347585029900074,
+      "transport_s": 0.0014807850820943713
+    },
+    {
+      "worker_s": 0.007995399995706975,
+      "round_trip_s": 0.0096400500042364,
+      "transport_s": 0.0016446500085294247
+    },
+    {
+      "worker_s": 0.008085399982519448,
+      "round_trip_s": 0.009486066992394626,
+      "transport_s": 0.0014006670098751783
+    },
+    {
+      "worker_s": 0.00812220002990216,
+      "round_trip_s": 0.009655000001657754,
+      "transport_s": 0.001532799971755594
+    },
+    {
+      "worker_s": 0.007921500015072525,
+      "round_trip_s": 0.009408016980160028,
+      "transport_s": 0.0014865169650875032
+    },
+    {
+      "worker_s": 0.008275399915874004,
+      "round_trip_s": 0.009600255987606943,
+      "transport_s": 0.0013248560717329383
+    },
+    {
+      "worker_s": 0.008122199913486838,
+      "round_trip_s": 0.009598180011380464,
+      "transport_s": 0.0014759800978936255
+    },
+    {
+      "worker_s": 0.007995299994945526,
+      "round_trip_s": 0.009413947002030909,
+      "transport_s": 0.001418647007085383
+    },
+    {
+      "worker_s": 0.007918400107882917,
+      "round_trip_s": 0.013491853955201805,
+      "transport_s": 0.005573453847318888
+    },
+    {
+      "worker_s": 0.008296299958601594,
+      "round_trip_s": 0.009839368052780628,
+      "transport_s": 0.0015430680941790342
+    },
+    {
+      "worker_s": 0.008106800029054284,
+      "round_trip_s": 0.009482399036642164,
+      "transport_s": 0.00137559900758788
+    },
+    {
+      "worker_s": 0.007940699928440154,
+      "round_trip_s": 0.009351291984785348,
+      "transport_s": 0.0014105920563451946
+    },
+    {
+      "worker_s": 0.008147599990479648,
+      "round_trip_s": 0.009521063999272883,
+      "transport_s": 0.0013734640087932348
+    },
+    {
+      "worker_s": 0.007964399992488325,
+      "round_trip_s": 0.00960979302180931,
+      "transport_s": 0.001645393029320985
+    },
+    {
+      "worker_s": 0.007985499920323491,
+      "round_trip_s": 0.009423758019693196,
+      "transport_s": 0.0014382580993697047
+    },
+    {
+      "worker_s": 0.0080462999176234,
+      "round_trip_s": 0.009581949037965387,
+      "transport_s": 0.0015356491203419864
+    },
+    {
+      "worker_s": 0.008289900026284158,
+      "round_trip_s": 0.00973001099191606,
+      "transport_s": 0.0014401109656319022
+    },
+    {
+      "worker_s": 0.00799350009765476,
+      "round_trip_s": 0.009462622983846813,
+      "transport_s": 0.0014691228861920536
+    },
+    {
+      "worker_s": 0.00801099999807775,
+      "round_trip_s": 0.009356481023132801,
+      "transport_s": 0.0013454810250550508
+    },
+    {
+      "worker_s": 0.008165400009602308,
+      "round_trip_s": 0.009807354013901204,
+      "transport_s": 0.0016419540042988956
+    },
+    {
+      "worker_s": 0.008075500023551285,
+      "round_trip_s": 0.009735184023156762,
+      "transport_s": 0.0016596839996054769
+    },
+    {
+      "worker_s": 0.00785699998959899,
+      "round_trip_s": 0.009610373002942652,
+      "transport_s": 0.001753373013343662
+    },
+    {
+      "worker_s": 0.007843900006264448,
+      "round_trip_s": 0.013383966987021267,
+      "transport_s": 0.005540066980756819
+    }
+  ],
+  "worker_stats": {
+    "runs": 64,
+    "total_run_s": 0.5134378001093864,
+    "rss_bytes": 1390497792,
+    "peak_rss_bytes": 3775004672,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 10.790420099976473,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "warmup_s": 0.009790900046937168,
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_npu_live_split_20260924\\spark_output_head__2026-09-24_22-05-52_494.json",
+      "node_counts": {
+        "CPUExecutionProvider": 7,
+        "vitisai": 1
+      },
+      "total_nodes": 8,
+      "target_nodes": 1,
+      "fraction_on_target": 0.125,
+      "rss_bytes": 1389957120
+    }
+  }
+}

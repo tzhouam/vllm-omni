@@ -36,6 +36,16 @@ reference, and 20 separate captured-activation NPU calls matched top-1 with
 one verified NPU partition. The NPU did not compute any part of those CPU
 requests, so this is not a live split or a whole-request acceleration result.
 
+A later [live Spark CPU decoder + AMD NPU output-head split](evidence/spark_amd_npu_live_split/README.md)
+completed one warmup and 20/20 serial 64-token requests through the current
+Omni stage boundary, with 1,344 live NPU graph calls and one verified VitisAI
+partition per call. Whole-request wall p50/p95 was **5.012/5.393 s**; the
+WSL-to-Windows graph-stage round trip was **9.475/9.908 ms** p50/p95.
+The split's greedy tokens diverged from the unsplit BF16 CPU reference at
+output index 22 in a CPU BF16 top-logit tie. An on-trajectory diagnostic agreed
+on 63/64 head top-1 choices. The split remains numerically unqualified, and
+the separate CPU profile does not establish a paired speedup.
+
 An additional [Spark BF16 restart probe](evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
 cancelled after eight token events, rejected the retired session handle and
 verified that a fresh session produced the same 128 greedy token IDs with no
