@@ -1,0 +1,17 @@
+{
+  "scope": "real-weight BF16 SigLIP layer one with attention residual and full output; component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "fixture_sha256": {
+    "red": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+    "blue": "37fa24a0f99ca5b9b8105211f6b9dc4d28a8aece43ef3d68384c9c52ea32fe78",
+    "third": "ded8164dde9cbefd8fd53c859d7cff1693072e8cac95607ed5b161293350b348"
+  },
+  "direct_sha256": "6fa3e8468fbb68c3be1549c8113c8fc90178de5d9b44f921aee9d55282e41056",
+  "wrapped_sha256": "f043439f0480cffcda99ec35b1b6316565d220aa52fa376e219db05225fe2b65",
+  "reference_sha256": "45a037d9a6a881d8e95df0627d1aa34e8495d69bf88590722190b276e5d3f77d",
+  "export_s": 0.2107870680047199,
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "status": "bf16_attention_boundary_exported"
+}

@@ -1,0 +1,10 @@
+{
+  "scope": "same real-weight BF16 SigLIP layer on DirectML adapter 1; component control",
+  "model_sha256": "6fe2bfa6ce6af5857e88066534b006935b3716f7206c278c35d0460ae58e7ae5",
+  "fixture_sha256": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+  "onnxruntime": "1.24.4",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "status": "failed",
+  "error_type": "NotImplemented",
+  "error": "[ONNXRuntimeError] : 9 : NOT_IMPLEMENTED : Could not find an implementation for MatMul(13) node with name '/layers.0/self_attn/MatMul'"
+}

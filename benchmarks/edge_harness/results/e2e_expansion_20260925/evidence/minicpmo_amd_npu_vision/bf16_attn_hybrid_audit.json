@@ -1,0 +1,46 @@
+{
+  "scope": "measured HX370 BF16 attention residual plus Torch BF16 MLP and vision suffix; component-only offline replay",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "export_report_sha256": "06fb5ea4e6df18880cf18c2456582bf480dea49777da64664a42ccc715ef95c1",
+  "npu_report_sha256": "9a160b070b9c3064f79884822e7c4c6506269931fb0b99acb8b026f0afe219c5",
+  "reference_sha256": "45a037d9a6a881d8e95df0627d1aa34e8495d69bf88590722190b276e5d3f77d",
+  "npu_output_sha256": "2bc68d94a18737a999cf93489310bf545ea83ea4948b850c7bf2669e81d069be",
+  "prior_one_output_sha256": "a70753e2968417e46ce1bbaa4fa8fe1e27212c90d77a3a7782cd1576c7781a29",
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "threads": 8,
+  "cases": {
+    "red": {
+      "instrumented_full_matches_original_npu_bitwise": true,
+      "npu_attention_vs_torch_relative_l2": 0.007091742146062321,
+      "npu_full_vs_torch_relative_l2": 0.011819290186192391,
+      "cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2": 0.006254638560205356,
+      "npu_full_vs_cpu_bf16_mlp_on_npu_attention_relative_l2": 0.011190759737429815,
+      "hybrid_after27_relative_l2": 0.07254287343290022,
+      "hybrid_post_norm_relative_l2": 0.1103431334797319,
+      "finite": true
+    },
+    "blue": {
+      "instrumented_full_matches_original_npu_bitwise": true,
+      "npu_attention_vs_torch_relative_l2": 0.008208932852163085,
+      "npu_full_vs_torch_relative_l2": 0.012485678306242446,
+      "cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2": 0.006819445383138603,
+      "npu_full_vs_cpu_bf16_mlp_on_npu_attention_relative_l2": 0.011677223554976603,
+      "hybrid_after27_relative_l2": 0.06157623325257339,
+      "hybrid_post_norm_relative_l2": 0.09003408369544796,
+      "finite": true
+    },
+    "third": {
+      "instrumented_full_matches_original_npu_bitwise": true,
+      "npu_attention_vs_torch_relative_l2": 0.00846116575510162,
+      "npu_full_vs_torch_relative_l2": 0.012704141677314932,
+      "cpu_bf16_mlp_on_npu_attention_vs_torch_full_relative_l2": 0.008125337663250121,
+      "npu_full_vs_cpu_bf16_mlp_on_npu_attention_relative_l2": 0.012314810416221409,
+      "hybrid_after27_relative_l2": 0.05170941403065624,
+      "hybrid_post_norm_relative_l2": 0.06819255679442222,
+      "finite": true
+    }
+  },
+  "status": "attention_component_pass_on_three_fixed_images; vision_suffix_unqualified"
+}

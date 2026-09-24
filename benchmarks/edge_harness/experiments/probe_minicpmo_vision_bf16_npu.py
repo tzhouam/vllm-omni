@@ -329,6 +329,7 @@ def audit(args: argparse.Namespace) -> None:
         raise ValueError("BF16 source or measured NPU boundary changed")
     with np.load(args.reference, allow_pickle=False) as data:
         source_boundary = np.ascontiguousarray(data["source_bf16"])
+    cpu_source_boundary = source_boundary
     with np.load(args.npu_output, allow_pickle=False) as data:
         npu_boundary = np.ascontiguousarray(data[args.case or "output"])
     if (source_boundary.shape != (1, 1024, 1152)
@@ -348,22 +349,32 @@ def audit(args: argparse.Namespace) -> None:
         state = {key[4:]: source.get_tensor(key)
                  for key in source.keys() if key.startswith("vpm.")}
     model.load_state_dict(state, strict=True)
-    model.eval().to(torch.bfloat16)
+    model.eval().to(device=args.device, dtype=torch.bfloat16)
     del state
+    if args.device == "cuda":
+        torch.backends.cuda.matmul.allow_tf32 = False
+        if args.fixture is None or sha256(args.fixture) != expected_fixture_sha:
+            raise ValueError("CUDA source fixture missing or changed")
+        with np.load(args.fixture, allow_pickle=False) as data:
+            source_input = np.ascontiguousarray(data["hidden"])
+        with torch.inference_mode():
+            source_boundary = model.encoder.layers[0](
+                torch.from_numpy(source_input).to("cuda", dtype=torch.bfloat16),
+                None)[0].float().cpu().numpy()
 
     def suffix(boundary):
         with torch.inference_mode():
-            hidden = torch.from_numpy(boundary).to(torch.bfloat16)
+            hidden = torch.from_numpy(boundary).to(args.device, dtype=torch.bfloat16)
             for layer in model.encoder.layers[1:]:
                 hidden = layer(hidden, None)[0]
-            raw = hidden.float().numpy()
-            normalized = model.post_layernorm(hidden).float().numpy()
+            raw = hidden.float().cpu().numpy()
+            normalized = model.post_layernorm(hidden).float().cpu().numpy()
         return raw, normalized
 
     source_raw, source_norm = suffix(source_boundary)
     npu_raw, npu_norm = suffix(npu_boundary)
     report = {
-        "scope": "measured HX370 BF16 NPU layer 1 plus unchanged BF16 Torch layers 2..27 and post-layernorm; component only",
+        "scope": f"measured HX370 BF16 NPU layer 1 plus unchanged BF16 Torch {args.device} layers 2..27 and post-layernorm; component only",
         "case": args.case or "single_red",
         "model_revision": REVISION,
         "shard_sha256": SHARD_SHA,
@@ -372,11 +383,19 @@ def audit(args: argparse.Namespace) -> None:
         "export_report_sha256": sha256(args.export_report),
         "npu_report_sha256": sha256(args.npu_report),
         "boundary_relative_l2": relative_l2(source_boundary, npu_boundary),
+        "source_boundary_vs_cpu_bf16_relative_l2": relative_l2(
+            cpu_source_boundary, source_boundary),
         "after27_relative_l2": relative_l2(source_raw, npu_raw),
         "post_norm_relative_l2": relative_l2(source_norm, npu_norm),
         "finite": bool(np.isfinite(npu_norm).all()),
         "platform": platform.platform(),
         "torch": torch.__version__,
+        "device": args.device,
+        "device_name": (torch.cuda.get_device_name(0)
+                        if args.device == "cuda" else platform.processor()),
+        "cuda": torch.version.cuda if args.device == "cuda" else None,
+        "allow_tf32": (torch.backends.cuda.matmul.allow_tf32
+                       if args.device == "cuda" else None),
         "threads": args.threads,
         "status": "bf16_suffix_replay_measured_not_e2e",
     }
@@ -421,6 +440,8 @@ def main() -> None:
     auditor.add_argument("--export-report", type=Path, required=True)
     auditor.add_argument("--npu-report", type=Path, required=True)
     auditor.add_argument("--case", choices=("red", "blue", "third"))
+    auditor.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    auditor.add_argument("--fixture", type=Path)
     auditor.add_argument("--report", type=Path, required=True)
     auditor.add_argument("--threads", type=int, default=8)
     args = parser.parse_args()

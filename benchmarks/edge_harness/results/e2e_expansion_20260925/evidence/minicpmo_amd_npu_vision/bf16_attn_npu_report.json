@@ -1,0 +1,44 @@
+{
+  "scope": "real-weight BF16 SigLIP layer one attention boundary on HX370 NPU; component only",
+  "model_sha256": "f043439f0480cffcda99ec35b1b6316565d220aa52fa376e219db05225fe2b65",
+  "reference_sha256": "45a037d9a6a881d8e95df0627d1aa34e8495d69bf88590722190b276e5d3f77d",
+  "fixture_sha256": {
+    "red": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+    "blue": "37fa24a0f99ca5b9b8105211f6b9dc4d28a8aece43ef3d68384c9c52ea32fe78",
+    "third": "ded8164dde9cbefd8fd53c859d7cff1693072e8cac95607ed5b161293350b348"
+  },
+  "output_npz_sha256": "2bc68d94a18737a999cf93489310bf545ea83ea4948b850c7bf2669e81d069be",
+  "profile_sha256": "d5fe1fb20631e2972e9c36bf14f6f0aed511cbc64d8f30cba0c0a10de78ccb00",
+  "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\bf16_attn_profile_2026-09-25_04-39-27_200.json",
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "providers": [
+    "vitisai",
+    "CPUExecutionProvider"
+  ],
+  "node_counts": {
+    "vitisai": 3
+  },
+  "load_s": 325.408968099975,
+  "cases": {
+    "red": {
+      "one_call_s": 0.033064500079490244,
+      "attention_relative_l2": 0.007091742146062321,
+      "full_relative_l2": 0.011819290186192391,
+      "finite": true
+    },
+    "blue": {
+      "one_call_s": 0.028361500008031726,
+      "attention_relative_l2": 0.008208932852163085,
+      "full_relative_l2": 0.012485678306242446,
+      "finite": true
+    },
+    "third": {
+      "one_call_s": 0.027821199968457222,
+      "attention_relative_l2": 0.00846116575510162,
+      "full_relative_l2": 0.012704141677314932,
+      "finite": true
+    }
+  },
+  "status": "attention_boundary_npu_measured"
+}
