@@ -1,0 +1,54 @@
+{
+  "scope": "3 real-weight MiniCPM-o vision layers on one fixed synthetic image; component only",
+  "source_sha256": "b68fe07f9ae74d2c4d3a953b43ce5b33e28f86a41f413f857d2e00edf67b9efb",
+  "fixture_sha256": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+  "input_role": "calibration",
+  "calibration_fixture_sha256": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+  "candidate_sha256": "bba44f82fff3964ff8c3d2470e45f2fb529bc4e049a098a0c9bfef75c0fae110",
+  "candidate_bytes": 46075258,
+  "source_opsets": [
+    [
+      "",
+      17
+    ]
+  ],
+  "candidate_opsets": [
+    [
+      "",
+      21
+    ]
+  ],
+  "layout": "[batch, patches, hidden] = [1, 1024, 1152] FP32 input/output",
+  "quantization": "A16W8 per-channel QDQ MatMul/Gemm, MinMax calibrated on pinned image activations",
+  "extra_calibration_fixture_sha256": "37fa24a0f99ca5b9b8105211f6b9dc4d28a8aece43ef3d68384c9c52ea32fe78",
+  "last_layer_quantization_excluded": false,
+  "quantization_s": 4.880279800039716,
+  "candidate_cpu_vs_fp32_relative_l2": 0.009760072227437218,
+  "candidate_cpu_vs_source_bf16_relative_l2": 0.013658918205363938,
+  "candidate_cpu_p50_ms": 467.0044000959024,
+  "candidate_cpu_p95_ms": 475.76209995895624,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "samples": 20,
+  "npu": {
+    "device_type": "OrtHardwareDeviceType.NPU",
+    "providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "load_s": 13.646711000008509,
+    "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\layer3_red_profile_2026-09-25_03-40-39_027.json",
+    "profile_sha256": "0283495bea1d802ed3cb27e72c231b7e8af1315dccb9dffc6e71a32771bfd889",
+    "node_counts": {
+      "CPUExecutionProvider": 2100,
+      "vitisai": 300
+    },
+    "p50_ms": 156.80629992857575,
+    "p95_ms": 176.67090008035302,
+    "max_relative_l2_vs_qdq_cpu": 0.000551839548457414,
+    "max_relative_l2_vs_source_fp32": 0.009762100346246886,
+    "output_npz": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\layer3_red_output.npz",
+    "output_npz_sha256": "daf75ea1667a78f4e4992e1febd1db8d7379179cbf44062ff8e5871731b5d33e"
+  },
+  "status": "npu_numeric_pass_on_fixed_fixture"
+}

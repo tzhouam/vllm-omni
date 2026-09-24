@@ -1,0 +1,54 @@
+{
+  "scope": "four real-weight MiniCPM-o vision layers on one fixed synthetic image; component only",
+  "source_sha256": "bd3e7802a78a930c5cd3e8e1a9888ab73e3fa865d6f831e492e169cdd24540be",
+  "fixture_sha256": "feb8740e588f2305793d7402f26959f3c53f46c41f581c5c6c1141209085cce5",
+  "input_role": "calibration_extra",
+  "calibration_fixture_sha256": "9e58e815ccf46039b28d70f1b952f79ccc27b97a57ab44eaed50bd5218f6bcd2",
+  "candidate_sha256": "5e3d0ed188db01c643628411725614fd82927bed2a76f93a370085f49c5f2624",
+  "candidate_bytes": 107044201,
+  "source_opsets": [
+    [
+      "",
+      17
+    ]
+  ],
+  "candidate_opsets": [
+    [
+      "",
+      21
+    ]
+  ],
+  "layout": "[batch, patches, hidden] = [1, 1024, 1152] FP32 input/output",
+  "quantization": "A16W8 per-channel QDQ MatMul/Gemm, MinMax calibrated on pinned image activations",
+  "extra_calibration_fixture_sha256": null,
+  "last_layer_quantization_excluded": true,
+  "quantization_s": null,
+  "candidate_cpu_vs_fp32_relative_l2": 0.009257847674509283,
+  "candidate_cpu_vs_source_bf16_relative_l2": 0.013604245274866726,
+  "candidate_cpu_p50_ms": 415.3866999549791,
+  "candidate_cpu_p95_ms": 415.3866999549791,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "samples": 1,
+  "npu": {
+    "device_type": "OrtHardwareDeviceType.NPU",
+    "providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "load_s": 15.023061700048856,
+    "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\capture_blue_profile_2026-09-25_03-36-00_774.json",
+    "profile_sha256": "13cd236019d907991645ce4f372a4495b4de0ed7caceac4e60032b592c861a9d",
+    "node_counts": {
+      "CPUExecutionProvider": 143,
+      "vitisai": 15
+    },
+    "p50_ms": 260.95929997973144,
+    "p95_ms": 260.95929997973144,
+    "max_relative_l2_vs_qdq_cpu": 0.0005593582191535755,
+    "max_relative_l2_vs_source_fp32": 0.009259661897957376,
+    "output_npz": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\capture_blue.npz",
+    "output_npz_sha256": "f8f89c88f25929a24abaed1a60c11680c087ea99d72fa078218258fb9fa34274"
+  },
+  "status": "npu_numeric_pass_on_fixed_fixture"
+}

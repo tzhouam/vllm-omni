@@ -15,6 +15,8 @@ from pathlib import Path
 
 SOURCE_SHA = "bd3e7802a78a930c5cd3e8e1a9888ab73e3fa865d6f831e492e169cdd24540be"
 FIXTURE_SHA = "9e58e815ccf46039b28d70f1b952f79ccc27b97a57ab44eaed50bd5218f6bcd2"
+SOURCE_SHA3 = "b68fe07f9ae74d2c4d3a953b43ce5b33e28f86a41f413f857d2e00edf67b9efb"
+FIXTURE_SHA3 = "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4"
 
 
 def sha256(path: Path) -> str:
@@ -45,7 +47,9 @@ def main() -> None:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--profile-prefix", type=Path)
     parser.add_argument("--ep-dir", type=Path)
+    parser.add_argument("--output-npz", type=Path)
     parser.add_argument("--samples", type=int, default=20)
+    parser.add_argument("--layers", type=int, choices=(3, 4), default=4)
     parser.add_argument("--exclude-last-layer", action="store_true")
     parser.add_argument("--fixture-sha256")
     parser.add_argument("--candidate-sha256")
@@ -53,9 +57,13 @@ def main() -> None:
     parser.add_argument("--extra-calibration-fixture", type=Path)
     parser.add_argument("--extra-calibration-sha256")
     args = parser.parse_args()
+    source_sha = SOURCE_SHA3 if args.layers == 3 else SOURCE_SHA
+    calibration_sha = FIXTURE_SHA3 if args.layers == 3 else FIXTURE_SHA
     if args.samples < 1 or bool(args.ep_dir) != bool(args.profile_prefix):
         parser.error("samples must be positive; ep-dir and profile-prefix must be supplied together")
-    if sha256(args.source) != SOURCE_SHA or sha256(args.fixture) != (args.fixture_sha256 or FIXTURE_SHA):
+    if args.layers == 3 and args.exclude_last_layer:
+        parser.error("three-layer graph has no fourth layer to exclude")
+    if sha256(args.source) != source_sha or sha256(args.fixture) != (args.fixture_sha256 or calibration_sha):
         raise ValueError("vision source or calibration fixture changed")
     if args.fixture_sha256 and not args.candidate_sha256:
         parser.error("held-out input requires a pinned pre-existing candidate")
@@ -155,11 +163,11 @@ def main() -> None:
         str(args.candidate), load_external_data=False).opset_import]
 
     report = {
-        "scope": "four real-weight MiniCPM-o vision layers on one fixed synthetic image; component only",
-        "source_sha256": SOURCE_SHA,
+        "scope": f"{args.layers} real-weight MiniCPM-o vision layers on one fixed synthetic image; component only",
+        "source_sha256": source_sha,
         "fixture_sha256": sha256(args.fixture),
         "input_role": args.fixture_role if args.fixture_sha256 else "calibration",
-        "calibration_fixture_sha256": FIXTURE_SHA,
+        "calibration_fixture_sha256": calibration_sha,
         "candidate_sha256": sha256(args.candidate),
         "candidate_bytes": args.candidate.stat().st_size,
         "source_opsets": source_opsets,
@@ -200,10 +208,15 @@ def main() -> None:
         npu_samples = []
         npu_error_cpu = []
         npu_error_fp32 = []
+        first_npu_output = None
         for _ in range(args.samples):
             started = time.perf_counter()
             output = npu.run(None, {"hidden": hidden})[0]
             npu_samples.append((time.perf_counter() - started) * 1000)
+            if first_npu_output is None:
+                first_npu_output = output.copy()
+            elif not np.array_equal(output, first_npu_output):
+                raise RuntimeError("NPU vision output changed across identical calls")
             npu_error_cpu.append(relative_l2(cpu_output, output))
             npu_error_fp32.append(relative_l2(fp32, output))
         profile = Path(npu.end_profiling())
@@ -225,6 +238,12 @@ def main() -> None:
             "max_relative_l2_vs_qdq_cpu": max(npu_error_cpu),
             "max_relative_l2_vs_source_fp32": max(npu_error_fp32),
         }
+        if args.output_npz is not None:
+            args.output_npz.parent.mkdir(parents=True, exist_ok=True)
+            np.savez_compressed(args.output_npz, npu=first_npu_output,
+                                cpu_qdq=cpu_output)
+            report["npu"]["output_npz"] = str(args.output_npz)
+            report["npu"]["output_npz_sha256"] = sha256(args.output_npz)
     report["status"] = (
         "npu_numeric_pass_on_fixed_fixture"
         if report["npu"] and report["npu"]["node_counts"].get("vitisai", 0) > 0

@@ -1,0 +1,54 @@
+{
+  "scope": "3 real-weight MiniCPM-o vision layers on one fixed synthetic image; component only",
+  "source_sha256": "b68fe07f9ae74d2c4d3a953b43ce5b33e28f86a41f413f857d2e00edf67b9efb",
+  "fixture_sha256": "ded8164dde9cbefd8fd53c859d7cff1693072e8cac95607ed5b161293350b348",
+  "input_role": "held_out",
+  "calibration_fixture_sha256": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+  "candidate_sha256": "bba44f82fff3964ff8c3d2470e45f2fb529bc4e049a098a0c9bfef75c0fae110",
+  "candidate_bytes": 46075258,
+  "source_opsets": [
+    [
+      "",
+      17
+    ]
+  ],
+  "candidate_opsets": [
+    [
+      "",
+      21
+    ]
+  ],
+  "layout": "[batch, patches, hidden] = [1, 1024, 1152] FP32 input/output",
+  "quantization": "A16W8 per-channel QDQ MatMul/Gemm, MinMax calibrated on pinned image activations",
+  "extra_calibration_fixture_sha256": null,
+  "last_layer_quantization_excluded": false,
+  "quantization_s": null,
+  "candidate_cpu_vs_fp32_relative_l2": 0.015921032980891307,
+  "candidate_cpu_vs_source_bf16_relative_l2": 0.01840208430324467,
+  "candidate_cpu_p50_ms": 341.40000003390014,
+  "candidate_cpu_p95_ms": 341.40000003390014,
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "samples": 1,
+  "npu": {
+    "device_type": "OrtHardwareDeviceType.NPU",
+    "providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "load_s": 13.417000999907032,
+    "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\layer3_third_profile_2026-09-25_03-41-34_638.json",
+    "profile_sha256": "d4d9aa4032f99d0a3528450b3ec1e400231fcd54182780e850ae21c4214578d2",
+    "node_counts": {
+      "CPUExecutionProvider": 105,
+      "vitisai": 15
+    },
+    "p50_ms": 176.09079997055233,
+    "p95_ms": 176.09079997055233,
+    "max_relative_l2_vs_qdq_cpu": 0.0003951146899928204,
+    "max_relative_l2_vs_source_fp32": 0.015921179612386913,
+    "output_npz": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\layer3_third_output.npz",
+    "output_npz_sha256": "9dae0e4a1ecaea576ecc7fe2a72dfdc3e8c0385406d7d05847701b8477f543c5"
+  },
+  "status": "cpu_candidate_only_or_npu_unqualified"
+}

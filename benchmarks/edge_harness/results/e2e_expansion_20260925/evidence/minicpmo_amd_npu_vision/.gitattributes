@@ -1,0 +1,5 @@
+# Preserve native Windows byte hashes referenced by the handoff audits.
+capture_*.json -text -diff
+layer3_*_probe.json -text -diff
+*.log -text
+*.npz binary

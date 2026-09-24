@@ -1,0 +1,79 @@
+{
+  "scope": "actual AMD NPU 3-layer boundary plus unchanged BF16 CPU vision layers 4..27 and post-layernorm; component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "checkpoint_shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "source_onnx_sha256": "b68fe07f9ae74d2c4d3a953b43ce5b33e28f86a41f413f857d2e00edf67b9efb",
+  "candidate_sha256": "bba44f82fff3964ff8c3d2470e45f2fb529bc4e049a098a0c9bfef75c0fae110",
+  "fixture_sha256": "cd25c58727814ee306e4c4b88ed78d89a2fc2de1cc2d5caca90782264bd02fc4",
+  "npu_output_sha256": "daf75ea1667a78f4e4992e1febd1db8d7379179cbf44062ff8e5871731b5d33e",
+  "npu_report_sha256": "8835fa62cfe8cda24c3bd844b23444721340086e95548d7d28d46678559dfb38",
+  "input_shape": [
+    1,
+    1024,
+    1152
+  ],
+  "boundary_npu_vs_bf16": {
+    "relative_l2": 0.013662218321489531,
+    "cosine": 0.9999066685270979,
+    "max_abs": 0.14651823043823242,
+    "finite": true
+  },
+  "boundary_qdq_cpu_vs_bf16": {
+    "relative_l2": 0.013658918205363938,
+    "cosine": 0.9999067135643859,
+    "max_abs": 0.14679718017578125,
+    "finite": true
+  },
+  "boundary_npu_vs_fp32": {
+    "relative_l2": 0.009762106209186175,
+    "cosine": 0.9999523698091669,
+    "max_abs": 0.07378697395324707,
+    "finite": true
+  },
+  "after27_npu_vs_bf16": {
+    "relative_l2": 0.05858674668870852,
+    "cosine": 0.9982829984811713,
+    "max_abs": 32.0,
+    "finite": true
+  },
+  "after27_fp32_boundary_vs_bf16": {
+    "relative_l2": 0.05401787646527713,
+    "cosine": 0.9985402598923094,
+    "max_abs": 36.0,
+    "finite": true
+  },
+  "after27_qdq_cpu_vs_bf16": {
+    "relative_l2": 0.06125157349647333,
+    "cosine": 0.9981237858797429,
+    "max_abs": 37.5,
+    "finite": true
+  },
+  "post_norm_npu_vs_bf16": {
+    "relative_l2": 0.09276171593481096,
+    "cosine": 0.9956977389248561,
+    "max_abs": 7.953125,
+    "finite": true
+  },
+  "post_norm_fp32_boundary_vs_bf16": {
+    "relative_l2": 0.08576344167662157,
+    "cosine": 0.996323329773944,
+    "max_abs": 8.140625,
+    "finite": true
+  },
+  "post_norm_qdq_cpu_vs_bf16": {
+    "relative_l2": 0.09508615600629067,
+    "cosine": 0.9954800098842986,
+    "max_abs": 8.203125,
+    "finite": true
+  },
+  "cpu_suffix_s": {
+    "source": 1.8183898740680888,
+    "fp32_boundary": 1.7596954840701073,
+    "npu_boundary": 1.7802895550848916,
+    "qdq_cpu_boundary": 1.7729230149416253
+  },
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "threads": 8,
+  "status": "bf16_suffix_replay_measured"
+}
