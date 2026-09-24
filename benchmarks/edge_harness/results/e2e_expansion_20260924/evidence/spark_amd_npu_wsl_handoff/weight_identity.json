@@ -1,0 +1,35 @@
+{
+  "status": "output_head_weights_equal_only",
+  "source_graph_sha256": "f5f0c31eb438e9940ab242da8bf6f0f5dad6ebc9f6ef02d5475c21b744e595bc",
+  "source_revision": "448e61eb392c00f2c403185c5b56d5e0665bfaab",
+  "bf16_checkpoint_index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "bf16_revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+  "comparisons": [
+    {
+      "source_initializer": "norm",
+      "checkpoint_tensor": "model.norm.weight",
+      "checkpoint_shard": "model-00002-of-00002.safetensors",
+      "shape": [
+        2048
+      ],
+      "source_dtype": "float32",
+      "checkpoint_dtype": "bfloat16 converted exactly to float32",
+      "transpose_checkpoint_tensor": false,
+      "bitwise_equal_after_conversion": true
+    },
+    {
+      "source_initializer": "onnx::MatMul_24",
+      "checkpoint_tensor": "model.embedding.weight",
+      "checkpoint_shard": "model-00001-of-00002.safetensors",
+      "shape": [
+        2048,
+        131072
+      ],
+      "source_dtype": "float32",
+      "checkpoint_dtype": "bfloat16 converted exactly to float32",
+      "transpose_checkpoint_tensor": true,
+      "bitwise_equal_after_conversion": true
+    }
+  ],
+  "scope_limit": "The output norm and tied projection match; no other model weights or live activations were compared."
+}

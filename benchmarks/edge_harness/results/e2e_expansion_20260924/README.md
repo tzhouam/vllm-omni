@@ -27,6 +27,15 @@ was refused after load because its peak exceeded the generic reservation.
 This remains component transport, not live Spark generation or joint
 vLLM+NPU memory admission.
 
+A follow-up [Spark BF16 CPU + AMD NPU co-residency run](evidence/spark_amd_npu_cpu_coresidency/README.md)
+verified that the older NPU graph's norm and tied output projection are
+bitwise identical to the current BF16 checkpoint's head weights. Under a
+13.694 GB combined shared-RAM plan, the CPU model and NPU worker stayed
+loaded together. Twenty complete CPU requests matched the prior token-ID
+reference, and 20 separate captured-activation NPU calls matched top-1 with
+one verified NPU partition. The NPU did not compute any part of those CPU
+requests, so this is not a live split or a whole-request acceleration result.
+
 An additional [Spark BF16 restart probe](evidence/spark_bf16_wsl_cpu/restart_branch_report.json)
 cancelled after eight token events, rejected the retired session handle and
 verified that a fresh session produced the same 128 greedy token IDs with no
