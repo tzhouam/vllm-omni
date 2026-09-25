@@ -1,0 +1,769 @@
+{
+  "scope": "same BF16 Spark checkpoint, direct vLLM vs prior Omni; greedy output variants only",
+  "omni_requests_sha256": "449bc4bc666b76ea025ec9cd67d9c8515e0c61a7bb2f70b046750f821b3b41e8",
+  "omni_report_sha256": "3ea92a3f15d9d90ece2f86c26a2621a31aa9457a567fff7f96ca99761f131370",
+  "model": "/home/zhout/project/edge_infer/models/Spark-X2.5-4B",
+  "weight_sha256": {
+    "model-00001-of-00005.safetensors": "cc36bfe9ca2b839df89fd8c0c94f566f6717bd07ae859dfad074b303f90bdf5b",
+    "model-00002-of-00005.safetensors": "d98ea6b9059433181042c1ff9fbec167ae2f0850029787c82520d04a04942952",
+    "model-00003-of-00005.safetensors": "0ba22891378cf0ef3d9bf1f73c3159df3fc3dab8aa6e17679a9ffe7e9d867526",
+    "model-00004-of-00005.safetensors": "6aae0314fdf8fc3801677c017f296bcb14bc16095286c3bd1e7ce27e0398a113",
+    "model-00005-of-00005.safetensors": "ffe48ea1c2ee668407dd6ded0c02529da9c54580a8c38f6e53cf902b85a1bd95"
+  },
+  "profiles": {
+    "auto": {
+      "report_sha256": "ac9425e9f54a5bbcb6813b0aaf08d2211c56d39c7972b4cee43a236e8da573ac",
+      "cases": [
+        {
+          "band": "medium",
+          "batch": 1,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 20,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.6706257462501526
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.8581257462501526
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "medium",
+          "batch": 2,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": 84,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 23993,
+                  "logprob": -0.7407856583595276
+                },
+                {
+                  "token_id": 29392,
+                  "logprob": -0.7720356583595276
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.739289402961731
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.770539402961731
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "medium",
+          "batch": 4,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.5863831043243408
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.9926331043243408
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.6182162165641785
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.9307162165641785
+                }
+              ]
+            },
+            {
+              "slot": 2,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.7313690781593323
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.7938690781593323
+                }
+              ]
+            },
+            {
+              "slot": 3,
+              "first_difference_from_batch1": 84,
+              "matching_prior_omni_requests": 5,
+              "probe_top_two": [
+                {
+                  "token_id": 23993,
+                  "logprob": -0.6947394013404846
+                },
+                {
+                  "token_id": 29392,
+                  "logprob": -0.8197394013404846
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 1,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 20,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6777701377868652
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7090201377868652
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 2,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": 89,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 930,
+                  "logprob": -0.6701182126998901
+                },
+                {
+                  "token_id": 317,
+                  "logprob": -0.7169932126998901
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6663040518760681
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7209915518760681
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 4,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6893777251243591
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.6971902251243591
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6932768821716309
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.6932768821716309
+                }
+              ]
+            },
+            {
+              "slot": 2,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6363988518714905
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7535863518714905
+                }
+              ]
+            },
+            {
+              "slot": 3,
+              "first_difference_from_batch1": 89,
+              "matching_prior_omni_requests": 5,
+              "probe_top_two": [
+                {
+                  "token_id": 930,
+                  "logprob": -0.6777752041816711
+                },
+                {
+                  "token_id": 317,
+                  "logprob": -0.7090252041816711
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "reduction": {
+      "report_sha256": "124682f4c0397b5c5af0006959dddae4585ceef0c0af96379968ed264d981c84",
+      "cases": [
+        {
+          "band": "medium",
+          "batch": 1,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 20,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.677390456199646
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.833640456199646
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "medium",
+          "batch": 2,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.688443660736084
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.813443660736084
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.6641732454299927
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.8516732454299927
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "medium",
+          "batch": 4,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.5863831043243408
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.9926331043243408
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.6182162165641785
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.9307162165641785
+                }
+              ]
+            },
+            {
+              "slot": 2,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.7313690781593323
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.7938690781593323
+                }
+              ]
+            },
+            {
+              "slot": 3,
+              "first_difference_from_batch1": 84,
+              "matching_prior_omni_requests": 5,
+              "probe_top_two": [
+                {
+                  "token_id": 23993,
+                  "logprob": -0.6947394013404846
+                },
+                {
+                  "token_id": 29392,
+                  "logprob": -0.8197394013404846
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 1,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 20,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6400765776634216
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7494515776634216
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 2,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": 89,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 930,
+                  "logprob": -0.685501754283905
+                },
+                {
+                  "token_id": 317,
+                  "logprob": -0.701126754283905
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.673940122127533
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.713002622127533
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 4,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6893777251243591
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.6971902251243591
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6932768821716309
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.6932768821716309
+                }
+              ]
+            },
+            {
+              "slot": 2,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6363988518714905
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7535863518714905
+                }
+              ]
+            },
+            {
+              "slot": 3,
+              "first_difference_from_batch1": 89,
+              "matching_prior_omni_requests": 5,
+              "probe_top_two": [
+                {
+                  "token_id": 930,
+                  "logprob": -0.6777752041816711
+                },
+                {
+                  "token_id": 317,
+                  "logprob": -0.7090252041816711
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "fp32": {
+      "report_sha256": "97418fa4b885d4696bf51d152958c933f1087a04950bdb47d12c7490a2c49721",
+      "cases": [
+        {
+          "band": "medium",
+          "batch": 1,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 20,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.6071168184280396
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.9508668184280396
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "medium",
+          "batch": 2,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.5876225233078003
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.9626225233078003
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.6859979629516602
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.8422479629516602
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "medium",
+          "batch": 4,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.7403011918067932
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.8028011918067932
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.6440449357032776
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.8940449357032776
+                }
+              ]
+            },
+            {
+              "slot": 2,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.5546334981918335
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -1.0233834981918335
+                }
+              ]
+            },
+            {
+              "slot": 3,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 29392,
+                  "logprob": -0.7057983875274658
+                },
+                {
+                  "token_id": 23993,
+                  "logprob": -0.7995483875274658
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 1,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 20,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6893770694732666
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.6971895694732666
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 2,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6739316582679749
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7129941582679749
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": 89,
+              "matching_prior_omni_requests": 10,
+              "probe_top_two": [
+                {
+                  "token_id": 930,
+                  "logprob": -0.6893774271011353
+                },
+                {
+                  "token_id": 317,
+                  "logprob": -0.6971899271011353
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "band": "long",
+          "batch": 4,
+          "slots": [
+            {
+              "slot": 0,
+              "first_difference_from_batch1": 89,
+              "matching_prior_omni_requests": 5,
+              "probe_top_two": [
+                {
+                  "token_id": 930,
+                  "logprob": -0.6587291955947876
+                },
+                {
+                  "token_id": 317,
+                  "logprob": -0.7290416955947876
+                }
+              ]
+            },
+            {
+              "slot": 1,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6777728199958801
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7090228199958801
+                }
+              ]
+            },
+            {
+              "slot": 2,
+              "first_difference_from_batch1": 89,
+              "matching_prior_omni_requests": 5,
+              "probe_top_two": [
+                {
+                  "token_id": 930,
+                  "logprob": -0.673927366733551
+                },
+                {
+                  "token_id": 317,
+                  "logprob": -0.712989866733551
+                }
+              ]
+            },
+            {
+              "slot": 3,
+              "first_difference_from_batch1": null,
+              "matching_prior_omni_requests": 15,
+              "probe_top_two": [
+                {
+                  "token_id": 317,
+                  "logprob": -0.6549734473228455
+                },
+                {
+                  "token_id": 930,
+                  "logprob": -0.7330984473228455
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "conclusion": "Direct vLLM reproduces the Omni batch-slot variants; FP32 gate alone does not remove long-prompt variation. Task quality remains unqualified."
+}

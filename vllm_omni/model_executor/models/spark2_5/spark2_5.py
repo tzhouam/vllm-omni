@@ -185,6 +185,9 @@ class Spark2_5Attention(nn.Module):
         # override exists so the choice can be ablated on a new machine
         # rather than assumed.
         override = os.environ.get("VLLM_OMNI_SPARK_GATE_REDUCTION", "auto")
+        if override not in ("auto", "0", "1", "fp32"):
+            raise ValueError(f"Unsupported VLLM_OMNI_SPARK_GATE_REDUCTION={override!r}")
+        self.gate_fp32 = override == "fp32"
         self.gate_via_reduction = (
             current_platform.is_cpu() if override == "auto" else override == "1"
         )
@@ -252,7 +255,11 @@ class Spark2_5Attention(nn.Module):
         attn_output = self.attn(q, k, v)
 
         if self.g_weight is not None:
-            if self.gate_via_reduction:
+            if self.gate_fp32:
+                gate_score = torch.nn.functional.linear(
+                    hidden_states.float(), self.g_weight.float()
+                )
+            elif self.gate_via_reduction:
                 gate_score = torch.ops.vllm.spark_head_gate(
                     hidden_states, self.g_weight
                 )
