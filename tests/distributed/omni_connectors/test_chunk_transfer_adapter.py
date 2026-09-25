@@ -27,6 +27,19 @@ from vllm_omni.distributed.omni_connectors.utils.config import ConnectorSpec
 pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
 
 
+def test_transfer_adapter_joins_worker_threads_before_connector_close() -> None:
+    adapter = OmniTransferAdapterBase(config=None)
+    closed: list[bool] = []
+
+    def close() -> None:
+        closed.append(not adapter.recv_thread.is_alive() and not adapter.save_thread.is_alive())
+
+    adapter.connector = SimpleNamespace(close=close)
+    adapter.shutdown()
+
+    assert closed == [True]
+
+
 class DummyWaitingQueue(list):
     def prepend_requests(self, requests):
         self[:0] = list(requests)

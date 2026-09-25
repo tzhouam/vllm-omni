@@ -29,6 +29,7 @@ from vllm_omni.distributed.omni_connectors.utils.kv_utils import kv_zmq_port
 from vllm_omni.engine import OmniEngineCoreOutput, OmniEngineCoreOutputs
 from vllm_omni.engine.stage_client import StageClientBase
 from vllm_omni.engine.stage_init_utils import StageMetadata
+from vllm_omni.engine.shutdown_limits import stage_shutdown_grace_s
 
 if TYPE_CHECKING:
     from vllm.v1.engine import EngineCoreOutput
@@ -75,6 +76,12 @@ class StageEngineCoreClientBase(StageClientBase):
     """
 
     replica_id: int = 0
+
+    def shutdown(self, timeout: float | None = None) -> None:
+        # CPU model teardown under shared-RAM pressure can exceed the CUDA
+        # grace. Both are bounded and covered by the outer orchestrator join.
+        grace_s = stage_shutdown_grace_s(getattr(self, "vllm_config", None))
+        super().shutdown(timeout=grace_s if timeout is None else timeout)
 
     @staticmethod
     def make_async_mp_client(

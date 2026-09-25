@@ -101,6 +101,15 @@ elif DEFAULT_INPUT_WAIT_TIMEOUT_S == 0:
 class OmniSchedulerMixin:
     """Shared scheduler helpers for omni-specific request handling."""
 
+    def shutdown(self) -> None:
+        """Retire Omni's chunk transport before vLLM tears down the scheduler."""
+        adapter = getattr(self, "chunk_transfer_adapter", None)
+        try:
+            if adapter is not None:
+                adapter.shutdown()
+        finally:
+            super().shutdown()
+
     # ------------------------------------------------------------------ #
     #  Shared scheduler/output helpers (lift the AR / generation duplicates)
     # ------------------------------------------------------------------ #

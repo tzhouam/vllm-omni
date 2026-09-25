@@ -7,6 +7,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+from vllm.v1.engine.core_client import AsyncMPClient
 from vllm.v1.engine.exceptions import EngineDeadError
 
 from vllm_omni.engine.stage_engine_core_client import StageEngineCoreClient
@@ -30,3 +31,23 @@ def test_check_health_raises_when_resources_engine_dead():
     client = _make_client(engine_dead=True)
     with pytest.raises(EngineDeadError, match="engine core is dead"):
         client.check_health()
+
+
+@pytest.mark.parametrize(
+    ("device_type", "requested_timeout", "expected_timeout"),
+    [("cpu", None, 30.0), ("cuda", None, 15.0), ("cpu", 7.0, 7.0)],
+)
+def test_shutdown_grace_follows_device_and_preserves_explicit_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+    device_type: str,
+    requested_timeout: float | None,
+    expected_timeout: float,
+) -> None:
+    client = _make_client()
+    client.vllm_config = SimpleNamespace(device_config=SimpleNamespace(device_type=device_type))
+    observed: list[float | None] = []
+    monkeypatch.setattr(AsyncMPClient, "shutdown", lambda self, timeout=None: observed.append(timeout))
+
+    client.shutdown(timeout=requested_timeout)
+
+    assert observed == [expected_timeout]

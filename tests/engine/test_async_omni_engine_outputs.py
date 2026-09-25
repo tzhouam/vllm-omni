@@ -16,7 +16,10 @@ from types import SimpleNamespace
 import pytest
 from pytest_mock import MockerFixture
 
-from vllm_omni.engine.async_engine_utils import weak_shutdown_async_omni_engine
+from vllm_omni.engine.async_engine_utils import (
+    orchestrator_shutdown_join_timeout,
+    weak_shutdown_async_omni_engine,
+)
 from vllm_omni.engine.async_omni_engine import AsyncOmniEngine
 from vllm_omni.engine.duplex.control_client import (
     DuplexControlClient,
@@ -577,6 +580,32 @@ def test_shutdown_releases_runtime_after_orchestrator_stops(mocker: MockerFixtur
 
     engine.orchestrator_thread.join.assert_called_once()
     engine._runtime.shutdown.assert_called_once_with()
+
+
+def test_shutdown_join_budget_covers_serial_stage_clients(mocker: MockerFixture):
+    engine = object.__new__(AsyncOmniEngine)
+    engine._shutdown_called = False
+    engine._weak_finalizer = None
+    engine.request_queue = mocker.MagicMock()
+    engine.output_queue = mocker.MagicMock()
+    engine.rpc_output_queue = mocker.MagicMock()
+    engine._correlated_rpc_client = mocker.MagicMock()
+    engine.orchestrator_thread = mocker.MagicMock()
+    engine.orchestrator_thread.is_alive.side_effect = [True, False]
+    engine._runtime = mocker.MagicMock()
+    engine.stage_pools = [mocker.Mock(live_num_replicas=1) for _ in range(3)]
+
+    engine.shutdown()
+
+    assert engine.orchestrator_thread.join.call_args.kwargs["timeout"] == 60.0
+    engine._runtime.shutdown.assert_called_once_with()
+
+
+def test_shutdown_join_budget_uses_cpu_stage_grace() -> None:
+    cpu_config = SimpleNamespace(device_config=SimpleNamespace(device_type="cpu"))
+    pools = [SimpleNamespace(live_num_replicas=1, stage_vllm_config=cpu_config) for _ in range(3)]
+
+    assert orchestrator_shutdown_join_timeout(pools) == 105.0
 
 
 def test_shutdown_defers_runtime_release_until_live_orchestrator_stops(mocker: MockerFixture):

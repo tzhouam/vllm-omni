@@ -41,12 +41,12 @@ from vllm_omni.data_entry_keys import REQUEST_ARTIFACT_DIRS_KEY, TRANSFORM_OWNED
 from vllm_omni.engine import OmniEngineCoreRequest
 from vllm_omni.engine.async_engine_utils import (
     SHUTDOWN_ENQUEUE_TIMEOUT_S,
-    SHUTDOWN_JOIN_TIMEOUT_S,
     apply_omni_final_stage_metadata,
     enqueue_orchestrator_shutdown,
     inject_global_id,
     is_abort_transport_shutdown,
     is_janus_sync_queue_shutdown,
+    orchestrator_shutdown_join_timeout,
     shutdown_runtime_after_orchestrator,
     upgrade_to_omni_request,
     weak_shutdown_async_omni_engine,
@@ -1828,14 +1828,15 @@ class AsyncOmniEngine:
                 logger.exception("[AsyncOmniEngine] Failed to close correlated RPC client")
 
         orchestrator_stopped = False
+        join_timeout_s = orchestrator_shutdown_join_timeout(getattr(self, "stage_pools", None))
         try:
             if self.is_alive():
-                self.orchestrator_thread.join(timeout=SHUTDOWN_JOIN_TIMEOUT_S)
+                self.orchestrator_thread.join(timeout=join_timeout_s)
             orchestrator_stopped = not self.is_alive()
             if not orchestrator_stopped:
                 logger.error(
                     "[AsyncOmniEngine] Orchestrator did not stop within %.1f seconds; continuing cleanup",
-                    SHUTDOWN_JOIN_TIMEOUT_S,
+                    join_timeout_s,
                 )
         except Exception:
             logger.exception("[AsyncOmniEngine] Failed to join Orchestrator thread")

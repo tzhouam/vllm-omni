@@ -177,6 +177,11 @@ class OmniTransferAdapterBase:
             self._recv_cond.notify_all()
         with self._save_cond:
             self._save_cond.notify_all()
+        # A sender may still be completing a put when shutdown starts. Wait
+        # for both loops before unlinking tracked buffers in connector.close().
+        for thread in (self.recv_thread, self.save_thread):
+            if thread.is_alive() and thread is not threading.current_thread():
+                thread.join(timeout=5)
         if self.connector is not None:
             try:
                 self.connector.close()

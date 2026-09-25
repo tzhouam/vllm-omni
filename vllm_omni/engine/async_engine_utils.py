@@ -18,6 +18,10 @@ from vllm_omni.engine.serialization import (
     serialize_additional_information,
 )
 from vllm_omni.engine.stage_runtime import StageRuntime
+from vllm_omni.engine.shutdown_limits import (
+    DEFAULT_STAGE_SHUTDOWN_GRACE_S,
+    stage_shutdown_grace_s,
+)
 
 logger = init_logger(__name__)
 
@@ -30,6 +34,20 @@ _RPC_RESULT_ROUTER_CLOSED_MESSAGES = {
     "RPC result router closed",
     "RPC result router is closed",
 }
+
+
+def orchestrator_shutdown_join_timeout(stage_pools: list[Any] | None) -> float:
+    """Cover serial stage-client shutdowns before releasing the stage runtime.
+
+    Each client can consume its entire bounded SIGTERM grace period. The
+    orchestrator closes them serially, so a fixed 30-second outer join can
+    expire while a healthy three-stage pipeline is still shutting down.
+    """
+    client_grace_s = sum(
+        pool.live_num_replicas * stage_shutdown_grace_s(getattr(pool, "stage_vllm_config", None))
+        for pool in (stage_pools or [])
+    )
+    return max(SHUTDOWN_JOIN_TIMEOUT_S, client_grace_s + DEFAULT_STAGE_SHUTDOWN_GRACE_S)
 
 
 def is_janus_sync_queue_shutdown(exc: Exception) -> bool:
