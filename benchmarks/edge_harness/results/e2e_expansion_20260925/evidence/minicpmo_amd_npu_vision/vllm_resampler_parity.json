@@ -1,0 +1,39 @@
+{
+  "scope": "installed vLLM 0.28 and source Omni MiniCPM-o 4.5 BF16 resampler parity on three fixed images",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "vllm_resampler_source": "/home/zhout/project/edge_infer/.venvs/omni-cpu/lib/python3.12/site-packages/vllm/model_executor/models/minicpmv.py",
+  "omni_resampler_source": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_llm.py",
+  "vllm": "0.28.0",
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "cases": {
+    "red": {
+      "kv_projection_bitwise_equal_to_source": true,
+      "final_bitwise_equal_to_source": true,
+      "final_relative_l2": 0.0,
+      "omni_kv_projection_bitwise_equal_to_source": true,
+      "omni_final_bitwise_equal_to_source": true,
+      "omni_final_relative_l2": 0.0
+    },
+    "blue": {
+      "kv_projection_bitwise_equal_to_source": true,
+      "final_bitwise_equal_to_source": true,
+      "final_relative_l2": 0.0,
+      "omni_kv_projection_bitwise_equal_to_source": true,
+      "omni_final_bitwise_equal_to_source": true,
+      "omni_final_relative_l2": 0.0
+    },
+    "third": {
+      "kv_projection_bitwise_equal_to_source": true,
+      "final_bitwise_equal_to_source": true,
+      "final_relative_l2": 0.0,
+      "omni_kv_projection_bitwise_equal_to_source": true,
+      "omni_final_bitwise_equal_to_source": true,
+      "omni_final_relative_l2": 0.0
+    }
+  },
+  "status": "bitwise_pass"
+}
