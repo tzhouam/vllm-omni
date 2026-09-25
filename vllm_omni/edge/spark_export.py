@@ -223,9 +223,10 @@ class _Layer(nn.Module):
             # the oldest. That removes both the cache-sized Output (13% of the
             # layer on device) and the window Slice (7.4%).
             #
-            # Ring order is arbitrary, which is fine: softmax over keys is
-            # order-independent and each cached key already carries its own
-            # rotary phase. Only slots not yet written need masking.
+            # Ring order is mathematically arbitrary because each cached key
+            # carries its rotary phase. In finite precision, attention's
+            # reduction order can change logits; the caller must validate
+            # this layout against its actual checkpoint and backend.
             #
             # Attention itself stays exactly as roll computes it -- concat the
             # keys, one fused Softmax. Splitting it into an online softmax over
@@ -328,10 +329,11 @@ class SparkDecodeStep(nn.Module):
 class SparkDecodeCache:
     """CPU reference for the fixed-shape KV contract of ``SparkDecodeStep``.
 
-    Sliding layers keep the preceding ``window - 1`` entries in a ring; full
-    layers keep every preceding entry. The graph sees fixed-size buffers and
-    masks unused slots. This is a state-contract reference, not a mobile
-    device allocator or an Omni request scheduler.
+    Sliding layers keep the preceding ``window - 1`` entries in a ring or a
+    chronological rolled window; full layers keep every preceding entry. The
+    graph sees fixed-size buffers and masks unused slots. This is a
+    state-contract reference, not a mobile device allocator or an Omni request
+    scheduler.
     """
 
     def __init__(
@@ -343,8 +345,8 @@ class SparkDecodeCache:
     ) -> None:
         if max_context < 1:
             raise ValueError("max_context must be positive")
-        if cfg.layout_for(SLIDING) != "ring" or cfg.layout_for(FULL) != "roll":
-            raise ValueError("SparkDecodeCache requires ring sliding and roll full layout")
+        if cfg.layout_for(FULL) != "roll":
+            raise ValueError("SparkDecodeCache requires roll full layout")
         self.cfg = cfg
         self.max_context = max_context
         self.position = 0
@@ -352,7 +354,7 @@ class SparkDecodeCache:
         self._closed = False
         self.buffers: list[torch.Tensor] = []
         for layer_type in cfg.layer_types:
-            capacity = cfg.sliding_window - 1 if layer_type == SLIDING else max_context
+            capacity = cfg.cache_len(SLIDING, cfg.sliding_window) if layer_type == SLIDING else max_context
             if capacity < 1:
                 raise ValueError("sliding_window must be at least 2")
             for _ in ("k", "v"):
@@ -374,7 +376,7 @@ class SparkDecodeCache:
             zip(layer_caches, self.cfg.layer_types)
         ):
             capacity = self.buffers[2 * i].shape[2]
-            expected = min(position, capacity) if layer_type == SLIDING else position
+            expected = min(position, self.cfg.sliding_window - 1) if layer_type == SLIDING else position
             for source in (keys, values):
                 if source.shape != (1, self.cfg.num_key_value_heads,
                                      expected, self.cfg.head_dim):
@@ -383,17 +385,19 @@ class SparkDecodeCache:
             zip(layer_caches, self.cfg.layer_types)
         ):
             capacity = self.buffers[2 * i].shape[2]
-            expected = min(position, capacity) if layer_type == SLIDING else position
+            expected = min(position, self.cfg.sliding_window - 1) if layer_type == SLIDING else position
             for source, dest in ((keys, self.buffers[2 * i]),
                                  (values, self.buffers[2 * i + 1])):
                 if layer_type == FULL:
                     dest[:, :, :position].copy_(source.to(dest.dtype))
-                else:
+                elif self.cfg.layout_for(SLIDING) == "ring":
                     for offset in range(expected):
                         absolute = position - expected + offset
                         dest[:, :, absolute % capacity].copy_(
                             source[:, :, offset].to(dest.dtype)
                         )
+                elif expected:
+                    dest[:, :, -expected:].copy_(source.to(dest.dtype))
         self.position = position
         self._seeded = True
 
@@ -421,11 +425,12 @@ class SparkDecodeCache:
         )
         sw_capacity = cfg.sliding_window - 1
         mask_dtype = self.buffers[0].dtype
-        mask_sw = torch.full(
-            (1, 1, 1, sw_capacity + 1), float("-inf"), dtype=mask_dtype
-        )
-        mask_sw[:, :, :, :min(self.position, sw_capacity)] = 0
-        mask_sw[:, :, :, -1] = 0
+        mask_sw = torch.full((1, 1, 1, cfg.sliding_window), float("-inf"), dtype=mask_dtype)
+        if cfg.layout_for(SLIDING) == "ring":
+            mask_sw[:, :, :, :min(self.position, sw_capacity)] = 0
+            mask_sw[:, :, :, -1] = 0
+        else:
+            mask_sw[:, :, :, -(min(self.position, sw_capacity) + 1):] = 0
         mask_full = torch.full(
             (1, 1, 1, self.max_context + 1), float("-inf"), dtype=mask_dtype
         )
@@ -455,7 +460,11 @@ class SparkDecodeCache:
             for kv in (0, 1):
                 source = outputs[1 + 2 * i + kv]
                 dest = self.buffers[2 * i + kv]
-                if source.shape != (1, self.cfg.num_key_value_heads, 1,
+                output_len = (self.cfg.sliding_window
+                              if self.cfg.layer_types[i] == SLIDING
+                              and self.cfg.layout_for(SLIDING) == "roll"
+                              else 1)
+                if source.shape != (1, self.cfg.num_key_value_heads, output_len,
                                     self.cfg.head_dim):
                     raise ValueError(f"decode output shape mismatch at layer {i}")
                 if source.dtype != dest.dtype or source.device != dest.device:
@@ -466,8 +475,11 @@ class SparkDecodeCache:
             for kv in (0, 1):
                 source = outputs[1 + 2 * i + kv]
                 dest = self.buffers[2 * i + kv]
-                slot = self.position % dest.shape[2] if layer_type == SLIDING else self.position
-                dest[:, :, slot:slot + 1].copy_(source)
+                if layer_type == SLIDING and self.cfg.layout_for(SLIDING) == "roll":
+                    dest.copy_(source)
+                else:
+                    slot = self.position % dest.shape[2] if layer_type == SLIDING else self.position
+                    dest[:, :, slot:slot + 1].copy_(source)
         self.position += 1
 
     def clear(self) -> None:

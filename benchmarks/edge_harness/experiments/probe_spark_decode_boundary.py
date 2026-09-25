@@ -55,6 +55,7 @@ def main() -> None:
     parser.add_argument("--export-arithmetic",
                         choices=("fp32_export", "hf_bf16_reference"),
                         default="fp32_export")
+    parser.add_argument("--cache-layout", choices=("auto", "roll"), default="auto")
     parser.add_argument("--compact-inputs", action="store_true",
                         help="diagnose static padding by using only filled cache slots")
     parser.add_argument("--compact-layer-type",
@@ -64,6 +65,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.decode_steps < 1:
         raise ValueError("decode-steps must be positive")
+    if args.ordered_sliding and args.cache_layout == "roll":
+        raise ValueError("ordered-sliding applies only to the ring layout")
 
     torch.set_num_threads(8)
     hf_config = AutoConfig.from_pretrained(
@@ -130,7 +133,10 @@ def main() -> None:
             for layer in reference_cache.layers
         ]
         raw_config = json.loads((args.model / "config.json").read_text())
-        cfg = config_from_spark(raw_config, arithmetic_mode=args.export_arithmetic)
+        cfg = config_from_spark(
+            raw_config, arithmetic_mode=args.export_arithmetic,
+            cache_layout=args.cache_layout,
+        )
         step = SparkDecodeStep(cfg).eval()
         copied = load_spark_weights(step, args.model)
         position = int(prompt_ids.shape[1])
@@ -149,7 +155,8 @@ def main() -> None:
             decode_position = state.position
             x = model.model.embedding(torch.tensor([[current_token]])).float()
             step_inputs = list(state.step_inputs(x))
-            if args.ordered_sliding and decode_position >= cfg.sliding_window - 1:
+            if (args.ordered_sliding and cfg.layout_for(SLIDING) == "ring"
+                    and decode_position >= cfg.sliding_window - 1):
                 capacity = cfg.sliding_window - 1
                 order = (torch.arange(capacity) + decode_position - capacity) % capacity
                 for i, layer_type in enumerate(cfg.layer_types):
@@ -159,6 +166,8 @@ def main() -> None:
             if args.compact_inputs:
                 compact_sw = args.compact_layer_type in ("all", "sliding")
                 compact_full = args.compact_layer_type in ("all", "full")
+                if compact_sw and cfg.layout_for(SLIDING) == "roll":
+                    raise ValueError("compact sliding diagnostic requires a ring cache")
                 if compact_sw and decode_position >= cfg.sliding_window - 1:
                     raise ValueError("compact sliding diagnostic requires an unfilled ring")
                 if compact_sw:
@@ -192,8 +201,8 @@ def main() -> None:
             cache_mismatch_layers = []
             if args.export_arithmetic == "hf_bf16_reference":
                 for i, layer in enumerate(reference_cache.layers):
-                    if (not torch.equal(out[1 + 2 * i], layer.keys[:, :, -1:])
-                            or not torch.equal(out[2 + 2 * i], layer.values[:, :, -1:])):
+                    if (not torch.equal(out[1 + 2 * i][:, :, -1:], layer.keys[:, :, -1:])
+                            or not torch.equal(out[2 + 2 * i][:, :, -1:], layer.values[:, :, -1:])):
                         cache_mismatch_layers.append(i)
             steps.append({
                 "position": decode_position,
@@ -229,12 +238,13 @@ def main() -> None:
         "max_logits_abs": max(s["logits_max_abs"] for s in steps),
         "final_position": state.position,
         "full_cache_capacity": state.max_context,
-        "sliding_cache_capacity": cfg.sliding_window - 1,
+        "sliding_cache_capacity": state.buffers[0].shape[2],
         "cache_shapes": cache_shapes,
         "weights_copied": copied,
         "dtype": (f"HF {args.reference_dtype}; step {args.export_arithmetic}; "
                   "same checkpoint weights"),
         "export_arithmetic": args.export_arithmetic,
+        "cache_layout": args.cache_layout,
         "compact_inputs": args.compact_inputs,
         "compact_layer_type": args.compact_layer_type,
         "ordered_sliding": args.ordered_sliding,

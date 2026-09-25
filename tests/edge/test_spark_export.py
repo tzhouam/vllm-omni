@@ -311,6 +311,39 @@ def test_fixed_decode_cache_masks_unfilled_ring_slots():
 
 @pytest.mark.core_model
 @pytest.mark.cpu
+def test_roll_decode_cache_keeps_chronological_window_across_boundary():
+    cfg = _cfg(cache_layout="roll")
+    state = SparkDecodeCache(cfg, max_context=20)
+    prefill = []
+    for layer_type in cfg.layer_types:
+        length = 6
+        values = torch.arange(length, dtype=torch.float32)
+        cache = values.view(1, 1, length, 1).expand(
+            1, cfg.num_key_value_heads, length, cfg.head_dim
+        ).clone()
+        prefill.append((cache, cache.clone()))
+    state.seed(prefill, position=6)
+    assert state.buffers[0][0, 0, :, 0].tolist() == [0, 0, 0, 1, 2, 3, 4, 5]
+    args = state.step_inputs(torch.zeros(1, 1, cfg.hidden_size))
+    assert torch.isneginf(args[5][0, 0, 0, 0])
+    assert torch.equal(args[5][0, 0, 0, 1:], torch.zeros(7))
+    step = SparkDecodeStep(cfg).eval()
+    with torch.no_grad():
+        first = step(*args)
+    assert first[1].shape[2] == cfg.sliding_window
+    state.commit(first, expected_position=6)
+    assert torch.equal(state.buffers[0], first[1])
+    second_args = state.step_inputs(torch.zeros(1, 1, cfg.hidden_size))
+    assert torch.equal(second_args[5], torch.zeros_like(second_args[5]))
+    with torch.no_grad():
+        second = step(*second_args)
+    state.commit(second, expected_position=7)
+    assert torch.equal(state.buffers[0][:, :, :-1], first[1][:, :, 1:])
+    assert state.position == 8
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
 def test_bf16_reference_step_uses_fp32_residual_and_bf16_cache(tmp_path):
     cfg = _cfg(arithmetic_mode="hf_bf16_reference")
     state = SparkDecodeCache(cfg, max_context=16, dtype=torch.bfloat16)

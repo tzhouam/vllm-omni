@@ -12,6 +12,10 @@ used their filled lengths and sliding-ring reads preserved chronological
 order. Fixed padded buffers still produced logit differences, reaching 9.857%
 in the 500-token run. This validates a CPU state contract only; S25 still has
 one-layer NPU component evidence and no resident full-generation path.
+A tighter full-cache capacity left the physical ring at 9.878% worst logit
+error; a chronological ring read reduced it to 0.511%, while an alternative
+rolled-window controller reached 10.216% on the same 500-token fixture.
+The tested fixed-shape alternatives remain unqualified for mobile generation.
 
 The [MiniCPM-o HX370 AMD NPU projection experiment](evidence/minicpmo_amd_npu_projection/README.md)
 extracts a state-safe speech-token projection after the CPU speech head.

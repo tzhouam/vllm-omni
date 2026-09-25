@@ -85,6 +85,33 @@ does not authorize reusing an oversized padded static graph at every length.
 The next artifact must specify shape buckets and attention/KV ordering, then
 pass token, logit and K/V gates on its **actual compiled backend**.
 
+## Fixed-shape cache ordering experiment
+
+The 500-token prompt was repeated for 128 teacher-forced decode steps with a
+628-entry full-attention buffer, exactly enough for this rollout. All four
+runs used the same checkpoint, prompt IDs, BF16 source arithmetic and eight
+HX370 CPU threads. Each row matched 128/128 next-token choices, but their
+logit and newly written K/V differences separate the cache choices:
+
+| Sliding-cache boundary | Full capacity | Worst logits relative L2 | First new-K/V difference |
+|---|---:|---:|---:|
+| [Physical ring, 1024-entry baseline](cross_512_bf16_static_final_128.json) | 1024 | 9.857% | position 512 |
+| [Physical ring, tight capacity](spark_cross_512_bf16_static628_128.json) | 628 | 9.878% | position 512 |
+| [Chronological ring read, tight capacity](spark_cross_512_bf16_ordered_static628_128.json) | 628 | 0.511% | position 562 |
+| [Chronological roll-cache graph, tight capacity](spark_cross_512_bf16_roll_static628_final_128.json) | 628 | 10.216% | position 500 |
+
+Shrinking the full cache alone did not fix the physical ring's BF16 reduction
+order. Reordering its read to chronological order greatly reduced the worst
+error, but that diagnostic would move or gather all 511 sliding K/V entries
+per layer each token; no mobile transfer or kernel cost has been measured.
+The exporter already represents a rolled sliding window. Its CPU cache
+controller now seeds and commits that full-window output, but this real-weight
+roll run failed the logit fidelity gate from the first padded step. Its
+10.216% outlier at position 534 rules out treating roll as a drop-in fix.
+The tight-capacity ring reports retain the prior probe/export source hashes;
+the roll report records the revised state controller and probe hashes. No row
+is an on-device or compiled QNN result.
+
 Reproduce from the repository root with the local checkpoint and CPU venv:
 
 ```bash
@@ -110,12 +137,18 @@ $PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
   --reference-dtype bfloat16 --export-arithmetic hf_bf16_reference \
   --compact-inputs --compact-layer-type full --ordered-sliding \
   --report /tmp/spark_cross_1024_bf16_reference.json
+$PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
+  --model "$MODEL" --prefill-tokens 500 --decode-steps 128 \
+  --reference-dtype bfloat16 --export-arithmetic hf_bf16_reference \
+  --cache-layout roll --context-capacity 628 \
+  --report /tmp/spark_cross_512_bf16_roll_static628.json
 $PY -m pytest tests/edge/test_spark_export.py -q
 ```
 
-The focused suite passed 20/20 tests, including fixed-capacity masks,
-atomic shape validation, ring replacement, stale-commit rejection and state
-retirement. The current probe still obtains prefill and token embeddings
+The focused suite passed 21/21 tests, including fixed-capacity masks,
+atomic shape validation, ring replacement, stale-commit rejection, state
+retirement and chronological roll-cache state. The current probe still obtains
+prefill and token embeddings
 from Hugging Face on WSL CPU. The next M1 gate is a resident S25 prefill and
 28-layer decode backend with the same state contract, an accepted precision
 and token-quality gate, bounded admission/cancellation, and measured whole
