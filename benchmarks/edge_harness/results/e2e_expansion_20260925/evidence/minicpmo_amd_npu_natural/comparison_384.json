@@ -1,0 +1,121 @@
+{
+  "scope": "serial audio+image complete requests in separate Omni CPU and CPU+NPU sessions; no paired speedup or speech-quality claim",
+  "npu_report_sha256": "3c73fd95420ccb46545982d8b361b813d142d167b5bc0ec641a22d314aed72d3",
+  "cpu_report_sha256": "d802d2a0582ada8c9d3f05eb25510218a6ebbdc484479f7607e0ad299efc245f",
+  "npu_events_sha256": "e27ced731bcc5e560682f50419ef1a111fbba4189bbd3b41ac89247b912fcb2c",
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "npu_startup_s": 109.55995102890301,
+  "cpu_startup_s": 103.36944378609769,
+  "npu_placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 2,
+      "vitisai": 1
+    },
+    "total_nodes": 3,
+    "target_nodes": 1,
+    "fraction_on_target": 0.3333333333333333,
+    "session_create_s": 1.9421755000948906,
+    "warmup_s": 0.008548700017854571,
+    "rss_bytes": 348852224,
+    "inputs": [
+      {
+        "name": "hidden",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "projected",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          4096
+        ]
+      }
+    ],
+    "profile_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_natural\\natural_tiled384_kv_profile\\resampler_kv_projection_32x32__2026-09-25_18-21-28_422.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "npu_worker_peak_rss_bytes": 394928128,
+  "token_identical_count": 0,
+  "complete_request_count": 2,
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "2418889d0d83962d51facc3832b55cf1849690018a1e873d1c551146555cd02f",
+      "audio_sha256": "30fdcd67dcbd0c49f2c7fffbb7100720d8652976a4a24cce3eb6096d63529b16",
+      "npu_wall_s": 80.00118815700989,
+      "cpu_wall_s": 76.29015067196451,
+      "token_ids_equal": false,
+      "npu_text": "The audio describes a ship with white paint and a scarlet smokestack, while the image shows a woman in an orange space suit with a space shuttle in the background.",
+      "cpu_text": "The audio describes a ship with white paint and a scarlet smokestack, while the image shows a woman in an orange spacesuit with a space shuttle in the background.",
+      "npu_audio_samples": 265920,
+      "cpu_audio_samples": 241920,
+      "npu_audio_rms": 0.17552869869514726,
+      "cpu_audio_rms": 0.16130175351767356,
+      "npu_max_wsl_used_bytes": 32134356992,
+      "cpu_max_wsl_used_bytes": 31962189824,
+      "npu_max_swap_used_bytes": 6374821888,
+      "cpu_max_swap_used_bytes": 6022914048,
+      "npu_graph_calls": 4,
+      "npu_graph_round_trip_s": 0.16982826893217862,
+      "npu_projection_relative_l2": 0.006466270424425602,
+      "waveform_comparison": {
+        "same_shape": false,
+        "npu_sha256": "96eacc89512f902240fa7abb8d9d7be63c2ab2cd155a1fd3fccbea101447020b",
+        "cpu_sha256": "6edef2ae96dde4934a13da4f1a3b664dc5ab3302e0880501fe9c899494f8c0cd"
+      }
+    },
+    {
+      "index": 1,
+      "image_sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+      "audio_sha256": "30fdcd67dcbd0c49f2c7fffbb7100720d8652976a4a24cce3eb6096d63529b16",
+      "npu_wall_s": 31.941846834961325,
+      "cpu_wall_s": 30.907406346988864,
+      "token_ids_equal": false,
+      "npu_text": "The audio describes a ship named the Inverashiel, which has white paint and a scarlet smokestack. The image shows a close-up of a cat with green eyes.",
+      "cpu_text": "The audio describes a ship, the Inverashiel, with white paint and a scarlet smokestack. The image shows a close-up of a tabby cat with green eyes.",
+      "npu_audio_samples": 247680,
+      "cpu_audio_samples": 226560,
+      "npu_audio_rms": 0.17054291381758183,
+      "cpu_audio_rms": 0.17367753819290704,
+      "npu_max_wsl_used_bytes": 32091480064,
+      "cpu_max_wsl_used_bytes": 31976345600,
+      "npu_max_swap_used_bytes": 6378971136,
+      "cpu_max_swap_used_bytes": 6020792320,
+      "npu_graph_calls": 1,
+      "npu_graph_round_trip_s": 0.1641500520054251,
+      "npu_projection_relative_l2": 0.006402241066098213,
+      "waveform_comparison": {
+        "same_shape": false,
+        "npu_sha256": "3ef7211d91e2425b7ec123a49aec5e427105c482463b769dfedfce0c64c49014",
+        "cpu_sha256": "6dd6391751c67b59d1d9fe16b26d85c2a561d93829895304735aeff7a2db832a"
+      }
+    }
+  ],
+  "status": "scoped_complete_suite_pass"
+}

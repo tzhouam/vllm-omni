@@ -1,0 +1,31 @@
+{
+  "scope": "Whisper tiny.en transcript agreement with generated thinker text; no listening-quality claim",
+  "request_report_sha256": "4c840fa574db06232352221ea7ecf7cef9a6d40f41d8d5c3fd7d6451afa90538",
+  "asr_model": "openai/whisper-tiny.en",
+  "asr_revision": "87c7102498dcde7456f24cfd30239ca606ed9063",
+  "asr_weights_sha256": "db59695928ded6043adaef491a53ef4e12da9611184d77c53baa691a60b958ad",
+  "torch": "2.13.0+cpu",
+  "transformers": "5.14.1",
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "2418889d0d83962d51facc3832b55cf1849690018a1e873d1c551146555cd02f",
+      "audio_input_sha256": "30fdcd67dcbd0c49f2c7fffbb7100720d8652976a4a24cce3eb6096d63529b16",
+      "generated_wav_sha256": "e49373945287da5e646564f0d2ae2ebd3da9e863d62c922b1d0a3d43fd8daaf9",
+      "generated_duration_s": 10.08,
+      "reference_text": "The audio describes a ship with white paint and a scarlet smokestack, while the image shows a woman in an orange spacesuit with a space shuttle in the background.",
+      "transcript": "The audio describes a ship with white paint and a scarlet smoke stack, while the image shows a woman in an orange spacesuit, with a space shuttle in the background.",
+      "word_error_rate": 0.06896551724137931
+    },
+    {
+      "index": 1,
+      "image_sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+      "audio_input_sha256": "30fdcd67dcbd0c49f2c7fffbb7100720d8652976a4a24cce3eb6096d63529b16",
+      "generated_wav_sha256": "4c3aa17897bb82219baf1da52d2b89b08de9cf87410e4e9a7b3739a769d28147",
+      "generated_duration_s": 9.44,
+      "reference_text": "The audio describes a ship, the Inverashiel, with white paint and a scarlet smokestack. The image shows a close-up of a tabby cat with green eyes.",
+      "transcript": "The audio describes a ship, the inverassial, with white paint and a scarlet smoke stack. The image shows a close-up of a tabby cat with green eyes.",
+      "word_error_rate": 0.1111111111111111
+    }
+  ]
+}

@@ -44,11 +44,29 @@ def main() -> None:
         raise ValueError("suites must use one checkpoint and matching input requests")
     placements = [row["placement"] for row in events if row["phase"] == "placement"]
     runs = [row for row in events if row["phase"] == "run"]
+    completed = [row for row in events if row["phase"] == "request_complete"]
     closes = [row for row in events if row["phase"] == "close"]
-    if (len(placements) != 1 or len(runs) != request_count or len(closes) != 1
+    if (len(placements) != 1 or not runs or len(closes) != 1
             or placements[0]["ep"] != "vitisai" or placements[0]["target_nodes"] < 1
-            or closes[0]["calls"] != request_count):
+            or closes[0]["calls"] != len(runs)):
         raise ValueError("missing verified NPU placement/calls or clean close")
+    if completed:
+        if [row["request"] for row in completed] != list(range(1, request_count + 1)):
+            raise ValueError("missing or unordered tiled NPU requests")
+        grouped_runs = [[row for row in runs if row.get("request") == index + 1]
+                        for index in range(request_count)]
+        for index, (group, done) in enumerate(zip(grouped_runs, completed)):
+            if (len(group) != done["tiles"]
+                    or [row["tile"] for row in group] != list(range(len(group)))
+                    or sum(row["valid_tokens"] for row in group)
+                    != done["input_shape"][0] * done["input_shape"][1]):
+                raise ValueError(f"incomplete or unordered NPU tiles for request {index}")
+        if sum(map(len, grouped_runs)) != len(runs):
+            raise ValueError("unattributed NPU graph calls")
+    elif len(runs) == request_count and all("request" not in row for row in runs):
+        grouped_runs = [[row] for row in runs]
+    else:
+        raise ValueError("NPU calls do not cover complete requests")
 
     comparison = []
     for index, (a, b) in enumerate(zip(npu["requests"], cpu["requests"])):
@@ -106,7 +124,11 @@ def main() -> None:
             "cpu_max_wsl_used_bytes": b["sampled_memory"].get("max_wsl_used_bytes"),
             "npu_max_swap_used_bytes": a["sampled_memory"].get("max_swap_used_bytes"),
             "cpu_max_swap_used_bytes": b["sampled_memory"].get("max_swap_used_bytes"),
-            "npu_graph_round_trip_s": runs[index]["timing"]["round_trip_s"],
+            "npu_graph_calls": len(grouped_runs[index]),
+            "npu_graph_round_trip_s": sum(row["timing"]["round_trip_s"]
+                                          for row in grouped_runs[index]),
+            "npu_projection_relative_l2": (completed[index].get("projection_relative_l2")
+                                           if completed else None),
             "waveform_comparison": waveform,
         })
 

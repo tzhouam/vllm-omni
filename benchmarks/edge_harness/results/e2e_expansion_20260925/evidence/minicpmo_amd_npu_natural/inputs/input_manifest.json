@@ -1,0 +1,31 @@
+{
+  "image_source": "https://scikit-image.org/docs/stable/api/skimage.data",
+  "images": {
+    "astronaut.png": {
+      "sha256": "2418889d0d83962d51facc3832b55cf1849690018a1e873d1c551146555cd02f",
+      "shape": [
+        512,
+        512,
+        3
+      ]
+    },
+    "chelsea_cat.png": {
+      "sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+      "shape": [
+        300,
+        451,
+        3
+      ]
+    }
+  },
+  "audio_source": "https://librosa.org/doc/dev/recordings.html",
+  "audio_key": "libri1",
+  "audio_attribution": "Garth Comira reading Marion Bryce, The Ashiel Mystery; LibriSpeech SLR12, CC-BY-4.0",
+  "audio_original_sha256": "a284612b46af0535f7e1873758c4387bb8369f6dbbe192ffdec1f171108f98dd",
+  "audio_excerpt": "first six seconds, resampled to 16 kHz mono PCM16",
+  "audio_sha256": "30fdcd67dcbd0c49f2c7fffbb7100720d8652976a4a24cce3eb6096d63529b16",
+  "audio_samples": 96000,
+  "librosa": "1.0.0",
+  "skimage": "0.26.0",
+  "soundfile": "0.14.0"
+}

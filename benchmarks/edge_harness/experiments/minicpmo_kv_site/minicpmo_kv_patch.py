@@ -1,9 +1,10 @@
 """Replace only MiniCPM-o 4.5's loaded KV projection with an Omni stage.
 
 The hook is activated by sitecustomize for a bounded benchmark; it is never
-installed during ordinary inference. It requires the exact fixed 32x32-patch
-bucket and fails the request if artifact, memory, placement or tensor checks
-fail. The model keeps its vision transformer and resampler suffix on CPU.
+installed during ordinary inference. The pinned graph projects independent
+tokens, so larger image/crop tensors are tiled into its exact 1024-token
+bucket. Artifact, memory, placement and tensor failures still fail the
+request. The vision transformer and resampler suffix stay on CPU.
 """
 
 from __future__ import annotations
@@ -16,10 +17,36 @@ import platform
 import time
 from pathlib import Path
 
+import numpy as np
+
 GRAPH_SHA = "330bbbd0d18caaf6903aa41f836dbeaef57643a8afbaba333df68e3c1e722aeb"
 SHARD_SHA = "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31"
 REVISION = "503e754207c94da6bb26850b4469f367c9ea3582"
 INPUTS_SHA = "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de"
+TILE_TOKENS = 1024
+MAX_LOGICAL_TOKENS = 4096
+
+
+def run_tiled_projection(hidden, run_tile, *, output_width: int = 4096):
+    """Pack independent token rows into fixed graph calls, preserving order."""
+    if (hidden.ndim != 3 or hidden.dtype != np.float32 or hidden.shape[-1] != 1152
+            or hidden.shape[0] < 1 or hidden.shape[1] < 1):
+        raise ValueError("MiniCPM-o KV tiles require nonempty float32 [crops,tokens,1152]")
+    logical_tokens = hidden.shape[0] * hidden.shape[1]
+    if logical_tokens > MAX_LOGICAL_TOKENS:
+        raise ValueError(f"MiniCPM-o KV tiles exceed {MAX_LOGICAL_TOKENS} logical tokens")
+    flat = np.ascontiguousarray(hidden.reshape(logical_tokens, 1152))
+    projected = np.empty((logical_tokens, output_width), dtype=np.float32)
+    for tile_index, start in enumerate(range(0, logical_tokens, TILE_TOKENS)):
+        valid = min(TILE_TOKENS, logical_tokens - start)
+        feed = np.zeros((1, TILE_TOKENS, 1152), dtype=np.float32)
+        feed[0, :valid] = flat[start:start + valid]
+        output = run_tile(feed, tile_index, valid)
+        if (output.shape != (1, TILE_TOKENS, output_width)
+                or output.dtype != np.float32 or not np.isfinite(output).all()):
+            raise ValueError("MiniCPM-o NPU KV output tensor contract failed")
+        projected[start:start + valid] = output[0, :valid]
+    return projected.reshape(*hidden.shape[:2], output_width)
 
 
 def _sha256(path: Path) -> str:
@@ -47,7 +74,6 @@ def _check_artifacts() -> Path:
 
 
 def install() -> None:
-    import numpy as np
     import torch
     from vllm_omni.model_executor.models.minicpmo_4_5.minicpmo_4_5_omni_llm import (
         MiniCPMO45OmniLLMForConditionalGeneration,
@@ -64,8 +90,12 @@ def install() -> None:
     original_load_weights = thinker_class.load_weights
 
     class ExternalKVProjection(torch.nn.Module):
-        def __init__(self):
+        def __init__(self, cpu_projection):
             super().__init__()
+            # The original module has already loaded its checkpoint weight.
+            # Keep it for opt-in parity without adding a new named parameter
+            # after vLLM's weight-initialization accounting has begun.
+            self.__dict__["_cpu_projection"] = cpu_projection
             self.graph = _check_artifacts()
             artifact = build_graph_artifact(
                 self.graph, fmt=FORMAT_ONNX_A16W8, opset=21,
@@ -86,6 +116,7 @@ def install() -> None:
             self.stage = ExternalStage(self.plan)
             self.opened = False
             self.calls = 0
+            self.requests = 0
             atexit.register(self.close)
             _event(
                 "adapter_installed", graph_sha256=GRAPH_SHA, model_revision=REVISION,
@@ -94,34 +125,57 @@ def install() -> None:
             )
 
         def forward(self, x):
-            if (x.shape != (1, 1024, 1152) or x.dtype != torch.bfloat16
-                    or x.device.type != "cpu"):
+            if (x.ndim != 3 or x.shape[-1] != 1152 or x.shape[0] < 1
+                    or x.shape[1] < 1 or x.shape[0] * x.shape[1] > MAX_LOGICAL_TOKENS
+                    or x.dtype != torch.bfloat16 or x.device.type != "cpu"):
                 _event("tensor_refused", shape=list(x.shape), dtype=str(x.dtype), device=str(x.device))
-                raise ValueError("MiniCPM-o NPU KV stage requires CPU BF16 [1,1024,1152]")
+                raise ValueError("MiniCPM-o NPU KV stage requires bounded CPU BF16 [crops,tokens,1152]")
             hidden = np.ascontiguousarray(x.detach().float().numpy())
-            feed = {"hidden": hidden}
-            if not self.opened:
-                profile_dir = Path(os.environ["VLLM_OMNI_MINICPMO_KV_PROFILE_DIR"])
-                profile_dir.mkdir(parents=True, exist_ok=True)
-                try:
-                    placement = self.stage.open(feed, profile_dir=profile_dir)
-                except PlacementRefused as exc:
-                    _event("placement_refused", refusal=exc.refusal.to_dict(),
-                           report=exc.report.to_dict() if exc.report else None)
-                    raise
-                if placement.target_nodes < 1:
-                    raise RuntimeError("MiniCPM-o KV stage did not execute on NPU")
-                self.opened = True
-                _event("placement", placement=placement.to_dict())
-            output, timing = self.stage.run(feed)
-            projected = np.ascontiguousarray(output["projected"])
-            if (projected.shape != (1, 1024, 4096)
-                    or projected.dtype != np.float32 or not np.isfinite(projected).all()):
-                raise ValueError("MiniCPM-o NPU KV output tensor contract failed")
-            self.calls += 1
-            _event("run", call=self.calls, timing=timing.to_dict(),
-                   input_shape=list(hidden.shape), output_shape=list(projected.shape))
-            return torch.from_numpy(projected).to(dtype=x.dtype, device=x.device)
+            self.requests += 1
+            request = self.requests
+
+            def run_tile(tile, tile_index, valid):
+                feed = {"hidden": tile}
+                if not self.opened:
+                    profile_dir = Path(os.environ["VLLM_OMNI_MINICPMO_KV_PROFILE_DIR"])
+                    profile_dir.mkdir(parents=True, exist_ok=True)
+                    try:
+                        placement = self.stage.open(feed, profile_dir=profile_dir)
+                    except PlacementRefused as exc:
+                        _event("placement_refused", refusal=exc.refusal.to_dict(),
+                               report=exc.report.to_dict() if exc.report else None)
+                        raise
+                    if placement.target_nodes < 1:
+                        raise RuntimeError("MiniCPM-o KV stage did not execute on NPU")
+                    self.opened = True
+                    _event("placement", placement=placement.to_dict())
+                output, timing = self.stage.run(feed)
+                self.calls += 1
+                _event("run", call=self.calls, request=request, tile=tile_index,
+                       valid_tokens=valid, timing=timing.to_dict(),
+                       input_shape=list(tile.shape), output_shape=list(output["projected"].shape))
+                return np.ascontiguousarray(output["projected"])
+
+            projected = run_tiled_projection(hidden, run_tile)
+            result = torch.from_numpy(projected).to(dtype=x.dtype, device=x.device)
+            relative_l2 = None
+            if os.environ.get("VLLM_OMNI_MINICPMO_KV_PARITY") == "1":
+                with torch.inference_mode():
+                    reference = self._cpu_projection(x).float()
+                    difference = (result.float() - reference).norm()
+                    relative_l2 = float(difference / reference.norm().clamp_min(1e-12))
+                limit_text = os.environ.get("VLLM_OMNI_MINICPMO_KV_MAX_PROJECTION_REL_L2")
+                if limit_text is not None:
+                    limit = float(limit_text)
+                    if not 0 < limit < 1 or relative_l2 > limit:
+                        _event("numeric_refused", request=request, projection_relative_l2=relative_l2,
+                               limit=limit)
+                        raise ValueError("MiniCPM-o NPU KV projection failed configured numerical gate")
+            _event("request_complete", request=request, input_shape=list(hidden.shape),
+                   output_shape=list(projected.shape),
+                   tiles=(hidden.shape[0] * hidden.shape[1] + TILE_TOKENS - 1) // TILE_TOKENS,
+                   projection_relative_l2=relative_l2)
+            return result
 
         def close(self):
             if self.opened:
@@ -140,7 +194,7 @@ def install() -> None:
             return loaded
         # The original weights are loaded before replacement. The exact source
         # shard and graph are pinned, so there is no hidden model substitution.
-        resampler.kv_proj = ExternalKVProjection()
+        resampler.kv_proj = ExternalKVProjection(resampler.kv_proj)
         return loaded
 
     patched_load_weights._omni_kv_experiment = True

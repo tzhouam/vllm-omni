@@ -33,6 +33,15 @@ truncated both routes. Raising its bounded cap to 256 produced two full
 spoken responses per route with pinned Whisper tiny.en WER 0, exact thinker
 text-token parity, and verified live VitisAI placement. Audio durations and
 samples still differ; no whole-chain speedup or default NPU selection follows.
+The [natural-image/human-speech MiniCPM-o follow-up](evidence/minicpmo_amd_npu_natural/README.md)
+repaired the opt-in AMD NPU projection adapter's fixed 1,024-token image
+shape by bounded tokenwise tiling. Two full Omni CPU and CPU+NPU requests
+with astronaut/cat photos and LibriSpeech narration completed. The actual
+NPU graph session handled four tiles for the three-crop astronaut and one
+for the cat; each output met a same-input BF16 CPU projection gate below
+1% relative L2. A 384-token talker plan allowed both NPU spoken responses
+to finish in the pinned ASR proxy. Text and acoustic outputs still differ,
+and the separate heavy-swap runs do not justify default NPU placement.
 
 The [InternVLA HX370 AMD NPU batch-one experiment](evidence/internvla_amd_npu_batch1/README.md)
 isolated a six-frame VitisAI convolution failure to frames 1–5, then
