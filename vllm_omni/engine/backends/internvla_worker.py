@@ -359,6 +359,7 @@ def main() -> None:
                 started = time.perf_counter()
                 if args.placement == "amd-npu-radeon-cosmos":
                     npu_encoder.last_timing = None
+                print(f"internvla-worker request-start id={request_id}", flush=True)
                 result = pipeline.forward(DiffusionRequestBatch(requests=[
                     OmniDiffusionRequest(
                         prompt="",

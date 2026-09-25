@@ -1,0 +1,27 @@
+{
+  "status": "scoped_joint_abort_fresh_stage_pass",
+  "report_sha256": "1c703a06ab25a5122db2b7e114c1a52a10f9307ac4006c3fcd2d1dffbcc59556",
+  "first_worker_log_sha256": "03c42646ef51a93069c08f82294df1cc0bd3d9045ecc5a26954cf9347cdce237",
+  "restart_worker_log_sha256": "2755cf1b8c20cc8449e859c648c8cdffd3124c1ecf520f486b0dbfdc408361de",
+  "driver_log_sha256": "8cf2e360733b8d24c2de62419d1fca669866be2f788d08222411b441caf0ab52",
+  "reference_public_sha256": "f7d188caa558978d8334c4807409e47f8596f49b918d9df33e1763414fd20bec",
+  "action_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0",
+  "abort_ack_s": 0.3891907000215724,
+  "abort_delivered_actions": 0,
+  "first_startup_s": 145.84785639995243,
+  "restart_startup_s": 143.62406340008602,
+  "first_request_wall_s": 4.435274999937974,
+  "restart_request_wall_s": 4.371531100012362,
+  "worker_generations": [
+    "ff13606a94d440d2a694465b517d66d4",
+    "2b3210a454724f828f1077714b76fd6b"
+  ],
+  "npu_warmup_nodes": [
+    1,
+    1
+  ],
+  "dml_suffix_nodes": [
+    357,
+    357
+  ]
+}

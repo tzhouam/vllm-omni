@@ -1,0 +1,147 @@
+{
+  "entrypoint": "AsyncOmni.generate",
+  "placement": "amd-npu-radeon-cosmos",
+  "pipeline": "internvla_a1_external_whole",
+  "host_available_bytes_before": 22821429248,
+  "cuda_before": null,
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "startup_s": 145.84785639995243,
+  "request_wall_s": 4.435274999937974,
+  "outputs": [
+    {
+      "request_id": "public-internvla-1",
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "action_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0",
+      "finite": true,
+      "metadata": {
+        "observation_timestamp_ns": 1790338553205420100,
+        "generation_timestamp_ns": 1790338557627736600,
+        "observation_age_s": 4.4223165,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_representation": "checkpoint_normalized_padded_delta",
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "stage_event": {
+        "request_id": "public-internvla-1-b8792c1c",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "ff13606a94d440d2a694465b517d66d4",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "ff13606a94d440d2a694465b517d66d4",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "abort": {
+    "external_request_id": "internvla-public-abort",
+    "internal_request_id": "internvla-public-abort-a305d2c1",
+    "worker_started": true,
+    "ack_s": 0.3891907000215724,
+    "outputs_after_start": [
+      {
+        "request_id": "internvla-public-abort",
+        "error": null,
+        "has_actions": false
+      }
+    ]
+  },
+  "recovery": {
+    "mode": "fresh_stage_after_inflight_abort",
+    "startup_s": 143.62406340008602,
+    "worker_log": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_joint_npu_radeon_recovery\\worker3_restarted.log",
+    "wall_s": 4.371531100012362,
+    "outputs": [
+      {
+        "request_id": "internvla-public-after-abort",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0",
+        "finite": true,
+        "metadata": {
+          "observation_timestamp_ns": 1790338701862449200,
+          "generation_timestamp_ns": 1790338706229060600,
+          "observation_age_s": 4.3666114,
+          "action_mode": "delta",
+          "action_shape": [
+            1,
+            50,
+            32
+          ],
+          "action_representation": "checkpoint_normalized_padded_delta",
+          "action_units": "unverified",
+          "joint_order": "unverified",
+          "action_step_s": null,
+          "control_ready": false
+        },
+        "stage_event": {
+          "request_id": "internvla-public-after-abort-98024abd",
+          "stage_id": 0,
+          "epoch": 1,
+          "seq": 1,
+          "kind": "action",
+          "worker_generation": "2b3210a454724f828f1077714b76fd6b",
+          "buffers": [
+            {
+              "object_id": "actions",
+              "owner": "0",
+              "generation": "2b3210a454724f828f1077714b76fd6b",
+              "dtype": "float32",
+              "shape": [
+                1,
+                50,
+                32
+              ],
+              "nbytes": 6400,
+              "memory_domain": "host-copy",
+              "layout": "C",
+              "ready": true
+            }
+          ],
+          "terminal": true,
+          "error": null
+        }
+      }
+    ]
+  },
+  "status": "passed"
+}

@@ -1,0 +1,3 @@
+# Preserve the exact raw evidence bytes used by audit3.json.
+*.json -text
+*.log -text

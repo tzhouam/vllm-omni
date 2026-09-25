@@ -114,3 +114,11 @@ process needing manual cleanup. The first two launch attempts failed because
 the reliability harness selected FlashInfer sampling without a discoverable
 CUDA compiler; matching the streaming profiler's sampler setting fixed the
 launch. These lifecycle checks do not qualify playback under the 33 W cap.
+
+The [joint InternVLA CPU+AMD NPU+Radeon recovery probe](evidence/internvla_joint_npu_radeon_recovery/README.md)
+aborted a synthetic policy request after the worker started and delivered no
+stale action. A fresh Omni stage loaded the same pinned placement and returned
+the baseline action hash under a different worker generation. The blocking
+worker is deliberately retired on in-flight abort, so the former stage cannot
+accept another request. Real observation quality, paired benefit and
+worker-crash recovery remain open.

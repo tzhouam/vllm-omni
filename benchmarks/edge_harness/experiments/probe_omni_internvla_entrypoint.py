@@ -34,6 +34,8 @@ async def main() -> None:
     parser.add_argument("--reserve-gib", type=int, default=16)
     parser.add_argument("--vram-capacity-gib", type=int)
     parser.add_argument("--vram-reserve-gib", type=int)
+    parser.add_argument("--abort-recovery", action="store_true",
+                        help="abort after worker start, then require a fresh-stage action")
     args = parser.parse_args()
     if args.placement == "radeon-cosmos" and args.graph_file is None:
         parser.error("Radeon placement requires graph-file")
@@ -169,6 +171,103 @@ async def main() -> None:
             assert len(outputs) == 1 and outputs[0]["request_id"] == "public-internvla-1"
             assert outputs[0]["action_shape"] == [1, 50, 32] and outputs[0]["finite"]
             assert outputs[0]["metadata"]["control_ready"] is False
+            if args.abort_recovery:
+                abort_id = "internvla-public-abort"
+                abort_outputs = []
+
+                async def consume_abort():
+                    async for output in engine.generate(prompt, request_id=abort_id):
+                        abort_outputs.append({
+                            "request_id": output.request_id,
+                            "error": str(output.error) if output.error else None,
+                            "has_actions": bool(output.custom_output and
+                                                "actions" in output.custom_output),
+                        })
+
+                pending = asyncio.create_task(consume_abort())
+
+                async def wait_for_worker_start():
+                    while True:
+                        matching = [
+                            state.request_id for state in engine.request_states.values()
+                            if state.external_request_id == abort_id
+                        ]
+                        if len(matching) > 1:
+                            raise RuntimeError("multiple internal IDs for one abort probe")
+                        if matching and args.log_file.is_file():
+                            marker = f"internvla-worker request-start id={matching[0]}".encode()
+                            if marker in args.log_file.read_bytes():
+                                return matching[0]
+                        if pending.done():
+                            raise RuntimeError("abort candidate finished before worker start")
+                        await asyncio.sleep(0.05)
+
+                internal_id = await asyncio.wait_for(wait_for_worker_start(), timeout=30)
+                started = time.perf_counter()
+                await engine.abort(abort_id)
+                report["abort"] = {
+                    "external_request_id": abort_id,
+                    "internal_request_id": internal_id,
+                    "worker_started": True,
+                    "ack_s": time.perf_counter() - started,
+                }
+                await asyncio.wait_for(pending, timeout=30)
+                report["abort"]["outputs_after_start"] = abort_outputs
+                if any(row["has_actions"] for row in abort_outputs):
+                    raise RuntimeError("aborted request delivered stale actions")
+
+                # An in-flight abort deliberately retires this blocking policy
+                # worker. A new stage owns a new worker generation.
+                engine.shutdown()
+                engine = None
+                restart_log = args.log_file.with_name(
+                    args.log_file.stem + "_restarted" + args.log_file.suffix
+                )
+                restarted_backend = {**backend, "log_file": str(restart_log)}
+                restarted_deployment = Path(directory) / "restart-deploy.yaml"
+                restarted_deployment.write_text(yaml.safe_dump({
+                    "pipeline": INTERNVLA_A1_WHOLE_POLICY_PIPELINE.model_type,
+                    "async_chunk": False,
+                    "stages": [{"stage_id": 0, "backend": restarted_backend,
+                                "resource_budget": budget}],
+                }), encoding="utf-8")
+                started = time.perf_counter()
+                engine = AsyncOmni(
+                    model=str(model), deploy_config=str(restarted_deployment),
+                    stage_init_timeout=180, init_timeout=240,
+                )
+                restart_startup_s = time.perf_counter() - started
+                fresh_id = "internvla-public-after-abort"
+                fresh_prompt = {**prompt, "observation_timestamp_ns": time.time_ns()}
+                recovered = []
+                started = time.perf_counter()
+                async for output in engine.generate(fresh_prompt, request_id=fresh_id):
+                    if output.error:
+                        raise RuntimeError(output.error)
+                    actions = np.asarray(output.custom_output["actions"])
+                    recovered.append({
+                        "request_id": output.request_id,
+                        "action_shape": list(actions.shape),
+                        "action_sha256": hashlib.sha256(actions.tobytes()).hexdigest(),
+                        "finite": bool(np.isfinite(actions).all()),
+                        "metadata": output.custom_output.get("action_metadata"),
+                        "stage_event": output.custom_output.get("stage_event"),
+                    })
+                report["recovery"] = {
+                    "mode": "fresh_stage_after_inflight_abort",
+                    "startup_s": restart_startup_s,
+                    "worker_log": str(restart_log),
+                    "wall_s": time.perf_counter() - started,
+                    "outputs": recovered,
+                }
+                if (len(recovered) != 1 or recovered[0]["request_id"] != fresh_id
+                        or recovered[0]["action_shape"] != [1, 50, 32]
+                        or not recovered[0]["finite"]
+                        or recovered[0]["action_sha256"] != outputs[0]["action_sha256"]
+                        or recovered[0]["metadata"]["control_ready"] is not False
+                        or recovered[0]["stage_event"]["worker_generation"]
+                        == outputs[0]["stage_event"]["worker_generation"]):
+                    raise RuntimeError("fresh-stage action recovery differs from baseline")
             report["status"] = "passed"
     except BaseException as exc:
         report["status"] = "failed"

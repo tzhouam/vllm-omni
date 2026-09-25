@@ -1,0 +1,87 @@
+{
+  "entrypoint": "AsyncOmni.generate",
+  "placement": "amd-npu-radeon-cosmos",
+  "pipeline": "internvla_a1_external_whole",
+  "host_available_bytes_before": 28504301568,
+  "cuda_before": null,
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "startup_s": 145.2723760000663,
+  "request_wall_s": 5.032272799988277,
+  "outputs": [
+    {
+      "request_id": "public-internvla-1",
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "action_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0",
+      "finite": true,
+      "metadata": {
+        "observation_timestamp_ns": 1790338235949135800,
+        "generation_timestamp_ns": 1790338240968776500,
+        "observation_age_s": 5.0196407,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_representation": "checkpoint_normalized_padded_delta",
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "stage_event": {
+        "request_id": "public-internvla-1-be32527c",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "742eabb7bd8642038d79aa2e5aeb00c4",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "742eabb7bd8642038d79aa2e5aeb00c4",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "abort": {
+    "external_request_id": "internvla-public-abort",
+    "internal_request_id": "internvla-public-abort-93edb790",
+    "worker_started": true,
+    "ack_s": 0.3421426999848336,
+    "outputs_after_start": [
+      {
+        "request_id": "internvla-public-abort",
+        "error": null,
+        "has_actions": false
+      }
+    ]
+  },
+  "status": "failed",
+  "error": "OmniEngineDeadError: Stage-0 has no live replica"
+}

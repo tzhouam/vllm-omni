@@ -1,0 +1,130 @@
+INFO 09-25 20:07:24 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 20:07:25 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 20:08:10 [omni_base.py:216] [AsyncOmni] Initializing with model \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen
+INFO 09-25 20:08:10 [async_omni_engine.py:172] [AsyncOmniEngine] Initializing with model \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen
+ERROR 09-25 20:08:10 [repo_utils.py:119] Error parsing config for \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen: Unrecognized model in \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen. Should have a `model_type` key in its config.json., retrying 1 of 2
+ERROR 09-25 20:08:12 [repo_utils.py:117] Error parsing config for \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen: Unrecognized model in \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen. Should have a `model_type` key in its config.json.
+INFO 09-25 20:08:12 [async_omni_engine.py:290] [AsyncOmniEngine] Launching Orchestrator thread with 1 stages
+INFO 09-25 20:08:13 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+INFO 09-25 20:08:13 [initialization.py:356] Loaded OmniTransferConfig with 0 connector configurations
+INFO 09-25 20:10:35 [orchestrator.py:604] [Orchestrator] Starting event loop
+INFO 09-25 20:10:35 [async_omni_engine.py:323] [AsyncOmniEngine] Orchestrator ready with 1 stages
+INFO 09-25 20:10:35 [omni_base.py:235] [AsyncOmni] AsyncOmniEngine initialized in 145.27 seconds
+INFO 09-25 20:10:35 [omni_base.py:255] [AsyncOmni] Initialized with 1 stages for model \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen
+INFO 09-25 20:10:41 [orchestrator.py:917] [Orchestrator] Aborted request(s) ['internvla-public-abort-93edb790']
+ERROR 09-25 20:10:41 [orchestrator.py:1751] [Orchestrator] add_request dispatch for req=internvla-public-after-abort-a5c5b6b2 hit dead stage-0 replica-None: EngineCore encountered an issue. See stack trace (above) for the root cause.
+ERROR 09-25 20:10:41 [orchestrator.py:1648] [Orchestrator] req=internvla-public-after-abort-a5c5b6b2: stage-0 has no live replica; failing the request
+ERROR 09-25 20:10:41 [async_omni.py:881] [AsyncOmni] Orchestrator error for req=internvla-public-after-abort-a5c5b6b2 stage-0: Stage-0 has no live replica
+INFO 09-25 20:10:41 [orchestrator.py:917] [Orchestrator] Aborted request(s) ['internvla-public-after-abort-a5c5b6b2']
+INFO 09-25 20:10:41 [async_omni.py:670] [AsyncOmni] Request internvla-public-after-abort-a5c5b6b2 failed (input error): Stage-0 has no live replica
+INFO 09-25 20:10:41 [omni_base.py:781] [AsyncOmni] Shutting down
+INFO 09-25 20:10:41 [async_omni_engine.py:1807] [AsyncOmniEngine] Shutting down Orchestrator
+INFO 09-25 20:10:41 [orchestrator.py:705] [Orchestrator] Received shutdown signal
+INFO 09-25 20:10:41 [orchestrator.py:3092] [Orchestrator] Shutting down all 1 client(s)
+INFO 09-25 20:10:41 [stage_pool.py:1354] [StagePool] Stage 0 replica 0 shut down
+{
+  "entrypoint": "AsyncOmni.generate",
+  "placement": "amd-npu-radeon-cosmos",
+  "pipeline": "internvla_a1_external_whole",
+  "host_available_bytes_before": 28504301568,
+  "cuda_before": null,
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "startup_s": 145.2723760000663,
+  "request_wall_s": 5.032272799988277,
+  "outputs": [
+    {
+      "request_id": "public-internvla-1",
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "action_sha256": "f17ae6dcd4a6dd5f1cc7ee29198606e2499edc762f830d54df25504a887796e0",
+      "finite": true,
+      "metadata": {
+        "observation_timestamp_ns": 1790338235949135800,
+        "generation_timestamp_ns": 1790338240968776500,
+        "observation_age_s": 5.0196407,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+Traceback (most recent call last):
+        "action_representation": "checkpoint_normalized_padded_delta",
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false
+      },
+      "stage_event": {
+        "request_id": "public-internvla-1-be32527c",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "742eabb7bd8642038d79aa2e5aeb00c4",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "742eabb7bd8642038d79aa2e5aeb00c4",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "abort": {
+    "external_request_id": "internvla-public-abort",
+    "internal_request_id": "internvla-public-abort-93edb790",
+    "worker_started": true,
+    "ack_s": 0.3421426999848336,
+    "outputs_after_start": [
+      {
+        "request_id": "internvla-public-abort",
+        "error": null,
+        "has_actions": false
+      }
+    ]
+  },
+  "status": "failed",
+  "error": "OmniEngineDeadError: Stage-0 has no live replica"
+}
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\experiments\probe_omni_internvla_entrypoint.py", line 259, in <module>
+    asyncio.run(main())
+  File "C:\Users\zhout\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\zhout\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zhout\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\experiments\probe_omni_internvla_entrypoint.py", line 223, in main
+    async for output in engine.generate(fresh_prompt, request_id=fresh_id):
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\entrypoints\async_omni.py", line 651, in generate
+    async for output in self._process_orchestrator_results(
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\entrypoints\async_omni.py", line 888, in _process_orchestrator_results
+    raise OmniEngineDeadError(
+vllm_omni.entrypoints.omni_base.OmniEngineDeadError: Stage-0 has no live replica
