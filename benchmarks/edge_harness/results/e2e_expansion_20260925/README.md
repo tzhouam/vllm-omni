@@ -168,3 +168,12 @@ waveforms are audited. Both routes' generated speech matched their own text
 under a pinned Whisper tiny.en proxy, but the joint and RTX-only texts and
 output lengths differ. These two separate runs show no paired benefit or
 default-placement qualification.
+
+A [Spark BF16 RTX+AMD NPU joint-route profile](evidence/spark_cuda_amd_npu_joint_verified/README.md)
+then completed one warmup and 20 serial 64-token requests on each of RTX-only
+and RTX-decoder+HX370-NPU-head placements. All 42 requests returned the same
+greedy token sequence. Raw VitisAI placement and CUDA top-64 BF16 re-ranking
+were verified; the NPU worker peak fit its explicit shared-RAM reservation.
+Complete-request p50 was 0.728 s RTX-only versus 1.438 s joint, so the
+unsplit RTX route remains the default. This one prompt, one phase order and
+uncontrolled power state do not qualify broad quality or performance.

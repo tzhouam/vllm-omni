@@ -141,28 +141,37 @@ class SparkExternalOutputHead:
             raise ValueError("Spark CPU candidate refinement requires top_k in [1, 256]")
         if self.cpu_refine_top_k and spec.get("sampling_contract") != "greedy-only":
             raise ValueError("Spark CPU candidate refinement requires explicit greedy-only contract")
-        self.refinement_calls: list[dict[str, float | int | bool]] = []
+        self.refinement_calls: list[dict[str, float | int | bool | str]] = []
         self.started_unix = time.time()
         self._closed = False
         atexit.register(self.close)
 
     def compute_logits(self, hidden_states: torch.Tensor) -> torch.Tensor:
-        if hidden_states.device.type != "cpu" or tuple(hidden_states.shape) != (1, 2048):
+        if (hidden_states.device.type not in {"cpu", "cuda"}
+                or tuple(hidden_states.shape) != (1, 2048)):
             raise ValueError(
-                "the experimental Spark NPU head requires one CPU token with hidden size 2048; "
+                "the experimental Spark NPU head requires one CPU/CUDA token with hidden size 2048; "
                 f"received {tuple(hidden_states.shape)} on {hidden_states.device}"
             )
-        x = hidden_states.detach().float().contiguous().numpy().reshape(
+        input_copy_started = time.perf_counter()
+        x = hidden_states.detach().float().contiguous().cpu().numpy().reshape(
             (1, 1, 2048) if self.input_layout == "pre_final_norm" else (1, 2048)
         )
+        input_copy_s = time.perf_counter() - input_copy_started
         if self.capture_path is not None:
             self.captured_activations.append(x.copy())
         outputs, timing = self.stage.run({self.input_name: x})
         logits = outputs["logits_concatenated"]
         if logits.shape != (1, 131072) or not np.isfinite(logits).all():
             raise RuntimeError("Spark NPU head returned invalid full logits")
-        self.calls.append(timing.to_dict())
-        return torch.from_numpy(logits)
+        output_copy_started = time.perf_counter()
+        result = torch.from_numpy(logits).to(device=hidden_states.device)
+        if hidden_states.device.type == "cuda":
+            torch.cuda.synchronize(hidden_states.device)
+        output_copy_s = time.perf_counter() - output_copy_started
+        self.calls.append({**timing.to_dict(), "input_copy_s": input_copy_s,
+                           "output_copy_s": output_copy_s})
+        return result
 
     def refine_candidates(
         self, npu_logits: torch.Tensor, normalized: torch.Tensor,
@@ -171,8 +180,10 @@ class SparkExternalOutputHead:
         """Use NPU top-k retrieval and the resident BF16 head for greedy re-ranking."""
         if not self.cpu_refine_top_k:
             return npu_logits
-        if npu_logits.device.type != "cpu" or head_weight.device.type != "cpu":
-            raise ValueError("Spark CPU candidate refinement requires resident CPU tensors")
+        if (npu_logits.device.type not in {"cpu", "cuda"}
+                or head_weight.device != npu_logits.device
+                or normalized.device != npu_logits.device):
+            raise ValueError("Spark candidate refinement requires tensors on the same CPU/CUDA device")
         started = time.perf_counter()
         candidates = torch.topk(npu_logits, self.cpu_refine_top_k, dim=-1).indices.reshape(-1)
         selected_weights = head_weight.index_select(0, candidates)
@@ -181,12 +192,13 @@ class SparkExternalOutputHead:
         ).float()
         refined = torch.full_like(npu_logits, -torch.inf)
         refined.scatter_(1, candidates.reshape(1, -1), scores)
-        row: dict[str, float | int | bool] = {
+        row: dict[str, float | int | bool | str] = {
             "call_index": len(self.calls) - 1,
             "candidate_count": self.cpu_refine_top_k,
             "npu_top1": int(npu_logits.argmax()),
             "refined_top1": int(refined.argmax()),
             "cpu_refine_s": time.perf_counter() - started,
+            "refine_device": str(npu_logits.device),
         }
         if cpu_reference is not None:
             expected = cpu_reference.float().gather(1, candidates.reshape(1, -1))

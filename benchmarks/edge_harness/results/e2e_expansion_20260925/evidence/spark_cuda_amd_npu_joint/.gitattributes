@@ -1,0 +1,2 @@
+*.log -text -diff
+npu_raw_profile.json -text -diff

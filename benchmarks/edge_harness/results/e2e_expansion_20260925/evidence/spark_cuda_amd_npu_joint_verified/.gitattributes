@@ -1,0 +1,2 @@
+*.log -text -diff
+*_raw_profile.json -text -diff

@@ -1,0 +1,28 @@
+{
+  "status": "scoped_joint_complete_quality_pass_no_benefit_on_tested_workload",
+  "report_sha256": "b4af3b0fe26bcab4873ec0e79254ed49f1e2acf9bdbc04d6b04bdd85405ac3e2",
+  "worker_sha256": "7bcb701a66832faeb8818b43cd8193ec75dc1ce22c4ea0fa9203f683f57fa2dd",
+  "spec_sha256": "8c99420889cb0cea08e762d1df9b9b491dfac703cbb2d9d50282d0e002cdb316",
+  "driver_sha256": "c2832a4c7759ebe0909fce36e8364482b85b9c2a17e05591c867e1c593bc5504",
+  "raw_trace_sha256": "eec72e86b5b305c921c0f64597e18c611fabea5d492fe77f51a599012dc71fe0",
+  "raw_node_providers": {
+    "CPUExecutionProvider": 6,
+    "vitisai": 1
+  },
+  "cpu_regression_report_sha256": "895ed712b56b6621a3fb6af2b6ecc8bf9d328446a0805d3d14e307189e2a8d61",
+  "cpu_regression_worker_sha256": "7d9c58a8239484ad395dc4e10e4594aa0d02a68a1b83f7d27b6029f0f4bc21c3",
+  "cpu_regression_raw_trace_sha256": "a1c62403a1c66c18052fa08302edb9bdce2ea9fe3cb94d43cb6af97e86a25cbe",
+  "checkpoint_index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "graph_sha256": "0e711ed95d64d1f929117a2f90425b0a92702b1bff6d4945cec56bd21f2a602a",
+  "npu_worker_peak_rss_bytes": 3781799936,
+  "npu_budget_bytes": 5492159284,
+  "per_phase_measured_requests": 20,
+  "per_request_output_tokens": 64,
+  "reference_token_ids_sha256": "a8d7798bf439de0b9cec3ba65661bee9e06df2a8af3f8c0d46ad7957c38e4162",
+  "cuda_p50_s": 0.7278390029678121,
+  "joint_p50_s": 1.4377922390121967,
+  "joint_to_cuda_p50_ratio": 1.9754262043522026,
+  "npu_total_calls": 1346,
+  "npu_extra_calls_vs_output_tokens": 2,
+  "limits": "One greedy prompt, serial fixed 64-token output, CUDA then joint order; no broad quality, non-greedy, long-context, paired-order speedup, fault recovery or sustained power qualification."
+}

@@ -1,0 +1,1247 @@
+{
+  "scope": "opt-in live vLLM Spark decode output-head split",
+  "started_unix": 1790348017.4717896,
+  "ended_unix": 1790348027.3866086,
+  "plan": {
+    "artifact": {
+      "path": "/mnt/c/Users/zhout/w2/spark_npu_recal_20260924/graph_postnorm_pc.onnx",
+      "sha256": "0e711ed95d64d1f929117a2f90425b0a92702b1bff6d4945cec56bd21f2a602a",
+      "bytes": 269095662,
+      "fmt": "onnx:a16w8",
+      "opset": 21,
+      "source_model": "XHToken/Spark-X2.5-1.7B",
+      "source_revision": "448e61eb392c00f2c403185c5b56d5e0665bfaab",
+      "component": "spark_output_head",
+      "exporter": "probe_spark_amd_npu_lm_head.py --composite-shards",
+      "input_spec": [],
+      "output_spec": [],
+      "calibration": {
+        "inputs_sha256": "adc7609993c81e956d4a712c27d414902b626d222f2eb1b1d3c0bec20d484422",
+        "manifest_sha256": "0e32b01055c4f8211639619a569b253d294ab1c13dcf108219b8a02d0e6500c1",
+        "samples": 58
+      },
+      "parity": null,
+      "notes": ""
+    },
+    "device": {
+      "device_id": "npu:amd",
+      "kind": "npu",
+      "vendor": "amd",
+      "name": "NPU Compute Accelerator Device",
+      "backend": "ort:vitisai",
+      "runnable": true,
+      "memory_pool": "host_ram",
+      "memory_bytes": 0,
+      "compute_capability": null,
+      "weight_formats": [
+        "onnx:a16w8"
+      ],
+      "evidence": "B",
+      "reason": "An MCDM device; WSL2's GPU-PV forwards WDDM display adapters only, so it has no device node here and nothing installed inside WSL reaches it. It does work from a Windows-side process -- onnxruntime>=1.25 plus the WindowsWorkload.EP.AMD.VitisAI.Framework appx, loading onnxruntime_vitisai_ep.dll (not the RyzenAI *Light* EP beside it) with its own directory on the DLL search path, against an A16W8-quantized opset-21 graph. Measured 5.3x the CPU on a 1024x2048x2048 GEMM. See vllm_omni/edge/npu_ryzenai.py.",
+      "masked": false,
+      "extra": {
+        "source": "wsl-interop",
+        "probe_route": "ryzenai-ep-windows",
+        "host_pool_bytes": 33184976896,
+        "host_pool_available_bytes": 30099304448,
+        "worker_route": "ort-vitisai",
+        "worker_interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+        "routes": [
+          {
+            "name": "ort-vitisai",
+            "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+            "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+            "ep": "vitisai",
+            "is_windows": true,
+            "available": true,
+            "reason": "",
+            "extra": null
+          }
+        ],
+        "executes": "exported graphs, not checkpoints",
+        "dedicated_vram_bytes": 0
+      }
+    },
+    "route": {
+      "name": "ort-vitisai",
+      "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+      "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+      "ep": "vitisai",
+      "is_windows": true,
+      "available": true,
+      "reason": "",
+      "extra": null
+    },
+    "reservations": [
+      {
+        "pool": "host_ram",
+        "purpose": "graph weights",
+        "bytes": 269095662,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "D",
+        "note": "the exported file, onnx:a16w8, sha 0e711ed95d64",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker runtime",
+        "bytes": 3880886342,
+        "lifetime": "session",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "interpreter plus execution provider in the worker process; measured 270 MiB for a VitisAI session on a 2 MiB graph and 369 MiB for a DirectML session on the 27B vision tower. NOTE: on an integrated GPU the device allocations come out of this same system RAM and do not appear in the worker's working set, so the measured figure is a lower bound for this pool, not a total; includes 10% headroom on measured worker peak 3772710912 bytes after subtracting graph file bytes",
+        "actual_upper_bound_bytes": 3511786770
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker workspace",
+        "bytes": 268435456,
+        "lifetime": "request",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "activations and EP scratch; not separable by any counter here",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "external reserve",
+        "bytes": 1073741824,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "E",
+        "note": "host RAM this engine does not control; the Windows side included",
+        "actual_upper_bound_bytes": null
+      }
+    ],
+    "refusals": [],
+    "min_fraction_on_target": 0.125,
+    "worker_peak_rss_hint_bytes": 3772710912,
+    "observed_worker_peak_rss_bytes": 3780882432,
+    "budget_bytes": 5492159284,
+    "admitted": true,
+    "report": {
+      "ep": "vitisai",
+      "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_recal_20260924/graph_postnorm_pc.onnx",
+      "device_name": "",
+      "placement_granularity": "graph_nodes",
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "node_counts": {
+        "CPUExecutionProvider": 6,
+        "vitisai": 1
+      },
+      "total_nodes": 7,
+      "target_nodes": 1,
+      "fraction_on_target": 0.14285714285714285,
+      "session_create_s": 16.82833149994258,
+      "warmup_s": 0.009992400067858398,
+      "rss_bytes": 1388621824,
+      "inputs": [
+        {
+          "name": "normalized_x_offset_0",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_postnorm_20260924\\cpu_postcuda_regression\\spark_output_head__2026-09-25_22-53-20_620.json",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "requested_provider_missing": "",
+      "fallback_note": "",
+      "onnxruntime": "1.30.0",
+      "device_id_requested": null,
+      "note": ""
+    }
+  },
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_recal_20260924/graph_postnorm_pc.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 6,
+      "vitisai": 1
+    },
+    "total_nodes": 7,
+    "target_nodes": 1,
+    "fraction_on_target": 0.14285714285714285,
+    "session_create_s": 16.82833149994258,
+    "warmup_s": 0.009992400067858398,
+    "rss_bytes": 1388621824,
+    "inputs": [
+      {
+        "name": "normalized_x_offset_0",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          2048
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "logits_concatenated",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          131072
+        ]
+      }
+    ],
+    "profile_path": "C:\\Users\\zhout\\w2\\spark_postnorm_20260924\\cpu_postcuda_regression\\spark_output_head__2026-09-25_22-53-20_620.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "input_layout": "post_final_norm",
+  "calls": [
+    {
+      "worker_s": 0.008265900076366961,
+      "round_trip_s": 0.01082144700922072,
+      "transport_s": 0.0025555469328537583,
+      "input_copy_s": 4.302198067307472e-05,
+      "output_copy_s": 2.5658984668552876e-05
+    },
+    {
+      "worker_s": 0.008063700050115585,
+      "round_trip_s": 0.00971286091953516,
+      "transport_s": 0.0016491608694195747,
+      "input_copy_s": 3.353401552885771e-05,
+      "output_copy_s": 6.696698255836964e-05
+    },
+    {
+      "worker_s": 0.007948299986310303,
+      "round_trip_s": 0.009761877940036356,
+      "transport_s": 0.0018135779537260532,
+      "input_copy_s": 2.5658984668552876e-05,
+      "output_copy_s": 3.614893648773432e-05
+    },
+    {
+      "worker_s": 0.008089900016784668,
+      "round_trip_s": 0.009475567028857768,
+      "transport_s": 0.0013856670120730996,
+      "input_copy_s": 3.260199446231127e-05,
+      "output_copy_s": 2.8515001758933067e-05
+    },
+    {
+      "worker_s": 0.008031700039282441,
+      "round_trip_s": 0.009475584025494754,
+      "transport_s": 0.0014438839862123132,
+      "input_copy_s": 2.7311965823173523e-05,
+      "output_copy_s": 3.024796023964882e-05
+    },
+    {
+      "worker_s": 0.007745100068859756,
+      "round_trip_s": 0.009286031941883266,
+      "transport_s": 0.00154093187302351,
+      "input_copy_s": 2.560904249548912e-05,
+      "output_copy_s": 3.106903750449419e-05
+    },
+    {
+      "worker_s": 0.0077559000346809626,
+      "round_trip_s": 0.009074692032299936,
+      "transport_s": 0.0013187919976189733,
+      "input_copy_s": 2.514803782105446e-05,
+      "output_copy_s": 0.00012746197171509266
+    },
+    {
+      "worker_s": 0.007991000078618526,
+      "round_trip_s": 0.009545998997054994,
+      "transport_s": 0.0015549989184364676,
+      "input_copy_s": 3.2000942155718803e-05,
+      "output_copy_s": 9.60018951445818e-05
+    },
+    {
+      "worker_s": 0.007896399940364063,
+      "round_trip_s": 0.009434676030650735,
+      "transport_s": 0.0015382760902866721,
+      "input_copy_s": 3.309303428977728e-05,
+      "output_copy_s": 3.165996167808771e-05
+    },
+    {
+      "worker_s": 0.008161900099366903,
+      "round_trip_s": 0.009454193990677595,
+      "transport_s": 0.0012922938913106918,
+      "input_copy_s": 3.194098826497793e-05,
+      "output_copy_s": 2.7892994694411755e-05
+    },
+    {
+      "worker_s": 0.007753100013360381,
+      "round_trip_s": 0.008779091062024236,
+      "transport_s": 0.0010259910486638546,
+      "input_copy_s": 3.367301542311907e-05,
+      "output_copy_s": 3.1569041311740875e-05
+    },
+    {
+      "worker_s": 0.007841900107450783,
+      "round_trip_s": 0.009084182907827199,
+      "transport_s": 0.0012422828003764153,
+      "input_copy_s": 4.269101191312075e-05,
+      "output_copy_s": 6.51839654892683e-05
+    },
+    {
+      "worker_s": 0.007757199928164482,
+      "round_trip_s": 0.00899517210200429,
+      "transport_s": 0.0012379721738398075,
+      "input_copy_s": 3.423495218157768e-05,
+      "output_copy_s": 3.294297493994236e-05
+    },
+    {
+      "worker_s": 0.0080462999176234,
+      "round_trip_s": 0.009269632049836218,
+      "transport_s": 0.0012233321322128177,
+      "input_copy_s": 3.1679985113441944e-05,
+      "output_copy_s": 2.8684036806225777e-05
+    },
+    {
+      "worker_s": 0.007982200011610985,
+      "round_trip_s": 0.009429116966202855,
+      "transport_s": 0.0014469169545918703,
+      "input_copy_s": 2.54589831456542e-05,
+      "output_copy_s": 2.3515080101788044e-05
+    },
+    {
+      "worker_s": 0.0079722999362275,
+      "round_trip_s": 0.00964416901115328,
+      "transport_s": 0.0016718690749257803,
+      "input_copy_s": 3.069906961172819e-05,
+      "output_copy_s": 6.381107959896326e-05
+    },
+    {
+      "worker_s": 0.008040899992920458,
+      "round_trip_s": 0.009272309951484203,
+      "transport_s": 0.001231409958563745,
+      "input_copy_s": 3.610900603234768e-05,
+      "output_copy_s": 2.971698995679617e-05
+    },
+    {
+      "worker_s": 0.008067499962635338,
+      "round_trip_s": 0.009474121034145355,
+      "transport_s": 0.001406621071510017,
+      "input_copy_s": 3.096903674304485e-05,
+      "output_copy_s": 3.2491981983184814e-05
+    },
+    {
+      "worker_s": 0.009444500086829066,
+      "round_trip_s": 0.010557156056165695,
+      "transport_s": 0.001112655969336629,
+      "input_copy_s": 2.5789020583033562e-05,
+      "output_copy_s": 3.195006866008043e-05
+    },
+    {
+      "worker_s": 0.008147899992763996,
+      "round_trip_s": 0.009359010960906744,
+      "transport_s": 0.0012111109681427479,
+      "input_copy_s": 2.5779008865356445e-05,
+      "output_copy_s": 3.179104533046484e-05
+    },
+    {
+      "worker_s": 0.007851400063373148,
+      "round_trip_s": 0.009419349022209644,
+      "transport_s": 0.0015679489588364959,
+      "input_copy_s": 3.3985008485615253e-05,
+      "output_copy_s": 6.417196709662676e-05
+    },
+    {
+      "worker_s": 0.008079199935309589,
+      "round_trip_s": 0.009695198968984187,
+      "transport_s": 0.0016159990336745977,
+      "input_copy_s": 4.854204598814249e-05,
+      "output_copy_s": 3.741099499166012e-05
+    },
+    {
+      "worker_s": 0.007880799937993288,
+      "round_trip_s": 0.009370675077661872,
+      "transport_s": 0.0014898751396685839,
+      "input_copy_s": 3.056798595935106e-05,
+      "output_copy_s": 6.74279872328043e-05
+    },
+    {
+      "worker_s": 0.00794569996651262,
+      "round_trip_s": 0.009326466009952128,
+      "transport_s": 0.0013807660434395075,
+      "input_copy_s": 3.0408031307160854e-05,
+      "output_copy_s": 6.715802010148764e-05
+    },
+    {
+      "worker_s": 0.007761599961668253,
+      "round_trip_s": 0.008937282022088766,
+      "transport_s": 0.0011756820604205132,
+      "input_copy_s": 2.5777961127460003e-05,
+      "output_copy_s": 5.0405971705913544e-05
+    },
+    {
+      "worker_s": 0.007989099947735667,
+      "round_trip_s": 0.009464011061936617,
+      "transport_s": 0.0014749111142009497,
+      "input_copy_s": 3.250199370086193e-05,
+      "output_copy_s": 1.8034945242106915e-05
+    },
+    {
+      "worker_s": 0.00807320000603795,
+      "round_trip_s": 0.009482805035077035,
+      "transport_s": 0.001409605029039085,
+      "input_copy_s": 3.187998663634062e-05,
+      "output_copy_s": 6.989296525716782e-05
+    },
+    {
+      "worker_s": 0.008084899978712201,
+      "round_trip_s": 0.009416238055564463,
+      "transport_s": 0.001331338076852262,
+      "input_copy_s": 3.1670089811086655e-05,
+      "output_copy_s": 6.189802661538124e-05
+    },
+    {
+      "worker_s": 0.008073900011368096,
+      "round_trip_s": 0.009406309924088418,
+      "transport_s": 0.0013324099127203226,
+      "input_copy_s": 3.12289921566844e-05,
+      "output_copy_s": 3.137905150651932e-05
+    },
+    {
+      "worker_s": 0.007869999972172081,
+      "round_trip_s": 0.009278265992179513,
+      "transport_s": 0.0014082660200074315,
+      "input_copy_s": 6.345007568597794e-05,
+      "output_copy_s": 4.51760133728385e-05
+    },
+    {
+      "worker_s": 0.007887499989010394,
+      "round_trip_s": 0.009074946981854737,
+      "transport_s": 0.0011874469928443432,
+      "input_copy_s": 3.268197178840637e-05,
+      "output_copy_s": 3.261095844209194e-05
+    },
+    {
+      "worker_s": 0.007854799972847104,
+      "round_trip_s": 0.009286514949053526,
+      "transport_s": 0.0014317149762064219,
+      "input_copy_s": 2.7080997824668884e-05,
+      "output_copy_s": 3.2351003028452396e-05
+    },
+    {
+      "worker_s": 0.008110700058750808,
+      "round_trip_s": 0.009301503072492778,
+      "transport_s": 0.00119080301374197,
+      "input_copy_s": 2.384604886174202e-05,
+      "output_copy_s": 2.6951078325510025e-05
+    },
+    {
+      "worker_s": 0.008017700049094856,
+      "round_trip_s": 0.00936565501615405,
+      "transport_s": 0.001347954967059195,
+      "input_copy_s": 2.6088906452059746e-05,
+      "output_copy_s": 2.7863075956702232e-05
+    },
+    {
+      "worker_s": 0.008047099923714995,
+      "round_trip_s": 0.009112011990509927,
+      "transport_s": 0.0010649120667949319,
+      "input_copy_s": 3.3383024856448174e-05,
+      "output_copy_s": 2.8915004804730415e-05
+    },
+    {
+      "worker_s": 0.007732599973678589,
+      "round_trip_s": 0.009893050068058074,
+      "transport_s": 0.0021604500943794847,
+      "input_copy_s": 3.0708033591508865e-05,
+      "output_copy_s": 3.103900235146284e-05
+    },
+    {
+      "worker_s": 0.00795320002362132,
+      "round_trip_s": 0.009383269003592432,
+      "transport_s": 0.0014300689799711108,
+      "input_copy_s": 2.6360037736594677e-05,
+      "output_copy_s": 3.471598029136658e-05
+    },
+    {
+      "worker_s": 0.007931099971756339,
+      "round_trip_s": 0.00929635507054627,
+      "transport_s": 0.0013652550987899303,
+      "input_copy_s": 2.8132926672697067e-05,
+      "output_copy_s": 3.3664051443338394e-05
+    },
+    {
+      "worker_s": 0.008034299942664802,
+      "round_trip_s": 0.009312745998613536,
+      "transport_s": 0.0012784460559487343,
+      "input_copy_s": 3.0849012546241283e-05,
+      "output_copy_s": 3.230106085538864e-05
+    },
+    {
+      "worker_s": 0.007845500018447638,
+      "round_trip_s": 0.009115188964642584,
+      "transport_s": 0.0012696889461949468,
+      "input_copy_s": 2.618902362883091e-05,
+      "output_copy_s": 3.5417964681982994e-05
+    },
+    {
+      "worker_s": 0.008049700059928,
+      "round_trip_s": 0.009290672955103219,
+      "transport_s": 0.0012409728951752186,
+      "input_copy_s": 2.477690577507019e-05,
+      "output_copy_s": 2.8975075110793114e-05
+    },
+    {
+      "worker_s": 0.008038100088015199,
+      "round_trip_s": 0.0094623570330441,
+      "transport_s": 0.001424256945028901,
+      "input_copy_s": 3.421504516154528e-05,
+      "output_copy_s": 7.285806350409985e-05
+    },
+    {
+      "worker_s": 0.008064000052399933,
+      "round_trip_s": 0.009533481090329587,
+      "transport_s": 0.0014694810379296541,
+      "input_copy_s": 3.534706775099039e-05,
+      "output_copy_s": 4.189903847873211e-05
+    },
+    {
+      "worker_s": 0.007998100016266108,
+      "round_trip_s": 0.009281179984100163,
+      "transport_s": 0.0012830799678340554,
+      "input_copy_s": 3.1520030461251736e-05,
+      "output_copy_s": 6.556406151503325e-05
+    },
+    {
+      "worker_s": 0.007770400028675795,
+      "round_trip_s": 0.009205384994857013,
+      "transport_s": 0.0014349849661812186,
+      "input_copy_s": 2.4977955035865307e-05,
+      "output_copy_s": 2.8825015760958195e-05
+    },
+    {
+      "worker_s": 0.007980800000950694,
+      "round_trip_s": 0.009349906002171338,
+      "transport_s": 0.0013691060012206435,
+      "input_copy_s": 2.368504647165537e-05,
+      "output_copy_s": 2.098002005368471e-05
+    },
+    {
+      "worker_s": 0.008011199999600649,
+      "round_trip_s": 0.009348291903734207,
+      "transport_s": 0.0013370919041335583,
+      "input_copy_s": 2.9395916499197483e-05,
+      "output_copy_s": 3.9033940993249416e-05
+    },
+    {
+      "worker_s": 0.007916999980807304,
+      "round_trip_s": 0.009307043976150453,
+      "transport_s": 0.0013900439953431487,
+      "input_copy_s": 2.906599547713995e-05,
+      "output_copy_s": 2.738193143159151e-05
+    },
+    {
+      "worker_s": 0.007874000002630055,
+      "round_trip_s": 0.009479457046836615,
+      "transport_s": 0.0016054570442065597,
+      "input_copy_s": 4.2661093175411224e-05,
+      "output_copy_s": 5.47339441254735e-05
+    },
+    {
+      "worker_s": 0.007823499967344105,
+      "round_trip_s": 0.009193778038024902,
+      "transport_s": 0.001370278070680797,
+      "input_copy_s": 3.582797944545746e-05,
+      "output_copy_s": 3.436498809605837e-05
+    },
+    {
+      "worker_s": 0.007939300034195185,
+      "round_trip_s": 0.009275335003621876,
+      "transport_s": 0.0013360349694266915,
+      "input_copy_s": 2.6289955712854862e-05,
+      "output_copy_s": 2.6060035452246666e-05
+    },
+    {
+      "worker_s": 0.0081708999350667,
+      "round_trip_s": 0.009536858997307718,
+      "transport_s": 0.0013659590622410178,
+      "input_copy_s": 2.5428947992622852e-05,
+      "output_copy_s": 4.988501314073801e-05
+    },
+    {
+      "worker_s": 0.0077806999906897545,
+      "round_trip_s": 0.008923556073568761,
+      "transport_s": 0.0011428560828790069,
+      "input_copy_s": 3.079907037317753e-05,
+      "output_copy_s": 3.097893204540014e-05
+    },
+    {
+      "worker_s": 0.007958000060170889,
+      "round_trip_s": 0.009433975093998015,
+      "transport_s": 0.001475975033827126,
+      "input_copy_s": 2.4717068299651146e-05,
+      "output_copy_s": 2.9194983653724194e-05
+    },
+    {
+      "worker_s": 0.007862600032240152,
+      "round_trip_s": 0.009223154978826642,
+      "transport_s": 0.0013605549465864897,
+      "input_copy_s": 2.5748973712325096e-05,
+      "output_copy_s": 3.1469971872866154e-05
+    },
+    {
+      "worker_s": 0.008031100034713745,
+      "round_trip_s": 0.009644988924264908,
+      "transport_s": 0.0016138888895511627,
+      "input_copy_s": 2.4726963602006435e-05,
+      "output_copy_s": 7.252802606672049e-05
+    },
+    {
+      "worker_s": 0.008237300091423094,
+      "round_trip_s": 0.009979005088098347,
+      "transport_s": 0.001741704996675253,
+      "input_copy_s": 3.394403029233217e-05,
+      "output_copy_s": 6.818899419158697e-05
+    },
+    {
+      "worker_s": 0.008212200016714633,
+      "round_trip_s": 0.009735645027831197,
+      "transport_s": 0.0015234450111165643,
+      "input_copy_s": 3.3603981137275696e-05,
+      "output_copy_s": 6.722705438733101e-05
+    },
+    {
+      "worker_s": 0.007838499965146184,
+      "round_trip_s": 0.009048295090906322,
+      "transport_s": 0.001209795125760138,
+      "input_copy_s": 3.575801383703947e-05,
+      "output_copy_s": 4.3782987631857395e-05
+    },
+    {
+      "worker_s": 0.008016800042241812,
+      "round_trip_s": 0.00952152197714895,
+      "transport_s": 0.0015047219349071383,
+      "input_copy_s": 2.6239082217216492e-05,
+      "output_copy_s": 1.8325052224099636e-05
+    },
+    {
+      "worker_s": 0.007905100006610155,
+      "round_trip_s": 0.009200874948874116,
+      "transport_s": 0.0012957749422639608,
+      "input_copy_s": 2.4796929210424423e-05,
+      "output_copy_s": 7.024407386779785e-05
+    },
+    {
+      "worker_s": 0.008178199990652502,
+      "round_trip_s": 0.009566126973368227,
+      "transport_s": 0.001387926982715726,
+      "input_copy_s": 2.879404928535223e-05,
+      "output_copy_s": 3.0588009394705296e-05
+    },
+    {
+      "worker_s": 0.008150200010277331,
+      "round_trip_s": 0.00948243704624474,
+      "transport_s": 0.0013322370359674096,
+      "input_copy_s": 2.4756998755037785e-05,
+      "output_copy_s": 3.486697096377611e-05
+    },
+    {
+      "worker_s": 0.008115799981169403,
+      "round_trip_s": 0.00966066203545779,
+      "transport_s": 0.0015448620542883873,
+      "input_copy_s": 3.1720963306725025e-05,
+      "output_copy_s": 6.634602323174477e-05
+    }
+  ],
+  "reference_comparisons": [],
+  "cpu_refine_top_k": 64,
+  "sampling_contract": "greedy-only",
+  "refinement_calls": [
+    {
+      "call_index": 0,
+      "candidate_count": 64,
+      "npu_top1": 3066,
+      "refined_top1": 3066,
+      "cpu_refine_s": 0.0011405249824747443,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 1,
+      "candidate_count": 64,
+      "npu_top1": 599,
+      "refined_top1": 599,
+      "cpu_refine_s": 0.0008738900069147348,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 2,
+      "candidate_count": 64,
+      "npu_top1": 5509,
+      "refined_top1": 5509,
+      "cpu_refine_s": 0.0009392639622092247,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 3,
+      "candidate_count": 64,
+      "npu_top1": 39,
+      "refined_top1": 39,
+      "cpu_refine_s": 0.0007880659541115165,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 4,
+      "candidate_count": 64,
+      "npu_top1": 518,
+      "refined_top1": 518,
+      "cpu_refine_s": 0.0007339341100305319,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 5,
+      "candidate_count": 64,
+      "npu_top1": 4766,
+      "refined_top1": 4766,
+      "cpu_refine_s": 0.0007810930255800486,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 6,
+      "candidate_count": 64,
+      "npu_top1": 390,
+      "refined_top1": 390,
+      "cpu_refine_s": 0.0007779159350320697,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 7,
+      "candidate_count": 64,
+      "npu_top1": 275,
+      "refined_top1": 275,
+      "cpu_refine_s": 0.0008953899377956986,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 8,
+      "candidate_count": 64,
+      "npu_top1": 11862,
+      "refined_top1": 11862,
+      "cpu_refine_s": 0.0008055900689214468,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 9,
+      "candidate_count": 64,
+      "npu_top1": 314,
+      "refined_top1": 314,
+      "cpu_refine_s": 0.0007466980023309588,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 10,
+      "candidate_count": 64,
+      "npu_top1": 17349,
+      "refined_top1": 17349,
+      "cpu_refine_s": 0.0007308669155463576,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 11,
+      "candidate_count": 64,
+      "npu_top1": 44,
+      "refined_top1": 44,
+      "cpu_refine_s": 0.0012480029836297035,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 12,
+      "candidate_count": 64,
+      "npu_top1": 74288,
+      "refined_top1": 74288,
+      "cpu_refine_s": 0.00076428207103163,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 13,
+      "candidate_count": 64,
+      "npu_top1": 304,
+      "refined_top1": 304,
+      "cpu_refine_s": 0.0013583619147539139,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 14,
+      "candidate_count": 64,
+      "npu_top1": 1135,
+      "refined_top1": 1135,
+      "cpu_refine_s": 0.0007066719699651003,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 15,
+      "candidate_count": 64,
+      "npu_top1": 5240,
+      "refined_top1": 5240,
+      "cpu_refine_s": 0.0008610449731349945,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 16,
+      "candidate_count": 64,
+      "npu_top1": 1848,
+      "refined_top1": 1848,
+      "cpu_refine_s": 0.0007782779866829515,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 17,
+      "candidate_count": 64,
+      "npu_top1": 4358,
+      "refined_top1": 4358,
+      "cpu_refine_s": 0.0007868340471759439,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 18,
+      "candidate_count": 64,
+      "npu_top1": 275,
+      "refined_top1": 275,
+      "cpu_refine_s": 0.0008152480004355311,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 19,
+      "candidate_count": 64,
+      "npu_top1": 6787,
+      "refined_top1": 6787,
+      "cpu_refine_s": 0.0007217900129035115,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 20,
+      "candidate_count": 64,
+      "npu_top1": 2029,
+      "refined_top1": 2029,
+      "cpu_refine_s": 0.0008275710279121995,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 21,
+      "candidate_count": 64,
+      "npu_top1": 417,
+      "refined_top1": 417,
+      "cpu_refine_s": 0.000929154921323061,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 22,
+      "candidate_count": 64,
+      "npu_top1": 275,
+      "refined_top1": 275,
+      "cpu_refine_s": 0.0008635299745947123,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 23,
+      "candidate_count": 64,
+      "npu_top1": 5133,
+      "refined_top1": 5133,
+      "cpu_refine_s": 0.0008294850122183561,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 24,
+      "candidate_count": 64,
+      "npu_top1": 5240,
+      "refined_top1": 5240,
+      "cpu_refine_s": 0.0007480999920517206,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 25,
+      "candidate_count": 64,
+      "npu_top1": 518,
+      "refined_top1": 518,
+      "cpu_refine_s": 0.0006872049998492002,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 26,
+      "candidate_count": 64,
+      "npu_top1": 110949,
+      "refined_top1": 110949,
+      "cpu_refine_s": 0.0009140659822151065,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 27,
+      "candidate_count": 64,
+      "npu_top1": 4348,
+      "refined_top1": 4348,
+      "cpu_refine_s": 0.0008158589480444789,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 28,
+      "candidate_count": 64,
+      "npu_top1": 1994,
+      "refined_top1": 1994,
+      "cpu_refine_s": 0.0007665349403396249,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 29,
+      "candidate_count": 64,
+      "npu_top1": 1633,
+      "refined_top1": 1633,
+      "cpu_refine_s": 0.0007612259360030293,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 30,
+      "candidate_count": 64,
+      "npu_top1": 312,
+      "refined_top1": 312,
+      "cpu_refine_s": 0.000738122034817934,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 31,
+      "candidate_count": 64,
+      "npu_top1": 6340,
+      "refined_top1": 6340,
+      "cpu_refine_s": 0.0007787389913573861,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 32,
+      "candidate_count": 64,
+      "npu_top1": 1839,
+      "refined_top1": 1839,
+      "cpu_refine_s": 0.0007640810217708349,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 33,
+      "candidate_count": 64,
+      "npu_top1": 455,
+      "refined_top1": 455,
+      "cpu_refine_s": 0.0009946390055119991,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 34,
+      "candidate_count": 64,
+      "npu_top1": 5240,
+      "refined_top1": 5240,
+      "cpu_refine_s": 0.0007198359817266464,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 35,
+      "candidate_count": 64,
+      "npu_top1": 27,
+      "refined_top1": 27,
+      "cpu_refine_s": 0.0007873349823057652,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 36,
+      "candidate_count": 64,
+      "npu_top1": 4,
+      "refined_top1": 4,
+      "cpu_refine_s": 0.0007978749927133322,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 37,
+      "candidate_count": 64,
+      "npu_top1": 110949,
+      "refined_top1": 110949,
+      "cpu_refine_s": 0.0008064709836617112,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 38,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007333529647439718,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 39,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.000757087953388691,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 40,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007465779781341553,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 41,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0010543219977989793,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 42,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007615160429850221,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 43,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0008670669049024582,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 44,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007276219548657537,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 45,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0006985559593886137,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 46,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.000816690968349576,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 47,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0007400159956887364,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 48,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0008053990313783288,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 49,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0008959720144048333,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 50,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0008046081056818366,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 51,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.000854843994602561,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 52,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007499649655073881,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 53,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0008300060871988535,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 54,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007267299806699157,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 55,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0008973109070211649,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 56,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.001089689088985324,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 57,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0008431209716945887,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 58,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007595929782837629,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 59,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0006929859519004822,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 60,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.001029814942739904,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 61,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0007738999556750059,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 62,
+      "candidate_count": 64,
+      "npu_top1": 1,
+      "refined_top1": 1,
+      "cpu_refine_s": 0.0007501050131395459,
+      "refine_device": "cpu"
+    },
+    {
+      "call_index": 63,
+      "candidate_count": 64,
+      "npu_top1": 7,
+      "refined_top1": 7,
+      "cpu_refine_s": 0.0008469689637422562,
+      "refine_device": "cpu"
+    }
+  ],
+  "worker_stats": {
+    "runs": 64,
+    "total_run_s": 0.5119514004327357,
+    "rss_bytes": 1389162496,
+    "peak_rss_bytes": 3780882432,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 16.82833149994258,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "normalized_x_offset_0",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            2048
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits_concatenated",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            131072
+          ]
+        }
+      ],
+      "warmup_s": 0.009992400067858398,
+      "profile_path": "C:\\Users\\zhout\\w2\\spark_postnorm_20260924\\cpu_postcuda_regression\\spark_output_head__2026-09-25_22-53-20_620.json",
+      "node_counts": {
+        "CPUExecutionProvider": 6,
+        "vitisai": 1
+      },
+      "total_nodes": 7,
+      "target_nodes": 1,
+      "fraction_on_target": 0.14285714285714285,
+      "rss_bytes": 1388621824
+    }
+  }
+}
