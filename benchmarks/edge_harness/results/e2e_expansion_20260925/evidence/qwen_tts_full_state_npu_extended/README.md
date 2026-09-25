@@ -29,8 +29,40 @@ feeding measured NPU hidden outputs into the unchanged CPU vocoder tail. A
 CPU-as-candidate self-check passed two waveform chunks within 1.21e-6
 relative L2 of the exact decoder; its synthetic
 placement report and tensors remain outside Git and are **not NPU evidence**.
-An extended eight-layer native VitisAI compile is in progress locally. Its
-result will be added with the raw provider trace if the session returns, or a
-timed cap record if it does not. Only completed inference with VitisAI node
-events and captured outputs can advance this device cell; a compiler warning,
-detection, or CPU reference alone cannot.
+The [extended native probe](probe.json) did compile the full eight-layer graph
+on Windows 11 build 26200 with HX370 NPU driver 32.0.203.329, ONNX Runtime
+1.30.0 and VitisAI EP 1.8.63.0 (EP DLL SHA-256
+`c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991`).
+Session creation took **1,228.444 s**. The [raw ORT trace](profile_2026-09-25_23-13-37_446.json)
+has **two VitisAI node events** and **26 CPU node events** across two
+consecutive two-frame steps. Individual calls took 26.956/15.328 ms versus
+10.081/5.983 ms for the corresponding CPU graph calls in the same native
+process. These are one cold and one subsequent call, **not** a warmed latency
+distribution, transfer-inclusive comparison or complete-request profile.
+
+The NPU graph returned finite hidden and rolling-K/V tensors, but its hidden
+relative L2 versus the same ONNX CPU graph was **1.891%/2.074%**, already
+above the provisional 1% tensor gate. The probe's `max_state_relative_l2`
+field came from the pre-fix script and checks only layer 0; the subsequent
+[waveform replay](waveform_replay.json) audits **all 16 K/V outputs** against
+the checkpoint. Their maximum relative L2 is **1.040%/1.319%**. The retained
+[paired CPU/NPU tensors](full_state_outputs.npz) are pinned by SHA-256 in both
+reports.
+
+Feeding the measured NPU hidden states into the unchanged source decoder's
+CPU vocoder tail produced finite chunks at frames 95 and 97, but they differed
+by **1.924%/1.036% waveform relative L2** from exact CPU decode; **0/2**
+met the provisional 1% chunk gate. The CPU-capture control matched the
+checkpoint within 5.35e-7 relative L2. The joined four-frame segment was
+1.872% relative L2. This is an offline downstream replay, not a live Omni
+text-to-audio request or listening-quality result. The full-state NPU graph
+therefore moves from an inconclusive compile cap to **executed but numerically
+unqualified component evidence**. Its observed calls and long build also give
+no whole-chain performance benefit on this fixture. The HX370 AMD NPU TTS
+matrix cell remains **NOT E2E**.
+
+The next experiment should localize error across the placed eight-layer graph
+and test a source-faithful numerical correction on both utterances before
+another live-stage attempt. The corrected probe now checks every K/V output;
+the raw native report above is kept unchanged to preserve what the running
+version actually computed.

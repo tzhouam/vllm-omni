@@ -1,0 +1,17 @@
+{
+  "scope": "native HX370 full eight-layer Qwen3-TTS rolling-state component probe",
+  "host_cpu": "AMD Ryzen AI 9 HX 370",
+  "host_npu": "NPU Compute Accelerator Device",
+  "os": "Windows 11 build 26200",
+  "npu_driver": "32.0.203.329",
+  "onnxruntime": "1.30.0",
+  "vitisai_ep": "1.8.63.0",
+  "vitisai_ep_dll_sha256": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "graph_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "fixture_sha256": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc",
+  "input": "two new convolution frames, eight layers of 71-frame sliding KV",
+  "execution": "two consecutive steps in one session, no warmup beyond first step",
+  "power_thermal": "not controlled or recorded",
+  "whole_request": false
+}

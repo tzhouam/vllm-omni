@@ -1,0 +1,41 @@
+{
+  "scope": "captured native AMD NPU eight-layer rolling-state output through real CPU vocoder tail; offline component, not complete TTS",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "codes_sha256": "2768b9274748d767deca67ebd4c0201b914f4839902b89d5693d39e9b8e8c946",
+  "onnx_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "fixture_sha256": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc",
+  "capture_sha256": "00c12b953f32ad7a4e1599aafabef9dcb405a701ae2d54677e33897166363019",
+  "probe_report_sha256": "0940eddfd30c0222b6798a3dc97c30dd25a94bae14b83bed98503fcda487f341",
+  "prefill_state_max_relative_l2": 0.0,
+  "torch": "2.13.0+cpu",
+  "rows": [
+    {
+      "start_frame": 95,
+      "cpu_capture_max_relative_l2_vs_source": 4.805560266118516e-07,
+      "npu_hidden_relative_l2_vs_source": 0.0189075824074683,
+      "npu_max_cache_relative_l2_vs_source": 0.010404378205166657,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.01924222474254913,
+      "source_wave_rms": 0.08725089188390504,
+      "npu_wave_snr_db": 34.314894344970305,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "cpu_capture_max_relative_l2_vs_source": 5.346869667317442e-07,
+      "npu_hidden_relative_l2_vs_source": 0.020737931549819438,
+      "npu_max_cache_relative_l2_vs_source": 0.013185368271084994,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.01036184368972594,
+      "source_wave_rms": 0.02498726656407294,
+      "npu_wave_snr_db": 39.69125926819569,
+      "finite": true
+    }
+  ],
+  "joined_waveform_relative_l2": 0.018717264062159712,
+  "waveform_gate": {
+    "relative_l2_max": 0.01,
+    "passed_chunks": 0,
+    "total_chunks": 2
+  },
+  "status": "waveform_gate_failed_on_fixture"
+}

@@ -192,5 +192,10 @@ then ran eleven consecutive ONNX steps on each of two generated utterances.
 The exported graph owned its rolling K/V, and the unchanged vocoder tail's
 worst waveform relative L2 against the checkpoint's exact decoder was
 3.34e-5 and 2.05e-6. This validates the source-equivalent CPU state contract
-more broadly than the earlier two-step check. Native AMD NPU compilation is
-still under examination; these CPU passes do not qualify a device stream.
+more broadly than the earlier two-step check. The same eight-layer graph
+subsequently compiled on HX370 AMD NPU after 1,228.444 s and executed two
+consecutive steps with verified VitisAI placement. Captured NPU hidden states
+missed the 1% tensor gate at 1.891%/2.074%; their unchanged CPU vocoder tail
+missed the 1% waveform gate at 1.924%/1.036%. Its two observed NPU calls were
+also slower than corresponding CPU graph calls before handoff. This is
+executed component evidence, not a complete TTS stream or qualified NPU stage.

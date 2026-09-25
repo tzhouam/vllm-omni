@@ -1,0 +1,46 @@
+{
+  "scope": "real-weight 8-layer rolling-KV pre-transformer step; not complete TTS or waveform quality",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "model": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+    "fixture": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc"
+  },
+  "npu_state_source": "self",
+  "checkpoint_outputs": false,
+  "status": "npu_stateful_component_not_qualified",
+  "cpu_session_create_s": 0.7673994000069797,
+  "cpu_step_s": [
+    0.010081200045533478,
+    0.005982699920423329
+  ],
+  "vitisai_npu_device_count": 1,
+  "npu_session_create_s": 1228.4444524999708,
+  "npu_step_s": [
+    0.02695599989965558,
+    0.015327899949625134
+  ],
+  "capture": {
+    "filename": "full_state_outputs.npz",
+    "sha256": "00c12b953f32ad7a4e1599aafabef9dcb405a701ae2d54677e33897166363019"
+  },
+  "comparison": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 0.018907590558576506,
+      "max_state_relative_l2": 0.007192901690019043,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 0.020737999441153065,
+      "max_state_relative_l2": 0.008551423369914227,
+      "finite": true
+    }
+  ],
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\qwen_tts_full_state_npu_extended\\profile_2026-09-25_23-13-37_446.json",
+  "node_providers": {
+    "vitisai": 2,
+    "cpu": 26
+  }
+}
