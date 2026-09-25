@@ -85,6 +85,10 @@ class SparkStepConfig:
     converter at w4a16 there, so full layers keep roll."""
     first_layer: int = 0
     """Index of the first exported layer, so a subset can be profiled on its own."""
+    arithmetic_mode: str = "fp32_export"
+    """``hf_bf16_reference`` reproduces the checkpoint's BF16 rounding on CPU.
+    It is a numerical reference only; the existing mobile export remains FP32.
+    """
 
     def __post_init__(self) -> None:
         if self.num_attention_heads % self.num_key_value_heads:
@@ -99,6 +103,8 @@ class SparkStepConfig:
             raise ValueError(f"unknown cache_layout: {self.cache_layout}")
         if self.gelu_mode not in ("exact", "tanh", "sigmoid"):
             raise ValueError(f"unknown gelu_mode: {self.gelu_mode}")
+        if self.arithmetic_mode not in ("fp32_export", "hf_bf16_reference"):
+            raise ValueError(f"unknown arithmetic_mode: {self.arithmetic_mode}")
 
     @property
     def group_size(self) -> int:
@@ -176,6 +182,12 @@ class _Layer(nn.Module):
 
     def forward(self, x, cos, sin, k_cache, v_cache, mask):
         cfg = self.cfg
+        source_bf16 = cfg.arithmetic_mode == "hf_bf16_reference"
+        def linear(module: nn.Linear, value: torch.Tensor) -> torch.Tensor:
+            if source_bf16:
+                return torch.nn.functional.linear(value, module.weight.to(value.dtype))
+            return module(value)
+
         heads, kv, d, g = (
             cfg.num_attention_heads,
             cfg.num_key_value_heads,
@@ -183,12 +195,21 @@ class _Layer(nn.Module):
             cfg.group_size,
         )
         h = _rms(x, self.input_layernorm, cfg.rms_norm_eps)
-        qkv = self.q_k_v_proj(h)
+        if source_bf16:
+            h = h.to(torch.bfloat16)
+        qkv = linear(self.q_k_v_proj, h)
         q = qkv[..., : heads * d].view(1, heads, 1, d)
         k = qkv[..., heads * d : (heads + kv) * d].view(1, kv, 1, d)
         v = qkv[..., (heads + kv) * d :].view(1, kv, 1, d)
-        gate = torch.sigmoid(self.g_proj(h)).view(1, heads, 1, 1)
-        q, k = _rope(q, cos, sin), _rope(k, cos, sin)
+        gate_score = linear(self.g_proj, h)
+        gate = (torch.sigmoid(gate_score.float()).to(gate_score.dtype)
+                if source_bf16 else torch.sigmoid(gate_score))
+        gate = gate.view(1, heads, 1, 1)
+        if source_bf16:
+            q = _rope(q.float(), cos, sin).to(torch.bfloat16)
+            k = _rope(k.float(), cos, sin).to(torch.bfloat16)
+        else:
+            q, k = _rope(q, cos, sin), _rope(k, cos, sin)
 
         # GQA without materialising expanded K/V: fold the query heads that
         # share a kv head into their own axis.
@@ -214,8 +235,19 @@ class _Layer(nn.Module):
             # while the fused Softmax form compiles.
             keys = torch.cat([k_cache, k], dim=2)
             vals = torch.cat([v_cache, v], dim=2)
-            scores = torch.matmul(qg, keys.transpose(2, 3)) * scale + mask
-            attn = torch.matmul(torch.softmax(scores, dim=-1), vals)
+            if source_bf16:
+                keys_for_attention = keys.repeat_interleave(g, dim=1)
+                vals_for_attention = vals.repeat_interleave(g, dim=1)
+                scores = torch.matmul(q, keys_for_attention.transpose(2, 3)) * scale + mask
+            else:
+                vals_for_attention = vals
+                scores = torch.matmul(qg, keys.transpose(2, 3)) * scale + mask
+            if source_bf16:
+                scores = scores - scores.max(dim=-1, keepdim=True).values
+                probs = torch.softmax(scores.float(), dim=-1).to(torch.bfloat16)
+            else:
+                probs = torch.softmax(scores, dim=-1)
+            attn = torch.matmul(probs, vals_for_attention)
             k_out, v_out = k, v
         else:
             # Roll the window: the oldest entry falls off the front.
@@ -223,16 +255,30 @@ class _Layer(nn.Module):
             vals = torch.cat([v_cache, v], dim=2)
             if self.layer_type == SLIDING:
                 keys, vals = keys[:, :, 1:], vals[:, :, 1:]
-            scores = torch.matmul(qg, keys.transpose(2, 3)) * scale + mask
-            attn = torch.matmul(torch.softmax(scores, dim=-1), vals)
+            if source_bf16:
+                keys_for_attention = keys.repeat_interleave(g, dim=1)
+                vals_for_attention = vals.repeat_interleave(g, dim=1)
+                scores = torch.matmul(q, keys_for_attention.transpose(2, 3)) * scale + mask
+            else:
+                vals_for_attention = vals
+                scores = torch.matmul(qg, keys.transpose(2, 3)) * scale + mask
+            if source_bf16:
+                scores = scores - scores.max(dim=-1, keepdim=True).values
+                probs = torch.softmax(scores.float(), dim=-1).to(torch.bfloat16)
+            else:
+                probs = torch.softmax(scores, dim=-1)
+            attn = torch.matmul(probs, vals_for_attention)
             k_out = keys if self.layer_type == SLIDING else k
             v_out = vals if self.layer_type == SLIDING else v
 
         attn = (attn.view(1, heads, 1, d) * gate).view(1, 1, heads * d)
 
-        x = x + self.out_proj(attn)
+        x = x + linear(self.out_proj, attn)
         h = _rms(x, self.post_attention_layernorm, cfg.rms_norm_eps)
-        x = x + self.down_proj(_gelu(self.gate_proj(h), cfg.gelu_mode) * self.up_proj(h))
+        if source_bf16:
+            h = h.to(torch.bfloat16)
+        mlp = _gelu(linear(self.gate_proj, h), cfg.gelu_mode) * linear(self.up_proj, h)
+        x = x + linear(self.down_proj, mlp)
         return x, k_out, v_out
 
 
@@ -268,7 +314,14 @@ class SparkDecodeStep(nn.Module):
             new += [k, v]
         if not cfg.include_lm_head:
             return (x, *new)
-        logits = self.lm_head(_rms(x, self.norm, cfg.rms_norm_eps))[:, 0]
+        h = _rms(x, self.norm, cfg.rms_norm_eps)
+        if cfg.arithmetic_mode == "hf_bf16_reference":
+            h = h.to(torch.bfloat16)
+            logits = torch.nn.functional.linear(
+                h, self.lm_head.weight.to(torch.bfloat16)
+            )[:, 0]
+        else:
+            logits = self.lm_head(h)[:, 0]
         return (logits, *new)
 
 
@@ -352,7 +405,11 @@ class SparkDecodeCache:
             raise ValueError("decode would exceed max_context")
         if x.shape != (1, 1, self.cfg.hidden_size):
             raise ValueError("decode embedding shape mismatch")
-        if x.dtype != self.buffers[0].dtype:
+        source_bf16 = self.cfg.arithmetic_mode == "hf_bf16_reference"
+        if source_bf16:
+            if x.dtype != torch.float32 or self.buffers[0].dtype != torch.bfloat16:
+                raise ValueError("BF16 reference needs FP32 residual and BF16 cache")
+        elif x.dtype != self.buffers[0].dtype:
             raise ValueError("decode embedding dtype mismatch")
         cfg = self.cfg
         cos_sw, sin_sw = _angles(
@@ -363,13 +420,14 @@ class SparkDecodeCache:
             self.position, cfg.rotary_dim(FULL), cfg.rope_theta[FULL], x.dtype,
         )
         sw_capacity = cfg.sliding_window - 1
+        mask_dtype = self.buffers[0].dtype
         mask_sw = torch.full(
-            (1, 1, 1, sw_capacity + 1), float("-inf"), dtype=x.dtype
+            (1, 1, 1, sw_capacity + 1), float("-inf"), dtype=mask_dtype
         )
         mask_sw[:, :, :, :min(self.position, sw_capacity)] = 0
         mask_sw[:, :, :, -1] = 0
         mask_full = torch.full(
-            (1, 1, 1, self.max_context + 1), float("-inf"), dtype=x.dtype
+            (1, 1, 1, self.max_context + 1), float("-inf"), dtype=mask_dtype
         )
         mask_full[:, :, :, :self.position] = 0
         mask_full[:, :, :, -1] = 0
@@ -426,6 +484,7 @@ def config_from_spark(
     include_lm_head: bool = True,
     cache_layout: str = "auto",
     gelu_mode: str = "exact",
+    arithmetic_mode: str = "fp32_export",
 ) -> SparkStepConfig:
     """Build a step config from a Spark ``config.json``.
 
@@ -455,6 +514,7 @@ def config_from_spark(
         include_lm_head=include_lm_head,
         cache_layout=cache_layout,
         gelu_mode=gelu_mode,
+        arithmetic_mode=arithmetic_mode,
         first_layer=first,
     )
 
@@ -574,6 +634,8 @@ def export_onnx(
 ) -> dict[str, Any]:
     """Trace to ONNX at a fixed context length and sanitize for Qualcomm tools."""
     cfg = module.cfg
+    if cfg.arithmetic_mode != "fp32_export":
+        raise ValueError("HF BF16 reference arithmetic is not a qualified mobile export")
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     args = example_inputs(cfg, context)

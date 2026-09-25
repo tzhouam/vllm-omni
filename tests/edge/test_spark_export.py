@@ -19,6 +19,7 @@ from vllm_omni.edge.spark_export import (
     SparkStepConfig,
     config_from_spark,
     example_inputs,
+    export_onnx,
     input_names,
     kv_cache_bytes,
     output_names,
@@ -306,3 +307,34 @@ def test_fixed_decode_cache_masks_unfilled_ring_slots():
     assert torch.equal(args[5][0, 0, 0, :2], torch.zeros(2))
     assert torch.isneginf(args[5][0, 0, 0, 2:7]).all()
     assert args[5][0, 0, 0, -1] == 0
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+def test_bf16_reference_step_uses_fp32_residual_and_bf16_cache(tmp_path):
+    cfg = _cfg(arithmetic_mode="hf_bf16_reference")
+    state = SparkDecodeCache(cfg, max_context=16, dtype=torch.bfloat16)
+    prefill = [
+        (torch.zeros(1, cfg.num_key_value_heads, 2, cfg.head_dim,
+                     dtype=torch.bfloat16),
+         torch.zeros(1, cfg.num_key_value_heads, 2, cfg.head_dim,
+                     dtype=torch.bfloat16))
+        for _ in cfg.layer_types
+    ]
+    state.seed(prefill, position=2)
+    step = SparkDecodeStep(cfg).eval()
+    with torch.no_grad():
+        out = step(*state.step_inputs(torch.zeros(1, 1, cfg.hidden_size)))
+    assert out[0].dtype == torch.bfloat16
+    assert all(cache.dtype == torch.bfloat16 for cache in out[1:])
+    state.commit(out, expected_position=2)
+    assert state.position == 3
+    with pytest.raises(ValueError, match="not a qualified mobile export"):
+        export_onnx(step, 4, tmp_path / "unqualified.onnx")
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+def test_unknown_arithmetic_mode_is_rejected():
+    with pytest.raises(ValueError, match="unknown arithmetic_mode"):
+        _cfg(arithmetic_mode="silent_precision_change")

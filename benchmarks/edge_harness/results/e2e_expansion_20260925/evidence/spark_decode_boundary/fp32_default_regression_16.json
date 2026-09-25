@@ -1,0 +1,584 @@
+{
+  "model": "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+  "model_index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "model_config_sha256": "16aa5d3619d0d893e7157f2499675430844eb7b383c80ecc1b3e8e8928a75d52",
+  "prompt_ids_sha256": "698dac1b20bbdff4d6f295adb9dcdcb131ab3898f91ae8f08568353b6f5dc3e4",
+  "probe_source_sha256": "da2dedf85f060ce0f7fa858ebf9ecabe757b933ecda9ae5921a698a972ddc328",
+  "export_source_sha256": "1dd4b1d9ec1b92c342cc35e6f2efd2cfce30f46e73a1c247b3d6fdad60c64cf0",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "python": "3.12.13",
+  "torch": "2.13.0+cpu",
+  "transformers": "5.14.1",
+  "cpu_threads": 8,
+  "prompt_tokens": 1000,
+  "decode_steps": 16,
+  "top1_matches": 16,
+  "mismatch_positions": [],
+  "max_logits_relative_l2": 0.00016177228826563805,
+  "max_logits_abs": 0.018991470336914062,
+  "final_position": 1016,
+  "full_cache_capacity": 1024,
+  "sliding_cache_capacity": 511,
+  "cache_shapes": [
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        1000,
+        256
+      ],
+      [
+        1,
+        2,
+        1000,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        1000,
+        256
+      ],
+      [
+        1,
+        2,
+        1000,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        1000,
+        256
+      ],
+      [
+        1,
+        2,
+        1000,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        1000,
+        256
+      ],
+      [
+        1,
+        2,
+        1000,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        1000,
+        256
+      ],
+      [
+        1,
+        2,
+        1000,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        1000,
+        256
+      ],
+      [
+        1,
+        2,
+        1000,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        511,
+        256
+      ],
+      [
+        1,
+        2,
+        511,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        1000,
+        256
+      ],
+      [
+        1,
+        2,
+        1000,
+        256
+      ]
+    ]
+  ],
+  "weights_copied": 226,
+  "dtype": "HF float32; step fp32_export; same checkpoint weights",
+  "export_arithmetic": "fp32_export",
+  "compact_inputs": false,
+  "compact_layer_type": "all",
+  "ordered_sliding": false,
+  "steps": [
+    {
+      "position": 1000,
+      "input_token": 8013,
+      "hf_next_token": 4328,
+      "export_next_token": 4328,
+      "top1_match": true,
+      "logits_relative_l2": 3.2313079145751544e-07,
+      "logits_max_abs": 3.814697265625e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1001,
+      "input_token": 4328,
+      "hf_next_token": 317,
+      "export_next_token": 317,
+      "top1_match": true,
+      "logits_relative_l2": 4.119093262033857e-07,
+      "logits_max_abs": 4.57763671875e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1002,
+      "input_token": 317,
+      "hf_next_token": 4336,
+      "export_next_token": 4336,
+      "top1_match": true,
+      "logits_relative_l2": 2.788424637856224e-07,
+      "logits_max_abs": 4.38690185546875e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1003,
+      "input_token": 4336,
+      "hf_next_token": 259,
+      "export_next_token": 259,
+      "top1_match": true,
+      "logits_relative_l2": 2.1974247488287801e-07,
+      "logits_max_abs": 3.0517578125e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1004,
+      "input_token": 259,
+      "hf_next_token": 106629,
+      "export_next_token": 106629,
+      "top1_match": true,
+      "logits_relative_l2": 2.488620339136105e-06,
+      "logits_max_abs": 0.0002765655517578125,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1005,
+      "input_token": 106629,
+      "hf_next_token": 6787,
+      "export_next_token": 6787,
+      "top1_match": true,
+      "logits_relative_l2": 3.740282465969358e-07,
+      "logits_max_abs": 6.29425048828125e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1006,
+      "input_token": 6787,
+      "hf_next_token": 27,
+      "export_next_token": 27,
+      "top1_match": true,
+      "logits_relative_l2": 2.789544737424876e-07,
+      "logits_max_abs": 3.4332275390625e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1007,
+      "input_token": 27,
+      "hf_next_token": 91231,
+      "export_next_token": 91231,
+      "top1_match": true,
+      "logits_relative_l2": 2.357627266746931e-07,
+      "logits_max_abs": 3.0517578125e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1008,
+      "input_token": 91231,
+      "hf_next_token": 275,
+      "export_next_token": 275,
+      "top1_match": true,
+      "logits_relative_l2": 2.7188823992219113e-07,
+      "logits_max_abs": 3.814697265625e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1009,
+      "input_token": 275,
+      "hf_next_token": 8013,
+      "export_next_token": 8013,
+      "top1_match": true,
+      "logits_relative_l2": 3.147120253288449e-07,
+      "logits_max_abs": 3.814697265625e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1010,
+      "input_token": 8013,
+      "hf_next_token": 4328,
+      "export_next_token": 4328,
+      "top1_match": true,
+      "logits_relative_l2": 3.470371723324206e-07,
+      "logits_max_abs": 4.1961669921875e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1011,
+      "input_token": 4328,
+      "hf_next_token": 317,
+      "export_next_token": 317,
+      "top1_match": true,
+      "logits_relative_l2": 2.4270713083751616e-07,
+      "logits_max_abs": 3.814697265625e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1012,
+      "input_token": 317,
+      "hf_next_token": 4336,
+      "export_next_token": 4336,
+      "top1_match": true,
+      "logits_relative_l2": 3.6353935684019234e-07,
+      "logits_max_abs": 5.340576171875e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1013,
+      "input_token": 4336,
+      "hf_next_token": 259,
+      "export_next_token": 259,
+      "top1_match": true,
+      "logits_relative_l2": 2.1815138495639985e-07,
+      "logits_max_abs": 3.4332275390625e-05,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1014,
+      "input_token": 259,
+      "hf_next_token": 106629,
+      "export_next_token": 106629,
+      "top1_match": true,
+      "logits_relative_l2": 0.00016177228826563805,
+      "logits_max_abs": 0.018991470336914062,
+      "cache_mismatch_layers": []
+    },
+    {
+      "position": 1015,
+      "input_token": 106629,
+      "hf_next_token": 6787,
+      "export_next_token": 6787,
+      "top1_match": true,
+      "logits_relative_l2": 8.888402589946054e-06,
+      "logits_max_abs": 0.0016384124755859375,
+      "cache_mismatch_layers": []
+    }
+  ]
+}

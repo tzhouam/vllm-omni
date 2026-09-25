@@ -23,6 +23,8 @@ from transformers.masking_utils import (
 )
 
 from vllm_omni.edge.spark_export import (
+    FULL,
+    SLIDING,
     SparkDecodeCache,
     SparkDecodeStep,
     config_from_spark,
@@ -46,8 +48,19 @@ def main() -> None:
     parser.add_argument("--prompt", default="What is the capital of France? Answer in one word.")
     parser.add_argument("--prefill-tokens", type=int, default=0)
     parser.add_argument("--decode-steps", type=int, default=128)
+    parser.add_argument("--context-capacity", type=int, default=0,
+                        help="fixed full-attention cache capacity; default fits the run")
     parser.add_argument("--reference-dtype", choices=("bfloat16", "float32"),
                         default="bfloat16")
+    parser.add_argument("--export-arithmetic",
+                        choices=("fp32_export", "hf_bf16_reference"),
+                        default="fp32_export")
+    parser.add_argument("--compact-inputs", action="store_true",
+                        help="diagnose static padding by using only filled cache slots")
+    parser.add_argument("--compact-layer-type",
+                        choices=("all", "sliding", "full"), default="all")
+    parser.add_argument("--ordered-sliding", action="store_true",
+                        help="read the physical ring in chronological order")
     args = parser.parse_args()
     if args.decode_steps < 1:
         raise ValueError("decode-steps must be positive")
@@ -117,19 +130,51 @@ def main() -> None:
             for layer in reference_cache.layers
         ]
         raw_config = json.loads((args.model / "config.json").read_text())
-        cfg = config_from_spark(raw_config)
+        cfg = config_from_spark(raw_config, arithmetic_mode=args.export_arithmetic)
         step = SparkDecodeStep(cfg).eval()
         copied = load_spark_weights(step, args.model)
         position = int(prompt_ids.shape[1])
+        context_capacity = (args.context_capacity or
+                            max(1024, position + args.decode_steps + 1))
+        if context_capacity < position + args.decode_steps:
+            raise ValueError("context-capacity is too small for this rollout")
         state = SparkDecodeCache(
-            cfg, max(1024, position + args.decode_steps + 1)
+            cfg, context_capacity,
+            dtype=(torch.bfloat16 if args.export_arithmetic == "hf_bf16_reference"
+                   else torch.float32),
         )
         state.seed(cached_tensors, position)
         steps: list[dict] = []
         for _ in range(args.decode_steps):
             decode_position = state.position
             x = model.model.embedding(torch.tensor([[current_token]])).float()
-            out = step(*state.step_inputs(x))
+            step_inputs = list(state.step_inputs(x))
+            if args.ordered_sliding and decode_position >= cfg.sliding_window - 1:
+                capacity = cfg.sliding_window - 1
+                order = (torch.arange(capacity) + decode_position - capacity) % capacity
+                for i, layer_type in enumerate(cfg.layer_types):
+                    if layer_type == SLIDING:
+                        step_inputs[7 + 2 * i] = state.buffers[2 * i].index_select(2, order)
+                        step_inputs[8 + 2 * i] = state.buffers[2 * i + 1].index_select(2, order)
+            if args.compact_inputs:
+                compact_sw = args.compact_layer_type in ("all", "sliding")
+                compact_full = args.compact_layer_type in ("all", "full")
+                if compact_sw and decode_position >= cfg.sliding_window - 1:
+                    raise ValueError("compact sliding diagnostic requires an unfilled ring")
+                if compact_sw:
+                    step_inputs[5] = torch.zeros_like(
+                        step_inputs[5][:, :, :, :decode_position + 1]
+                    )
+                if compact_full:
+                    step_inputs[6] = torch.zeros_like(
+                        step_inputs[6][:, :, :, :decode_position + 1]
+                    )
+                for i, layer_type in enumerate(cfg.layer_types):
+                    if ((layer_type == SLIDING and compact_sw)
+                            or (layer_type == FULL and compact_full)):
+                        step_inputs[7 + 2 * i] = state.buffers[2 * i][:, :, :decode_position]
+                        step_inputs[8 + 2 * i] = state.buffers[2 * i + 1][:, :, :decode_position]
+            out = step(*step_inputs)
             ref = model(
                 torch.tensor([[current_token]]),
                 past_key_values=reference_cache,
@@ -144,6 +189,12 @@ def main() -> None:
             delta = got_logits - ref_logits
             next_ref = int(ref_logits.argmax())
             next_export = int(got_logits.argmax())
+            cache_mismatch_layers = []
+            if args.export_arithmetic == "hf_bf16_reference":
+                for i, layer in enumerate(reference_cache.layers):
+                    if (not torch.equal(out[1 + 2 * i], layer.keys[:, :, -1:])
+                            or not torch.equal(out[2 + 2 * i], layer.values[:, :, -1:])):
+                        cache_mismatch_layers.append(i)
             steps.append({
                 "position": decode_position,
                 "input_token": current_token,
@@ -152,6 +203,7 @@ def main() -> None:
                 "top1_match": next_ref == next_export,
                 "logits_relative_l2": float(delta.norm() / ref_logits.norm()),
                 "logits_max_abs": float(delta.abs().max()),
+                "cache_mismatch_layers": cache_mismatch_layers,
             })
             state.commit(out, expected_position=decode_position)
             current_token = next_ref
@@ -180,7 +232,12 @@ def main() -> None:
         "sliding_cache_capacity": cfg.sliding_window - 1,
         "cache_shapes": cache_shapes,
         "weights_copied": copied,
-        "dtype": f"HF {args.reference_dtype}; export FP32 from the same checkpoint weights",
+        "dtype": (f"HF {args.reference_dtype}; step {args.export_arithmetic}; "
+                  "same checkpoint weights"),
+        "export_arithmetic": args.export_arithmetic,
+        "compact_inputs": args.compact_inputs,
+        "compact_layer_type": args.compact_layer_type,
+        "ordered_sliding": args.ordered_sliding,
         "steps": steps,
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)

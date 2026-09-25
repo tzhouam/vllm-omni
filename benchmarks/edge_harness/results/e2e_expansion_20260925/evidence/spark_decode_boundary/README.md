@@ -41,9 +41,49 @@ The 1000-token FP32 and BF16 reports have identical prompt-ID hashes.
 The BF16 comparison tests the source checkpoint's usual arithmetic against
 the current FP32 export; its large worst-case logit difference and the
 short-prefix token mismatch at absolute position 73 **block a BF16 fidelity
-claim**, even though the long synthetic prompt's top token agreed throughout.
+claim for that FP32 export**, even though the long synthetic prompt's top
+token agreed throughout.
 The FP32 control isolates the cache/graph semantics from that mixed-precision
 difference. No broad language-quality tolerance has been set.
+
+## BF16 arithmetic and static-shape follow-up
+
+An opt-in `hf_bf16_reference` mode now reproduces the checkpoint's FP32
+residuals, BF16 projections/attention/MLP/head, FP32 softmax, and expanded
+grouped K/V heads. It is **rejected by `export_onnx`** because no mobile BF16
+artifact for this mode has been compiled or qualified. The same real weights
+and Hugging Face CPU prefill were used in these follow-up runs:
+
+| CPU decode boundary | Prompt tokens | Next-token matches | Worst logits relative L2 | New K/V parity |
+|---|---:|---:|---:|---|
+| [BF16 reference, filled sliding/full inputs](short_bf16_compact_128.json) | 28 | 128/128 | 0, bitwise | all 128 steps bitwise |
+| [BF16 reference, ordered ring + filled full inputs](cross_512_bf16_faithful_128.json) | 500 | 128/128 | 0, bitwise | all 128 steps bitwise |
+| [BF16 reference, ordered ring + filled full inputs](cross_1024_bf16_faithful_128.json) | 1000 | 128/128 | 0, bitwise | all 128 steps bitwise |
+| [BF16 reference, fixed padded buffers](short_bf16_static_final_128.json) | 28 | 128/128 | 0.562% | first difference at position 41 |
+| [BF16 reference, fixed padded buffers](cross_512_bf16_static_final_128.json) | 500 | 128/128 | 9.857% | first difference at position 512 |
+
+The ordered-ring/filled-full 500-token case crosses the 512 sliding-window
+boundary; the 1000-token case crosses the 1024 full-attention length. Both
+compare every generated next-token logit vector and newly produced K/V tensor
+against the source while the export consumes its **own** committed state.
+The three bitwise runs use variable filled lengths for the full-attention
+input; the short run also uses a variable filled sliding length. They are
+CPU mathematical references, **not fixed-shape QNN executions**.
+
+The retained diagnostic records isolate two shape-sensitive effects. Reading
+the ring in [physical order](cross_512_bf16_static_final_128.json) changes
+BF16 attention reduction order when it wraps; a chronological read postpones
+the first difference and reduces the prior worst error in a
+[separate run](cross_512_bf16_ordered_128.json). On the short prefix,
+[compacting only full-attention inputs](short_bf16_compact_full_20.json)
+restored bitwise parity for 20 steps, while
+[compacting only sliding inputs](short_bf16_compact_sliding_20.json) did not.
+The later expanded-head BF16 reference removed a separate 1025-key matrix
+shape difference seen in the [earlier 1024-crossing diagnostic](cross_1024_bf16_ordered_fullcompact_128.json).
+Exact filled-length parity therefore
+does not authorize reusing an oversized padded static graph at every length.
+The next artifact must specify shape buckets and attention/KV ordering, then
+pass token, logit and K/V gates on its **actual compiled backend**.
 
 Reproduce from the repository root with the local checkpoint and CPU venv:
 
@@ -60,10 +100,20 @@ $PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
 $PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
   --model "$MODEL" --prefill-tokens 1000 --decode-steps 128 \
   --reference-dtype bfloat16 --report /tmp/spark_cross_1024_bf16.json
+$PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
+  --model "$MODEL" --prefill-tokens 500 --decode-steps 128 \
+  --reference-dtype bfloat16 --export-arithmetic hf_bf16_reference \
+  --compact-inputs --compact-layer-type full --ordered-sliding \
+  --report /tmp/spark_cross_512_bf16_reference.json
+$PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
+  --model "$MODEL" --prefill-tokens 1000 --decode-steps 128 \
+  --reference-dtype bfloat16 --export-arithmetic hf_bf16_reference \
+  --compact-inputs --compact-layer-type full --ordered-sliding \
+  --report /tmp/spark_cross_1024_bf16_reference.json
 $PY -m pytest tests/edge/test_spark_export.py -q
 ```
 
-The focused suite passed 18/18 tests, including fixed-capacity masks,
+The focused suite passed 20/20 tests, including fixed-capacity masks,
 atomic shape validation, ring replacement, stale-commit rejection and state
 retirement. The current probe still obtains prefill and token embeddings
 from Hugging Face on WSL CPU. The next M1 gate is a resident S25 prefill and
