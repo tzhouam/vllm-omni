@@ -10,6 +10,7 @@ Transformers version. The worker owns all model and vocoder state.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.metadata
 import io
 import json
@@ -105,6 +106,8 @@ def main() -> None:
                     raise ValueError("worker requires WAV and pinned seed 42")
                 torch.manual_seed(42)
                 started = time.perf_counter()
+                print("tts request-start text_sha256="
+                      f"{hashlib.sha256(text.encode()).hexdigest()}", flush=True)
                 wavs, sample_rate = model.generate_custom_voice(
                     text=text, language="English", speaker="Ryan",
                     max_new_tokens=64, do_sample=True, non_streaming_mode=True,

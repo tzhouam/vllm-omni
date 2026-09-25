@@ -1,0 +1,63 @@
+{
+  "entrypoint": "AsyncOmni.generate",
+  "pipeline": "qwen3_tts_cpu_whole",
+  "startup_s": 26.033401199965738,
+  "request_wall_s": 15.569640700006858,
+  "outputs": [
+    {
+      "request_id": "public-cpu-tts-1",
+      "sample_rate": 24000,
+      "frames": 109440,
+      "pcm_sha256": "c8a49b5c73efd642a1eb04be973d6aefdc8ed9cfd18b34ff67690b8464906bed",
+      "stage_event": {
+        "request_id": "public-cpu-tts-1-a1c6f6ea",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "audio",
+        "worker_generation": "2c20abf90d054c409eb756062d1c37b3",
+        "buffers": [],
+        "terminal": true,
+        "error": null
+      }
+    }
+  ],
+  "abort": {
+    "worker_started": true,
+    "worker_start_marker": "tts request-start text_sha256=df236b05f070b4b241a0e25062a47b6df17d5777b30b9c4fb5b38739cebdb943",
+    "ack_s": 0.26313310000114143,
+    "outputs_after_start": [
+      {
+        "request_id": "public-cpu-tts-abort",
+        "error": null,
+        "has_audio": false
+      }
+    ]
+  },
+  "recovery": {
+    "mode": "fresh_stage_after_inflight_abort",
+    "startup_s": 12.165620999992825,
+    "request_wall_s": 15.63615610008128,
+    "worker_log": "C:\\Users\\zhout\\w2\\qwen_tts_cpu_recovery_20260925_restarted.log",
+    "outputs": [
+      {
+        "request_id": "public-cpu-tts-after-abort",
+        "sample_rate": 24000,
+        "frames": 109440,
+        "pcm_sha256": "c8a49b5c73efd642a1eb04be973d6aefdc8ed9cfd18b34ff67690b8464906bed",
+        "stage_event": {
+          "request_id": "public-cpu-tts-after-abort-b7804256",
+          "stage_id": 0,
+          "epoch": 1,
+          "seq": 1,
+          "kind": "audio",
+          "worker_generation": "94a972aaae5845c58d34c8f192f3c92a",
+          "buffers": [],
+          "terminal": true,
+          "error": null
+        }
+      }
+    ]
+  },
+  "status": "passed"
+}

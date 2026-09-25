@@ -122,3 +122,10 @@ the baseline action hash under a different worker generation. The blocking
 worker is deliberately retired on in-flight abort, so the former stage cannot
 accept another request. Real observation quality, paired benefit and
 worker-crash recovery remain open.
+
+The [native Windows CPU Qwen3-TTS recovery probe](evidence/qwen_tts_windows_cpu_recovery/README.md)
+aborted a public Omni request after the BF16 CPU worker started and delivered
+no stale audio. A fresh stage loaded the same checkpoint and returned the
+same 109,440-frame PCM hash under a different worker generation. This extends
+the existing complete-WAV profile only with fresh-stage recovery; playable
+streaming and sustained real-time speech remain unqualified.

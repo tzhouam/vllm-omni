@@ -1,0 +1,18 @@
+{
+  "status": "scoped_cpu_tts_fresh_stage_recovery_pass",
+  "report_sha256": "72a51f6e7c4ddd8fad382c01f18d3034acdf1c05adb62f96e037ada99f58662b",
+  "first_worker_log_sha256": "1aeceb44cf96bab63f785164c0a72ec0366a6a8900310f291b813e5362a58b30",
+  "restart_worker_log_sha256": "dff98ddf9c590245fc5b0c616aaf7729fb40d732ffb37c748537171a12f6b0c5",
+  "driver_log_sha256": "ed548fca228410f55280c819a8ee3611151cec470b70b4e726dbff97b3dcb1fc",
+  "pcm_sha256": "c8a49b5c73efd642a1eb04be973d6aefdc8ed9cfd18b34ff67690b8464906bed",
+  "abort_ack_s": 0.26313310000114143,
+  "abort_delivered_audio": 0,
+  "first_startup_s": 26.033401199965738,
+  "restart_startup_s": 12.165620999992825,
+  "first_request_wall_s": 15.569640700006858,
+  "restart_request_wall_s": 15.63615610008128,
+  "worker_generations": [
+    "2c20abf90d054c409eb756062d1c37b3",
+    "94a972aaae5845c58d34c8f192f3c92a"
+  ]
+}
