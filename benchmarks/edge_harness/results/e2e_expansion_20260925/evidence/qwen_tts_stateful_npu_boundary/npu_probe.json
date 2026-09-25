@@ -1,0 +1,16 @@
+{
+  "scope": "real-weight 2-frame rolling-KV pre-transformer step; not complete TTS or waveform quality",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "model": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+    "fixture": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc"
+  },
+  "status": "vitisai_session_creation_started",
+  "cpu_session_create_s": 0.21898120001424104,
+  "cpu_step_s": [
+    0.007496100035496056,
+    0.007637999951839447
+  ],
+  "vitisai_npu_device_count": 1
+}

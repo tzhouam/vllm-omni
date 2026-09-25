@@ -1,0 +1,51 @@
+{
+  "scope": "real-weight Qwen3-TTS rolling-KV pre-transformer; CPU export feasibility, not live NPU/TTS",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "codes_sha256": "2768b9274748d767deca67ebd4c0201b914f4839902b89d5693d39e9b8e8c946",
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "threads": 4,
+  "rolling_rows": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 0.0,
+      "max_cache_relative_l2": 0.0,
+      "state_tensor_bytes": 4653056
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 0.0,
+      "max_cache_relative_l2": 0.0,
+      "state_tensor_bytes": 4653056
+    }
+  ],
+  "onnx_export_s": 1.015763975912705,
+  "onnx_export_error": null,
+  "onnx_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "fixture_sha256": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc",
+  "ort_cpu_rows": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 5.963404670331239e-07,
+      "max_cache_relative_l2": 1.2853691309462095e-07,
+      "one_ort_cpu_forward_s_not_profile": 0.004540964029729366
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 6.726313876204255e-07,
+      "max_cache_relative_l2": 1.3397511477413573e-07,
+      "one_ort_cpu_forward_s_not_profile": 0.008438490913249552
+    }
+  ],
+  "ort_cpu_error": null,
+  "layer0_onnx_sha256": "b4c28d1393496be9ebc9815e6de32ea2f955dbfe4219206a224426b038923bca",
+  "layer0_cpu_comparison": {
+    "node_count": 171,
+    "hidden_relative_l2": 5.13810323614782e-07,
+    "key_relative_l2": 5.1723193964320016e-08,
+    "value_relative_l2": 7.450013229955414e-08
+  },
+  "layer0_error": null,
+  "status": "cpu_and_ort_state_parity_pass"
+}

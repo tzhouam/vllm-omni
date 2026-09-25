@@ -1,0 +1,40 @@
+{
+  "scope": "real-weight first transformer layer with rolling KV; not complete TTS or waveform quality",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "model": "b4c28d1393496be9ebc9815e6de32ea2f955dbfe4219206a224426b038923bca",
+    "fixture": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc"
+  },
+  "status": "npu_stateful_component_not_qualified",
+  "cpu_session_create_s": 0.058756399899721146,
+  "cpu_step_s": [
+    0.0023482999531552196,
+    0.0008858999935910106
+  ],
+  "vitisai_npu_device_count": 1,
+  "npu_session_create_s": 244.58604319998994,
+  "npu_step_s": [
+    0.00690440007019788,
+    0.003287400002591312
+  ],
+  "comparison": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 0.013449406686776046,
+      "max_state_relative_l2": 0.007192901690019043,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 0.016588522781014713,
+      "max_state_relative_l2": 0.008551423369914227,
+      "finite": true
+    }
+  ],
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\qwen_tts_stateful_npu_boundary\\layer0_npu_profile_2026-09-25_11-13-18_772.json",
+  "node_providers": {
+    "vitisai": 2,
+    "cpu": 26
+  }
+}

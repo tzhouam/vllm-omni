@@ -1,0 +1,8 @@
+{
+  "scope": "real-weight eight-layer Qwen3-TTS rolling-KV pre-transformer ONNX graph",
+  "artifact_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "status": "manual_compile_cap_no_session_or_inference",
+  "duration": "approximately 10 minutes",
+  "observation": "CPU control passed; VitisAI NPU device was detected; session creation remained active until manually interrupted; no NPU inference or provider placement trace was produced",
+  "raw_partial_report": "npu_probe.json"
+}
