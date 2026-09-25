@@ -148,7 +148,7 @@ def main() -> None:
             errors = [relative_l2(a, b) for a, b in zip(reference["outputs"], candidate["outputs"])]
             row = {"start_frame": 95 + 2 * index,
                    "hidden_relative_l2": errors[0],
-                   "max_state_relative_l2": max(errors[1:3]),
+                   "max_state_relative_l2": max(errors[1:]),
                    "finite": all(np.isfinite(value).all() for value in candidate["outputs"])}
             if args.checkpoint_outputs:
                 row["outputs_relative_l2"] = dict(zip(output_names, errors))

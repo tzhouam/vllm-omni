@@ -1,0 +1,105 @@
+{
+  "scope": "real eight-layer rolling-KV ONNX CPU replay on a generated utterance; not NPU or complete TTS",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "source_report_sha256": "804a99b19fc3804037f55e541106ce40e1f265feaac95f1f0b6c435e180f8716",
+  "codes_sha256": "2768b9274748d767deca67ebd4c0201b914f4839902b89d5693d39e9b8e8c946",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "onnx_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "fixture_sha256": "1ef435ccc70484fb4b7971df822eee1315a50294cb6f3218c1b21a1dfb89fb43",
+  "os": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "onnxruntime": "1.29.0",
+  "threads": 4,
+  "prefill_state_max_relative_l2": 0.0,
+  "rows": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 4.979903153236752e-07,
+      "max_cache_relative_l2": 1.1881966642987513e-07,
+      "waveform_relative_l2": 7.929696377129373e-07,
+      "one_ort_cpu_step_s_not_profile": 0.00459999602753669,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 5.085183597128488e-07,
+      "max_cache_relative_l2": 1.6143736731535982e-07,
+      "waveform_relative_l2": 1.207174255905766e-06,
+      "one_ort_cpu_step_s_not_profile": 0.005776052945293486,
+      "finite": true
+    },
+    {
+      "start_frame": 99,
+      "hidden_relative_l2": 5.496900424662769e-07,
+      "max_cache_relative_l2": 1.9776958409834513e-07,
+      "waveform_relative_l2": 2.503686035232998e-06,
+      "one_ort_cpu_step_s_not_profile": 0.008621611981652677,
+      "finite": true
+    },
+    {
+      "start_frame": 101,
+      "hidden_relative_l2": 5.828028208282554e-07,
+      "max_cache_relative_l2": 2.2997233142366518e-07,
+      "waveform_relative_l2": 1.9448795191601737e-06,
+      "one_ort_cpu_step_s_not_profile": 0.008101164014078677,
+      "finite": true
+    },
+    {
+      "start_frame": 103,
+      "hidden_relative_l2": 5.656027724006425e-07,
+      "max_cache_relative_l2": 2.5554562280829044e-07,
+      "waveform_relative_l2": 8.322155618603794e-07,
+      "one_ort_cpu_step_s_not_profile": 0.00729340105317533,
+      "finite": true
+    },
+    {
+      "start_frame": 105,
+      "hidden_relative_l2": 6.763710048975829e-07,
+      "max_cache_relative_l2": 2.8258893695670545e-07,
+      "waveform_relative_l2": 1.940818336159654e-06,
+      "one_ort_cpu_step_s_not_profile": 0.007604080019518733,
+      "finite": true
+    },
+    {
+      "start_frame": 107,
+      "hidden_relative_l2": 6.057247716660305e-07,
+      "max_cache_relative_l2": 3.032151008193985e-07,
+      "waveform_relative_l2": 1.8589627534721019e-06,
+      "one_ort_cpu_step_s_not_profile": 0.007426422904245555,
+      "finite": true
+    },
+    {
+      "start_frame": 109,
+      "hidden_relative_l2": 4.963449131442582e-07,
+      "max_cache_relative_l2": 3.2090226331166236e-07,
+      "waveform_relative_l2": 6.0200003286071256e-06,
+      "one_ort_cpu_step_s_not_profile": 0.007460626075044274,
+      "finite": true
+    },
+    {
+      "start_frame": 111,
+      "hidden_relative_l2": 5.149993259455789e-07,
+      "max_cache_relative_l2": 3.3392023736594563e-07,
+      "waveform_relative_l2": 8.429742939462946e-07,
+      "one_ort_cpu_step_s_not_profile": 0.0073192010167986155,
+      "finite": true
+    },
+    {
+      "start_frame": 113,
+      "hidden_relative_l2": 5.498204938536173e-07,
+      "max_cache_relative_l2": 3.4695688862015604e-07,
+      "waveform_relative_l2": 3.34418679846731e-05,
+      "one_ort_cpu_step_s_not_profile": 0.008034447906538844,
+      "finite": true
+    },
+    {
+      "start_frame": 115,
+      "hidden_relative_l2": 6.44901088449305e-07,
+      "max_cache_relative_l2": 3.6109959025115116e-07,
+      "waveform_relative_l2": 1.9833889107940783e-05,
+      "one_ort_cpu_step_s_not_profile": 0.007747011026367545,
+      "finite": true
+    }
+  ],
+  "status": "cpu_state_and_waveform_parity_pass"
+}

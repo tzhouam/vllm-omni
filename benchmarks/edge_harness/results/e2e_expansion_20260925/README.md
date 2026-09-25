@@ -186,3 +186,11 @@ exceeding the provisional 1% chunk gate. This confirms that the fixed-history
 prefix cannot be promoted to a continuous NPU stage without a source-faithful
 rolling state contract. The independent NPU MLP component finding remains
 valid, but Qwen3-TTS on AMD NPU is still NOT E2E.
+
+A [full eight-layer rolling-state CPU follow-up](evidence/qwen_tts_full_state_npu_extended/README.md)
+then ran eleven consecutive ONNX steps on each of two generated utterances.
+The exported graph owned its rolling K/V, and the unchanged vocoder tail's
+worst waveform relative L2 against the checkpoint's exact decoder was
+3.34e-5 and 2.05e-6. This validates the source-equivalent CPU state contract
+more broadly than the earlier two-step check. Native AMD NPU compilation is
+still under examination; these CPU passes do not qualify a device stream.
