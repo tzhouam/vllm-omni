@@ -1,0 +1,10 @@
+W0925 12:58:30.193000 9332 Lib\site-packages\torch\utils\cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.4'
+INFO 09-25 12:58:33 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 12:58:33 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 12:58:38 [pipeline_internvla_a1.py:164] Loading InternVLA-A1 weights from \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen
+Traceback (most recent call last):
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\internvla_worker.py", line 418, in <module>
+    main()
+  File "\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\vllm_omni\engine\backends\internvla_worker.py", line 120, in main
+    raise RuntimeError(f"DirectML worker route unavailable: {route.reason}")
+RuntimeError: DirectML worker route unavailable: no interpreter found; tried [] and VLLM_OMNI_EXTERNAL_PYTHON_TORCH_DML is unset

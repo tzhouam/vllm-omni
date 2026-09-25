@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import io
+import json
 
 import numpy as np
 import pytest
 
+from vllm_omni.edge.internvla_actions import InternVLAA2DActionCodec
 from vllm_omni.engine.backends.internvla import InternVLAStageClient
 
 
@@ -53,3 +55,42 @@ def test_extra_observation_field_rejected():
     prompt["undocumented"] = 1
     with pytest.raises(ValueError):
         InternVLAStageClient._encode_prompt("request-1", prompt)
+
+
+def test_a2d_physical_actions_match_open_loop_reconstruction(tmp_path):
+    (tmp_path / "config.json").write_text(json.dumps({
+        "max_state_dim": 32, "max_action_dim": 32, "chunk_size": 50,
+    }))
+    (tmp_path / "train_config.json").write_text(json.dumps({"dataset": {"action_mode": "delta"}}))
+    stats = {"a2d": {}}
+    for name, count, mean, std in (
+        ("observation.states.joint.position", 14, 2.0, 0.5),
+        ("observation.states.effector.position", 2, -1.0, 2.0),
+        ("actions.joint.position", 14, 0.25, 0.75),
+        ("actions.effector.position", 2, -0.5, 1.5),
+    ):
+        stats["a2d"][name] = {"mean": [mean] * count, "std": [std] * count}
+    (tmp_path / "stats.json").write_text(json.dumps(stats))
+    codec = InternVLAA2DActionCodec.from_checkpoint(tmp_path)
+    raw = np.arange(16, dtype=np.float32)[None, :] / 4
+    normalized = (raw - codec.state_mean) / codec.state_std
+    state = np.pad(normalized, ((0, 0), (0, 16))).astype(np.float32)
+    assert np.array_equal(codec.validate_state(state, raw), raw)
+
+    padded = np.zeros((1, 50, 32), dtype=np.float32)
+    padded[:, :, :16] = np.arange(16, dtype=np.float32)[None, None, :] / 8
+    padded[:, :, 16:] = 999  # The checkpoint output has padded slots, not physical controls.
+    physical = codec.decode(padded, raw)
+    expected = padded[:, :, :16] * codec.action_std + codec.action_mean
+    expected[:, :, :14] += raw[:, None, :14]
+    assert physical.shape == (1, 50, 16)
+    np.testing.assert_array_equal(physical, expected)
+
+    prompt = _prompt()
+    prompt["state"] = state
+    prompt["state_raw"] = raw
+    encoded = InternVLAStageClient._encode_prompt("request-1", prompt)
+    with np.load(io.BytesIO(encoded), allow_pickle=False) as worker_input:
+        assert "state_raw" not in worker_input.files  # Stays on the controlling side of the boundary.
+    with pytest.raises(ValueError, match="does not match"):
+        codec.validate_state(state, raw + 1)

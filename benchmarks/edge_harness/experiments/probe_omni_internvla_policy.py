@@ -30,8 +30,10 @@ def load_observation_fixture(fixture_path: Path, manifest_path: Path):
     import numpy as np
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    fixture_format = manifest.get("format")
+    if fixture_format not in {"internvla-a1-omni-observation-v1", "internvla-a1-omni-observation-v2"}:
+        raise ValueError("observation fixture format is unsupported")
     expected_manifest = {
-        "format": "internvla-a1-omni-observation-v1",
         "state_fields": [
             "observation.states.joint.position",
             "observation.states.effector.position",
@@ -47,18 +49,31 @@ def load_observation_fixture(fixture_path: Path, manifest_path: Path):
     for key, value in expected_manifest.items():
         if manifest.get(key) != value:
             raise ValueError(f"observation fixture manifest has incompatible {key}")
+    if fixture_format.endswith("v2") and (
+        manifest.get("action_fields") != ["actions.joint.position", "actions.effector.position"]
+        or manifest.get("physical_action_dim") != 16
+        or manifest.get("action_reconstruction") != "checkpoint-stats-a2d-unnormalize-plus-joint-delta"
+    ):
+        raise ValueError("observation fixture has incompatible A2D action schema")
     if not isinstance(manifest.get("source"), str) or not manifest["source"]:
         raise ValueError("observation fixture manifest needs a source identifier")
     for key in ("checkpoint_model_sha256", "checkpoint_stats_sha256", "fixture_sha256"):
         value = manifest.get(key)
         if not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
             raise ValueError(f"observation fixture manifest needs a lowercase {key}")
+    if fixture_format.endswith("v2"):
+        value = manifest.get("checkpoint_train_config_sha256")
+        if not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+            raise ValueError("observation fixture needs a pinned train config")
     expected_fields = {*(f"image{i}" for i in range(3)),
                        *(f"mask{i}" for i in range(3)), "state", "noise", "task"}
+    if fixture_format.endswith("v2"):
+        expected_fields |= {"state_raw", "reference_actions"}
     with np.load(fixture_path, allow_pickle=False) as archive:
         if set(archive.files) != expected_fields:
             raise ValueError("observation fixture fields differ from the policy contract")
-        prompt = {key: archive[key].copy() for key in expected_fields}
+        prompt = {key: archive[key].copy() for key in expected_fields if key != "reference_actions"}
+        reference_actions = archive["reference_actions"].copy() if fixture_format.endswith("v2") else None
     for index in range(3):
         image = prompt[f"image{index}"]
         mask = prompt[f"mask{index}"]
@@ -71,13 +86,18 @@ def load_observation_fixture(fixture_path: Path, manifest_path: Path):
         value = prompt[key]
         if value.dtype != np.float32 or value.shape != shape or not np.isfinite(value).all():
             raise ValueError(f"observation fixture {key} violates the policy contract")
+    if fixture_format.endswith("v2"):
+        for key, value, shape in (("state_raw", prompt["state_raw"], (1, 16)),
+                                  ("reference_actions", reference_actions, (1, 50, 16))):
+            if value.dtype != np.float32 or value.shape != shape or not np.isfinite(value).all():
+                raise ValueError(f"observation fixture {key} violates the A2D action contract")
     task = prompt["task"]
     if task.shape != () or task.dtype.kind != "U" or not 0 < len(str(task.item()).encode("utf-8")) <= 4096:
         raise ValueError("observation fixture task must be a nonempty UTF-8 scalar")
     prompt["task"] = str(task.item())
     if manifest.get("task") != prompt["task"] or manifest["fixture_sha256"] != sha256(fixture_path):
         raise ValueError("observation fixture task or content hash differs from its manifest")
-    return prompt, manifest
+    return prompt, manifest, reference_actions
 
 
 async def main() -> None:
@@ -91,6 +111,9 @@ async def main() -> None:
     parser.add_argument("--dml-python-bin", type=Path)
     parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos", "amd-npu-conv13", "amd-npu-radeon-cosmos"), required=True)
     parser.add_argument("--output-actions", type=Path)
+    parser.add_argument("--output-physical-actions", type=Path)
+    parser.add_argument("--decode-a2d-actions", action="store_true",
+                        help="Include a synthetic raw state matching the zero-normalized state")
     parser.add_argument("--reference-actions", type=Path)
     parser.add_argument("--input-fixture", type=Path,
                         help="Preprocessed three-camera/state/noise NPZ for a pinned observation")
@@ -107,6 +130,8 @@ async def main() -> None:
     args = parser.parse_args()
     if (args.input_fixture is None) != (args.fixture_manifest is None):
         parser.error("--input-fixture and --fixture-manifest must be supplied together")
+    if args.decode_a2d_actions and args.input_fixture is not None:
+        parser.error("--decode-a2d-actions applies only to the synthetic fixture")
     if args.warmups < 0 or args.repeats < 1 or args.reserve_gib < 1 or args.capacity_gib < args.reserve_gib:
         parser.error("invalid profile counts or explicit memory budget")
     if args.placement == "radeon-cosmos" and args.graph_file is None:
@@ -132,8 +157,9 @@ async def main() -> None:
 
     external_prompt = None
     fixture_manifest = None
+    reference_physical = None
     if args.input_fixture is not None:
-        external_prompt, fixture_manifest = load_observation_fixture(
+        external_prompt, fixture_manifest, reference_physical = load_observation_fixture(
             args.input_fixture.resolve(strict=True), args.fixture_manifest.resolve(strict=True))
 
     host_available_bytes = psutil.virtual_memory().available
@@ -143,6 +169,7 @@ async def main() -> None:
     from vllm_omni.config.stage_config import DeployConfig, StageDeployConfig, merge_pipeline_deploy
     from vllm_omni.diffusion.models.internvla_a1_whole_pipeline import INTERNVLA_A1_WHOLE_POLICY_PIPELINE
     from vllm_omni.engine.stage_runtime import StageRuntime
+    from vllm_omni.edge.internvla_actions import InternVLAA2DActionCodec
 
     model = args.model_dir.resolve(strict=True)
     cosmos = args.cosmos_dir.resolve(strict=True)
@@ -171,8 +198,13 @@ async def main() -> None:
     fixture_hashes = None
     if args.input_fixture is not None:
         if (fixture_manifest["checkpoint_model_sha256"] != hashes["model"]
-            or fixture_manifest["checkpoint_stats_sha256"] != hashes["stats"]):
-            raise ValueError("observation fixture was prepared for different model weights or stats")
+            or fixture_manifest["checkpoint_stats_sha256"] != hashes["stats"]
+            or (fixture_manifest["format"].endswith("v2")
+                and fixture_manifest["checkpoint_train_config_sha256"] != hashes["train_config"])):
+            raise ValueError("observation fixture was prepared for different model weights, stats or training config")
+        if "state_raw" in external_prompt:
+            InternVLAA2DActionCodec.from_checkpoint(model).validate_state(
+                external_prompt["state"], external_prompt["state_raw"])
         fixture_hashes = {"input_fixture": sha256(args.input_fixture),
                           "fixture_manifest": sha256(args.fixture_manifest)}
     import torch
@@ -256,6 +288,9 @@ async def main() -> None:
                 "noise": np.zeros((1, 50, 32), dtype=np.float32),
                 "task": "Place the marker pen in its holder.",
             }
+            if args.decode_a2d_actions:
+                codec = InternVLAA2DActionCodec.from_checkpoint(model)
+                prompt["state_raw"] = codec.state_mean[None, :].copy()
         else:
             prompt = external_prompt
 
@@ -281,10 +316,23 @@ async def main() -> None:
                     raise RuntimeError("InternVLA returned invalid actions")
                 if not event["terminal"] or event["kind"] != "action" or metadata["control_ready"]:
                     raise RuntimeError("InternVLA action event or metadata differs from contract")
-                return {"wall_s": time.perf_counter() - started,
+                physical = output.custom_output.get("physical_actions")
+                if "state_raw" in prompt:
+                    if (physical is None or physical.dtype != np.float32
+                        or physical.shape != (1, 50, 16) or not np.isfinite(physical).all()
+                        or metadata.get("physical_action_shape") != [1, 50, 16]
+                        or len(event["buffers"]) != 2):
+                        raise RuntimeError("InternVLA A2D physical action contract differs")
+                elif physical is not None:
+                    raise RuntimeError("InternVLA emitted physical actions without a raw state")
+                row = {"wall_s": time.perf_counter() - started,
                         "action_sha256": hashlib.sha256(values.tobytes()).hexdigest(),
                         "stage_event": event, "action_metadata": metadata,
                         "metrics": output.metrics, "actions": values.copy()}
+                if physical is not None:
+                    row["physical_action_sha256"] = hashlib.sha256(physical.tobytes()).hexdigest()
+                    row["physical_actions"] = physical.copy()
+                return row
             finally:
                 output.release_stage_buffers()
                 await asyncio.sleep(0)
@@ -293,15 +341,19 @@ async def main() -> None:
         for index in range(args.warmups):
             row = await request_one(f"internvla-warmup-{index}")
             row.pop("actions")
+            row.pop("physical_actions", None)
             report["warmup_results"].append(row)
         measured = []
         report["measured"] = measured
         first_actions = None
+        first_physical = None
         for index in range(args.repeats):
             row = await request_one(f"internvla-measured-{index}")
             values = row.pop("actions")
+            physical = row.pop("physical_actions", None)
             if first_actions is None:
                 first_actions = values
+                first_physical = physical
             measured.append(row)
         assert first_actions is not None
         report["nearest_rank_p50_wall_s"] = rank([r["wall_s"] for r in measured], .5)
@@ -311,6 +363,22 @@ async def main() -> None:
             args.output_actions.parent.mkdir(parents=True, exist_ok=True)
             np.save(args.output_actions, first_actions)
             report["output_actions"] = str(args.output_actions)
+        if args.output_physical_actions:
+            if first_physical is None:
+                raise ValueError("physical actions require an A2D raw state")
+            args.output_physical_actions.parent.mkdir(parents=True, exist_ok=True)
+            np.save(args.output_physical_actions, first_physical)
+            report["output_physical_actions"] = str(args.output_physical_actions)
+        if reference_physical is not None:
+            if first_physical is None:
+                raise RuntimeError("real A2D fixture did not produce physical actions")
+            residual = first_physical - reference_physical
+            report["single_sample_reference_action_comparison"] = {
+                "reference_shape": [1, 50, 16],
+                "mae": float(np.mean(np.abs(residual))),
+                "max_abs": float(np.max(np.abs(residual))),
+                "relative_l2": float(np.linalg.norm(residual) / max(np.linalg.norm(reference_physical), 1e-12)),
+            }
         if args.reference_actions:
             reference = np.load(args.reference_actions, allow_pickle=False)
             if reference.shape != first_actions.shape:

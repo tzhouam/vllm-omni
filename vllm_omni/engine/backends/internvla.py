@@ -24,6 +24,7 @@ from typing import Any
 import numpy as np
 from omni_stage_contracts import BufferRef, StageEvent, StageRequest
 
+from vllm_omni.edge.internvla_actions import InternVLAA2DActionCodec
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 from vllm_omni.outputs import OmniRequestOutput
 
@@ -121,6 +122,7 @@ class InternVLAStageClient(CrispTTSStageClient):
             for name, path in artifacts.items():
                 if _sha256(path) != str(hashes[name]).lower():
                     raise ValueError(f"InternVLA {name} differs from declared artifact hash")
+            self._a2d_codec = InternVLAA2DActionCodec.from_checkpoint(self._model_dir)
             overhead = int(config["memory_overhead_bytes"])
             artifact_bytes = sum(path.stat().st_size for name, path in artifacts.items() if name != "python")
             if overhead <= 0 or artifact_bytes + overhead > demand:
@@ -265,7 +267,7 @@ class InternVLAStageClient(CrispTTSStageClient):
             raise ValueError("InternVLA prompt must contain camera histories and state")
         expected = {"image0", "image1", "image2", "mask0", "mask1", "mask2",
                     "state", "task", "noise", "observation_timestamp_ns"}
-        if set(prompt) != expected:
+        if set(prompt) not in (expected, expected | {"state_raw"}):
             raise ValueError("InternVLA observation fields differ from the declared contract")
         arrays: dict[str, Any] = {}
         for i in range(3):
@@ -285,6 +287,10 @@ class InternVLAStageClient(CrispTTSStageClient):
             if value.dtype != np.float32 or value.shape != shape or not np.isfinite(value).all():
                 raise ValueError(f"{name} must be finite float32 {shape}")
             arrays[name] = value
+        if "state_raw" in prompt:
+            raw = np.asarray(prompt["state_raw"])
+            if raw.dtype != np.float32 or raw.shape != (1, 16) or not np.isfinite(raw).all():
+                raise ValueError("state_raw must be finite float32 [1,16]")
         task = prompt["task"]
         timestamp = prompt["observation_timestamp_ns"]
         if not isinstance(task, str) or len(task.encode("utf-8")) > 4096:
@@ -302,14 +308,16 @@ class InternVLAStageClient(CrispTTSStageClient):
         if self._active is not None:
             raise ResourceUnavailable("InternVLA stage has an unacknowledged request; capacity is one")
         body = self._encode_prompt(request_id, prompt)
+        raw_state = (self._a2d_codec.validate_state(prompt["state"], prompt["state_raw"])
+                     if "state_raw" in prompt else None)
         if len(body) > self._max_input_bytes:
             raise ResourceUnavailable("InternVLA observation exceeds admitted input bound")
         self._epoch += 1
         request = StageRequest(request_id, self.stage_id, self._epoch, self._generation)
         self._active = request_id
-        self._task = asyncio.create_task(self._run(request, body), name=f"internvla-{request_id}")
+        self._task = asyncio.create_task(self._run(request, body, raw_state), name=f"internvla-{request_id}")
 
-    async def _run(self, request: StageRequest, body: bytes) -> None:
+    async def _run(self, request: StageRequest, body: bytes, raw_state: np.ndarray | None) -> None:
         try:
             started = time.perf_counter()
             data = await asyncio.to_thread(
@@ -348,24 +356,40 @@ class InternVLAStageClient(CrispTTSStageClient):
             ref = BufferRef(
                 "actions", str(self.stage_id), self._generation, "float32", tuple(actions.shape), int(actions.nbytes)
             )
+            physical = (self._a2d_codec.decode(actions, raw_state) if raw_state is not None else None)
+            buffers = (ref,)
+            if physical is not None:
+                if actions.nbytes + physical.nbytes > self._max_action_bytes:
+                    raise ResourceUnavailable("InternVLA action buffers exceed admitted output bound")
+                buffers += (BufferRef(
+                    "physical_actions", str(self.stage_id), self._generation,
+                    "float32", tuple(physical.shape), int(physical.nbytes)
+                ),)
             event = StageEvent(
                 request.request_id, self.stage_id, request.epoch, 1, "action", self._generation,
-                (ref,), terminal=True,
+                buffers, terminal=True,
             )
+            metadata = {
+                "observation_timestamp_ns": observation_ns,
+                "generation_timestamp_ns": generation_ns,
+                "observation_age_s": (generation_ns - observation_ns) / 1e9,
+                "action_mode": "delta", "action_shape": [1, 50, 32],
+                "action_representation": "checkpoint_normalized_padded_delta",
+                "action_units": "unverified", "joint_order": "unverified",
+                "action_step_s": None, "control_ready": False,
+            }
+            custom_output = {"actions": actions.copy(), "stage_event": dataclasses.asdict(event),
+                             "action_metadata": metadata}
+            if physical is not None:
+                custom_output["physical_actions"] = physical
+                metadata["physical_action_shape"] = [1, 50, 16]
+                metadata["physical_action_fields"] = [
+                    "actions.joint.position", "actions.effector.position"]
+                metadata["physical_action_representation"] = "a2d_unnormalized_joint_delta_reconstructed"
             output = OmniRequestOutput(
                 request_id=request.request_id, stage_id=self.stage_id,
                 final_output_type="action",
-                _custom_output={
-                    "actions": actions.copy(), "stage_event": dataclasses.asdict(event),
-                    "action_metadata": {
-                        "observation_timestamp_ns": observation_ns,
-                        "generation_timestamp_ns": generation_ns,
-                        "observation_age_s": (generation_ns - observation_ns) / 1e9,
-                        "action_mode": "delta", "action_shape": [1, 50, 32],
-                        "action_units": "unverified", "joint_order": "unverified",
-                        "action_step_s": None, "control_ready": False,
-                    },
-                },
+                _custom_output=custom_output,
                 metrics={"policy_wall_s": time.perf_counter() - started,
                          "worker_wall_s": worker_wall_s,
                          "cuda_peak_reserved_bytes": cuda_peak_reserved,

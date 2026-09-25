@@ -1,0 +1,513 @@
+{
+  "scope": "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; synthetic patterned observations/noise; no robot-task quality claim",
+  "placement": "radeon-cosmos",
+  "artifact_sha256": {
+    "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+    "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+    "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+    "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+    "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+    "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+    "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+    "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+    "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+    "graph": "9111b3841893acaaa11cf45715d246da3ac9cdd03c7b33fb3c7c20fe38d74704"
+  },
+  "budget": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "demands": {
+      "host_ram": 17179869184
+    }
+  },
+  "fixture_manifest": null,
+  "fixture_sha256": null,
+  "host_available_bytes_before": 26373693440,
+  "cuda_before": null,
+  "warmups": 1,
+  "repeats": 1,
+  "startup_s": 138.5807410000125,
+  "execution_plan_start": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "c1df12688ca14840b205a8f4ec05c7c9",
+    "worker_pid": 9060,
+    "worker_script_sha256": "308d755e55e196c54c02f3ebdf9538a8620e3bc30191806f2bdc244b60d68353",
+    "artifact_sha256": {
+      "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "graph": "9111b3841893acaaa11cf45715d246da3ac9cdd03c7b33fb3c7c20fe38d74704"
+    },
+    "placement": "radeon-cosmos",
+    "worker_props": {
+      "model_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Cosmos-Tokenizer-CI8x8",
+      "placement": "radeon-cosmos",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "float32",
+      "policy_device": "cpu",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": null,
+      "cuda_device_index": null,
+      "cuda_allocated_after_load_bytes": null,
+      "cuda_reserved_after_load_bytes": null,
+      "policy_load_s": 69.43134220002685,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": {
+        "ep": "dml",
+        "graph_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-cosmos-encoder-batch6.pt2",
+        "device_name": "AMD Radeon(TM) 890M Graphics",
+        "placement_granularity": "output_device",
+        "session_providers": [
+          "torch-directml"
+        ],
+        "available_providers": [
+          "torch-directml"
+        ],
+        "node_counts": {
+          "dml": 1,
+          "cpu": 0
+        },
+        "total_nodes": 1,
+        "target_nodes": 1,
+        "fraction_on_target": 1.0,
+        "session_create_s": 2.2947276000631973,
+        "warmup_s": 0.9424079000018537,
+        "rss_bytes": 0,
+        "inputs": [
+          {
+            "name": "pixels",
+            "shape": [
+              6,
+              3,
+              256,
+              256
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "out_0",
+            "shape": [
+              6,
+              16,
+              32,
+              32
+            ]
+          }
+        ],
+        "profile_path": "",
+        "ep_directory": "",
+        "requested_provider_missing": "",
+        "fallback_note": "",
+        "onnxruntime": "",
+        "device_id_requested": null,
+        "note": ""
+      },
+      "npu_load": null
+    },
+    "loaded_rss_bytes": 11726458880,
+    "loaded_process_tree": [
+      {
+        "pid": 9060,
+        "rss_bytes": 4988928,
+        "private_bytes": 860160
+      },
+      {
+        "pid": 45016,
+        "rss_bytes": 7483392,
+        "private_bytes": 1245184
+      },
+      {
+        "pid": 8644,
+        "rss_bytes": 8913780736,
+        "private_bytes": 11076616192
+      },
+      {
+        "pid": 57112,
+        "rss_bytes": 5021696,
+        "private_bytes": 921600
+      },
+      {
+        "pid": 25192,
+        "rss_bytes": 7495680,
+        "private_bytes": 1269760
+      },
+      {
+        "pid": 10948,
+        "rss_bytes": 2787688448,
+        "private_bytes": 3127267328
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 0,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "warmup_results": [
+    {
+      "wall_s": 4.198138499981724,
+      "action_sha256": "c6ce59129939fdeecad9304882bddcc427834533df2aba102d69c05a72344637",
+      "stage_event": {
+        "request_id": "internvla-warmup-0",
+        "stage_id": 0,
+        "epoch": 1,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "c1df12688ca14840b205a8f4ec05c7c9",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "c1df12688ca14840b205a8f4ec05c7c9",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          },
+          {
+            "object_id": "physical_actions",
+            "owner": "0",
+            "generation": "c1df12688ca14840b205a8f4ec05c7c9",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              16
+            ],
+            "nbytes": 3200,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790312632409264500,
+        "generation_timestamp_ns": 1790312636600875800,
+        "observation_age_s": 4.1916113,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_representation": "checkpoint_normalized_padded_delta",
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false,
+        "physical_action_shape": [
+          1,
+          50,
+          16
+        ],
+        "physical_action_fields": [
+          "actions.joint.position",
+          "actions.effector.position"
+        ],
+        "physical_action_representation": "a2d_unnormalized_joint_delta_reconstructed"
+      },
+      "metrics": {
+        "policy_wall_s": 4.190675999969244,
+        "worker_wall_s": 4.1481992999324575,
+        "cuda_peak_reserved_bytes": 0
+      },
+      "physical_action_sha256": "e1397ba2ce8ea86b4b33e174aada13eb121993cab30571a0413280fcb3cb2ed0"
+    }
+  ],
+  "measured": [
+    {
+      "wall_s": 4.111777599900961,
+      "action_sha256": "c6ce59129939fdeecad9304882bddcc427834533df2aba102d69c05a72344637",
+      "stage_event": {
+        "request_id": "internvla-measured-0",
+        "stage_id": 0,
+        "epoch": 2,
+        "seq": 1,
+        "kind": "action",
+        "worker_generation": "c1df12688ca14840b205a8f4ec05c7c9",
+        "buffers": [
+          {
+            "object_id": "actions",
+            "owner": "0",
+            "generation": "c1df12688ca14840b205a8f4ec05c7c9",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              32
+            ],
+            "nbytes": 6400,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          },
+          {
+            "object_id": "physical_actions",
+            "owner": "0",
+            "generation": "c1df12688ca14840b205a8f4ec05c7c9",
+            "dtype": "float32",
+            "shape": [
+              1,
+              50,
+              16
+            ],
+            "nbytes": 3200,
+            "memory_domain": "host-copy",
+            "layout": "C",
+            "ready": true
+          }
+        ],
+        "terminal": true,
+        "error": null
+      },
+      "action_metadata": {
+        "observation_timestamp_ns": 1790312636607876200,
+        "generation_timestamp_ns": 1790312640715484600,
+        "observation_age_s": 4.1076084,
+        "action_mode": "delta",
+        "action_shape": [
+          1,
+          50,
+          32
+        ],
+        "action_representation": "checkpoint_normalized_padded_delta",
+        "action_units": "unverified",
+        "joint_order": "unverified",
+        "action_step_s": null,
+        "control_ready": false,
+        "physical_action_shape": [
+          1,
+          50,
+          16
+        ],
+        "physical_action_fields": [
+          "actions.joint.position",
+          "actions.effector.position"
+        ],
+        "physical_action_representation": "a2d_unnormalized_joint_delta_reconstructed"
+      },
+      "metrics": {
+        "policy_wall_s": 4.105484100058675,
+        "worker_wall_s": 4.067429800052196,
+        "cuda_peak_reserved_bytes": 0
+      },
+      "physical_action_sha256": "e1397ba2ce8ea86b4b33e174aada13eb121993cab30571a0413280fcb3cb2ed0"
+    }
+  ],
+  "nearest_rank_p50_wall_s": 4.111777599900961,
+  "nearest_rank_p95_wall_s": 4.111777599900961,
+  "unique_action_hashes": [
+    "c6ce59129939fdeecad9304882bddcc427834533df2aba102d69c05a72344637"
+  ],
+  "output_actions": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_a2d_action_decode\\windows_radeon_normalized_actions.npy",
+  "output_physical_actions": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\internvla_a2d_action_decode\\windows_radeon_physical_actions.npy",
+  "execution_plan_end": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "c1df12688ca14840b205a8f4ec05c7c9",
+    "worker_pid": 9060,
+    "worker_script_sha256": "308d755e55e196c54c02f3ebdf9538a8620e3bc30191806f2bdc244b60d68353",
+    "artifact_sha256": {
+      "python": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "graph": "9111b3841893acaaa11cf45715d246da3ac9cdd03c7b33fb3c7c20fe38d74704"
+    },
+    "placement": "radeon-cosmos",
+    "worker_props": {
+      "model_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Cosmos-Tokenizer-CI8x8",
+      "placement": "radeon-cosmos",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "float32",
+      "policy_device": "cpu",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": null,
+      "cuda_device_index": null,
+      "cuda_allocated_after_load_bytes": null,
+      "cuda_reserved_after_load_bytes": null,
+      "policy_load_s": 69.43134220002685,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": {
+        "ep": "dml",
+        "graph_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-cosmos-encoder-batch6.pt2",
+        "device_name": "AMD Radeon(TM) 890M Graphics",
+        "placement_granularity": "output_device",
+        "session_providers": [
+          "torch-directml"
+        ],
+        "available_providers": [
+          "torch-directml"
+        ],
+        "node_counts": {
+          "dml": 1,
+          "cpu": 0
+        },
+        "total_nodes": 1,
+        "target_nodes": 1,
+        "fraction_on_target": 1.0,
+        "session_create_s": 2.2947276000631973,
+        "warmup_s": 0.9424079000018537,
+        "rss_bytes": 0,
+        "inputs": [
+          {
+            "name": "pixels",
+            "shape": [
+              6,
+              3,
+              256,
+              256
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "out_0",
+            "shape": [
+              6,
+              16,
+              32,
+              32
+            ]
+          }
+        ],
+        "profile_path": "",
+        "ep_directory": "",
+        "requested_provider_missing": "",
+        "fallback_note": "",
+        "onnxruntime": "",
+        "device_id_requested": null,
+        "note": ""
+      },
+      "npu_load": null
+    },
+    "loaded_rss_bytes": 11726458880,
+    "loaded_process_tree": [
+      {
+        "pid": 9060,
+        "rss_bytes": 4988928,
+        "private_bytes": 860160
+      },
+      {
+        "pid": 45016,
+        "rss_bytes": 7483392,
+        "private_bytes": 1245184
+      },
+      {
+        "pid": 8644,
+        "rss_bytes": 8913780736,
+        "private_bytes": 11076616192
+      },
+      {
+        "pid": 57112,
+        "rss_bytes": 5021696,
+        "private_bytes": 921600
+      },
+      {
+        "pid": 25192,
+        "rss_bytes": 7495680,
+        "private_bytes": 1269760
+      },
+      {
+        "pid": 10948,
+        "rss_bytes": 2787688448,
+        "private_bytes": 3127267328
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 0,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 17179869184
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}
