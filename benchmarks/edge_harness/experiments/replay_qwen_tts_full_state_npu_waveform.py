@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import math
 from pathlib import Path
@@ -59,6 +60,12 @@ def main() -> None:
 
     torch.set_num_threads(4)
     decoder = load_code2wav_decoder(str(args.model)).eval()
+    decoder_source = str(Path(inspect.getfile(type(decoder))).resolve())
+    if not hasattr(decoder, "decode_xvec_exact"):
+        raise RuntimeError(
+            f"loaded decoder lacks exact streaming state method: {decoder_source}; "
+            "run with the checked-out vllm_omni package on PYTHONPATH"
+        )
     config = decoder.config
     if config.num_hidden_layers != 8 or config.sliding_window != 72:
         raise ValueError("source decoder contract changed")
@@ -127,6 +134,7 @@ def main() -> None:
         "probe_report_sha256": sha256(args.probe_report),
         "prefill_state_max_relative_l2": prefill_error,
         "torch": torch.__version__,
+        "decoder_source": decoder_source,
         "rows": rows,
         "joined_waveform_relative_l2": joined_error,
         "waveform_gate": {"relative_l2_max": 0.01,

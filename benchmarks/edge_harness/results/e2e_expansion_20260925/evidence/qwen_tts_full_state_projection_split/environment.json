@@ -1,0 +1,18 @@
+{
+  "host": "HX370 laptop native Windows",
+  "os_caption": "Microsoft Windows 11 家庭版 中文版",
+  "os_build": "26200",
+  "cpu_name": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M           ",
+  "logical_processors": 24,
+  "npu_device": "NPU Compute Accelerator Device",
+  "npu_driver": "32.0.203.329",
+  "ep_package": "WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0",
+  "ep_dll_sha256": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991",
+  "graph_precision": "FP32 source ONNX; VitisAI internal precision as selected by EP",
+  "batch": 1,
+  "new_frames_per_step": 2,
+  "history_start_frames": 95,
+  "concurrency": 1,
+  "power_condition": "uncontrolled; no power telemetry",
+  "measurement_scope": "native component calls, not complete request"
+}

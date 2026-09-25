@@ -207,3 +207,12 @@ then retained exactly the same 17 original CPU and NPU outputs, two VitisAI
 events and 26 CPU events. Its added checkpoints found the layer-0 hidden
 output already 1.3449%/1.6589% from CPU on the two steps. This localizes an
 observed boundary, not an operation, and leaves the NPU TTS cell NOT E2E.
+
+An [exact CPU input-projection plus eight-layer NPU suffix test](evidence/qwen_tts_full_state_projection_split/README.md)
+passed all 17 original graph outputs exactly over eleven rolling-state CPU
+steps on each of two generated utterances. On HX370 native Windows, the first
+utterance's suffix executed eleven VitisAI partitions, but maximum hidden/KV
+relative L2 reached 1.855%/2.914%; unchanged CPU vocoder replay passed only
+1/11 waveform chunks within 1%, with frame 109 at 7.553%. Its NPU calls were
+also slower than the same CPU suffix calls before CPU projection and handoff.
+The cut does not repair full-state TTS numerics or qualify a stage plan.

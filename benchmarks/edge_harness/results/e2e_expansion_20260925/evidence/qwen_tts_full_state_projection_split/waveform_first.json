@@ -1,0 +1,132 @@
+{
+  "scope": "captured native AMD NPU eight-layer rolling-state output through real CPU vocoder tail; offline component, not complete TTS",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "codes_sha256": "2768b9274748d767deca67ebd4c0201b914f4839902b89d5693d39e9b8e8c946",
+  "onnx_sha256": "551fd9af9f70b423788e429866843609790be63b9d3e184623b6436444b82a16",
+  "fixture_sha256": "e9f2115a18a5662c210ed59756a9e4eac7c249f626d73451a170013228aa6d55",
+  "capture_sha256": "ade824d5e5b5f713e164961dddb71037f483802fbd65e5427b230e0876d0957b",
+  "probe_report_sha256": "4fd9cba59ddf46c4b575ac1141f815d38a6a4e785883ed47f56d16bae141c3e1",
+  "prefill_state_max_relative_l2": 0.0,
+  "torch": "2.13.0+cpu",
+  "decoder_source": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/model_executor/models/qwen3_tts/tokenizer_12hz/modeling_qwen3_tts_tokenizer_v2.py",
+  "rows": [
+    {
+      "start_frame": 95,
+      "cpu_capture_max_relative_l2_vs_source": 4.805560266118516e-07,
+      "npu_hidden_relative_l2_vs_source": 0.0165335434383304,
+      "npu_max_cache_relative_l2_vs_source": 0.010286159440789457,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.011754806237153562,
+      "source_wave_rms": 0.08725089188390504,
+      "npu_wave_snr_db": 38.59569050530836,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "cpu_capture_max_relative_l2_vs_source": 5.346869667317442e-07,
+      "npu_hidden_relative_l2_vs_source": 0.015815467610209386,
+      "npu_max_cache_relative_l2_vs_source": 0.01300610168421637,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.012729846769510451,
+      "source_wave_rms": 0.02498726656407294,
+      "npu_wave_snr_db": 37.9035364792546,
+      "finite": true
+    },
+    {
+      "start_frame": 99,
+      "cpu_capture_max_relative_l2_vs_source": 4.927896953924066e-07,
+      "npu_hidden_relative_l2_vs_source": 0.01624030881277401,
+      "npu_max_cache_relative_l2_vs_source": 0.015398875440879143,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.01878592664375498,
+      "source_wave_rms": 0.037357627474140724,
+      "npu_wave_snr_db": 34.523347557027705,
+      "finite": true
+    },
+    {
+      "start_frame": 101,
+      "cpu_capture_max_relative_l2_vs_source": 5.027539922503622e-07,
+      "npu_hidden_relative_l2_vs_source": 0.016894510436797797,
+      "npu_max_cache_relative_l2_vs_source": 0.018305961811998034,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.02539078287918674,
+      "source_wave_rms": 0.061299042282560764,
+      "npu_wave_snr_db": 31.906478164590073,
+      "finite": true
+    },
+    {
+      "start_frame": 103,
+      "cpu_capture_max_relative_l2_vs_source": 5.310062655915707e-07,
+      "npu_hidden_relative_l2_vs_source": 0.017065798393006412,
+      "npu_max_cache_relative_l2_vs_source": 0.021263698559539454,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.01508092986231408,
+      "source_wave_rms": 0.09072779577258325,
+      "npu_wave_snr_db": 36.43143759688213,
+      "finite": true
+    },
+    {
+      "start_frame": 105,
+      "cpu_capture_max_relative_l2_vs_source": 5.105824910635798e-07,
+      "npu_hidden_relative_l2_vs_source": 0.01658748409271389,
+      "npu_max_cache_relative_l2_vs_source": 0.023110570593112313,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.014857484320067511,
+      "source_wave_rms": 0.026422358263960062,
+      "npu_wave_snr_db": 36.56109438809437,
+      "finite": true
+    },
+    {
+      "start_frame": 107,
+      "cpu_capture_max_relative_l2_vs_source": 4.979430099949543e-07,
+      "npu_hidden_relative_l2_vs_source": 0.018545437332975343,
+      "npu_max_cache_relative_l2_vs_source": 0.02502378764087903,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.0149545518279617,
+      "source_wave_rms": 0.04800854975453039,
+      "npu_wave_snr_db": 36.50453195564184,
+      "finite": true
+    },
+    {
+      "start_frame": 109,
+      "cpu_capture_max_relative_l2_vs_source": 4.732454077410682e-07,
+      "npu_hidden_relative_l2_vs_source": 0.016420488764900872,
+      "npu_max_cache_relative_l2_vs_source": 0.02643854535705341,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.07553336215117401,
+      "source_wave_rms": 0.016420871384652848,
+      "npu_wave_snr_db": 22.4372236699639,
+      "finite": true
+    },
+    {
+      "start_frame": 111,
+      "cpu_capture_max_relative_l2_vs_source": 5.019047143459183e-07,
+      "npu_hidden_relative_l2_vs_source": 0.016081273825727462,
+      "npu_max_cache_relative_l2_vs_source": 0.02736050424869288,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.018128882283718575,
+      "source_wave_rms": 0.0037573731616288974,
+      "npu_wave_snr_db": 34.83257942054655,
+      "finite": true
+    },
+    {
+      "start_frame": 113,
+      "cpu_capture_max_relative_l2_vs_source": 5.252292205008607e-07,
+      "npu_hidden_relative_l2_vs_source": 0.014043450609615737,
+      "npu_max_cache_relative_l2_vs_source": 0.028093217747264018,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.01154815787341828,
+      "source_wave_rms": 1.8262316106783208e-05,
+      "npu_wave_snr_db": 38.749745751306534,
+      "finite": true
+    },
+    {
+      "start_frame": 115,
+      "cpu_capture_max_relative_l2_vs_source": 5.814315132724219e-07,
+      "npu_hidden_relative_l2_vs_source": 0.015235979615712889,
+      "npu_max_cache_relative_l2_vs_source": 0.02914244603152865,
+      "npu_full_state_cpu_tail_waveform_relative_l2": 0.0075481196905401535,
+      "source_wave_rms": 3.0296922914569637e-05,
+      "npu_wave_snr_db": 42.44322443689096,
+      "finite": true
+    }
+  ],
+  "joined_waveform_relative_l2": 0.018091707110733504,
+  "waveform_gate": {
+    "relative_l2_max": 0.01,
+    "passed_chunks": 1,
+    "total_chunks": 11
+  },
+  "status": "waveform_gate_failed_on_fixture"
+}

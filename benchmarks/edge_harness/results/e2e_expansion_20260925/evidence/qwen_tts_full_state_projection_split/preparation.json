@@ -1,0 +1,132 @@
+{
+  "scope": "source-faithful CPU input-projection plus full eight-layer rolling-state suffix on two generated utterances; no NPU or waveform result",
+  "source_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "prefix_sha256": "72396d9c3674a8a7bdb9a7e0435c9da056a7bccd0677c82b674829177930b456",
+  "suffix_sha256": "551fd9af9f70b423788e429866843609790be63b9d3e184623b6436444b82a16",
+  "onnxruntime": "1.30.0",
+  "rows": [
+    {
+      "source_fixture_sha256": "1ef435ccc70484fb4b7971df822eee1315a50294cb6f3218c1b21a1dfb89fb43",
+      "split_fixture_sha256": "e9f2115a18a5662c210ed59756a9e4eac7c249f626d73451a170013228aa6d55",
+      "steps": [
+        {
+          "start_frame": 95,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 97,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 99,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 101,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 103,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 105,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 107,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 109,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 111,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 113,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 115,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        }
+      ]
+    },
+    {
+      "source_fixture_sha256": "924d67394c1ea8c027aa7e6b7b5a34f00087759523dc061a3c2bc4fa7f2cd45b",
+      "split_fixture_sha256": "ba93e8745bc2bf5121b0c2e875f736078b6456330ff6f85200e0115f4c21d8bf",
+      "steps": [
+        {
+          "start_frame": 95,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 97,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 99,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 101,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 103,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 105,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 107,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 109,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 111,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 113,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        },
+        {
+          "start_frame": 115,
+          "hidden_relative_l2": 0.0,
+          "max_state_relative_l2": 0.0
+        }
+      ]
+    }
+  ],
+  "status": "two_utterance_eleven_step_cpu_split_parity_pass"
+}
