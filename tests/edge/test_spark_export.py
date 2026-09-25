@@ -14,6 +14,7 @@ import torch
 from vllm_omni.edge.spark_export import (
     FULL,
     SLIDING,
+    SparkDecodeCache,
     SparkDecodeStep,
     SparkStepConfig,
     config_from_spark,
@@ -245,3 +246,63 @@ def test_auto_layout_returns_one_entry_for_sliding_and_a_window_for_full():
         # Both layouts hand back exactly one new entry here: ring by design,
         # roll because a full layer only ever appends.
         assert caches[2 * i].shape[2] == 1, layer_type
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+def test_fixed_decode_cache_crosses_window_and_rejects_stale_commit():
+    cfg = _cfg()
+    state = SparkDecodeCache(cfg, max_context=20)
+    prefill = []
+    for layer_type in cfg.layer_types:
+        length = 7 if layer_type == SLIDING else 10
+        values = torch.arange(10 - length, 10, dtype=torch.float32)
+        cache = values.view(1, 1, length, 1).expand(
+            1, cfg.num_key_value_heads, length, cfg.head_dim
+        ).clone()
+        prefill.append((cache, cache.clone()))
+    state.seed(prefill, position=10)
+    assert state.position == 10
+    # The ring is physical, so the oldest entry occupies the next write slot.
+    ring_slot = 10 % 7
+    assert state.buffers[0][0, 0, ring_slot, 0] == 3
+    args = state.step_inputs(torch.zeros(1, 1, cfg.hidden_size))
+    assert args[5].shape[-1] == 8
+    assert args[6].shape[-1] == 21
+    assert torch.isneginf(args[6][0, 0, 0, 10:20]).all()
+    step = SparkDecodeStep(cfg).eval()
+    with torch.no_grad():
+        outputs = step(*args)
+    before = [buffer.clone() for buffer in state.buffers]
+    bad = list(outputs)
+    bad[-1] = torch.empty(1, 1, 2, 1)
+    with pytest.raises(ValueError, match="output shape mismatch"):
+        state.commit(tuple(bad), expected_position=10)
+    assert state.position == 10
+    assert all(torch.equal(a, b) for a, b in zip(before, state.buffers))
+    state.commit(outputs, expected_position=10)
+    assert state.position == 11
+    assert torch.equal(state.buffers[0][:, :, ring_slot:ring_slot + 1], outputs[1])
+    with pytest.raises(ValueError, match="stale or repeated"):
+        state.commit(outputs, expected_position=10)
+    state.clear()
+    assert all(not buffer.any() for buffer in state.buffers)
+    with pytest.raises(ValueError, match="not active"):
+        state.step_inputs(torch.zeros(1, 1, cfg.hidden_size))
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+def test_fixed_decode_cache_masks_unfilled_ring_slots():
+    cfg = _cfg()
+    state = SparkDecodeCache(cfg, max_context=16)
+    prefill = [
+        (torch.zeros(1, cfg.num_key_value_heads, 2, cfg.head_dim),
+         torch.zeros(1, cfg.num_key_value_heads, 2, cfg.head_dim))
+        for _ in cfg.layer_types
+    ]
+    state.seed(prefill, position=2)
+    args = state.step_inputs(torch.zeros(1, 1, cfg.hidden_size))
+    assert torch.equal(args[5][0, 0, 0, :2], torch.zeros(2))
+    assert torch.isneginf(args[5][0, 0, 0, 2:7]).all()
+    assert args[5][0, 0, 0, -1] == 0

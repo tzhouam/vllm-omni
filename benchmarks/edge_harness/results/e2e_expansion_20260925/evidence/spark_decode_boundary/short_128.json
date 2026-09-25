@@ -1,0 +1,1564 @@
+{
+  "model": "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+  "prompt_tokens": 28,
+  "decode_steps": 128,
+  "top1_matches": 127,
+  "mismatch_positions": [
+    73
+  ],
+  "max_logits_relative_l2": 0.009677011519670486,
+  "max_logits_abs": 0.83111572265625,
+  "final_position": 156,
+  "full_cache_capacity": 1024,
+  "sliding_cache_capacity": 511,
+  "cache_shapes": [
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ],
+    [
+      [
+        1,
+        2,
+        28,
+        256
+      ],
+      [
+        1,
+        2,
+        28,
+        256
+      ]
+    ]
+  ],
+  "weights_copied": 226,
+  "dtype": "HF BF16; export FP32 from the same BF16 weights",
+  "steps": [
+    {
+      "position": 28,
+      "input_token": 3066,
+      "hf_next_token": 599,
+      "export_next_token": 599,
+      "top1_match": true,
+      "logits_relative_l2": 0.002300491789355874,
+      "logits_max_abs": 0.2890586853027344
+    },
+    {
+      "position": 29,
+      "input_token": 599,
+      "hf_next_token": 5509,
+      "export_next_token": 5509,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020270156674087048,
+      "logits_max_abs": 0.24988937377929688
+    },
+    {
+      "position": 30,
+      "input_token": 5509,
+      "hf_next_token": 39,
+      "export_next_token": 39,
+      "top1_match": true,
+      "logits_relative_l2": 0.003353660460561514,
+      "logits_max_abs": 0.3601226806640625
+    },
+    {
+      "position": 31,
+      "input_token": 39,
+      "hf_next_token": 518,
+      "export_next_token": 518,
+      "top1_match": true,
+      "logits_relative_l2": 0.0029357464518398046,
+      "logits_max_abs": 0.28440093994140625
+    },
+    {
+      "position": 32,
+      "input_token": 518,
+      "hf_next_token": 4766,
+      "export_next_token": 4766,
+      "top1_match": true,
+      "logits_relative_l2": 0.002632671967148781,
+      "logits_max_abs": 0.27278900146484375
+    },
+    {
+      "position": 33,
+      "input_token": 4766,
+      "hf_next_token": 390,
+      "export_next_token": 390,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020210957154631615,
+      "logits_max_abs": 0.21310043334960938
+    },
+    {
+      "position": 34,
+      "input_token": 390,
+      "hf_next_token": 275,
+      "export_next_token": 275,
+      "top1_match": true,
+      "logits_relative_l2": 0.001970658777281642,
+      "logits_max_abs": 0.2222442626953125
+    },
+    {
+      "position": 35,
+      "input_token": 275,
+      "hf_next_token": 11862,
+      "export_next_token": 11862,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019526308169588447,
+      "logits_max_abs": 0.18773651123046875
+    },
+    {
+      "position": 36,
+      "input_token": 11862,
+      "hf_next_token": 314,
+      "export_next_token": 314,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019190951716154814,
+      "logits_max_abs": 0.22259140014648438
+    },
+    {
+      "position": 37,
+      "input_token": 314,
+      "hf_next_token": 17349,
+      "export_next_token": 17349,
+      "top1_match": true,
+      "logits_relative_l2": 0.002079043770208955,
+      "logits_max_abs": 0.21771240234375
+    },
+    {
+      "position": 38,
+      "input_token": 17349,
+      "hf_next_token": 44,
+      "export_next_token": 44,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020584806334227324,
+      "logits_max_abs": 0.2184906005859375
+    },
+    {
+      "position": 39,
+      "input_token": 44,
+      "hf_next_token": 74288,
+      "export_next_token": 74288,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019902060739696026,
+      "logits_max_abs": 0.2162628173828125
+    },
+    {
+      "position": 40,
+      "input_token": 74288,
+      "hf_next_token": 304,
+      "export_next_token": 304,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019079988123849034,
+      "logits_max_abs": 0.210540771484375
+    },
+    {
+      "position": 41,
+      "input_token": 304,
+      "hf_next_token": 1135,
+      "export_next_token": 1135,
+      "top1_match": true,
+      "logits_relative_l2": 0.0018807218875735998,
+      "logits_max_abs": 0.20609283447265625
+    },
+    {
+      "position": 42,
+      "input_token": 1135,
+      "hf_next_token": 5240,
+      "export_next_token": 5240,
+      "top1_match": true,
+      "logits_relative_l2": 0.003514688927680254,
+      "logits_max_abs": 0.3186492919921875
+    },
+    {
+      "position": 43,
+      "input_token": 5240,
+      "hf_next_token": 1848,
+      "export_next_token": 1848,
+      "top1_match": true,
+      "logits_relative_l2": 0.0017048713052645326,
+      "logits_max_abs": 0.20985794067382812
+    },
+    {
+      "position": 44,
+      "input_token": 1848,
+      "hf_next_token": 4358,
+      "export_next_token": 4358,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019222466507926583,
+      "logits_max_abs": 0.22499847412109375
+    },
+    {
+      "position": 45,
+      "input_token": 4358,
+      "hf_next_token": 275,
+      "export_next_token": 275,
+      "top1_match": true,
+      "logits_relative_l2": 0.001946493168361485,
+      "logits_max_abs": 0.19536209106445312
+    },
+    {
+      "position": 46,
+      "input_token": 275,
+      "hf_next_token": 6787,
+      "export_next_token": 6787,
+      "top1_match": true,
+      "logits_relative_l2": 0.0021580406464636326,
+      "logits_max_abs": 0.245391845703125
+    },
+    {
+      "position": 47,
+      "input_token": 6787,
+      "hf_next_token": 2029,
+      "export_next_token": 2029,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020885809790343046,
+      "logits_max_abs": 0.21509933471679688
+    },
+    {
+      "position": 48,
+      "input_token": 2029,
+      "hf_next_token": 417,
+      "export_next_token": 417,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020174167584627867,
+      "logits_max_abs": 0.202728271484375
+    },
+    {
+      "position": 49,
+      "input_token": 417,
+      "hf_next_token": 275,
+      "export_next_token": 275,
+      "top1_match": true,
+      "logits_relative_l2": 0.0018904127646237612,
+      "logits_max_abs": 0.20735931396484375
+    },
+    {
+      "position": 50,
+      "input_token": 275,
+      "hf_next_token": 5133,
+      "export_next_token": 5133,
+      "top1_match": true,
+      "logits_relative_l2": 0.002807301701977849,
+      "logits_max_abs": 0.24706268310546875
+    },
+    {
+      "position": 51,
+      "input_token": 5133,
+      "hf_next_token": 5240,
+      "export_next_token": 5240,
+      "top1_match": true,
+      "logits_relative_l2": 0.0017549828626215458,
+      "logits_max_abs": 0.202392578125
+    },
+    {
+      "position": 52,
+      "input_token": 5240,
+      "hf_next_token": 518,
+      "export_next_token": 518,
+      "top1_match": true,
+      "logits_relative_l2": 0.004698463249951601,
+      "logits_max_abs": 0.3103446960449219
+    },
+    {
+      "position": 53,
+      "input_token": 518,
+      "hf_next_token": 110949,
+      "export_next_token": 110949,
+      "top1_match": true,
+      "logits_relative_l2": 0.004716493189334869,
+      "logits_max_abs": 0.23522567749023438
+    },
+    {
+      "position": 54,
+      "input_token": 110949,
+      "hf_next_token": 4348,
+      "export_next_token": 4348,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020405841059982777,
+      "logits_max_abs": 0.2121124267578125
+    },
+    {
+      "position": 55,
+      "input_token": 4348,
+      "hf_next_token": 1994,
+      "export_next_token": 1994,
+      "top1_match": true,
+      "logits_relative_l2": 0.0018143357010558248,
+      "logits_max_abs": 0.22440338134765625
+    },
+    {
+      "position": 56,
+      "input_token": 1994,
+      "hf_next_token": 1633,
+      "export_next_token": 1633,
+      "top1_match": true,
+      "logits_relative_l2": 0.002857284154742956,
+      "logits_max_abs": 0.27616119384765625
+    },
+    {
+      "position": 57,
+      "input_token": 1633,
+      "hf_next_token": 312,
+      "export_next_token": 312,
+      "top1_match": true,
+      "logits_relative_l2": 0.00203835591673851,
+      "logits_max_abs": 0.24126434326171875
+    },
+    {
+      "position": 58,
+      "input_token": 312,
+      "hf_next_token": 6340,
+      "export_next_token": 6340,
+      "top1_match": true,
+      "logits_relative_l2": 0.0018975103739649057,
+      "logits_max_abs": 0.22241592407226562
+    },
+    {
+      "position": 59,
+      "input_token": 6340,
+      "hf_next_token": 1839,
+      "export_next_token": 1839,
+      "top1_match": true,
+      "logits_relative_l2": 0.002159364754334092,
+      "logits_max_abs": 0.24903106689453125
+    },
+    {
+      "position": 60,
+      "input_token": 1839,
+      "hf_next_token": 455,
+      "export_next_token": 455,
+      "top1_match": true,
+      "logits_relative_l2": 0.0024209211114794016,
+      "logits_max_abs": 0.24863052368164062
+    },
+    {
+      "position": 61,
+      "input_token": 455,
+      "hf_next_token": 5240,
+      "export_next_token": 5240,
+      "top1_match": true,
+      "logits_relative_l2": 0.001968458527699113,
+      "logits_max_abs": 0.2714195251464844
+    },
+    {
+      "position": 62,
+      "input_token": 5240,
+      "hf_next_token": 27,
+      "export_next_token": 27,
+      "top1_match": true,
+      "logits_relative_l2": 0.0021263889502733946,
+      "logits_max_abs": 0.25742340087890625
+    },
+    {
+      "position": 63,
+      "input_token": 27,
+      "hf_next_token": 4,
+      "export_next_token": 4,
+      "top1_match": true,
+      "logits_relative_l2": 0.001887585618533194,
+      "logits_max_abs": 0.20344924926757812
+    },
+    {
+      "position": 64,
+      "input_token": 4,
+      "hf_next_token": 110949,
+      "export_next_token": 110949,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019276521634310484,
+      "logits_max_abs": 0.19570159912109375
+    },
+    {
+      "position": 65,
+      "input_token": 110949,
+      "hf_next_token": 1,
+      "export_next_token": 1,
+      "top1_match": true,
+      "logits_relative_l2": 0.0021161441691219807,
+      "logits_max_abs": 0.2549476623535156
+    },
+    {
+      "position": 66,
+      "input_token": 1,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0031670071184635162,
+      "logits_max_abs": 0.3864326477050781
+    },
+    {
+      "position": 67,
+      "input_token": 7,
+      "hf_next_token": 1,
+      "export_next_token": 1,
+      "top1_match": true,
+      "logits_relative_l2": 0.003731930861249566,
+      "logits_max_abs": 0.30029296875
+    },
+    {
+      "position": 68,
+      "input_token": 1,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.004464225377887487,
+      "logits_max_abs": 0.5237102508544922
+    },
+    {
+      "position": 69,
+      "input_token": 7,
+      "hf_next_token": 1,
+      "export_next_token": 1,
+      "top1_match": true,
+      "logits_relative_l2": 0.004371018148958683,
+      "logits_max_abs": 0.617828369140625
+    },
+    {
+      "position": 70,
+      "input_token": 1,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.003201778745278716,
+      "logits_max_abs": 0.4512443542480469
+    },
+    {
+      "position": 71,
+      "input_token": 7,
+      "hf_next_token": 1,
+      "export_next_token": 1,
+      "top1_match": true,
+      "logits_relative_l2": 0.003342794254422188,
+      "logits_max_abs": 0.4736976623535156
+    },
+    {
+      "position": 72,
+      "input_token": 1,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.004603494890034199,
+      "logits_max_abs": 0.4836406707763672
+    },
+    {
+      "position": 73,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 1,
+      "top1_match": false,
+      "logits_relative_l2": 0.0032935745548456907,
+      "logits_max_abs": 0.49908447265625
+    },
+    {
+      "position": 74,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.005499039776623249,
+      "logits_max_abs": 0.4534721374511719
+    },
+    {
+      "position": 75,
+      "input_token": 7,
+      "hf_next_token": 1,
+      "export_next_token": 1,
+      "top1_match": true,
+      "logits_relative_l2": 0.004912972450256348,
+      "logits_max_abs": 0.5801639556884766
+    },
+    {
+      "position": 76,
+      "input_token": 1,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0033634721767157316,
+      "logits_max_abs": 0.3766212463378906
+    },
+    {
+      "position": 77,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.009677011519670486,
+      "logits_max_abs": 0.83111572265625
+    },
+    {
+      "position": 78,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002587094670161605,
+      "logits_max_abs": 0.31683349609375
+    },
+    {
+      "position": 79,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0036228199023753405,
+      "logits_max_abs": 0.5076255798339844
+    },
+    {
+      "position": 80,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002365479711443186,
+      "logits_max_abs": 0.3175697326660156
+    },
+    {
+      "position": 81,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0059037175960838795,
+      "logits_max_abs": 0.48885345458984375
+    },
+    {
+      "position": 82,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.004186859354376793,
+      "logits_max_abs": 0.37252044677734375
+    },
+    {
+      "position": 83,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.005005224607884884,
+      "logits_max_abs": 0.4970512390136719
+    },
+    {
+      "position": 84,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002091864123940468,
+      "logits_max_abs": 0.2762947082519531
+    },
+    {
+      "position": 85,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.008633608929812908,
+      "logits_max_abs": 0.609283447265625
+    },
+    {
+      "position": 86,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.003966843709349632,
+      "logits_max_abs": 0.33612823486328125
+    },
+    {
+      "position": 87,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004996942356228828,
+      "logits_max_abs": 0.45708465576171875
+    },
+    {
+      "position": 88,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020807802211493254,
+      "logits_max_abs": 0.2746315002441406
+    },
+    {
+      "position": 89,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0035384674556553364,
+      "logits_max_abs": 0.3733367919921875
+    },
+    {
+      "position": 90,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.00261806882917881,
+      "logits_max_abs": 0.2821006774902344
+    },
+    {
+      "position": 91,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0035624068696051836,
+      "logits_max_abs": 0.3918609619140625
+    },
+    {
+      "position": 92,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0021370905451476574,
+      "logits_max_abs": 0.24208450317382812
+    },
+    {
+      "position": 93,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.00523297069594264,
+      "logits_max_abs": 0.471527099609375
+    },
+    {
+      "position": 94,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.001979137072339654,
+      "logits_max_abs": 0.2500953674316406
+    },
+    {
+      "position": 95,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.006637853570282459,
+      "logits_max_abs": 0.5669517517089844
+    },
+    {
+      "position": 96,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002398786833509803,
+      "logits_max_abs": 0.2628326416015625
+    },
+    {
+      "position": 97,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004605047404766083,
+      "logits_max_abs": 0.4678382873535156
+    },
+    {
+      "position": 98,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0034779382403939962,
+      "logits_max_abs": 0.30780792236328125
+    },
+    {
+      "position": 99,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004538486246019602,
+      "logits_max_abs": 0.4612274169921875
+    },
+    {
+      "position": 100,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0018387209856882691,
+      "logits_max_abs": 0.2280426025390625
+    },
+    {
+      "position": 101,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0040198382921516895,
+      "logits_max_abs": 0.3670158386230469
+    },
+    {
+      "position": 102,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0027593588456511497,
+      "logits_max_abs": 0.25321197509765625
+    },
+    {
+      "position": 103,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004342226777225733,
+      "logits_max_abs": 0.4086456298828125
+    },
+    {
+      "position": 104,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0017926918808370829,
+      "logits_max_abs": 0.20992279052734375
+    },
+    {
+      "position": 105,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004405740182846785,
+      "logits_max_abs": 0.40103912353515625
+    },
+    {
+      "position": 106,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002236552070826292,
+      "logits_max_abs": 0.2444610595703125
+    },
+    {
+      "position": 107,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0025415485724806786,
+      "logits_max_abs": 0.28136444091796875
+    },
+    {
+      "position": 108,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0023798577021807432,
+      "logits_max_abs": 0.2600860595703125
+    },
+    {
+      "position": 109,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.002707854611799121,
+      "logits_max_abs": 0.32712554931640625
+    },
+    {
+      "position": 110,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019480595365166664,
+      "logits_max_abs": 0.24655914306640625
+    },
+    {
+      "position": 111,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.005337543319910765,
+      "logits_max_abs": 0.4595985412597656
+    },
+    {
+      "position": 112,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002812807448208332,
+      "logits_max_abs": 0.2944374084472656
+    },
+    {
+      "position": 113,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0033701390493661165,
+      "logits_max_abs": 0.34214019775390625
+    },
+    {
+      "position": 114,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0018223398365080357,
+      "logits_max_abs": 0.2631111145019531
+    },
+    {
+      "position": 115,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0026139661204069853,
+      "logits_max_abs": 0.318359375
+    },
+    {
+      "position": 116,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0027472428046166897,
+      "logits_max_abs": 0.2709808349609375
+    },
+    {
+      "position": 117,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0042640212923288345,
+      "logits_max_abs": 0.40106201171875
+    },
+    {
+      "position": 118,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020676092244684696,
+      "logits_max_abs": 0.2543220520019531
+    },
+    {
+      "position": 119,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.005257828626781702,
+      "logits_max_abs": 0.404876708984375
+    },
+    {
+      "position": 120,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002089542569592595,
+      "logits_max_abs": 0.2314910888671875
+    },
+    {
+      "position": 121,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.002460337243974209,
+      "logits_max_abs": 0.3113059997558594
+    },
+    {
+      "position": 122,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.001940067857503891,
+      "logits_max_abs": 0.24236297607421875
+    },
+    {
+      "position": 123,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004443508572876453,
+      "logits_max_abs": 0.4082679748535156
+    },
+    {
+      "position": 124,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0038915069308131933,
+      "logits_max_abs": 0.3019523620605469
+    },
+    {
+      "position": 125,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0030476415995508432,
+      "logits_max_abs": 0.3476829528808594
+    },
+    {
+      "position": 126,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0019593974575400352,
+      "logits_max_abs": 0.23221588134765625
+    },
+    {
+      "position": 127,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0038365295622497797,
+      "logits_max_abs": 0.3684883117675781
+    },
+    {
+      "position": 128,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0017003818647935987,
+      "logits_max_abs": 0.227447509765625
+    },
+    {
+      "position": 129,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.006218315102159977,
+      "logits_max_abs": 0.4401206970214844
+    },
+    {
+      "position": 130,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002360113663598895,
+      "logits_max_abs": 0.2636222839355469
+    },
+    {
+      "position": 131,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0035480489023029804,
+      "logits_max_abs": 0.3452949523925781
+    },
+    {
+      "position": 132,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002168148523196578,
+      "logits_max_abs": 0.25213623046875
+    },
+    {
+      "position": 133,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0034226723946630955,
+      "logits_max_abs": 0.347442626953125
+    },
+    {
+      "position": 134,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.001822661841288209,
+      "logits_max_abs": 0.19997024536132812
+    },
+    {
+      "position": 135,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.003662486793473363,
+      "logits_max_abs": 0.3701324462890625
+    },
+    {
+      "position": 136,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020203576423227787,
+      "logits_max_abs": 0.22642898559570312
+    },
+    {
+      "position": 137,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004329300951212645,
+      "logits_max_abs": 0.41823577880859375
+    },
+    {
+      "position": 138,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.002300943247973919,
+      "logits_max_abs": 0.25799560546875
+    },
+    {
+      "position": 139,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.00523936515673995,
+      "logits_max_abs": 0.448516845703125
+    },
+    {
+      "position": 140,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0033342891838401556,
+      "logits_max_abs": 0.2836341857910156
+    },
+    {
+      "position": 141,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0032025850377976894,
+      "logits_max_abs": 0.3189239501953125
+    },
+    {
+      "position": 142,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0021953440736979246,
+      "logits_max_abs": 0.2525787353515625
+    },
+    {
+      "position": 143,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.004162734840065241,
+      "logits_max_abs": 0.39897918701171875
+    },
+    {
+      "position": 144,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0018478615675121546,
+      "logits_max_abs": 0.24206924438476562
+    },
+    {
+      "position": 145,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.005611577071249485,
+      "logits_max_abs": 0.426422119140625
+    },
+    {
+      "position": 146,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.001989658921957016,
+      "logits_max_abs": 0.23742294311523438
+    },
+    {
+      "position": 147,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0027507690247148275,
+      "logits_max_abs": 0.313018798828125
+    },
+    {
+      "position": 148,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0024360213428735733,
+      "logits_max_abs": 0.2521247863769531
+    },
+    {
+      "position": 149,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.005125670228153467,
+      "logits_max_abs": 0.3871421813964844
+    },
+    {
+      "position": 150,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0017895613564178348,
+      "logits_max_abs": 0.2210845947265625
+    },
+    {
+      "position": 151,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0037510364782065153,
+      "logits_max_abs": 0.3692436218261719
+    },
+    {
+      "position": 152,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.001864070538431406,
+      "logits_max_abs": 0.24163818359375
+    },
+    {
+      "position": 153,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.005204988643527031,
+      "logits_max_abs": 0.4138679504394531
+    },
+    {
+      "position": 154,
+      "input_token": 198,
+      "hf_next_token": 7,
+      "export_next_token": 7,
+      "top1_match": true,
+      "logits_relative_l2": 0.0020813727751374245,
+      "logits_max_abs": 0.25476837158203125
+    },
+    {
+      "position": 155,
+      "input_token": 7,
+      "hf_next_token": 198,
+      "export_next_token": 198,
+      "top1_match": true,
+      "logits_relative_l2": 0.0052597434259951115,
+      "logits_max_abs": 0.3913002014160156
+    }
+  ]
+}

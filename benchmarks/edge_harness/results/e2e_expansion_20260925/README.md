@@ -1,5 +1,14 @@
 # E2E expansion follow-up — 2026-09-25
 
+The [Spark fixed-cache decode reference](evidence/spark_decode_boundary/README.md)
+now runs the real 28-layer export with a bounded 511-entry sliding ring and
+full-attention K/V buffers after Hugging Face CPU prefill. FP32 reference and
+export agreed on 128/128 next-token choices across both 512 and 1024 context
+transitions, while the BF16-reference versus FP32-export comparison exposed
+a short-prefix token mismatch and up to 14.287% long-prefix logit error.
+This validates a CPU state contract only; S25 still has one-layer NPU component
+evidence and no resident full-generation path.
+
 The [MiniCPM-o HX370 AMD NPU projection experiment](evidence/minicpmo_amd_npu_projection/README.md)
 extracts a state-safe speech-token projection after the CPU speech head.
 It passes one fixed-fixture NPU component numerical check, but the original

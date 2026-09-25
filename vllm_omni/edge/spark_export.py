@@ -37,6 +37,7 @@ from vllm_omni.edge.qnn_export import sanitize_onnx
 __all__ = [
     "SparkStepConfig",
     "SparkDecodeStep",
+    "SparkDecodeCache",
     "config_from_spark",
     "example_inputs",
     "input_names",
@@ -269,6 +270,154 @@ class SparkDecodeStep(nn.Module):
             return (x, *new)
         logits = self.lm_head(_rms(x, self.norm, cfg.rms_norm_eps))[:, 0]
         return (logits, *new)
+
+
+class SparkDecodeCache:
+    """CPU reference for the fixed-shape KV contract of ``SparkDecodeStep``.
+
+    Sliding layers keep the preceding ``window - 1`` entries in a ring; full
+    layers keep every preceding entry. The graph sees fixed-size buffers and
+    masks unused slots. This is a state-contract reference, not a mobile
+    device allocator or an Omni request scheduler.
+    """
+
+    def __init__(
+        self,
+        cfg: SparkStepConfig,
+        max_context: int,
+        *,
+        dtype: torch.dtype = torch.float32,
+    ) -> None:
+        if max_context < 1:
+            raise ValueError("max_context must be positive")
+        if cfg.layout_for(SLIDING) != "ring" or cfg.layout_for(FULL) != "roll":
+            raise ValueError("SparkDecodeCache requires ring sliding and roll full layout")
+        self.cfg = cfg
+        self.max_context = max_context
+        self.position = 0
+        self._seeded = False
+        self._closed = False
+        self.buffers: list[torch.Tensor] = []
+        for layer_type in cfg.layer_types:
+            capacity = cfg.sliding_window - 1 if layer_type == SLIDING else max_context
+            if capacity < 1:
+                raise ValueError("sliding_window must be at least 2")
+            for _ in ("k", "v"):
+                self.buffers.append(
+                    torch.zeros(
+                        1, cfg.num_key_value_heads, capacity, cfg.head_dim,
+                        dtype=dtype,
+                    )
+                )
+
+    def seed(self, layer_caches: list[tuple[torch.Tensor, torch.Tensor]], position: int) -> None:
+        """Seed from a verified prefill; full layers must contain its entire past."""
+        if self._closed or self._seeded or position < 0 or position > self.max_context:
+            raise ValueError("seed requires an empty cache and valid position")
+        if len(layer_caches) != self.cfg.num_layers:
+            raise ValueError("prefill layer count does not match the export")
+        # Reject the whole seed before changing any buffer.
+        for i, ((keys, values), layer_type) in enumerate(
+            zip(layer_caches, self.cfg.layer_types)
+        ):
+            capacity = self.buffers[2 * i].shape[2]
+            expected = min(position, capacity) if layer_type == SLIDING else position
+            for source in (keys, values):
+                if source.shape != (1, self.cfg.num_key_value_heads,
+                                     expected, self.cfg.head_dim):
+                    raise ValueError(f"prefill cache shape mismatch at layer {i}")
+        for i, ((keys, values), layer_type) in enumerate(
+            zip(layer_caches, self.cfg.layer_types)
+        ):
+            capacity = self.buffers[2 * i].shape[2]
+            expected = min(position, capacity) if layer_type == SLIDING else position
+            for source, dest in ((keys, self.buffers[2 * i]),
+                                 (values, self.buffers[2 * i + 1])):
+                if layer_type == FULL:
+                    dest[:, :, :position].copy_(source.to(dest.dtype))
+                else:
+                    for offset in range(expected):
+                        absolute = position - expected + offset
+                        dest[:, :, absolute % capacity].copy_(
+                            source[:, :, offset].to(dest.dtype)
+                        )
+        self.position = position
+        self._seeded = True
+
+    def step_inputs(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
+        """Inputs for one token at the absolute ``position`` of this state."""
+        if self._closed or not self._seeded:
+            raise ValueError("decode state is not active")
+        if self.position >= self.max_context:
+            raise ValueError("decode would exceed max_context")
+        if x.shape != (1, 1, self.cfg.hidden_size):
+            raise ValueError("decode embedding shape mismatch")
+        if x.dtype != self.buffers[0].dtype:
+            raise ValueError("decode embedding dtype mismatch")
+        cfg = self.cfg
+        cos_sw, sin_sw = _angles(
+            self.position, cfg.rotary_dim(SLIDING), cfg.rope_theta[SLIDING],
+            x.dtype,
+        )
+        cos_full, sin_full = _angles(
+            self.position, cfg.rotary_dim(FULL), cfg.rope_theta[FULL], x.dtype,
+        )
+        sw_capacity = cfg.sliding_window - 1
+        mask_sw = torch.full(
+            (1, 1, 1, sw_capacity + 1), float("-inf"), dtype=x.dtype
+        )
+        mask_sw[:, :, :, :min(self.position, sw_capacity)] = 0
+        mask_sw[:, :, :, -1] = 0
+        mask_full = torch.full(
+            (1, 1, 1, self.max_context + 1), float("-inf"), dtype=x.dtype
+        )
+        mask_full[:, :, :, :self.position] = 0
+        mask_full[:, :, :, -1] = 0
+        return (
+            x, cos_sw, sin_sw, cos_full, sin_full, mask_sw, mask_full,
+            *self.buffers,
+        )
+
+    def commit(self, outputs: tuple[torch.Tensor, ...], *, expected_position: int) -> None:
+        """Publish a completed decode step once, after all graph outputs exist."""
+        if self._closed or not self._seeded:
+            raise ValueError("decode state is not active")
+        if expected_position != self.position:
+            raise ValueError("stale or repeated decode output")
+        if self.position >= self.max_context:
+            raise ValueError("decode would exceed max_context")
+        if len(outputs) != 1 + 2 * self.cfg.num_layers:
+            raise ValueError("decode output count mismatch")
+        # Validate every output before writing any K/V slot.
+        first_shape = ((1, self.cfg.vocab_size) if self.cfg.include_lm_head
+                       else (1, 1, self.cfg.hidden_size))
+        if outputs[0].shape != first_shape or not torch.isfinite(outputs[0]).all():
+            raise ValueError("decode logits or hidden output is invalid")
+        for i in range(self.cfg.num_layers):
+            for kv in (0, 1):
+                source = outputs[1 + 2 * i + kv]
+                dest = self.buffers[2 * i + kv]
+                if source.shape != (1, self.cfg.num_key_value_heads, 1,
+                                    self.cfg.head_dim):
+                    raise ValueError(f"decode output shape mismatch at layer {i}")
+                if source.dtype != dest.dtype or source.device != dest.device:
+                    raise ValueError(f"decode output placement mismatch at layer {i}")
+                if not torch.isfinite(source).all():
+                    raise ValueError(f"non-finite decode cache at layer {i}")
+        for i, layer_type in enumerate(self.cfg.layer_types):
+            for kv in (0, 1):
+                source = outputs[1 + 2 * i + kv]
+                dest = self.buffers[2 * i + kv]
+                slot = self.position % dest.shape[2] if layer_type == SLIDING else self.position
+                dest[:, :, slot:slot + 1].copy_(source)
+        self.position += 1
+
+    def clear(self) -> None:
+        """Retire this reference state and erase its cached tensors."""
+        for buffer in self.buffers:
+            buffer.zero_()
+        self.position = 0
+        self._closed = True
 
 
 def config_from_spark(
