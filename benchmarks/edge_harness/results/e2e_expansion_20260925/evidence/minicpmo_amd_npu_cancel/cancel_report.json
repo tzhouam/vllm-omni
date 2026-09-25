@@ -1,0 +1,39 @@
+{
+  "scope": "one cancelled and one fresh complete natural audio+image MiniCPM-o request",
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "deploy_config": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_cancel/cpu_npu_audio_image_cancel.yaml",
+  "deploy_config_sha256": "0776f99b789bf781abd484c097722488ad852264d6afd7b7bd5af4804fed2eb5",
+  "image_sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+  "input_audio_sha256": "30fdcd67dcbd0c49f2c7fffbb7100720d8652976a4a24cce3eb6096d63529b16",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "vllm": "0.28.0",
+  "environment": {
+    "VLLM_TARGET_DEVICE": "cpu",
+    "VLLM_CPU_KVCACHE_SPACE": "1",
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8",
+    "CUDA_VISIBLE_DEVICES": "",
+    "VLLM_ENABLE_V1_MULTIPROCESSING": "0"
+  },
+  "status": "failed",
+  "startup_s": 109.3577195070684,
+  "cancel_before": {
+    "first_text_s": 47.09590658196248,
+    "event": {
+      "request_id": "minicpmo-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": "The",
+      "token_ids": [
+        785
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    }
+  },
+  "abort_ack_s": 0.01028796099126339,
+  "error": "AttributeError: 'CompletionOutput' object has no attribute 'multimodal_output'",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_minicpmo_npu_cancel.py\", line 101, in run\n    await asyncio.wait_for(drain(), timeout=args.drain_timeout)\n  File \"/home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py\", line 520, in wait_for\n    return await fut\n           ^^^^^^^^^\n  File \"/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_minicpmo_npu_cancel.py\", line 100, in drain\n    late.append(summarize(output))\n                ^^^^^^^^^^^^^^^^^\n  File \"/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_minicpmo_npu_cancel.py\", line 30, in summarize\n    multimodal = output.outputs[0].multimodal_output if output.outputs else None\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'CompletionOutput' object has no attribute 'multimodal_output'\n"
+}

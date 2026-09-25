@@ -1,0 +1,624 @@
+{
+  "scope": "one cancelled and one fresh complete natural audio+image MiniCPM-o request",
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "deploy_config": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_cancel/cpu_npu_audio_image_cancel3.yaml",
+  "deploy_config_sha256": "ebd415915b6a012e51959e2608aff4f5c1fa54dfdff6dda7f6f69f16c19f92de",
+  "image_sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+  "fresh_image_sha256": "2418889d0d83962d51facc3832b55cf1849690018a1e873d1c551146555cd02f",
+  "input_audio_sha256": "30fdcd67dcbd0c49f2c7fffbb7100720d8652976a4a24cce3eb6096d63529b16",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "vllm": "0.28.0",
+  "environment": {
+    "VLLM_TARGET_DEVICE": "cpu",
+    "VLLM_CPU_KVCACHE_SPACE": "1",
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8",
+    "CUDA_VISIBLE_DEVICES": "",
+    "VLLM_ENABLE_V1_MULTIPROCESSING": "0"
+  },
+  "status": "cancel_then_fresh_complete_pass",
+  "startup_s": 107.8516928399913,
+  "cancel_before": {
+    "first_text_s": 47.274239260936156,
+    "event": {
+      "request_id": "minicpmo-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": "The",
+      "token_ids": [
+        785
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    }
+  },
+  "abort_ack_s": 0.0032670379150658846,
+  "abort_terminal": "stream_ended",
+  "late_events": [
+    {
+      "request_id": "minicpmo-cancel",
+      "kind": "text",
+      "finished": true,
+      "text": "The",
+      "token_ids": [
+        785
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-cancel",
+      "kind": "audio",
+      "finished": true,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    }
+  ],
+  "late_audio_samples": 0,
+  "fresh_wall_s": 39.66214154905174,
+  "fresh_events": [
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": "The",
+      "token_ids": [
+        785
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " audio",
+      "token_ids": [
+        7699
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " describes",
+      "token_ids": [
+        16555
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " a",
+      "token_ids": [
+        264
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " ship",
+      "token_ids": [
+        8284
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " with",
+      "token_ids": [
+        448
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " white",
+      "token_ids": [
+        4158
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " paint",
+      "token_ids": [
+        6177
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " and",
+      "token_ids": [
+        323
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " a",
+      "token_ids": [
+        264
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " scar",
+      "token_ids": [
+        22290
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": "let",
+      "token_ids": [
+        1149
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " smoke",
+      "token_ids": [
+        16205
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": "stack",
+      "token_ids": [
+        7693
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": ",",
+      "token_ids": [
+        11
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " while",
+      "token_ids": [
+        1393
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " the",
+      "token_ids": [
+        279
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " image",
+      "token_ids": [
+        2168
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " shows",
+      "token_ids": [
+        4933
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " a",
+      "token_ids": [
+        264
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " woman",
+      "token_ids": [
+        5220
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " in",
+      "token_ids": [
+        304
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " an",
+      "token_ids": [
+        458
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " orange",
+      "token_ids": [
+        18575
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " space",
+      "token_ids": [
+        3550
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " suit",
+      "token_ids": [
+        7781
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " with",
+      "token_ids": [
+        448
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " a",
+      "token_ids": [
+        264
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " space",
+      "token_ids": [
+        3550
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " shuttle",
+      "token_ids": [
+        44541
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " in",
+      "token_ids": [
+        304
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " the",
+      "token_ids": [
+        279
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": " background",
+      "token_ids": [
+        4004
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": ".",
+      "token_ids": [
+        13
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": false,
+      "text": "",
+      "token_ids": [
+        151704
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "text",
+      "finished": true,
+      "text": "",
+      "token_ids": [
+        151645
+      ],
+      "audio_samples": 0,
+      "audio_finite": null,
+      "audio_sha256": null
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 20160,
+      "audio_finite": true,
+      "audio_sha256": "b19d9c73d557dddec543d410fc37de1c6e4a43e13a51fd975ffb84f52574cc02"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "cd8c7665ab3a21bc849ef18f176ceb66a2e2a572e4803ff14812bb3217a5b81f"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "e8c2b70dfe1ca84eeae73551dbd2b6668c192cf5b8366f6a43d3ec6e28d6627e"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "0381782326b6739dd294f834565b0eda2b5d10aa84b37e97e646cdd0504606da"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "214c79394fd38b33241ef77313c55620883e0707c1c616b557849fc7b72420de"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "85e7cec65f593969a8038fb415a1d869f5e3393563be4ab008b8c77e0d704679"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "93fee18622c76fa87523cabd848b38209a7842fc58f111c8289d33511b04a170"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "ff840a1977603d532e743ff7ecf531783ffd5f260954cd0b6befc0ad5f48854a"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "bdedf841510b5ee38b8454475a8bd74153e047f94e16266ca0e2a7bf37820b8f"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": false,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 24000,
+      "audio_finite": true,
+      "audio_sha256": "f8dbfc284ea6f5c4e44515a3613fd837941c33517ef2ef1f43ac46608faae33f"
+    },
+    {
+      "request_id": "minicpmo-after-cancel",
+      "kind": "audio",
+      "finished": true,
+      "text": null,
+      "token_ids": null,
+      "audio_samples": 29760,
+      "audio_finite": true,
+      "audio_sha256": "3e367da91f2edd495aff2bc9c286ce1a6771e0a969e75ab427bd4817e2a3c7f9"
+    }
+  ],
+  "fresh_text_events": 34,
+  "fresh_audio_samples": 265920,
+  "npu_audit": {
+    "placement_target_nodes": 1,
+    "complete_request_numbers": [
+      1,
+      2
+    ],
+    "graph_calls": 5,
+    "close_calls": 5,
+    "projection_relative_l2": [
+      0.006402241066098213,
+      0.006466270424425602
+    ]
+  }
+}

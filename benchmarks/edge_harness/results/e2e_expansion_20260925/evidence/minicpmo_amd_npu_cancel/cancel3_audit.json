@@ -1,0 +1,19 @@
+{
+  "status": "scoped_abort_then_fresh_npu_request_pass",
+  "report_sha256": "4853eca8caaad3d79126434364fc2d15942b2662101312ebcd989f8220250520",
+  "events_sha256": "fafe8e0806970a7a407781aa75fc5e2791bad5c765422117b8b4f92f3501c7b5",
+  "abort_ack_s": 0.0032670379150658846,
+  "late_events": 2,
+  "late_audio_samples": 0,
+  "fresh_wall_s": 39.66214154905174,
+  "fresh_audio_samples": 265920,
+  "npu_graph_calls": 5,
+  "npu_request_numbers": [
+    1,
+    2
+  ],
+  "projection_relative_l2": [
+    0.006402241066098213,
+    0.006466270424425602
+  ]
+}

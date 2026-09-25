@@ -1,0 +1,249 @@
+W0925 18:44:06.384000 3164149 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 18:44:06.428000 3164149 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+WARNING 09-25 18:44:08 [importing.py:65] Triton is installed, but doesn't include CPU backend. Disabling Triton.
+INFO 09-25 18:44:08 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/version.py:55: RuntimeWarning: vLLM and vLLM-Omni appear to have mismatched major/minor versions:
+ --> vLLM-Omni version 0.29.0rc2.dev71+g00510ce38.d20260922
+ --> vLLM version 0.28.0
+This will likely cause compatibility issues.
+  warn_if_misaligned_vllm_version()
+INFO 09-25 18:44:09 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 18:44:09 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 18:44:09 [patch.py:646] CPU AOT compile-cache load shim installed: compiled models are reused across engine starts instead of being recompiled.
+INFO 09-25 18:44:09 [patch.py:756] CPU weight-load memory release installed (set VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable).
+INFO 09-25 18:44:10 [omni_base.py:216] [AsyncOmni] Initializing with model /home/zhout/project/edge_infer/models/MiniCPM-o-4_5
+INFO 09-25 18:44:10 [async_omni_engine.py:172] [AsyncOmniEngine] Initializing with model /home/zhout/project/edge_infer/models/MiniCPM-o-4_5
+INFO 09-25 18:44:10 [async_omni_engine.py:290] [AsyncOmniEngine] Launching Orchestrator thread with 3 stages
+INFO 09-25 18:44:10 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+INFO 09-25 18:44:10 [initialization.py:356] Loaded OmniTransferConfig with 1 connector configurations
+WARNING 09-25 18:44:10 [utils.py:501] Dropping unknown OmniEngineArgs field 'inline_diffusion' (not declared on the dataclass)
+WARNING 09-25 18:44:10 [arg_utils.py:1719] The global random seed is set to 0. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 09-25 18:44:10 [model.py:672] Resolved architecture: MiniCPMO45OmniForConditionalGeneration
+INFO 09-25 18:44:10 [model.py:1965] Using max model len 2048
+WARNING 09-25 18:44:10 [model.py:963] Model does not support mm_device_do_normalize, forcing mm_device_do_normalize = False.
+INFO 09-25 18:44:11 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=2048.
+WARNING 09-25 18:44:11 [vllm.py:1285] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 09-25 18:44:11 [vllm.py:1354] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 09-25 18:44:11 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+WARNING 09-25 18:44:11 [vllm.py:652] Model Runner V2 requires Triton; using the V1 model runner instead.
+INFO 09-25 18:44:11 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+WARNING 09-25 18:44:11 [utils.py:501] Dropping unknown OmniEngineArgs field 'inline_diffusion' (not declared on the dataclass)
+WARNING 09-25 18:44:11 [arg_utils.py:1719] The global random seed is set to 0. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 09-25 18:44:11 [model.py:672] Resolved architecture: MiniCPMO45OmniForConditionalGeneration
+INFO 09-25 18:44:11 [model.py:1965] Using max model len 512
+WARNING 09-25 18:44:11 [model.py:963] Model does not support mm_device_do_normalize, forcing mm_device_do_normalize = False.
+INFO 09-25 18:44:11 [model.py:1965] Using max model len 512
+INFO 09-25 18:44:11 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=512.
+INFO 09-25 18:44:11 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+WARNING 09-25 18:44:11 [utils.py:501] Dropping unknown OmniEngineArgs field 'inline_diffusion' (not declared on the dataclass)
+WARNING 09-25 18:44:11 [arg_utils.py:1719] The global random seed is set to 0. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 09-25 18:44:11 [model.py:672] Resolved architecture: MiniCPMO45Code2Wav
+INFO 09-25 18:44:11 [model.py:1965] Using max model len 4096
+WARNING 09-25 18:44:11 [arg_utils.py:2664] This model does not officially support disabling chunked prefill. Disabling this manually may cause the engine to crash or produce incorrect outputs.
+INFO 09-25 18:44:11 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 09-25 18:44:11 [stage_runtime.py:853] [stage_init] Stage-0 set runtime devices: 0
+INFO 09-25 18:44:11 [stage_init_utils.py:1038] [stage_init] Stage-0 applied runtime env keys: ['PYTHONPATH', 'VLLM_OMNI_MINICPMO_KV_EVENT_LOG', 'VLLM_OMNI_MINICPMO_KV_GRAPH', 'VLLM_OMNI_MINICPMO_KV_MAX_PROJECTION_REL_L2', 'VLLM_OMNI_MINICPMO_KV_MODEL_DIR', 'VLLM_OMNI_MINICPMO_KV_PARITY', 'VLLM_OMNI_MINICPMO_KV_PROFILE_DIR']
+/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/version.py:55: RuntimeWarning: vLLM and vLLM-Omni appear to have mismatched major/minor versions:
+ --> vLLM-Omni version 0.29.0rc2.dev71+g00510ce38.d20260922
+ --> vLLM version 0.28.0
+This will likely cause compatibility issues.
+  warn_if_misaligned_vllm_version()
+/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/version.py:55: RuntimeWarning: vLLM and vLLM-Omni appear to have mismatched major/minor versions:
+ --> vLLM-Omni version 0.29.0rc2.dev71+g00510ce38.d20260922
+ --> vLLM version 0.28.0
+This will likely cause compatibility issues.
+  warn_if_misaligned_vllm_version()
+W0925 18:44:15.363000 3164178 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 18:44:15.364000 3164177 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 18:44:15.388000 3164178 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 18:44:15.388000 3164177 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+WARNING 09-25 18:44:16 [importing.py:65] Triton is installed, but doesn't include CPU backend. Disabling Triton.
+INFO 09-25 18:44:16 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+WARNING 09-25 18:44:16 [importing.py:65] Triton is installed, but doesn't include CPU backend. Disabling Triton.
+INFO 09-25 18:44:16 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+INFO 09-25 18:44:17 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 18:44:17 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 18:44:17 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 18:44:17 [patch.py:646] CPU AOT compile-cache load shim installed: compiled models are reused across engine starts instead of being recompiled.
+INFO 09-25 18:44:17 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 18:44:17 [patch.py:646] CPU AOT compile-cache load shim installed: compiled models are reused across engine starts instead of being recompiled.
+INFO 09-25 18:44:17 [patch.py:756] CPU weight-load memory release installed (set VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable).
+INFO 09-25 18:44:17 [patch.py:756] CPU weight-load memory release installed (set VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable).
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:18 [core.py:122] Initializing a V1 LLM engine (v0.28.0) with config: model='/home/zhout/project/edge_infer/models/MiniCPM-o-4_5', speculative_config=None, tokenizer='/home/zhout/project/edge_infer/models/MiniCPM-o-4_5', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=2048, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=None, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/home/zhout/project/edge_infer/models/MiniCPM-o-4_5, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+[W925 18:44:19.332929604 utils.cpp:68] Warning: NUMA binding: Using MEMBIND policy for memory allocation on the NUMA nodes (0). Memory allocations will be strictly bound to these NUMA nodes. (function init_cpu_memory_env)
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:19 [vllm.py:652] Model Runner V2 requires Triton; using the V1 model runner instead.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:19 [cpu_worker.py:127] libiomp is not found in LD_PRELOAD. For best performance, please follow the section `set LD_PRELOAD` in https://docs.vllm.ai/en/latest/getting_started/installation/cpu/ to setup required pre-loaded libraries.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:19 [parallel_state.py:1638] world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_66ffe7e3c913433486aa7bfedf704520 backend=gloo
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:19 [parallel_state.py:1982] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:19 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) [transformers] `MiniCPMOProcessor` defines `image_processor_class = 'AutoImageProcessor'`, which is deprecated. Register the correct mapping in `AutoImageProcessor` instead.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) [transformers] Requested torchvision backend is not available. Falling back to pil backend.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) [transformers] `MiniCPMOProcessor` defines `feature_extractor_class = 'WhisperFeatureExtractor'`, which is deprecated. Register the correct mapping in `AutoFeatureExtractor` instead.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:25 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:25 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:25 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:25 [cpu_model_runner.py:131] Starting to load model /home/zhout/project/edge_infer/models/MiniCPM-o-4_5...
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:25 [vllm.py:1285] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:25 [vllm.py:1354] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:25 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:25 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:28 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:28 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:28 [selector.py:217] Using HND KV cache layout for CPU_ATTN backend.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:32 [weight_utils.py:858] Filesystem type for checkpoints: EXT4. Checkpoint size: 17.46 GiB. Available RAM: 25.59 GiB.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:32 [weight_utils.py:881] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) Loading safetensors checkpoint shards:   0% Completed | 0/4 [00:00<?, ?it/s]
+(StageEngineCoreProc_stage0_replica0 pid=3164178) Loading safetensors checkpoint shards:  25% Completed | 1/4 [00:00<00:01,  1.71it/s]
+(StageEngineCoreProc_stage0_replica0 pid=3164178) Loading safetensors checkpoint shards:  50% Completed | 2/4 [00:01<00:01,  1.09it/s]
+(StageEngineCoreProc_stage0_replica0 pid=3164178) Loading safetensors checkpoint shards:  75% Completed | 3/4 [00:02<00:00,  1.00it/s]
+(StageEngineCoreProc_stage0_replica0 pid=3164178) Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:02<00:00,  1.37it/s]
+(StageEngineCoreProc_stage0_replica0 pid=3164178) 
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:47 [default_loader.py:430] Loading weights took 14.74 seconds
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:49 [memory.py:91] Released 569 MiB after weight load (anonymous RSS 21040 -> 20472 MiB) via ['libc.so.6:malloc_trim', 'libtcmalloc_minimal.so.4:MallocExtension_ReleaseFreeMemory']
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:49 [cpu_worker.py:255] Explicitly set (1.0/30.91) GiB for KV cache on node 0.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:49 [kv_cache_utils.py:1869] GPU KV cache size: 7,168 tokens, Maximum concurrency for 2,048 tokens per request: 3.50x
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:49 [memory.py:91] Released 0 MiB after warm-up (anonymous RSS 21480 -> 21480 MiB) via ['libc.so.6:malloc_trim', 'libtcmalloc_minimal.so.4:MallocExtension_ReleaseFreeMemory']
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:49 [core.py:354] init engine (profile, create kv cache, warmup model) took 0.11 s
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:49 [scheduler.py:182] Using custom scheduler class vllm_omni.core.sched.omni_ar_scheduler.OmniARAsyncScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:49 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:44:49 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:49 [factory.py:46] Created connector: SharedMemoryConnector
+(StageEngineCoreProc_stage0_replica0 pid=3164178) INFO 09-25 18:44:50 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 09-25 18:44:50 [stage_runtime.py:943] [StageRuntime] Stage 0 engine startup completed
+INFO 09-25 18:44:50 [stage_engine_core_client.py:166] [StageEngineCoreClient] stage-0 [rep-0] initializing EngineCore
+INFO 09-25 18:44:50 [stage_engine_core_client.py:222] [StageEngineCoreClient] stage-0 [rep-0] EngineCore running
+INFO 09-25 18:44:50 [stage_runtime.py:958] [StageRuntime] Stage 0 initialized
+INFO 09-25 18:44:50 [stage_runtime.py:853] [stage_init] Stage-1 set runtime devices: 0
+W0925 18:44:53.971000 3164326 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 18:44:53.995000 3164326 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+WARNING 09-25 18:44:55 [importing.py:65] Triton is installed, but doesn't include CPU backend. Disabling Triton.
+INFO 09-25 18:44:55 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/version.py:55: RuntimeWarning: vLLM and vLLM-Omni appear to have mismatched major/minor versions:
+ --> vLLM-Omni version 0.29.0rc2.dev71+g00510ce38.d20260922
+ --> vLLM version 0.28.0
+This will likely cause compatibility issues.
+  warn_if_misaligned_vllm_version()
+INFO 09-25 18:44:56 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 18:44:56 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 18:44:56 [patch.py:646] CPU AOT compile-cache load shim installed: compiled models are reused across engine starts instead of being recompiled.
+INFO 09-25 18:44:56 [patch.py:756] CPU weight-load memory release installed (set VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable).
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:44:56 [core.py:122] Initializing a V1 LLM engine (v0.28.0) with config: model='/home/zhout/project/edge_infer/models/MiniCPM-o-4_5', speculative_config=None, tokenizer='/home/zhout/project/edge_infer/models/MiniCPM-o-4_5', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=512, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=None, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/home/zhout/project/edge_infer/models/MiniCPM-o-4_5, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': [512], 'inductor_compile_config': {'enable_auto_functionalized_v2': False}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+[W925 18:44:57.764703925 utils.cpp:68] Warning: NUMA binding: Using MEMBIND policy for memory allocation on the NUMA nodes (0). Memory allocations will be strictly bound to these NUMA nodes. (function init_cpu_memory_env)
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:44:57 [vllm.py:652] Model Runner V2 requires Triton; using the V1 model runner instead.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:44:57 [cpu_worker.py:127] libiomp is not found in LD_PRELOAD. For best performance, please follow the section `set LD_PRELOAD` in https://docs.vllm.ai/en/latest/getting_started/installation/cpu/ to setup required pre-loaded libraries.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:44:57 [parallel_state.py:1638] world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_847b7636a3b84e0ba5fea6eb9f85bc0a backend=gloo
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:44:57 [parallel_state.py:1982] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:44:57 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) [transformers] `MiniCPMOProcessor` defines `image_processor_class = 'AutoImageProcessor'`, which is deprecated. Register the correct mapping in `AutoImageProcessor` instead.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) [transformers] Requested torchvision backend is not available. Falling back to pil backend.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) [transformers] `MiniCPMOProcessor` defines `feature_extractor_class = 'WhisperFeatureExtractor'`, which is deprecated. Register the correct mapping in `AutoFeatureExtractor` instead.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) [transformers] Image processor MiniCPMVImageProcessor: kwargs ['max_slice_nums'] were applied for backward compatibility. To avoid this warning, add them to valid_kwargs: create a custom TypedDict extending ImagesKwargs with these keys and set it as the `valid_kwargs` class attribute.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:05 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:05 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:05 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:05 [factory.py:46] Created connector: SharedMemoryConnector
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:05 [cpu_model_runner.py:131] Starting to load model /home/zhout/project/edge_infer/models/MiniCPM-o-4_5...
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:05 [vllm.py:1285] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:05 [vllm.py:1354] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:05 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:05 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:05 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:05 [selector.py:217] Using HND KV cache layout for CPU_ATTN backend.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:06 [weight_utils.py:858] Filesystem type for checkpoints: EXT4. Checkpoint size: 17.46 GiB. Available RAM: 6.54 GiB.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:06 [weight_utils.py:888] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre) and the checkpoint size (17.46 GiB) exceeds 90% of available RAM (6.54 GiB).
+(StageEngineCoreProc_stage1_replica0 pid=3164326) Loading safetensors checkpoint shards:   0% Completed | 0/4 [00:00<?, ?it/s]
+(StageEngineCoreProc_stage1_replica0 pid=3164326) Loading safetensors checkpoint shards:  25% Completed | 1/4 [00:00<00:00,  3.21it/s]
+(StageEngineCoreProc_stage1_replica0 pid=3164326) Loading safetensors checkpoint shards:  50% Completed | 2/4 [00:01<00:01,  1.17it/s]
+(StageEngineCoreProc_stage1_replica0 pid=3164326) Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:02<00:00,  1.55it/s]
+(StageEngineCoreProc_stage1_replica0 pid=3164326) Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:02<00:00,  1.54it/s]
+(StageEngineCoreProc_stage1_replica0 pid=3164326) 
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:09 [default_loader.py:430] Loading weights took 3.10 seconds
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:09 [memory.py:91] Released 75 MiB after weight load (anonymous RSS 1534 -> 1459 MiB) via ['libc.so.6:malloc_trim', 'libtcmalloc_minimal.so.4:MallocExtension_ReleaseFreeMemory']
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:09 [cpu_worker.py:255] Explicitly set (1.0/30.91) GiB for KV cache on node 0.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:09 [kv_cache_utils.py:1869] GPU KV cache size: 17,408 tokens, Maximum concurrency for 512 tokens per request: 34.00x
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:10 [memory.py:91] Released -0 MiB after warm-up (anonymous RSS 2481 -> 2482 MiB) via ['libc.so.6:malloc_trim', 'libtcmalloc_minimal.so.4:MallocExtension_ReleaseFreeMemory']
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:10 [core.py:354] init engine (profile, create kv cache, warmup model) took 0.77 s
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:10 [scheduler.py:182] Using custom scheduler class vllm_omni.core.sched.omni_ar_scheduler.OmniARAsyncScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:10 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) WARNING 09-25 18:45:10 [cpu_worker.py:153] CPU backend doesn't allow to use `torch.set_num_threads` after the thread binding, skip it.
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:10 [factory.py:46] Created connector: SharedMemoryConnector
+(StageEngineCoreProc_stage1_replica0 pid=3164326) INFO 09-25 18:45:11 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 09-25 18:45:11 [stage_runtime.py:943] [StageRuntime] Stage 1 engine startup completed
+INFO 09-25 18:45:11 [stage_engine_core_client.py:166] [StageEngineCoreClient] stage-1 [rep-0] initializing EngineCore
+INFO 09-25 18:45:11 [stage_engine_core_client.py:222] [StageEngineCoreClient] stage-1 [rep-0] EngineCore running
+INFO 09-25 18:45:11 [stage_runtime.py:958] [StageRuntime] Stage 1 initialized
+INFO 09-25 18:45:11 [stage_runtime.py:853] [stage_init] Stage-2 set runtime devices: 0
+W0925 18:45:18.058000 3164447 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 18:45:18.102000 3164447 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+WARNING 09-25 18:45:19 [importing.py:65] Triton is installed, but doesn't include CPU backend. Disabling Triton.
+INFO 09-25 18:45:19 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/version.py:55: RuntimeWarning: vLLM and vLLM-Omni appear to have mismatched major/minor versions:
+ --> vLLM-Omni version 0.29.0rc2.dev71+g00510ce38.d20260922
+ --> vLLM version 0.28.0
+This will likely cause compatibility issues.
+  warn_if_misaligned_vllm_version()
+INFO 09-25 18:45:21 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 18:45:21 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 18:45:21 [patch.py:646] CPU AOT compile-cache load shim installed: compiled models are reused across engine starts instead of being recompiled.
+INFO 09-25 18:45:21 [patch.py:756] CPU weight-load memory release installed (set VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable).
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:22 [core.py:122] Initializing a V1 LLM engine (v0.28.0) with config: model='/home/zhout/project/edge_infer/models/MiniCPM-o-4_5', speculative_config=None, tokenizer='/home/zhout/project/edge_infer/models/MiniCPM-o-4_5', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=None, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cpu, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/home/zhout/project/edge_infer/models/MiniCPM-o-4_5, enable_prefix_caching=False, enable_chunked_prefill=False, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': [4096], 'inductor_compile_config': {'enable_auto_functionalized_v2': False}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+[W925 18:45:22.281579382 utils.cpp:68] Warning: NUMA binding: Using MEMBIND policy for memory allocation on the NUMA nodes (0). Memory allocations will be strictly bound to these NUMA nodes. (function init_cpu_memory_env)
+(StageEngineCoreProc_stage2_replica0 pid=3164447) WARNING 09-25 18:45:22 [vllm.py:652] Model Runner V2 requires Triton; using the V1 model runner instead.
+(StageEngineCoreProc_stage2_replica0 pid=3164447) WARNING 09-25 18:45:22 [cpu_worker.py:127] libiomp is not found in LD_PRELOAD. For best performance, please follow the section `set LD_PRELOAD` in https://docs.vllm.ai/en/latest/getting_started/installation/cpu/ to setup required pre-loaded libraries.
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:22 [parallel_state.py:1638] world_size=1 rank=0 local_rank=0 distributed_init_method=file:///tmp/vllm_dist_cab3d284377348fbbe72afa0239f2160 backend=gloo
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:22 [parallel_state.py:1982] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:22 [factory.py:46] Created connector: SharedMemoryConnector
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:22 [cpu_model_runner.py:131] Starting to load model /home/zhout/project/edge_infer/models/MiniCPM-o-4_5...
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:22 [weight_utils.py:858] Filesystem type for checkpoints: EXT4. Checkpoint size: 17.46 GiB. Available RAM: 6.37 GiB.
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:22 [weight_utils.py:888] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre) and the checkpoint size (17.46 GiB) exceeds 90% of available RAM (6.37 GiB).
+(StageEngineCoreProc_stage2_replica0 pid=3164447) Loading safetensors checkpoint shards:   0% Completed | 0/4 [00:00<?, ?it/s]
+(StageEngineCoreProc_stage2_replica0 pid=3164447) Loading safetensors checkpoint shards:  25% Completed | 1/4 [00:00<00:00,  7.74it/s]
+(StageEngineCoreProc_stage2_replica0 pid=3164447) Loading safetensors checkpoint shards:  50% Completed | 2/4 [00:00<00:00,  2.92it/s]
+(StageEngineCoreProc_stage2_replica0 pid=3164447) Loading safetensors checkpoint shards:  75% Completed | 3/4 [00:02<00:00,  1.09it/s]
+(StageEngineCoreProc_stage2_replica0 pid=3164447) Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:02<00:00,  1.72it/s]
+(StageEngineCoreProc_stage2_replica0 pid=3164447) 
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:25 [step_audio2_token2wav.py:163] Loading Token2Wav models from: /home/zhout/project/edge_infer/models/MiniCPM-o-4_5/assets/token2wav
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:31 [step_audio2_token2wav.py:201] Token2Wav models loaded successfully
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:31 [default_loader.py:430] Loading weights took 8.51 seconds
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:31 [memory.py:91] Released 515 MiB after weight load (anonymous RSS 4479 -> 3964 MiB) via ['libc.so.6:malloc_trim', 'libtcmalloc_minimal.so.4:MallocExtension_ReleaseFreeMemory']
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:31 [memory.py:91] Released 0 MiB after warm-up (anonymous RSS 3964 -> 3964 MiB) via ['libc.so.6:malloc_trim', 'libtcmalloc_minimal.so.4:MallocExtension_ReleaseFreeMemory']
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:31 [core.py:354] init engine (profile, create kv cache, warmup model) took 0.00 s
+(StageEngineCoreProc_stage2_replica0 pid=3164447) WARNING 09-25 18:45:32 [scheduler.py:182] Using custom scheduler class vllm_omni.core.sched.omni_generation_scheduler.OmniGenerationScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:32 [factory.py:46] Created connector: SharedMemoryConnector
+(StageEngineCoreProc_stage2_replica0 pid=3164447) WARNING 09-25 18:45:32 [vllm.py:1285] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(StageEngineCoreProc_stage2_replica0 pid=3164447) WARNING 09-25 18:45:32 [vllm.py:1354] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:32 [kernel.py:308] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(StageEngineCoreProc_stage2_replica0 pid=3164447) INFO 09-25 18:45:32 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+INFO 09-25 18:45:32 [stage_runtime.py:943] [StageRuntime] Stage 2 engine startup completed
+INFO 09-25 18:45:32 [stage_engine_core_client.py:166] [StageEngineCoreClient] stage-2 [rep-0] initializing EngineCore
+INFO 09-25 18:45:32 [stage_engine_core_client.py:222] [StageEngineCoreClient] stage-2 [rep-0] EngineCore running
+INFO 09-25 18:45:32 [stage_runtime.py:958] [StageRuntime] Stage 2 initialized
+[transformers] `MiniCPMOProcessor` defines `image_processor_class = 'AutoImageProcessor'`, which is deprecated. Register the correct mapping in `AutoImageProcessor` instead.
+[transformers] Requested torchvision backend is not available. Falling back to pil backend.
+[transformers] `MiniCPMOProcessor` defines `feature_extractor_class = 'WhisperFeatureExtractor'`, which is deprecated. Register the correct mapping in `AutoFeatureExtractor` instead.
+INFO 09-25 18:45:55 [orchestrator.py:604] [Orchestrator] Starting event loop
+INFO 09-25 18:45:55 [async_omni_engine.py:323] [AsyncOmniEngine] Orchestrator ready with 3 stages
+INFO 09-25 18:45:55 [omni_base.py:235] [AsyncOmni] AsyncOmniEngine initialized in 105.54 seconds
+INFO 09-25 18:45:55 [omni_base.py:255] [AsyncOmni] Initialized with 3 stages for model /home/zhout/project/edge_infer/models/MiniCPM-o-4_5
+WARNING 09-25 18:45:55 [input_processor.py:296] Passing raw prompts to InputProcessor is deprecated and will be removed in v0.18. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().
+(StageEngineCoreProc_stage0_replica0 pid=3164178) [transformers] `use_return_dict` is deprecated! Use `return_dict` instead!
+(StageEngineCoreProc_stage0_replica0 pid=3164178) WARNING 09-25 18:46:41 [gpu_ar_model_runner.py:1464] prefer_model_sampler model MiniCPMO45OmniForConditionalGeneration returned None from sample(); falling back to the default sampler.
+INFO 09-25 18:46:41 [orchestrator.py:917] [Orchestrator] Aborted request(s) ['minicpmo-cancel-8d02c283']
+INFO 09-25 18:47:13 [omni_base.py:781] [AsyncOmni] Shutting down
+INFO 09-25 18:47:13 [async_omni_engine.py:1807] [AsyncOmniEngine] Shutting down Orchestrator
+INFO 09-25 18:47:13 [orchestrator.py:705] [Orchestrator] Received shutdown signal
+INFO 09-25 18:47:13 [orchestrator.py:3092] [Orchestrator] Shutting down all 3 client(s)
+INFO 09-25 18:47:13 [core_client.py:689] [shutdown] MPClient: start timeout=30.0s
+INFO 09-25 18:47:13 [core_client.py:691] [shutdown] MPClient: stopping engine manager
+INFO 09-25 18:47:13 [utils.py:615] [shutdown] Process manager: send sigterm to process StageEngineCoreProc_stage0_replica0
+INFO 09-25 18:47:35 [core_client.py:693] [shutdown] MPClient: engine manager stopped
+INFO 09-25 18:47:35 [core_client.py:694] [shutdown] MPClient: cleaning up background resources
+INFO 09-25 18:47:35 [core_client.py:696] [shutdown] MPClient: complete
+INFO 09-25 18:47:35 [stage_pool.py:1354] [StagePool] Stage 0 replica 0 shut down
+INFO 09-25 18:47:35 [core_client.py:689] [shutdown] MPClient: start timeout=30.0s
+INFO 09-25 18:47:35 [utils.py:615] [shutdown] Process manager: send sigterm to process StageEngineCoreProc_stage1_replica0
+INFO 09-25 18:47:38 [stage_pool.py:1354] [StagePool] Stage 1 replica 0 shut down
+INFO 09-25 18:47:38 [core_client.py:689] [shutdown] MPClient: start timeout=30.0s
+INFO 09-25 18:47:38 [utils.py:615] [shutdown] Process manager: send sigterm to process StageEngineCoreProc_stage2_replica0
+INFO 09-25 18:47:42 [stage_pool.py:1354] [StagePool] Stage 2 replica 0 shut down
+{"status": "cancel_then_fresh_complete_pass", "startup_s": 105.54240162391216, "abort_ack_s": 0.003180852043442428, "late_audio_samples": 0, "fresh_wall_s": 32.19361475203186, "fresh_text_events": 36, "fresh_audio_samples": 247680}

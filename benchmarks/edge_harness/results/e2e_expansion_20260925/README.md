@@ -42,6 +42,12 @@ for the cat; each output met a same-input BF16 CPU projection gate below
 1% relative L2. A 384-token talker plan allowed both NPU spoken responses
 to finish in the pinned ASR proxy. Text and acoustic outputs still differ,
 and the separate heavy-swap runs do not justify default NPU placement.
+A [same-engine MiniCPM-o NPU abort/recovery probe](evidence/minicpmo_amd_npu_cancel/README.md)
+aborted a cat audio+image request after its first text token with no late
+audio, then completed a distinct astronaut audio+image request with finite
+speech. The NPU worker executed one plus four KV-projection calls across
+both requests and closed cleanly. Mid-NPU-call and post-PCM cancellation,
+worker crashes, broad quality and whole-chain benefit remain open.
 
 The [InternVLA HX370 AMD NPU batch-one experiment](evidence/internvla_amd_npu_batch1/README.md)
 isolated a six-frame VitisAI convolution failure to frames 1–5, then
