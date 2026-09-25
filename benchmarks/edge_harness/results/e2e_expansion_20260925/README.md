@@ -16,6 +16,14 @@ A tighter full-cache capacity left the physical ring at 9.878% worst logit
 error; a chronological ring read reduced it to 0.511%, while an alternative
 rolled-window controller reached 10.216% on the same 500-token fixture.
 The tested fixed-shape alternatives remain unqualified for mobile generation.
+A [16-slot full-cache bucket audit](evidence/spark_decode_boundary/README.md#full-cache-bucket-growth-and-new-kv-audit)
+then measured new-K/V error against the source over 128 steps at 500- and
+1000-token prompts. Both fixed and bucketed layouts kept 128/128 next-token
+matches, but the worst state relative L2 was 1.3387% at 500 tokens and
+257.4521% at 1000 tokens for either layout. Bucketing left the 500-token per-step errors unchanged and did
+not repair the 1000-token maximum or first >1% state error. These are HX370
+WSL CPU controls; neither result advances S25 beyond its one-layer NPU
+component evidence.
 
 The [MiniCPM-o HX370 AMD NPU projection experiment](evidence/minicpmo_amd_npu_projection/README.md)
 extracts a state-safe speech-token projection after the CPU speech head.

@@ -294,6 +294,42 @@ def test_fixed_decode_cache_crosses_window_and_rejects_stale_commit():
 
 @pytest.mark.core_model
 @pytest.mark.cpu
+def test_full_cache_bucket_growth_preserves_owned_state():
+    cfg = _cfg()
+    prefill = []
+    for layer_type in cfg.layer_types:
+        length = 7 if layer_type == SLIDING else 10
+        data = torch.arange(length, dtype=torch.float32).view(1, 1, length, 1)
+        cache = data.expand(1, cfg.num_key_value_heads, length, cfg.head_dim).clone()
+        prefill.append((cache, cache.clone()))
+    state = SparkDecodeCache(cfg, max_context=10)
+    direct = SparkDecodeCache(cfg, max_context=12)
+    state.seed(prefill, position=10)
+    direct.seed(prefill, position=10)
+    before = [buffer.clone() for buffer in state.buffers]
+    with pytest.raises(ValueError, match="larger capacity"):
+        state.grow_full_capacity(10)
+    assert all(torch.equal(a, b) for a, b in zip(before, state.buffers))
+    state.grow_full_capacity(12)
+    assert state.max_context == 12 and state.position == 10
+    assert all(torch.equal(a, b) for a, b in zip(state.buffers, direct.buffers))
+    x = torch.zeros(1, 1, cfg.hidden_size)
+    assert all(torch.equal(a, b) for a, b in zip(state.step_inputs(x),
+                                                 direct.step_inputs(x)))
+    step = SparkDecodeStep(cfg).eval()
+    with torch.no_grad():
+        outputs = step(*state.step_inputs(x))
+    state.commit(outputs, expected_position=10)
+    direct.commit(outputs, expected_position=10)
+    assert state.position == direct.position == 11
+    assert all(torch.equal(a, b) for a, b in zip(state.buffers, direct.buffers))
+    state.clear()
+    with pytest.raises(ValueError, match="active state"):
+        state.grow_full_capacity(14)
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
 def test_fixed_decode_cache_masks_unfilled_ring_slots():
     cfg = _cfg()
     state = SparkDecodeCache(cfg, max_context=16)

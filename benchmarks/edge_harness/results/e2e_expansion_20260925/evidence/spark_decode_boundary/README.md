@@ -112,6 +112,40 @@ The tight-capacity ring reports retain the prior probe/export source hashes;
 the roll report records the revised state controller and probe hashes. No row
 is an on-device or compiled QNN result.
 
+## Full-cache bucket growth and new-K/V audit
+
+The CPU reference cache can now grow its seven full-attention K/V buffers at
+an admitted bucket boundary without discarding committed state. The
+[bucket audit](bucket_audit.json), produced by the
+[comparison script](../../../../experiments/audit_spark_cache_buckets.py),
+compares fixed-capacity and 16-slot bucket runs using identical checkpoint,
+prompt IDs, 128 teacher-forced input tokens, BF16 arithmetic and chronological
+sliding-ring reads. All four runs used the HX370 WSL CPU, not an S25 backend.
+The 500-token prompt crosses 512; the 1000-token prompt crosses 1024.
+
+| CPU run | Full-attention capacity | Top-1 matches | Worst logits relative L2 | Worst new-K/V relative L2 | First new-K/V error >1% |
+|---|---:|---:|---:|---:|---:|
+| [500, fixed](cross_512_bf16_ordered_static628_kv_128.json) | 628 | 128/128 | 0.5114% | 1.3387% | position 562 |
+| [500, bucket 16](cross_512_bf16_ordered_bucket16_kv_128.json) | 512→640, eight growths | 128/128 | 0.5114% | 1.3387% | position 562 |
+| [1000, fixed](cross_1024_bf16_ordered_static1128_kv_128.json) | 1128 | 128/128 | 4.1967% | 257.4521% | position 1063 |
+| [1000, bucket 16](cross_1024_bf16_ordered_bucket16_kv_128.json) | 1008→1136, eight growths | 128/128 | 4.1967% | 257.4521% | position 1063 |
+
+For the 500-token fixture, bucketing changed neither per-step logit nor
+new-K/V error. For the 1000-token fixture, it changed the per-step logit error
+at 16 positions and new-K/V error at one position, but neither worst error nor
+the first state-gate failure. The worst bucketed value tensor at position 1094
+(layer 15) had reference L2 norm 8.699, candidate norm 22.203 and maximum
+absolute error 3.079; its 257.4521% relative error is not caused by a
+near-zero reference norm. Exact filled-length inputs previously matched the
+source bitwise, so these failures are specific to the tested padded static
+attention layouts. Top-1 agreement on this teacher-forced fixture does not
+clear the state gate or establish free-running generation quality.
+
+The next numerical experiment should isolate BF16 attention reduction and
+padding behavior at the first failing position, then evaluate a compiled
+target artifact using its actual supported shapes and cache ordering. No
+full-device Spark E2E or mobile performance claim follows from these CPU runs.
+
 Reproduce from the repository root with the local checkpoint and CPU venv:
 
 ```bash
@@ -142,12 +176,17 @@ $PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
   --reference-dtype bfloat16 --export-arithmetic hf_bf16_reference \
   --cache-layout roll --context-capacity 628 \
   --report /tmp/spark_cross_512_bf16_roll_static628.json
+$PY benchmarks/edge_harness/experiments/probe_spark_decode_boundary.py \
+  --model "$MODEL" --prefill-tokens 1000 --decode-steps 128 \
+  --reference-dtype bfloat16 --export-arithmetic hf_bf16_reference \
+  --ordered-sliding --full-bucket-width 16 \
+  --report /tmp/spark_cross_1024_bf16_bucket16.json
 $PY -m pytest tests/edge/test_spark_export.py -q
 ```
 
-The focused suite passed 21/21 tests, including fixed-capacity masks,
+The focused suite passed 22/22 tests, including fixed-capacity masks,
 atomic shape validation, ring replacement, stale-commit rejection, state
-retirement and chronological roll-cache state. The current probe still obtains
+retirement, bucket growth and chronological roll-cache state. The current probe still obtains
 prefill and token embeddings
 from Hugging Face on WSL CPU. The next M1 gate is a resident S25 prefill and
 28-layer decode backend with the same state contract, an accepted precision

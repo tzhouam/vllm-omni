@@ -441,6 +441,29 @@ class SparkDecodeCache:
             *self.buffers,
         )
 
+    def grow_full_capacity(self, new_capacity: int) -> None:
+        """Preserve committed state while moving to a larger full-cache bucket.
+
+        The caller must admit the new allocation before invoking this CPU
+        reference method. Allocate every replacement first so a failure leaves
+        the old state intact. Sliding windows keep their ring/roll layout.
+        """
+        if self._closed or not self._seeded or new_capacity <= self.max_context:
+            raise ValueError("growth requires active state and a larger capacity")
+        replacements = list(self.buffers)
+        for layer, layer_type in enumerate(self.cfg.layer_types):
+            if layer_type != FULL:
+                continue
+            for offset in (0, 1):
+                index = 2 * layer + offset
+                old = self.buffers[index]
+                grown = old.new_zeros((old.shape[0], old.shape[1], new_capacity,
+                                       old.shape[3]))
+                grown[:, :, :self.max_context].copy_(old)
+                replacements[index] = grown
+        self.buffers = replacements
+        self.max_context = new_capacity
+
     def commit(self, outputs: tuple[torch.Tensor, ...], *, expected_position: int) -> None:
         """Publish a completed decode step once, after all graph outputs exist."""
         if self._closed or not self._seeded:

@@ -1,0 +1,55 @@
+{
+  "scope": "real-weight BF16 CPU Spark decode with self-owned KV; fixed versus 16-slot full-cache buckets, not mobile execution",
+  "rows": [
+    {
+      "prompt_tokens": 500,
+      "fixed_report_sha256": "f2b0ac9fb8696e96fa0634aa956ccdab817be3eff04a2433f9ce3afaf4697aaf",
+      "bucket_report_sha256": "7e2b76d0cd713643c5bf3d8c616999c0a5e2f1b912d7d9280d0ff69a8ca6c6cf",
+      "prompt_ids_sha256": "a8fd31e00a55f2e4d3ba69ff7254ba5d09cc128e4deedad2534a1d6b1a762a84",
+      "step_count": 128,
+      "top1_matches": 128,
+      "logit_error_changed_steps": 0,
+      "new_kv_error_changed_steps": 0,
+      "max_logits_relative_l2": 0.0051137525588274,
+      "max_new_kv_relative_l2": 0.013386525579953746,
+      "fixed_max_new_kv_relative_l2": 0.013386525579953746,
+      "first_new_kv_over_1pct_position": 562,
+      "worst_new_kv_position": 624,
+      "worst_new_kv": {
+        "layer": 20,
+        "kind": "value"
+      },
+      "fixed_full_capacity": 628,
+      "bucket_initial_capacity": 512,
+      "bucket_final_capacity": 640,
+      "bucket_transition_count": 8
+    },
+    {
+      "prompt_tokens": 1000,
+      "fixed_report_sha256": "2ec780d4f660051dd523f82c1949835f66aba371fdbb1f53c8880206940f3092",
+      "bucket_report_sha256": "c62c603a20e8dc490691e233749468cf8966c6c9616b24fe647890c9e154e1f0",
+      "prompt_ids_sha256": "698dac1b20bbdff4d6f295adb9dcdcb131ab3898f91ae8f08568353b6f5dc3e4",
+      "step_count": 128,
+      "top1_matches": 128,
+      "logit_error_changed_steps": 16,
+      "new_kv_error_changed_steps": 1,
+      "max_logits_relative_l2": 0.04196709021925926,
+      "max_new_kv_relative_l2": 2.5745213234034914,
+      "fixed_max_new_kv_relative_l2": 2.5745213234034914,
+      "first_new_kv_over_1pct_position": 1063,
+      "worst_new_kv_position": 1094,
+      "worst_new_kv": {
+        "layer": 15,
+        "kind": "value",
+        "reference_l2_norm": 8.699417873768446,
+        "candidate_l2_norm": 22.203152543639316,
+        "max_abs_error": 3.0794677734375
+      },
+      "fixed_full_capacity": 1128,
+      "bucket_initial_capacity": 1008,
+      "bucket_final_capacity": 1136,
+      "bucket_transition_count": 8
+    }
+  ],
+  "status": "buckets_do_not_repair_state_gate"
+}
