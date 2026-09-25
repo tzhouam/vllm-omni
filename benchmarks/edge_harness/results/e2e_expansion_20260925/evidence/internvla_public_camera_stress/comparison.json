@@ -1,0 +1,93 @@
+{
+  "scope": "same simulated-camera fixture and synthetic state; whole policy only, no robot-task quality",
+  "fixture_sha256": {
+    "input_fixture": "58c0dc3d68f6226e85766c3f831b3a2cd3e68d0550e9a86eca9036ed4e594277",
+    "fixture_manifest": "f4480d3e56368b3be104955b0af4b4bf0cddbbf8998e75d4ab7a5903fa96224f"
+  },
+  "source": "griffinlabs/InternData-A1-LeRobot-v3.0-by-embodiment@c621c2e12e1f4aaa634f3d89e3573ca969087235",
+  "source_task": "Pick up the pen with the left arm and place it in the basket",
+  "checkpoint_task": "Place the marker pen in its holder.",
+  "profiles": {
+    "cpu": {
+      "report_sha256": "5be3d93e5f613ebdd431e68e837582c2c6003799c85a8ae2154db1f6a4378e4f",
+      "actions_sha256": "dcdbf5596b8af85ce206543ce6f58f574d817c1349993ceb09ca279feedcbfdf",
+      "action_tensor_sha256": "cf6a7e34d7e84285a477f4b4acb158432f5f11bb465c37ca9114a6f455ad6b83",
+      "startup_s": 129.03939319995698,
+      "n": 5,
+      "p50_wall_s": 3.3653833999997005,
+      "p95_wall_s": 3.5160112999146804,
+      "loaded_rss_bytes": 9034428416
+    },
+    "npu": {
+      "report_sha256": "5668dff55393db6e052ad4d7d1637348f732c297475998856be83ee1237af56b",
+      "actions_sha256": "e62098ae6e1a96e40911e8fb25c4aa1f6609ef737578a7fff16ccf02423f9166",
+      "action_tensor_sha256": "502561cfda74624ba79bcca83030f9ebac49bb0de6d26437916e5f00210cc06d",
+      "startup_s": 139.76239890011493,
+      "n": 5,
+      "p50_wall_s": 4.956776299979538,
+      "p95_wall_s": 5.100628999993205,
+      "loaded_rss_bytes": 9316794368
+    },
+    "radeon": {
+      "report_sha256": "762c185bcb256405aa67db938dcb118d79982b8c28fb48ff3aa7fe235aafa227",
+      "actions_sha256": "64207cd0b325a20911fba0aa789e38e10f5865d0829a1a9aafd5277707d07a3c",
+      "action_tensor_sha256": "b5895655212d8743be50b00c87754624614741d902dd60962eaef859a673af55",
+      "startup_s": 143.9993787999265,
+      "n": 5,
+      "p50_wall_s": 4.2702283000107855,
+      "p95_wall_s": 4.312674300046638,
+      "loaded_rss_bytes": 11718512640
+    },
+    "joint": {
+      "report_sha256": "2ff07c767c950a08c111501d603322e4c21e4a87c5e71a48f5a74d48fc7cef3b",
+      "actions_sha256": "81f294a94d4dfbf06856e7a7918aa8d38a0f11d23979639c8adade30c7a05ba6",
+      "action_tensor_sha256": "9ad4c8a43c38a59eed67f0ee1ef32735c687773a4668328bdfd3f83e38d909a9",
+      "startup_s": 121.51768459996674,
+      "n": 5,
+      "p50_wall_s": 3.182763500022702,
+      "p95_wall_s": 3.2266535001108423,
+      "loaded_rss_bytes": 10214232064
+    },
+    "joint_after_radeon": {
+      "report_sha256": "700a01253db913f5109b89bc0764e3d7d8bff5b88ee2eb0801fdced3b1864c2e",
+      "actions_sha256": "81f294a94d4dfbf06856e7a7918aa8d38a0f11d23979639c8adade30c7a05ba6",
+      "action_tensor_sha256": "9ad4c8a43c38a59eed67f0ee1ef32735c687773a4668328bdfd3f83e38d909a9",
+      "startup_s": 142.61671009997372,
+      "n": 5,
+      "p50_wall_s": 4.284363799961284,
+      "p95_wall_s": 4.3203823999501765,
+      "loaded_rss_bytes": 10190827520
+    }
+  },
+  "pairwise_action_relative_l2": {
+    "npu_vs_cpu": 0.01546047407329131,
+    "radeon_vs_cpu": 0.010024430709935882,
+    "joint_vs_cpu": 0.006822850013883416,
+    "joint_vs_npu": 0.011000295968938341,
+    "joint_vs_radeon": 0.006878535338359095,
+    "joint_repeat_vs_joint": 0.0
+  },
+  "npu_warmup_node_events": {
+    "npu": 1,
+    "joint": 1,
+    "joint_after_radeon": 1
+  },
+  "joint_suffix_provider_node_counts": {
+    "DmlExecutionProvider": 357,
+    "CPUExecutionProvider": 34
+  },
+  "joint_order_check": {
+    "first_joint_p50_wall_s": 3.182763500022702,
+    "joint_after_radeon_p50_wall_s": 4.284363799961284,
+    "same_action_tensor": true,
+    "interpretation": "run-order variation prevents a reliable speedup conclusion"
+  },
+  "radeon_full_encoder_placement": {
+    "device_name": "AMD Radeon(TM) 890M Graphics",
+    "placement_granularity": "output_device",
+    "node_counts": {
+      "dml": 1,
+      "cpu": 0
+    }
+  }
+}
