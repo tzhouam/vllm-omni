@@ -24,6 +24,7 @@ from vllm.v1.spec_decode.metrics import SpecDecodingStats
 
 from vllm_omni.core.sched.omni_scheduler_mixin import OmniSchedulerMixin
 from vllm_omni.core.sched.utils import omni_routed_experts_for_request
+from vllm_omni.distributed.omni_connectors.utils.config import stage_sends_async_output
 from vllm_omni.engine import OmniEngineCoreOutput
 from vllm_omni.engine.serialization import deserialize_additional_information
 
@@ -679,8 +680,12 @@ class OmniARScheduler(OmniSchedulerMixin, VLLMScheduler):
                 # Invariant: EngineCore returns no partial prefill outputs.
                 assert not prompt_logprobs_tensors
 
-            if self.chunk_transfer_adapter is not None and (
-                inter_stage_output is not None or is_segment_finished or finished
+            # Match the model runner's output partition: a connector-less
+            # orchestrator bridge must not write an unconsumed terminal chunk.
+            if (
+                self.chunk_transfer_adapter is not None
+                and stage_sends_async_output(self.vllm_config.model_config)
+                and (inter_stage_output is not None or is_segment_finished or finished)
             ):
                 save_kwargs = {
                     "new_token_ids": new_token_ids,

@@ -1,0 +1,86 @@
+{
+  "scope": "serial one-request-at-a-time MiniCPM-o image-to-text+speech; no speech-quality claim",
+  "query_type": "image",
+  "input_sha256": {
+    "image": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0"
+  },
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "deploy_config": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260923/evidence/minicpmo_wsl_cpu_image/minicpmo_cpu_image_offline.yaml",
+  "deploy_config_sha256": "ef171f8b003d1bb96e83e81b200ef8067c0f59652dcb30281f8b883ffe0a51a7",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "vllm": "0.28.0",
+  "torch_cuda_available": false,
+  "memory_scope": "wsl_guest",
+  "environment": {
+    "VLLM_TARGET_DEVICE": "cpu",
+    "VLLM_CPU_KVCACHE_SPACE": "1",
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8",
+    "CUDA_VISIBLE_DEVICES": "",
+    "VLLM_USE_FLASHINFER_SAMPLER": null,
+    "VLLM_ENABLE_V1_MULTIPROCESSING": "0"
+  },
+  "init_timeout_s": 900,
+  "stage_init_timeout_s": 600,
+  "startup_s": 92.10113952297252,
+  "warmups": 0,
+  "repeats": 1,
+  "wall_s_p50_nearest_rank": 55.08235688402783,
+  "wall_s_p95_nearest_rank": 55.08235688402783,
+  "requests": [
+    {
+      "request_ids": [
+        "0_d32b1ef0-4587-48d6-a403-1e01e70ee072"
+      ],
+      "wall_s": 55.08235688402783,
+      "first_text_s": 55.07128186803311,
+      "first_audio_s": 55.0714617400663,
+      "text": "The image shows a solid red square centered on a white background. There are no other visible elements, text, or details.",
+      "token_ids": [
+        785,
+        2168,
+        4933,
+        264,
+        6437,
+        2518,
+        9334,
+        30188,
+        389,
+        264,
+        4158,
+        4004,
+        13,
+        2619,
+        525,
+        902,
+        1008,
+        9434,
+        5424,
+        11,
+        1467,
+        11,
+        476,
+        3565,
+        13,
+        151704,
+        151645
+      ],
+      "audio_samples": 124800,
+      "audio_duration_s_at_24khz": 5.2,
+      "audio_rms_float": 0.09555768604737938,
+      "sampled_memory": {
+        "scope": "wsl_guest",
+        "n": 93,
+        "max_system_used_bytes": 32866381824,
+        "min_system_available_bytes": 318595072,
+        "max_swap_used_bytes": 6766510080,
+        "max_process_tree_rss_sum_bytes": 31816548352,
+        "max_wsl_used_bytes": 32866381824,
+        "min_wsl_available_bytes": 318595072
+      },
+      "index": 0,
+      "warmup": false
+    }
+  ]
+}

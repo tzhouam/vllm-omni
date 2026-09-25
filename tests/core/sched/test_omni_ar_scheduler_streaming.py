@@ -109,8 +109,11 @@ def _run_resumable_segment_stop(
     handle_stopped=None,
     chunk_transfer_adapter=None,
     inter_stage_output=None,
+    model_config=None,
 ):
     sched = MagicMock()
+    if model_config is not None:
+        sched.vllm_config.model_config = model_config
     sched.requests = {session.request_id: session}
     sched.perf_metrics = None
     sched.structured_output_manager.should_advance.return_value = False
@@ -157,6 +160,29 @@ def _run_resumable_segment_stop(
     model_runner_output.inter_stage_outputs = [inter_stage_output] if inter_stage_output is not None else None
 
     return OmniARScheduler.update_from_output(sched, scheduler_output, model_runner_output)
+
+
+@pytest.mark.parametrize("sender_role", [False, True])
+def test_stage_zero_terminal_marker_requires_sender_edge(sender_role: bool) -> None:
+    session = _make_request()
+    session.status = RequestStatus.RUNNING
+    adapter = MagicMock()
+    model_config = SimpleNamespace(
+        stage_id=0,
+        stage_connector_config={"extra": {"role": "sender"} if sender_role else {}},
+    )
+
+    _run_resumable_segment_stop(
+        session,
+        session_finished=True,
+        chunk_transfer_adapter=adapter,
+        model_config=model_config,
+    )
+
+    if sender_role:
+        adapter.save_async.assert_called_once()
+    else:
+        adapter.save_async.assert_not_called()
 
 
 @pytest.mark.parametrize("outstanding_async_tokens", [0, 1, 2])

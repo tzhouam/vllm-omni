@@ -24,3 +24,17 @@ completed one image-to-text+speech request and exited cleanly after giving
 the CPU thinker 30 seconds to retire and budgeting the three serial stage
 shutdowns together. The CPU run used substantial WSL RAM and swap. Neither
 single-fixture result broadens model quality or speech qualification.
+
+A later [MiniCPM-o WSL RTX sender-role retest](evidence/minicpmo_cuda_marker_fix/README.md)
+corrects the preceding serial marker-lifetime finding. The model runner
+already sent stage-0 output through the orchestrator, but its AR scheduler
+also enqueued an empty shared-memory terminal chunk on an edge with no
+sender connector. After aligning the scheduler with the existing sender-role
+contract, another one-warmup/20-measured image run passed with clean
+shutdown. Across 188 shared-memory samples, stage-0 segments were transient
+and returned to zero during the run instead of accumulating per completed
+request. Concurrent and sustained-session bounds remain unverified.
+The [WSL CPU BF16 regression](evidence/minicpmo_cpu_marker_fix/README.md)
+also passed one red-square image-to-text+speech request on the installed
+vLLM 0.28 wheel, with clean shutdown and no stage-0 segment left after exit;
+the run was heavily swapped and does not qualify sustained CPU behavior.
