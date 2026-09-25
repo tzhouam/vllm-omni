@@ -1,0 +1,123 @@
+{
+  "scope": "one serial run per placement of three images in separate Omni sessions; no paired speedup or speech-quality claim",
+  "npu_report_sha256": "3a29b8a2315d1569cf1240ccece18aa070ad6bbadbf864531951a20268f63e6c",
+  "cpu_report_sha256": "536de3987bca89f526208918b452882efb602c5144c1eb50f43acda157eb8e5d",
+  "npu_events_sha256": "e08dba7cf92e8efc76c1dce68110f7bb29bf14219564f6b287e1b81fdea587bb",
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "npu_startup_s": 95.27812700392678,
+  "cpu_startup_s": 89.14426675403956,
+  "npu_placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 2,
+      "vitisai": 1
+    },
+    "total_nodes": 3,
+    "target_nodes": 1,
+    "fraction_on_target": 0.3333333333333333,
+    "session_create_s": 2.200689599965699,
+    "warmup_s": 0.010133100091479719,
+    "rss_bytes": 348319744,
+    "inputs": [
+      {
+        "name": "hidden",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "projected",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          4096
+        ]
+      }
+    ],
+    "profile_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_vision\\three_image_kv_profile\\resampler_kv_projection_32x32__2026-09-25_14-33-07_459.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "npu_worker_peak_rss_bytes": 393617408,
+  "token_identical_count": 2,
+  "complete_request_count": 3,
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+      "npu_wall_s": 50.965340371010825,
+      "cpu_wall_s": 47.113948564976454,
+      "token_ids_equal": false,
+      "npu_text": "The image shows a solid red square centered on a white background. There are no other elements, text, or details visible.",
+      "cpu_text": "The image shows a solid red square centered on a white background. There are no other visible elements, text, or details.",
+      "npu_audio_samples": 124800,
+      "cpu_audio_samples": 124800,
+      "npu_audio_rms": 0.09084060286391579,
+      "cpu_audio_rms": 0.09555768604737938,
+      "npu_max_wsl_used_bytes": 31834546176,
+      "cpu_max_wsl_used_bytes": 31645282304,
+      "npu_max_swap_used_bytes": 5874749440,
+      "cpu_max_swap_used_bytes": 6199521280,
+      "npu_graph_round_trip_s": 0.10928730701562017
+    },
+    {
+      "index": 1,
+      "image_sha256": "50dff16a4f555d816ad9c057ddf6231826e3b6dbeaf5305945445df123c8df75",
+      "npu_wall_s": 29.367187847034074,
+      "cpu_wall_s": 29.840452797012404,
+      "token_ids_equal": true,
+      "npu_text": "The image shows a blue circle with a green triangle inside it. The triangle is centered within the circle and points upward. The background of the image is a light beige or cream color. The design is simple and geometric, with bold, flat colors and no additional details or text.",
+      "cpu_text": "The image shows a blue circle with a green triangle inside it. The triangle is centered within the circle and points upward. The background of the image is a light beige or cream color. The design is simple and geometric, with bold, flat colors and no additional details or text.",
+      "npu_audio_samples": 124800,
+      "cpu_audio_samples": 124800,
+      "npu_audio_rms": 0.09131788015538767,
+      "cpu_audio_rms": 0.09268830652842772,
+      "npu_max_wsl_used_bytes": 31863296000,
+      "cpu_max_wsl_used_bytes": 31684820992,
+      "npu_max_swap_used_bytes": 5874401280,
+      "cpu_max_swap_used_bytes": 6199357440,
+      "npu_graph_round_trip_s": 0.1671823849901557
+    },
+    {
+      "index": 2,
+      "image_sha256": "f3a9b22ad1cb376d849faf5d743c97ad0bb92b6f4146b9fd233c7ac8568659d8",
+      "npu_wall_s": 32.40015579503961,
+      "cpu_wall_s": 31.23680414399132,
+      "token_ids_equal": true,
+      "npu_text": "The image features a vibrant, abstract geometric pattern composed of overlapping diagonal bands in a variety of bright colors, including shades of green, blue, purple, pink, yellow, and orange. These colorful bands create a dynamic, almost 3D optical illusion effect. Scattered across the pattern are small, solid black right-",
+      "cpu_text": "The image features a vibrant, abstract geometric pattern composed of overlapping diagonal bands in a variety of bright colors, including shades of green, blue, purple, pink, yellow, and orange. These colorful bands create a dynamic, almost 3D optical illusion effect. Scattered across the pattern are small, solid black right-",
+      "npu_audio_samples": 124800,
+      "cpu_audio_samples": 124800,
+      "npu_audio_rms": 0.08537172318457115,
+      "cpu_audio_rms": 0.08525890207266884,
+      "npu_max_wsl_used_bytes": 31875600384,
+      "cpu_max_wsl_used_bytes": 31686733824,
+      "npu_max_swap_used_bytes": 5872046080,
+      "cpu_max_swap_used_bytes": 6196858880,
+      "npu_graph_round_trip_s": 0.15526215895079076
+    }
+  ],
+  "status": "scoped_complete_suite_pass"
+}

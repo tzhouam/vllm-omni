@@ -5,8 +5,8 @@ extracts a state-safe speech-token projection after the CPU speech head.
 It passes one fixed-fixture NPU component numerical check, but the original
 FP32 CPU projection is faster even before cross-OS handoff. This projection
 remains component-only evidence. A separate [resampler KV cut](evidence/minicpmo_amd_npu_vision/README.md)
-subsequently passed three-image BF16 suffix parity and one complete red-square
-image-to-text+speech request through Omni with verified HX370 NPU execution.
+subsequently passed three-image BF16 suffix parity and three serial complete
+image-to-text+speech requests through Omni with verified HX370 NPU execution.
 The [60-cell matrix](../e2e_profiling_20260922/evidence/summary/README.md)
 records that narrowly scoped experimental E2E pass; default support, paired
 benefit, broader quality, cancellation and sustained power remain open.
