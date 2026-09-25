@@ -1,0 +1,69 @@
+{
+  "scope": "MiniCPM-o KV Omni worker admission refusal; no measured requests",
+  "graph_sha256": "330bbbd0d18caaf6903aa41f836dbeaef57643a8afbaba333df68e3c1e722aeb",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "planner_budget_bytes": 1682461816,
+  "worker_peak_rss_hint_bytes": null,
+  "refusal": {
+    "code": "budget_exceeds_device",
+    "device_id": "npu:amd",
+    "message": "worker load peak 334 MiB exceeds graph+runtime reservation 325 MiB",
+    "remedy": "record a device/EP-specific load peak, reserve it with worker_peak_rss_hint_bytes, and recheck shared host RAM before launch"
+  },
+  "load_report": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 2,
+      "vitisai": 1
+    },
+    "total_nodes": 3,
+    "target_nodes": 1,
+    "fraction_on_target": 0.3333333333333333,
+    "session_create_s": 1.8560668000718579,
+    "warmup_s": 0.009168499964289367,
+    "rss_bytes": 350167040,
+    "inputs": [
+      {
+        "name": "hidden",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "projected",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          4096
+        ]
+      }
+    ],
+    "profile_path": "benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_vision\\resampler_kv_omni_refusal_profile\\resampler_kv_projection_32x32__2026-09-25_13-46-15_293.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "status": "refused"
+}

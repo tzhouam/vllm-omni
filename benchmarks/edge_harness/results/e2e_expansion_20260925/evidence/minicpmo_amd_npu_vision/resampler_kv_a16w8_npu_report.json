@@ -1,0 +1,38 @@
+{
+  "scope": "VitisAI-requested A16W8 KV projection on HX370; component only",
+  "candidate_sha256": "330bbbd0d18caaf6903aa41f836dbeaef57643a8afbaba333df68e3c1e722aeb",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "output_npz_sha256": "3afd72c6b5952bdfdb5b9ca076b8112b38f9b0d010a2ad71007078264a48dd90",
+  "profile_sha256": "e71ee940178be701782f4693442d5626f7e55cc4d036a94c5b92034cc20b0f08",
+  "profile_path": "C:\\Users\\zhout\\w2\\minicpmo_vision_npu_20260925\\resampler_kv_a16w8_profile_2026-09-25_13-38-18_751.json",
+  "onnxruntime": "1.30.0",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "providers": [
+    "vitisai",
+    "CPUExecutionProvider"
+  ],
+  "node_counts": {
+    "CPUExecutionProvider": 6,
+    "vitisai": 3
+  },
+  "session_creation_s": 2.090937800006941,
+  "cases": {
+    "red": {
+      "one_call_s": 0.006760900025255978,
+      "requested_vs_source_bf16_projected_relative_l2": 0.005770126990331625,
+      "finite": true
+    },
+    "blue": {
+      "one_call_s": 0.007015499984845519,
+      "requested_vs_source_bf16_projected_relative_l2": 0.005895378247588395,
+      "finite": true
+    },
+    "third": {
+      "one_call_s": 0.006084199994802475,
+      "requested_vs_source_bf16_projected_relative_l2": 0.006199931191214221,
+      "finite": true
+    }
+  },
+  "status": "npu_placed"
+}

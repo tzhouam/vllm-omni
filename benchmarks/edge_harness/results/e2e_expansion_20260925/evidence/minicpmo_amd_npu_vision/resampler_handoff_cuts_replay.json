@@ -1,0 +1,152 @@
+{
+  "scope": "offline exact BF16 CPU suffix replay from measured HX370 NPU resampler cuts; component only",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "export_report_sha256": "8b05f94de45a84434a7dda06e6ce7562373de76bdb79fd82c352dba3558b071f",
+  "npu_report_sha256": "fd863ec8c27fb96d42c3e5e9d586edaa60ff9d643982c9a3de75b45d4b94943e",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "npu_output_sha256": "fde547178d91d16476f27e24210bbc3d3fec0609c2a3f907b4986b623d3669b3",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "candidate_report_sha256": "bca0ed3e311134beeb9517f7255713d3f8803d9adb7bcb71cbcceab859cd9ea5",
+  "candidate_output_sha256": "c15dba49e5a9d6eca46d3cd8618aeee66608b47820afe1dfe3e5dbce91085f25",
+  "candidate_kind": "cpu",
+  "torch": "2.13.0+cpu",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "cases": {
+    "red": {
+      "projected": {
+        "boundary_relative_l2": 0.00832841500322587,
+        "cpu_suffix_embedding_relative_l2": 0.010880940186870797,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "keys": {
+        "boundary_relative_l2": 0.009667927440123002,
+        "cpu_suffix_embedding_relative_l2": 0.012961465991964622,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "attended": {
+        "boundary_relative_l2": 0.011039447811855368,
+        "cpu_suffix_embedding_relative_l2": 0.02098750217194774,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "postnorm": {
+        "boundary_relative_l2": 0.007563737292444928,
+        "cpu_suffix_embedding_relative_l2": 0.021526169783635533,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "embedding": {
+        "boundary_relative_l2": 0.035158419230055075,
+        "cpu_suffix_embedding_relative_l2": 0.035158419230055075,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "cpu_float32_kv_projection": {
+        "projected_relative_l2": 0.001655475049718086,
+        "cpu_suffix_embedding_relative_l2": 0.0021759037968780716
+      },
+      "cpu_float16_kv_projection": {
+        "projected_relative_l2": 0.0016810383561426058,
+        "cpu_suffix_embedding_relative_l2": 0.006512123905887608
+      },
+      "a16w8_cpu_kv_projection": {
+        "projected_relative_l2": 0.005770121624937977,
+        "cpu_suffix_embedding_relative_l2": 0.009187871574407437
+      }
+    },
+    "blue": {
+      "projected": {
+        "boundary_relative_l2": 0.008477274451170807,
+        "cpu_suffix_embedding_relative_l2": 0.01028314059633814,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "keys": {
+        "boundary_relative_l2": 0.009407656127385292,
+        "cpu_suffix_embedding_relative_l2": 0.012453165244748236,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "attended": {
+        "boundary_relative_l2": 0.012709555409356107,
+        "cpu_suffix_embedding_relative_l2": 0.01979333073902963,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "postnorm": {
+        "boundary_relative_l2": 0.008298573592080494,
+        "cpu_suffix_embedding_relative_l2": 0.02019035847846531,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "embedding": {
+        "boundary_relative_l2": 0.03113967159174434,
+        "cpu_suffix_embedding_relative_l2": 0.03113967159174434,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "cpu_float32_kv_projection": {
+        "projected_relative_l2": 0.0016514037519688033,
+        "cpu_suffix_embedding_relative_l2": 0.002214467370486259
+      },
+      "cpu_float16_kv_projection": {
+        "projected_relative_l2": 0.001681919783400959,
+        "cpu_suffix_embedding_relative_l2": 0.006106808705442787
+      },
+      "a16w8_cpu_kv_projection": {
+        "projected_relative_l2": 0.005895388502057114,
+        "cpu_suffix_embedding_relative_l2": 0.009285921295364027
+      }
+    },
+    "third": {
+      "projected": {
+        "boundary_relative_l2": 0.008691078135604626,
+        "cpu_suffix_embedding_relative_l2": 0.0106223061311659,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "keys": {
+        "boundary_relative_l2": 0.009522645122971454,
+        "cpu_suffix_embedding_relative_l2": 0.011748506992263085,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "attended": {
+        "boundary_relative_l2": 0.012787832873153703,
+        "cpu_suffix_embedding_relative_l2": 0.01962331519498497,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "postnorm": {
+        "boundary_relative_l2": 0.008283164657801148,
+        "cpu_suffix_embedding_relative_l2": 0.020136897757228,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "embedding": {
+        "boundary_relative_l2": 0.03100907593280193,
+        "cpu_suffix_embedding_relative_l2": 0.03100907593280193,
+        "finite": true,
+        "source_replay_bitwise_equal": true
+      },
+      "cpu_float32_kv_projection": {
+        "projected_relative_l2": 0.001645416653329099,
+        "cpu_suffix_embedding_relative_l2": 0.0020572163485006946
+      },
+      "cpu_float16_kv_projection": {
+        "projected_relative_l2": 0.0016721832919403682,
+        "cpu_suffix_embedding_relative_l2": 0.0059381950338454805
+      },
+      "a16w8_cpu_kv_projection": {
+        "projected_relative_l2": 0.006199989527595035,
+        "cpu_suffix_embedding_relative_l2": 0.009181551418467722
+      }
+    }
+  },
+  "qualifying_cuts_on_three_synthetic_images": [],
+  "status": "no_tested_cut_numeric_pass",
+  "candidate_kv_final_embedding_gate_pass": true
+}

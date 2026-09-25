@@ -1,0 +1,377 @@
+{
+  "scope": "fixed-shape MiniCPM-o KV NPU+BF16 CPU resampler component handoff through Omni; not full image request",
+  "graph_sha256": "330bbbd0d18caaf6903aa41f836dbeaef57643a8afbaba333df68e3c1e722aeb",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "torch": "2.13.0+cpu",
+  "omni_stage_source": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/stage.py",
+  "concurrency": 1,
+  "measurement_order": "cpu-first, interleaved per case while NPU worker resident",
+  "warmup": "one profiled stage-open inference and three exact BF16 CPU controls",
+  "repeats": 20,
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 2,
+      "vitisai": 1
+    },
+    "total_nodes": 3,
+    "target_nodes": 1,
+    "fraction_on_target": 0.3333333333333333,
+    "session_create_s": 1.7953680999344215,
+    "warmup_s": 0.008829200058244169,
+    "rss_bytes": 348815360,
+    "inputs": [
+      {
+        "name": "hidden",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "projected",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          4096
+        ]
+      }
+    ],
+    "profile_path": "benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_vision\\resampler_kv_omni_cpu_first_profile\\resampler_kv_projection_32x32__2026-09-25_13-45-08_911.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "planner_budget_bytes": 1932735284,
+  "worker_peak_rss_hint_bytes": 536870912,
+  "worker_peak_rss_bytes": 396136448,
+  "worker_stats": {
+    "runs": 20,
+    "total_run_s": 0.093167899758555,
+    "rss_bytes": 381972480,
+    "peak_rss_bytes": 396136448,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 1.7953680999344215,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "hidden",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1024,
+            1152
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "projected",
+          "type": "tensor(float)",
+          "shape": [
+            1,
+            1024,
+            4096
+          ]
+        }
+      ],
+      "warmup_s": 0.008829200058244169,
+      "profile_path": "benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_vision\\resampler_kv_omni_cpu_first_profile\\resampler_kv_projection_32x32__2026-09-25_13-45-08_911.json",
+      "node_counts": {
+        "CPUExecutionProvider": 2,
+        "vitisai": 1
+      },
+      "total_nodes": 3,
+      "target_nodes": 1,
+      "fraction_on_target": 0.3333333333333333,
+      "rss_bytes": 348815360
+    }
+  },
+  "samples": [
+    {
+      "case": "red",
+      "worker_s": 0.006687399931252003,
+      "round_trip_s": 0.027122796047478914,
+      "transport_s": 0.02043539611622691,
+      "cpu_suffix_s": 0.08091859298292547,
+      "split_component_s": 0.10804138903040439,
+      "embedding_relative_l2": 0.00919301412492025,
+      "finite": true
+    },
+    {
+      "case": "blue",
+      "worker_s": 0.007936300011351705,
+      "round_trip_s": 0.026040600962005556,
+      "transport_s": 0.01810430095065385,
+      "cpu_suffix_s": 0.07625453500077128,
+      "split_component_s": 0.10229513596277684,
+      "embedding_relative_l2": 0.00925311117731196,
+      "finite": true
+    },
+    {
+      "case": "third",
+      "worker_s": 0.004227299941703677,
+      "round_trip_s": 0.021993861068040133,
+      "transport_s": 0.017766561126336455,
+      "cpu_suffix_s": 0.08678550703916699,
+      "split_component_s": 0.10877936810720712,
+      "embedding_relative_l2": 0.00920478771000618,
+      "finite": true
+    },
+    {
+      "case": "red",
+      "worker_s": 0.004413199960254133,
+      "round_trip_s": 0.027569546946324408,
+      "transport_s": 0.023156346986070275,
+      "cpu_suffix_s": 0.0789269000524655,
+      "split_component_s": 0.1064964469987899,
+      "embedding_relative_l2": 0.00919301412492025,
+      "finite": true
+    },
+    {
+      "case": "blue",
+      "worker_s": 0.004025200032629073,
+      "round_trip_s": 0.025070775067433715,
+      "transport_s": 0.021045575034804642,
+      "cpu_suffix_s": 0.07795824704226106,
+      "split_component_s": 0.10302902210969478,
+      "embedding_relative_l2": 0.00925311117731196,
+      "finite": true
+    },
+    {
+      "case": "third",
+      "worker_s": 0.004085800028406084,
+      "round_trip_s": 0.023919450002722442,
+      "transport_s": 0.01983364997431636,
+      "cpu_suffix_s": 0.07975189096760005,
+      "split_component_s": 0.10367134097032249,
+      "embedding_relative_l2": 0.00920478771000618,
+      "finite": true
+    },
+    {
+      "case": "red",
+      "worker_s": 0.004224800039082766,
+      "round_trip_s": 0.025079243001528084,
+      "transport_s": 0.02085444296244532,
+      "cpu_suffix_s": 0.06994998792652041,
+      "split_component_s": 0.09502923092804849,
+      "embedding_relative_l2": 0.00919301412492025,
+      "finite": true
+    },
+    {
+      "case": "blue",
+      "worker_s": 0.005450999946333468,
+      "round_trip_s": 0.027383489068597555,
+      "transport_s": 0.021932489122264087,
+      "cpu_suffix_s": 0.07502404693514109,
+      "split_component_s": 0.10240753600373864,
+      "embedding_relative_l2": 0.00925311117731196,
+      "finite": true
+    },
+    {
+      "case": "third",
+      "worker_s": 0.004653999931178987,
+      "round_trip_s": 0.025312978075817227,
+      "transport_s": 0.02065897814463824,
+      "cpu_suffix_s": 0.08140262600500137,
+      "split_component_s": 0.1067156040808186,
+      "embedding_relative_l2": 0.00920478771000618,
+      "finite": true
+    },
+    {
+      "case": "red",
+      "worker_s": 0.004468300030566752,
+      "round_trip_s": 0.06923785503022373,
+      "transport_s": 0.06476955499965698,
+      "cpu_suffix_s": 0.07870918605476618,
+      "split_component_s": 0.1479470410849899,
+      "embedding_relative_l2": 0.00919301412492025,
+      "finite": true
+    },
+    {
+      "case": "blue",
+      "worker_s": 0.004286800045520067,
+      "round_trip_s": 0.022412236081436276,
+      "transport_s": 0.01812543603591621,
+      "cpu_suffix_s": 0.07343143504112959,
+      "split_component_s": 0.09584367112256587,
+      "embedding_relative_l2": 0.00925311117731196,
+      "finite": true
+    },
+    {
+      "case": "third",
+      "worker_s": 0.004128000000491738,
+      "round_trip_s": 0.026664866949431598,
+      "transport_s": 0.02253686694893986,
+      "cpu_suffix_s": 0.07994094304740429,
+      "split_component_s": 0.10660580999683589,
+      "embedding_relative_l2": 0.00920478771000618,
+      "finite": true
+    },
+    {
+      "case": "red",
+      "worker_s": 0.00433809997048229,
+      "round_trip_s": 0.01968715898692608,
+      "transport_s": 0.015349059016443789,
+      "cpu_suffix_s": 0.07290101691614836,
+      "split_component_s": 0.09258817590307444,
+      "embedding_relative_l2": 0.00919301412492025,
+      "finite": true
+    },
+    {
+      "case": "blue",
+      "worker_s": 0.0046027000062167645,
+      "round_trip_s": 0.024873285088688135,
+      "transport_s": 0.02027058508247137,
+      "cpu_suffix_s": 0.07718374603427947,
+      "split_component_s": 0.1020570311229676,
+      "embedding_relative_l2": 0.00925311117731196,
+      "finite": true
+    },
+    {
+      "case": "third",
+      "worker_s": 0.004288499942049384,
+      "round_trip_s": 0.02435017505194992,
+      "transport_s": 0.020061675109900534,
+      "cpu_suffix_s": 0.0693101070355624,
+      "split_component_s": 0.09366028208751231,
+      "embedding_relative_l2": 0.00920478771000618,
+      "finite": true
+    },
+    {
+      "case": "red",
+      "worker_s": 0.004128300002776086,
+      "round_trip_s": 0.022764534107409418,
+      "transport_s": 0.01863623410463333,
+      "cpu_suffix_s": 0.0768759089987725,
+      "split_component_s": 0.09964044310618192,
+      "embedding_relative_l2": 0.00919301412492025,
+      "finite": true
+    },
+    {
+      "case": "blue",
+      "worker_s": 0.004063099971972406,
+      "round_trip_s": 0.025188883999362588,
+      "transport_s": 0.021125784027390182,
+      "cpu_suffix_s": 0.07162777206394821,
+      "split_component_s": 0.0968166560633108,
+      "embedding_relative_l2": 0.00925311117731196,
+      "finite": true
+    },
+    {
+      "case": "third",
+      "worker_s": 0.004324199981056154,
+      "round_trip_s": 0.023671007016673684,
+      "transport_s": 0.01934680703561753,
+      "cpu_suffix_s": 0.07009684096556157,
+      "split_component_s": 0.09376784798223525,
+      "embedding_relative_l2": 0.00920478771000618,
+      "finite": true
+    },
+    {
+      "case": "red",
+      "worker_s": 0.00442839995957911,
+      "round_trip_s": 0.02346702094655484,
+      "transport_s": 0.01903862098697573,
+      "cpu_suffix_s": 0.08142497797962278,
+      "split_component_s": 0.10489199892617762,
+      "embedding_relative_l2": 0.00919301412492025,
+      "finite": true
+    },
+    {
+      "case": "blue",
+      "worker_s": 0.004406500025652349,
+      "round_trip_s": 0.027062476030550897,
+      "transport_s": 0.022655976004898548,
+      "cpu_suffix_s": 0.08384828001726419,
+      "split_component_s": 0.11091075604781508,
+      "embedding_relative_l2": 0.00925311117731196,
+      "finite": true
+    }
+  ],
+  "cpu_full_resampler_call_s": [
+    0.08551656198687851,
+    0.1583942830329761,
+    0.1708782729692757,
+    0.10705068206880242,
+    0.1489786138990894,
+    0.17848953197244555,
+    0.17090404499322176,
+    0.15466385090257972,
+    0.17380621004849672,
+    0.18871709401719272,
+    0.15443609200883657,
+    0.15543305105529726,
+    0.14447934192139655,
+    0.16390134708490223,
+    0.15339555905666202,
+    0.15253473108168691,
+    0.162986256997101,
+    0.18715700798202306,
+    0.1447946309344843,
+    0.14330778899602592
+  ],
+  "metrics": {
+    "worker_s": {
+      "p50": 0.004324199981056154,
+      "p95": 0.006687399931252003
+    },
+    "transport_s": {
+      "p50": 0.02027058508247137,
+      "p95": 0.023156346986070275
+    },
+    "round_trip_s": {
+      "p50": 0.025070775067433715,
+      "p95": 0.027569546946324408
+    },
+    "cpu_suffix_s": {
+      "p50": 0.07718374603427947,
+      "p95": 0.08384828001726419
+    },
+    "split_component_s": {
+      "p50": 0.10240753600373864,
+      "p95": 0.11091075604781508
+    },
+    "cpu_full_resampler_s": {
+      "p50": 0.15466385090257972,
+      "p95": 0.18715700798202306
+    }
+  },
+  "gate": "provisional final vision-embedding relative L2 <1% on three synthetic images",
+  "status": "component_numeric_pass",
+  "power_thermal": "not measured"
+}

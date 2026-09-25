@@ -1,0 +1,25 @@
+{
+  "scope": "red/blue calibrated A16W8 KV projection; third image held out",
+  "source_graph_sha256": "d8777c6277d38f6f63879b3154c7446d727611400a8516e8471080af333bd5ad",
+  "candidate_sha256": "330bbbd0d18caaf6903aa41f836dbeaef57643a8afbaba333df68e3c1e722aeb",
+  "candidate_bytes": 4740216,
+  "candidate_cpu_output_sha256": "c15dba49e5a9d6eca46d3cd8618aeee66608b47820afe1dfe3e5dbce91085f25",
+  "inputs_sha256": "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "onnxruntime": "1.30.0",
+  "quantization_s": 0.47748400003183633,
+  "cases": {
+    "red": {
+      "qdq_cpu_vs_source_bf16_projected_relative_l2": 0.005770121624937977,
+      "finite": true
+    },
+    "blue": {
+      "qdq_cpu_vs_source_bf16_projected_relative_l2": 0.005895388502057114,
+      "finite": true
+    },
+    "third": {
+      "qdq_cpu_vs_source_bf16_projected_relative_l2": 0.006199989527595035,
+      "finite": true
+    }
+  }
+}
