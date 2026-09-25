@@ -25,6 +25,61 @@ def rank(values: list[float], fraction: float) -> float:
     return sorted(values)[math.ceil(len(values) * fraction) - 1]
 
 
+def load_observation_fixture(fixture_path: Path, manifest_path: Path):
+    """Load a pinned, preprocessed policy observation without hiding its provenance."""
+    import numpy as np
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected_manifest = {
+        "format": "internvla-a1-omni-observation-v1",
+        "state_fields": [
+            "observation.states.joint.position",
+            "observation.states.effector.position",
+        ],
+        "camera_fields": [
+            "observation.images.head",
+            "observation.images.hand_left",
+            "observation.images.hand_right",
+        ],
+        "state_normalization": "checkpoint-stats-a2d-mean-std",
+        "image_preprocessing": "resize-with-pad-224-float32-0-to-1",
+    }
+    for key, value in expected_manifest.items():
+        if manifest.get(key) != value:
+            raise ValueError(f"observation fixture manifest has incompatible {key}")
+    if not isinstance(manifest.get("source"), str) or not manifest["source"]:
+        raise ValueError("observation fixture manifest needs a source identifier")
+    for key in ("checkpoint_model_sha256", "checkpoint_stats_sha256", "fixture_sha256"):
+        value = manifest.get(key)
+        if not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
+            raise ValueError(f"observation fixture manifest needs a lowercase {key}")
+    expected_fields = {*(f"image{i}" for i in range(3)),
+                       *(f"mask{i}" for i in range(3)), "state", "noise", "task"}
+    with np.load(fixture_path, allow_pickle=False) as archive:
+        if set(archive.files) != expected_fields:
+            raise ValueError("observation fixture fields differ from the policy contract")
+        prompt = {key: archive[key].copy() for key in expected_fields}
+    for index in range(3):
+        image = prompt[f"image{index}"]
+        mask = prompt[f"mask{index}"]
+        if (image.dtype != np.float32 or image.shape != (1, 2, 3, 224, 224)
+            or not np.isfinite(image).all() or image.min() < 0 or image.max() > 1):
+            raise ValueError(f"observation fixture image{index} violates the policy contract")
+        if mask.dtype != np.bool_ or mask.shape != (1,):
+            raise ValueError(f"observation fixture mask{index} violates the policy contract")
+    for key, shape in (("state", (1, 32)), ("noise", (1, 50, 32))):
+        value = prompt[key]
+        if value.dtype != np.float32 or value.shape != shape or not np.isfinite(value).all():
+            raise ValueError(f"observation fixture {key} violates the policy contract")
+    task = prompt["task"]
+    if task.shape != () or task.dtype.kind != "U" or not 0 < len(str(task.item()).encode("utf-8")) <= 4096:
+        raise ValueError("observation fixture task must be a nonempty UTF-8 scalar")
+    prompt["task"] = str(task.item())
+    if manifest.get("task") != prompt["task"] or manifest["fixture_sha256"] != sha256(fixture_path):
+        raise ValueError("observation fixture task or content hash differs from its manifest")
+    return prompt, manifest
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("model-dir", "cosmos-dir", "processor-dir", "python-bin", "log-file", "output-report"):
@@ -37,6 +92,10 @@ async def main() -> None:
     parser.add_argument("--placement", choices=("cpu", "cuda", "radeon-cosmos", "amd-npu-conv13", "amd-npu-radeon-cosmos"), required=True)
     parser.add_argument("--output-actions", type=Path)
     parser.add_argument("--reference-actions", type=Path)
+    parser.add_argument("--input-fixture", type=Path,
+                        help="Preprocessed three-camera/state/noise NPZ for a pinned observation")
+    parser.add_argument("--fixture-manifest", type=Path,
+                        help="JSON provenance and preprocessing contract for --input-fixture")
     parser.add_argument("--capacity-gib", type=int, default=30)
     parser.add_argument("--reserve-gib", type=int, default=16)
     parser.add_argument("--vram-capacity-gib", type=int)
@@ -46,6 +105,8 @@ async def main() -> None:
     parser.add_argument("--admission-refusal", action="store_true")
     parser.add_argument("--abort-check", action="store_true")
     args = parser.parse_args()
+    if (args.input_fixture is None) != (args.fixture_manifest is None):
+        parser.error("--input-fixture and --fixture-manifest must be supplied together")
     if args.warmups < 0 or args.repeats < 1 or args.reserve_gib < 1 or args.capacity_gib < args.reserve_gib:
         parser.error("invalid profile counts or explicit memory budget")
     if args.placement == "radeon-cosmos" and args.graph_file is None:
@@ -68,6 +129,12 @@ async def main() -> None:
 
     import numpy as np
     import psutil
+
+    external_prompt = None
+    fixture_manifest = None
+    if args.input_fixture is not None:
+        external_prompt, fixture_manifest = load_observation_fixture(
+            args.input_fixture.resolve(strict=True), args.fixture_manifest.resolve(strict=True))
 
     host_available_bytes = psutil.virtual_memory().available
     if args.capacity_gib << 30 > host_available_bytes:
@@ -101,6 +168,13 @@ async def main() -> None:
     if dml_python is not None:
         files["dml_python"] = dml_python
     hashes = {name: sha256(path) for name, path in files.items()}
+    fixture_hashes = None
+    if args.input_fixture is not None:
+        if (fixture_manifest["checkpoint_model_sha256"] != hashes["model"]
+            or fixture_manifest["checkpoint_stats_sha256"] != hashes["stats"]):
+            raise ValueError("observation fixture was prepared for different model weights or stats")
+        fixture_hashes = {"input_fixture": sha256(args.input_fixture),
+                          "fixture_manifest": sha256(args.fixture_manifest)}
     import torch
 
     cuda_before = None
@@ -140,8 +214,16 @@ async def main() -> None:
     )]
     runtime = StageRuntime(configs, "local-internvla-policy", "", stage_init_timeout=180, async_chunk=False)
     report = {
-        "scope": "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; synthetic patterned observations/noise; no robot-task quality claim",
+        "scope": (
+            "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; "
+            "external preprocessed observation fixture; no robot-task quality claim"
+            if external_prompt is not None else
+            "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; "
+            "synthetic patterned observations/noise; no robot-task quality claim"
+        ),
         "placement": args.placement, "artifact_sha256": hashes, "budget": budget,
+        "fixture_manifest": fixture_manifest,
+        "fixture_sha256": fixture_hashes,
         "host_available_bytes_before": host_available_bytes,
         "cuda_before": cuda_before,
         "warmups": args.warmups, "repeats": args.repeats,
@@ -163,16 +245,19 @@ async def main() -> None:
         pool = runtime.stage_pools[0]
         report["execution_plan_start"] = dict(pool.stage_client.execution_plan)
         state = SimpleNamespace(sampling_params_list=[None])
-        images = [np.zeros((1, 2, 3, 224, 224), dtype=np.float32) for _ in range(3)]
-        images[0][:, :, 0, 56:168, 56:168] = 1.0
-        images[1][:, :, 1, 56:168, 56:168] = .5
-        prompt = {
-            **{f"image{i}": images[i] for i in range(3)},
-            **{f"mask{i}": np.ones((1,), dtype=np.bool_) for i in range(3)},
-            "state": np.zeros((1, 32), dtype=np.float32),
-            "noise": np.zeros((1, 50, 32), dtype=np.float32),
-            "task": "Place the marker pen in its holder.",
-        }
+        if external_prompt is None:
+            images = [np.zeros((1, 2, 3, 224, 224), dtype=np.float32) for _ in range(3)]
+            images[0][:, :, 0, 56:168, 56:168] = 1.0
+            images[1][:, :, 1, 56:168, 56:168] = .5
+            prompt = {
+                **{f"image{i}": images[i] for i in range(3)},
+                **{f"mask{i}": np.ones((1,), dtype=np.bool_) for i in range(3)},
+                "state": np.zeros((1, 32), dtype=np.float32),
+                "noise": np.zeros((1, 50, 32), dtype=np.float32),
+                "task": "Place the marker pen in its holder.",
+            }
+        else:
+            prompt = external_prompt
 
         async def request_one(request_id: str):
             prompt["observation_timestamp_ns"] = time.time_ns()

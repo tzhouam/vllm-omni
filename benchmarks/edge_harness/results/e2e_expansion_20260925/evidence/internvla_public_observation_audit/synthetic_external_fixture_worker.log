@@ -1,0 +1,18 @@
+/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/version.py:55: RuntimeWarning: vLLM and vLLM-Omni appear to have mismatched major/minor versions:
+ --> vLLM-Omni version 0.29.0rc2.dev71+g00510ce38.d20260922
+ --> vLLM version 0.28.0
+This will likely cause compatibility issues.
+  warn_if_misaligned_vllm_version()
+W0925 09:52:08.700000 3690891 torch/utils/_pytree.py:630] <enum 'KernelPreference'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+W0925 09:52:08.728000 3690891 torch/utils/_pytree.py:630] <enum 'ScaleCalculationMode'> is an Enum subclass and is now natively supported by torch.compile as an opaque value type. Calling register_constant() on Enum subclasses is deprecated and will be an error in a future release.
+WARNING 09-25 09:52:10 [importing.py:65] Triton is installed, but doesn't include CPU backend. Disabling Triton.
+INFO 09-25 09:52:10 [importing.py:88] Triton not installed or not compatible; certain GPU-related functions will not be available.
+INFO 09-25 09:52:11 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 09:52:11 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 09:52:11 [patch.py:646] CPU AOT compile-cache load shim installed: compiled models are reused across engine starts instead of being recompiled.
+INFO 09-25 09:52:11 [patch.py:756] CPU weight-load memory release installed (set VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable).
+INFO 09-25 09:52:11 [pipeline_internvla_a1.py:164] Loading InternVLA-A1 weights from /home/zhout/project/edge_infer/models/InternVLA-A1-3B-FT-Place_Markpen
+internvla-worker ready port=41519 props={"model_dir": "/home/zhout/project/edge_infer/models/InternVLA-A1-3B-FT-Place_Markpen", "processor_dir": "/home/zhout/project/edge_infer/models/Qwen3-VL-2B-Instruct-processor", "cosmos_dir": "/home/zhout/project/edge_infer/models/Cosmos-Tokenizer-CI8x8", "placement": "cpu", "torch": "2.13.0+cpu", "policy_dtype": "bfloat16", "cosmos_dtype": "bfloat16", "policy_device": "cpu", "runtime_mode": "real_checkpoint_loaded", "cuda_device_name": null, "cuda_device_index": null, "cuda_allocated_after_load_bytes": null, "cuda_reserved_after_load_bytes": null, "policy_load_s": 30.345497166970745, "action_shape": [1, 50, 32], "image_shape": [1, 2, 3, 224, 224], "state_shape": [1, 32], "action_mode": "delta", "action_units": "unverified", "action_joint_order": "unverified", "action_step_s": null, "control_ready": false, "external_load": null, "npu_load": null}
+127.0.0.1 - - [25/Sep/2026 09:52:41] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 09:52:41] "GET /props HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 09:52:45] "POST /v1/actions HTTP/1.1" 200 -
