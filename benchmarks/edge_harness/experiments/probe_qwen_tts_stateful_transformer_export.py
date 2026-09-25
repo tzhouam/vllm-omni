@@ -141,6 +141,7 @@ def main() -> None:
 
     args.onnx.parent.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
+    export_elapsed_s = None
     export_error = None
     try:
         torch.onnx.export(
@@ -153,6 +154,8 @@ def main() -> None:
         )
     except Exception as error:
         export_error = f"{type(error).__name__}: {error}"
+    finally:
+        export_elapsed_s = time.perf_counter() - started
     ort_error = None
     ort_rows = []
     layer0_error = None
@@ -240,7 +243,7 @@ def main() -> None:
         "platform": platform.platform(),
         "threads": args.threads,
         "rolling_rows": rows,
-        "onnx_export_s": time.perf_counter() - started,
+        "onnx_export_s": export_elapsed_s,
         "onnx_export_error": export_error,
         "onnx_sha256": sha256(args.onnx) if args.onnx.exists() and export_error is None else None,
         "fixture_sha256": sha256(args.fixture) if args.fixture.exists() and ort_error is None else None,

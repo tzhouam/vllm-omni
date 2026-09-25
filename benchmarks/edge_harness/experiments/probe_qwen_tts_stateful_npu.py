@@ -24,15 +24,17 @@ def relative_l2(reference: np.ndarray, actual: np.ndarray) -> float:
     return float(np.linalg.norm(a - b) / max(np.linalg.norm(a), 1e-12))
 
 
-def run_two_steps(session, inputs: dict[str, np.ndarray], *, layer0: bool):
+def run_steps(session, inputs: dict[str, np.ndarray], *, layer0: bool, step_count: int):
     names = [item.name for item in session.get_inputs()]
     expected = 4 if layer0 else 18
     if names[:2] != ["conv", "positions"] or len(names) != expected:
         raise ValueError(f"stateful ONNX input contract changed: {names}")
     state = {name: inputs[name] for name in names[2:]}
     steps = []
-    for start in (95, 97):
-        conv = inputs["conv"] if start == 95 else inputs["conv_next"]
+    for index in range(step_count):
+        start = 95 + 2 * index
+        conv_name = "conv" if index == 0 else "conv_next" if index == 1 else f"conv_step{index}"
+        conv = inputs[conv_name]
         feeds = {"conv": conv, "positions": np.array([[start, start + 1]], np.int64), **state}
         begun = time.perf_counter()
         outputs = session.run(None, feeds)
@@ -48,9 +50,15 @@ def main() -> None:
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--expected-model-sha256", required=True)
     parser.add_argument("--expected-fixture-sha256", required=True)
+    parser.add_argument("--capture-dir", type=Path,
+                        help="Retain both consecutive CPU and NPU output tuples")
     parser.add_argument("--layer0", action="store_true",
                         help="Probe the extracted first transformer layer only")
+    parser.add_argument("--steps", type=int, default=2,
+                        help="Number of consecutive two-frame steps beginning at frame 95")
     args = parser.parse_args()
+    if not 1 <= args.steps <= 11:
+        parser.error("--steps must be 1..11 for the retained 117-frame utterance")
 
     import onnxruntime as ort
 
@@ -75,7 +83,7 @@ def main() -> None:
         cpu_started = time.perf_counter()
         cpu = ort.InferenceSession(str(args.model), providers=["CPUExecutionProvider"])
         report["cpu_session_create_s"] = time.perf_counter() - cpu_started
-        cpu_steps = run_two_steps(cpu, inputs, layer0=args.layer0)
+        cpu_steps = run_steps(cpu, inputs, layer0=args.layer0, step_count=args.steps)
         report["cpu_step_s"] = [step["elapsed_s"] for step in cpu_steps]
         report["status"] = "cpu_reference_pass"
         args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -99,8 +107,20 @@ def main() -> None:
         started = time.perf_counter()
         npu = ort.InferenceSession(str(args.model), sess_options=options)
         report["npu_session_create_s"] = time.perf_counter() - started
-        npu_steps = run_two_steps(npu, inputs, layer0=args.layer0)
+        npu_steps = run_steps(npu, inputs, layer0=args.layer0, step_count=args.steps)
         report["npu_step_s"] = [step["elapsed_s"] for step in npu_steps]
+        if args.capture_dir is not None:
+            args.capture_dir.mkdir(parents=True, exist_ok=True)
+            captured = {}
+            for index, (reference, candidate) in enumerate(zip(cpu_steps, npu_steps)):
+                for kind, step in (("cpu", reference), ("npu", candidate)):
+                    for output_index, value in enumerate(step["outputs"]):
+                        captured[f"{kind}_step{index}_out{output_index}"] = value
+            capture_path = args.capture_dir / ("layer0_outputs.npz" if args.layer0
+                                                else "full_state_outputs.npz")
+            np.savez_compressed(capture_path, **captured)
+            report["capture"] = {"filename": capture_path.name,
+                                 "sha256": sha256(capture_path)}
         report["comparison"] = []
         for index, (reference, candidate) in enumerate(zip(cpu_steps, npu_steps)):
             errors = [relative_l2(a, b) for a, b in zip(reference["outputs"], candidate["outputs"])]

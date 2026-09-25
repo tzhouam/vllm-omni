@@ -1,0 +1,128 @@
+{
+  "scope": "captured native AMD NPU first-layer output replayed through seven real CPU transformer layers; not a complete TTS request",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "codes_sha256": "2768b9274748d767deca67ebd4c0201b914f4839902b89d5693d39e9b8e8c946",
+  "fixture_sha256": "1ef435ccc70484fb4b7971df822eee1315a50294cb6f3218c1b21a1dfb89fb43",
+  "capture_sha256": "2c66b58266f4d933c19a51efe44ed4bbf5414e1e76753029a7f1f944281b7559",
+  "prefill_state_max_relative_l2": 0.0,
+  "torch": "2.13.0+cpu",
+  "rows": [
+    {
+      "start_frame": 95,
+      "cpu_capture_max_relative_l2_vs_source": 3.3503775227221634e-07,
+      "injected_layer0_hidden_relative_l2": 0.013449389180290096,
+      "final_hidden_relative_l2": 0.008618716056896198,
+      "max_all_layer_state_relative_l2": 0.007192898962840456,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 1.4396263239219298e-06,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.008225246200738983,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "cpu_capture_max_relative_l2_vs_source": 4.0199178832095306e-07,
+      "injected_layer0_hidden_relative_l2": 0.016588518748172926,
+      "final_hidden_relative_l2": 0.013066070557643231,
+      "max_all_layer_state_relative_l2": 0.008551421692038048,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 7.673285979347415e-07,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.0096206129536079,
+      "finite": true
+    },
+    {
+      "start_frame": 99,
+      "cpu_capture_max_relative_l2_vs_source": 3.8066795142864326e-07,
+      "injected_layer0_hidden_relative_l2": 0.01406565037510462,
+      "final_hidden_relative_l2": 0.010410620609320213,
+      "max_all_layer_state_relative_l2": 0.010863512347030785,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 1.8290614784352915e-06,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.021971673364141978,
+      "finite": true
+    },
+    {
+      "start_frame": 101,
+      "cpu_capture_max_relative_l2_vs_source": 3.656560709202597e-07,
+      "injected_layer0_hidden_relative_l2": 0.012183361878947084,
+      "final_hidden_relative_l2": 0.008307091100802131,
+      "max_all_layer_state_relative_l2": 0.01251890973281264,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 1.9976138448911367e-06,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.015570030900971882,
+      "finite": true
+    },
+    {
+      "start_frame": 103,
+      "cpu_capture_max_relative_l2_vs_source": 3.658854107081377e-07,
+      "injected_layer0_hidden_relative_l2": 0.01442844842761238,
+      "final_hidden_relative_l2": 0.01016225861796378,
+      "max_all_layer_state_relative_l2": 0.015232575664114716,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 9.505473109298472e-07,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.007427641745781397,
+      "finite": true
+    },
+    {
+      "start_frame": 105,
+      "cpu_capture_max_relative_l2_vs_source": 3.6397434592550397e-07,
+      "injected_layer0_hidden_relative_l2": 0.013427465857727128,
+      "final_hidden_relative_l2": 0.010100815114075665,
+      "max_all_layer_state_relative_l2": 0.016264863683196608,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 1.388347751502932e-06,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.01604242157936259,
+      "finite": true
+    },
+    {
+      "start_frame": 107,
+      "cpu_capture_max_relative_l2_vs_source": 3.426424351387153e-07,
+      "injected_layer0_hidden_relative_l2": 0.01202412639963649,
+      "final_hidden_relative_l2": 0.00858888344617397,
+      "max_all_layer_state_relative_l2": 0.017320309601474525,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 1.5409376840910654e-06,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.012328149342351461,
+      "finite": true
+    },
+    {
+      "start_frame": 109,
+      "cpu_capture_max_relative_l2_vs_source": 3.6832720826729273e-07,
+      "injected_layer0_hidden_relative_l2": 0.013864543641882486,
+      "final_hidden_relative_l2": 0.010098007439050264,
+      "max_all_layer_state_relative_l2": 0.018307893803814763,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 7.064272249972512e-06,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.02103595351484418,
+      "finite": true
+    },
+    {
+      "start_frame": 111,
+      "cpu_capture_max_relative_l2_vs_source": 3.8820617844840036e-07,
+      "injected_layer0_hidden_relative_l2": 0.015360058210766874,
+      "final_hidden_relative_l2": 0.011469513949082527,
+      "max_all_layer_state_relative_l2": 0.01966226801928984,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 8.645674588226544e-07,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.016659799096735633,
+      "finite": true
+    },
+    {
+      "start_frame": 113,
+      "cpu_capture_max_relative_l2_vs_source": 4.1041343818363945e-07,
+      "injected_layer0_hidden_relative_l2": 0.019716157423261965,
+      "final_hidden_relative_l2": 0.01370938294524648,
+      "max_all_layer_state_relative_l2": 0.02074958949167838,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 3.39013619929592e-05,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.016671759050797166,
+      "finite": true
+    },
+    {
+      "start_frame": 115,
+      "cpu_capture_max_relative_l2_vs_source": 4.679808679063864e-07,
+      "injected_layer0_hidden_relative_l2": 0.025036128825681264,
+      "final_hidden_relative_l2": 0.021382550879407262,
+      "max_all_layer_state_relative_l2": 0.021824243866082116,
+      "cpu_suffix_wave_relative_l2_vs_source_decode": 1.9776279565502975e-05,
+      "npu_layer0_cpu_suffix_wave_relative_l2": 0.014114576066120718,
+      "finite": true
+    }
+  ],
+  "waveform_gate": {
+    "relative_l2_max": 0.01,
+    "passed_chunks": 3,
+    "total_chunks": 11
+  },
+  "status": "waveform_gate_failed_on_fixture"
+}

@@ -20,7 +20,8 @@
       "state_tensor_bytes": 4653056
     }
   ],
-  "onnx_export_s": 1.015763975912705,
+  "onnx_export_s": null,
+  "onnx_export_s_note": "Discarded retrospective timing: the timer was reset during CPU parity; rerun the export script for a valid export duration.",
   "onnx_export_error": null,
   "onnx_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
   "fixture_sha256": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc",

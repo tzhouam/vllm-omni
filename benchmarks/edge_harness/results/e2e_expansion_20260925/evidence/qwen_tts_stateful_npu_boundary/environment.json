@@ -1,0 +1,9 @@
+{
+  "host": "HX370 native Windows 11 build 26200",
+  "npu_device": "NPU Compute Accelerator Device",
+  "npu_driver_version": "32.0.203.329",
+  "vitisai_appx_package": "WindowsWorkload.EP.AMD.VitisAI.Framework.1.8",
+  "vitisai_appx_version": "1.8.63.0",
+  "onnxruntime_version": "1.30.0",
+  "vitisai_ep_dll_sha256": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991"
+}

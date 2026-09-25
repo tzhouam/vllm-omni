@@ -38,3 +38,11 @@ The [WSL CPU BF16 regression](evidence/minicpmo_cpu_marker_fix/README.md)
 also passed one red-square image-to-text+speech request on the installed
 vLLM 0.28 wheel, with clean shutdown and no stage-0 segment left after exit;
 the run was heavily swapped and does not qualify sustained CPU behavior.
+
+The [Qwen3-TTS HX370 rolling-KV NPU boundary](evidence/qwen_tts_stateful_npu_boundary/README.md)
+exports the real eight-layer decoder state with source/ONNX CPU parity and
+places the first transformer layer on the AMD NPU. Two early NPU-fed waveform
+chunks pass a provisional 1% gate after the unchanged CPU suffix, but an
+eleven-step generated-code rollout passes only 3/11 chunks as layer-0 KV error
+accumulates. The complete eight-layer NPU graph has no inference evidence;
+Qwen3-TTS on AMD NPU remains NOT E2E.
