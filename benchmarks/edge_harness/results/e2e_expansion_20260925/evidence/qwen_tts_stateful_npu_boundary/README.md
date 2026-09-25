@@ -117,6 +117,41 @@ diagnostic auditable. Resetting KV therefore does not fix the remaining
 chunk error, and computing the reference KV on CPU each step would duplicate
 work. This split is **not a qualified live TTS backend**.
 
+A narrower [checkpoint-weight attention/MLP split](mlp_split_cpu_report.json) then
+kept input projection, attention and KV on CPU and exported only the first
+layer's MLP as a candidate NPU graph. Its eleven-step CPU composition matched
+the original ONNX layer exactly (maximum relative L2 **0**). The MLP graph is
+SHA-256 `d59782eb7cd6d70f55c0732f5823cd293d54c03f0e7c90d922d4b8c615357d90`;
+the [pinned residual/CPU-reference fixture](mlp_split11_fixture.npz) is SHA-256
+`b23a6ea2277a53c7da99b4de4ef09313f72a3a5ac55944fee5d1eff204804f2d`.
+Both ONNX graphs remain outside Git under `/home/zhout/project/edge_infer/models/`.
+Native Windows 11 build 26200, HX370 driver 32.0.203.329, ORT 1.30.0 and
+VitisAI EP 1.8.63.0 matched the earlier [environment record](environment.json).
+
+The first [NPU run](mlp_npu_probe.json) placed one VitisAI partition for each
+of one warmup and eleven measured MLP calls, with **zero CPU node events** in
+the graph. Its worst hidden-state error against the exact CPU MLP was 0.9218%
+relative L2. Replaying the [captured NPU outputs](mlp_npu_outputs_11step.npz)
+through the unchanged seven-layer CPU suffix and waveform decoder gave
+[**11/11** chunks within 1%](mlp_npu_waveform.json); frame 109 was **0.9556%**
+relative L2 and the joined 22-frame segment was 0.5214%. The [first raw
+profile](mlp_npu_profile_2026-09-25_13-11-47_585.json) retains placement.
+This is a genuine component plus offline downstream numerical pass for one
+generated utterance, not a complete text-to-audio request or quality result
+over independent utterances.
+
+The [paired timing rerun](mlp_npu_probe_timed.json) produced bitwise-identical
+captured outputs, with eleven CPU and eleven NPU MLP calls in one process after
+warmups. Nearest-rank call p50/p95 was **0.053/0.090 ms on FP32 CPU** and
+**0.759/1.048 ms on NPU**, excluding the NPU's 49.82 s session creation.
+The [raw timed profile](mlp_npu_timed_profile_2026-09-25_13-15-08_325.json)
+again has twelve VitisAI and zero CPU node events. Run order, transfer,
+shared-RAM admission, complete decoder latency and power were not controlled.
+The NPU graph alone is already roughly 14 times slower at p50 than its FP32
+CPU equivalent, so the architecture's whole-chain benefit gate is not met and
+this split is **not integrated** into Omni. A coarser, quality-passing stage
+or demonstrable overlap would be needed to justify NPU placement.
+
 The full eight-layer ONNX graph passed the CPU check and exposed an NPU device,
 but [the bounded full-graph attempt](full_graph_compile_cap.json) was manually
 stopped after roughly ten minutes of session creation without an inference or
@@ -146,15 +181,27 @@ fixture are retained here.
 suffix and verifies eleven-step CPU parity. The split's
 [eleven-step fixture](step95_split11.npz) is retained here; its graph files are
 reproducible from the pinned original ONNX hash and are kept outside Git.
+For the new MLP cut, run `prepare_qwen_tts_attention_mlp_split.py` with the
+input-projection suffix ONNX and `step95_split11.npz`, writing attention/MLP
+graphs outside Git plus the fixture and report above. Copy the MLP graph and
+fixture unchanged to native Windows storage, then run
+`probe_qwen_tts_mlp_npu.py` with the pinned MLP/fixture SHA-256 values above,
+the packaged VitisAI `ExecutionProvider` directory, a profile prefix, capture
+and report path. Its second run records same-process CPU and NPU call timings.
+Use `replay_qwen_tts_layer0_npu_suffix.py --injected-cache-source cpu` with
+`mlp_npu_outputs_11step.npz`, the pinned source code stream and
+`step95_split11.npz` to reproduce every waveform gate. The retained capture
+and raw traces identify actual placement rather than inferring it from a
+requested provider.
 Set `PYTHONPATH` to this fork's checkout for the Linux export and replay:
 the installed `vllm_omni` wheel on the test host lacked the exact-state decoder
 method, and running the replay without that override raised `AttributeError`
 before any measurement. The recorded replay used the checkout source and
 PyTorch 2.13.0+cpu; the native VitisAI probe used ONNX Runtime 1.30.0.
 
-Next: localize the remaining frame-109 sensitivity within attention/MLP or the
-waveform suffix, validate a corrected artifact over more utterances, and only
-then test a warmed full-state NPU+CPU decoder with waveform quality, complete
-Omni requests, explicit shared-RAM admission, cancellation, transfer-inclusive
-latency and sustained power. The matrix cell remains
+Next: seek a coarser NPU stage that preserves the new 11/11 waveform result
+over independent generated utterances and beats the FP32 CPU equivalent after
+transfer and initialization. Only then test a warmed stateful NPU+CPU decoder
+through complete Omni requests, explicit shared-RAM admission, cancellation,
+transfer-inclusive latency and sustained power. The matrix cell remains
 **NOT E2E**.

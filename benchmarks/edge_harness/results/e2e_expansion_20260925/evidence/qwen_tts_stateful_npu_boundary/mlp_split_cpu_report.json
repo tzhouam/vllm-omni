@@ -1,0 +1,56 @@
+{
+  "scope": "pinned real-weight layer-0 CPU attention/KV plus extracted MLP; CPU composition gate only",
+  "source_sha256": "5790b5a750eab743bf1c84270467157bcd9d4e4243ec9cd87c6e1da5c6dd8900",
+  "source_fixture_sha256": "c96efd647f8078789a9790b929e8e5a501a4a2399e9b35e16bdd22f6f1752304",
+  "attention_sha256": "495b4e978aeb4a314759533b954735bb7e64861d5bbfdf5404c4409659248c6e",
+  "mlp_sha256": "d59782eb7cd6d70f55c0732f5823cd293d54c03f0e7c90d922d4b8c615357d90",
+  "mlp_fixture_sha256": "b23a6ea2277a53c7da99b4de4ef09313f72a3a5ac55944fee5d1eff204804f2d",
+  "onnxruntime": "1.29.0",
+  "rows": [
+    {
+      "start_frame": 95,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 97,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 99,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 101,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 103,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 105,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 107,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 109,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 111,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 113,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 115,
+      "max_relative_l2": 0.0
+    }
+  ],
+  "status": "eleven_step_cpu_composition_parity_pass"
+}

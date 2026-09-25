@@ -1,0 +1,105 @@
+{
+  "scope": "real checkpoint layer-0 CPU attention/KV plus NPU MLP, eleven captured code steps; component only",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "mlp": "d59782eb7cd6d70f55c0732f5823cd293d54c03f0e7c90d922d4b8c615357d90",
+    "fixture": "b23a6ea2277a53c7da99b4de4ef09313f72a3a5ac55944fee5d1eff204804f2d",
+    "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991"
+  },
+  "cpu_call_s": [
+    5.1600043661892414e-05,
+    5.91999851167202e-05,
+    6.84000551700592e-05,
+    5.319993942975998e-05,
+    5.030003376305103e-05,
+    4.75000124424696e-05,
+    8.9599983766675e-05,
+    7.509998977184296e-05,
+    4.83999028801918e-05,
+    5.789997521787882e-05,
+    4.320009611546993e-05
+  ],
+  "nearest_rank_p50_cpu_call_s": 5.319993942975998e-05,
+  "nearest_rank_p95_cpu_call_s": 8.9599983766675e-05,
+  "npu_device_count": 1,
+  "status": "npu_mlp_component_numeric_pass",
+  "session_creation_s": 49.8210174998967,
+  "rows": [
+    {
+      "start_frame": 95,
+      "npu_call_s": 0.0008641999447718263,
+      "hidden_relative_l2_vs_cpu": 0.0055214718983240185,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "npu_call_s": 0.000686999992467463,
+      "hidden_relative_l2_vs_cpu": 0.004585784086374111,
+      "finite": true
+    },
+    {
+      "start_frame": 99,
+      "npu_call_s": 0.001023900113068521,
+      "hidden_relative_l2_vs_cpu": 0.005225737888190152,
+      "finite": true
+    },
+    {
+      "start_frame": 101,
+      "npu_call_s": 0.001048099948093295,
+      "hidden_relative_l2_vs_cpu": 0.00529217917458228,
+      "finite": true
+    },
+    {
+      "start_frame": 103,
+      "npu_call_s": 0.0008131000213325024,
+      "hidden_relative_l2_vs_cpu": 0.00556621824822918,
+      "finite": true
+    },
+    {
+      "start_frame": 105,
+      "npu_call_s": 0.0007963000098243356,
+      "hidden_relative_l2_vs_cpu": 0.005936114545102646,
+      "finite": true
+    },
+    {
+      "start_frame": 107,
+      "npu_call_s": 0.0007586999563500285,
+      "hidden_relative_l2_vs_cpu": 0.005716032873851955,
+      "finite": true
+    },
+    {
+      "start_frame": 109,
+      "npu_call_s": 0.0006480000447481871,
+      "hidden_relative_l2_vs_cpu": 0.005433497608126468,
+      "finite": true
+    },
+    {
+      "start_frame": 111,
+      "npu_call_s": 0.0005757999606430531,
+      "hidden_relative_l2_vs_cpu": 0.0055091505668415945,
+      "finite": true
+    },
+    {
+      "start_frame": 113,
+      "npu_call_s": 0.0005590000655502081,
+      "hidden_relative_l2_vs_cpu": 0.009110536457050797,
+      "finite": true
+    },
+    {
+      "start_frame": 115,
+      "npu_call_s": 0.0005472999764606357,
+      "hidden_relative_l2_vs_cpu": 0.009218019868632795,
+      "finite": true
+    }
+  ],
+  "nearest_rank_p50_npu_call_s": 0.0007586999563500285,
+  "nearest_rank_p95_npu_call_s": 0.001048099948093295,
+  "node_providers": {
+    "vitisai": 12,
+    "cpu": 0
+  },
+  "profile_file": "C:\\Users\\zhout\\w2\\qwen_tts_stateful_20260925\\mlp_npu_timed_profile_2026-09-25_13-15-08_325.json",
+  "profile_sha256": "49c2f9d5607c5ef28b8569e643b2d1e08f8b544b8b0c3e0c8e80c1631b047e9d",
+  "capture_sha256": "ab73f3604a5f038fcb772635ccea09f914d9f325162490939cd53ef8e1b4626d"
+}
