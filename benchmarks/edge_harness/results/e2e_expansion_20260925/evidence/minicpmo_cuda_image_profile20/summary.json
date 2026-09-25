@@ -1,0 +1,70 @@
+{
+  "scope": "MiniCPM-o 4.5 pinned BF16 three-stage vLLM/Omni WSL CUDA synthetic image to text+speech; one warmup and 20 serial measured requests",
+  "status": "scoped_repeated_request_pass_with_shutdown_cleanup_failure",
+  "device": "NVIDIA GeForce RTX 5090 Laptop GPU",
+  "driver": "610.71",
+  "model_revision_from_prior_provenance": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "input_sha256": {
+    "image": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0"
+  },
+  "deploy_config_sha256": "ce2639e7d6148ac1aabc19e5ef24b6331dc9bcc31f7b785025a5684bb744ce5b",
+  "software": {
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "torch": "2.13.0+cu130",
+    "vllm": "0.29.0",
+    "runtime_source": "this repo checkout"
+  },
+  "profile": {
+    "startup_s": 96.26897947897669,
+    "warmups": 1,
+    "measured": 20,
+    "wall_s_p50_nearest_rank": 16.102354086004198,
+    "wall_s_p95_nearest_rank": 16.55969821801409,
+    "wall_s_min": 15.887033551000059,
+    "wall_s_max": 16.89579690794926,
+    "audio_duration_s": 5.2,
+    "rtf_complete_p50": 3.096606555000807,
+    "rtf_complete_p95": 3.1845573496180943,
+    "identical_text_and_token_ids": true,
+    "audio_rms_range": [
+      0.086842117530845,
+      0.08685964212439173
+    ],
+    "unique_request_ids": 21
+  },
+  "sampled_resources": {
+    "gpu_device_wide_used_mib_max": 24047.0,
+    "gpu_device_wide_capacity_mib": 24463.0,
+    "gpu_device_wide_temperature_c_max": 71.0,
+    "gpu_device_wide_power_w_max": 99.44,
+    "wsl_available_bytes_min_during_measured": 17263988736,
+    "wsl_swap_used_bytes_max_during_measured": 1132142592,
+    "process_tree_rss_sum_bytes_max_during_measured": 16750723072,
+    "caveat": "GPU telemetry starts during startup and runs past shutdown; maxima use samples through final stage shutdown at 08:17:47, device-wide, not model-only. Memory samples are request-only lower bounds and RSS sum double-counts shared pages.",
+    "gpu_samples_total": 1655,
+    "gpu_samples_during_run_after_sampler_start": 896
+  },
+  "lifecycle": {
+    "stage0_force_killed": true,
+    "python_resource_tracker_leaked_shared_memory_objects": 21
+  },
+  "speech_proxy_prior_single_image": {
+    "wav_sha256": "1f2a2763d072773f076afd621f5632d7883d880d61d5b0368c4933bd9596ccd5",
+    "asr_revision": "87c7102498dcde7456f24cfd30239ca606ed9063",
+    "transcript": "The image shows a solid red square centered on a white background. There are no",
+    "word_error_rate": 0.2857142857142857,
+    "scope": "earlier single image WAV, not one of 20 measured WAVs"
+  },
+  "raw_file_sha256": {
+    "report.json": "4f7dbdd23d371f33d8b49a3b37d8f7fb83a4fc57d2f3910f04f846f9616519a1",
+    "report.jsonl": "68f334977c8b084cb26537ef04fab40f434dbcffa16b55810f48d9791cb68c6a",
+    "gpu_telemetry.csv": "e5c5b939085933ac59a66f22b01ebe043835aa599524a6c566bb51aa6b79dbf6",
+    "run.log.gz": "fcf42c4d1ffa51aeaf10f01f5b0fc7d455b82b90b51b48c8ff50acf9a01a1a26",
+    "run_attempt1.log.gz": "93b4572eb920d226fe456b845b4ea39a15471bc5209534707d3e49f49f0789e2",
+    "prior_single_image_asr.json": "2e47578b9cbff51fda80d413c35d0c5ecdc7d6017a8c6bf356ae0adacdd38168",
+    "prior_single_image_asr.log.gz": "cb45dfc509b65ade91df9842fefcf0d00046559b03ccc853ec97a2cf577d243a",
+    "model_sha256.txt": "4b1e929dec6abea74604d28dbe6984a72f561224b493c2157eb1dc413830b3d1"
+  },
+  "base_repo_sha_at_run": "c9d6ef05b6d2239a4e5c691c0b06de3d5878cee7",
+  "working_tree_note": "Profiler image/audio query support was an uncommitted change at run time and is included in this evidence commit; query-specific scope label and argument validation were added after measurement without changing runtime behavior."
+}

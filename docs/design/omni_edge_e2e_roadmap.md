@@ -190,8 +190,20 @@ input to text+speech and yielded a plausible whistling description, also with
 a shared-memory cleanup warning. Native Windows RTX also completed these two
 separate synthetic image and tone inputs through all three stages, returning
 the same respective text and thinker token IDs as WSL with nonzero WAVs.
-Broader image/audio quality, video, repeated multimodal latency and clean
-lifecycle remain open.
+Broader image/audio quality, video and clean lifecycle remain open.
+
+A [current-checkout WSL RTX MiniCPM-o image profile](../../benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_cuda_image_profile20/README.md)
+adds one warmup and 20 serial complete synthetic image-to-text+speech requests
+through the same three-stage BF16 Omni plan. All 20 returned the same correct
+red-square description/token IDs and nonzero 5.2 s audio; nearest-rank
+complete-request p50/p95 was 16.102/16.560 s after 96.269 s startup. Sampled
+device-wide VRAM reached 24,047/24,463 MiB, leaving little measured headroom;
+stage 0 was again force-killed and the process reported 21 leaked shared-memory
+objects. A pinned ASR proxy on the earlier single-image WAV omitted the final
+words of the displayed response (WER 0.286), so speech alignment is not
+qualified. M4 needs clean release, retained measured WAVs, held-out real
+images/audio, cancellation and sustained/admission checks before this route
+can move beyond a scoped synthetic pass.
 
 WSL CPU MiniCPM-o now also completes one synthetic red-square image and one
 440 Hz tone through thinker, talker and vocoder under separate one-item plans.

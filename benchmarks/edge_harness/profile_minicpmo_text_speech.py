@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Measure serial real-weight MiniCPM-o text-to-speech requests on one device."""
+"""Measure serial real-weight MiniCPM-o input-to-text+speech requests."""
 
 from __future__ import annotations
 
@@ -18,7 +18,11 @@ import psutil
 import torch
 import vllm
 
-from examples.offline_inference.minicpmo.end2end import get_text_query
+from examples.offline_inference.minicpmo.end2end import (
+    get_audio_query,
+    get_image_query,
+    get_text_query,
+)
 from vllm_omni.entrypoints.omni import Omni
 
 
@@ -137,12 +141,29 @@ def main() -> None:
     parser.add_argument("--repeats", type=int, default=20)
     parser.add_argument("--init-timeout", type=int, default=600)
     parser.add_argument("--stage-init-timeout", type=int, default=300)
+    parser.add_argument("--query-type", choices=("text", "image", "audio"), default="text")
+    parser.add_argument("--image-path", type=Path)
+    parser.add_argument("--audio-path", type=Path)
     args = parser.parse_args()
     if args.warmups < 0 or args.repeats < 1:
         parser.error("warmups must be nonnegative and repeats must be positive")
+    if args.query_type != "image" and args.image_path is not None:
+        parser.error("--image-path is only valid for image queries")
+    if args.query_type != "audio" and args.audio_path is not None:
+        parser.error("--audio-path is only valid for audio queries")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    prompt = {**get_text_query(use_tts=True).inputs, "modalities": ["text", "audio"]}
+    if args.query_type == "image":
+        if args.image_path is None:
+            parser.error("--image-path is required for image queries")
+        query = get_image_query(image_path=str(args.image_path), use_tts=True)
+    elif args.query_type == "audio":
+        if args.audio_path is None:
+            parser.error("--audio-path is required for audio queries")
+        query = get_audio_query(audio_path=str(args.audio_path), use_tts=True)
+    else:
+        query = get_text_query(use_tts=True)
+    prompt = {**query.inputs, "modalities": ["text", "audio"]}
     with MemorySampler() as sampler:
         started = time.perf_counter()
         omni = Omni(
@@ -170,7 +191,16 @@ def main() -> None:
     measured = [row for row in rows if not row["warmup"]]
     times = [row["wall_s"] for row in measured]
     output = {
-        "scope": "serial one-request-at-a-time MiniCPM-o text-to-speech; no speech-quality claim",
+        "scope": (
+            f"serial one-request-at-a-time MiniCPM-o {args.query_type}-to-text+speech; "
+            "no speech-quality claim"
+        ),
+        "query_type": args.query_type,
+        "input_sha256": {
+            key: hashlib.sha256(path.read_bytes()).hexdigest()
+            for key, path in (("image", args.image_path), ("audio", args.audio_path))
+            if path is not None
+        },
         "model": str(args.model.resolve()),
         "deploy_config": str(args.deploy_config.resolve()),
         "deploy_config_sha256": hashlib.sha256(args.deploy_config.read_bytes()).hexdigest(),
