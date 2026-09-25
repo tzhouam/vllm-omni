@@ -1,0 +1,35 @@
+{
+  "format": "internvla-a1-omni-observation-v2",
+  "source": "pepijn223/task_374@dade034a5780c23de5ab98fd236fee99f0758021",
+  "sample_index": 15,
+  "episode_index": 0,
+  "seed": 1234,
+  "task": "Sort laundry and personal care products | A robot stands in front of a table, on which there is a 3-grid material frame and a target frame. The target frame is on the left, and the 3-grid material frame is on the right.",
+  "state_fields": [
+    "observation.states.joint.position",
+    "observation.states.effector.position"
+  ],
+  "action_fields": [
+    "actions.joint.position",
+    "actions.effector.position"
+  ],
+  "physical_action_dim": 16,
+  "action_reconstruction": "checkpoint-stats-a2d-unnormalize-plus-joint-delta",
+  "camera_fields": [
+    "observation.images.head",
+    "observation.images.hand_left",
+    "observation.images.hand_right"
+  ],
+  "state_normalization": "checkpoint-stats-a2d-mean-std",
+  "image_preprocessing": "resize-with-pad-224-float32-0-to-1",
+  "image_offsets_frames": [
+    -15,
+    0
+  ],
+  "checkpoint_model_sha256": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+  "checkpoint_stats_sha256": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+  "checkpoint_train_config_sha256": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+  "dataset_info_sha256": "3922dfabcd5fd65e073f683587706749416e9fefb25fc47017d71e011ed83a82",
+  "dataset_data_sha256": "8626e93fef9e26a79a20bd58d6cbf61e87baa6e4ec76fe262a8d8bf3541ad7b6",
+  "fixture_sha256": "b0b195ee8b1f1d6bb17df84e69167064f75e14c0ca260006756f7ab66f881fd5"
+}

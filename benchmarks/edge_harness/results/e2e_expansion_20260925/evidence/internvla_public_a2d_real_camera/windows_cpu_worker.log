@@ -1,0 +1,9 @@
+W0925 21:51:57.230000 58724 Lib\site-packages\torch\utils\cpp_extension.py:178] No CUDA runtime is found, using CUDA_HOME='C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.4'
+INFO 09-25 21:52:00 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 21:52:00 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 21:52:05 [pipeline_internvla_a1.py:164] Loading InternVLA-A1 weights from \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\models\InternVLA-A1-3B-FT-Place_Markpen
+internvla-worker ready port=61360 props={"model_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\InternVLA-A1-3B-FT-Place_Markpen", "processor_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Qwen3-VL-2B-Instruct-processor", "cosmos_dir": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\models\\Cosmos-Tokenizer-CI8x8", "placement": "cpu", "torch": "2.13.0+cu130", "policy_dtype": "bfloat16", "cosmos_dtype": "bfloat16", "policy_device": "cpu", "runtime_mode": "real_checkpoint_loaded", "cuda_device_name": null, "cuda_device_index": null, "cuda_allocated_after_load_bytes": null, "cuda_reserved_after_load_bytes": null, "policy_load_s": 84.17326120007783, "action_shape": [1, 50, 32], "image_shape": [1, 2, 3, 224, 224], "state_shape": [1, 32], "action_mode": "delta", "action_units": "unverified", "action_joint_order": "unverified", "action_step_s": null, "control_ready": false, "external_load": null, "npu_load": null}
+127.0.0.1 - - [25/Sep/2026 21:53:30] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 21:53:30] "GET /props HTTP/1.1" 200 -
+internvla-worker request-start id=internvla-measured-0
+127.0.0.1 - - [25/Sep/2026 21:53:35] "POST /v1/actions HTTP/1.1" 200 -

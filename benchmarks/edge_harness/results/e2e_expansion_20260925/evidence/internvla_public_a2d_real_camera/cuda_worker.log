@@ -1,0 +1,9 @@
+INFO 09-25 21:59:17 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 21:59:17 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 21:59:17 [patch.py:589] [cumem-cuda] CuMemAllocator._python_free_callback patched: asleep guard extended to all platforms.
+INFO 09-25 21:59:18 [pipeline_internvla_a1.py:164] Loading InternVLA-A1 weights from /home/zhout/project/edge_infer/models/InternVLA-A1-3B-FT-Place_Markpen
+internvla-worker ready port=48203 props={"model_dir": "/home/zhout/project/edge_infer/models/InternVLA-A1-3B-FT-Place_Markpen", "processor_dir": "/home/zhout/project/edge_infer/models/Qwen3-VL-2B-Instruct-processor", "cosmos_dir": "/home/zhout/project/edge_infer/models/Cosmos-Tokenizer-CI8x8", "placement": "cuda", "torch": "2.13.0+cu130", "policy_dtype": "bfloat16", "cosmos_dtype": "bfloat16", "policy_device": "cuda", "runtime_mode": "real_checkpoint_loaded", "cuda_device_name": "NVIDIA GeForce RTX 5090 Laptop GPU", "cuda_device_index": 0, "cuda_allocated_after_load_bytes": 6451405312, "cuda_reserved_after_load_bytes": 7799308288, "policy_load_s": 33.737815382075496, "action_shape": [1, 50, 32], "image_shape": [1, 2, 3, 224, 224], "state_shape": [1, 32], "action_mode": "delta", "action_units": "unverified", "action_joint_order": "unverified", "action_step_s": null, "control_ready": false, "external_load": null, "npu_load": null}
+127.0.0.1 - - [25/Sep/2026 21:59:52] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [25/Sep/2026 21:59:52] "GET /props HTTP/1.1" 200 -
+internvla-worker request-start id=internvla-measured-0
+127.0.0.1 - - [25/Sep/2026 21:59:53] "POST /v1/actions HTTP/1.1" 200 -

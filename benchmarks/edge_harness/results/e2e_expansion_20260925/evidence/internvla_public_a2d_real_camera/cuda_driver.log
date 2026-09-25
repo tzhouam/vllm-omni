@@ -1,0 +1,268 @@
+INFO 09-25 21:58:59 [patch.py:259] NVFP4 W4A4 weight_scale NaN-clamp: installed.
+INFO 09-25 21:59:00 [patch.py:510] inductor factorable-divisibility patch: installed.
+INFO 09-25 21:59:00 [patch.py:589] [cumem-cuda] CuMemAllocator._python_free_callback patched: asleep guard extended to all platforms.
+INFO 09-25 21:59:07 [stage_init_utils.py:768] [stage_init] Set VLLM_WORKER_MULTIPROC_METHOD=spawn
+WARNING 09-25 21:59:07 [stage_init_utils.py:1887] [stage_init] Failed to load transfer config: [Errno 21] Is a directory: '/home/zhout/project/edge_infer/vllm-omni-edge'
+{
+  "scope": "real InternVLA Place_Markpen checkpoint via bounded Omni whole-policy graph stage; external preprocessed observation fixture; no robot-task quality claim",
+  "placement": "cuda",
+  "artifact_sha256": {
+    "python": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7",
+    "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+    "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+    "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+    "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+    "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+    "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+    "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+    "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+  },
+  "budget": {
+    "capacities": {
+      "host_ram": 30064771072,
+      "cuda:0": 22548578304
+    },
+    "demands": {
+      "host_ram": 17179869184,
+      "cuda:0": 17179869184
+    }
+  },
+  "fixture_manifest": {
+    "format": "internvla-a1-omni-observation-v2",
+    "source": "pepijn223/task_374@dade034a5780c23de5ab98fd236fee99f0758021",
+    "sample_index": 15,
+    "episode_index": 0,
+    "seed": 1234,
+    "task": "Sort laundry and personal care products | A robot stands in front of a table, on which there is a 3-grid material frame and a target frame. The target frame is on the left, and the 3-grid material frame is on the right.",
+    "state_fields": [
+      "observation.states.joint.position",
+      "observation.states.effector.position"
+    ],
+    "action_fields": [
+      "actions.joint.position",
+      "actions.effector.position"
+    ],
+    "physical_action_dim": 16,
+    "action_reconstruction": "checkpoint-stats-a2d-unnormalize-plus-joint-delta",
+    "camera_fields": [
+      "observation.images.head",
+      "observation.images.hand_left",
+      "observation.images.hand_right"
+    ],
+    "state_normalization": "checkpoint-stats-a2d-mean-std",
+    "image_preprocessing": "resize-with-pad-224-float32-0-to-1",
+    "image_offsets_frames": [
+      -15,
+      0
+    ],
+    "checkpoint_model_sha256": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+    "checkpoint_stats_sha256": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+    "checkpoint_train_config_sha256": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+    "dataset_info_sha256": "3922dfabcd5fd65e073f683587706749416e9fefb25fc47017d71e011ed83a82",
+    "dataset_data_sha256": "8626e93fef9e26a79a20bd58d6cbf61e87baa6e4ec76fe262a8d8bf3541ad7b6",
+    "fixture_sha256": "b0b195ee8b1f1d6bb17df84e69167064f75e14c0ca260006756f7ab66f881fd5"
+  },
+  "fixture_sha256": {
+    "input_fixture": "b0b195ee8b1f1d6bb17df84e69167064f75e14c0ca260006756f7ab66f881fd5",
+    "fixture_manifest": "e743211b73fea396ba90f78d8f9b25d4afab036d9281176e6509fc0ad98ca1b0"
+  },
+  "host_available_bytes_before": 31705456640,
+  "cuda_before": {
+    "free_bytes": 24242028544,
+    "total_bytes": 25650855936,
+    "device_name": "NVIDIA GeForce RTX 5090 Laptop GPU"
+  },
+  "warmups": 0,
+  "repeats": 1,
+  "startup_s": 44.828342599910684,
+  "execution_plan_start": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "7ece7aa79acd43c1a7309d94cedca906",
+    "worker_pid": 1912232,
+    "worker_script_sha256": "7afc782f01a2544e366af645e128d2f643f9ac17079fccbb56481c91e3ca235f",
+    "artifact_sha256": {
+      "python": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+    },
+    "placement": "cuda",
+    "worker_props": {
+      "model_dir": "/home/zhout/project/edge_infer/models/InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "/home/zhout/project/edge_infer/models/Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "/home/zhout/project/edge_infer/models/Cosmos-Tokenizer-CI8x8",
+      "placement": "cuda",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "bfloat16",
+      "policy_device": "cuda",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "cuda_device_index": 0,
+      "cuda_allocated_after_load_bytes": 6451405312,
+      "cuda_reserved_after_load_bytes": 7799308288,
+      "policy_load_s": 33.737815382075496,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": null,
+      "npu_load": null
+    },
+    "loaded_rss_bytes": 8304783360,
+    "loaded_process_tree": [
+      {
+        "pid": 1912232,
+        "rss_bytes": 8304783360,
+        "private_bytes": 8304783360
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184,
+      "cuda:0": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 15373460732,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "warmup_results": [],
+  "nearest_rank_p50_wall_s": 1.3860459250863642,
+  "nearest_rank_p95_wall_s": 1.3860459250863642,
+  "unique_action_hashes": [
+    "9fb60086deef42ebf1e69c739b588133112c029e1535e5043a920b6ba465ec0d"
+  ],
+  "output_actions": "benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/internvla_public_a2d_real_camera/cuda_actions.npy",
+  "output_physical_actions": "benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/internvla_public_a2d_real_camera/cuda_physical_actions.npy",
+  "single_sample_reference_action_comparison": {
+    "reference_shape": [
+      1,
+      50,
+      16
+    ],
+    "mae": 0.1117652952671051,
+    "max_abs": 0.9024556875228882,
+    "relative_l2": 0.3176726698875427
+  },
+  "reference_comparison": {
+    "max_abs": 0.009538918733596802,
+    "relative_l2": 0.00844130851328373,
+    "cosine": 0.9999676942825317
+  },
+  "execution_plan_end": {
+    "backend": "external.internvla.policy.v1",
+    "stage_id": 0,
+    "worker_generation": "7ece7aa79acd43c1a7309d94cedca906",
+    "worker_pid": 1912232,
+    "worker_script_sha256": "7afc782f01a2544e366af645e128d2f643f9ac17079fccbb56481c91e3ca235f",
+    "artifact_sha256": {
+      "python": "021044895e95be79dc2f110367607e684119afbc8ce75f6f0eec94844e0acec7",
+      "model": "586799539888c69c35f84d083e559cc5f0ba887801d000e70e65f58d3f85c313",
+      "model_config": "1272ca8fb93cb42f48b039bb298688b2bd50a66f4faa0afcd9e538e9762f48aa",
+      "train_config": "e50ec42e40ba1925983e0e8db36558d3738bea64e1698045ff7cc08a130e1053",
+      "stats": "354710650bb91fc0e84a461987b3554b30bef9d5de47567480624484cdfbf3a2",
+      "cosmos_encoder": "520a3b878e72ee872faccb1211b5d622d194c0fdd177f2f6df097586b8fa98e5",
+      "cosmos_decoder": "3b7791e6c8f6f92caacddf48ebb314f044bcb8302d0c7f47501d384a7a80f738",
+      "processor_tokenizer": "a5d85b6dcc535e6b93115a9ef287e6132fdbf30270da6218194ba742261173c7",
+      "processor_config": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+    },
+    "placement": "cuda",
+    "worker_props": {
+      "model_dir": "/home/zhout/project/edge_infer/models/InternVLA-A1-3B-FT-Place_Markpen",
+      "processor_dir": "/home/zhout/project/edge_infer/models/Qwen3-VL-2B-Instruct-processor",
+      "cosmos_dir": "/home/zhout/project/edge_infer/models/Cosmos-Tokenizer-CI8x8",
+      "placement": "cuda",
+      "torch": "2.13.0+cu130",
+      "policy_dtype": "bfloat16",
+      "cosmos_dtype": "bfloat16",
+      "policy_device": "cuda",
+      "runtime_mode": "real_checkpoint_loaded",
+      "cuda_device_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "cuda_device_index": 0,
+      "cuda_allocated_after_load_bytes": 6451405312,
+      "cuda_reserved_after_load_bytes": 7799308288,
+      "policy_load_s": 33.737815382075496,
+      "action_shape": [
+        1,
+        50,
+        32
+      ],
+      "image_shape": [
+        1,
+        2,
+        3,
+        224,
+        224
+      ],
+      "state_shape": [
+        1,
+        32
+      ],
+      "action_mode": "delta",
+      "action_units": "unverified",
+      "action_joint_order": "unverified",
+      "action_step_s": null,
+      "control_ready": false,
+      "external_load": null,
+      "npu_load": null
+    },
+    "loaded_rss_bytes": 8304783360,
+    "loaded_process_tree": [
+      {
+        "pid": 1912232,
+        "rss_bytes": 8304783360,
+        "private_bytes": 8304783360
+      }
+    ],
+    "reserved_bytes": {
+      "host_ram": 17179869184,
+      "cuda:0": 17179869184
+    },
+    "memory_overhead_bytes": 8589934592,
+    "cuda_weights_and_headroom_min_bytes": 15373460732,
+    "max_input_bytes": 8388608,
+    "max_action_bytes": 1048576,
+    "request_capacity": 1,
+    "stateful_session": "InternVLA policy worker-owned; complete action chunk per request",
+    "evidence": "B"
+  },
+  "status": "passed",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 30064771072,
+      "cuda:0": 22548578304
+    },
+    "reserved": {
+      "host_ram": 0,
+      "cuda:0": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

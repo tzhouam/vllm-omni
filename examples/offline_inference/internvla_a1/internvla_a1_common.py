@@ -82,12 +82,21 @@ class TorchvisionVideoReaderCache:
     def __init__(self, backend: str = "pyav") -> None:
         self.backend = backend
         self._readers: dict[str, Any] = {}
-        torchvision.set_video_backend(backend)
+        self._torchvision_reader = hasattr(torchvision.io, "VideoReader")
+        if self._torchvision_reader:
+            torchvision.set_video_backend(backend)
+        elif backend != "pyav":
+            raise RuntimeError("torchvision VideoReader is unavailable; only the PyAV fallback is supported")
 
     def get(self, path: str) -> Any:
         reader = self._readers.get(path)
         if reader is None:
-            reader = torchvision.io.VideoReader(path, "video")
+            if self._torchvision_reader:
+                reader = torchvision.io.VideoReader(path, "video")
+            else:
+                import av
+
+                reader = av.open(path)
             self._readers[path] = reader
         return reader
 
@@ -95,16 +104,26 @@ class TorchvisionVideoReaderCache:
         reader = self.get(path)
         first_ts = min(timestamps)
         last_ts = max(timestamps)
-        reader.seek(first_ts, keyframes_only=self.backend == "pyav")
+        if self._torchvision_reader:
+            reader.seek(first_ts, keyframes_only=self.backend == "pyav")
+            frames = ((float(frame["pts"]), frame["data"]) for frame in reader)
+        else:
+            stream = reader.streams.video[0]
+            reader.seek(int(first_ts / float(stream.time_base)), stream=stream, backward=True)
+            frames = ((float(frame.pts * frame.time_base),
+                       torch.from_numpy(frame.to_ndarray(format="rgb24")).permute(2, 0, 1))
+                      for frame in reader.decode(stream))
 
         loaded_frames: list[torch.Tensor] = []
         loaded_ts: list[float] = []
-        for frame in reader:
-            current_ts = float(frame["pts"])
-            loaded_frames.append(frame["data"])
+        for current_ts, frame in frames:
+            loaded_frames.append(frame)
             loaded_ts.append(current_ts)
             if current_ts >= last_ts:
                 break
+
+        if not loaded_frames:
+            raise RuntimeError(f"No video frames decoded for {path} at {timestamps}")
 
         query_ts = torch.tensor(timestamps, dtype=torch.float32)
         loaded_ts_tensor = torch.tensor(loaded_ts, dtype=torch.float32)

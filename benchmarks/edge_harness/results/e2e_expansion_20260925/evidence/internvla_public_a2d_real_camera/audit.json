@@ -1,0 +1,263 @@
+{
+  "status": "real_camera_execution_passed_task_accuracy_unqualified",
+  "fixture_sha256": "b0b195ee8b1f1d6bb17df84e69167064f75e14c0ca260006756f7ab66f881fd5",
+  "manifest_sha256": "e743211b73fea396ba90f78d8f9b25d4afab036d9281176e6509fc0ad98ca1b0",
+  "source": "pepijn223/task_374@dade034a5780c23de5ab98fd236fee99f0758021",
+  "source_task": "Sort laundry and personal care products | A robot stands in front of a table, on which there is a 3-grid material frame and a target frame. The target frame is on the left, and the 3-grid material frame is on the right.",
+  "checkpoint_task": {
+    "type": "qwena1",
+    "repo_id": "a2d_real/a2d_pen_holder",
+    "root": null,
+    "episodes": null,
+    "image_transforms": {
+      "enable": false,
+      "max_num_transforms": 3,
+      "random_order": false,
+      "tfs": {
+        "brightness": {
+          "weight": 1.0,
+          "type": "ColorJitter",
+          "kwargs": {
+            "brightness": [
+              0.8,
+              1.2
+            ]
+          }
+        },
+        "contrast": {
+          "weight": 1.0,
+          "type": "ColorJitter",
+          "kwargs": {
+            "contrast": [
+              0.8,
+              1.2
+            ]
+          }
+        },
+        "saturation": {
+          "weight": 1.0,
+          "type": "ColorJitter",
+          "kwargs": {
+            "saturation": [
+              0.5,
+              1.5
+            ]
+          }
+        },
+        "hue": {
+          "weight": 1.0,
+          "type": "ColorJitter",
+          "kwargs": {
+            "hue": [
+              -0.05,
+              0.05
+            ]
+          }
+        },
+        "sharpness": {
+          "weight": 1.0,
+          "type": "SharpnessJitter",
+          "kwargs": {
+            "sharpness": [
+              0.5,
+              1.5
+            ]
+          }
+        },
+        "affine": {
+          "weight": 1.0,
+          "type": "RandomAffine",
+          "kwargs": {
+            "degrees": [
+              -5.0,
+              5.0
+            ],
+            "translate": [
+              0.05,
+              0.05
+            ]
+          }
+        }
+      }
+    },
+    "revision": null,
+    "use_imagenet_stats": true,
+    "use_external_stats": true,
+    "video_backend": "torchcodec",
+    "streaming": false,
+    "dist_loading": false,
+    "buffer_size": 1024,
+    "action_mode": "delta",
+    "repack_transforms": {
+      "inputs": [],
+      "outputs": []
+    },
+    "data_transforms": {
+      "inputs": [
+        {
+          "type": "delta_action",
+          "mask": null,
+          "mapping": {}
+        },
+        {
+          "type": "resize_with_pad",
+          "height": 224,
+          "width": 224,
+          "mode": "bilinear"
+        },
+        {
+          "type": "remap_image_key",
+          "mapping": {}
+        },
+        {
+          "type": "qwena1_processor",
+          "pretrained_model_name_or_path": "Qwen/Qwen3-VL-2B-Instruct",
+          "max_length": 48,
+          "task_key": "task",
+          "padding_side": "right",
+          "padding": "max_length",
+          "truncation": true,
+          "spatial_merge_size": 2,
+          "vision_start_token_id": 151652,
+          "vision_end_token_id": 151653,
+          "image_token_id": 151655,
+          "process": null
+        },
+        {
+          "type": "normalize",
+          "selected_keys": null,
+          "mode": "mean_std",
+          "norm_stats": {}
+        },
+        {
+          "type": "compose_fields",
+          "mapping": {}
+        },
+        {
+          "type": "pad_state_and_action",
+          "max_state_dim": 32,
+          "max_action_dim": 32
+        },
+        {
+          "type": "unify_qwena1_inputs"
+        }
+      ],
+      "outputs": []
+    },
+    "model_transforms": {
+      "inputs": [],
+      "outputs": []
+    },
+    "height": 224,
+    "width": 224,
+    "max_state_dim": 32,
+    "max_action_dim": 32
+  },
+  "camera_frame_mean_absolute_change": {
+    "image0": 0.004697640426456928,
+    "image1": 0.003846977138891816,
+    "image2": 0.004050746094435453
+  },
+  "source_files_sha256": {
+    "meta/info.json": "3922dfabcd5fd65e073f683587706749416e9fefb25fc47017d71e011ed83a82",
+    "meta/stats.json": "da3bbe87be89923132ac53191a14ed4be255734232a2b0a52cf8768caad367dc",
+    "meta/tasks.parquet": "e9ae5a573fd2ce164d5730692d4b3650cd30f4aca9e11ee98d208e744d800ed6",
+    "meta/episodes/chunk-000/file-000.parquet": "7e84f44ece25dfdbe193bf35ebcac89879d07a0e98262923f14fc8a80e27a6ee",
+    "data/chunk-000/file-000.parquet": "8626e93fef9e26a79a20bd58d6cbf61e87baa6e4ec76fe262a8d8bf3541ad7b6",
+    "videos/observation.images.head/chunk-000/file-000.mp4": "e29cdbf1eb1662c0d9d0232d3e73cb707b0049150f84686dc7b9ab597c641df2",
+    "videos/observation.images.hand_left/chunk-000/file-000.mp4": "2c0dfa0190c049ba5e93834bfb6b2714ad86f6cccf1b23d34dafc66c8514c7bb",
+    "videos/observation.images.hand_right/chunk-000/file-000.mp4": "c707e9558a3a1c7d6c72b876f556f90d3c1d627b7a2577af54be5c6e11fd1820"
+  },
+  "placements": [
+    {
+      "name": "cpu",
+      "placement": "cpu",
+      "report_sha256": "1f58ca92ddcfbb851cf158855e058c587edf099447b82b39d0eb4840a99b2a0b",
+      "actions_sha256": "ad598053a51730df2693ffc467a9dbb55242abac0de3553f84bd943038974e83",
+      "physical_actions_sha256": "8af58aeebc0b1e4e0abb16e5ae7a8730a385718b03149b149aa57bb3b6b86ec2",
+      "request_wall_s": 3.3146681039361283,
+      "reference_physical_relative_l2": 0.317081481218338,
+      "action_sha256": "c79d0538ca20338b840fd5054c0a70940ded92d23fef25be6def97a716c10e32",
+      "physical_action_sha256": "4730b1a81d61f87bcde559502021a6ba19afa753cd34b757353d3290c8b6b916",
+      "relative_l2_vs_windows_cpu_actions": 0.008395167998969555
+    },
+    {
+      "name": "windows_cpu",
+      "placement": "cpu",
+      "report_sha256": "121de6ddc9ee3b9c1d502b2a5ffc2c94c8ffc4e6b56caf2254d9ceae0c8d093a",
+      "actions_sha256": "65349eee21549e3bd4b1f74a420030dfd9273ea09250bdb88c6cfeb79a3b0ca5",
+      "physical_actions_sha256": "b42c4c3e23e0c9fbe770f940f0e720794eb3b61b9ecc23b8961eb95add84494a",
+      "request_wall_s": 5.118061500019394,
+      "reference_physical_relative_l2": 0.31735721230506897,
+      "action_sha256": "98afd1b67957c3d2f8c45ad0cc126e0f1edb56355712a50d39e1e4b2f009bd43",
+      "physical_action_sha256": "f897bbd66eb013d5e878f2d03b03919ca69539396be9f6b12559ce6f8e823291",
+      "relative_l2_vs_windows_cpu_actions": 0.0
+    },
+    {
+      "name": "npu",
+      "placement": "amd-npu-conv13",
+      "report_sha256": "32d0c5f0c0efac44a49e9554fdbab02045138b4ad5ac26b2b3bbd0b49e108a6f",
+      "actions_sha256": "e33b53c3c7b5798535ea926184e79ebe58f347f240e018482d3ff7ccf4552290",
+      "physical_actions_sha256": "17a8ce7fb904029bd24585f72b7ad61fe1ba9b0aa6021af169d6652cfd724868",
+      "request_wall_s": 5.11765699996613,
+      "reference_physical_relative_l2": 0.317597359418869,
+      "action_sha256": "6ba3379cf54a1bbbd10e55aab485d347497fc72d2cf7a9e720641c0bce2294ce",
+      "physical_action_sha256": "f1cee2a16bd8dbea423bf65183d2da3dec3d22913ea52db8166e72215ebc78ba",
+      "relative_l2_vs_windows_cpu_actions": 0.007010065484791994
+    },
+    {
+      "name": "joint",
+      "placement": "amd-npu-radeon-cosmos",
+      "report_sha256": "3eddfa4a485d83c80cbb88437706e524c128916dfbeefbc6cc1cb5621a7ff392",
+      "actions_sha256": "5edf9c932c5ac291d30d16a01581222542113d8aa427a417d725d63d61d35261",
+      "physical_actions_sha256": "f7a16fee774a32e96be9054b76f0069dde9710703c94004f052cea8b664390b3",
+      "request_wall_s": 4.917525899945758,
+      "reference_physical_relative_l2": 0.3176004886627197,
+      "action_sha256": "f9b32f32da5729aa5be7ddc54703ed25fb404af620a5d9b9e7cd5b9f2ba9127d",
+      "physical_action_sha256": "08eed9dce0e339063dfce92c82e0dd921ce9a7b7314129e1c1e43f643030cc2f",
+      "npu_profile_sha256": "fa4c7ad17bfe0addad856bd1eda47a3f0dea9d84755f9bff1099d3bc3c9cbf33",
+      "npu_profile_node_providers": {
+        "CPUExecutionProvider": 3,
+        "vitisai": 1
+      },
+      "relative_l2_vs_windows_cpu_actions": 0.007291700690984726
+    },
+    {
+      "name": "radeon",
+      "placement": "radeon-cosmos",
+      "report_sha256": "b32e4480f63cd4e7422f6cee2db31e1a7a0e0d485f11d15b8330013099f32cc1",
+      "actions_sha256": "7581f56b083b0ea378dd0dac4abe323cb8b1d47258e45143dbf4088fff963bfd",
+      "physical_actions_sha256": "5cef760f7e8613ff79658c2711f26c3318951bd0ae1f5fcf2828980a2429a290",
+      "request_wall_s": 4.324031400028616,
+      "reference_physical_relative_l2": 0.3172789514064789,
+      "action_sha256": "02dcabb7816f0766a16518e45f26f6464bb0a9d00c20b476d933a5097e0f900f",
+      "physical_action_sha256": "947724bfddf07ff071326c3529150ed92ed594aec200f825abd767e5e0aa9caf",
+      "relative_l2_vs_windows_cpu_actions": 0.006402088329195976
+    },
+    {
+      "name": "cuda",
+      "placement": "cuda",
+      "report_sha256": "7a26716f617f4c95a477c2c5727b62bafcdb977a5640fdfe903ce6f22415f245",
+      "actions_sha256": "50dd9d21f0302b7982a2f8f0f1f43199c5f24356bff11703e4b07895ed986c37",
+      "physical_actions_sha256": "22d26e92901684cb230777a4703a1c4c3f9590242fe04dc754b01b1987f3e988",
+      "request_wall_s": 1.3860459250863642,
+      "reference_physical_relative_l2": 0.3176726698875427,
+      "action_sha256": "9fb60086deef42ebf1e69c739b588133112c029e1535e5043a920b6ba465ec0d",
+      "physical_action_sha256": "e8a329d1e758b38f9556e0cba11124010a782101ede797f2250fb2360ce0874f",
+      "relative_l2_vs_windows_cpu_actions": 0.00844130851328373
+    },
+    {
+      "name": "windows_cuda",
+      "placement": "cuda",
+      "report_sha256": "b783278b54084b62a71fe91e589520618420487203c25a119d73565b544a20dc",
+      "actions_sha256": "bf6ccdcb7c5e99635fe6ce74c25268473d04dacda448f87997ab6abb3daca762",
+      "physical_actions_sha256": "4c6a221d7cffb2e9c6440b4419bba56fd38f976ca7b5fd29a564e8a121081989",
+      "request_wall_s": 2.3503905000397936,
+      "reference_physical_relative_l2": 0.3172563314437866,
+      "action_sha256": "5c25cbc2949615aee19b76ec5ef065a449fbf63d695a516dcaa386e1a31ec5e0",
+      "physical_action_sha256": "eea386def4c39858e62e327070d9e05fabc2c5a7b0ad37ae33848ae13af6ed94",
+      "relative_l2_vs_windows_cpu_actions": 0.007795853540301323
+    }
+  ],
+  "limits": "One out-of-task A2D real observation, one complete request per placement; no Place_Markpen task-quality, paired latency, action units or robot-control claim."
+}

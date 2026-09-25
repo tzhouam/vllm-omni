@@ -1,0 +1,4 @@
+*.json -text whitespace=cr-at-eol
+*.log -text -diff
+*.npz -text -diff
+*.npy -text -diff

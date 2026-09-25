@@ -133,6 +133,16 @@ worker is deliberately retired on in-flight abort, so the former stage cannot
 accept another request. Real observation quality, paired benefit and
 worker-crash recovery remain open.
 
+A [public real-camera A2D follow-up](evidence/internvla_public_a2d_real_camera/README.md)
+fixed the installed torchvision loader's missing `VideoReader` through a
+PyAV fallback and prepared one pinned two-frame/three-camera A2D observation.
+Seven complete Omni policy requests passed across WSL/native CPU, Radeon,
+AMD NPU, joint NPU+Radeon and WSL/native RTX placements, with terminal
+16-value decoded action buffers and cleared reservations. The source task is
+laundry sorting, whereas the checkpoint is fine-tuned for Place_Markpen;
+therefore this adds real-sensor execution evidence only, not task accuracy or
+robot-control qualification. One request per route is not a latency profile.
+
 The [native Windows CPU Qwen3-TTS recovery probe](evidence/qwen_tts_windows_cpu_recovery/README.md)
 aborted a public Omni request after the BF16 CPU worker started and delivered
 no stale audio. A fresh stage loaded the same checkpoint and returned the
