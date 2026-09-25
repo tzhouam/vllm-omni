@@ -46,3 +46,13 @@ chunks pass a provisional 1% gate after the unchanged CPU suffix, but an
 eleven-step generated-code rollout passes only 3/11 chunks as layer-0 KV error
 accumulates. The complete eight-layer NPU graph has no inference evidence;
 Qwen3-TTS on AMD NPU remains NOT E2E.
+An eleven-step control that resets each NPU input cache to the CPU reference
+still passes only 3/11 waveform chunks. This isolates the remaining quality
+failure to the placed first-layer computation for this artifact, beyond its
+rolling-state accumulation.
+An input-projection CPU cut reduces NPU first-layer hidden error below 1%
+across eleven steps, but its NPU-owned KV error grows beyond 2% and the
+unchanged CPU waveform suffix passes only 10/11 chunks. The 22-frame joined
+audio segment passes at 0.591% relative L2, while frame 109 misses the
+per-chunk gate at 2.398%; exact CPU KV does not repair that outlier. There is
+no live complete-request or transfer-inclusive benefit evidence.

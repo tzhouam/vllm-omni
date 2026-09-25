@@ -1,0 +1,105 @@
+{
+  "scope": "first real Qwen3-TTS rolling-KV transformer layer, diagnostic graph outputs only",
+  "base_sha256": "b4c28d1393496be9ebc9815e6de32ea2f955dbfe4219206a224426b038923bca",
+  "fixture_sha256": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc",
+  "checkpoint_model_sha256": "ec1bfe1eaa49652de235caa92b992740f63d2a78a95caf9db7824976f1893ab4",
+  "onnxruntime": "1.29.0",
+  "outputs": [
+    "/transformer/layers.0/Add_1_output_0",
+    "next_key_0",
+    "next_value_0",
+    "/transformer/input_proj/MatMul_output_0",
+    "/transformer/layers.0/input_layernorm/Mul_1_output_0",
+    "/transformer/layers.0/self_attn/q_proj/MatMul_output_0",
+    "/transformer/layers.0/self_attn/k_proj/MatMul_output_0",
+    "/transformer/layers.0/self_attn/v_proj/MatMul_output_0",
+    "/transformer/layers.0/self_attn/Softmax_output_0",
+    "/transformer/layers.0/self_attn/MatMul_1_output_0",
+    "/transformer/layers.0/self_attn/o_proj/MatMul_output_0",
+    "/transformer/layers.0/Add_output_0",
+    "/transformer/layers.0/post_attention_layernorm/Mul_1_output_0",
+    "/transformer/layers.0/mlp/down_proj/MatMul_output_0"
+  ],
+  "output_shapes": [
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      16,
+      71,
+      64
+    ],
+    [
+      1,
+      16,
+      71,
+      64
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      1024
+    ],
+    [
+      1,
+      2,
+      1024
+    ],
+    [
+      1,
+      2,
+      1024
+    ],
+    [
+      1,
+      16,
+      2,
+      73
+    ],
+    [
+      1,
+      16,
+      2,
+      64
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ]
+  ],
+  "base_output_cpu_relative_l2": [
+    8.570684395497647e-08,
+    1.359278999401662e-08,
+    1.5831686305346594e-08
+  ],
+  "status": "checkpoint_graph_cpu_parity_pass"
+}

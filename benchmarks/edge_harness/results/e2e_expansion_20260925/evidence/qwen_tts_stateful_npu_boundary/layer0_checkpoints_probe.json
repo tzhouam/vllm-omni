@@ -1,0 +1,78 @@
+{
+  "scope": "real-weight first transformer layer with rolling KV; not complete TTS or waveform quality",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "model": "ec1bfe1eaa49652de235caa92b992740f63d2a78a95caf9db7824976f1893ab4",
+    "fixture": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc"
+  },
+  "npu_state_source": "cpu",
+  "checkpoint_outputs": true,
+  "status": "npu_checkpoint_probe_complete",
+  "cpu_session_create_s": 0.09491930005606264,
+  "cpu_step_s": [
+    0.006417199969291687,
+    0.002270999946631491
+  ],
+  "vitisai_npu_device_count": 1,
+  "npu_session_create_s": 456.39717010001186,
+  "npu_step_s": [
+    0.009088100050576031,
+    0.004566700081340969
+  ],
+  "capture": {
+    "filename": "layer0_checkpoints_cpu_state.npz",
+    "sha256": "b7a5227dfe582ef3134ebc4df75947ed822821f6877b500f13f27712b80ad2a6"
+  },
+  "comparison": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 0.013569103976370839,
+      "max_state_relative_l2": 0.00719115439050952,
+      "finite": true,
+      "outputs_relative_l2": {
+        "/transformer/layers.0/Add_1_output_0": 0.013569103976370839,
+        "next_key_0": 0.00719115439050952,
+        "next_value_0": 0.002495167301738557,
+        "/transformer/input_proj/MatMul_output_0": 0.01143826727483522,
+        "/transformer/layers.0/input_layernorm/Mul_1_output_0": 0.012807884940653224,
+        "/transformer/layers.0/self_attn/q_proj/MatMul_output_0": 0.006358411972024426,
+        "/transformer/layers.0/self_attn/k_proj/MatMul_output_0": 0.006570661156694409,
+        "/transformer/layers.0/self_attn/v_proj/MatMul_output_0": 0.01189187996369028,
+        "/transformer/layers.0/self_attn/Softmax_output_0": 0.02474908165920393,
+        "/transformer/layers.0/self_attn/MatMul_1_output_0": 0.01191117879623963,
+        "/transformer/layers.0/self_attn/o_proj/MatMul_output_0": 0.007408433855801114,
+        "/transformer/layers.0/Add_output_0": 0.011119160699363494,
+        "/transformer/layers.0/post_attention_layernorm/Mul_1_output_0": 0.012220230747508535,
+        "/transformer/layers.0/mlp/down_proj/MatMul_output_0": 0.017390788749630938
+      }
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 0.016754403781563027,
+      "max_state_relative_l2": 0.004924751766145058,
+      "finite": true,
+      "outputs_relative_l2": {
+        "/transformer/layers.0/Add_1_output_0": 0.016754403781563027,
+        "next_key_0": 0.004924751766145058,
+        "next_value_0": 0.002904129680596151,
+        "/transformer/input_proj/MatMul_output_0": 0.015688884888598528,
+        "/transformer/layers.0/input_layernorm/Mul_1_output_0": 0.017555921781882648,
+        "/transformer/layers.0/self_attn/q_proj/MatMul_output_0": 0.008743463833913612,
+        "/transformer/layers.0/self_attn/k_proj/MatMul_output_0": 0.009019965217670891,
+        "/transformer/layers.0/self_attn/v_proj/MatMul_output_0": 0.014335951220067608,
+        "/transformer/layers.0/self_attn/Softmax_output_0": 0.022405051330458742,
+        "/transformer/layers.0/self_attn/MatMul_1_output_0": 0.010685484146253884,
+        "/transformer/layers.0/self_attn/o_proj/MatMul_output_0": 0.00886794788238414,
+        "/transformer/layers.0/Add_output_0": 0.016139938890066634,
+        "/transformer/layers.0/post_attention_layernorm/Mul_1_output_0": 0.01795827147893478,
+        "/transformer/layers.0/mlp/down_proj/MatMul_output_0": 0.016668143746259384
+      }
+    }
+  ],
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\qwen_tts_stateful_npu_boundary\\layer0_checkpoints_profile_2026-09-25_11-54-18_414.json",
+  "node_providers": {
+    "vitisai": 2,
+    "cpu": 26
+  }
+}

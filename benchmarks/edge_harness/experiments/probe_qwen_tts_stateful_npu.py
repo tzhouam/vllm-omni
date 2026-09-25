@@ -24,23 +24,30 @@ def relative_l2(reference: np.ndarray, actual: np.ndarray) -> float:
     return float(np.linalg.norm(a - b) / max(np.linalg.norm(a), 1e-12))
 
 
-def run_steps(session, inputs: dict[str, np.ndarray], *, layer0: bool, step_count: int):
+def run_steps(session, inputs: dict[str, np.ndarray], *, layer0: bool,
+              step_count: int, state_reference=None):
     names = [item.name for item in session.get_inputs()]
     expected = 4 if layer0 else 18
-    if names[:2] != ["conv", "positions"] or len(names) != expected:
+    if names[0] not in ("conv", "projected") or names[1] != "positions" or len(names) != expected:
         raise ValueError(f"stateful ONNX input contract changed: {names}")
+    tensor_name = names[0]
     state = {name: inputs[name] for name in names[2:]}
     steps = []
     for index in range(step_count):
         start = 95 + 2 * index
-        conv_name = "conv" if index == 0 else "conv_next" if index == 1 else f"conv_step{index}"
-        conv = inputs[conv_name]
-        feeds = {"conv": conv, "positions": np.array([[start, start + 1]], np.int64), **state}
+        tensor_fixture_name = (tensor_name if index == 0 else
+                               f"{tensor_name}_next" if index == 1 else
+                               f"{tensor_name}_step{index}")
+        tensor = inputs[tensor_fixture_name]
+        feeds = {tensor_name: tensor,
+                 "positions": np.array([[start, start + 1]], np.int64), **state}
         begun = time.perf_counter()
         outputs = session.run(None, feeds)
         steps.append({"elapsed_s": time.perf_counter() - begun,
                       "outputs": outputs})
-        state = {name: outputs[index + 1] for index, name in enumerate(names[2:])}
+        state_outputs = outputs if state_reference is None else state_reference[index]["outputs"]
+        state = {name: state_outputs[output_index + 1]
+                 for output_index, name in enumerate(names[2:])}
     return steps
 
 
@@ -56,9 +63,15 @@ def main() -> None:
                         help="Probe the extracted first transformer layer only")
     parser.add_argument("--steps", type=int, default=2,
                         help="Number of consecutive two-frame steps beginning at frame 95")
+    parser.add_argument("--npu-state-source", choices=("self", "cpu"), default="self",
+                        help="Diagnostic CPU option resets NPU KV to the CPU control after each step")
+    parser.add_argument("--checkpoint-outputs", action="store_true",
+                        help="Report every exposed ONNX graph output as a diagnostic checkpoint")
     args = parser.parse_args()
     if not 1 <= args.steps <= 11:
         parser.error("--steps must be 1..11 for the retained 117-frame utterance")
+    if args.checkpoint_outputs and not args.layer0:
+        parser.error("--checkpoint-outputs currently requires --layer0")
 
     import onnxruntime as ort
 
@@ -69,6 +82,8 @@ def main() -> None:
         "os": platform.platform(),
         "onnxruntime": ort.__version__,
         "artifact_sha256": {"model": sha256(args.model), "fixture": sha256(args.fixture)},
+        "npu_state_source": args.npu_state_source,
+        "checkpoint_outputs": args.checkpoint_outputs,
         "status": "started",
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
@@ -84,6 +99,9 @@ def main() -> None:
         cpu = ort.InferenceSession(str(args.model), providers=["CPUExecutionProvider"])
         report["cpu_session_create_s"] = time.perf_counter() - cpu_started
         cpu_steps = run_steps(cpu, inputs, layer0=args.layer0, step_count=args.steps)
+        output_names = [item.name for item in cpu.get_outputs()]
+        if args.checkpoint_outputs and len(output_names) <= 3:
+            raise ValueError("checkpoint graph did not expose additional outputs")
         report["cpu_step_s"] = [step["elapsed_s"] for step in cpu_steps]
         report["status"] = "cpu_reference_pass"
         args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -107,7 +125,9 @@ def main() -> None:
         started = time.perf_counter()
         npu = ort.InferenceSession(str(args.model), sess_options=options)
         report["npu_session_create_s"] = time.perf_counter() - started
-        npu_steps = run_steps(npu, inputs, layer0=args.layer0, step_count=args.steps)
+        npu_steps = run_steps(
+            npu, inputs, layer0=args.layer0, step_count=args.steps,
+            state_reference=cpu_steps if args.npu_state_source == "cpu" else None)
         report["npu_step_s"] = [step["elapsed_s"] for step in npu_steps]
         if args.capture_dir is not None:
             args.capture_dir.mkdir(parents=True, exist_ok=True)
@@ -116,18 +136,23 @@ def main() -> None:
                 for kind, step in (("cpu", reference), ("npu", candidate)):
                     for output_index, value in enumerate(step["outputs"]):
                         captured[f"{kind}_step{index}_out{output_index}"] = value
-            capture_path = args.capture_dir / ("layer0_outputs.npz" if args.layer0
-                                                else "full_state_outputs.npz")
+            capture_path = args.capture_dir / (
+                ("layer0_checkpoints" if args.checkpoint_outputs else
+                 "layer0_outputs" if args.layer0 else "full_state_outputs")
+                + ("_cpu_state" if args.npu_state_source == "cpu" else "") + ".npz")
             np.savez_compressed(capture_path, **captured)
             report["capture"] = {"filename": capture_path.name,
                                  "sha256": sha256(capture_path)}
         report["comparison"] = []
         for index, (reference, candidate) in enumerate(zip(cpu_steps, npu_steps)):
             errors = [relative_l2(a, b) for a, b in zip(reference["outputs"], candidate["outputs"])]
-            report["comparison"].append({"start_frame": 95 + 2 * index,
-                                         "hidden_relative_l2": errors[0],
-                                         "max_state_relative_l2": max(errors[1:]),
-                                         "finite": all(np.isfinite(value).all() for value in candidate["outputs"])})
+            row = {"start_frame": 95 + 2 * index,
+                   "hidden_relative_l2": errors[0],
+                   "max_state_relative_l2": max(errors[1:3]),
+                   "finite": all(np.isfinite(value).all() for value in candidate["outputs"])}
+            if args.checkpoint_outputs:
+                row["outputs_relative_l2"] = dict(zip(output_names, errors))
+            report["comparison"].append(row)
         profile_path = Path(npu.end_profiling())
         report["profile_file"] = str(profile_path)
         events = json.loads(profile_path.read_text(encoding="utf-8"))
@@ -135,12 +160,20 @@ def main() -> None:
                      if event.get("cat") == "Node"]
         report["node_providers"] = {"vitisai": providers.count("vitisai"),
                                     "cpu": providers.count("CPUExecutionProvider")}
-        report["status"] = (
-            "npu_stateful_component_numeric_pass"
-            if report["node_providers"]["vitisai"] > 0
+        numeric_pass = (
+            report["node_providers"]["vitisai"] > 0
             and all(row["finite"] and row["hidden_relative_l2"] <= 0.01
                     and row["max_state_relative_l2"] <= 0.01 for row in report["comparison"])
+        )
+        report["status"] = (
+            "npu_checkpoint_probe_complete" if report["node_providers"]["vitisai"] > 0
+            else "npu_checkpoint_no_placement"
+        ) if args.checkpoint_outputs else (
+            "npu_stateful_component_numeric_pass" if numeric_pass
             else "npu_stateful_component_not_qualified"
+        ) if args.npu_state_source == "self" else (
+            "npu_cpu_state_diagnostic_numeric_pass" if numeric_pass
+            else "npu_cpu_state_diagnostic_numeric_fail"
         )
     except Exception as error:
         report["status"] = "failed"

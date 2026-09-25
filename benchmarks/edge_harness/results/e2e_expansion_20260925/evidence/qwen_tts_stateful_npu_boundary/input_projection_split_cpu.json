@@ -1,0 +1,56 @@
+{
+  "scope": "real-weight first decoder layer split after CPU input projection; CPU composition, not NPU quality",
+  "base_sha256": "b4c28d1393496be9ebc9815e6de32ea2f955dbfe4219206a224426b038923bca",
+  "source_fixture_sha256": "1ef435ccc70484fb4b7971df822eee1315a50294cb6f3218c1b21a1dfb89fb43",
+  "prefix_sha256": "3c438ec5401e5abf1b7eaedcaac9b31e568d55d547c0b81ab88db4fed7337d53",
+  "suffix_sha256": "5790b5a750eab743bf1c84270467157bcd9d4e4243ec9cd87c6e1da5c6dd8900",
+  "split_fixture_sha256": "c96efd647f8078789a9790b929e8e5a501a4a2399e9b35e16bdd22f6f1752304",
+  "onnxruntime": "1.29.0",
+  "rows": [
+    {
+      "start_frame": 95,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 97,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 99,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 101,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 103,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 105,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 107,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 109,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 111,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 113,
+      "max_relative_l2": 0.0
+    },
+    {
+      "start_frame": 115,
+      "max_relative_l2": 0.0
+    }
+  ],
+  "status": "eleven_step_cpu_split_parity_pass"
+}

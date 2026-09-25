@@ -59,6 +59,64 @@ early passing chunks establish a continuous NPU-assisted stream. The result
 constrains this exact FP32 VitisAI first-layer export and one generated
 utterance; it does not rule out a corrected artifact or another backend.
 
+An [eleven-step CPU-KV reset diagnostic](layer0_cpu_state11_probe.json) ran the
+same NPU graph with the CPU reference KV supplied before every new step. It
+still placed eleven VitisAI partitions after a 246.555 s session build. The
+maximum per-step new-KV error fell to 0.8953% (versus 2.182% with NPU-owned
+rolling KV), but hidden-state error still reached 2.502%. In the
+[matching CPU-suffix waveform replay](layer0_cpu_state11_suffix_replay.json),
+the [captured outputs](layer0_outputs_cpu_state11.npz) again passed only 3/11
+chunks, with a 2.265% worst waveform error at frame 99. Supplying exact CPU KV
+therefore does not fix this artifact's waveform failures; the per-step placed
+computation itself needs numerical work. This diagnostic requires a CPU cache
+producer and is not a proposed deployment path or performance result.
+
+A [checkpoint-output graph](checkpoint_graph_cpu.json) exposed eleven internal
+tensors without changing the original ONNX CPU outputs. The native
+[checkpoint probe](layer0_checkpoints_probe.json) retained one VitisAI partition
+per step and nearly the original final hidden error (1.357%/1.675% versus
+1.345%/1.659%). Its first exposed input-projection MatMul was already
+1.144%/1.569% from ONNX CPU; attention softmax reached 2.475%/2.241%.
+Those outputs are from this diagnostic graph, whose placement counts matched
+the uninstrumented graph; they localize an early numerical divergence but do
+not prove that only the input projection causes the final error. The native
+checkpoint session took 456.397 s to build and the [captured tensors](layer0_checkpoints_cpu_state.npz)
+are retained.
+
+An exact [CPU input-projection split](input_projection_split_cpu.json) computes
+the real layer's initial linear projection on CPU and passes its `[1,2,512]`
+output to an ONNX suffix. CPU prefix+suffix matched the original layer across
+all eleven real-code steps. In the first [native NPU suffix probe](input_projection_split2_npu.json),
+one VitisAI partition ran per step; hidden error fell to 0.5744%/0.4873% and
+maximum new-KV error to 0.7135%/0.4781%. The [offline waveform replay](input_projection_split2_waveform.json)
+with CPU layer-0 KV passed both chunks at 0.5798%/0.3600% relative L2.
+This is a two-step component candidate only. The suffix session build took
+438.091 s, and its one cold/one warm call took 7.427/4.006 ms versus
+2.261/0.649 ms for the corresponding ONNX CPU suffix calls, before CPU
+projection and transfer. No speedup or continuous stream is established.
+
+The [eleven-step NPU-owned-KV split probe](input_projection_split11_npu.json)
+then placed eleven VitisAI partitions after a 289.178 s session build. All
+eleven hidden states were within 1% of the matching CPU suffix, but maximum
+KV error grew to 2.151% by frame 115. Replaying its [captured outputs](input_projection_split11_outputs.npz)
+through the unchanged CPU suffix yielded [10/11 chunks](input_projection_split11_waveform.json)
+within 1% waveform relative L2; frame 109 missed at **2.398%** (32.4 dB SNR,
+CPU reference RMS 0.0164). The joined 22-frame segment was 0.591% relative L2
+and 44.57 dB SNR. That aggregate does not erase the chunk failure. Eleven
+individual NPU calls took 2.47–6.79 ms before CPU projection and transfer;
+these are not complete-request latency samples.
+
+The [same split with CPU reference KV supplied to each NPU step](input_projection_split11_cpu_state_npu.json)
+placed eleven VitisAI partitions after a 272.605 s session build. Every
+per-step hidden and new-KV output then met the provisional 1% tensor gate,
+but the [offline waveform replay](input_projection_split11_cpu_state_waveform.json)
+still passed only 10/11 chunks; frame 109 missed at **2.424%**. Its joined
+22-frame segment was 0.603% relative L2 and 44.40 dB SNR. The retained
+[CPU-state capture](input_projection_split11_cpu_state_outputs.npz) makes the
+diagnostic auditable. Resetting KV therefore does not fix the remaining
+chunk error, and computing the reference KV on CPU each step would duplicate
+work. This split is **not a qualified live TTS backend**.
+
 The full eight-layer ONNX graph passed the CPU check and exposed an NPU device,
 but [the bounded full-graph attempt](full_graph_compile_cap.json) was manually
 stopped after roughly ten minutes of session creation without an inference or
@@ -76,19 +134,27 @@ The scripts require explicit SHA-256 values for the ONNX and fixture at NPU
 probe time. For the longer run, `extend_qwen_tts_stateful_fixture.py` derives
 the eleven-step fixture, `probe_qwen_tts_stateful_npu.py --layer0 --steps 11`
 captures the native outputs, and `replay_qwen_tts_layer0_npu_suffix.py` measures
-their effect on the CPU transformer suffix and waveform. The initial two-step
+their effect on the CPU transformer suffix and waveform.
+`probe_qwen_tts_stateful_npu.py --npu-state-source cpu` and
+`replay_qwen_tts_layer0_npu_suffix.py --injected-cache-source cpu` reproduce
+the CPU-KV reset diagnostic. The initial two-step
 ONNX graph, source checkpoint and fixture remain outside Git; their hashes are
-retained in the JSON reports. Both captured NPU rollouts and the extended
+retained in the JSON reports. The captured NPU rollouts and the extended
 fixture are retained here.
+`prepare_qwen_tts_layer0_checkpoints.py` builds the output-instrumented graph;
+`prepare_qwen_tts_input_projection_split.py` extracts the CPU prefix and NPU
+suffix and verifies eleven-step CPU parity. The split's
+[eleven-step fixture](step95_split11.npz) is retained here; its graph files are
+reproducible from the pinned original ONNX hash and are kept outside Git.
 Set `PYTHONPATH` to this fork's checkout for the Linux export and replay:
 the installed `vllm_omni` wheel on the test host lacked the exact-state decoder
 method, and running the replay without that override raised `AttributeError`
 before any measurement. The recorded replay used the checkout source and
 PyTorch 2.13.0+cpu; the native VitisAI probe used ONNX Runtime 1.30.0.
 
-Next: isolate which placed operation causes the first-layer numerical drift,
-validate a corrected rolling-state artifact over later frames and multiple
-utterances, and only then test a warmed full-state NPU+CPU decoder with waveform
-quality, complete Omni requests, explicit shared-RAM admission, cancellation,
-transfer-inclusive latency and sustained power. The matrix cell remains
+Next: localize the remaining frame-109 sensitivity within attention/MLP or the
+waveform suffix, validate a corrected artifact over more utterances, and only
+then test a warmed full-state NPU+CPU decoder with waveform quality, complete
+Omni requests, explicit shared-RAM admission, cancellation, transfer-inclusive
+latency and sustained power. The matrix cell remains
 **NOT E2E**.

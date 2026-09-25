@@ -1,0 +1,117 @@
+{
+  "scope": "real-weight first transformer layer with rolling KV; not complete TTS or waveform quality",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "model": "b4c28d1393496be9ebc9815e6de32ea2f955dbfe4219206a224426b038923bca",
+    "fixture": "1ef435ccc70484fb4b7971df822eee1315a50294cb6f3218c1b21a1dfb89fb43"
+  },
+  "npu_state_source": "cpu",
+  "status": "npu_cpu_state_diagnostic_numeric_fail",
+  "cpu_session_create_s": 0.06373539997730404,
+  "cpu_step_s": [
+    0.001981399953365326,
+    0.0006633000448346138,
+    0.0004235999658703804,
+    0.00039080006536096334,
+    0.0003793999785557389,
+    0.0003912000684067607,
+    0.0004282000008970499,
+    0.00038380001205950975,
+    0.00031589996069669724,
+    0.00047129997983574867,
+    0.00036530010402202606
+  ],
+  "vitisai_npu_device_count": 1,
+  "npu_session_create_s": 246.55528369999956,
+  "npu_step_s": [
+    0.00597219995688647,
+    0.0030742998933419585,
+    0.002591000054962933,
+    0.002399299992248416,
+    0.0034530999837443233,
+    0.003402699949219823,
+    0.0030711001018062234,
+    0.0027480999706313014,
+    0.0024655000306665897,
+    0.0023873000172898173,
+    0.003016000031493604
+  ],
+  "capture": {
+    "filename": "layer0_outputs_cpu_state.npz",
+    "sha256": "66f1bbca8f392d84f17e68cefecb970a7a271d80cd9dc8101b3d088c0595f138"
+  },
+  "comparison": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 0.013449406686776046,
+      "max_state_relative_l2": 0.007192901690019043,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 0.016603490234758628,
+      "max_state_relative_l2": 0.004901189094656863,
+      "finite": true
+    },
+    {
+      "start_frame": 99,
+      "hidden_relative_l2": 0.013933213663475238,
+      "max_state_relative_l2": 0.006944090110437579,
+      "finite": true
+    },
+    {
+      "start_frame": 101,
+      "hidden_relative_l2": 0.012042206639644533,
+      "max_state_relative_l2": 0.006400716978733887,
+      "finite": true
+    },
+    {
+      "start_frame": 103,
+      "hidden_relative_l2": 0.014478086290451853,
+      "max_state_relative_l2": 0.008952621419035396,
+      "finite": true
+    },
+    {
+      "start_frame": 105,
+      "hidden_relative_l2": 0.013698466151430328,
+      "max_state_relative_l2": 0.005872500614683038,
+      "finite": true
+    },
+    {
+      "start_frame": 107,
+      "hidden_relative_l2": 0.012020039816705054,
+      "max_state_relative_l2": 0.006195417999991742,
+      "finite": true
+    },
+    {
+      "start_frame": 109,
+      "hidden_relative_l2": 0.013892937735797502,
+      "max_state_relative_l2": 0.005779851092571807,
+      "finite": true
+    },
+    {
+      "start_frame": 111,
+      "hidden_relative_l2": 0.015391931452480453,
+      "max_state_relative_l2": 0.007421207178719736,
+      "finite": true
+    },
+    {
+      "start_frame": 113,
+      "hidden_relative_l2": 0.019697541500102056,
+      "max_state_relative_l2": 0.007428143992188838,
+      "finite": true
+    },
+    {
+      "start_frame": 115,
+      "hidden_relative_l2": 0.025021106863865335,
+      "max_state_relative_l2": 0.00756107484194945,
+      "finite": true
+    }
+  ],
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\qwen_tts_stateful_npu_boundary\\layer0_cpu_state11_profile_2026-09-25_11-45-08_549.json",
+  "node_providers": {
+    "vitisai": 11,
+    "cpu": 143
+  }
+}

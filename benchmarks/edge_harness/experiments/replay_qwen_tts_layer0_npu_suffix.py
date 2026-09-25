@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -53,7 +54,8 @@ def decode_tail(decoder, history, new_hidden):
     return wave[..., -new_hidden.shape[1] * decoder.total_upsample:].clamp(-1, 1), joined[:, -12:, :]
 
 
-def step(transformer, config, cache, conv, start, injected=None):
+def step(transformer, config, cache, conv, start, injected=None,
+         injected_cache_source="npu"):
     positions = torch.tensor([[start, start + 1]], dtype=torch.long)
     key_positions = positions[:, :1] - (config.sliding_window - 1) + torch.arange(
         config.sliding_window + 1)
@@ -79,7 +81,7 @@ def step(transformer, config, cache, conv, start, injected=None):
         ).last_hidden_state.detach().clone()
     finally:
         hook.remove()
-    if injected is not None:
+    if injected is not None and injected_cache_source == "npu":
         cache.layers[0].keys = torch.from_numpy(injected[1]).clone()
         cache.layers[0].values = torch.from_numpy(injected[2]).clone()
     return result, state_tensors(cache), layer0[0]
@@ -92,6 +94,8 @@ def main() -> None:
     parser.add_argument("--expected-codes-sha256", required=True)
     parser.add_argument("--expected-fixture-sha256", required=True)
     parser.add_argument("--expected-capture-sha256", required=True)
+    parser.add_argument("--injected-cache-source", choices=("npu", "cpu"), default="npu",
+                        help="CPU diagnostic keeps layer-0 CPU KV while injecting NPU hidden outputs")
     args = parser.parse_args()
 
     if (args.model.resolve().name != REVISION
@@ -120,6 +124,8 @@ def main() -> None:
     control_cache = new_cache(config, fixture)
     hybrid_cache = new_cache(config, fixture)
     rows = []
+    source_waves = []
+    hybrid_waves = []
     with torch.no_grad():
         source_decode_caches = {"prefix_frames": 0}
         decoder.decode_xvec_exact(codes[:, :, :95], source_decode_caches)
@@ -146,16 +152,21 @@ def main() -> None:
                                   for output_index in range(2))
             hybrid_hidden, hybrid_state, _ = step(
                 decoder.pre_transformer, config, hybrid_cache, conv, start,
-                injected=npu_tuple)
+                injected=npu_tuple, injected_cache_source=args.injected_cache_source)
             source_wave = decoder.decode_xvec_exact(
                 codes[:, :, start:start + 2], source_decode_caches)
             control_wave, control_history = decode_tail(
                 decoder, control_history, source_hidden)
             hybrid_wave, hybrid_history = decode_tail(
                 decoder, hybrid_history, hybrid_hidden)
+            source_waves.append(source_wave.detach().clone())
+            hybrid_waves.append(hybrid_wave.detach().clone())
             if (max(control_errors) > 1e-4
                     or relative_l2(source_wave, control_wave) > 1e-4):
                 raise ValueError(f"CPU suffix control diverged at frame {start}")
+            source_wave_rms = float(torch.sqrt(torch.mean(source_wave.double().square())))
+            wave_rmse = float(torch.sqrt(torch.mean(
+                (hybrid_wave.double() - source_wave.double()).square())))
             rows.append({
                 "start_frame": start,
                 "cpu_capture_max_relative_l2_vs_source": max(control_errors),
@@ -168,10 +179,18 @@ def main() -> None:
                     source_wave, control_wave),
                 "npu_layer0_cpu_suffix_wave_relative_l2": relative_l2(
                     source_wave, hybrid_wave),
+                "source_wave_rms": source_wave_rms,
+                "source_wave_peak_abs": float(source_wave.abs().max()),
+                "npu_layer0_cpu_suffix_wave_rmse": wave_rmse,
+                "npu_layer0_cpu_suffix_wave_snr_db": 20.0 * math.log10(
+                    max(source_wave_rms, 1e-12) / max(wave_rmse, 1e-12)),
                 "finite": bool(torch.isfinite(hybrid_hidden).all()
                                and torch.isfinite(hybrid_wave).all()
                                and all(torch.isfinite(value).all() for value in hybrid_state)),
             })
+    joined_source = torch.cat(source_waves, dim=-1)
+    joined_hybrid = torch.cat(hybrid_waves, dim=-1)
+    joined_error = relative_l2(joined_source, joined_hybrid)
     report = {
         "scope": "captured native AMD NPU first-layer output replayed through seven real CPU transformer layers; not a complete TTS request",
         "checkpoint_revision": REVISION,
@@ -179,9 +198,16 @@ def main() -> None:
         "codes_sha256": sha256(args.codes),
         "fixture_sha256": sha256(args.fixture),
         "capture_sha256": sha256(args.capture),
+        "injected_cache_source": args.injected_cache_source,
         "prefill_state_max_relative_l2": prefill_state_error,
         "torch": torch.__version__,
         "rows": rows,
+        "joined_segment": {
+            "codec_frames": step_count * 2,
+            "waveform_relative_l2": joined_error,
+            "waveform_snr_db": -20.0 * math.log10(max(joined_error, 1e-12)),
+            "finite": bool(torch.isfinite(joined_hybrid).all()),
+        },
         "waveform_gate": {
             "relative_l2_max": 0.01,
             "passed_chunks": sum(row["finite"] and
