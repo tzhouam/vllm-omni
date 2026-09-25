@@ -1,0 +1,59 @@
+{
+  "scope": "byte-verified concatenation of all one-request warmup DELTA chunks, terminal included once",
+  "request_id": "warmup-medium-1-1",
+  "sr": 24000,
+  "samples": 203520,
+  "duration_s": 8.48,
+  "pcm_sha256": "f9aef9f88edd6131970f19af7fb9ffaf47f2824201d4104912b1fe7482dadca3",
+  "wav_sha256": "d8119a1b58d93d26b5788f9e5890cbba1c8fc2a7a30d390bae5dfded5c815970",
+  "chunks": [
+    {
+      "idx": 0,
+      "sha256": "aeb469aa6da8e9d4476a94dbcb92a11a6050c1c91e81318fbbb7facdc8bd9f95",
+      "samples": 3840,
+      "terminal": false
+    },
+    {
+      "idx": 1,
+      "sha256": "e43cd0eda71cb45a6efe2b25f35b51ab6a50e2d0ee2afc426703ee96cce5d2dd",
+      "samples": 7680,
+      "terminal": false
+    },
+    {
+      "idx": 2,
+      "sha256": "313e6f5843da4158a10161459f9b9e10580b33d4cde8974d87f6b5f5c89652f5",
+      "samples": 15360,
+      "terminal": false
+    },
+    {
+      "idx": 3,
+      "sha256": "d12f3853ec38038e553aa934797d1d271ba950dbb9983caadd1d8e1525dddc4a",
+      "samples": 30720,
+      "terminal": false
+    },
+    {
+      "idx": 4,
+      "sha256": "49ce7aab374a09f9022706fbf09528d5fb3187a4f347d5cb279ad2d2d4628a49",
+      "samples": 48000,
+      "terminal": false
+    },
+    {
+      "idx": 5,
+      "sha256": "e890c115ca8fe055c5c2f5eb8ae34073a1b935ffbc35af918d7408a1c7589bc7",
+      "samples": 48000,
+      "terminal": false
+    },
+    {
+      "idx": 6,
+      "sha256": "bc5658dcdb4c0329c6ccec426b267dcb059b2f46caedecfcab24dbf0d9fb0c2f",
+      "samples": 48000,
+      "terminal": false
+    },
+    {
+      "idx": 7,
+      "sha256": "caff27fd8782bb2257bb5d3ac684e342587626126c93fe9abfc63d74e2f1699a",
+      "samples": 1920,
+      "terminal": true
+    }
+  ]
+}

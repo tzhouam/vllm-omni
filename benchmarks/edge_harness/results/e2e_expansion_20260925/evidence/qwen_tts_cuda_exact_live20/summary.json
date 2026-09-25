@@ -1,0 +1,110 @@
+{
+  "scope": "one warmup + 20 serial medium complete Omni text-to-audio requests on WSL RTX 5090 Laptop; arrival-based playback simulation",
+  "status": "scoped_live20_pass",
+  "report_sha256": "d052a0f35ffcdb3ffa02352a501aa728a8a26145cc9ac922b45df6d2228a3788",
+  "requests_sha256": "7b2519107a6f766495cdc5b8e71982fa33029adc070d3be46fe9048dff974958",
+  "gpu_telemetry_sha256": "1dd7ad6f8e29215f4482d0f7c617055591177a582f213b017d210c4f2c82d54e",
+  "runtime": {
+    "python": "3.12.13",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "torch": "2.13.0+cu130",
+    "vllm": "0.29.0",
+    "vllm_omni": "0.29.0rc2.dev71+g00510ce38.d20260922",
+    "vllm_omni_file": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/__init__.py",
+    "vllm_file": "/home/zhout/project/edge_infer/.venvs/omni-cuda-029/lib/python3.12/site-packages/vllm/__init__.py",
+    "checkouts": {
+      "/home/zhout/project/edge_infer/vllm-omni-edge": "3db15ee71829dafbef5e84a2dd0481c8008831e1",
+      "/home/zhout/project/edge_infer": "758b3af238b19e2c2abc668f23a767bb835a4a22-dirty"
+    }
+  },
+  "model": "/home/zhout/.cache/huggingface/hub/models--Qwen--Qwen3-TTS-12Hz-0.6B-CustomVoice/snapshots/85e237c12c027371202489a0ec509ded67b5e4b5",
+  "startup_s": 36.03882004797924,
+  "phase_counts": {
+    "warmup": 1,
+    "measured": 20,
+    "slow_consumer": 1,
+    "after_cancel": 1
+  },
+  "checks": {
+    "unique_request_ids": true,
+    "ordered_finite_single_terminal_24khz": true
+  },
+  "measured": {
+    "n": 20,
+    "nearest_rank_metrics": {
+      "ttfa_ms": {
+        "p50": 104.85982289537787,
+        "p95": 117.2128519974649,
+        "min": 87.83047297038138,
+        "max": 129.47400996927172
+      },
+      "total_wall_s": {
+        "p50": 1.5424004009691998,
+        "p95": 1.6488121189177036,
+        "min": 1.39697610901203,
+        "max": 1.6561995430383831
+      },
+      "streamed_audio_s": {
+        "p50": 8.0,
+        "p95": 8.4,
+        "min": 7.12,
+        "max": 8.72
+      },
+      "rtf_total": {
+        "p50": 0.19402826722825364,
+        "p95": 0.20009855812108054,
+        "min": 0.1867774533143258,
+        "max": 0.20122083375463262
+      },
+      "n_chunks": {
+        "p50": 7,
+        "p95": 7,
+        "min": 7,
+        "max": 8
+      }
+    },
+    "simulated_underrun_requests": 0,
+    "simulated_underrun_events": 0
+  },
+  "slow_consumer": {
+    "simulated_underruns": [
+      [
+        1,
+        40.5647849291563
+      ]
+    ],
+    "wall_s": 1.67421230499167
+  },
+  "cancel_abort_ack_s": 0.002767756930552423,
+  "cancel_late_event_fence_verified": false,
+  "warmup_audio": {
+    "assembly_sha256": "3972282ff38a78d17f11d2289f67aec9e1ae5d3383242860cd0e081aa1daa997",
+    "wav_sha256": "d8119a1b58d93d26b5788f9e5890cbba1c8fc2a7a30d390bae5dfded5c815970",
+    "duration_s": 8.48,
+    "asr_report_sha256": "f764e42680d3d4304fde220ccae64366cc3acd0c9975fee90039ff6d7cc8b844",
+    "asr_wer": 0.0
+  },
+  "sampled_memory": {
+    "samples": 238,
+    "interval_s": 0.25,
+    "note": "peaks are lower bounds: anything shorter than interval_s is missed. nvml_device_used is the whole card including other processes; tree_pss includes a share of file-backed pages. These three counters are different accountings and must not be summed.",
+    "nvml_device_used_peak": 12531834880,
+    "nvml_device_used_min": 1616871424,
+    "tree_rss_peak": 7415513088,
+    "tree_pss_peak": 6367450112,
+    "host_available_min": 25598431232
+  },
+  "gpu_telemetry_measured_window": {
+    "samples": 122,
+    "duration_s": 31.069267749786377,
+    "temperature_c_first": 59,
+    "temperature_c_last": 70,
+    "temperature_c_max": 70,
+    "power_w_p50": 83.387,
+    "power_w_max": 92.546,
+    "throttle_reason_values": [
+      4
+    ],
+    "scope": "device-wide samples, not isolated engine power or 30-minute sustained condition"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "scope": "local Whisper tiny.en ASR proxy for generated speech; no perceptual quality claim",
+  "asr_model": "openai/whisper-tiny.en",
+  "asr_revision": "87c7102498dcde7456f24cfd30239ca606ed9063",
+  "asr_weights_sha256": "db59695928ded6043adaef491a53ef4e12da9611184d77c53baa691a60b958ad",
+  "transformers": "5.14.1",
+  "torch": "2.13.0+cpu",
+  "wav_sha256": "d8119a1b58d93d26b5788f9e5890cbba1c8fc2a7a30d390bae5dfded5c815970",
+  "input_sample_rate": 24000,
+  "input_duration_s": 8.48,
+  "reference_text": "The garden has trees, flowers, and a small pond. We walk along the path and listen to the birds.",
+  "transcript": "The garden has trees, flowers, and a small pond. We walk along the path and listen to the birds.",
+  "word_error_rate": 0.0,
+  "asr_load_s": 0.6996682489989325,
+  "asr_inference_s": 0.4261670939158648
+}
