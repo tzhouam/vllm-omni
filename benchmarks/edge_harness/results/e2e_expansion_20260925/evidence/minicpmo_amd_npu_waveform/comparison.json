@@ -1,0 +1,123 @@
+{
+  "scope": "serial audio+image complete requests in separate Omni CPU and CPU+NPU sessions; no paired speedup or speech-quality claim",
+  "npu_report_sha256": "58a63c2f9552a8818938226660fdcef1cc02fcc2eb6cbe59c5ad59b5caf59339",
+  "cpu_report_sha256": "c6e4fb9a30e5e286649787853594204411b3957ae004bda801c704e00b67bbbc",
+  "npu_events_sha256": "d2b8bb15b0212cb0876b1720cbbba777654b4fbce69b838a91e2ea0e8d025f98",
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "npu_startup_s": 106.03022991598118,
+  "cpu_startup_s": 99.78919152892195,
+  "npu_placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 2,
+      "vitisai": 1
+    },
+    "total_nodes": 3,
+    "target_nodes": 1,
+    "fraction_on_target": 0.3333333333333333,
+    "session_create_s": 2.3817880999995396,
+    "warmup_s": 0.013301600003615022,
+    "rss_bytes": 350638080,
+    "inputs": [
+      {
+        "name": "hidden",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "projected",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          4096
+        ]
+      }
+    ],
+    "profile_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_waveform\\audio_image_kv_profile\\resampler_kv_projection_32x32__2026-09-25_17-26-24_947.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "npu_worker_peak_rss_bytes": 386179072,
+  "token_identical_count": 2,
+  "complete_request_count": 2,
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+      "audio_sha256": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4",
+      "npu_wall_s": 63.52715200406965,
+      "cpu_wall_s": 50.59686970501207,
+      "token_ids_equal": true,
+      "npu_text": "The audio says \"Hello from the local computer.\" The image shows a red square.",
+      "cpu_text": "The audio says \"Hello from the local computer.\" The image shows a red square.",
+      "npu_audio_samples": 124800,
+      "cpu_audio_samples": 124800,
+      "npu_audio_rms": 0.06303892594760462,
+      "cpu_audio_rms": 0.06777058284192494,
+      "npu_max_wsl_used_bytes": 32106151936,
+      "cpu_max_wsl_used_bytes": 32698986496,
+      "npu_max_swap_used_bytes": 5305790464,
+      "cpu_max_swap_used_bytes": 5882429440,
+      "npu_graph_round_trip_s": 0.13208707398734987,
+      "waveform_comparison": {
+        "same_shape": true,
+        "exact_equal": false,
+        "relative_l2_vs_cpu": 1.300365414250439,
+        "snr_db_vs_cpu": -2.28130820141052,
+        "npu_sha256": "149469b96b4a25cc98639719d14026e716d66c1341fc23f84bd20c9346b28590",
+        "cpu_sha256": "147c47428e51bfdfb141c31a9e87cb96fdc39e3268937a6af8684b5ed0322a4f"
+      }
+    },
+    {
+      "index": 1,
+      "image_sha256": "50dff16a4f555d816ad9c057ddf6231826e3b6dbeaf5305945445df123c8df75",
+      "audio_sha256": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4",
+      "npu_wall_s": 20.534730897052214,
+      "cpu_wall_s": 20.71988536301069,
+      "token_ids_equal": true,
+      "npu_text": "The audio says \"Hello from the local computer.\" The image shows a blue circle with a green triangle inside it.",
+      "cpu_text": "The audio says \"Hello from the local computer.\" The image shows a blue circle with a green triangle inside it.",
+      "npu_audio_samples": 124800,
+      "cpu_audio_samples": 124800,
+      "npu_audio_rms": 0.06958546735676942,
+      "cpu_audio_rms": 0.07006333419137324,
+      "npu_max_wsl_used_bytes": 32134664192,
+      "cpu_max_wsl_used_bytes": 32622497792,
+      "npu_max_swap_used_bytes": 5305081856,
+      "cpu_max_swap_used_bytes": 6408327168,
+      "npu_graph_round_trip_s": 0.17458127799909562,
+      "waveform_comparison": {
+        "same_shape": true,
+        "exact_equal": false,
+        "relative_l2_vs_cpu": 1.2910515924468495,
+        "snr_db_vs_cpu": -2.218871954039064,
+        "npu_sha256": "4f4a586b2d8d5be218243eb35ae599911814da3cbdfe72de5157ce1fd619d146",
+        "cpu_sha256": "e119e9a391480c7004b82c92fe570b6e02d17440ef437a94a0512e03a9e1f778"
+      }
+    }
+  ],
+  "status": "scoped_complete_suite_pass"
+}

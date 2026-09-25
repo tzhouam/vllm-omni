@@ -1,0 +1,134 @@
+# MiniCPM-o 4.5 offline audio+image-to-text+speech probe on WSL CPU.
+# This limits context, concurrency and multimodal inputs. Run with
+# VLLM_TARGET_DEVICE=cpu and VLLM_CPU_KVCACHE_SPACE=1 (GiB per stage).
+# The CUDA/NPU overrides below are inherited but inactive on this run.
+pipeline: minicpmo_4_5
+async_chunk: true
+
+trust_remote_code: true
+enable_prefix_caching: false
+
+connectors:
+  connector_of_shared_memory:
+    name: SharedMemoryConnector
+    extra:
+      connector_get_sleep_s: 0.01
+      connector_get_max_wait_first_chunk: 3000
+      connector_get_max_wait: 300
+      codec_chunk_frames: 25
+      codec_left_context_frames: 3
+      # HiFT capture buckets are derived from codec_chunk_frames and
+      # codec_left_context_frames. (#5869)
+      # A future initial_codec_chunk_frames shape will use lazy capture unless
+      # HiFTGraphWrapper.derive_capture_bucket_size explicitly includes it.
+      enable_hift_graph: false
+      enable_cfm_graph: false
+      cfm_max_graphs: 32
+
+stages:
+  - stage_id: 0
+    runtime:
+      env:
+        PYTHONPATH: /home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/minicpmo_kv_site:/home/zhout/project/edge_infer/vllm-omni-edge
+        VLLM_OMNI_MINICPMO_KV_GRAPH: /mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx
+        VLLM_OMNI_MINICPMO_KV_MODEL_DIR: /home/zhout/project/edge_infer/models/MiniCPM-o-4_5
+        VLLM_OMNI_MINICPMO_KV_EVENT_LOG: /home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_waveform/audio_image_kv_events.jsonl
+        VLLM_OMNI_MINICPMO_KV_PROFILE_DIR: /home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_waveform/audio_image_kv_profile
+    max_num_seqs: 1
+    # Bound the thinker budget; no weights are offloaded from CPU.
+    gpu_memory_utilization: 0.58
+    cpu_offload_gb: 0
+    enforce_eager: true
+    tensor_parallel_size: 1
+    max_num_batched_tokens: 2048
+    max_model_len: 2048
+    devices: "0"
+    # Keep multimodal placeholders interleaved for the image input.
+    interleave_mm_strings: true
+    media_io_kwargs:
+      video:
+        fps: 1
+        num_frames: 128
+    limit_mm_per_prompt:
+    # One image and one spoken-audio input are admitted; no video.
+      image: 1
+      audio: 1
+      video: 0
+    default_sampling_params:
+      temperature: 0.0
+      top_p: 1.0
+      top_k: -1
+      max_tokens: 64
+      seed: 42
+      detokenize: true
+      # 1.0 for MCQ accuracy; 1.1 can bias short A–D answers.
+      repetition_penalty: 1.0
+
+  - stage_id: 1
+    max_num_seqs: 1
+    # One short utterance; this does not qualify the full 4096-token Talker.
+    gpu_memory_utilization: 0.10
+    enforce_eager: true
+    max_num_batched_tokens: 512
+    # The checkpoint supports 4096, but this probe explicitly admits 512.
+    max_model_len: 512
+    devices: "0"
+    output_connectors:
+      to_stage_2: connector_of_shared_memory
+    # Talker is a single-vocab codec LM. These knobs go to vLLM's Sampler
+    # (head_code logits). EOS is tts_config.eos_token_id (num_audio_tokens-1).
+    # Values track upstream utils.TTSSamplingParams (min_p/win_size/tau_r are
+    # declared there but never read, so they stay out). repetition_penalty is
+    # consumed by the Talker, which rescores it over upstream's 16-frame window
+    # instead of the Sampler's whole-stream presence penalty.
+    # min_tokens is upstream's min_new_token.
+    default_sampling_params:
+      temperature: 0.8
+      top_p: 0.85
+      top_k: 25
+      repetition_penalty: 1.05
+      min_tokens: 50
+      max_tokens: 128
+      seed: 42
+      detokenize: false
+
+  - stage_id: 2
+    max_num_seqs: 1
+    gpu_memory_utilization: 0.10
+    enforce_eager: true
+    enable_chunked_prefill: false
+    max_num_batched_tokens: 4096
+    max_model_len: 4096
+    devices: "0"
+    input_connectors:
+      from_stage_1: connector_of_shared_memory
+    default_sampling_params:
+      temperature: 0.0
+      top_p: 1.0
+      top_k: -1
+      max_tokens: 4096
+      detokenize: true
+
+platforms:
+  cuda:
+    stages:
+      - stage_id: 1
+        # The cap must still admit the single 512-token Talker session.
+        kv_cache_memory_bytes: 268435456  # 256 MiB for the 512-token probe
+
+  npu:
+    stages:
+      - stage_id: 0
+        max_num_batched_tokens: 8192
+        compilation_config:
+          cudagraph_mode: PIECEWISE
+      - stage_id: 1
+        max_num_batched_tokens: 8192
+        compilation_config:
+          cudagraph_mode: PIECEWISE
+      - stage_id: 2
+        # Stage 2 stays outer-eager and captures only exact-shape CFM DiT
+        # estimator kernels through the NPU platform patch.
+        additional_config:
+          code2wav_enable_npu_graph: true
+          code2wav_max_npu_graphs: 32

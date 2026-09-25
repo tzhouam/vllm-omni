@@ -30,6 +30,8 @@ def main() -> None:
     parser.add_argument("--audio", type=Path,
                         help="add the same spoken-audio input to each image request")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--archive-audio-dir", type=Path,
+                        help="save each generated float32 waveform as a .npy evidence file")
     parser.add_argument("--init-timeout", type=int, default=900)
     parser.add_argument("--stage-init-timeout", type=int, default=600)
     args = parser.parse_args()
@@ -66,7 +68,9 @@ def main() -> None:
         try:
             with args.output.with_suffix(".jsonl").open("w", encoding="utf-8") as raw:
                 for index, item in enumerate(images):
-                    row = _run_request(omni, item["prompt"], sampler)
+                    archive = (args.archive_audio_dir / f"request_{index:02d}.npy"
+                               if args.archive_audio_dir is not None else None)
+                    row = _run_request(omni, item["prompt"], sampler, archive)
                     row.update(index=index, image_path=item["path"], image_sha256=item["sha256"])
                     if args.audio is not None:
                         row["audio_sha256"] = hashlib.sha256(args.audio.read_bytes()).hexdigest()

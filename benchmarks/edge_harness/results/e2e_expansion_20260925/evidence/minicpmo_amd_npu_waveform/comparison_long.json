@@ -1,0 +1,117 @@
+{
+  "scope": "serial audio+image complete requests in separate Omni CPU and CPU+NPU sessions; no paired speedup or speech-quality claim",
+  "npu_report_sha256": "57030b604e0108cd55c35c49103fb40e7a38abab1d51b6520d82515e20b15dad",
+  "cpu_report_sha256": "5266e6256fc9dbc26f2e18a8527a4ce940179f02e2b5315cd17db87491ffc510",
+  "npu_events_sha256": "100e7f2d91a2c8f87aa733dbac95eb16f77c2d26f7f3771e8fcaca8acf1195ad",
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "npu_startup_s": 102.05686227604747,
+  "cpu_startup_s": 102.48492039006669,
+  "npu_placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 2,
+      "vitisai": 1
+    },
+    "total_nodes": 3,
+    "target_nodes": 1,
+    "fraction_on_target": 0.3333333333333333,
+    "session_create_s": 1.9570633999537677,
+    "warmup_s": 0.011146600008942187,
+    "rss_bytes": 348524544,
+    "inputs": [
+      {
+        "name": "hidden",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "projected",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          4096
+        ]
+      }
+    ],
+    "profile_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_waveform\\audio_image_long_kv_profile\\resampler_kv_projection_32x32__2026-09-25_17-41-32_565.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "npu_worker_peak_rss_bytes": 383320064,
+  "token_identical_count": 2,
+  "complete_request_count": 2,
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+      "audio_sha256": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4",
+      "npu_wall_s": 61.621681404998526,
+      "cpu_wall_s": 65.24306491296738,
+      "token_ids_equal": true,
+      "npu_text": "The audio says \"Hello from the local computer.\" The image shows a red square.",
+      "cpu_text": "The audio says \"Hello from the local computer.\" The image shows a red square.",
+      "npu_audio_samples": 162240,
+      "cpu_audio_samples": 167040,
+      "npu_audio_rms": 0.06683431945995474,
+      "cpu_audio_rms": 0.07089294587400105,
+      "npu_max_wsl_used_bytes": 32062926848,
+      "cpu_max_wsl_used_bytes": 31979372544,
+      "npu_max_swap_used_bytes": 6042030080,
+      "cpu_max_swap_used_bytes": 5171494912,
+      "npu_graph_round_trip_s": 0.0752996220253408,
+      "waveform_comparison": {
+        "same_shape": false,
+        "npu_sha256": "13b0126d94c1bbeb6cc2c2d72f4efc7485d076671c099eb87cdebf1dbffc5087",
+        "cpu_sha256": "515013a0359d128d2bd72393542c2e2c429713351c4aabec28c881fded8cdc1d"
+      }
+    },
+    {
+      "index": 1,
+      "image_sha256": "50dff16a4f555d816ad9c057ddf6231826e3b6dbeaf5305945445df123c8df75",
+      "audio_sha256": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4",
+      "npu_wall_s": 24.892736804904416,
+      "cpu_wall_s": 25.701424596016295,
+      "token_ids_equal": true,
+      "npu_text": "The audio says \"Hello from the local computer.\" The image shows a blue circle with a green triangle inside it.",
+      "cpu_text": "The audio says \"Hello from the local computer.\" The image shows a blue circle with a green triangle inside it.",
+      "npu_audio_samples": 204480,
+      "cpu_audio_samples": 219840,
+      "npu_audio_rms": 0.0734459359145909,
+      "cpu_audio_rms": 0.0728349213843194,
+      "npu_max_wsl_used_bytes": 32087658496,
+      "cpu_max_wsl_used_bytes": 31991549952,
+      "npu_max_swap_used_bytes": 6041321472,
+      "cpu_max_swap_used_bytes": 5170126848,
+      "npu_graph_round_trip_s": 0.17729881103150547,
+      "waveform_comparison": {
+        "same_shape": false,
+        "npu_sha256": "0fe28b9aebb9ca0cca70f0d13115d9933ee480de6d39d3f91aadccb8189d0124",
+        "cpu_sha256": "b43cdd5439edd5b9c10a6116fe81a307efcc78996a23b2f3974672073b87817a"
+      }
+    }
+  ],
+  "status": "scoped_complete_suite_pass"
+}

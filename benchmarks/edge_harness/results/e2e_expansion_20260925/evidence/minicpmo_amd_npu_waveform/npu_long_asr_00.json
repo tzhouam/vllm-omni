@@ -1,0 +1,16 @@
+{
+  "scope": "local Whisper tiny.en ASR proxy for generated speech; no perceptual quality claim",
+  "asr_model": "openai/whisper-tiny.en",
+  "asr_revision": "87c7102498dcde7456f24cfd30239ca606ed9063",
+  "asr_weights_sha256": "db59695928ded6043adaef491a53ef4e12da9611184d77c53baa691a60b958ad",
+  "transformers": "5.14.1",
+  "torch": "2.13.0+cpu",
+  "wav_sha256": "50c0bd85b33d0e8eceb02287da7a8ffc9e0926454fc300d922334c1df66ac69a",
+  "input_sample_rate": 24000,
+  "input_duration_s": 6.76,
+  "reference_text": "The audio says Hello from the local computer. The image shows a red square.",
+  "transcript": "The audio says, Hello from the local computer. The image shows a red square.",
+  "word_error_rate": 0.0,
+  "asr_load_s": 0.6440300869289786,
+  "asr_inference_s": 0.3514215109171346
+}

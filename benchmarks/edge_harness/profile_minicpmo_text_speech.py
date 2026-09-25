@@ -70,7 +70,8 @@ def _nearest_rank(values: list[float], percentile: float) -> float:
     return ordered[max(0, math.ceil(percentile * len(ordered)) - 1)]
 
 
-def _run_request(omni: Omni, prompt: dict, memory_sampler: MemorySampler) -> dict:
+def _run_request(omni: Omni, prompt: dict, memory_sampler: MemorySampler,
+                 audio_archive_path: Path | None = None) -> dict:
     started = time.perf_counter()
     first_text_s = None
     first_audio_s = None
@@ -78,6 +79,7 @@ def _run_request(omni: Omni, prompt: dict, memory_sampler: MemorySampler) -> dic
     token_ids = None
     audio_samples = None
     audio_rms = None
+    audio_sha256 = None
     request_ids = set()
 
     for output in omni.generate([prompt], None):
@@ -101,6 +103,11 @@ def _run_request(omni: Omni, prompt: dict, memory_sampler: MemorySampler) -> dic
                 raise RuntimeError("MiniCPM-o generated non-finite audio")
             audio_samples = int(wave.size)
             audio_rms = float(np.sqrt(np.mean(wave.astype(np.float64) ** 2)))
+            if audio_archive_path is not None:
+                audio_archive_path.parent.mkdir(parents=True, exist_ok=True)
+                np.save(audio_archive_path, wave, allow_pickle=False)
+                with audio_archive_path.open("rb") as stream:
+                    audio_sha256 = hashlib.file_digest(stream, "sha256").hexdigest()
 
     completed = time.perf_counter()
     if not text or not token_ids or not audio_samples or audio_rms == 0:
@@ -118,7 +125,7 @@ def _run_request(omni: Omni, prompt: dict, memory_sampler: MemorySampler) -> dic
     if memory_sampler.scope == "wsl_guest":
         sampled_memory["max_wsl_used_bytes"] = sampled_memory["max_system_used_bytes"]
         sampled_memory["min_wsl_available_bytes"] = sampled_memory["min_system_available_bytes"]
-    return {
+    result = {
         "request_ids": sorted(request_ids),
         "wall_s": completed - started,
         "first_text_s": first_text_s,
@@ -130,6 +137,10 @@ def _run_request(omni: Omni, prompt: dict, memory_sampler: MemorySampler) -> dic
         "audio_rms_float": audio_rms,
         "sampled_memory": sampled_memory,
     }
+    if audio_archive_path is not None:
+        result["audio_archive_path"] = str(audio_archive_path.resolve())
+        result["audio_archive_sha256"] = audio_sha256
+    return result
 
 
 def main() -> None:

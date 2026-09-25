@@ -27,6 +27,12 @@ image-to-text+speech requests through Omni with verified HX370 NPU execution.
 The [60-cell matrix](../e2e_profiling_20260922/evidence/summary/README.md)
 records that narrowly scoped experimental E2E pass; default support, paired
 benefit, broader quality, cancellation and sustained power remain open.
+The [combined-audio+image waveform follow-up](evidence/minicpmo_amd_npu_waveform/README.md)
+retains CPU and CPU+NPU speech outputs. The earlier 128-token talker plan
+truncated both routes. Raising its bounded cap to 256 produced two full
+spoken responses per route with pinned Whisper tiny.en WER 0, exact thinker
+text-token parity, and verified live VitisAI placement. Audio durations and
+samples still differ; no whole-chain speedup or default NPU selection follows.
 
 The [InternVLA HX370 AMD NPU batch-one experiment](evidence/internvla_amd_npu_batch1/README.md)
 isolated a six-frame VitisAI convolution failure to frames 1–5, then

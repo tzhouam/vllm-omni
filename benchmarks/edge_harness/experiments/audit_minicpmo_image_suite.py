@@ -8,10 +8,22 @@ import hashlib
 import json
 from pathlib import Path
 
+import numpy as np
+
 
 def sha256(path: Path) -> str:
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def archive_path(report: Path, recorded_path: str) -> Path:
+    as_run = Path(recorded_path)
+    if as_run.is_file():
+        return as_run
+    adjacent = report.parent / as_run.parent.name / as_run.name
+    if adjacent.is_file():
+        return adjacent
+    raise FileNotFoundError(f"waveform archive missing: {recorded_path}")
 
 
 def main() -> None:
@@ -48,6 +60,35 @@ def main() -> None:
                 or a["audio_samples"] <= 0 or b["audio_samples"] <= 0
                 or a["audio_rms_float"] <= 0 or b["audio_rms_float"] <= 0):
             raise ValueError(f"incomplete or unmatched image request {index}")
+        waveform = None
+        if bool(a.get("audio_archive_path")) != bool(b.get("audio_archive_path")):
+            raise ValueError(f"waveform archive missing on one route for request {index}")
+        if a.get("audio_archive_path") and b.get("audio_archive_path"):
+            npu_wave_path = archive_path(args.npu_report, a["audio_archive_path"])
+            cpu_wave_path = archive_path(args.cpu_report, b["audio_archive_path"])
+            if (sha256(npu_wave_path) != a["audio_archive_sha256"]
+                    or sha256(cpu_wave_path) != b["audio_archive_sha256"]):
+                raise ValueError(f"waveform archive hash mismatch for request {index}")
+            npu_wave = np.load(npu_wave_path, allow_pickle=False)
+            cpu_wave = np.load(cpu_wave_path, allow_pickle=False)
+            if (npu_wave.size != a["audio_samples"] or cpu_wave.size != b["audio_samples"]
+                    or not np.isfinite(npu_wave).all() or not np.isfinite(cpu_wave).all()):
+                raise ValueError(f"invalid archived waveform for request {index}")
+            if npu_wave.shape == cpu_wave.shape:
+                difference = np.linalg.norm(npu_wave.astype(np.float64) - cpu_wave.astype(np.float64))
+                reference = np.linalg.norm(cpu_wave.astype(np.float64))
+                waveform = {
+                    "same_shape": True,
+                    "exact_equal": bool(np.array_equal(npu_wave, cpu_wave)),
+                    "relative_l2_vs_cpu": float(difference / reference),
+                    "snr_db_vs_cpu": (None if difference == 0 else
+                                       float(20 * np.log10(reference / difference))),
+                    "npu_sha256": a["audio_archive_sha256"],
+                    "cpu_sha256": b["audio_archive_sha256"],
+                }
+            else:
+                waveform = {"same_shape": False, "npu_sha256": a["audio_archive_sha256"],
+                            "cpu_sha256": b["audio_archive_sha256"]}
         comparison.append({
             "index": index,
             "image_sha256": a["image_sha256"],
@@ -66,6 +107,7 @@ def main() -> None:
             "npu_max_swap_used_bytes": a["sampled_memory"].get("max_swap_used_bytes"),
             "cpu_max_swap_used_bytes": b["sampled_memory"].get("max_swap_used_bytes"),
             "npu_graph_round_trip_s": runs[index]["timing"]["round_trip_s"],
+            "waveform_comparison": waveform,
         })
 
     output = {
