@@ -1,0 +1,154 @@
+{
+  "scope": "all-layer captured NPU-versus-ONNX-CPU rolling K/V numerical audit; not an operation attribution or complete TTS",
+  "model_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "capture_sha256": "00c12b953f32ad7a4e1599aafabef9dcb405a701ae2d54677e33897166363019",
+  "probe_report_sha256": "0940eddfd30c0222b6798a3dc97c30dd25a94bae14b83bed98503fcda487f341",
+  "tensor_gate_relative_l2": 0.01,
+  "rows": [
+    {
+      "step": 0,
+      "start_frame": 95,
+      "layers": [
+        {
+          "layer": 0,
+          "key_relative_l2": 0.007192901690019043,
+          "key_max_abs": 0.2928740978240967,
+          "value_relative_l2": 0.0025209556313311814,
+          "value_max_abs": 0.004724979400634766,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 1,
+          "key_relative_l2": 0.009233328784412883,
+          "key_max_abs": 0.43177294731140137,
+          "value_relative_l2": 0.00263062549146072,
+          "value_max_abs": 0.006898269057273865,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 2,
+          "key_relative_l2": 0.010404385297769098,
+          "key_max_abs": 0.49656569957733154,
+          "value_relative_l2": 0.0034742860553047183,
+          "value_max_abs": 0.011045098304748535,
+          "tensor_gate_pass": false
+        },
+        {
+          "layer": 3,
+          "key_relative_l2": 0.00694870026614862,
+          "key_max_abs": 0.33183717727661133,
+          "value_relative_l2": 0.0033680163474546134,
+          "value_max_abs": 0.015785396099090576,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 4,
+          "key_relative_l2": 0.008654443200627112,
+          "key_max_abs": 0.501990795135498,
+          "value_relative_l2": 0.0035277303803934166,
+          "value_max_abs": 0.016503483057022095,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 5,
+          "key_relative_l2": 0.00795103143884509,
+          "key_max_abs": 0.46062469482421875,
+          "value_relative_l2": 0.0038886363444331456,
+          "value_max_abs": 0.018058747053146362,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 6,
+          "key_relative_l2": 0.006972513871612597,
+          "key_max_abs": 0.30658769607543945,
+          "value_relative_l2": 0.004738712348201811,
+          "value_max_abs": 0.02484525740146637,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 7,
+          "key_relative_l2": 0.00653438299159864,
+          "key_max_abs": 0.4221668243408203,
+          "value_relative_l2": 0.004197011136884875,
+          "value_max_abs": 0.023175746202468872,
+          "tensor_gate_pass": true
+        }
+      ],
+      "first_gate_failure_layer": 2,
+      "max_all_layer_state_relative_l2": 0.010404385297769098
+    },
+    {
+      "step": 1,
+      "start_frame": 97,
+      "layers": [
+        {
+          "layer": 0,
+          "key_relative_l2": 0.008551423369914227,
+          "key_max_abs": 0.2928740978240967,
+          "value_relative_l2": 0.003451161690002787,
+          "value_max_abs": 0.006805211305618286,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 1,
+          "key_relative_l2": 0.01196050555749827,
+          "key_max_abs": 0.43177294731140137,
+          "value_relative_l2": 0.00337960277819258,
+          "value_max_abs": 0.009245380759239197,
+          "tensor_gate_pass": false
+        },
+        {
+          "layer": 2,
+          "key_relative_l2": 0.013185374682126322,
+          "key_max_abs": 0.5728546380996704,
+          "value_relative_l2": 0.0044980728329251825,
+          "value_max_abs": 0.011045098304748535,
+          "tensor_gate_pass": false
+        },
+        {
+          "layer": 3,
+          "key_relative_l2": 0.009064411059074354,
+          "key_max_abs": 0.3649461269378662,
+          "value_relative_l2": 0.005000444862757915,
+          "value_max_abs": 0.021025627851486206,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 4,
+          "key_relative_l2": 0.011152805762546677,
+          "key_max_abs": 0.6007494926452637,
+          "value_relative_l2": 0.004760139559662928,
+          "value_max_abs": 0.016503483057022095,
+          "tensor_gate_pass": false
+        },
+        {
+          "layer": 5,
+          "key_relative_l2": 0.010575232107679817,
+          "key_max_abs": 0.4746553897857666,
+          "value_relative_l2": 0.005308710064182761,
+          "value_max_abs": 0.022176891565322876,
+          "tensor_gate_pass": false
+        },
+        {
+          "layer": 6,
+          "key_relative_l2": 0.009374206781405561,
+          "key_max_abs": 0.34162604808807373,
+          "value_relative_l2": 0.006153002931545206,
+          "value_max_abs": 0.02484525740146637,
+          "tensor_gate_pass": true
+        },
+        {
+          "layer": 7,
+          "key_relative_l2": 0.008316042704416035,
+          "key_max_abs": 0.4221668243408203,
+          "value_relative_l2": 0.005255854211275183,
+          "value_max_abs": 0.023175746202468872,
+          "tensor_gate_pass": true
+        }
+      ],
+      "first_gate_failure_layer": 1,
+      "max_all_layer_state_relative_l2": 0.013185374682126322
+    }
+  ],
+  "status": "all_layer_output_audit_complete"
+}

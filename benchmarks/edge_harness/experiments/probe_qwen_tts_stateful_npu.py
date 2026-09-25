@@ -70,8 +70,6 @@ def main() -> None:
     args = parser.parse_args()
     if not 1 <= args.steps <= 11:
         parser.error("--steps must be 1..11 for the retained 117-frame utterance")
-    if args.checkpoint_outputs and not args.layer0:
-        parser.error("--checkpoint-outputs currently requires --layer0")
 
     import onnxruntime as ort
 
@@ -100,7 +98,8 @@ def main() -> None:
         report["cpu_session_create_s"] = time.perf_counter() - cpu_started
         cpu_steps = run_steps(cpu, inputs, layer0=args.layer0, step_count=args.steps)
         output_names = [item.name for item in cpu.get_outputs()]
-        if args.checkpoint_outputs and len(output_names) <= 3:
+        original_output_count = 3 if args.layer0 else 17
+        if args.checkpoint_outputs and len(output_names) <= original_output_count:
             raise ValueError("checkpoint graph did not expose additional outputs")
         report["cpu_step_s"] = [step["elapsed_s"] for step in cpu_steps]
         report["status"] = "cpu_reference_pass"
@@ -137,7 +136,8 @@ def main() -> None:
                     for output_index, value in enumerate(step["outputs"]):
                         captured[f"{kind}_step{index}_out{output_index}"] = value
             capture_path = args.capture_dir / (
-                ("layer0_checkpoints" if args.checkpoint_outputs else
+                ("layer0_checkpoints" if args.checkpoint_outputs and args.layer0 else
+                 "full_state_checkpoints" if args.checkpoint_outputs else
                  "layer0_outputs" if args.layer0 else "full_state_outputs")
                 + ("_cpu_state" if args.npu_state_source == "cpu" else "") + ".npz")
             np.savez_compressed(capture_path, **captured)
@@ -148,7 +148,7 @@ def main() -> None:
             errors = [relative_l2(a, b) for a, b in zip(reference["outputs"], candidate["outputs"])]
             row = {"start_frame": 95 + 2 * index,
                    "hidden_relative_l2": errors[0],
-                   "max_state_relative_l2": max(errors[1:]),
+                   "max_state_relative_l2": max(errors[1:original_output_count]),
                    "finite": all(np.isfinite(value).all() for value in candidate["outputs"])}
             if args.checkpoint_outputs:
                 row["outputs_relative_l2"] = dict(zip(output_names, errors))

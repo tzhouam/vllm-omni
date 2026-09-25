@@ -1,0 +1,122 @@
+{
+  "scope": "diagnostic output-instrumented eight-layer NPU graph; attribution to the baseline graph requires matching provider partition and final-output behavior",
+  "preparation_sha256": "e650797574a483fbc0585d7c82acaef076ba5c6cc3659dd3e76d5c1476c8bab3",
+  "probe_sha256": "765d5e9c883b2990ce26d5813c138fe3932e520f4b912e3b65239cb5075e59b0",
+  "baseline_probe_sha256": "0940eddfd30c0222b6798a3dc97c30dd25a94bae14b83bed98503fcda487f341",
+  "capture_sha256": "311f85d6b3bbaff062c7f9f21f7a85e7bcec483ab7746bd12c77bdebb0e6bb88",
+  "baseline_capture_sha256": "00c12b953f32ad7a4e1599aafabef9dcb405a701ae2d54677e33897166363019",
+  "tensor_gate_relative_l2": 0.01,
+  "provider_nodes": {
+    "vitisai": 2,
+    "cpu": 26
+  },
+  "baseline_provider_nodes": {
+    "vitisai": 2,
+    "cpu": 26
+  },
+  "rows": [
+    {
+      "step": 0,
+      "start_frame": 95,
+      "layers": [
+        {
+          "layer": 0,
+          "name": "/transformer/layers.0/Add_1_output_0",
+          "hidden_relative_l2": 0.013449406686776046
+        },
+        {
+          "layer": 1,
+          "name": "/transformer/layers.1/Add_1_output_0",
+          "hidden_relative_l2": 0.01509834257759748
+        },
+        {
+          "layer": 2,
+          "name": "/transformer/layers.2/Add_1_output_0",
+          "hidden_relative_l2": 0.015484988080788487
+        },
+        {
+          "layer": 3,
+          "name": "/transformer/layers.3/Add_1_output_0",
+          "hidden_relative_l2": 0.015915765588919738
+        },
+        {
+          "layer": 4,
+          "name": "/transformer/layers.4/Add_1_output_0",
+          "hidden_relative_l2": 0.016966365997559282
+        },
+        {
+          "layer": 5,
+          "name": "/transformer/layers.5/Add_1_output_0",
+          "hidden_relative_l2": 0.01810264518333217
+        },
+        {
+          "layer": 6,
+          "name": "/transformer/layers.6/Add_1_output_0",
+          "hidden_relative_l2": 0.017297860171085196
+        },
+        {
+          "layer": 7,
+          "name": "/transformer/layers.7/Add_1_output_0",
+          "hidden_relative_l2": 0.015552069080015827
+        }
+      ],
+      "first_hidden_gate_failure_layer": 0,
+      "source_cpu_output_max_relative_l2": 0.0,
+      "baseline_npu_output_max_relative_l2": 0.0,
+      "final_hidden_relative_l2": 0.018907590558576506,
+      "baseline_final_hidden_relative_l2": 0.018907590558576506
+    },
+    {
+      "step": 1,
+      "start_frame": 97,
+      "layers": [
+        {
+          "layer": 0,
+          "name": "/transformer/layers.0/Add_1_output_0",
+          "hidden_relative_l2": 0.016588522781014713
+        },
+        {
+          "layer": 1,
+          "name": "/transformer/layers.1/Add_1_output_0",
+          "hidden_relative_l2": 0.017404636326375192
+        },
+        {
+          "layer": 2,
+          "name": "/transformer/layers.2/Add_1_output_0",
+          "hidden_relative_l2": 0.017419092190036855
+        },
+        {
+          "layer": 3,
+          "name": "/transformer/layers.3/Add_1_output_0",
+          "hidden_relative_l2": 0.018230603344972496
+        },
+        {
+          "layer": 4,
+          "name": "/transformer/layers.4/Add_1_output_0",
+          "hidden_relative_l2": 0.01872378686985009
+        },
+        {
+          "layer": 5,
+          "name": "/transformer/layers.5/Add_1_output_0",
+          "hidden_relative_l2": 0.019341755303998173
+        },
+        {
+          "layer": 6,
+          "name": "/transformer/layers.6/Add_1_output_0",
+          "hidden_relative_l2": 0.018508126462034306
+        },
+        {
+          "layer": 7,
+          "name": "/transformer/layers.7/Add_1_output_0",
+          "hidden_relative_l2": 0.016268362451042455
+        }
+      ],
+      "first_hidden_gate_failure_layer": 0,
+      "source_cpu_output_max_relative_l2": 0.0,
+      "baseline_npu_output_max_relative_l2": 0.0,
+      "final_hidden_relative_l2": 0.020737999441153065,
+      "baseline_final_hidden_relative_l2": 0.020737999441153065
+    }
+  ],
+  "status": "diagnostic_checkpoint_audit_complete"
+}

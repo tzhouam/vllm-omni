@@ -49,6 +49,13 @@ the checkpoint. Their maximum relative L2 is **1.040%/1.319%**. The retained
 [paired CPU/NPU tensors](full_state_outputs.npz) are pinned by SHA-256 in both
 reports.
 
+An [all-layer K/V audit](all_layer_kv_audit.json) independently checks the
+retained paired capture, report hash, exact model hash, NPU placement and
+NPU-owned rolling state. The first output above the provisional 1% tensor
+gate is layer 2 K at frame 95 (**1.0404%**) and layer 1 K at frame 97
+(**1.1961%**); layer 2 K reaches **1.3185%** at frame 97. This locates the
+earliest observed failing output, not the operation that introduced the error.
+
 Feeding the measured NPU hidden states into the unchanged source decoder's
 CPU vocoder tail produced finite chunks at frames 95 and 97, but they differed
 by **1.924%/1.036% waveform relative L2** from exact CPU decode; **0/2**
@@ -61,8 +68,12 @@ unqualified component evidence**. Its observed calls and long build also give
 no whole-chain performance benefit on this fixture. The HX370 AMD NPU TTS
 matrix cell remains **NOT E2E**.
 
-The next experiment should localize error across the placed eight-layer graph
-and test a source-faithful numerical correction on both utterances before
-another live-stage attempt. The corrected probe now checks every K/V output;
-the raw native report above is kept unchanged to preserve what the running
-version actually computed.
+A separate [eight-layer hidden-output diagnostic](../qwen_tts_full_state_npu_checkpoints/README.md)
+subsequently executed two more NPU steps with the same 17 original CPU and
+NPU outputs and provider event counts. Its extra checkpoints show the hidden
+output already over 1% at layer 0 on both steps. This narrows the observed
+boundary but does not attribute an operation or fix the waveform error. The
+next experiment should test a source-faithful numerical correction on both
+utterances before another live-stage attempt. The corrected probe now checks
+every K/V output; the raw native report above is kept unchanged to preserve
+what the running version actually computed.

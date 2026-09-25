@@ -1,0 +1,100 @@
+{
+  "scope": "real-weight 8-layer rolling-KV pre-transformer step; not complete TTS or waveform quality",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "model": "a707f33482fc87b3d6edf9f4b721d53a6078305a1ecd12b63cc0c5e91f37ba2d",
+    "fixture": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc"
+  },
+  "npu_state_source": "self",
+  "checkpoint_outputs": true,
+  "status": "npu_checkpoint_probe_complete",
+  "cpu_session_create_s": 0.7491768999025226,
+  "cpu_step_s": [
+    0.006601099972613156,
+    0.005131700076162815
+  ],
+  "vitisai_npu_device_count": 1,
+  "npu_session_create_s": 1191.1564517000224,
+  "npu_step_s": [
+    0.022096200031228364,
+    0.017106899991631508
+  ],
+  "capture": {
+    "filename": "full_state_checkpoints.npz",
+    "sha256": "311f85d6b3bbaff062c7f9f21f7a85e7bcec483ab7746bd12c77bdebb0e6bb88"
+  },
+  "comparison": [
+    {
+      "start_frame": 95,
+      "hidden_relative_l2": 0.018907590558576506,
+      "max_state_relative_l2": 0.010404385297769098,
+      "finite": true,
+      "outputs_relative_l2": {
+        "hidden": 0.018907590558576506,
+        "next_key_0": 0.007192901690019043,
+        "next_value_0": 0.0025209556313311814,
+        "next_key_1": 0.009233328784412883,
+        "next_value_1": 0.00263062549146072,
+        "next_key_2": 0.010404385297769098,
+        "next_value_2": 0.0034742860553047183,
+        "next_key_3": 0.00694870026614862,
+        "next_value_3": 0.0033680163474546134,
+        "next_key_4": 0.008654443200627112,
+        "next_value_4": 0.0035277303803934166,
+        "next_key_5": 0.00795103143884509,
+        "next_value_5": 0.0038886363444331456,
+        "next_key_6": 0.006972513871612597,
+        "next_value_6": 0.004738712348201811,
+        "next_key_7": 0.00653438299159864,
+        "next_value_7": 0.004197011136884875,
+        "/transformer/layers.0/Add_1_output_0": 0.013449406686776046,
+        "/transformer/layers.1/Add_1_output_0": 0.01509834257759748,
+        "/transformer/layers.2/Add_1_output_0": 0.015484988080788487,
+        "/transformer/layers.3/Add_1_output_0": 0.015915765588919738,
+        "/transformer/layers.4/Add_1_output_0": 0.016966365997559282,
+        "/transformer/layers.5/Add_1_output_0": 0.01810264518333217,
+        "/transformer/layers.6/Add_1_output_0": 0.017297860171085196,
+        "/transformer/layers.7/Add_1_output_0": 0.015552069080015827
+      }
+    },
+    {
+      "start_frame": 97,
+      "hidden_relative_l2": 0.020737999441153065,
+      "max_state_relative_l2": 0.013185374682126322,
+      "finite": true,
+      "outputs_relative_l2": {
+        "hidden": 0.020737999441153065,
+        "next_key_0": 0.008551423369914227,
+        "next_value_0": 0.003451161690002787,
+        "next_key_1": 0.01196050555749827,
+        "next_value_1": 0.00337960277819258,
+        "next_key_2": 0.013185374682126322,
+        "next_value_2": 0.0044980728329251825,
+        "next_key_3": 0.009064411059074354,
+        "next_value_3": 0.005000444862757915,
+        "next_key_4": 0.011152805762546677,
+        "next_value_4": 0.004760139559662928,
+        "next_key_5": 0.010575232107679817,
+        "next_value_5": 0.005308710064182761,
+        "next_key_6": 0.009374206781405561,
+        "next_value_6": 0.006153002931545206,
+        "next_key_7": 0.008316042704416035,
+        "next_value_7": 0.005255854211275183,
+        "/transformer/layers.0/Add_1_output_0": 0.016588522781014713,
+        "/transformer/layers.1/Add_1_output_0": 0.017404636326375192,
+        "/transformer/layers.2/Add_1_output_0": 0.017419092190036855,
+        "/transformer/layers.3/Add_1_output_0": 0.018230603344972496,
+        "/transformer/layers.4/Add_1_output_0": 0.01872378686985009,
+        "/transformer/layers.5/Add_1_output_0": 0.019341755303998173,
+        "/transformer/layers.6/Add_1_output_0": 0.018508126462034306,
+        "/transformer/layers.7/Add_1_output_0": 0.016268362451042455
+      }
+    }
+  ],
+  "profile_file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\qwen_tts_full_state_npu_checkpoints\\profile_2026-09-25_23-43-28_461.json",
+  "node_providers": {
+    "vitisai": 2,
+    "cpu": 26
+  }
+}

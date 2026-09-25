@@ -1,0 +1,63 @@
+{
+  "scope": "diagnostic eight-layer hidden-output ONNX graph; no NPU yet",
+  "source_sha256": "2a74a49e99ffeddd4918cade906aea0a497bc9651279475eaaa583cd386b09fd",
+  "fixture_sha256": "e132f412ee3b97a93b068548c2e52c5530a9c8226fd4d7ae268730d04e6f19dc",
+  "candidate_sha256": "a707f33482fc87b3d6edf9f4b721d53a6078305a1ecd12b63cc0c5e91f37ba2d",
+  "source_outputs": 17,
+  "candidate_outputs": 25,
+  "checkpoint_output_names": [
+    "/transformer/layers.0/Add_1_output_0",
+    "/transformer/layers.1/Add_1_output_0",
+    "/transformer/layers.2/Add_1_output_0",
+    "/transformer/layers.3/Add_1_output_0",
+    "/transformer/layers.4/Add_1_output_0",
+    "/transformer/layers.5/Add_1_output_0",
+    "/transformer/layers.6/Add_1_output_0",
+    "/transformer/layers.7/Add_1_output_0"
+  ],
+  "original_cpu_output_max_relative_l2": 0.0,
+  "checkpoint_shapes": [
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ],
+    [
+      1,
+      2,
+      512
+    ]
+  ],
+  "onnxruntime": "1.29.0",
+  "status": "diagnostic_cpu_output_parity_pass"
+}

@@ -199,3 +199,11 @@ missed the 1% tensor gate at 1.891%/2.074%; their unchanged CPU vocoder tail
 missed the 1% waveform gate at 1.924%/1.036%. Its two observed NPU calls were
 also slower than corresponding CPU graph calls before handoff. This is
 executed component evidence, not a complete TTS stream or qualified NPU stage.
+An audit of the retained 16 K/V outputs first crosses the 1% tensor gate at
+layer 2 on step one and layer 1 on step two; output-instrumented diagnosis is
+tracked separately from the original executed graph.
+The [output-instrumented full-state replay](evidence/qwen_tts_full_state_npu_checkpoints/README.md)
+then retained exactly the same 17 original CPU and NPU outputs, two VitisAI
+events and 26 CPU events. Its added checkpoints found the layer-0 hidden
+output already 1.3449%/1.6589% from CPU on the two steps. This localizes an
+observed boundary, not an operation, and leaves the NPU TTS cell NOT E2E.
