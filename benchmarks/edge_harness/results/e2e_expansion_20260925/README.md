@@ -177,3 +177,12 @@ were verified; the NPU worker peak fit its explicit shared-RAM reservation.
 Complete-request p50 was 0.728 s RTX-only versus 1.438 s joint, so the
 unsplit RTX route remains the default. This one prompt, one phase order and
 uncontrolled power state do not qualify broad quality or performance.
+
+An [independent Qwen3-TTS fixed-history control](evidence/qwen_tts_amd_npu_cut100_independent/README.md)
+tested the earlier 72-history/two-frame Code2Wav artifact on a second
+generated utterance. Before NPU execution, its CPU waveform differed from the
+matching full-decoder segment by 1.3115% at frame 2 and 2.2341% at frame 23,
+exceeding the provisional 1% chunk gate. This confirms that the fixed-history
+prefix cannot be promoted to a continuous NPU stage without a source-faithful
+rolling state contract. The independent NPU MLP component finding remains
+valid, but Qwen3-TTS on AMD NPU is still NOT E2E.

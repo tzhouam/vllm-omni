@@ -33,6 +33,8 @@ def main() -> None:
                  "fixture-output", "reference-output", "report"):
         parser.add_argument(f"--{name}", type=Path, required=True)
     parser.add_argument("--start-frame", type=int, default=0)
+    parser.add_argument("--expected-real-fixture-sha256", default=REAL_FIXTURE_SHA)
+    parser.add_argument("--expected-real-reference-sha256")
     args = parser.parse_args()
     if not 0 <= args.start_frame <= 23:
         parser.error("start frame must leave 72 context and two new frames inside 97")
@@ -42,9 +44,13 @@ def main() -> None:
 
     provenance = json.loads(args.real_report.read_text(encoding="utf-8-sig"))
     if (sha256(args.source) != SOURCE_SHA
-            or sha256(args.real_fixture) != REAL_FIXTURE_SHA
+            or sha256(args.real_fixture) != args.expected_real_fixture_sha256
             or provenance["model_revision"] != REVISION
-            or provenance["files"]["fixture"]["sha256"] != REAL_FIXTURE_SHA
+            or provenance["files"]["fixture"]["sha256"] != args.expected_real_fixture_sha256
+            or (args.expected_real_reference_sha256 is not None
+                and (sha256(args.real_25_reference) != args.expected_real_reference_sha256
+                     or provenance["files"]["ort"]["sha256"]
+                     != args.expected_real_reference_sha256))
             or provenance["generated_frames"] < 97):
         raise ValueError("real generated-code input or model source changed")
     with np.load(args.real_fixture, allow_pickle=False) as data:
@@ -67,7 +73,8 @@ def main() -> None:
     report = {
         "scope": "two-frame Code2Wav input derived from one real generated CPU Qwen3-TTS code stream; no NPU yet",
         "source_sha256": SOURCE_SHA,
-        "real_25_frame_fixture_sha256": REAL_FIXTURE_SHA,
+        "real_25_frame_fixture_sha256": args.expected_real_fixture_sha256,
+        "real_25_frame_reference_sha256": sha256(args.real_25_reference),
         "model_revision": REVISION,
         "start_frame": args.start_frame,
         "onnxruntime": ort.__version__,
