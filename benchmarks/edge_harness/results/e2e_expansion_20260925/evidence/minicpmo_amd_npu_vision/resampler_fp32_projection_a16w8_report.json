@@ -1,0 +1,25 @@
+{
+  "scope": "red/blue calibrated A16W8 real-weight projection candidate; third image held out",
+  "source_graph_sha256": "010b8452f1cb655adcb7da2587c171169067e2c0a0d766d537a6edf4e2cc2f80",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "candidate_sha256": "b8e4745e75fcf07a55e62407db8bc8de24e15954139fc3ea2eca7c34d048c3c1",
+  "candidate_bytes": 16798877,
+  "onnxruntime": "1.30.0",
+  "quantization_s": 1.0398862001020461,
+  "calibration": "red and blue postnorm, MinMax per-channel A16W8 QDQ",
+  "cases": {
+    "red": {
+      "qdq_cpu_vs_source_bf16_relative_l2": 0.021370066035397577,
+      "finite": true
+    },
+    "blue": {
+      "qdq_cpu_vs_source_bf16_relative_l2": 0.017968340506820554,
+      "finite": true
+    },
+    "third": {
+      "qdq_cpu_vs_source_bf16_relative_l2": 0.019744904444503157,
+      "finite": true
+    }
+  },
+  "status": "cpu_candidate_numeric_fail"
+}

@@ -1,0 +1,35 @@
+{
+  "scope": "real-weight postnorm projection component on three synthetic images",
+  "revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "reference_sha256": "b155827adf49819355193ca743ae03b5dee2c05c857e70bef21589094ce6d368",
+  "graph_sha256": "010b8452f1cb655adcb7da2587c171169067e2c0a0d766d537a6edf4e2cc2f80",
+  "graph_bytes": 67109045,
+  "shape": [
+    1,
+    64,
+    4096
+  ],
+  "weight_dtype_source": "BF16",
+  "compute_dtype": "FP32",
+  "torch": "2.13.0+cpu",
+  "onnxruntime": "1.29.0",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "cases": {
+    "red": {
+      "torch_fp32_vs_source_bf16_relative_l2": 0.001655667007046804,
+      "ort_cpu_vs_torch_fp32_relative_l2": 4.298629415157217e-07,
+      "ort_cpu_vs_source_bf16_relative_l2": 0.001655671593984667
+    },
+    "blue": {
+      "torch_fp32_vs_source_bf16_relative_l2": 0.0016449727576011016,
+      "ort_cpu_vs_torch_fp32_relative_l2": 3.444684570633451e-07,
+      "ort_cpu_vs_source_bf16_relative_l2": 0.001644971677102305
+    },
+    "third": {
+      "torch_fp32_vs_source_bf16_relative_l2": 0.0016409984104177725,
+      "ort_cpu_vs_torch_fp32_relative_l2": 3.5259666635411096e-07,
+      "ort_cpu_vs_source_bf16_relative_l2": 0.0016409959360798182
+    }
+  }
+}
