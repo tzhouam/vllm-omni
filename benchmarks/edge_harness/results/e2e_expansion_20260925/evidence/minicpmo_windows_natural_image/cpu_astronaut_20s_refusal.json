@@ -1,0 +1,85 @@
+{
+  "scope": "MiniCPM-o GGUF complete audio+image\u2192text+speech through Omni StageRuntime/StagePool",
+  "placement": "cpu",
+  "model_revision": "db25077c33951fe163b42986fba0132e279872a2",
+  "artifact_sha256": {
+    "MiniCPM-o-4_5-Q4_K_M.gguf": "1237a97ee081b8abebc47aa7dad565701e8f5f904cdc92f6723ac4281bbc0932",
+    "audio/MiniCPM-o-4_5-audio-F16.gguf": "d5b188ac7feaf98e17175c3f9bd14bf269301bfd187439fdaa3e3a494fc32ef7",
+    "vision/MiniCPM-o-4_5-vision-F16.gguf": "1453678cc4e4fe18de241952962e234f265cb8dda780773526103ab8ba82f421",
+    "tts/MiniCPM-o-4_5-tts-F16.gguf": "c7be3748a863dd6966ae7eed42600b7f41ca67affb03729ff245247f0e5ea088",
+    "tts/MiniCPM-o-4_5-projector-F16.gguf": "4b1b5b377358a5e594a304ff6ea5d52df606a9ba7d886c4299d232f0c67dd1fd",
+    "token2wav-gguf/encoder.gguf": "7f8d265da594eaf5e1de2db8f5f1867dbcb0bb75ef5878fadf2952347116f4d0",
+    "token2wav-gguf/flow_matching.gguf": "eda6069f3edeb5dd3a87fbf2aedb2ddd1b46f3273926c4fcf09b24476a39cab8",
+    "token2wav-gguf/flow_extra.gguf": "c67611aa7d02500fe395a7798bf0bfdfb55c74d37ba93934ca74d82b4e63f78d",
+    "token2wav-gguf/hifigan2.gguf": "1b8b3bf5d8d3066aeee4324fdcdd41aefce170d0ee907645858de408d82835c2",
+    "token2wav-gguf/prompt_cache.gguf": "81fe6f541ebe0b67db06a1e395df928da47991dc9637c2cf47d6c59d5b979f2c"
+  },
+  "cli_sha256": "29247187ddf3b13591cd14cc070e5e25c6bb7547296acc5e8a74e2945811d725",
+  "reference_sha256": "cf4bb5cd9acbfbf67596d4a53310652b61ef4b7ede1d54eb03ef4882ca40223a",
+  "input_sha256": {
+    "audio_wav": "fa16b5baf1ec83b44ae3a77c4866ff519a8c8a52cd167cebf4263ea02b616083",
+    "image_jpeg": "1487a5f9f79d594ff3edb02a2cf0d89b10d2b20394d8d81ceb329a044ab4cb24"
+  },
+  "expected_text_any": [
+    "astronaut",
+    "shuttle",
+    "space"
+  ],
+  "memory_budget": {
+    "capacities": {
+      "host_ram": 22548578304
+    },
+    "demands": {
+      "host_ram": 22548578304
+    }
+  },
+  "profile_count": 1,
+  "warmup_count": 0,
+  "host_available_bytes_before": 26963869696,
+  "startup_s": 8.339807500015013,
+  "execution_plan_at_start": {
+    "backend": "external.minicpmo.gguf.v1",
+    "stage_id": 0,
+    "worker_generation": "38190615efeb44e7af678af4a13627c9",
+    "model_revision": "db25077c33951fe163b42986fba0132e279872a2",
+    "artifact_sha256": {
+      "MiniCPM-o-4_5-Q4_K_M.gguf": "1237a97ee081b8abebc47aa7dad565701e8f5f904cdc92f6723ac4281bbc0932",
+      "audio/MiniCPM-o-4_5-audio-F16.gguf": "d5b188ac7feaf98e17175c3f9bd14bf269301bfd187439fdaa3e3a494fc32ef7",
+      "vision/MiniCPM-o-4_5-vision-F16.gguf": "1453678cc4e4fe18de241952962e234f265cb8dda780773526103ab8ba82f421",
+      "tts/MiniCPM-o-4_5-tts-F16.gguf": "c7be3748a863dd6966ae7eed42600b7f41ca67affb03729ff245247f0e5ea088",
+      "tts/MiniCPM-o-4_5-projector-F16.gguf": "4b1b5b377358a5e594a304ff6ea5d52df606a9ba7d886c4299d232f0c67dd1fd",
+      "token2wav-gguf/encoder.gguf": "7f8d265da594eaf5e1de2db8f5f1867dbcb0bb75ef5878fadf2952347116f4d0",
+      "token2wav-gguf/flow_matching.gguf": "eda6069f3edeb5dd3a87fbf2aedb2ddd1b46f3273926c4fcf09b24476a39cab8",
+      "token2wav-gguf/flow_extra.gguf": "c67611aa7d02500fe395a7798bf0bfdfb55c74d37ba93934ca74d82b4e63f78d",
+      "token2wav-gguf/hifigan2.gguf": "1b8b3bf5d8d3066aeee4324fdcdd41aefce170d0ee907645858de408d82835c2",
+      "token2wav-gguf/prompt_cache.gguf": "81fe6f541ebe0b67db06a1e395df928da47991dc9637c2cf47d6c59d5b979f2c"
+    },
+    "cli_sha256": "29247187ddf3b13591cd14cc070e5e25c6bb7547296acc5e8a74e2945811d725",
+    "requested_placement": "cpu",
+    "ggml_vk_visible_devices": null,
+    "shared_ram_reservation": {
+      "host_ram": 22548578304
+    },
+    "weights_bytes": 8872297088,
+    "memory_overhead_bytes": 12884901888,
+    "context_tokens": 2048,
+    "max_new_tokens": 96,
+    "request_capacity": 1,
+    "stateful_session": "C++-owned within one request; discarded after completion",
+    "placement_evidence": "pending first request"
+  },
+  "warmups": [],
+  "measured": [],
+  "status": "failed",
+  "error": "RuntimeError: MiniCPM-o speech exceeds admitted output bound",
+  "ledger_after_shutdown": {
+    "capacities": {
+      "host_ram": 22548578304
+    },
+    "reserved": {
+      "host_ram": 0
+    },
+    "owners": [],
+    "quarantined": []
+  }
+}

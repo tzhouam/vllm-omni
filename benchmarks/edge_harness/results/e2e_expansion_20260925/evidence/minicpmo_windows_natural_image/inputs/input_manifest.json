@@ -1,0 +1,16 @@
+{
+  "source_images": {
+    "astronaut": "2418889d0d83962d51facc3832b55cf1849690018a1e873d1c551146555cd02f",
+    "chelsea_cat": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a"
+  },
+  "converted_448_jpeg": {
+    "astronaut": "1487a5f9f79d594ff3edb02a2cf0d89b10d2b20394d8d81ceb329a044ab4cb24",
+    "chelsea_cat": "f2723dc347286b4203f9de3673e953542644028f6498894a679b0e6d7b706927"
+  },
+  "audio_raw_sha256": "b343d08925a4a982dc484ccd7f9be94a55aa2a7dde5e7b8a5421a6f61670ff03",
+  "audio_16k_sha256": "fa16b5baf1ec83b44ae3a77c4866ff519a8c8a52cd167cebf4263ea02b616083",
+  "audio_prompt": "What is in the image?",
+  "sapi_voice": "Microsoft Huihui Desktop",
+  "resize": "Pillow ImageOps.pad to 448x448 black, Lanczos, JPEG quality 95 subsampling 0",
+  "audio_resample": "scipy.signal.resample_poly 22050 to 16000, PCM16 mono"
+}

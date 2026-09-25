@@ -1,0 +1,834 @@
+build: 64 (5202b7b) with x86_64-w64-mingw32-gcc-posix (GCC) 13-posix for x86_64-w64-mingw32
+llama_model_load_from_file_impl: using device Vulkan0 (AMD Radeon(TM) 890M Graphics) (unknown id) - 30720 MiB free
+llama_model_loader: loaded meta data with 27 key-value pairs and 399 tensors from C:\Users\zhout\w2\minicpmo_local_gguf\MiniCPM-o-4_5-Q4_K_M.gguf (version GGUF V3 (latest))
+llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+llama_model_loader: - kv   0:                       general.architecture str              = qwen3
+llama_model_loader: - kv   1:                               general.type str              = model
+llama_model_loader: - kv   2:                               general.name str              = Llm
+llama_model_loader: - kv   3:                         general.size_label str              = 8.2B
+llama_model_loader: - kv   4:                          qwen3.block_count u32              = 36
+llama_model_loader: - kv   5:                       qwen3.context_length u32              = 40960
+llama_model_loader: - kv   6:                     qwen3.embedding_length u32              = 4096
+llama_model_loader: - kv   7:                  qwen3.feed_forward_length u32              = 12288
+llama_model_loader: - kv   8:                 qwen3.attention.head_count u32              = 32
+llama_model_loader: - kv   9:              qwen3.attention.head_count_kv u32              = 8
+llama_model_loader: - kv  10:                       qwen3.rope.freq_base f32              = 1000000.000000
+llama_model_loader: - kv  11:     qwen3.attention.layer_norm_rms_epsilon f32              = 0.000001
+llama_model_loader: - kv  12:                 qwen3.attention.key_length u32              = 128
+llama_model_loader: - kv  13:               qwen3.attention.value_length u32              = 128
+llama_model_loader: - kv  14:                       tokenizer.ggml.model str              = gpt2
+llama_model_loader: - kv  15:                         tokenizer.ggml.pre str              = qwen2
+llama_model_loader: - kv  16:                      tokenizer.ggml.tokens arr[str,151748]  = ["!", "\"", "#", "$", "%", "&", "'", ...
+llama_model_loader: - kv  17:                  tokenizer.ggml.token_type arr[i32,151748]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+llama_model_loader: - kv  18:                      tokenizer.ggml.merges arr[str,151387]  = ["Ġ Ġ", "ĠĠ ĠĠ", "i n", "Ġ t",...
+llama_model_loader: - kv  19:                tokenizer.ggml.bos_token_id u32              = 151644
+llama_model_loader: - kv  20:                tokenizer.ggml.eos_token_id u32              = 151645
+llama_model_loader: - kv  21:            tokenizer.ggml.unknown_token_id u32              = 128244
+llama_model_loader: - kv  22:            tokenizer.ggml.padding_token_id u32              = 151643
+llama_model_loader: - kv  23:               tokenizer.ggml.add_bos_token bool             = false
+llama_model_loader: - kv  24:                    tokenizer.chat_template str              = {%- if tools %}\n    {{- '<|im_start|>...
+llama_model_loader: - kv  25:               general.quantization_version u32              = 2
+llama_model_loader: - kv  26:                          general.file_type u32              = 15
+llama_model_loader: - type  f32:  145 tensors
+llama_model_loader: - type q4_K:  217 tensors
+llama_model_loader: - type q6_K:   37 tensors
+print_info: file format = GGUF V3 (latest)
+print_info: file type   = Q4_K - Medium
+print_info: file size   = 4.68 GiB (4.90 BPW) 
+load: printing all EOG tokens:
+load:   - 151643 ('<|endoftext|>')
+load:   - 151645 ('<|im_end|>')
+load:   - 151662 ('<|fim_pad|>')
+load:   - 151663 ('<|repo_name|>')
+load:   - 151664 ('<|file_sep|>')
+load: special tokens cache size = 106
+load: token to piece cache size = 0.9319 MB
+print_info: arch             = qwen3
+print_info: vocab_only       = 0
+print_info: n_ctx_train      = 40960
+print_info: n_embd           = 4096
+print_info: n_layer          = 36
+print_info: n_head           = 32
+print_info: n_head_kv        = 8
+print_info: n_rot            = 128
+print_info: n_swa            = 0
+print_info: is_swa_any       = 0
+print_info: n_embd_head_k    = 128
+print_info: n_embd_head_v    = 128
+print_info: n_gqa            = 4
+print_info: n_embd_k_gqa     = 1024
+print_info: n_embd_v_gqa     = 1024
+print_info: f_norm_eps       = 0.0e+00
+print_info: f_norm_rms_eps   = 1.0e-06
+print_info: f_clamp_kqv      = 0.0e+00
+print_info: f_max_alibi_bias = 0.0e+00
+print_info: f_logit_scale    = 0.0e+00
+print_info: f_attn_scale     = 0.0e+00
+print_info: n_ff             = 12288
+print_info: n_expert         = 0
+print_info: n_expert_used    = 0
+print_info: causal attn      = 1
+print_info: pooling type     = -1
+print_info: rope type        = 2
+print_info: rope scaling     = linear
+print_info: freq_base_train  = 1000000.0
+print_info: freq_scale_train = 1
+print_info: n_ctx_orig_yarn  = 40960
+print_info: rope_finetuned   = unknown
+print_info: model type       = 8B
+print_info: model params     = 8.19 B
+print_info: general.name     = Llm
+print_info: vocab type       = BPE
+print_info: n_vocab          = 151748
+print_info: n_merges         = 151387
+print_info: BOS token        = 151644 '<|im_start|>'
+print_info: EOS token        = 151645 '<|im_end|>'
+print_info: EOT token        = 151645 '<|im_end|>'
+print_info: UNK token        = 128244 '<unk>'
+print_info: PAD token        = 151643 '<|endoftext|>'
+print_info: LF token         = 198 'Ċ'
+print_info: FIM PRE token    = 151659 '<|fim_prefix|>'
+print_info: FIM SUF token    = 151661 '<|fim_suffix|>'
+print_info: FIM MID token    = 151660 '<|fim_middle|>'
+print_info: FIM PAD token    = 151662 '<|fim_pad|>'
+print_info: FIM REP token    = 151663 '<|repo_name|>'
+print_info: FIM SEP token    = 151664 '<|file_sep|>'
+print_info: EOG token        = 151643 '<|endoftext|>'
+print_info: EOG token        = 151645 '<|im_end|>'
+print_info: EOG token        = 151662 '<|fim_pad|>'
+print_info: EOG token        = 151663 '<|repo_name|>'
+print_info: EOG token        = 151664 '<|file_sep|>'
+print_info: max token length = 256
+load_tensors: loading model tensors, this can take a while... (mmap = true)
+load_tensors: offloading 36 repeating layers to GPU
+load_tensors: offloading output layer to GPU
+load_tensors: offloaded 37/37 layers to GPU
+load_tensors:      Vulkan0 model buffer size =  4454.74 MiB
+load_tensors:   CPU_Mapped model buffer size =   333.43 MiB
+.....................................................................................
+llama_context: constructing llama_context
+llama_context: n_seq_max     = 1
+llama_context: n_ctx         = 2048
+llama_context: n_ctx_per_seq = 2048
+llama_context: n_batch       = 2048
+llama_context: n_ubatch      = 512
+llama_context: causal_attn   = 1
+llama_context: flash_attn    = auto
+llama_context: kv_unified    = false
+llama_context: freq_base     = 1000000.0
+llama_context: freq_scale    = 1
+llama_context: n_ctx_per_seq (2048) < n_ctx_train (40960) -- the full capacity of the model will not be utilized
+llama_context: Vulkan_Host  output buffer size =     0.58 MiB
+llama_kv_cache:    Vulkan0 KV buffer size =   288.00 MiB
+llama_kv_cache: size =  288.00 MiB (  2048 cells,  36 layers,  1/1 seqs), K (f16):  144.00 MiB, V (f16):  144.00 MiB
+llama_context: Flash Attention was auto, set to enabled
+llama_context:    Vulkan0 compute buffer size =   304.38 MiB
+llama_context: Vulkan_Host compute buffer size =    12.01 MiB
+llama_context: graph nodes  = 1267
+llama_context: graph splits = 2
+llama_model_load_from_file_impl: using device Vulkan0 (AMD Radeon(TM) 890M Graphics) (unknown id) - 25673 MiB free
+llama_model_loader: loaded meta data with 30 key-value pairs and 193 tensors from C:\Users\zhout\w2\minicpmo_local_gguf/tts/MiniCPM-o-4_5-tts-F16.gguf (version GGUF V3 (latest))
+llama_model_loader: Dumping metadata keys/values. Note: KV overrides do not apply in this output.
+llama_model_loader: - kv   0:                       general.architecture str              = llama
+llama_model_loader: - kv   1:                               general.type str              = model
+llama_model_loader: - kv   2:                               general.name str              = Tts
+llama_model_loader: - kv   3:                         general.size_label str              = 445M
+llama_model_loader: - kv   4:                          llama.block_count u32              = 20
+llama_model_loader: - kv   5:                       llama.context_length u32              = 4096
+llama_model_loader: - kv   6:                     llama.embedding_length u32              = 768
+llama_model_loader: - kv   7:                  llama.feed_forward_length u32              = 3072
+llama_model_loader: - kv   8:                 llama.attention.head_count u32              = 12
+llama_model_loader: - kv   9:              llama.attention.head_count_kv u32              = 12
+llama_model_loader: - kv  10:                       llama.rope.freq_base f32              = 10000.000000
+llama_model_loader: - kv  11:     llama.attention.layer_norm_rms_epsilon f32              = 0.000001
+llama_model_loader: - kv  12:                 llama.attention.key_length u32              = 64
+llama_model_loader: - kv  13:               llama.attention.value_length u32              = 64
+llama_model_loader: - kv  14:                          general.file_type u32              = 1
+llama_model_loader: - kv  15:                           llama.vocab_size u32              = 158626
+llama_model_loader: - kv  16:                 llama.rope.dimension_count u32              = 64
+llama_model_loader: - kv  17:               general.quantization_version u32              = 2
+llama_model_loader: - kv  18:                       tokenizer.ggml.model str              = gpt2
+llama_model_loader: - kv  19:                         tokenizer.ggml.pre str              = qwen2
+llama_model_loader: - kv  20:                      tokenizer.ggml.tokens arr[str,158626]  = ["!", "\"", "#", "$", "%", "&", "'", ...
+llama_model_loader: - kv  21:                  tokenizer.ggml.token_type arr[i32,158626]  = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+llama_model_loader: - kv  22:                      tokenizer.ggml.merges arr[str,151387]  = ["Ġ Ġ", "ĠĠ ĠĠ", "i n", "Ġ t",...
+llama_model_loader: - kv  23:                tokenizer.ggml.bos_token_id u32              = 151644
+llama_model_loader: - kv  24:                tokenizer.ggml.eos_token_id u32              = 151645
+llama_model_loader: - kv  25:            tokenizer.ggml.unknown_token_id u32              = 128244
+llama_model_loader: - kv  26:            tokenizer.ggml.padding_token_id u32              = 151643
+llama_model_loader: - kv  27:               tokenizer.ggml.add_bos_token bool             = false
+llama_model_loader: - kv  28:                    tokenizer.chat_template str              = {%- if tools %}\n    {{- '<|im_start|>...
+llama_model_loader: - kv  29:            tokenizer.ggml.add_space_prefix bool             = false
+llama_model_loader: - type  f32:   50 tensors
+llama_model_loader: - type  f16:  143 tensors
+print_info: file format = GGUF V3 (latest)
+print_info: file type   = F16
+print_info: file size   = 1.07 GiB (20.70 BPW) 
+load: printing all EOG tokens:
+load:   - 151643 ('<|endoftext|>')
+load:   - 151645 ('<|im_end|>')
+load:   - 151662 ('<|fim_pad|>')
+load:   - 151663 ('<|repo_name|>')
+load:   - 151664 ('<|file_sep|>')
+load: special tokens cache size = 106
+load: token to piece cache size = 0.9319 MB
+print_info: arch             = llama
+print_info: vocab_only       = 0
+print_info: n_ctx_train      = 4096
+print_info: n_embd           = 768
+print_info: n_layer          = 20
+print_info: n_head           = 12
+print_info: n_head_kv        = 12
+print_info: n_rot            = 64
+print_info: n_swa            = 0
+print_info: is_swa_any       = 0
+print_info: n_embd_head_k    = 64
+print_info: n_embd_head_v    = 64
+print_info: n_gqa            = 1
+print_info: n_embd_k_gqa     = 768
+print_info: n_embd_v_gqa     = 768
+print_info: f_norm_eps       = 0.0e+00
+print_info: f_norm_rms_eps   = 1.0e-06
+print_info: f_clamp_kqv      = 0.0e+00
+print_info: f_max_alibi_bias = 0.0e+00
+print_info: f_logit_scale    = 0.0e+00
+print_info: f_attn_scale     = 0.0e+00
+print_info: n_ff             = 3072
+print_info: n_expert         = 0
+print_info: n_expert_used    = 0
+print_info: causal attn      = 1
+print_info: pooling type     = 0
+print_info: rope type        = 0
+print_info: rope scaling     = linear
+print_info: freq_base_train  = 10000.0
+print_info: freq_scale_train = 1
+print_info: n_ctx_orig_yarn  = 4096
+print_info: rope_finetuned   = unknown
+print_info: model type       = ?B
+print_info: model params     = 444.94 M
+print_info: general.name     = Tts
+print_info: vocab type       = BPE
+print_info: n_vocab          = 158626
+print_info: n_merges         = 151387
+print_info: BOS token        = 151644 '<|im_start|>'
+print_info: EOS token        = 151645 '<|im_end|>'
+print_info: EOT token        = 151645 '<|im_end|>'
+print_info: UNK token        = 128244 '<unk>'
+print_info: PAD token        = 151643 '<|endoftext|>'
+print_info: LF token         = 198 'Ċ'
+print_info: FIM PRE token    = 151659 '<|fim_prefix|>'
+print_info: FIM SUF token    = 151661 '<|fim_suffix|>'
+print_info: FIM MID token    = 151660 '<|fim_middle|>'
+print_info: FIM PAD token    = 151662 '<|fim_pad|>'
+print_info: FIM REP token    = 151663 '<|repo_name|>'
+print_info: FIM SEP token    = 151664 '<|file_sep|>'
+print_info: EOG token        = 151643 '<|endoftext|>'
+print_info: EOG token        = 151645 '<|im_end|>'
+print_info: EOG token        = 151662 '<|fim_pad|>'
+print_info: EOG token        = 151663 '<|repo_name|>'
+print_info: EOG token        = 151664 '<|file_sep|>'
+print_info: max token length = 256
+load_tensors: loading model tensors, this can take a while... (mmap = true)
+load_tensors: skipping TTS tensor emb_code.0.weight (size = 20158464 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor emb_text.weight (size = 467140608 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_semantic.linear1.weight (size = 12582912 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_semantic.linear1.bias (size = 3072 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_semantic.linear2.weight (size = 2359296 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_semantic.linear2.bias (size = 3072 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_spk.linear1.weight (size = 6291456 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_spk.linear1.bias (size = 3072 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_spk.linear2.weight (size = 1179648 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor projector_spk.linear2.bias (size = 3072 bytes) -- will be loaded separately
+load_tensors: skipping TTS tensor head_code.0.weight (size = 20158464 bytes) -- will be loaded separately
+load_tensors: offloading 0 repeating layers to GPU
+load_tensors: offloaded 0/21 layers to GPU
+load_tensors:   CPU_Mapped model buffer size =   592.48 MiB
+..............................................................
+llama_init_from_model: model default pooling_type is [0], but [-1] was specified
+llama_context: constructing llama_context
+llama_context: n_seq_max     = 1
+llama_context: n_ctx         = 2048
+llama_context: n_ctx_per_seq = 2048
+llama_context: n_batch       = 2048
+llama_context: n_ubatch      = 512
+llama_context: causal_attn   = 1
+llama_context: flash_attn    = auto
+llama_context: kv_unified    = false
+llama_context: freq_base     = 10000.0
+llama_context: freq_scale    = 1
+llama_context: n_ctx_per_seq (2048) < n_ctx_train (4096) -- the full capacity of the model will not be utilized
+llama_context:        CPU  output buffer size =     0.61 MiB
+llama_kv_cache:        CPU KV buffer size =   120.00 MiB
+llama_kv_cache: size =  120.00 MiB (  2048 cells,  20 layers,  1/1 seqs), K (f16):   60.00 MiB, V (f16):   60.00 MiB
+llama_context: Flash Attention was auto, set to enabled
+llama_context:    Vulkan0 compute buffer size =    30.75 MiB
+llama_context: Vulkan_Host compute buffer size =     7.01 MiB
+llama_context: graph nodes  = 613
+llama_context: graph splits = 216 (with bs=512), 1 (with bs=1)
+vision_model_loader: model name:   
+vision_model_loader: description:  image encoder for MiniCPM-V
+vision_model_loader: GGUF version: 3
+vision_model_loader: alignment:    32
+vision_model_loader: n_tensors:    455
+vision_model_loader: n_kv:         20
+
+vision_ctx: vision using Vulkan0 backend
+load_hparams: model_type:         0
+load_hparams: n_embd:             1152
+load_hparams: n_head:             16
+load_hparams: n_ff:               4304
+load_hparams: n_layer:            27
+load_hparams: ffn_op:             gelu
+load_hparams: projection_dim:     0
+
+--- vision hparams ---
+load_hparams: image_size:         448
+load_hparams: patch_size:         14
+load_hparams: minicpmv_version:   100045
+load_hparams: proj_scale_factor:  0
+load_hparams: n_wa_pattern:       0
+
+load_hparams: model size:         1044.36 MiB
+load_hparams: metadata size:      0.16 MiB
+load_tensors: ffn up/down are swapped
+alloc_compute_meta:    Vulkan0 compute buffer size =   100.30 MiB
+alloc_compute_meta:        CPU compute buffer size =    18.30 MiB
+init tts....init t2w....voc_hg2_model: CPU backend using 8 threads
+audition_audio_preprocess: Decoded audio - sample_rate=16000, n_samples=32000
+audition_get_mel_filters: Retrieved mel filters from model: 80 mel bins x 201 fft bins
+audition_audio_preprocess: Using mel filters - n_mel=80, n_fft=201
+audition_audio_preprocess: Generated 1 mel spectrogram chunk(s)
+audition_audio_preprocess: Mel spectrogram ready - n_len=200, n_mel=80, total_size=16000
+build_whisper: Whisper encoder graph built (projector output, pre-pooling)
+audition_audio_batch_encode: Audio input data - n_step=200, n_mel=80, total_elements=16000
+audition_audio_batch_encode: Before incrementing iter: input_frames=200, n_tokens=100, current_iter=0, current_total=0, new_total=100, max_tokens=1500
+audition_audio_batch_encode: KV cache iter incremented to 1 (total_tokens=100, max_tokens=1500)
+audition_audio_batch_encode: Final output shape: [4096, 20]
+audition_audio_batch_encode: Final output: 20 tokens x 4096 dims
+=== Model Paths ===
+  Base dir:   C:\Users\zhout\w2\minicpmo_local_gguf
+  LLM:        C:\Users\zhout\w2\minicpmo_local_gguf\MiniCPM-o-4_5-Q4_K_M.gguf [OK]
+  Vision:     C:\Users\zhout\w2\minicpmo_local_gguf/vision/MiniCPM-o-4_5-vision-F16.gguf [OK]
+  Audio:      C:\Users\zhout\w2\minicpmo_local_gguf/audio/MiniCPM-o-4_5-audio-F16.gguf [OK]
+  TTS:        C:\Users\zhout\w2\minicpmo_local_gguf/tts/MiniCPM-o-4_5-tts-F16.gguf [OK]
+  Projector:  C:\Users\zhout\w2\minicpmo_local_gguf/tts/MiniCPM-o-4_5-projector-F16.gguf [OK]
+===================
+=== Initializing Omni Context ===
+  Media type: 2 (omni: audio+vision)
+  TTS enabled: yes
+  Context size: 2048
+  GPU layers: 99
+  Token2Wav device: cpu
+  Vision backend: metal
+  TTS bin dir: C:\Users\zhout\w2\minicpmo_local_gguf/tts
+  Ref audio: \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\benchmarks\edge_harness\results\e2e_expansion_20260923\evidence\minicpmo_cpp_radeon890m_prompted\fixture_0000.wav
+21:07:47.781 === omni_init start
+21:07:47.782 media_type = 2, duplex_mode = 0, base_output_dir = ./tools/omni/output
+21:07:47.782 === omni_init: loading new LLM model
+21:07:50.635 === omni_init: loading TTS model
+21:07:50.635 TTS model: loading with n_gpu_layers=0
+21:07:50.933 TTS sampler: temp=0.80, top_p=0.85, top_k=25, rep_penalty=1.05
+21:07:50.933 TTS: loading weights from GGUF (emb_code, emb_text, projector_semantic, head_code)...
+21:07:51.355 TTS: head_code shape: dim0=6562, dim1=768, will transpose to [6562, 768]
+21:07:51.360 TTS: head_code loaded, verifying first few values:
+21:07:51.361   head_code_weight[0] = 0.01361084 (expect ~0.01385498)
+21:07:51.361   head_code_weight[1] = -0.01660156 (expect ~-0.01647949)
+21:07:51.361   head_code_weight[768] = 0.04101562 (this is weight[1, 0], expect ~0.04150391)
+21:07:51.414 TTS: weights loaded successfully
+21:07:51.414 Projector: loading from C:\Users\zhout\w2\minicpmo_local_gguf/tts/MiniCPM-o-4_5-projector-F16.gguf
+21:07:51.420 Projector: loaded successfully
+21:07:51.421 === omni_init: loading APM model
+21:07:51.625 APM: init from C:\Users\zhout\w2\minicpmo_local_gguf/audio/MiniCPM-o-4_5-audio-F16.gguf
+21:07:52.532 Token2Wav: found models in C:\Users\zhout\w2\minicpmo_local_gguf/token2wav-gguf
+21:07:52.532 Token2Wav: all model files found, initializing session...
+21:07:52.532 Token2Wav: non-CUDA backend, vocoder using CPU for better performance
+21:07:52.532 Token2Wav: using prompt_cache from C:\Users\zhout\w2\minicpmo_local_gguf/token2wav-gguf/prompt_cache.gguf
+21:07:53.013 Token2Wav: initialized successfully
+21:07:53.013 Python T2W: script_dir=./tools/omni/pyt2w, model_dir=./tools/omni/pyt2w/token2wav
+21:07:53.013 Token2Wav: 使用 C++ 实现
+21:07:53.014 === omni_init success: ctx_llama = 0000020a2e690840
+=== Running test case ===
+  Audio prefix: C:\Users\zhout\w2\minicpmo_natural_work_radeon\omni-minicpmo-1-qzqgs99l\fixture_
+  Count: 2
+21:07:53.014 stream_prefill: n_past = 0
+ voice_clone_prompt = <|im_start|>system
+模仿音频样本的音色并生成新的内容。
+<|audio_start|>
+ assistant_prompt = <|audio_end|>你的任务是用这种声音模式来当一个助手。请认真、高质量地回复用户的问题。请用高自然度的方式和用户聊天。<|im_end|>
+<|im_start|>user
+
+21:07:53.014 system prompt ref_audio: C:\Users\zhout\w2\minicpmo_natural_work_radeon\omni-minicpmo-1-qzqgs99l\fixture_0000.wav
+21:07:53.478 system prompt ref_audio embedding: n_pos=20
+21:07:54.176 🔒 n_keep 设置为 72 (system prompt tokens)，这部分永远不会被滑动窗口删除
+21:07:54.176 stream_prefill(index=0): system prompt 初始化完成，ref_audio 已在其中 prefill
+21:07:54.176 [SW] system_prompt registered: preserve_length=72 (will be protected from sliding)
+21:07:54.176 n_past = 72
+21:07:54.176 
+
+c++ finish stream_prefill(index=0). n_past=72, n_keep=72, n_ctx=2048
+
+prefill 0 (audio) : 1.16249 s
+encode_image_with_vision_chunks: step 1 of 1 encoded in   762.50 ms
+encode_image_with_vision_chunks: all 1 chunks encoded in   784.40 ms (grid: 1x1)
+
+encode_image_with_vision_chunks: image encoded in   784.41 ms by vision (  784.41 ms per chunk, 64 total tokens)
+omni_image_embed_make_chunks_with_filename: created 1 vision chunks from C:\Users\zhout\w2\minicpmo_natural_work_radeon\omni-minicpmo-1-qzqgs99l\fixture_0001.jpg
+stream_prefill: prefilled 1 vision chunks (64 tokens each)
+audition_audio_preprocess: Decoded audio - sample_rate=16000, n_samples=32786
+audition_audio_preprocess: Audio not aligned to 100ms (32786 samples = 2049.1ms), padded with silence to 33600 samples (2100ms)
+audition_get_mel_filters: Retrieved mel filters from model: 80 mel bins x 201 fft bins
+audition_audio_preprocess: Using mel filters - n_mel=80, n_fft=201
+audition_audio_preprocess: Generated 1 mel spectrogram chunk(s)
+audition_audio_preprocess: Mel spectrogram ready - n_len=210, n_mel=80, total_size=16800
+build_whisper: Whisper encoder graph built (projector output, pre-pooling)
+audition_audio_batch_encode: Audio input data - n_step=210, n_mel=80, total_elements=16800
+audition_audio_batch_encode: Before incrementing iter: input_frames=210, n_tokens=105, current_iter=1, current_total=105, new_total=210, max_tokens=1500
+audition_audio_batch_encode: KV cache iter incremented to 2 (total_tokens=210, max_tokens=1500)
+audition_audio_batch_encode: Final output shape: [4096, 21]
+audition_audio_batch_encode: Final output: 21 tokens x 4096 dims
+21:07:55.618 stream_prefill(index=1): processing user audio: C:\Users\zhout\w2\minicpmo_natural_work_radeon\omni-minicpmo-1-qzqgs99l\fixture_0001.wav
+21:07:55.809 stream_prefill(index=1): user audio embedding: n_pos=21
+21:07:56.210 
+
+c++ finish stream_prefill(index=1). n_past=162, n_keep=72, n_ctx=2048
+
+prefill 1 (audio+vision) : 2.01593 s
+21:07:56.210 📍 stream_decode 开始: n_past=162, n_keep=72, n_ctx=2048, duplex_mode=0
+21:07:56.210 stream_decode: create tts thread (simplex mode)
+21:07:56.210 stream_decode: create t2w thread
+21:07:56.210 wait prefill done
+21:07:56.210 📍 [单工TTS] 添加 assistant prompt: "<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+
+<|tts_bos|>", n_past=162
+21:07:56.210 T2W thread (C++) started
+<user>
+<assistant>21:07:56.214 TTS: 创建单工模式输出目录: ./tools/omni/output/round_000
+21:07:56.214 TTS thread started
+21:07:56.461 📍 [单工TTS] assistant prompt 完成, n_past=172
+21:07:56.461 LLM decode: max_tgt_len = 96, n_predict = 96, n_ctx = 2048
+21:07:57.033 LLM->TTS: text='The image shows a woman in an orange space suit', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[785 2168 4933 264 5220 304 458 18575 3550 7781]
+21:07:57.033 TTS<-LLM: chunk_idx=0, text='The image shows a woman in an orange space suit', n_tokens=10, hidden_size=40960, token_ids=[785 2168 4933 264 5220 304 458 18575 3550 7781]
+21:07:57.033 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:07:57.033 TTS: before empty check - response.empty=0, response='The image shows a woman in an orange space suit', llm_finish=0
+21:07:57.033 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:07:57.033 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:07:57.034 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:07:57.070 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_0/merged_embeddings.txt
+21:07:57.070 TTS Simplex: generating audio tokens for chunk 0 (n_tokens=10, tts_n_embd=768)
+21:07:57.070 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=0, new_size=11)
+21:07:57.070 TTS Simplex: first chunk - cleared KV cache
+21:07:57.070 TTS Simplex: first chunk - cleared tts_all_generated_tokens and tts_token_buffer
+21:07:57.131 TTS Simplex: prefill completed, n_past_tts=11
+21:07:57.131 TTS Simplex: sampler created
+21:07:57.131 TTS simplex: is_audio_bos=true (first audio token)
+21:07:57.180 TTS Simplex Phase1: token 1/500: rel_id=1732
+21:07:57.200 TTS Simplex Phase1: token 2/500: rel_id=5854
+21:07:57.220 TTS Simplex Phase1: token 3/500: rel_id=1725
+21:07:57.241 TTS Simplex Phase1: token 4/500: rel_id=1770
+21:07:57.260 TTS Simplex Phase1: token 5/500: rel_id=74
+21:07:57.643 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 25, buffer=25)
+21:07:57.643 TTS Simplex Phase1: token 25/500: rel_id=5093
+21:07:57.643 T2W线程(C++): 轮次切换 (-1 -> 0)，更新输出目录
+21:07:57.643 T2W线程(C++): 新输出目录 ./tools/omni/output/round_000/tts_wav
+21:07:57.750 LLM->TTS: text=', smiling at the camera. She has short,', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[11 36063 518 279 6249 13 2932 702 2805 11]
+21:07:58.192 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 50, buffer=25)
+21:07:58.192 TTS Simplex Phase1: token 50/500: rel_id=1500
+21:07:58.473 TTS Simplex Phase1: EOS token at step 64
+21:07:58.473 TTS Simplex: chunk 结束，tts_token_buffer 剩余 13 tokens (保留等下一个 chunk)
+21:07:58.473 TTS Simplex: generated 63 audio tokens for chunk 0
+21:07:58.473 TTS Simplex: chunk 0 first tokens: [1732 5854 1725 1770 74 ], last tokens: [1259 566 2753 2347 5856 ]
+21:07:58.473 TTS Simplex: updated tts_n_past_accumulated=74, total_generated_tokens=63
+21:07:58.475 TTS<-LLM: chunk_idx=1, text=', smiling at the camera. She has short,', n_tokens=10, hidden_size=40960, token_ids=[11 36063 518 279 6249 13 2932 702 2805 11]
+21:07:58.475 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:07:58.475 TTS: before empty check - response.empty=0, response=', smiling at the camera. She has short,', llm_finish=0
+21:07:58.475 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:07:58.475 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:07:58.475 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:07:58.501 LLM->TTS: text=' light brown hair and is wearing a dark turt', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[3100 13876 6869 323 374 12233 264 6319 259 5639]
+21:07:58.509 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_1/merged_embeddings.txt
+21:07:58.509 TTS Simplex: generating audio tokens for chunk 1 (n_tokens=10, tts_n_embd=768)
+21:07:58.509 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=1, new_size=11)
+21:07:58.509 TTS Simplex: chunk 1 - keeping KV cache, n_past_tts=74
+21:07:58.539 TTS Simplex: prefill completed, n_past_tts=85
+21:07:58.539 TTS Simplex: sampler created
+21:07:58.560 TTS Simplex Phase1: token 1/500: rel_id=3747
+21:07:58.580 TTS Simplex Phase1: token 2/500: rel_id=860
+21:07:58.602 TTS Simplex Phase1: token 3/500: rel_id=233
+21:07:58.624 TTS Simplex Phase1: token 4/500: rel_id=52
+21:07:58.648 TTS Simplex Phase1: token 5/500: rel_id=3669
+21:07:58.798 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 12, buffer=25)
+21:07:59.092 TTS Simplex Phase1: token 25/500: rel_id=4299
+21:07:59.263 LLM->TTS: text='leneck under her suit. To her right, there', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[59013 1212 1059 7781 13 2014 1059 1290 11 1052]
+21:07:59.308 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 37, buffer=25)
+21:07:59.452 TTS Simplex Phase1: token 50/500: rel_id=4137
+21:07:59.593 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 62, buffer=25)
+21:07:59.741 TTS Simplex Phase1: token 75/500: rel_id=764
+21:07:59.881 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 87, buffer=25)
+21:08:00.052 TTS Simplex Phase1: token 100/500: rel_id=4218
+21:08:00.209 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 112, buffer=25)
+21:08:00.268 TTS Simplex Phase1: EOS token at step 117
+21:08:00.268 TTS Simplex: chunk 结束，tts_token_buffer 剩余 4 tokens (保留等下一个 chunk)
+21:08:00.268 TTS Simplex: generated 116 audio tokens for chunk 1
+21:08:00.268 TTS Simplex: chunk 1 first tokens: [3747 860 233 52 3669 ], last tokens: [4512 2490 6398 4940 2834 ]
+21:08:00.268 TTS Simplex: updated tts_n_past_accumulated=201, total_generated_tokens=179
+21:08:00.269 TTS<-LLM: chunk_idx=2, text=' light brown hair and is wearing a dark turt', n_tokens=10, hidden_size=40960, token_ids=[3100 13876 6869 323 374 12233 264 6319 259 5639]
+21:08:00.269 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:08:00.269 TTS: before empty check - response.empty=0, response=' light brown hair and is wearing a dark turt', llm_finish=0
+21:08:00.269 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:08:00.269 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:08:00.269 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:08:00.308 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_2/merged_embeddings.txt
+21:08:00.308 TTS Simplex: generating audio tokens for chunk 2 (n_tokens=10, tts_n_embd=768)
+21:08:00.308 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=2, new_size=11)
+21:08:00.308 TTS Simplex: chunk 2 - keeping KV cache, n_past_tts=201
+21:08:00.332 TTS Simplex: prefill completed, n_past_tts=212
+21:08:00.332 TTS Simplex: sampler created
+21:08:00.346 TTS Simplex Phase1: token 1/500: rel_id=2231
+21:08:00.358 TTS Simplex Phase1: token 2/500: rel_id=5119
+21:08:00.371 TTS Simplex Phase1: token 3/500: rel_id=737
+21:08:00.385 TTS Simplex Phase1: token 4/500: rel_id=65
+21:08:00.399 TTS Simplex Phase1: token 5/500: rel_id=1535
+21:08:00.629 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 21, buffer=25)
+21:08:00.752 TTS Simplex Phase1: token 25/500: rel_id=4137
+21:08:00.881 🎉 首响时间 (First Audio Response): 4671ms
+21:08:00.881 T2W线程: wav_0.wav | 0.84s audio | 3235.3ms inference | RTF=3.85 | t=4671ms
+21:08:01.279 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 46, buffer=25)
+21:08:01.374 TTS Simplex Phase1: token 50/500: rel_id=2411
+21:08:01.459 LLM->TTS: text=''s a shiny black astronaut helmet. In the background', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[594 264 41199 3691 46633 31535 13 758 279 4004]
+21:08:01.658 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 71, buffer=25)
+21:08:01.703 TTS Simplex Phase1: token 75/500: rel_id=2185
+21:08:01.917 TTS Simplex Phase1: EOS token at step 94
+21:08:01.918 TTS Simplex: chunk 结束，tts_token_buffer 剩余 22 tokens (保留等下一个 chunk)
+21:08:01.918 TTS Simplex: generated 93 audio tokens for chunk 2
+21:08:01.918 TTS Simplex: chunk 2 first tokens: [2231 5119 737 65 1535 ], last tokens: [76 1752 1968 1744 1824 ]
+21:08:01.918 TTS Simplex: updated tts_n_past_accumulated=305, total_generated_tokens=272
+21:08:01.918 TTS<-LLM: chunk_idx=3, text='leneck under her suit. To her right, there', n_tokens=10, hidden_size=40960, token_ids=[59013 1212 1059 7781 13 2014 1059 1290 11 1052]
+21:08:01.918 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:08:01.918 TTS: before empty check - response.empty=0, response='leneck under her suit. To her right, there', llm_finish=0
+21:08:01.918 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:08:01.918 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:08:01.918 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:08:01.952 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_3/merged_embeddings.txt
+21:08:01.953 TTS Simplex: generating audio tokens for chunk 3 (n_tokens=10, tts_n_embd=768)
+21:08:01.953 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=3, new_size=11)
+21:08:01.953 TTS Simplex: chunk 3 - keeping KV cache, n_past_tts=305
+21:08:01.991 TTS Simplex: prefill completed, n_past_tts=316
+21:08:01.991 TTS Simplex: sampler created
+21:08:02.014 TTS Simplex Phase1: token 1/500: rel_id=3057
+21:08:02.037 TTS Simplex Phase1: token 2/500: rel_id=3155
+21:08:02.062 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 3, buffer=25)
+21:08:02.062 TTS Simplex Phase1: token 3/500: rel_id=677
+21:08:02.085 TTS Simplex Phase1: token 4/500: rel_id=1385
+21:08:02.107 TTS Simplex Phase1: token 5/500: rel_id=6485
+21:08:02.589 TTS Simplex Phase1: token 25/500: rel_id=4570
+21:08:02.656 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 28, buffer=25)
+21:08:02.670 LLM->TTS: text=', you can see a small model of a space', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[11 498 646 1490 264 2613 1614 315 264 3550]
+21:08:02.933 TTS Simplex Phase1: token 50/500: rel_id=6023
+21:08:02.974 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 53, buffer=25)
+21:08:03.292 TTS Simplex Phase1: token 75/500: rel_id=3894
+21:08:03.333 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 78, buffer=25)
+21:08:03.510 TTS Simplex Phase1: EOS token at step 91
+21:08:03.510 TTS Simplex: chunk 结束，tts_token_buffer 剩余 12 tokens (保留等下一个 chunk)
+21:08:03.510 TTS Simplex: generated 90 audio tokens for chunk 3
+21:08:03.510 TTS Simplex: chunk 3 first tokens: [3057 3155 677 1385 6485 ], last tokens: [3350 3863 1928 2183 2101 ]
+21:08:03.510 TTS Simplex: updated tts_n_past_accumulated=406, total_generated_tokens=362
+21:08:03.511 TTS<-LLM: chunk_idx=4, text=''s a shiny black astronaut helmet. In the background', n_tokens=10, hidden_size=40960, token_ids=[594 264 41199 3691 46633 31535 13 758 279 4004]
+21:08:03.511 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:08:03.511 TTS: before empty check - response.empty=0, response=''s a shiny black astronaut helmet. In the backgrou', llm_finish=0
+21:08:03.511 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:08:03.511 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:08:03.511 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:08:03.572 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_4/merged_embeddings.txt
+21:08:03.572 TTS Simplex: generating audio tokens for chunk 4 (n_tokens=10, tts_n_embd=768)
+21:08:03.572 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=4, new_size=11)
+21:08:03.572 TTS Simplex: chunk 4 - keeping KV cache, n_past_tts=406
+21:08:03.621 TTS Simplex: prefill completed, n_past_tts=417
+21:08:03.621 TTS Simplex: sampler created
+21:08:03.653 TTS Simplex Phase1: token 1/500: rel_id=2180
+21:08:03.684 TTS Simplex Phase1: token 2/500: rel_id=1919
+21:08:03.721 TTS Simplex Phase1: token 3/500: rel_id=6481
+21:08:03.755 TTS Simplex Phase1: token 4/500: rel_id=5508
+21:08:03.789 TTS Simplex Phase1: token 5/500: rel_id=4540
+21:08:03.996 T2W线程: wav_1.wav | 1.00s audio | 3114.1ms inference | RTF=3.11 | t=7786ms
+21:08:04.041 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 13, buffer=25)
+21:08:04.314 LLM->TTS: text=' shuttle and part of an American flag on the left', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[44541 323 949 315 458 3693 5181 389 279 2115]
+21:08:04.320 TTS Simplex Phase1: token 25/500: rel_id=1676
+21:08:04.476 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 38, buffer=25)
+21:08:04.622 TTS Simplex Phase1: token 50/500: rel_id=1369
+21:08:04.780 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 63, buffer=25)
+21:08:04.933 TTS Simplex Phase1: token 75/500: rel_id=5428
+21:08:05.093 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 88, buffer=25)
+21:08:05.148 TTS Simplex Phase1: EOS token at step 93
+21:08:05.148 TTS Simplex: chunk 结束，tts_token_buffer 剩余 4 tokens (保留等下一个 chunk)
+21:08:05.148 TTS Simplex: generated 92 audio tokens for chunk 4
+21:08:05.148 TTS Simplex: chunk 4 first tokens: [2180 1919 6481 5508 4540 ], last tokens: [1527 2112 2244 4429 786 ]
+21:08:05.148 TTS Simplex: updated tts_n_past_accumulated=509, total_generated_tokens=454
+21:08:05.149 TTS<-LLM: chunk_idx=5, text=', you can see a small model of a space', n_tokens=10, hidden_size=40960, token_ids=[11 498 646 1490 264 2613 1614 315 264 3550]
+21:08:05.149 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:08:05.149 TTS: before empty check - response.empty=0, response=', you can see a small model of a space', llm_finish=0
+21:08:05.149 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:08:05.149 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:08:05.149 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:08:05.186 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_5/merged_embeddings.txt
+21:08:05.186 TTS Simplex: generating audio tokens for chunk 5 (n_tokens=10, tts_n_embd=768)
+21:08:05.186 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=5, new_size=11)
+21:08:05.186 TTS Simplex: chunk 5 - keeping KV cache, n_past_tts=509
+21:08:05.222 TTS Simplex: prefill completed, n_past_tts=520
+21:08:05.222 TTS Simplex: sampler created
+21:08:05.234 TTS Simplex Phase1: token 1/500: rel_id=2031
+21:08:05.247 TTS Simplex Phase1: token 2/500: rel_id=4218
+21:08:05.259 TTS Simplex Phase1: token 3/500: rel_id=4137
+21:08:05.271 TTS Simplex Phase1: token 4/500: rel_id=4218
+21:08:05.283 TTS Simplex Phase1: token 5/500: rel_id=4218
+21:08:05.494 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 21, buffer=25)
+21:08:05.544 TTS Simplex Phase1: token 25/500: rel_id=4123
+21:08:06.141 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 46, buffer=25)
+21:08:06.263 TTS Simplex Phase1: token 50/500: rel_id=89
+21:08:06.355 LLM->TTS: text=' side. The scene looks like a formal portrait,', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[3108 13 576 6109 5868 1075 264 15908 33033 11]
+21:08:06.626 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 71, buffer=25)
+21:08:06.690 TTS Simplex Phase1: token 75/500: rel_id=5056
+21:08:06.971 TTS Simplex Phase1: EOS token at step 93
+21:08:06.971 TTS Simplex: chunk 结束，tts_token_buffer 剩余 21 tokens (保留等下一个 chunk)
+21:08:06.971 TTS Simplex: generated 92 audio tokens for chunk 5
+21:08:06.971 TTS Simplex: chunk 5 first tokens: [2031 4218 4137 4218 4218 ], last tokens: [3060 5807 5056 5098 5746 ]
+21:08:06.971 TTS Simplex: updated tts_n_past_accumulated=612, total_generated_tokens=546
+21:08:06.972 TTS<-LLM: chunk_idx=6, text=' shuttle and part of an American flag on the left', n_tokens=10, hidden_size=40960, token_ids=[44541 323 949 315 458 3693 5181 389 279 2115]
+21:08:06.972 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:08:06.972 TTS: before empty check - response.empty=0, response=' shuttle and part of an American flag on the left', llm_finish=0
+21:08:06.972 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:08:06.972 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:08:06.972 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:08:07.033 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_6/merged_embeddings.txt
+21:08:07.033 TTS Simplex: generating audio tokens for chunk 6 (n_tokens=10, tts_n_embd=768)
+21:08:07.033 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=6, new_size=11)
+21:08:07.033 TTS Simplex: chunk 6 - keeping KV cache, n_past_tts=612
+21:08:07.069 T2W线程: wav_2.wav | 1.00s audio | 3071.3ms inference | RTF=3.07 | t=10859ms
+21:08:07.090 TTS Simplex: prefill completed, n_past_tts=623
+21:08:07.090 TTS Simplex: sampler created
+21:08:07.118 TTS Simplex Phase1: token 1/500: rel_id=2003
+21:08:07.139 TTS Simplex Phase1: token 2/500: rel_id=1979
+21:08:07.165 TTS Simplex Phase1: token 3/500: rel_id=1976
+21:08:07.191 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 4, buffer=25)
+21:08:07.191 TTS Simplex Phase1: token 4/500: rel_id=4862
+21:08:07.214 TTS Simplex Phase1: token 5/500: rel_id=721
+21:08:07.712 TTS Simplex Phase1: token 25/500: rel_id=965
+21:08:07.741 LLM->TTS: text=' probably of an astronaut, with a professional and proud', n_tokens=10, hidden_size=40960, n_embd=4096, token_ids=[4658 315 458 46633 11 448 264 6584 323 12409]
+21:08:07.775 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 29, buffer=25)
+21:08:08.049 TTS Simplex Phase1: token 50/500: rel_id=2067
+21:08:08.099 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 54, buffer=25)
+21:08:08.374 TTS Simplex Phase1: token 75/500: rel_id=3839
+21:08:08.429 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 79, buffer=25)
+21:08:08.680 TTS Simplex Phase1: EOS token at step 99
+21:08:08.680 TTS Simplex: chunk 结束，tts_token_buffer 剩余 19 tokens (保留等下一个 chunk)
+21:08:08.680 TTS Simplex: generated 98 audio tokens for chunk 6
+21:08:08.680 TTS Simplex: chunk 6 first tokens: [2003 1979 1976 4862 721 ], last tokens: [86 3157 2112 162 2003 ]
+21:08:08.680 TTS Simplex: updated tts_n_past_accumulated=721, total_generated_tokens=644
+21:08:08.681 TTS<-LLM: chunk_idx=7, text=' side. The scene looks like a formal portrait,', n_tokens=10, hidden_size=40960, token_ids=[3108 13 576 6109 5868 1075 264 15908 33033 11]
+21:08:08.681 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:08:08.681 TTS: before empty check - response.empty=0, response=' side. The scene looks like a formal portrait,', llm_finish=0
+21:08:08.681 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:08:08.681 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:08:08.681 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:08:08.713 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_7/merged_embeddings.txt
+21:08:08.713 TTS Simplex: generating audio tokens for chunk 7 (n_tokens=10, tts_n_embd=768)
+21:08:08.713 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=7, new_size=11)
+21:08:08.713 TTS Simplex: chunk 7 - keeping KV cache, n_past_tts=721
+21:08:08.754 TTS Simplex: prefill completed, n_past_tts=732
+21:08:08.754 TTS Simplex: sampler created
+21:08:08.768 TTS Simplex Phase1: token 1/500: rel_id=1978
+21:08:08.781 TTS Simplex Phase1: token 2/500: rel_id=1220
+21:08:08.793 TTS Simplex Phase1: token 3/500: rel_id=3407
+21:08:08.807 TTS Simplex Phase1: token 4/500: rel_id=494
+21:08:08.820 TTS Simplex Phase1: token 5/500: rel_id=308
+21:08:08.833 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 6, buffer=25)
+21:08:09.257 TTS Simplex Phase1: token 25/500: rel_id=322
+21:08:09.257 LLM: detected end token, set llm_generation_done=true
+21:08:09.257 LLM->TTS: text=' atmosphere.', n_tokens=2, hidden_size=8192, n_embd=4096, token_ids=[16566 13]
+21:08:09.347 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 31, buffer=25)
+21:08:09.653 TTS Simplex Phase1: token 50/500: rel_id=5645
+21:08:09.752 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 56, buffer=25)
+21:08:09.953 T2W线程: wav_3.wav | 1.00s audio | 2882.9ms inference | RTF=2.88 | t=13742ms
+21:08:10.052 TTS Simplex Phase1: token 75/500: rel_id=3647
+21:08:10.132 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 81, buffer=25)
+21:08:10.177 TTS Simplex Phase1: EOS token at step 85
+21:08:10.177 TTS Simplex: chunk 结束，tts_token_buffer 剩余 3 tokens (保留等下一个 chunk)
+21:08:10.177 TTS Simplex: generated 84 audio tokens for chunk 7
+21:08:10.177 TTS Simplex: chunk 7 first tokens: [1978 1220 3407 494 308 ], last tokens: [602 1372 6534 6537 6456 ]
+21:08:10.177 TTS Simplex: updated tts_n_past_accumulated=816, total_generated_tokens=728
+21:08:10.178 TTS<-LLM: chunk_idx=8, text=' probably of an astronaut, with a professional and proud', n_tokens=10, hidden_size=40960, token_ids=[4658 315 458 46633 11 448 264 6584 323 12409]
+21:08:10.178 TTS: after queue pop - speek_done=0, llm_finish=0, llm_text.empty=0, token_ids.size=10
+21:08:10.178 TTS: before empty check - response.empty=0, response=' probably of an astronaut, with a professional and', llm_finish=0
+21:08:10.178 TTS: DEBUG before has_llm_data - token_ids.size=10, hidden_states.size=40960, n_embd=4096
+21:08:10.178 TTS: has_llm_data=1, token_ids=10, hidden_states=40960, n_embd=4096, llm_finish=0
+21:08:10.178 📍 Decode 结束: n_past=265, 剩余空间=1783, 无需滑窗
+21:08:10.178 📍 轮次 1 结束，记录边界于 n_past=265
+21:08:10.178 TTS: n_tokens_orig=10, n_tokens_filtered=10 (filtered 0 special tokens)
+21:08:10.220 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_8/merged_embeddings.txt
+21:08:10.221 TTS Simplex: generating audio tokens for chunk 8 (n_tokens=10, tts_n_embd=768)
+21:08:10.221 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=8, new_size=11)
+21:08:10.221 TTS Simplex: chunk 8 - keeping KV cache, n_past_tts=816
+21:08:10.259 TTS Simplex: prefill completed, n_past_tts=827
+21:08:10.260 TTS Simplex: sampler created
+21:08:10.273 TTS Simplex Phase1: token 1/500: rel_id=6510
+21:08:10.286 TTS Simplex Phase1: token 2/500: rel_id=5831
+21:08:10.298 TTS Simplex Phase1: token 3/500: rel_id=5093
+21:08:10.313 TTS Simplex Phase1: token 4/500: rel_id=6482
+21:08:10.326 TTS Simplex Phase1: token 5/500: rel_id=6266
+21:08:10.558 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 22, buffer=25)
+21:08:10.597 TTS Simplex Phase1: token 25/500: rel_id=2058
+21:08:10.720 📍 为下一轮准备: eval <|im_end|>\n<|im_start|>user\n, n_past=270
+21:08:10.939 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 47, buffer=25)
+21:08:10.979 TTS Simplex Phase1: token 50/500: rel_id=4260
+21:08:11.280 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 72, buffer=25)
+21:08:11.324 TTS Simplex Phase1: token 75/500: rel_id=749
+21:08:11.639 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 97, buffer=25)
+21:08:11.658 TTS Simplex Phase1: EOS token at step 99
+21:08:11.658 TTS Simplex: chunk 结束，tts_token_buffer 剩余 1 tokens (保留等下一个 chunk)
+21:08:11.658 TTS Simplex: generated 98 audio tokens for chunk 8
+21:08:11.658 TTS Simplex: chunk 8 first tokens: [6510 5831 5093 6482 6266 ], last tokens: [1275 65 326 2163 2166 ]
+21:08:11.658 TTS Simplex: updated tts_n_past_accumulated=925, total_generated_tokens=826
+21:08:11.659 TTS<-LLM: chunk_idx=9, text=' atmosphere.', n_tokens=2, hidden_size=8192, token_ids=[16566 13]
+21:08:11.659 TTS: after queue pop - speek_done=0, llm_finish=1, llm_text.empty=0, token_ids.size=2
+21:08:11.659 TTS: before empty check - response.empty=0, response=' atmosphere.', llm_finish=1
+[timing] call=0 tokens=28 final=0 token2mel=2770.873ms vocoder=464.299ms total=3235.218ms audio=20160
+[timing] call=1 tokens=28 final=0 token2mel=2559.544ms vocoder=554.548ms total=3114.114ms audio=24000
+[timing] call=2 tokens=28 final=0 token2mel=2633.332ms vocoder=437.957ms total=3071.302ms audio=24000
+[timing] call=3 tokens=28 final=0 token2mel=2469.987ms vocoder=412.843ms total=2882.841ms audio=24000
+Waiting for audio generation to complete...
+[timing] call=4 tokens=28 final=0 token2mel=2179.635ms vocoder=404.116ms total=2583.769ms audio=24000
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_0.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_1.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_2.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_3.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_4.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_5.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_6.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_7.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_8.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_9.wav does not exist or is empty
+TTS: chunk file ./tools/omni/output/round_000/tts_wav/tts_output_chunk_10.wav does not exist or is empty
+TTS: no valid WAV files to merge
+21:08:11.659 TTS: DEBUG before has_llm_data - token_ids.size=2, hidden_states.size=8192, n_embd=4096
+21:08:11.659 TTS: has_llm_data=1, token_ids=2, hidden_states=8192, n_embd=4096, llm_finish=1
+21:08:11.659 TTS: n_tokens_orig=2, n_tokens_filtered=2 (filtered 0 special tokens)
+21:08:11.671 TTS: saved merged embeddings (text) to ./tools/omni/output/round_000/llm_debug/chunk_9/merged_embeddings.txt
+21:08:11.671 TTS Simplex: generating audio tokens for chunk 9 (n_tokens=2, tts_n_embd=768)
+21:08:11.671 TTS Simplex: 在 prefill 前添加 audio_bos (chunk_idx=9, new_size=3)
+21:08:11.671 TTS Simplex: chunk 9 - keeping KV cache, n_past_tts=925
+21:08:11.689 TTS Simplex: prefill completed, n_past_tts=928
+21:08:11.689 TTS Simplex: sampler created
+21:08:11.704 TTS Simplex Phase1: token 1/500: rel_id=2143
+21:08:11.720 TTS Simplex Phase1: token 2/500: rel_id=1919
+21:08:11.735 TTS Simplex Phase1: token 3/500: rel_id=2162
+21:08:11.752 TTS Simplex Phase1: token 4/500: rel_id=4266
+21:08:11.770 TTS Simplex Phase1: token 5/500: rel_id=6534
+21:08:12.078 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 24, buffer=25)
+21:08:12.094 TTS Simplex Phase1: token 25/500: rel_id=1950
+21:08:12.491 TTS Simplex Phase1: yield 25 tokens 到 T2W (step 49, buffer=25)
+21:08:12.511 TTS Simplex Phase1: token 50/500: rel_id=2058
+21:08:12.538 T2W线程: wav_4.wav | 1.00s audio | 2583.8ms inference | RTF=2.58 | t=16327ms
+21:08:12.731 TTS Simplex Phase1: EOS token at step 66
+21:08:12.731 TTS Simplex: is_final_text_chunk=true, will enter Phase 2 for text_eos_embed
+21:08:12.731 TTS Simplex Phase2: injecting text_eos_embed + audio_bos at n_past=993
+21:08:12.742 TTS Simplex Phase2: text_eos_embed injected, n_past=994
+21:08:12.753 TTS Simplex Phase2: audio_bos injected, n_past=995, starting final generation
+21:08:12.878 TTS Simplex Phase2: yield 25 tokens 到 T2W
+21:08:13.234 TTS Simplex Phase2: yield 25 tokens 到 T2W
+21:08:13.583 TTS Simplex Phase2: yield 25 tokens 到 T2W
+21:08:13.940 TTS Simplex Phase2: yield 25 tokens 到 T2W
+21:08:13.995 TTS Simplex Phase2: EOS at step 88 (final end)
+21:08:13.995 TTS Simplex: chunk 结束，tts_token_buffer 剩余 3 tokens (保留等下一个 chunk)
+21:08:13.995 TTS Simplex: is_final_text_chunk=true, flush 剩余 3 tokens 从 tts_token_buffer
+21:08:13.995 TTS Simplex: generated 152 audio tokens for chunk 9
+21:08:13.995 TTS Simplex: chunk 9 first tokens: [2143 1919 2162 4266 6534 ], last tokens: [5645 6374 6377 5403 1707 ]
+21:08:13.995 TTS Simplex: updated tts_n_past_accumulated=1083, total_generated_tokens=978
+21:08:13.996 TTS: finished processing all chunks
+21:08:13.996 TTS: 单工模式轮次结束，下一轮 round_idx=1
+21:08:13.996 TTS: sent is_final=true to T2W queue (turn end)
+21:08:14.975 T2W线程: wav_5.wav | 1.00s audio | 2437.1ms inference | RTF=2.44 | t=18765ms
+21:08:17.261 T2W线程: wav_6.wav | 1.00s audio | 2284.8ms inference | RTF=2.28 | t=21050ms
+21:08:19.549 T2W线程: wav_7.wav | 1.00s audio | 2287.4ms inference | RTF=2.29 | t=23339ms
+21:08:21.858 T2W线程: wav_8.wav | 1.00s audio | 2308.5ms inference | RTF=2.31 | t=25648ms
+21:08:24.150 T2W线程: wav_9.wav | 1.00s audio | 2291.4ms inference | RTF=2.29 | t=27940ms
+21:08:26.444 T2W线程: wav_10.wav | 1.00s audio | 2293.2ms inference | RTF=2.29 | t=30234ms
+21:08:28.750 T2W线程: wav_11.wav | 1.00s audio | 2304.4ms inference | RTF=2.30 | t=32539ms
+21:08:31.030 T2W线程: wav_12.wav | 1.00s audio | 2279.2ms inference | RTF=2.28 | t=34819ms
+21:08:33.306 T2W线程: wav_13.wav | 1.00s audio | 2275.6ms inference | RTF=2.28 | t=37096ms
+21:08:35.605 T2W线程: wav_14.wav | 1.00s audio | 2297.8ms inference | RTF=2.30 | t=39395ms
+21:08:37.920 T2W线程: wav_15.wav | 1.00s audio | 2314.7ms inference | RTF=2.31 | t=41710ms
+21:08:40.242 T2W线程: wav_16.wav | 1.00s audio | 2320.9ms inference | RTF=2.32 | t=44032ms
+21:08:42.552 T2W线程: wav_17.wav | 1.00s audio | 2309.6ms inference | RTF=2.31 | t=46342ms
+21:08:44.848 T2W线程: wav_18.wav | 1.00s audio | 2294.6ms inference | RTF=2.29 | t=48637ms
+21:08:47.144 T2W线程: wav_19.wav | 1.00s audio | 2295.6ms inference | RTF=2.30 | t=50934ms
+21:08:49.449 T2W线程: wav_20.wav | 1.00s audio | 2294.5ms inference | RTF=2.29 | t=53239ms
+21:08:51.727 T2W线程: wav_21.wav | 1.00s audio | 2276.3ms inference | RTF=2.28 | t=55516ms
+21:08:54.013 T2W线程: wav_22.wav | 1.00s audio | 2285.5ms inference | RTF=2.29 | t=57802ms
+21:08:56.276 T2W线程: wav_23.wav | 1.00s audio | 2262.9ms inference | RTF=2.26 | t=60066ms
+21:08:58.569 T2W线程: wav_24.wav | 1.00s audio | 2291.5ms inference | RTF=2.29 | t=62358ms
+21:09:00.862 T2W线程: wav_25.wav | 1.00s audio | 2292.7ms inference | RTF=2.29 | t=64652ms
+21:09:03.147 T2W线程: wav_26.wav | 1.00s audio | 2284.1ms inference | RTF=2.28 | t=66936ms
+21:09:05.447 T2W线程: wav_27.wav | 1.00s audio | 2299.5ms inference | RTF=2.30 | t=69237ms
+21:09:07.753 T2W线程: wav_28.wav | 1.00s audio | 2305.0ms inference | RTF=2.31 | t=71542ms
+21:09:10.053 T2W线程: wav_29.wav | 1.00s audio | 2299.7ms inference | RTF=2.30 | t=73843ms
+21:09:12.347 T2W线程: wav_30.wav | 1.00s audio | 2284.9ms inference | RTF=2.28 | t=76137ms
+21:09:14.649 T2W线程: wav_31.wav | 1.00s audio | 2300.6ms inference | RTF=2.30 | t=78438ms
+21:09:16.933 T2W线程: wav_32.wav | 1.00s audio | 2283.6ms inference | RTF=2.28 | t=80723ms
+21:09:19.227 T2W线程: wav_33.wav | 1.00s audio | 2293.3ms inference | RTF=2.29 | t=83017ms
+21:09:21.544 T2W线程: wav_34.wav | 1.00s audio | 2306.7ms inference | RTF=2.31 | t=85333ms
+21:09:23.853 T2W线程: wav_35.wav | 1.00s audio | 2308.9ms inference | RTF=2.31 | t=87643ms
+21:09:26.131 T2W线程: wav_36.wav | 1.00s audio | 2276.8ms inference | RTF=2.28 | t=89920ms
+21:09:28.427 T2W线程: wav_37.wav | 1.00s audio | 2295.0ms inference | RTF=2.29 | t=92216ms
+21:09:30.714 T2W线程: wav_38.wav | 1.00s audio | 2286.1ms inference | RTF=2.29 | t=94503ms
+21:09:32.793 T2W线程: wav_39.wav | 0.40s audio | 2078.2ms inference | RTF=5.20 | t=96582ms
+21:09:32.793 T2W线程: 写入结束标记 ./tools/omni/output/round_000/tts_wav/generation_done.flag (last_wav=39)
+21:09:32.793 T2W线程: 轮次结束后更新输出目录为 ./tools/omni/output/round_001/tts_wav
+21:09:32.851 omni_stop_threads: stop signals sent
+21:09:32.851 T2W(C++) 线程: 停止
+[timing] call=5 tokens=28 final=0 token2mel=2058.440ms vocoder=378.591ms total=2437.041ms audio=24000
+[timing] call=6 tokens=28 final=0 token2mel=1909.242ms vocoder=375.486ms total=2284.738ms audio=24000
+[timing] call=7 tokens=28 final=0 token2mel=1913.620ms vocoder=373.757ms total=2287.386ms audio=24000
+[timing] call=8 tokens=28 final=0 token2mel=1924.453ms vocoder=384.054ms total=2308.517ms audio=24000
+[timing] call=9 tokens=28 final=0 token2mel=1917.031ms vocoder=374.384ms total=2291.424ms audio=24000
+[timing] call=10 tokens=28 final=0 token2mel=1911.490ms vocoder=381.707ms total=2293.207ms audio=24000
+[timing] call=11 tokens=28 final=0 token2mel=1932.497ms vocoder=371.912ms total=2304.420ms audio=24000
+[timing] call=12 tokens=28 final=0 token2mel=1906.232ms vocoder=372.936ms total=2279.177ms audio=24000
+[timing] call=13 tokens=28 final=0 token2mel=1905.972ms vocoder=369.599ms total=2275.581ms audio=24000
+[timing] call=14 tokens=28 final=0 token2mel=1918.562ms vocoder=379.215ms total=2297.792ms audio=24000
+[timing] call=15 tokens=28 final=0 token2mel=1918.354ms vocoder=396.276ms total=2314.640ms audio=24000
+[timing] call=16 tokens=28 final=0 token2mel=1936.393ms vocoder=384.464ms total=2320.867ms audio=24000
+[timing] call=17 tokens=28 final=0 token2mel=1921.177ms vocoder=388.395ms total=2309.582ms audio=24000
+[timing] call=18 tokens=28 final=0 token2mel=1911.115ms vocoder=383.426ms total=2294.551ms audio=24000
+[timing] call=19 tokens=28 final=0 token2mel=1913.179ms vocoder=382.382ms total=2295.569ms audio=24000
+[timing] call=20 tokens=28 final=0 token2mel=1910.100ms vocoder=384.393ms total=2294.504ms audio=24000
+[timing] call=21 tokens=28 final=0 token2mel=1902.623ms vocoder=373.673ms total=2276.306ms audio=24000
+[timing] call=22 tokens=28 final=0 token2mel=1903.951ms vocoder=381.527ms total=2285.488ms audio=24000
+[timing] call=23 tokens=28 final=0 token2mel=1888.894ms vocoder=373.988ms total=2262.892ms audio=24000
+[timing] call=24 tokens=28 final=0 token2mel=1908.675ms vocoder=382.760ms total=2291.445ms audio=24000
+[timing] call=25 tokens=28 final=0 token2mel=1914.019ms vocoder=378.626ms total=2292.654ms audio=24000
+[timing] call=26 tokens=28 final=0 token2mel=1907.318ms vocoder=376.716ms total=2284.043ms audio=24000
+[timing] call=27 tokens=28 final=0 token2mel=1912.449ms vocoder=386.979ms total=2299.438ms audio=24000
+[timing] call=28 tokens=28 final=0 token2mel=1917.048ms vocoder=387.941ms total=2304.997ms audio=24000
+[timing] call=29 tokens=28 final=0 token2mel=1911.561ms vocoder=388.095ms total=2299.666ms audio=24000
+[timing] call=30 tokens=28 final=0 token2mel=1904.562ms vocoder=380.259ms total=2284.834ms audio=24000
+[timing] call=31 tokens=28 final=0 token2mel=1915.406ms vocoder=385.190ms total=2300.605ms audio=24000
+[timing] call=32 tokens=28 final=0 token2mel=1894.314ms vocoder=389.253ms total=2283.577ms audio=24000
+[timing] call=33 tokens=28 final=0 token2mel=1915.910ms vocoder=377.356ms total=2293.277ms audio=24000
+[timing] call=34 tokens=28 final=0 token2mel=1921.268ms vocoder=385.408ms total=2306.685ms audio=24000
+[timing] call=35 tokens=28 final=0 token2mel=1923.487ms vocoder=385.362ms total=2308.862ms audio=24000
+[timing] call=36 tokens=28 final=0 token2mel=1903.322ms vocoder=373.471ms total=2276.802ms audio=24000
+[timing] call=37 tokens=28 final=0 token2mel=1909.884ms vocoder=385.067ms total=2294.960ms audio=24000
+[timing] call=38 tokens=28 final=0 token2mel=1901.477ms vocoder=384.570ms total=2286.057ms audio=24000
+[timing] call=39 tokens=6 final=1 token2mel=1926.615ms vocoder=151.605ms total=2078.228ms audio=9600
+Audio generation completed.
+llama_perf_context_print:        load time =    5479.64 ms
+llama_perf_context_print: prompt eval time =    3444.77 ms /   172 tokens (   20.03 ms per token,    49.93 tokens per second)
+llama_perf_context_print:        eval time =    8069.24 ms /    93 runs   (   86.77 ms per token,    11.53 tokens per second)
+llama_perf_context_print:       total time =  101869.19 ms /   265 tokens
+llama_perf_context_print:    graphs reused =         93
+Token2Wav (C++): session released
+tts thread end
+t2w thread end

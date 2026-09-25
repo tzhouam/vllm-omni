@@ -49,6 +49,16 @@ speech. The NPU worker executed one plus four KV-projection calls across
 both requests and closed cleanly. Mid-NPU-call and post-PCM cancellation,
 worker crashes, broad quality and whole-chain benefit remain open.
 
+A [native Windows MiniCPM-o natural-photo follow-up](evidence/minicpmo_windows_natural_image/README.md)
+completed four whole-session Omni GGUF image+spoken-question → text+speech
+requests: astronaut and cat on CPU and Radeon 890M+CPU. Both routes described
+the scene and emitted finite speech; pinned Whisper tiny.en WER versus the
+displayed answer was 0–0.089. The first 20 s output-bound attempt refused a
+long astronaut response as designed; explicit 60 s/4 MiB bounds admitted the
+four passing requests. These are two images with synthetic spoken input and
+one request per route/photo, so no broad quality or cross-device speedup
+follows.
+
 The [InternVLA HX370 AMD NPU batch-one experiment](evidence/internvla_amd_npu_batch1/README.md)
 isolated a six-frame VitisAI convolution failure to frames 1–5, then
 recovered a numerical component pass with six batch-one calls. The measured

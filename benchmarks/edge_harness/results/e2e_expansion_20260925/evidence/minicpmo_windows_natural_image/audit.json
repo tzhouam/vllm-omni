@@ -1,0 +1,90 @@
+{
+  "status": "four_scoped_natural_image_spoken_question_requests_passed",
+  "input_manifest_sha256": "4c4b2dcc01c741ecdbb5792abdf9b54c79c9ab9de01d359435c3bf84d115275a",
+  "input_asr_sha256": "ed73060671ae4c8f4080fc7f05bb77935fdd0c3cdd4c0b3425e95f33fdef630d",
+  "asr_model": "openai/whisper-tiny.en",
+  "asr_revision": "87c7102498dcde7456f24cfd30239ca606ed9063",
+  "asr_weights_sha256": "db59695928ded6043adaef491a53ef4e12da9611184d77c53baa691a60b958ad",
+  "torch": "2.13.0+cpu",
+  "transformers": "5.14.1",
+  "requests": [
+    {
+      "name": "cpu_astronaut",
+      "placement": "cpu",
+      "image_sha256": "1487a5f9f79d594ff3edb02a2cf0d89b10d2b20394d8d81ceb329a044ab4cb24",
+      "report_sha256": "19fdea5218fcee1a380f5cd7458d290c7320e28212650db347aa0cc5e3e54915",
+      "worker_log_sha256": "816b0a35bccf1899f36d728df41dca995f15c180b7979171a2fa3bb71597e993",
+      "driver_log_sha256": "8f78d5731873f07cfae3e8370713a38c11e749cd1e8b62e7e9967aa23367a452",
+      "wav_sha256": "b1b10d5d4495211aacaebf06b4a1b10357f842ae73f4e06791f59d7008633ce5",
+      "pcm_sha256": "79fbb4c7214cce40ade44ce6e98787d27cea526e102d507125f3f2dc7026da1c",
+      "frames": 510720,
+      "duration_s": 21.28,
+      "complete_request_wall_s": 68.50100220006425,
+      "text": "The image shows a smiling woman wearing an orange astronaut suit with a space helmet beside her. There's a patch on her suit and an American flag in the background. A model of a space shuttle is also visible behind her. She appears to be a professional astronaut, likely from the U.S. space program.",
+      "asr_chunks": [
+        "The image shows a smiling woman wearing an orange astronaut suit with a space helmet beside her. There's a patch on her suit and an American flag in the background. A model of a space shuttle is also visible behind her. She appears to be a professional astronaut, likely from the U.S. space program."
+      ],
+      "asr_transcript": "The image shows a smiling woman wearing an orange astronaut suit with a space helmet beside her. There's a patch on her suit and an American flag in the background. A model of a space shuttle is also visible behind her. She appears to be a professional astronaut, likely from the U.S. space program.",
+      "asr_wer_vs_own_text": 0.0
+    },
+    {
+      "name": "cpu_cat",
+      "placement": "cpu",
+      "image_sha256": "f2723dc347286b4203f9de3673e953542644028f6498894a679b0e6d7b706927",
+      "report_sha256": "3dd949893e8779489bec711119798cc3e98668fc6bea14d3c8d8f2bf233d7db9",
+      "worker_log_sha256": "5be0492c07c9f8f925be5a08c4086c506143a72dfe8b2976987ead34aa8b5ac4",
+      "driver_log_sha256": "7b6dd4027c0a28203df919b56d101498fb00206b67c21b6815beea82b811f84c",
+      "wav_sha256": "9e92367440eddee60478dad77fa91a86561ae274499321b54e8c6300a4b9007c",
+      "pcm_sha256": "c5376ceec8b651f116593aa47af44b16db40347b0e1c1e8a99ebb9727ab0ebc6",
+      "frames": 466560,
+      "duration_s": 19.44,
+      "complete_request_wall_s": 63.882617299910635,
+      "text": "The image shows a close-up of a cat's face. The cat has tabby markings with brown and tan stripes, and striking green eyes. Its nose is small and pinkish-brown, and its whiskers are clearly visible. The background is blurred, keeping the focus on the cat's expressive face.",
+      "asr_chunks": [
+        "The image shows a close-up of a cat's face. The cat has tabby markings with brown and tan stripes and striking green eyes. It's nose is small and pinkish brown and its whiskers are clearly visible. The background is blurred, keeping the focus on the cat's expressive face."
+      ],
+      "asr_transcript": "The image shows a close-up of a cat's face. The cat has tabby markings with brown and tan stripes and striking green eyes. It's nose is small and pinkish brown and its whiskers are clearly visible. The background is blurred, keeping the focus on the cat's expressive face.",
+      "asr_wer_vs_own_text": 0.0392156862745098
+    },
+    {
+      "name": "radeon_astronaut",
+      "placement": "radeon-hybrid",
+      "image_sha256": "1487a5f9f79d594ff3edb02a2cf0d89b10d2b20394d8d81ceb329a044ab4cb24",
+      "report_sha256": "e74fb642c381d4762b0dd9a12c0b3daccfce2d583510f317e575bfc91245d8d5",
+      "worker_log_sha256": "c7b03e4c1b60411ee1a4dced2cbd42593149bb0bcc12012297d4341063b315ac",
+      "driver_log_sha256": "aa247fa278825e0a0066595708bc8669c6f84d2da82c20cda6f475e1faa18ee8",
+      "wav_sha256": "5dda288217ab30fb37d369f8cfb5a096beda47f801a575164f7b8b07b4267e22",
+      "pcm_sha256": "ab71d1abd945027aad5fcbf8e8ac7ac4de1d391af1af849fedd4010a2b184fc3",
+      "frames": 941760,
+      "duration_s": 39.24,
+      "complete_request_wall_s": 106.2933275999967,
+      "text": "The image shows a woman in an orange space suit, smiling at the camera. She has short, light brown hair and is wearing a dark turtleneck under her suit. To her right, there's a shiny black astronaut helmet. In the background, you can see a small model of a space shuttle and part of an American flag on the left side. The scene looks like a formal portrait, probably of an astronaut, with a professional and proud atmosphere.",
+      "asr_chunks": [
+        "The image shows a woman in an orange spissu smiling at the camera. She has short light brown hair and is wearing a dark turtleneck under her suit. To her right, there's a shiny black astronaut helmet. In the background, you can see a small model of a space shuttle and part of an American",
+        "can flag on the left side. The scene looks like a formal portrait, probably of an astronaut, with a professional and proud atmosphere. She reads as fairs,"
+      ],
+      "asr_transcript": "The image shows a woman in an orange spissu smiling at the camera. She has short light brown hair and is wearing a dark turtleneck under her suit. To her right, there's a shiny black astronaut helmet. In the background, you can see a small model of a space shuttle and part of an American can flag on the left side. The scene looks like a formal portrait, probably of an astronaut, with a professional and proud atmosphere. She reads as fairs,",
+      "asr_wer_vs_own_text": 0.08860759493670886
+    },
+    {
+      "name": "radeon_cat",
+      "placement": "radeon-hybrid",
+      "image_sha256": "f2723dc347286b4203f9de3673e953542644028f6498894a679b0e6d7b706927",
+      "report_sha256": "5816de49b1d3378c6156905867ce8dd40f205a305c925f4b5d32659c775b75dd",
+      "worker_log_sha256": "4b3d0c24cc873387d00e2da5b630fd36e5a0be480cc5bd64eef563c673c83b2c",
+      "driver_log_sha256": "8812aaaf98fac6723be52ab24dea6421cd0062909274b9ec0051d2d787ce6f32",
+      "wav_sha256": "eeda26be29e4d3207c707e27ffa42c05a2073698f6108b07bfef3806412c93b8",
+      "pcm_sha256": "aff0600ad8e6cb5f1795e2f02c2f00f3af62c7b2c00178fdecbb7107861119bd",
+      "frames": 498240,
+      "duration_s": 20.76,
+      "complete_request_wall_s": 60.59794260002673,
+      "text": "The image shows a close-up of a cat's face. The cat has a tabby pattern with light brown and beige fur, and striking green eyes. Its nose is small and pinkish-brown. The cat looks directly at the camera with a calm or curious expression. The background is blurry, keeping the focus on the cat's face.",
+      "asr_chunks": [
+        "The image shows a close-up of a cat's face. The cat has a tabby pattern with light brown and beige fur and striking green eyes. Its nose is small and pinkish brown. The cat looks directly at the camera with a calm or curious expression. The background is blurry, keeping the focus on the cat's face."
+      ],
+      "asr_transcript": "The image shows a close-up of a cat's face. The cat has a tabby pattern with light brown and beige fur and striking green eyes. Its nose is small and pinkish brown. The cat looks directly at the camera with a calm or curious expression. The background is blurry, keeping the focus on the cat's face.",
+      "asr_wer_vs_own_text": 0.0
+    }
+  ],
+  "limits": "Two photos, one synthetic spoken question, one complete request per placement/photo; ASR is an intelligibility proxy, not listening quality or a latency profile."
+}

@@ -31,11 +31,20 @@ async def main() -> None:
     parser.add_argument("--expect-admission-refusal", action="store_true")
     parser.add_argument("--warmups", type=int, default=0)
     parser.add_argument("--repeats", type=int, default=1)
+    parser.add_argument("--expected-text-any", action="append",
+                        help="accept one of these case-insensitive output terms; defaults to red")
+    parser.add_argument("--max-output-audio-s", type=int, default=20)
+    parser.add_argument("--max-wav-bytes", type=int, default=2 << 20)
     args = parser.parse_args()
     if args.warmups < 0 or args.repeats < 1:
         parser.error("warmups must be nonnegative and repeats must be positive")
     if args.reserve_gib < 1 or args.capacity_gib < args.reserve_gib:
         parser.error("invalid explicit host-RAM budget")
+    expected_text_any = args.expected_text_any or ["red"]
+    if any(not term.strip() for term in expected_text_any):
+        parser.error("expected text terms must be nonempty")
+    if not 0 < args.max_output_audio_s <= 120 or not 0 < args.max_wav_bytes <= 64 << 20:
+        parser.error("invalid bounded output audio or WAV size")
 
     import psutil
 
@@ -63,9 +72,9 @@ async def main() -> None:
         "work_root": str(args.work_root), "log_root": str(args.log_root),
         "memory_overhead_bytes": 12 << 30,
         "context_tokens": 2048, "max_new_tokens": 96,
-        "max_input_bytes": 2 << 20, "max_wav_bytes": 2 << 20,
+        "max_input_bytes": 2 << 20, "max_wav_bytes": args.max_wav_bytes,
         "max_text_bytes": 16 << 10, "max_work_bytes": 64 << 20,
-        "max_input_audio_s": 10, "max_output_audio_s": 20,
+        "max_input_audio_s": 10, "max_output_audio_s": args.max_output_audio_s,
         "request_timeout_s": 240, "t2w_wait_seconds": 180,
     }
     budget = {"capacities": {"host_ram": args.capacity_gib << 30},
@@ -83,6 +92,9 @@ async def main() -> None:
               "artifact_sha256": backend["artifact_sha256"],
               "cli_sha256": args.cli_sha256, "reference_sha256": reference_hash,
               "input_sha256": {key: hashlib.sha256(value).hexdigest() for key, value in inputs.items()},
+              "expected_text_any": expected_text_any,
+              "output_limits": {"max_output_audio_s": args.max_output_audio_s,
+                                "max_wav_bytes": args.max_wav_bytes},
               "memory_budget": budget, "profile_count": args.repeats,
               "warmup_count": args.warmups,
               "host_available_bytes_before": host_available_bytes}
@@ -124,7 +136,9 @@ async def main() -> None:
                 assert completion.multimodal_output["sr"] == 24000
                 assert len(pcm) // 2 == metadata["pcm_frames"]
                 assert hashlib.sha256(pcm).hexdigest() == metadata["pcm_sha256"]
-                assert "red" in completion.text.lower(), completion.text
+                assert completion.text.strip(), "MiniCPM-o returned empty text"
+                assert any(term.casefold() in completion.text.casefold()
+                           for term in expected_text_any), completion.text
                 assert output.custom_output["stage_event"]["terminal"] is True
                 return {"text": completion.text, "wall_s": time.perf_counter() - started,
                         "audio_metadata": metadata, "stage_event": output.custom_output["stage_event"],
