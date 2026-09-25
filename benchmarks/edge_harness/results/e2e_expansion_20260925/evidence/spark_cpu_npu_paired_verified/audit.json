@@ -1,0 +1,58 @@
+{
+  "status": "paired_order_complete_no_npu_latency_benefit_on_fixture",
+  "paired_report_sha256": "fbf08d118fa7bd68f6a3f8e2af106b8152f53dd28cc7449d2997f3f801acd141",
+  "reference_token_ids_sha256": "a8d7798bf439de0b9cec3ba65661bee9e06df2a8af3f8c0d46ad7957c38e4162",
+  "phases": [
+    {
+      "name": "01_cpu",
+      "mode": "cpu",
+      "measured": 20,
+      "p50_wall_s": 4.765946023981087,
+      "p95_wall_s": 4.867859238991514,
+      "report_sha256": "9778f437e1ece6eaf98fc21956b500b0f5261fa4de15b34d88ca3d9335300ddf"
+    },
+    {
+      "name": "02_npu",
+      "mode": "npu",
+      "measured": 20,
+      "p50_wall_s": 5.002905886969529,
+      "p95_wall_s": 5.133268971927464,
+      "report_sha256": "9002ff353d8bc7671354538fbbf482fda68ecdf8db68c4b71ae371225e314190",
+      "worker_sha256": "f115f400637a1d070a5c1453b960badb8f917cc7daae484c23c3361ce9a9becc",
+      "ort_profile_sha256": "13cd248f291e291501e16a7fed8b9bb7af67466ad10d261979ff9fafd1d6cb6d",
+      "npu_worker_runs": 1344,
+      "node_counts": {
+        "CPUExecutionProvider": 6,
+        "vitisai": 1
+      }
+    },
+    {
+      "name": "03_npu",
+      "mode": "npu",
+      "measured": 20,
+      "p50_wall_s": 5.030335137969814,
+      "p95_wall_s": 5.166549994959496,
+      "report_sha256": "917605a73a40f4550cfd07d760f8d079830c0b21e963bdc046b05eedf069f877",
+      "worker_sha256": "6120a4567c3a5c2a503919ff45fdb976edcabf5c49ef6a06bfe4ebc6db7fb7ec",
+      "ort_profile_sha256": "0a8fd5e01a255feedb725d519d486213ddf82bc7a2bee280ce95e54a60d0c6d1",
+      "npu_worker_runs": 1344,
+      "node_counts": {
+        "CPUExecutionProvider": 6,
+        "vitisai": 1
+      }
+    },
+    {
+      "name": "04_cpu",
+      "mode": "cpu",
+      "measured": 20,
+      "p50_wall_s": 4.829324990976602,
+      "p95_wall_s": 4.908083165064454,
+      "report_sha256": "7de17fe0969ce315405fa658e646b8fd3eaac905886ef4b4b1d976aab446652d"
+    }
+  ],
+  "npu_to_cpu_p50_ratios": [
+    1.049719376131437,
+    1.0416228245911783
+  ],
+  "scope": "one 28-prompt-token/64-output-token greedy fixture, serial 20 measured requests per phase; no package/NPU power or sustained thermal audit"
+}

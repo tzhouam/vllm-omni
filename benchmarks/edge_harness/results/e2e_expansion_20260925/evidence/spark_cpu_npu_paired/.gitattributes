@@ -1,0 +1,3 @@
+# Preserve the failed first attempt exactly; its report hashes the driver log.
+*.json -text
+*.log -text

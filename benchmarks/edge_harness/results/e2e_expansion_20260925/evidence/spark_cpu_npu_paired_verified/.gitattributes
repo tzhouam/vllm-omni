@@ -1,0 +1,3 @@
+# Preserve raw phase, worker and ORT evidence bytes referenced by audit.json.
+*.json -text
+*.log -text

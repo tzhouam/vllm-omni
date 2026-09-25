@@ -1,0 +1,12 @@
+{
+  "captured_utc": "2026-09-25T12:51:30.0379500Z",
+  "os_caption": "Microsoft Windows 11 家庭版 中文版",
+  "os_version": "10.0.26200",
+  "os_build": "26200",
+  "cpu_name": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M           ",
+  "npu_name": "NPU Compute Accelerator Device",
+  "npu_driver": "32.0.203.329",
+  "windows_total_memory_kib": 66185068,
+  "windows_available_after_run_kib": 26585840,
+  "power_scheme": "电源方案 GUID: 27fa6203-3987-4dcc-918d-748559d549ec  (Performance)"
+}

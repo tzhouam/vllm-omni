@@ -129,3 +129,11 @@ no stale audio. A fresh stage loaded the same checkpoint and returned the
 same 109,440-frame PCM hash under a different worker generation. This extends
 the existing complete-WAV profile only with fresh-stage recovery; playable
 streaming and sustained real-time speech remain unqualified.
+
+The [Spark HX370 CPU/NPU paired-order profile](evidence/spark_cpu_npu_paired_verified/README.md)
+alternated CPU, CPU+AMD NPU, CPU+AMD NPU and CPU phases, with one warmup and
+20 complete 64-token requests per phase. All 80 measured requests matched the
+same BF16 token hash; the hybrid phases each verified a VitisAI graph node.
+CPU phase p50s were 4.766/4.829 s, while hybrid p50s were 5.003/5.030 s.
+The NPU split was slower by 4.2–5.0% on this fixture, so CPU remains the
+default. Package/NPU power and sustained thermal behavior were not measured.

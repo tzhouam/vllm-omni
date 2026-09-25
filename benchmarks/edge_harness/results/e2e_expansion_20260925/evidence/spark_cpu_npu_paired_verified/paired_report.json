@@ -1,0 +1,285 @@
+{
+  "status": "completed",
+  "scope": "paired-order serial complete Spark BF16 greedy text, CPU versus CPU decoder plus AMD NPU projection and BF16 CPU top-64 re-rank",
+  "host": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+  "model": "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+  "checkpoint_index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "source_spec_sha256": "f406abc16d12e6fd3f5b674a57a840a73027398febf3ec51abe94de8e2ff9e16",
+  "graph_sha256": "0e711ed95d64d1f929117a2f90425b0a92702b1bff6d4945cec56bd21f2a602a",
+  "reference_profile_sha256": "2dbe6ca73a3f009c5a6de26500eb7f585fd7dd732f079d8730c892ef40ee42f8",
+  "expected_token_ids_sha256": "a8d7798bf439de0b9cec3ba65661bee9e06df2a8af3f8c0d46ad7957c38e4162",
+  "phase_order": [
+    "cpu",
+    "npu",
+    "npu",
+    "cpu"
+  ],
+  "warmups_per_phase": 1,
+  "measured_requests_per_phase": 20,
+  "prompt": "acceptance_prompts()[0]",
+  "max_new_tokens": 64,
+  "concurrency": 1,
+  "power_condition": "observed host condition; package/NPU power and thermals not sampled",
+  "phases": [
+    {
+      "name": "01_cpu",
+      "mode": "cpu",
+      "started_unix": 1790339947.0564523,
+      "ended_unix": 1790340071.888624,
+      "exit_code": 0,
+      "command": [
+        "/home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/profile_spark_bf16_omni_cpu.py",
+        "--model",
+        "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+        "--report",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/01_cpu_report.json",
+        "--warmups",
+        "1",
+        "--repeats",
+        "20",
+        "--max-tokens",
+        "64"
+      ],
+      "driver_log": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/01_cpu_driver.log",
+      "driver_log_sha256": "d48a11cba52b6a11474d121d58dcffe98f5ffc1e23888eb3fd9e375ed45a119f",
+      "report": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/01_cpu_report.json",
+      "report_sha256": "9778f437e1ece6eaf98fc21956b500b0f5261fa4de15b34d88ca3d9335300ddf",
+      "worker_report": null,
+      "measured_count": 20,
+      "nearest_rank_p50_wall_s": 4.765946023981087,
+      "nearest_rank_p95_wall_s": 4.867859238991514,
+      "mean_wall_s": 4.808873309468618,
+      "min_wall_s": 4.7134300370235,
+      "max_wall_s": 5.22910197393503,
+      "token_ids_sha256": "a8d7798bf439de0b9cec3ba65661bee9e06df2a8af3f8c0d46ad7957c38e4162",
+      "npu_placement": null
+    },
+    {
+      "name": "02_npu",
+      "mode": "npu",
+      "started_unix": 1790340071.900249,
+      "ended_unix": 1790340229.226328,
+      "exit_code": 0,
+      "command": [
+        "/home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_spark_live_npu_head.py",
+        "--model",
+        "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+        "--spec",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/02_npu_spec.json",
+        "--reference-profile",
+        "benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_bf16_wsl_cpu/profile20_branch_report.json",
+        "--report",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/02_npu_report.json",
+        "--warmup-requests",
+        "1",
+        "--measured-requests",
+        "20",
+        "--max-tokens",
+        "64"
+      ],
+      "driver_log": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/02_npu_driver.log",
+      "driver_log_sha256": "4297e24d7772f605363702f5c3dc4fda5ab74b052583f679d3190b25158b39bf",
+      "report": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/02_npu_report.json",
+      "report_sha256": "9002ff353d8bc7671354538fbbf482fda68ecdf8db68c4b71ae371225e314190",
+      "worker_report": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/02_npu_worker.json",
+      "measured_count": 20,
+      "nearest_rank_p50_wall_s": 5.002905886969529,
+      "nearest_rank_p95_wall_s": 5.133268971927464,
+      "mean_wall_s": 5.019824533315841,
+      "min_wall_s": 4.936996295931749,
+      "max_wall_s": 5.144163127057254,
+      "token_ids_sha256": "a8d7798bf439de0b9cec3ba65661bee9e06df2a8af3f8c0d46ad7957c38e4162",
+      "npu_placement": {
+        "ep": "vitisai",
+        "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_recal_20260924/graph_postnorm_pc.onnx",
+        "device_name": "",
+        "placement_granularity": "graph_nodes",
+        "session_providers": [
+          "vitisai",
+          "CPUExecutionProvider"
+        ],
+        "available_providers": [
+          "AzureExecutionProvider",
+          "CPUExecutionProvider",
+          "vitisai"
+        ],
+        "node_counts": {
+          "CPUExecutionProvider": 6,
+          "vitisai": 1
+        },
+        "total_nodes": 7,
+        "target_nodes": 1,
+        "fraction_on_target": 0.14285714285714285,
+        "session_create_s": 14.77077860001009,
+        "warmup_s": 0.009854999952949584,
+        "rss_bytes": 1389019136,
+        "inputs": [
+          {
+            "name": "normalized_x_offset_0",
+            "type": "tensor(float)",
+            "shape": [
+              1,
+              2048
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "logits_concatenated",
+            "type": "tensor(float)",
+            "shape": [
+              1,
+              131072
+            ]
+          }
+        ],
+        "profile_path": "C:\\Users\\zhout\\w2\\spark_postnorm_20260924\\paired_02_npu\\spark_output_head__2026-09-25_20-41-38_903.json",
+        "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+        "requested_provider_missing": "",
+        "fallback_note": "",
+        "onnxruntime": "1.30.0",
+        "device_id_requested": null,
+        "note": ""
+      }
+    },
+    {
+      "name": "03_npu",
+      "mode": "npu",
+      "started_unix": 1790340229.2305942,
+      "ended_unix": 1790340387.154311,
+      "exit_code": 0,
+      "command": [
+        "/home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/probe_spark_live_npu_head.py",
+        "--model",
+        "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+        "--spec",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/03_npu_spec.json",
+        "--reference-profile",
+        "benchmarks/edge_harness/results/e2e_expansion_20260924/evidence/spark_bf16_wsl_cpu/profile20_branch_report.json",
+        "--report",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/03_npu_report.json",
+        "--warmup-requests",
+        "1",
+        "--measured-requests",
+        "20",
+        "--max-tokens",
+        "64"
+      ],
+      "driver_log": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/03_npu_driver.log",
+      "driver_log_sha256": "fb55cd7ca0d1f5ba3194c16d2100e219f105bf87a82dcefc98adf115f9da35f2",
+      "report": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/03_npu_report.json",
+      "report_sha256": "917605a73a40f4550cfd07d760f8d079830c0b21e963bdc046b05eedf069f877",
+      "worker_report": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/03_npu_worker.json",
+      "measured_count": 20,
+      "nearest_rank_p50_wall_s": 5.030335137969814,
+      "nearest_rank_p95_wall_s": 5.166549994959496,
+      "mean_wall_s": 5.034770891006337,
+      "min_wall_s": 4.879690812085755,
+      "max_wall_s": 5.333734715008177,
+      "token_ids_sha256": "a8d7798bf439de0b9cec3ba65661bee9e06df2a8af3f8c0d46ad7957c38e4162",
+      "npu_placement": {
+        "ep": "vitisai",
+        "graph_path": "/mnt/c/Users/zhout/w2/spark_npu_recal_20260924/graph_postnorm_pc.onnx",
+        "device_name": "",
+        "placement_granularity": "graph_nodes",
+        "session_providers": [
+          "vitisai",
+          "CPUExecutionProvider"
+        ],
+        "available_providers": [
+          "AzureExecutionProvider",
+          "CPUExecutionProvider",
+          "vitisai"
+        ],
+        "node_counts": {
+          "CPUExecutionProvider": 6,
+          "vitisai": 1
+        },
+        "total_nodes": 7,
+        "target_nodes": 1,
+        "fraction_on_target": 0.14285714285714285,
+        "session_create_s": 15.824704199912958,
+        "warmup_s": 0.010078199906274676,
+        "rss_bytes": 1389649920,
+        "inputs": [
+          {
+            "name": "normalized_x_offset_0",
+            "type": "tensor(float)",
+            "shape": [
+              1,
+              2048
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "name": "logits_concatenated",
+            "type": "tensor(float)",
+            "shape": [
+              1,
+              131072
+            ]
+          }
+        ],
+        "profile_path": "C:\\Users\\zhout\\w2\\spark_postnorm_20260924\\paired_03_npu\\spark_output_head__2026-09-25_20-44-15_647.json",
+        "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+        "requested_provider_missing": "",
+        "fallback_note": "",
+        "onnxruntime": "1.30.0",
+        "device_id_requested": null,
+        "note": ""
+      }
+    },
+    {
+      "name": "04_cpu",
+      "mode": "cpu",
+      "started_unix": 1790340387.1557145,
+      "ended_unix": 1790340512.7790082,
+      "exit_code": 0,
+      "command": [
+        "/home/zhout/project/edge_infer/.venvs/omni-cpu/bin/python",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/experiments/profile_spark_bf16_omni_cpu.py",
+        "--model",
+        "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+        "--report",
+        "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/04_cpu_report.json",
+        "--warmups",
+        "1",
+        "--repeats",
+        "20",
+        "--max-tokens",
+        "64"
+      ],
+      "driver_log": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/04_cpu_driver.log",
+      "driver_log_sha256": "0455d4b895cce0d5423af1b94f6c6e549ba2291bfa35e9afc3087964b13227d6",
+      "report": "/home/zhout/project/edge_infer/vllm-omni-edge/benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/spark_cpu_npu_paired_verified/04_cpu_report.json",
+      "report_sha256": "7de17fe0969ce315405fa658e646b8fd3eaac905886ef4b4b1d976aab446652d",
+      "worker_report": null,
+      "measured_count": 20,
+      "nearest_rank_p50_wall_s": 4.829324990976602,
+      "nearest_rank_p95_wall_s": 4.908083165064454,
+      "mean_wall_s": 4.8367062971985435,
+      "min_wall_s": 4.74884265800938,
+      "max_wall_s": 4.926984395948239,
+      "token_ids_sha256": "a8d7798bf439de0b9cec3ba65661bee9e06df2a8af3f8c0d46ad7957c38e4162",
+      "npu_placement": null
+    }
+  ],
+  "phase_p50_wall_s": {
+    "cpu": [
+      4.765946023981087,
+      4.829324990976602
+    ],
+    "npu": [
+      5.002905886969529,
+      5.030335137969814
+    ]
+  },
+  "npu_vs_cpu_phase_p50_ratios": [
+    1.049719376131437,
+    1.0416228245911783
+  ]
+}
