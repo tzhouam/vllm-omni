@@ -113,6 +113,32 @@ def get_audio_query(
     )
 
 
+def get_audio_image_query(
+    question: str | None = None,
+    audio_path: str | None = None,
+    image_path: str | None = None,
+    sampling_rate: int = 16000,
+    use_tts: bool = True,
+) -> QueryResult:
+    """One spoken-audio and one image input with the checkpoint's placeholders."""
+    if question is None:
+        question = "What is spoken in the audio, and what is shown in the image?"
+    audio = get_audio_query(audio_path=audio_path, sampling_rate=sampling_rate,
+                            use_tts=use_tts).inputs["multi_modal_data"]["audio"]
+    image = get_image_query(image_path=image_path,
+                            use_tts=use_tts).inputs["multi_modal_data"]["image"]
+    return QueryResult(
+        inputs={
+            "prompt": _build_prompt(
+                f"(<audio>./</audio>)\n(<image>./</image>)\n{question}",
+                use_tts=use_tts,
+            ),
+            "multi_modal_data": {"audio": audio, "image": image},
+        },
+        limit_mm_per_prompt={"audio": 1, "image": 1},
+    )
+
+
 def get_video_query(
     question: str | None = None,
     video_path: str | None = None,
@@ -205,6 +231,7 @@ def get_multi_audios_query(use_tts: bool = True) -> QueryResult:
 query_map = {
     "text": get_text_query,
     "use_audio": get_audio_query,
+    "use_audio_image": get_audio_image_query,
     "use_image": get_image_query,
     "use_video": get_video_query,
     "use_multi_audios": get_multi_audios_query,
@@ -241,6 +268,13 @@ def main(args):
     elif args.query_type == "use_audio":
         query_result = query_func(
             audio_path=audio_path,
+            sampling_rate=getattr(args, "sampling_rate", 16000),
+            use_tts=use_tts,
+        )
+    elif args.query_type == "use_audio_image":
+        query_result = query_func(
+            audio_path=audio_path,
+            image_path=image_path,
             sampling_rate=getattr(args, "sampling_rate", 16000),
             use_tts=use_tts,
         )

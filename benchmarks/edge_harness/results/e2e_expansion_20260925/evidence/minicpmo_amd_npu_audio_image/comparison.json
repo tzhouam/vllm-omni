@@ -1,0 +1,107 @@
+{
+  "scope": "serial audio+image complete requests in separate Omni CPU and CPU+NPU sessions; no paired speedup or speech-quality claim",
+  "npu_report_sha256": "50ff88d6f1b075636fe8517afb81961db898e944d6930f37173828f8332d6097",
+  "cpu_report_sha256": "264a8a8cf5a5dac5f2a4f6b6fc23c321aa477f0dac041f3a4fb907b0c555260c",
+  "npu_events_sha256": "ed91e5dae3d22d2c812198390bae2df89810d190c8ba1bfe0c09c7f8af06876d",
+  "model": "/home/zhout/project/edge_infer/models/MiniCPM-o-4_5",
+  "npu_startup_s": 100.83118565392215,
+  "cpu_startup_s": 97.33251921494957,
+  "npu_placement": {
+    "ep": "vitisai",
+    "graph_path": "/mnt/c/Users/zhout/w2/minicpmo_vision_npu_20260925/resampler_kv_a16w8.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 2,
+      "vitisai": 1
+    },
+    "total_nodes": 3,
+    "target_nodes": 1,
+    "fraction_on_target": 0.3333333333333333,
+    "session_create_s": 2.484432499972172,
+    "warmup_s": 0.009797900100238621,
+    "rss_bytes": 351006720,
+    "inputs": [
+      {
+        "name": "hidden",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "projected",
+        "type": "tensor(float)",
+        "shape": [
+          1,
+          1024,
+          4096
+        ]
+      }
+    ],
+    "profile_path": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\results\\e2e_expansion_20260925\\evidence\\minicpmo_amd_npu_vision\\audio_image_kv_profile\\resampler_kv_projection_32x32__2026-09-25_15-14-53_343.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "npu_worker_peak_rss_bytes": 387694592,
+  "token_identical_count": 2,
+  "complete_request_count": 2,
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+      "audio_sha256": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4",
+      "npu_wall_s": 60.73922621703241,
+      "cpu_wall_s": 57.61425751110073,
+      "token_ids_equal": true,
+      "npu_text": "The audio says \"Hello from the local computer.\" The image shows a red square.",
+      "cpu_text": "The audio says \"Hello from the local computer.\" The image shows a red square.",
+      "npu_audio_samples": 124800,
+      "cpu_audio_samples": 124800,
+      "npu_audio_rms": 0.06303892594760462,
+      "cpu_audio_rms": 0.06777058284192494,
+      "npu_max_wsl_used_bytes": 32017264640,
+      "cpu_max_wsl_used_bytes": 31677095936,
+      "npu_max_swap_used_bytes": 5742665728,
+      "cpu_max_swap_used_bytes": 5460652032,
+      "npu_graph_round_trip_s": 0.03570938401389867
+    },
+    {
+      "index": 1,
+      "image_sha256": "50dff16a4f555d816ad9c057ddf6231826e3b6dbeaf5305945445df123c8df75",
+      "audio_sha256": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4",
+      "npu_wall_s": 20.42893975705374,
+      "cpu_wall_s": 20.156849191058427,
+      "token_ids_equal": true,
+      "npu_text": "The audio says \"Hello from the local computer.\" The image shows a blue circle with a green triangle inside it.",
+      "cpu_text": "The audio says \"Hello from the local computer.\" The image shows a blue circle with a green triangle inside it.",
+      "npu_audio_samples": 124800,
+      "cpu_audio_samples": 124800,
+      "npu_audio_rms": 0.06958546735676942,
+      "cpu_audio_rms": 0.07006333419137324,
+      "npu_max_wsl_used_bytes": 32038146048,
+      "cpu_max_wsl_used_bytes": 31718551552,
+      "npu_max_swap_used_bytes": 5742022656,
+      "cpu_max_swap_used_bytes": 5460115456,
+      "npu_graph_round_trip_s": 0.16200414195191115
+    }
+  ],
+  "status": "scoped_complete_suite_pass"
+}

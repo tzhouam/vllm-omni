@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit same-input CPU and CPU+NPU MiniCPM-o image suites and raw placement."""
+"""Audit same-input CPU and CPU+NPU MiniCPM-o image/audio suites and placement."""
 
 from __future__ import annotations
 
@@ -25,20 +25,24 @@ def main() -> None:
     npu = json.loads(args.npu_report.read_text(encoding="utf-8"))
     cpu = json.loads(args.cpu_report.read_text(encoding="utf-8"))
     events = [json.loads(line) for line in args.npu_events.read_text(encoding="utf-8").splitlines()]
-    if (npu["model"] != cpu["model"] or len(npu["requests"]) != 3
-            or len(cpu["requests"]) != 3):
-        raise ValueError("suites must use one checkpoint and three matching requests")
+    request_count = len(npu["requests"])
+    if (npu["model"] != cpu["model"] or request_count < 2
+            or len(cpu["requests"]) != request_count
+            or npu.get("audio_sha256") != cpu.get("audio_sha256")):
+        raise ValueError("suites must use one checkpoint and matching input requests")
     placements = [row["placement"] for row in events if row["phase"] == "placement"]
     runs = [row for row in events if row["phase"] == "run"]
     closes = [row for row in events if row["phase"] == "close"]
-    if (len(placements) != 1 or len(runs) != 3 or len(closes) != 1
+    if (len(placements) != 1 or len(runs) != request_count or len(closes) != 1
             or placements[0]["ep"] != "vitisai" or placements[0]["target_nodes"] < 1
-            or closes[0]["calls"] != 3):
-        raise ValueError("missing verified three-call NPU placement or clean close")
+            or closes[0]["calls"] != request_count):
+        raise ValueError("missing verified NPU placement/calls or clean close")
 
     comparison = []
     for index, (a, b) in enumerate(zip(npu["requests"], cpu["requests"])):
-        if (a["image_sha256"] != b["image_sha256"] or a["index"] != index
+        if (a["image_sha256"] != b["image_sha256"]
+                or a.get("audio_sha256") != b.get("audio_sha256")
+                or a["index"] != index
                 or b["index"] != index
                 or not a["text"] or not b["text"] or not a["token_ids"] or not b["token_ids"]
                 or a["audio_samples"] <= 0 or b["audio_samples"] <= 0
@@ -47,6 +51,7 @@ def main() -> None:
         comparison.append({
             "index": index,
             "image_sha256": a["image_sha256"],
+            "audio_sha256": a.get("audio_sha256"),
             "npu_wall_s": a["wall_s"],
             "cpu_wall_s": b["wall_s"],
             "token_ids_equal": a["token_ids"] == b["token_ids"],
@@ -64,7 +69,8 @@ def main() -> None:
         })
 
     output = {
-        "scope": "one serial run per placement of three images in separate Omni sessions; no paired speedup or speech-quality claim",
+        "scope": ("serial audio+image" if npu.get("audio_sha256") else "serial image-only")
+        + " complete requests in separate Omni CPU and CPU+NPU sessions; no paired speedup or speech-quality claim",
         "npu_report_sha256": sha256(args.npu_report),
         "cpu_report_sha256": sha256(args.cpu_report),
         "npu_events_sha256": sha256(args.npu_events),

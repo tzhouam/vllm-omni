@@ -15,7 +15,10 @@ import torch
 import vllm
 
 from benchmarks.edge_harness.profile_minicpmo_text_speech import MemorySampler, _run_request
-from examples.offline_inference.minicpmo.end2end import get_image_query
+from examples.offline_inference.minicpmo.end2end import (
+    get_audio_image_query,
+    get_image_query,
+)
 from vllm_omni.entrypoints.omni import Omni
 
 
@@ -24,12 +27,16 @@ def main() -> None:
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--deploy-config", type=Path, required=True)
     parser.add_argument("--image", type=Path, action="append", required=True)
+    parser.add_argument("--audio", type=Path,
+                        help="add the same spoken-audio input to each image request")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--init-timeout", type=int, default=900)
     parser.add_argument("--stage-init-timeout", type=int, default=600)
     args = parser.parse_args()
     if len(args.image) < 2 or any(not path.is_file() for path in args.image):
         parser.error("provide at least two existing --image files")
+    if args.audio is not None and not args.audio.is_file():
+        parser.error("--audio must name an existing WAV file")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     images = [
@@ -37,7 +44,9 @@ def main() -> None:
             "path": str(path.resolve()),
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
             "prompt": {
-                **get_image_query(image_path=str(path), use_tts=True).inputs,
+                **(get_audio_image_query(audio_path=str(args.audio), image_path=str(path),
+                                         use_tts=True).inputs if args.audio is not None else
+                   get_image_query(image_path=str(path), use_tts=True).inputs),
                 "modalities": ["text", "audio"],
             },
         }
@@ -59,6 +68,8 @@ def main() -> None:
                 for index, item in enumerate(images):
                     row = _run_request(omni, item["prompt"], sampler)
                     row.update(index=index, image_path=item["path"], image_sha256=item["sha256"])
+                    if args.audio is not None:
+                        row["audio_sha256"] = hashlib.sha256(args.audio.read_bytes()).hexdigest()
                     rows.append(row)
                     raw.write(json.dumps(row) + "\n")
                     raw.flush()
@@ -67,7 +78,12 @@ def main() -> None:
             omni.close()
 
     output = {
-        "scope": "serial three-image MiniCPM-o image-to-text+speech in one Omni session; no speech-quality claim",
+        "scope": ("serial audio+image MiniCPM-o input to text+speech in one Omni session"
+                  if args.audio is not None else
+                  "serial image-only MiniCPM-o input to text+speech in one Omni session"),
+        "audio_path": str(args.audio.resolve()) if args.audio is not None else None,
+        "audio_sha256": hashlib.sha256(args.audio.read_bytes()).hexdigest()
+        if args.audio is not None else None,
         "model": str(args.model.resolve()),
         "deploy_config": str(args.deploy_config.resolve()),
         "deploy_config_sha256": hashlib.sha256(args.deploy_config.read_bytes()).hexdigest(),
