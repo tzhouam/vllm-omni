@@ -107,8 +107,9 @@ def main() -> None:
         fixture = {name: np.ascontiguousarray(archive[name]) for name in archive.files}
     with np.load(args.codes, allow_pickle=False) as archive:
         code_array = np.ascontiguousarray(archive["codes"])
-    if code_array.shape != (117, 16):
-        raise ValueError("generated-code fixture shape changed")
+    if (code_array.ndim != 2 or code_array.shape[0] < 117
+            or code_array.shape[1] != 16):
+        raise ValueError("need at least 117 frames of 16-code generated speech")
     codes = torch.from_numpy(code_array.T.copy()).unsqueeze(0).long()
     with np.load(args.capture, allow_pickle=False) as archive:
         captured = {name: np.ascontiguousarray(archive[name]) for name in archive.files}

@@ -1,0 +1,74 @@
+{
+  "scope": "one real generated-code 25-frame Code2Wav window on local CPU; no device execution",
+  "model_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "model_weight_sha256": "bc3c7e785eb961179c25450d1acff03f839e0002f2f3a5aeb67b5735c0fa2adb",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "onnx_sha256": "01ee1cd02e5cd264200e5c50767a1805a6180378b051ff9b7ec0d8b6c75d7989",
+  "torch": "2.13.0+cpu",
+  "onnxruntime": "1.29.0",
+  "qwen_tts_sources": {
+    "wrapper": {
+      "path": "/home/zhout/project/edge_infer/scratch/qwentts_wsl_pins/qwen_tts/inference/qwen3_tts_model.py",
+      "sha256": "e1da450732857c1f5fe3e36ebab85db2f6dc6a48caaff6973f463384e30275e4"
+    },
+    "decoder": {
+      "path": "/home/zhout/project/edge_infer/scratch/qwentts_wsl_pins/qwen_tts/core/tokenizer_12hz/modeling_qwen3_tts_tokenizer_v2.py",
+      "sha256": "844e8dd8c0182ef9c6463c874631c22ef3c5a4fd1899dd657016164cc5379628"
+    }
+  },
+  "text": "A bright blue kite moved across the quiet sky. The wind grew stronger, and its tail curled above the trees while we watched from the park.",
+  "speaker": "Ryan",
+  "language": "English",
+  "seed": 91,
+  "generator_dtype": "bfloat16",
+  "decoder_dtype": "float32",
+  "threads": 8,
+  "generated_frames": 144,
+  "generated_audio_samples": 276480,
+  "window": {
+    "start_frame": 0,
+    "history_frames": 72,
+    "new_frames": 25
+  },
+  "files": {
+    "codes": {
+      "filename": "codes.npz",
+      "sha256": "b8a99d2cfeec6c5806c832afb729e40c551a726ef860850e0c5ff55a92d79185"
+    },
+    "fixture": {
+      "filename": "fixture.npz",
+      "sha256": "7427ec1bb4e16871dc53244ecf331dcb357bfc3646a64e85cb127744262aafcc"
+    },
+    "eager": {
+      "filename": "eager_output.npz",
+      "sha256": "1b3f2f8d3dbf211457140685e767c5d69676c88af733afc4d6b2c12e9fd11152"
+    },
+    "ort": {
+      "filename": "ort_output.npz",
+      "sha256": "db08a0cf91a36f52481e44bb4de1070e113503fd4f52867be97e7d3a51d3712e"
+    },
+    "full_reference": {
+      "filename": "full_reference_segment.npz",
+      "sha256": "71443a2637c130841beffb9ee2ed29c8fae8db99863fe85d6a0696140e5ef63c"
+    }
+  },
+  "ort_vs_window_eager": {
+    "relative_l2": 9.863986362073684e-07,
+    "snr_db": 120.11895073733051,
+    "max_abs": 8.344650268554688e-07,
+    "reference_rms": 0.06562902015726674,
+    "observed_rms": 0.06562902178814352
+  },
+  "window_eager_vs_full_fp32_decoder_segment": {
+    "relative_l2": 6.33832813060681e-07,
+    "snr_db": 123.96050562912731,
+    "max_abs": 4.76837158203125e-07,
+    "reference_rms": 0.06562902037077592,
+    "observed_rms": 0.06562902015726674
+  },
+  "limits": [
+    "One generated stream and one window do not establish speech quality.",
+    "The model generates codes on local CPU; this does not test a mobile talker or handoff.",
+    "The FP32 full decoder reference is separate from the BF16 generator's waveform."
+  ]
+}

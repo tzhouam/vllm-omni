@@ -152,6 +152,18 @@ CPU equivalent, so the architecture's whole-chain benefit gate is not met and
 this split is **not integrated** into Omni. A coarser, quality-passing stage
 or demonstrable overlap would be needed to justify NPU placement.
 
+An [independent generated utterance](independent_codes/README.md) now repeats
+the same exact-weight CPU attention/KV plus NPU MLP split on a different
+seed-91 blue-kite prompt with 144 code frames. The extracted CPU layer matched
+the checkpoint within 6.29e-7 relative L2; native HX370 VitisAI placed twelve
+NPU nodes and zero CPU nodes for one warmup plus eleven calls. Offline suffix
+replay passed **11/11** two-frame waveform chunks within 1% relative L2,
+worst **0.7434%** at frame 107. The isolated MLP p50 was **0.548 ms NPU**
+versus **0.045 ms FP32 CPU**, excluding handoff and the 45.58 s NPU build.
+Thus the numerical gate now covers two generated utterances, but the narrow
+split remains slower and unintegrated; listening quality and a live complete
+request are still unverified.
+
 The full eight-layer ONNX graph passed the CPU check and exposed an NPU device,
 but [the bounded full-graph attempt](full_graph_compile_cap.json) was manually
 stopped after roughly ten minutes of session creation without an inference or
@@ -199,9 +211,9 @@ method, and running the replay without that override raised `AttributeError`
 before any measurement. The recorded replay used the checkout source and
 PyTorch 2.13.0+cpu; the native VitisAI probe used ONNX Runtime 1.30.0.
 
-Next: seek a coarser NPU stage that preserves the new 11/11 waveform result
-over independent generated utterances and beats the FP32 CPU equivalent after
-transfer and initialization. Only then test a warmed stateful NPU+CPU decoder
+Next: seek a coarser NPU stage that preserves the two-utterance 11/11 waveform
+results and beats the FP32 CPU equivalent after transfer and initialization.
+Only then test a warmed stateful NPU+CPU decoder
 through complete Omni requests, explicit shared-RAM admission, cancellation,
 transfer-inclusive latency and sustained power. The matrix cell remains
 **NOT E2E**.

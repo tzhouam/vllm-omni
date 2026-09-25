@@ -1,0 +1,105 @@
+{
+  "scope": "real checkpoint layer-0 CPU attention/KV plus NPU MLP, eleven captured code steps; component only",
+  "os": "Windows-11-10.0.26200-SP0",
+  "onnxruntime": "1.30.0",
+  "artifact_sha256": {
+    "mlp": "d59782eb7cd6d70f55c0732f5823cd293d54c03f0e7c90d922d4b8c615357d90",
+    "fixture": "a27c9f3203a71387f7f1d82343e177176e81e4bf6cf2a8fa85a7b45ec5407a65",
+    "ep_dll": "c37699dfe12128b4c8c491b4e951a7b985cad695d487151ebdcc7657ffb10991"
+  },
+  "cpu_call_s": [
+    4.6600005589425564e-05,
+    4.8200017772614956e-05,
+    4.529999569058418e-05,
+    4.469999112188816e-05,
+    4.569999873638153e-05,
+    4.4899992644786835e-05,
+    4.409998655319214e-05,
+    4.47999918833375e-05,
+    4.6600005589425564e-05,
+    4.429998807609081e-05,
+    4.549999721348286e-05
+  ],
+  "nearest_rank_p50_cpu_call_s": 4.529999569058418e-05,
+  "nearest_rank_p95_cpu_call_s": 4.8200017772614956e-05,
+  "npu_device_count": 1,
+  "status": "npu_mlp_component_numeric_pass",
+  "session_creation_s": 45.58462029998191,
+  "rows": [
+    {
+      "start_frame": 95,
+      "npu_call_s": 0.0008418000070378184,
+      "hidden_relative_l2_vs_cpu": 0.005167738621874388,
+      "finite": true
+    },
+    {
+      "start_frame": 97,
+      "npu_call_s": 0.0006358999526128173,
+      "hidden_relative_l2_vs_cpu": 0.0054730310964591815,
+      "finite": true
+    },
+    {
+      "start_frame": 99,
+      "npu_call_s": 0.0005692000268027186,
+      "hidden_relative_l2_vs_cpu": 0.004747910495627865,
+      "finite": true
+    },
+    {
+      "start_frame": 101,
+      "npu_call_s": 0.0005284000653773546,
+      "hidden_relative_l2_vs_cpu": 0.005136114973919926,
+      "finite": true
+    },
+    {
+      "start_frame": 103,
+      "npu_call_s": 0.0005487999878823757,
+      "hidden_relative_l2_vs_cpu": 0.006514221459388355,
+      "finite": true
+    },
+    {
+      "start_frame": 105,
+      "npu_call_s": 0.0006408999906852841,
+      "hidden_relative_l2_vs_cpu": 0.006738834564544956,
+      "finite": true
+    },
+    {
+      "start_frame": 107,
+      "npu_call_s": 0.0005483999848365784,
+      "hidden_relative_l2_vs_cpu": 0.005036808071991495,
+      "finite": true
+    },
+    {
+      "start_frame": 109,
+      "npu_call_s": 0.0005252000410109758,
+      "hidden_relative_l2_vs_cpu": 0.0061509208745551035,
+      "finite": true
+    },
+    {
+      "start_frame": 111,
+      "npu_call_s": 0.0005200000014156103,
+      "hidden_relative_l2_vs_cpu": 0.005304588907521092,
+      "finite": true
+    },
+    {
+      "start_frame": 113,
+      "npu_call_s": 0.0005189999938011169,
+      "hidden_relative_l2_vs_cpu": 0.005183742081913024,
+      "finite": true
+    },
+    {
+      "start_frame": 115,
+      "npu_call_s": 0.0005407000426203012,
+      "hidden_relative_l2_vs_cpu": 0.005228863264500407,
+      "finite": true
+    }
+  ],
+  "nearest_rank_p50_npu_call_s": 0.0005483999848365784,
+  "nearest_rank_p95_npu_call_s": 0.0008418000070378184,
+  "node_providers": {
+    "vitisai": 12,
+    "cpu": 0
+  },
+  "profile_file": "C:\\Users\\zhout\\edge_infer_models\\qwen_tts_independent_mlp_20260925\\mlp_npu_profile_2026-09-25_14-56-36_033.json",
+  "profile_sha256": "3a1f5d8690be1cd64fe744f6054d23c8c03978290f38ff4b8384364c11bbc751",
+  "capture_sha256": "9ccfcdec52b700b95f0a2026929d5f1b4617549b2ad83c0642b2ba4bda4aacef"
+}

@@ -86,10 +86,13 @@ def main() -> None:
         "and uncluttered."
     ))
     parser.add_argument("--max-new-tokens", type=int, default=144)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--min-generated-frames", type=int, default=97)
     parser.add_argument("--threads", type=int, default=8)
     args = parser.parse_args()
-    if args.max_new_tokens < 97 or args.threads <= 0:
-        parser.error("at least 97 max new tokens and positive threads required")
+    if (args.max_new_tokens < 97 or args.min_generated_frames < 97
+            or args.threads <= 0):
+        parser.error("at least 97 max new tokens/frames and positive threads required")
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
     torch.set_num_threads(args.threads)
@@ -106,7 +109,7 @@ def main() -> None:
         return original_decode(items, *extra, **kwargs)
 
     wrapper.model.speech_tokenizer.decode = capture
-    torch.manual_seed(42)
+    torch.manual_seed(args.seed)
     wavs, sample_rate = wrapper.generate_custom_voice(
         text=args.text, language="English", speaker="Ryan",
         max_new_tokens=args.max_new_tokens, do_sample=True,
@@ -115,8 +118,11 @@ def main() -> None:
     if len(captured) != 1 or len(wavs) != 1 or sample_rate != 24000:
         raise RuntimeError("expected one generated code stream and 24 kHz waveform")
     codes = captured[0]
-    if codes.ndim != 2 or codes.shape[0] < 97 or codes.shape[1] != 16:
-        raise RuntimeError(f"expected >=97 frames of 16-code speech, got {tuple(codes.shape)}")
+    if (codes.ndim != 2 or codes.shape[0] < args.min_generated_frames
+            or codes.shape[1] != 16):
+        raise RuntimeError(
+            f"expected >={args.min_generated_frames} frames of 16-code speech, "
+            f"got {tuple(codes.shape)}")
     generated = np.asarray(wavs[0], dtype=np.float32).ravel()
     if len(generated) != codes.shape[0] * 1920 or not np.isfinite(generated).all():
         raise RuntimeError("complete request has invalid audio length or samples")
@@ -169,7 +175,7 @@ def main() -> None:
         "text": args.text,
         "speaker": "Ryan",
         "language": "English",
-        "seed": 42,
+        "seed": args.seed,
         "generator_dtype": "bfloat16",
         "decoder_dtype": "float32",
         "threads": args.threads,

@@ -1,0 +1,62 @@
+{
+  "scope": "independent generated-code eleven-step CPU MLP/rolling-KV fixture; no NPU execution",
+  "checkpoint_revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "decoder_weight_sha256": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258",
+  "codes_sha256": "b8a99d2cfeec6c5806c832afb729e40c551a726ef860850e0c5ff55a92d79185",
+  "artifact_sha256": {
+    "prefix": "3c438ec5401e5abf1b7eaedcaac9b31e568d55d547c0b81ab88db4fed7337d53",
+    "attention": "495b4e978aeb4a314759533b954735bb7e64861d5bbfdf5404c4409659248c6e",
+    "mlp": "d59782eb7cd6d70f55c0732f5823cd293d54c03f0e7c90d922d4b8c615357d90"
+  },
+  "fixture_sha256": "a27c9f3203a71387f7f1d82343e177176e81e4bf6cf2a8fa85a7b45ec5407a65",
+  "replay_fixture_sha256": "924d67394c1ea8c027aa7e6b7b5a34f00087759523dc061a3c2bc4fa7f2cd45b",
+  "onnxruntime": "1.29.0",
+  "torch": "2.13.0+cpu",
+  "rows": [
+    {
+      "start_frame": 95,
+      "max_cpu_layer_relative_l2": 5.698477474419381e-07
+    },
+    {
+      "start_frame": 97,
+      "max_cpu_layer_relative_l2": 6.169998112717702e-07
+    },
+    {
+      "start_frame": 99,
+      "max_cpu_layer_relative_l2": 5.70304668136363e-07
+    },
+    {
+      "start_frame": 101,
+      "max_cpu_layer_relative_l2": 6.092049293666957e-07
+    },
+    {
+      "start_frame": 103,
+      "max_cpu_layer_relative_l2": 5.910253025476143e-07
+    },
+    {
+      "start_frame": 105,
+      "max_cpu_layer_relative_l2": 5.343523672568332e-07
+    },
+    {
+      "start_frame": 107,
+      "max_cpu_layer_relative_l2": 5.823484884468165e-07
+    },
+    {
+      "start_frame": 109,
+      "max_cpu_layer_relative_l2": 5.59616819828097e-07
+    },
+    {
+      "start_frame": 111,
+      "max_cpu_layer_relative_l2": 6.046000868871961e-07
+    },
+    {
+      "start_frame": 113,
+      "max_cpu_layer_relative_l2": 6.030409491486031e-07
+    },
+    {
+      "start_frame": 115,
+      "max_cpu_layer_relative_l2": 6.286183745804262e-07
+    }
+  ],
+  "status": "cpu_layer_parity_pass"
+}
