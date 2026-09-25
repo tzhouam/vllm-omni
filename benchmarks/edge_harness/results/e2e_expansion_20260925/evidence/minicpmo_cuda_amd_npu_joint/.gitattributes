@@ -1,0 +1,4 @@
+*.log -text -diff
+*.npy -text -diff
+*.wav -text -diff
+kv_profile/*.json -text -diff

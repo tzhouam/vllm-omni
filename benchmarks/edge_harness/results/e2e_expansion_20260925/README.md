@@ -157,3 +157,14 @@ same BF16 token hash; the hybrid phases each verified a VitisAI graph node.
 CPU phase p50s were 4.766/4.829 s, while hybrid p50s were 5.003/5.030 s.
 The NPU split was slower by 4.2–5.0% on this fixture, so CPU remains the
 default. Package/NPU power and sustained thermal behavior were not measured.
+
+A [MiniCPM-o RTX+AMD NPU joint-route follow-up](evidence/minicpmo_cuda_amd_npu_joint/README.md)
+passed complete cat-photo and synthetic red-square image-to-text+speech
+requests. The BF16 thinker/talker/codec and vision suffix used RTX CUDA,
+with 5 GiB of thinker weights offloaded to host RAM by the vLLM plan;
+only the real resampler KV projection crossed to the HX370 NPU. Raw ORT
+placement, bounded CUDA↔host transfers, checkpoint/graph hashes and retained
+waveforms are audited. Both routes' generated speech matched their own text
+under a pinned Whisper tiny.en proxy, but the joint and RTX-only texts and
+output lengths differ. These two separate runs show no paired benefit or
+default-placement qualification.

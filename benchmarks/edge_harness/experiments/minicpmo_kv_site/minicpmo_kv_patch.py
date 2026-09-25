@@ -4,7 +4,7 @@ The hook is activated by sitecustomize for a bounded benchmark; it is never
 installed during ordinary inference. The pinned graph projects independent
 tokens, so larger image/crop tensors are tiled into its exact 1024-token
 bucket. Artifact, memory, placement and tensor failures still fail the
-request. The vision transformer and resampler suffix stay on CPU.
+request. The vision transformer and resampler suffix retain their original device.
 """
 
 from __future__ import annotations
@@ -25,16 +25,18 @@ REVISION = "503e754207c94da6bb26850b4469f367c9ea3582"
 INPUTS_SHA = "ab71cc3a6b8461c99cdf9e458b2e8b99cc092dd6adc3d49f92d643ec4b8693de"
 TILE_TOKENS = 1024
 MAX_LOGICAL_TOKENS = 4096
+MAX_CUDA_LOGICAL_TOKENS = 16384
 
 
-def run_tiled_projection(hidden, run_tile, *, output_width: int = 4096):
+def run_tiled_projection(hidden, run_tile, *, output_width: int = 4096,
+                         max_logical_tokens: int = MAX_LOGICAL_TOKENS):
     """Pack independent token rows into fixed graph calls, preserving order."""
     if (hidden.ndim != 3 or hidden.dtype != np.float32 or hidden.shape[-1] != 1152
             or hidden.shape[0] < 1 or hidden.shape[1] < 1):
         raise ValueError("MiniCPM-o KV tiles require nonempty float32 [crops,tokens,1152]")
     logical_tokens = hidden.shape[0] * hidden.shape[1]
-    if logical_tokens > MAX_LOGICAL_TOKENS:
-        raise ValueError(f"MiniCPM-o KV tiles exceed {MAX_LOGICAL_TOKENS} logical tokens")
+    if logical_tokens > max_logical_tokens:
+        raise ValueError(f"MiniCPM-o KV tiles exceed {max_logical_tokens} logical tokens")
     flat = np.ascontiguousarray(hidden.reshape(logical_tokens, 1152))
     projected = np.empty((logical_tokens, output_width), dtype=np.float32)
     for tile_index, start in enumerate(range(0, logical_tokens, TILE_TOKENS)):
@@ -125,12 +127,15 @@ def install() -> None:
             )
 
         def forward(self, x):
+            limit = MAX_CUDA_LOGICAL_TOKENS if x.device.type == "cuda" else MAX_LOGICAL_TOKENS
             if (x.ndim != 3 or x.shape[-1] != 1152 or x.shape[0] < 1
-                    or x.shape[1] < 1 or x.shape[0] * x.shape[1] > MAX_LOGICAL_TOKENS
-                    or x.dtype != torch.bfloat16 or x.device.type != "cpu"):
+                    or x.shape[1] < 1 or x.shape[0] * x.shape[1] > limit
+                    or x.dtype != torch.bfloat16 or x.device.type not in {"cpu", "cuda"}):
                 _event("tensor_refused", shape=list(x.shape), dtype=str(x.dtype), device=str(x.device))
-                raise ValueError("MiniCPM-o NPU KV stage requires bounded CPU BF16 [crops,tokens,1152]")
-            hidden = np.ascontiguousarray(x.detach().float().numpy())
+                raise ValueError("MiniCPM-o NPU KV stage requires bounded CPU/CUDA BF16 [crops,tokens,1152]")
+            input_transfer_started = time.perf_counter()
+            hidden = np.ascontiguousarray(x.detach().float().cpu().numpy())
+            input_transfer_s = time.perf_counter() - input_transfer_started
             self.requests += 1
             request = self.requests
 
@@ -156,8 +161,12 @@ def install() -> None:
                        input_shape=list(tile.shape), output_shape=list(output["projected"].shape))
                 return np.ascontiguousarray(output["projected"])
 
-            projected = run_tiled_projection(hidden, run_tile)
+            projected = run_tiled_projection(hidden, run_tile, max_logical_tokens=limit)
+            output_transfer_started = time.perf_counter()
             result = torch.from_numpy(projected).to(dtype=x.dtype, device=x.device)
+            if x.device.type == "cuda":
+                torch.cuda.synchronize(x.device)
+            output_transfer_s = time.perf_counter() - output_transfer_started
             relative_l2 = None
             if os.environ.get("VLLM_OMNI_MINICPMO_KV_PARITY") == "1":
                 with torch.inference_mode():
@@ -173,6 +182,8 @@ def install() -> None:
                         raise ValueError("MiniCPM-o NPU KV projection failed configured numerical gate")
             _event("request_complete", request=request, input_shape=list(hidden.shape),
                    output_shape=list(projected.shape),
+                   source_device=str(x.device), input_transfer_s=input_transfer_s,
+                   output_transfer_s=output_transfer_s,
                    tiles=(hidden.shape[0] * hidden.shape[1] + TILE_TOKENS - 1) // TILE_TOKENS,
                    projection_relative_l2=relative_l2)
             return result

@@ -1,0 +1,69 @@
+{
+  "status": "scoped_joint_execution_passed_default_selection_unqualified",
+  "checkpoint_shard_sha256": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+  "graph_sha256": "330bbbd0d18caaf6903aa41f836dbeaef57643a8afbaba333df68e3c1e722aeb",
+  "joint_report_sha256": "092328923e04d69acd275a3d8d9190b7a62f5cfeb3ce12e4140daadb30f01ce7",
+  "cuda_report_sha256": "bcd8b4991c661afcd6d2ec9415dbae8a1825e30dbf5f9f0375903e1299c875a4",
+  "events_sha256": "dd7846993e4e282c18396104eb345c242a06b5766552d95d1a2554c3557de73d",
+  "raw_npu_profile_sha256": "7706109ea9852fbfeb36af70de98282030f0e7e3baef1c4c7eb5d983880574ac",
+  "driver_log_sha256": {
+    "joint": "c4f6e42e28dbf99b43382c4b3cfc380b69a4a8afbb7ef9a7496ec03383dee909",
+    "cuda": "45982fe1d9e356bf324ec33bd9ddda4cd0b0835a49b9c88fabcdde53bf6589ac"
+  },
+  "raw_npu_profile_node_providers": {
+    "CPUExecutionProvider": 2,
+    "vitisai": 1
+  },
+  "joint_startup_s": 106.07578442397062,
+  "cuda_startup_s": 96.8667892049998,
+  "npu_worker_peak_rss_bytes": 394641408,
+  "asr": {
+    "joint": {
+      "report_sha256": "fb4a5bca72d0789a1924c555f340a914146fbf4e9696f7a97e6b77da9efdb563",
+      "word_error_rates": [
+        0.0,
+        0.0
+      ]
+    },
+    "cuda": {
+      "report_sha256": "dc2e1e77117683df03f8d074d91ef49a7ea6398eb86ad45acd20a1ff96c3424a",
+      "word_error_rates": [
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+      "joint_text": "This image shows a close-up of a cat's face. The cat has green eyes, a light brown and black striped fur pattern, and a small pink nose. The background is blurred, keeping the focus on the cat's face.",
+      "cuda_text": "This image shows a close-up of a cat's face. The cat has green eyes, a light brown and black striped fur pattern, and a small pink nose. The background is blurred, keeping the focus on the cat's facial features.",
+      "token_ids_equal": false,
+      "joint_audio_samples": 333120,
+      "cuda_audio_samples": 329280,
+      "joint_wall_s": 40.043211370008066,
+      "cuda_wall_s": 39.050246344995685,
+      "projection_relative_l2": 0.006429220549762249,
+      "npu_round_trip_s": 0.14547471201512963,
+      "cuda_to_host_s": 0.0011177429696545005,
+      "host_to_cuda_s": 0.0018753609620034695
+    },
+    {
+      "index": 1,
+      "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+      "joint_text": "The image shows a red square on a white background.",
+      "cuda_text": "The image shows a solid red square centered on a white background. There are no other elements, text, or details visible.",
+      "token_ids_equal": false,
+      "joint_audio_samples": 73920,
+      "cuda_audio_samples": 200640,
+      "joint_wall_s": 8.941975385998376,
+      "cuda_wall_s": 17.19651199702639,
+      "projection_relative_l2": 0.005920794792473316,
+      "npu_round_trip_s": 0.1836204850114882,
+      "cuda_to_host_s": 0.0007131439633667469,
+      "host_to_cuda_s": 0.0018961199093610048
+    }
+  ],
+  "limits": "Two separate serial runs; text and speech differ, output lengths differ, no paired speedup, gold quality, loading peak, cancellation, concurrency or sustained-power gate."
+}

@@ -1,0 +1,31 @@
+{
+  "scope": "Whisper tiny.en transcript agreement with generated thinker text; no listening-quality claim",
+  "request_report_sha256": "092328923e04d69acd275a3d8d9190b7a62f5cfeb3ce12e4140daadb30f01ce7",
+  "asr_model": "openai/whisper-tiny.en",
+  "asr_revision": "87c7102498dcde7456f24cfd30239ca606ed9063",
+  "asr_weights_sha256": "db59695928ded6043adaef491a53ef4e12da9611184d77c53baa691a60b958ad",
+  "torch": "2.13.0+cpu",
+  "transformers": "5.14.1",
+  "requests": [
+    {
+      "index": 0,
+      "image_sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+      "audio_input_sha256": null,
+      "generated_wav_sha256": "4bf344d6a1d6288ac02f5a319e0e4dcbe30553445b27a9eaec9f5a7360e86a72",
+      "generated_duration_s": 13.88,
+      "reference_text": "This image shows a close-up of a cat's face. The cat has green eyes, a light brown and black striped fur pattern, and a small pink nose. The background is blurred, keeping the focus on the cat's face.",
+      "transcript": "This image shows a close-up of a cat's face. The cat has green eyes, a light brown and black striped fur pattern, and a small pink nose. The background is blurred, keeping the focus on the cat's face.",
+      "word_error_rate": 0.0
+    },
+    {
+      "index": 1,
+      "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+      "audio_input_sha256": null,
+      "generated_wav_sha256": "f2a42666dfa320ed14a0e386c3eba6af23306e5457f525f915a5ce5c62bc0dcb",
+      "generated_duration_s": 3.08,
+      "reference_text": "The image shows a red square on a white background.",
+      "transcript": "The image shows a red square on a white background.",
+      "word_error_rate": 0.0
+    }
+  ]
+}

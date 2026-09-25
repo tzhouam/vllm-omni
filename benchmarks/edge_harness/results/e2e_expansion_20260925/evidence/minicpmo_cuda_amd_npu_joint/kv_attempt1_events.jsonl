@@ -1,0 +1,2 @@
+{"phase": "adapter_installed", "pid": 2246995, "unix_s": 1790345957.1586792, "graph_sha256": "330bbbd0d18caaf6903aa41f836dbeaef57643a8afbaba333df68e3c1e722aeb", "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582", "planner_budget_bytes": 1932735284, "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43"}
+{"phase": "tensor_refused", "pid": 2246995, "unix_s": 1790345964.0951467, "shape": [10, 1056, 1152], "dtype": "torch.bfloat16", "device": "cuda:0"}
