@@ -166,6 +166,7 @@ if __name__ == "__main__":
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
     os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
+    os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
     from vllm_omni.windows.aio import install_selector_policy
 
     install_selector_policy()

@@ -1,0 +1,98 @@
+{
+  "status": "interrupted_after_failed_realtime_gate",
+  "scope": "WSL2 HX370 + RTX 5090 Laptop, exact-state Omni Qwen3-TTS; simulated playback only",
+  "stop_reason": "operator SIGINT after every complete measured/sustained request missed the playback schedule",
+  "not_a_30_minute_pass": true,
+  "start_unix": 1790326218.6597893,
+  "sustained_start_unix": 1790326496.7955031,
+  "end_unix": 1790326870.5883372,
+  "last_complete_sustained_request_s": 365.1246700286865,
+  "start_to_harness_end_s": 373.7928340435028,
+  "phases": {
+    "measured": {
+      "count": 20,
+      "request_wall_s_p50": 11.28726234997157,
+      "request_wall_s_p95": 11.809292598976754,
+      "rtf_p50": 1.4183468988145858,
+      "rtf_p95": 1.4339061549260204,
+      "ttfa_ms_p50": 447.41741800680757,
+      "ttfa_ms_p95": 472.6458740187809,
+      "requests_with_simulated_underrun": 20,
+      "required_extra_prebuffer_ms_p95": 5007.688721083105
+    },
+    "sustained": {
+      "count": 32,
+      "request_wall_s_p50": 11.150284719071351,
+      "request_wall_s_p95": 12.838790688081644,
+      "rtf_p50": 1.4349231581069977,
+      "rtf_p95": 1.4484260729574978,
+      "ttfa_ms_p50": 448.4096239320934,
+      "ttfa_ms_p95": 481.3298670342192,
+      "requests_with_simulated_underrun": 32,
+      "required_extra_prebuffer_ms_p95": 5352.457343973219
+    }
+  },
+  "gpu_telemetry": {
+    "scope": "device-wide sampled values; not process-attributed",
+    "sustained_samples": 1463,
+    "metrics": {
+      "gpu_power_mw": {
+        "samples": 1463,
+        "p50": 32907,
+        "p95": 33800,
+        "max": 35403
+      },
+      "gpu_clock_sm_mhz": {
+        "samples": 1463,
+        "p50": 900,
+        "p95": 1110,
+        "max": 1747
+      },
+      "gpu_clock_memory_mhz": {
+        "samples": 1463,
+        "p50": 810,
+        "p95": 810,
+        "max": 810
+      },
+      "gpu_utilization_pct": {
+        "samples": 1463,
+        "p50": 95,
+        "p95": 98,
+        "max": 100
+      },
+      "gpu_temperature_c": {
+        "samples": 1463,
+        "p50": 58,
+        "p95": 59,
+        "max": 59
+      },
+      "gpu_memory_used_bytes": {
+        "samples": 1463,
+        "p50": 16265113600,
+        "p95": 16292245504,
+        "max": 16327634944
+      }
+    }
+  },
+  "power_condition": {
+    "observed_gpu_limit_w": 33.0,
+    "gpu_default_limit_w": 95.0,
+    "software_power_cap_active": true,
+    "windows": {
+      "active_power_scheme": "\u7535\u6e90\u65b9\u6848 GUID: 27fa6203-3987-4dcc-918d-748559d549ec  (Performance)",
+      "captured_at": "2026-09-25T16:58:09.3593899+08:00",
+      "battery": {
+        "BatteryStatus": 2,
+        "EstimatedChargeRemaining": 100,
+        "EstimatedRunTime": 71582788
+      }
+    }
+  },
+  "source_sha256": {
+    "report.json": "7a9b0ddae8b1cafa771b232fb493075a4e4671669c03412d0a742ab2bce28e91",
+    "requests.jsonl": "822692dce7dd4ae95824b418e9f5631283074e888be257d233c26203ccef3712",
+    "gpu_telemetry.jsonl": "6eea49620ade260d87c6982287a17910fd665598210166048f332f462ea32538",
+    "gpu_power_state_during_sustained.txt": "6cf519fca20c7cd1d3b188d21a7f5a15c58f0aca9d5b4ea815f49b4ff25666ea",
+    "windows_power_state_during_sustained.json": "a275a66b1291544ecec96fb233e69da27865d1dffc7d7bf1225d6bb6bd5b3ddf"
+  }
+}

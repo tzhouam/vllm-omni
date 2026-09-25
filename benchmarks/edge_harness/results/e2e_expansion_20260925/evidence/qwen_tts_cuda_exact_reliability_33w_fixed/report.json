@@ -1,0 +1,148 @@
+{
+  "status": "completed",
+  "argv": [
+    "benchmarks/edge_harness/check_tts_reliability.py",
+    "--model",
+    "/home/zhout/.cache/huggingface/hub/models--Qwen--Qwen3-TTS-12Hz-0.6B-CustomVoice/snapshots/85e237c12c027371202489a0ec509ded67b5e4b5",
+    "--out",
+    "benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/qwen_tts_cuda_exact_reliability_33w_fixed"
+  ],
+  "start_unix": 1790327387.790123,
+  "scope": "Short real audio delivery, slow consumer, abort fence/recovery, owned vocoder termination. Not audio quality or 64 MiB buffer saturation.",
+  "baseline": [
+    {
+      "request_id": "baseline",
+      "finished": false,
+      "samples": 3840,
+      "finite": true
+    },
+    {
+      "request_id": "baseline",
+      "finished": false,
+      "samples": 7680,
+      "finite": true
+    },
+    {
+      "request_id": "baseline",
+      "finished": false,
+      "samples": 15360,
+      "finite": true
+    },
+    {
+      "request_id": "baseline",
+      "finished": false,
+      "samples": 30720,
+      "finite": true
+    },
+    {
+      "request_id": "baseline",
+      "finished": false,
+      "samples": 48000,
+      "finite": true
+    },
+    {
+      "request_id": "baseline",
+      "finished": true,
+      "samples": 5760,
+      "finite": true
+    }
+  ],
+  "slow-consumer": [
+    {
+      "request_id": "slow-consumer",
+      "finished": false,
+      "samples": 3840,
+      "finite": true
+    },
+    {
+      "request_id": "slow-consumer",
+      "finished": false,
+      "samples": 7680,
+      "finite": true
+    },
+    {
+      "request_id": "slow-consumer",
+      "finished": false,
+      "samples": 15360,
+      "finite": true
+    },
+    {
+      "request_id": "slow-consumer",
+      "finished": false,
+      "samples": 30720,
+      "finite": true
+    },
+    {
+      "request_id": "slow-consumer",
+      "finished": true,
+      "samples": 48000,
+      "finite": true
+    }
+  ],
+  "abort": {
+    "first": {
+      "request_id": "abort-probe",
+      "finished": false,
+      "samples": 3840,
+      "finite": true
+    },
+    "ack_s": 0.0018015661044046283,
+    "late_events": [
+      {
+        "request_id": "abort-probe",
+        "finished": true,
+        "samples": 0,
+        "finite": true
+      }
+    ],
+    "late_audio_samples": 0
+  },
+  "after-abort": [
+    {
+      "request_id": "after-abort",
+      "finished": false,
+      "samples": 3840,
+      "finite": true
+    },
+    {
+      "request_id": "after-abort",
+      "finished": false,
+      "samples": 7680,
+      "finite": true
+    },
+    {
+      "request_id": "after-abort",
+      "finished": false,
+      "samples": 15360,
+      "finite": true
+    },
+    {
+      "request_id": "after-abort",
+      "finished": false,
+      "samples": 30720,
+      "finite": true
+    },
+    {
+      "request_id": "after-abort",
+      "finished": true,
+      "samples": 38400,
+      "finite": true
+    }
+  ],
+  "crash_first": {
+    "request_id": "vocoder-crash",
+    "finished": false,
+    "samples": 3840,
+    "finite": true
+  },
+  "crash": {
+    "pid": 3152723,
+    "name": "StageEngineCoreProc_stage1_replica0",
+    "created": 1790327391.52,
+    "explicit_error_reported": true,
+    "error": "OmniEngineDeadError('EngineCore encountered an issue. See stack trace (above) for the root cause.')",
+    "observation_s": 3.749382441979833
+  },
+  "owned_processes_requiring_harness_cleanup": [],
+  "end_unix": 1790327451.7659194
+}

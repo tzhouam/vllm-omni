@@ -1,0 +1,9 @@
+{
+  "active_power_scheme": "电源方案 GUID: 27fa6203-3987-4dcc-918d-748559d549ec  (Performance)",
+  "captured_at": "2026-09-25T16:58:09.3593899+08:00",
+  "battery": {
+    "BatteryStatus": 2,
+    "EstimatedChargeRemaining": 100,
+    "EstimatedRunTime": 71582788
+  }
+}

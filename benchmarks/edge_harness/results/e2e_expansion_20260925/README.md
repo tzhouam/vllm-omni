@@ -78,3 +78,18 @@ unchanged CPU waveform suffix passes only 10/11 chunks. The 22-frame joined
 audio segment passes at 0.591% relative L2, while frame 109 misses the
 per-chunk gate at 2.398%; exact CPU KV does not repair that outlier. There is
 no live complete-request or transfer-inclusive benefit evidence.
+
+A separate [Qwen3-TTS exact-state CUDA power-limited run](evidence/qwen_tts_cuda_exact_sustained30/README.md)
+exposed a 33 W RTX software cap (95 W default). All 20 measured and 32
+completed sustained medium streams remained finite and ordered, but every
+request missed its simulated playback schedule at RTF p50 1.418/1.435. The
+planned 30-minute phase was stopped after 374 s of sustained requests. This
+is a failed power-condition gate, not a full-duration profile or a paired
+comparison with the earlier 20-request exact-state pass.
+A [targeted exact-state abort/recovery run](evidence/qwen_tts_cuda_exact_reliability_33w_fixed/README.md)
+then verified zero late PCM after cancellation, a complete fresh request,
+an explicit error after deliberate vocoder-worker termination and no owned
+process needing manual cleanup. The first two launch attempts failed because
+the reliability harness selected FlashInfer sampling without a discoverable
+CUDA compiler; matching the streaming profiler's sampler setting fixed the
+launch. These lifecycle checks do not qualify playback under the 33 W cap.
