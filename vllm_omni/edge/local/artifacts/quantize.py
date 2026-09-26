@@ -137,12 +137,14 @@ def quantize_a16w8(
     reader: ArrayCalibrationReader,
     *,
     op_types_to_quantize: tuple[str, ...] | None = None,
+    per_channel: bool | None = None,
 ) -> dict[str, Any]:
     """Quantize an ONNX graph to A16W8 QDQ, the shape XDNA2 partitions.
 
-    The quantization settings come from :mod:`vllm_omni.edge.npu_ryzenai` so
-    that there is one statement of them in the tree; this function only adds
-    the calibration and the record.
+    The default quantization settings come from
+    :mod:`vllm_omni.edge.npu_ryzenai`. ``per_channel`` permits a recorded
+    experimental variant; NPU placement and numerical validation must still
+    be checked for that exported graph.
     """
     from onnxruntime.quantization import QuantFormat, quantize_static
 
@@ -151,6 +153,8 @@ def quantize_a16w8(
     source, target = Path(source), Path(target)
     target.parent.mkdir(parents=True, exist_ok=True)
     kwargs = quantization_kwargs()
+    if per_channel is not None:
+        kwargs["per_channel"] = per_channel
 
     quantize_static(
         str(source),

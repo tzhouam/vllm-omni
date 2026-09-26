@@ -1,0 +1,21 @@
+{
+  "input": "heldout_input.npz",
+  "quantization": "A16W8 Gemm-only per-channel",
+  "output_shape": [
+    196,
+    5120
+  ],
+  "wsl_cpu_vs_native_windows_cpu": {
+    "relative_l2": 0.0002152284753226456,
+    "max_abs": 0.0036563873291015625
+  },
+  "npu_vs_native_windows_cpu": {
+    "relative_l2": 0.46360475618957475,
+    "max_abs": 23.75477695465088
+  },
+  "npu_vs_wsl_cpu": {
+    "relative_l2": 0.463604947351532,
+    "max_abs": 23.75477695465088
+  },
+  "npu_finite": true
+}

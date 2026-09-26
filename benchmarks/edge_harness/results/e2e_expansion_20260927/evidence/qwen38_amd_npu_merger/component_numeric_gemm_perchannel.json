@@ -1,0 +1,117 @@
+{
+  "model": "/home/zhout/project/edge_infer/models/Qwen3.8-27B-FP8",
+  "model_config_sha256": "74227dd615bf1ea975aa676bdf355a0379858c12f394b5365cd9dfa5fc2c70bc",
+  "outside_safetensors_sha256": "ddff1d6665a2b39f2612fce0ef955e2436724c565bfbcbc127c7ffd078b698ff",
+  "checkpoint_dtype": "visual BF16 loaded as FP32",
+  "torch": "2.13.0+cu130",
+  "onnxruntime": "1.29.0",
+  "shape": {
+    "image_size": 448,
+    "grid_thw": [
+      1,
+      28,
+      28
+    ],
+    "patches": 784,
+    "patch_dim": 1536,
+    "merged_tokens": 196,
+    "out_hidden_size": 5120
+  },
+  "sanitization": {
+    "nan_guards_removed": 0,
+    "allowzero_cleared": 1,
+    "scalar_axes_fixed": 0
+  },
+  "quantization": {
+    "activation_type": "QUInt16",
+    "weight_type": "QInt8",
+    "per_channel": true,
+    "quant_format": "QDQ",
+    "calibration": {
+      "kind": "same-checkpoint merger activations from resized real images",
+      "count": 2,
+      "sources": [
+        "benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_natural/inputs/chelsea_cat.png",
+        "benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_natural/inputs/astronaut.png"
+      ],
+      "digest": "c98616375c44eb12a0c533a124b7b2d3c94320ea486d12d7778ed68fcf2bb155",
+      "shape": [
+        784,
+        1152
+      ],
+      "note": "last image is held out from quantizer calibration"
+    },
+    "source_sha256_prefix": "2a3e170c3e6caed5"
+  },
+  "quantize_ops": "gemm",
+  "artifacts": {
+    "fp32_sha256": "2a3e170c3e6caed57b150ba7fe371d65c8a10cd59c118e8e33574328aca04b16",
+    "a16w8_sha256": "c1c18e19d7047cae03942076e3c48c9810f23ff545027c68566af812a2fc2eb1",
+    "fp32_external_data_sha256": "638a6493889d347151373ab4425da865b7c9f889b2449b265b0885f74ca5df75"
+  },
+  "cases": [
+    {
+      "image": "benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_natural/inputs/chelsea_cat.png",
+      "image_sha256": "9540e8d656047041ae92c8c19f8aeb2baa4ede5a17030470e8a1cfc7bb26182a",
+      "calibration": true,
+      "input_shape": [
+        784,
+        1152
+      ],
+      "output_shape": [
+        196,
+        5120
+      ],
+      "fp32_vs_torch": {
+        "relative_l2": 3.3610831492820293e-07,
+        "max_abs": 9.1552734375e-05
+      },
+      "a16w8_vs_torch": {
+        "relative_l2": 0.002287165244592928,
+        "max_abs": 0.10931396484375
+      }
+    },
+    {
+      "image": "benchmarks/edge_harness/results/e2e_expansion_20260925/evidence/minicpmo_amd_npu_natural/inputs/astronaut.png",
+      "image_sha256": "2418889d0d83962d51facc3832b55cf1849690018a1e873d1c551146555cd02f",
+      "calibration": true,
+      "input_shape": [
+        784,
+        1152
+      ],
+      "output_shape": [
+        196,
+        5120
+      ],
+      "fp32_vs_torch": {
+        "relative_l2": 3.1576963820110837e-07,
+        "max_abs": 9.1552734375e-05
+      },
+      "a16w8_vs_torch": {
+        "relative_l2": 0.0022076867938417206,
+        "max_abs": 0.0960235595703125
+      }
+    },
+    {
+      "image": "benchmarks/edge_harness/results/e2e_expansion_20260923/evidence/minicpmo_wsl_image/red_square.png",
+      "image_sha256": "4fc56a407858fd6a06ad452faab332971fc84aa3e320de19dad5795f4b3889e0",
+      "calibration": false,
+      "input_shape": [
+        784,
+        1152
+      ],
+      "output_shape": [
+        196,
+        5120
+      ],
+      "fp32_vs_torch": {
+        "relative_l2": 4.07899592185854e-07,
+        "max_abs": 6.103515625e-05
+      },
+      "a16w8_vs_torch": {
+        "relative_l2": 0.009325824384127358,
+        "max_abs": 2.08795166015625
+      }
+    }
+  ]
+}
