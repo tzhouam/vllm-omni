@@ -181,6 +181,7 @@ class _PhaseState:
     commit_mask: torch.Tensor
     seq_len: int
     started_at: float = field(default_factory=time.perf_counter)
+    timings: dict[str, float] = field(default_factory=dict)
 
 
 class _Session:
@@ -409,6 +410,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # what compiled blocks and CUDA graphs need to stay warm.
         pad_text = model_config.get("taomate_h3_pad_text_tokens")
         self._tm_pad_text_tokens = int(pad_text) if pad_text else 0
+        # Per-phase stage timings in the log (adds device synchronizations).
+        self._tm_log_timings = bool(model_config.get("taomate_h3_log_timings", False))
+        # The executor returns the output of DiT rank 0; the other ranks take
+        # part in the collectives but do not convert or decode media.
+        self._tm_output_rank = int(self._dit_rank) == 0
         self.taomate_lora: TaoMateLoRAAdapter | None = None
         self._tm_teacher: TaoMateAudioTeacher | None = None
         self._tm_sessions: dict[str, _Session] = {}
@@ -580,9 +586,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
     def forward(self, request: DiffusionRequestBatch) -> DiffusionOutput:  # type: ignore[override]
         """Generate every phase of the requested frame budget and return the joined media.
 
-        Streaming clients should use the WebSocket realtime endpoint; this path
-        drives the same step contract to completion in one runner invocation and
-        is what the AR-Diffusion runner uses for its load-time warmup.
+        Request mode under the AR-Diffusion runner (the session KV must be
+        bound by the runner, so this is not a standalone offline path): it
+        drives the same step contract to completion in one runner invocation
+        and serves the runner's load-time warmup. Streaming clients use the
+        WebSocket realtime endpoint.
         """
         if request.num_reqs != 1:
             raise OmniClientError("TaoMate-H3 request mode serves one request at a time")
@@ -682,7 +690,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             seed=seed,
             contract=self._kv_contract(),
             video_decoder=StreamingVideoDecoder(
-                self.video_vae, device=self.device, height=canvas.height, width=canvas.width
+                self.video_vae,
+                device=self.device,
+                height=canvas.height,
+                width=canvas.width,
+                emit_frames=self._tm_output_rank,
             ),
             audio_decoder=StreamingAudioDecoder(self.audio_vae, device=self.device),
             audio_kv_reset_requests=self._tm_audio_kv_reset_requests,
@@ -805,8 +817,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             imgvid_cond_timestep=t_video,
             audio_ref_cond_timestep=1.0,
         )
+        started = time.perf_counter()
         with stream_context(session.stream_context(StreamMode.NOISY)), torch.inference_mode():
             velocity_video, _ = self.transformer(**forward_kwargs)
+        if self._tm_log_timings:
+            torch.cuda.synchronize() if velocity_video.is_cuda else None
+        phase_state.timings["denoise"] = phase_state.timings.get("denoise", 0.0) + (time.perf_counter() - started)
         session.stats["student_forwards"] += 1
         return velocity_video.float()
 
@@ -846,6 +862,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # Sigma-zero forward: recompute this chunk's K/V from its clean latents
         # and append them to the persistent history.
         cache = session.cache
+        commit_started = time.perf_counter()
         cache.begin_clean_commit(cache.committed_blocks)
         try:
             forward_kwargs = phase_state.branch.forward_kwargs(
@@ -864,14 +881,19 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             raise
         cache.retain_sink_and_recent_commits()
         session.stats["clean_forwards"] += 1
+        if self._tm_log_timings and torch.cuda.is_available():
+            torch.cuda.synchronize()
+        phase_state.timings["commit"] = time.perf_counter() - commit_started
 
         # Publish this phase: incremental video decode plus the aligned audio.
+        decode_started = time.perf_counter()
         latent = minimax_h3_unpatchify_video_tokens(
             clean_video,
             latent_shape=(phase.video_latent_count, session.canvas.latent_h // 2, session.canvas.latent_w // 2, 24),
             patch_size=(1, 2, 2),
         )
         frame_start, frames = session.video_decoder.push(latent)
+        phase_state.timings["video_decode"] = time.perf_counter() - decode_started
         completed_chunk_index = state.chunk_index
         state.chunk_index += 1
         last_phase = (completed_chunk_index % NUM_PHASES) == NUM_PHASES - 1
@@ -883,10 +905,35 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 if frames is flushed:
                     frame_start = flush_start
         num_frames = 0 if frames is None else int(frames.shape[0])
-        audio = session.audio_decoder.decode_range(
-            samples_at_frame(frame_start), samples_at_frame(frame_start + num_frames)
-        )
+        audio_started = time.perf_counter()
+        if self._tm_output_rank:
+            audio = session.audio_decoder.decode_range(
+                samples_at_frame(frame_start), samples_at_frame(frame_start + num_frames)
+            )
+        else:
+            # The executor returns rank 0's output; peers keep the decoder
+            # timeline but skip the waveform decode.
+            session.audio_decoder.skip_range(samples_at_frame(frame_start + num_frames))
+            audio = np.zeros((0, 2), dtype=np.float32)
+        phase_state.timings["audio_decode"] = time.perf_counter() - audio_started
         session.frames_published = frame_start + num_frames
+        phase_seconds = time.perf_counter() - phase_state.started_at
+        if self._tm_log_timings:
+            logger.info(
+                "TaoMate-H3 %s request %d phase %d: %.3f s total (teacher %.3f, denoise x3 %.3f, commit %.3f, "
+                "video decode %.3f, audio decode %.3f), %d frames, history %d rows",
+                session.session_id,
+                request.index,
+                phase.index,
+                phase_seconds,
+                request.teacher_seconds if phase.index == 0 else 0.0,
+                phase_state.timings.get("denoise", 0.0),
+                phase_state.timings.get("commit", 0.0),
+                phase_state.timings.get("video_decode", 0.0),
+                phase_state.timings.get("audio_decode", 0.0),
+                num_frames,
+                cache.history_tokens,
+            )
         payload: dict[str, Any] = {
             "video": frames if frames is not None else np.zeros((0, session.canvas.height, session.canvas.width, 3), np.uint8),
             "audio": audio,
@@ -895,7 +942,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             "video": {"fps": float(VIDEO_FPS)},
             "audio": {"sample_rate": AUDIO_SAMPLE_RATE},
             "ar_diffusion": ARDiffusionChunkMetadata(
-                session_id=state.request_id,
+                session_id=session.session_id,
                 request_id=state.request_id,
                 chunk_index=completed_chunk_index,
                 applied_event_ids=(),
@@ -908,7 +955,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 "audio_samples": int(audio.shape[0]),
                 "history_tokens": cache.history_tokens,
                 "teacher_seconds": round(request.teacher_seconds, 4),
-                "phase_seconds": round(time.perf_counter() - phase_state.started_at, 4),
+                "phase_seconds": round(phase_seconds, 4),
+                **{f"{name}_seconds": round(value, 4) for name, value in phase_state.timings.items()},
             },
         }
         if last_phase:

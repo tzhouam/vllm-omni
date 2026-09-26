@@ -50,12 +50,23 @@ def samples_at_frame(frame: int) -> int:
 class StreamingVideoDecoder:
     """Stateful temporal-window decode through the pipeline's H3 video VAE."""
 
-    def __init__(self, vae: MiniMaxH3VideoVAE, *, device: torch.device, height: int, width: int) -> None:
+    def __init__(
+        self,
+        vae: MiniMaxH3VideoVAE,
+        *,
+        device: torch.device,
+        height: int,
+        width: int,
+        emit_frames: bool = True,
+    ) -> None:
         self.vae = vae
         self.model = vae.model
         self.device = device
         self.height = int(height)
         self.width = int(width)
+        # Every rank runs the collective tile decode; only the output-owning
+        # rank pays for the pixel conversion and the host copy.
+        self.emit_frames = bool(emit_frames)
         expected = (_TOKENS_PER_WINDOW, _WINDOW_TOKENS - _TOKENS_PER_WINDOW, _PRE_PAD, _OVERLAP_FRAMES)
         actual = (
             int(self.model.tokens_chunk_size),
@@ -127,6 +138,8 @@ class StreamingVideoDecoder:
         frames = self.advance(latents)
         if frames is None:
             return frame_start, None
+        if not self.emit_frames:
+            return frame_start, np.zeros((int(frames.shape[2]), 0, 0, 3), dtype=np.uint8)
         return frame_start, self._to_uint8(frames)
 
     def flush(self) -> tuple[int, np.ndarray | None]:
@@ -134,7 +147,10 @@ class StreamingVideoDecoder:
         if self.overlap is None:
             return self.frames_emitted, None
         frame_start = self.frames_emitted
-        frames = self._to_uint8(self.overlap)
+        if self.emit_frames:
+            frames = self._to_uint8(self.overlap)
+        else:
+            frames = np.zeros((_OVERLAP_FRAMES, 0, 0, 3), dtype=np.uint8)
         self.frames_emitted += _OVERLAP_FRAMES
         self.overlap = None
         return frame_start, frames
@@ -200,6 +216,15 @@ class StreamingAudioDecoder:
         if samples.shape[0] < requested:
             samples = np.concatenate((samples, np.zeros((requested - samples.shape[0], 2), np.float32)), axis=0)
         return samples
+
+    def skip_range(self, s1: int) -> None:
+        """Advance the retained-latent window as if samples up to ``s1`` were decoded."""
+        if self.latents is None:
+            return
+        keep_from = max(self.base, s1 // AUDIO_SAMPLES_PER_LATENT - self.left - 1)
+        if keep_from > self.base and keep_from <= self.total:
+            self.latents = self.latents[:, :, keep_from - self.base :].contiguous()
+            self.base = keep_from
 
     def state_bytes(self) -> int:
         return 2 * 32 * (self.left + self.right + 2 * 210) * 4

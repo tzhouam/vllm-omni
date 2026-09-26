@@ -54,6 +54,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_audio_kv_reset_requests` | 12 | Drop the audio KV history every N requests (video sink and recents are kept) |
 | `taomate_h3_allow_no_lora` | false | Stream the base H3 without the adapter (debugging only) |
 | `taomate_h3_pad_text_tokens` | unset | Prompt token budget that pins every phase and teacher document to one packed length per kind (for compiled or CUDA-graph runs) |
+| `taomate_h3_log_timings` | false | Log per-phase stage timings (adds device synchronizations) |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
 one throwaway five-second request at load time (the pipeline opts into this warmup in eager
@@ -92,10 +93,14 @@ Steady-state chunk period after the cold start, one session, measured locally:
 | phases 1-2 | 34 | 0.85-0.95 s |
 | phase 3 | 17 | 0.7-0.85 s |
 
-A 13-request session (1552 frames, 64.6 s of video and audio) took 4.1 s of wall time per
-4.958 s request in steady state (real-time factor 0.82); the first chunk arrived after
-2.9 s with the load-time warmup. Regional `torch.compile` (`enforce_eager: false`,
-`VLLM_OMNI_TORCH_DYNAMO_RECOMPILE_LIMIT=64`) gave no steady-state gain over eager here.
+A 13-request session (1552 frames, 64.6 s of video and audio) took 3.9-4.1 s of wall time
+per 4.958 s request in steady state (real-time factor 0.78-0.82); the first chunk arrived
+after 2.3-2.9 s with the load-time warmup. Stage timings per 34-frame phase
+(`model_config.taomate_h3_log_timings: true`): teacher 0.7-0.8 s per request, three student
+forwards 0.42 s, clean commit 0.15 s, video decode 0.2 s, audio decode 0.03 s. Regional
+`torch.compile` (`enforce_eager: false`, `VLLM_OMNI_TORCH_DYNAMO_RECOMPILE_LIMIT=64`) and
+FP8 online linears (`quantization: fp8`) gave no steady-state gain over eager here (4.3 s per
+request); the launch-bound teacher forwards and the per-phase VAE decode are the next targets.
 
 ## Limits
 

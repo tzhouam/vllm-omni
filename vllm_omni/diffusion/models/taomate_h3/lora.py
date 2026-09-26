@@ -19,8 +19,9 @@ device). Instead every target linear gets a forward hook that adds
 Only ``tensor_parallel_size == 1`` is supported (the realtime topology is pure
 Ulysses sequence parallelism): the adapter is then replicated on every rank
 and no A/B sharding is required. The fused QKV base weight is re-ordered from
-the checkpoint's per-head grouped layout to ``[Q; K; V]`` at load time, so the
-QKV ``lora_b`` rows are permuted the same way.
+the checkpoint's per-head grouped layout to ``[Q; K; V]`` at load time; the
+adapter's fused-QKV ``lora_b`` already uses that merged row order (the release
+runtime applies it unpermuted), so it is consumed as stored.
 """
 
 from __future__ import annotations
