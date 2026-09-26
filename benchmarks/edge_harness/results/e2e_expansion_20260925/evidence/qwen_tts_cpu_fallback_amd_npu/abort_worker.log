@@ -1,0 +1,35 @@
+
+********
+Warning: flash-attn is not installed. Will only run the manual PyTorch version. Please install flash-attn for faster inference.
+********
+ 
+'\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer'
+用作为当前目录的以上路径启动了 CMD.EXE。
+UNC 路径不受支持。默认值设为 Windows 目录。
+'sox' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+SoX could not be found!
+
+    If you do not have SoX, proceed here:
+     - - - http://sox.sourceforge.net/ - - -
+
+    If you do (or think that you should) have SoX, double-check your
+    path variables.
+    
+qwen-tts-cpu-worker ready port=59747 props={"model_dir": "C:\\Users\\zhout\\w2\\models\\Qwen3-TTS-0.6B-85e237c", "placement": "cpu", "torch": "2.13.0+cu130", "transformers": "4.57.3", "qwen_tts": "0.1.1", "dtype": "bfloat16", "attention": "sdpa", "threads": 8, "sample_rate": 24000, "speaker": "Ryan", "max_new_tokens": 64, "load_s": 1.7435101000592113}
+127.0.0.1 - - [27/Sep/2026 04:04:44] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [27/Sep/2026 04:04:44] "GET /props HTTP/1.1" 200 -
+tts request-start text_sha256=bb5ff1970bd6b0eeae9d2895f948aaa9496972e8f03d7a265d27f38e05f42c8a
+Setting `pad_token_id` to `eos_token_id`:2150 for open-end generation.
+127.0.0.1 - - [27/Sep/2026 04:04:59] "POST /v1/audio/speech HTTP/1.1" 200 -
+tts request duration_s=4.560 wall_s=14.721
+tts request-start text_sha256=df236b05f070b4b241a0e25062a47b6df17d5777b30b9c4fb5b38739cebdb943
+Setting `pad_token_id` to `eos_token_id`:2150 for open-end generation.
+127.0.0.1 - - [27/Sep/2026 04:05:10] "POST /v1/audio/speech HTTP/1.1" 200 -
+tts request duration_s=3.440 wall_s=11.480
+tts request-start text_sha256=bb5ff1970bd6b0eeae9d2895f948aaa9496972e8f03d7a265d27f38e05f42c8a
+Setting `pad_token_id` to `eos_token_id`:2150 for open-end generation.
+127.0.0.1 - - [27/Sep/2026 04:05:25] "POST /v1/audio/speech HTTP/1.1" 200 -
+tts request duration_s=4.560 wall_s=15.181
+tts request-start text_sha256=df236b05f070b4b241a0e25062a47b6df17d5777b30b9c4fb5b38739cebdb943
+Setting `pad_token_id` to `eos_token_id`:2150 for open-end generation.

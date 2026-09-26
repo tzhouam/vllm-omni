@@ -9,6 +9,7 @@ import hashlib
 import json
 import math
 import platform
+import subprocess
 import time
 import wave
 from pathlib import Path
@@ -45,6 +46,8 @@ async def main() -> None:
     parser.add_argument("--allow-platform-variation", action="store_true")
     parser.add_argument("--overlay-marker-sha256")
     parser.add_argument("--expect-admission-refusal", action="store_true")
+    parser.add_argument("--require-amd-npu-present", action="store_true",
+                        help="qualify explicit CPU fallback on an HX370 host with its NPU detected")
     args = parser.parse_args()
     if args.warmups < 0 or args.repeats <= 0 or not 0 < args.reserve_gib <= 16:
         parser.error("invalid profile or budget")
@@ -93,6 +96,36 @@ async def main() -> None:
         "measured_count": args.repeats,
         "memory_budget": deploy.stages[0].resource_budget,
     }
+    if args.require_amd_npu_present:
+        if platform.system() != "Windows":
+            raise RuntimeError("AMD NPU host fallback probe requires native Windows")
+        command = (
+            "Get-CimInstance Win32_PnPEntity | "
+            "Where-Object { $_.PNPDeviceID -like 'PCI\\VEN_1022&DEV_17F0*' } | "
+            "Select-Object Name,PNPDeviceID,Status | ConvertTo-Json -Compress"
+        )
+        detected = subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
+            capture_output=True, text=True, check=True,
+        )
+        raw = detected.stdout.strip()
+        devices = json.loads(raw) if raw else []
+        if isinstance(devices, dict):
+            devices = [devices]
+        ready = [device for device in devices if device.get("Status") == "OK"]
+        if not ready:
+            raise RuntimeError("HX370 AMD NPU was not detected as healthy")
+        report["accelerator_inventory"] = [
+            {"name": device["Name"], "status": device["Status"],
+             "pci_id": "VEN_1022&DEV_17F0", "evidence": "D"}
+            for device in ready
+        ]
+        report["placement_policy"] = {
+            "requested_backend": "external.qwen_tts.cpu.v1",
+            "selected_device": "cpu",
+            "npu_execution_claimed": False,
+            "reason": "NPU MLP component passes offline waveform checks but fails the measured benefit gate",
+        }
     sample_task = None
     stop_sampling = asyncio.Event()
     try:
@@ -111,6 +144,11 @@ async def main() -> None:
         report["startup_s"] = time.perf_counter() - started
         pool = runtime.stage_pools[0]
         report["execution_plan"] = pool.stage_client.execution_plan
+        if args.require_amd_npu_present:
+            plan = report["execution_plan"]
+            if (plan["backend"] != "external.qwen_tts.cpu.v1"
+                    or plan["worker_props"]["placement"] != "cpu"):
+                raise RuntimeError("CPU fallback plan executed on an unexpected backend")
         state = SimpleNamespace(sampling_params_list=[None])
         import psutil
 

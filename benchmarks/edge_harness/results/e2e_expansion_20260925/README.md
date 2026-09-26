@@ -113,7 +113,7 @@ places the first transformer layer on the AMD NPU. Two early NPU-fed waveform
 chunks pass a provisional 1% gate after the unchanged CPU suffix, but an
 eleven-step generated-code rollout passes only 3/11 chunks as layer-0 KV error
 accumulates. The complete eight-layer NPU graph has no inference evidence;
-Qwen3-TTS on AMD NPU remains NOT E2E.
+NPU-accelerated Qwen3-TTS remains NOT E2E.
 An eleven-step control that resets each NPU input cache to the CPU reference
 still passes only 3/11 waveform chunks. This isolates the remaining quality
 failure to the placed first-layer computation for this artifact, beyond its
@@ -231,3 +231,11 @@ relative L2 reached 1.855%/2.914%; unchanged CPU vocoder replay passed only
 1/11 waveform chunks within 1%, with frame 109 at 7.553%. Its NPU calls were
 also slower than the same CPU suffix calls before CPU projection and handoff.
 The cut does not repair full-state TTS numerics or qualify a stage plan.
+
+An [explicit CPU fallback on the NPU-equipped HX370 Windows host](evidence/qwen_tts_cpu_fallback_amd_npu/README.md)
+later passed two pinned named complete-WAV checks, one warmup plus three
+measured same-PCM requests, and an in-flight cancellation with no stale audio
+or retained reservation. The NPU was detected healthy, but both the Omni plan
+and worker reported CPU BF16 execution. This qualifies only a scoped CPU
+fallback for that hardware configuration; the accelerated NPU path remains
+unqualified because its tested cuts lack numerical fidelity or benefit.

@@ -1,0 +1,3 @@
+# Preserve native Windows report/log bytes so audit.json hashes remain reproducible.
+*.json -text whitespace=cr-at-eol
+*.log -text whitespace=-blank-at-eol,cr-at-eol

@@ -1,0 +1,34 @@
+{
+  "scope": "native Windows HX370 NPU-present Qwen3-TTS complete-request CPU fallback; no NPU execution",
+  "status": "cpu_fallback_scoped_e2e_pass",
+  "raw_sha256": {
+    "report": "47485840cd52177180f67b02fdbe4160ce1b49b52ab23cf7b763048e30783547",
+    "wav": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4",
+    "abort_report": "12f40cbf941e6cc23312b7809971edb5cd608635777d1742d0c4074d31a16992",
+    "abort_wav": "8a41cd36a87981b0ee5b8f77e8a411a4e89b76211fd65b88ad63789f1dd813f4"
+  },
+  "named_pcm_parity": [
+    true,
+    true
+  ],
+  "warmups": 1,
+  "measured_requests": 3,
+  "nearest_rank_p50_wall_s": 14.823519799974747,
+  "nearest_rank_p95_wall_s": 14.970075799967162,
+  "sampled_max_private_bytes": 5401538560,
+  "reserved_host_ram_bytes": 10737418240,
+  "abort": {
+    "stale_output": false,
+    "worker_exited": true,
+    "ledger_after_abort": {
+      "capacities": {
+        "host_ram": 17179869184
+      },
+      "reserved": {
+        "host_ram": 0
+      },
+      "owners": [],
+      "quarantined": []
+    }
+  }
+}
