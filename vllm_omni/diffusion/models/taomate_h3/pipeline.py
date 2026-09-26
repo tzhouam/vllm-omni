@@ -49,11 +49,13 @@ from vllm_omni.diffusion.models.minimax_h3.packed_tokens import (
 from vllm_omni.diffusion.models.minimax_h3.pipeline_minimax_h3 import MiniMaxH3Pipeline
 from vllm_omni.diffusion.worker.input_batch import InputBatch
 from vllm_omni.diffusion.worker.request_batch import DiffusionRequestBatch
+from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.diffusion.worker.utils import StepRequestState
 from vllm_omni.errors import OmniClientError
 from vllm_omni.experimental.ar_diffusion.capability import ARDiffusionKVBranchSpec, ARDiffusionKVCacheSpec
 from vllm_omni.experimental.ar_diffusion.kv_cache.state import ARDiffusionKVState
 from vllm_omni.experimental.ar_diffusion.tick_protocol import ARDiffusionChunkMetadata
+from vllm_omni.inputs.data import OmniDiffusionSamplingParams
 from vllm_omni.model_executor.models.minimax_h3.conditioning import MiniMaxH3EncoderMediaInput
 from vllm_omni.model_executor.models.minimax_h3.encoder_processing import PreparedEncoderInputs
 
@@ -63,6 +65,7 @@ from .geometry import (
     AUDIO_SAMPLE_RATE,
     PHASE_GROUP_COUNTS,
     REQUEST_AUDIO_LATENTS,
+    REQUEST_NATIVE_FRAMES,
     REQUEST_VIDEO_LATENTS,
     VIDEO_FPS,
     CanvasGeometry,
@@ -516,18 +519,84 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 "(engine_backend: vllm_omni.experimental.ar_diffusion.engine.ARDiffusionEngine)"
             )
 
+    def _bound_session_id(self, state: StepRequestState) -> str:
+        bound = self._ar_diffusion_kv_state
+        return bound.session_id if bound is not None else state.request_id
+
     def _session(self, state: StepRequestState) -> _Session:
-        session = self._tm_sessions.get(state.request_id)
+        key = state.extra.get("taomate_session_id") or self._bound_session_id(state)
+        session = self._tm_sessions.get(key)
         if session is None:
-            raise RuntimeError(f"TaoMate-H3 has no session for request {state.request_id!r}")
+            raise RuntimeError(f"TaoMate-H3 has no session {key!r} for request {state.request_id!r}")
         return session
 
-    # -- request-mode forward is not offered ---------------------------------
+    # -- request mode: a whole session in one call (offline use and the AR warmup) --
 
     def forward(self, request: DiffusionRequestBatch) -> DiffusionOutput:  # type: ignore[override]
-        raise OmniClientError(
-            "TaoMate-H3 generates streaming sessions only; use the WebSocket /v1/realtime/video "
-            "endpoint with step_execution=true and streaming_output=true"
+        """Generate every phase of the requested frame budget and return the joined media.
+
+        Streaming clients should use the WebSocket realtime endpoint; this path
+        drives the same step contract to completion in one runner invocation and
+        is what the AR-Diffusion runner uses for its load-time warmup.
+        """
+        if request.num_reqs != 1:
+            raise OmniClientError("TaoMate-H3 request mode serves one request at a time")
+        req = request.requests[0]
+        state = StepRequestState(request_id=req.request_id, sampling=req.sampling_params, prompt=req.prompt)
+        self.prepare_encode(state)
+        self.prepare_next_chunk(state)
+        frames: list[np.ndarray] = []
+        audio: list[np.ndarray] = []
+        chunk_metadata: list[dict[str, Any]] = []
+        last: DiffusionOutput | None = None
+        while not state.request_denoise_completed:
+            for _ in range(STUDENT_STEPS):
+                velocity = self.denoise_step(cast(InputBatch, None), states=[state])
+                assert velocity is not None
+                self.step_scheduler(state, velocity)
+            last = self.post_decode(state)
+            envelope = cast(dict[str, Any], last.output)
+            frames.append(envelope["payload"]["video"])
+            audio.append(envelope["payload"]["audio"])
+            chunk_metadata.append(envelope["metadata"]["taomate_h3"])
+            if not state.request_denoise_completed:
+                self.prepare_next_chunk(state)
+        assert last is not None
+        session_id = self._bound_session_id(state)
+        video = np.concatenate([item for item in frames if item.shape[0]], axis=0) if frames else np.zeros((0, 1, 1, 3))
+        waveform = np.concatenate(audio, axis=0) if audio else np.zeros((0, 2), np.float32)
+        return DiffusionOutput(
+            output={
+                "payload": {"video": video, "audio": waveform},
+                "metadata": {
+                    "video": {"fps": float(VIDEO_FPS)},
+                    "audio": {"sample_rate": AUDIO_SAMPLE_RATE},
+                    "ar_diffusion": ARDiffusionChunkMetadata(
+                        session_id=session_id,
+                        request_id=req.request_id,
+                        chunk_index=state.chunk_index - 1,
+                        applied_event_ids=(),
+                    ).to_dict(),
+                    "taomate_h3": {"chunks": chunk_metadata},
+                },
+            },
+            chunk_index=state.chunk_index - 1,
+            total_chunks=state.total_chunks,
+            finished=True,
+        )
+
+    def ar_diffusion_warmup_requests(self, session_id: str) -> Iterator[OmniDiffusionRequest]:
+        """One five-second request that exercises every phase shape, the teacher and the decoders."""
+        yield OmniDiffusionRequest(
+            prompt="A presenter smiles at the camera and greets the audience warmly.",
+            sampling_params=OmniDiffusionSamplingParams(
+                num_frames=REQUEST_NATIVE_FRAMES,
+                height=self._tm_default_height,
+                width=self._tm_default_width,
+                seed=self._tm_default_seed,
+                extra_args={"session_id": session_id, "reset": True},
+            ),
+            request_id=f"taomate-h3-warmup-{session_id}",
         )
 
     # -- step execution ------------------------------------------------------
@@ -558,8 +627,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         total_chunks = phases_for_frames(num_frames)
         hidden, tags = self.encode_prompt(prompt=prompt_text)
         state.prompt_embeds = hidden
+        session_id = self._bound_session_id(state)
+        previous = self._tm_sessions.pop(session_id, None)
+        if previous is not None:
+            previous.close()
         session = _Session(
-            session_id=state.request_id,
+            session_id=session_id,
             canvas=canvas,
             seed=seed,
             contract=self._kv_contract(),
@@ -569,7 +642,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             audio_decoder=StreamingAudioDecoder(self.audio_vae, device=self.device),
             audio_kv_reset_requests=self._tm_audio_kv_reset_requests,
         )
-        self._tm_sessions[state.request_id] = session
+        self._tm_sessions[session_id] = session
         state.chunk_num_steps = STUDENT_STEPS
         state.total_chunks = total_chunks
         state.chunk_index = 0
@@ -579,10 +652,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         state.timesteps = torch.tensor(
             [1.0 - sigma for sigma in session.sigmas_video[:-1]], dtype=torch.float32, device=self.device
         )
-        state.extra = {"text_tags": tags, "audio_rows": None}
+        state.extra = {"text_tags": tags, "audio_rows": None, "taomate_session_id": session_id}
         logger.info(
             "TaoMate-H3 session %s: %dx%d, seed=%d, %d chunk(s) (%d request(s)), prompt=%.40r",
-            state.request_id,
+            session_id,
             canvas.width,
             canvas.height,
             seed,

@@ -164,15 +164,25 @@ class StreamingAudioDecoder:
         self.total += int(latents.shape[2])
 
     def decode_range(self, s0: int, s1: int) -> np.ndarray:
-        """Return samples ``[s0, s1)`` as float32 ``[n, 2]``."""
+        """Return samples ``[s0, s1)`` as float32 ``[n, 2]``.
+
+        The video timeline may outrun the generated audio by less than one
+        latent at the end of a session (audio boundaries are rounded to 40 Hz
+        latents); that tail is padded with silence rather than refused.
+        """
         if s1 <= s0:
             return np.zeros((0, 2), dtype=np.float32)
         if self.latents is None:
             raise RuntimeError("no audio latents have been appended")
+        available = self.total * AUDIO_SAMPLES_PER_LATENT
+        if available < s1 - AUDIO_SAMPLES_PER_LATENT:
+            raise RuntimeError("audio latents do not cover the requested samples")
+        requested = s1 - s0
+        s1 = min(s1, available)
+        if s1 <= s0:
+            return np.zeros((requested, 2), dtype=np.float32)
         l0 = max(self.base, s0 // AUDIO_SAMPLES_PER_LATENT - self.left)
         l1 = min(self.total, -(-s1 // AUDIO_SAMPLES_PER_LATENT) + self.right)
-        if l1 * AUDIO_SAMPLES_PER_LATENT < s1:
-            raise RuntimeError("audio latents do not cover the requested samples")
         window = self.latents[:, :, l0 - self.base : l1 - self.base]
         with torch.inference_mode():
             wave = self.vae.decode_latent(window)  # [1, 2, S]
@@ -186,7 +196,10 @@ class StreamingAudioDecoder:
         if keep_from > self.base:
             self.latents = self.latents[:, :, keep_from - self.base :].contiguous()
             self.base = keep_from
-        return segment.cpu().numpy()
+        samples = segment.cpu().numpy()
+        if samples.shape[0] < requested:
+            samples = np.concatenate((samples, np.zeros((requested - samples.shape[0], 2), np.float32)), axis=0)
+        return samples
 
     def state_bytes(self) -> int:
         return 2 * 32 * (self.left + self.right + 2 * 210) * 4

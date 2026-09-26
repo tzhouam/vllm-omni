@@ -289,6 +289,13 @@ def _write_adapter(tmp_path, model: nn.Module, rank: int = 3, alpha: float = 6.0
     return str(tmp_path)
 
 
+def _adapter_tensor(tmp_path, name: str) -> torch.Tensor:
+    from safetensors import safe_open
+
+    with safe_open(str(tmp_path / "adapter_model.safetensors"), framework="pt", device="cpu") as handle:
+        return handle.get_tensor(name)
+
+
 def test_lora_adapter_hooks_add_scaled_delta_and_can_be_disabled(tmp_path) -> None:
     torch.manual_seed(0)
     model = _tiny_transformer()
@@ -306,10 +313,11 @@ def test_lora_adapter_hooks_add_scaled_delta_and_can_be_disabled(tmp_path) -> No
     b = adapter._lora_b["blocks.0.mlp.fc2"]
     expected = base_out + (fc2_in @ a.t()) @ b.t() * adapter.scale
     torch.testing.assert_close(lora_out, expected, rtol=1e-5, atol=1e-5)
-    # The qkv B rows are permuted from grouped (q,k,v per head) to [Q; K; V].
+    # The qkv B rows are consumed in the adapter's merged [Q; K; V] order.
     qkv_a = adapter._lora_a["blocks.0.attn.qkv_proj"]
     qkv_b = adapter._lora_b["blocks.0.attn.qkv_proj"]
     assert qkv_b.shape == (3 * 8, 3)
+    torch.testing.assert_close(qkv_b, _adapter_tensor(tmp_path, "blocks.0.attn.qkv_proj.lora_b"))
     with adapter.disabled():
         base_qkv, _ = model.get_submodule("blocks.0.attn.qkv_proj")(x)
     lora_qkv, _ = model.get_submodule("blocks.0.attn.qkv_proj")(x)
@@ -332,3 +340,32 @@ def test_lora_adapter_rejects_incomplete_inventory(tmp_path) -> None:
     save_file(tensors, str(tmp_path / "adapter_model.safetensors"))
     with pytest.raises(Exception, match="inventory"):
         TaoMateLoRAAdapter.load(str(tmp_path), transformer=model, device=torch.device("cpu"), dtype=torch.float32)
+
+
+# ----------------------------------------------------------------------------
+# streaming audio decoder tail handling
+
+
+class _FakeAudioVAE:
+    sample_rate = 32000
+
+    def decode_latent(self, latent: torch.Tensor) -> torch.Tensor:
+        # 800 samples per latent, value = latent index of the window position.
+        steps = int(latent.shape[-1])
+        wave = latent[0, 0].repeat_interleave(800).view(1, 1, steps * 800).expand(1, 2, -1)
+        return wave.float()
+
+
+def test_audio_decoder_pads_the_rounded_tail_but_rejects_missing_audio() -> None:
+    from vllm_omni.diffusion.models.taomate_h3.stream_decode import StreamingAudioDecoder
+
+    decoder = StreamingAudioDecoder(_FakeAudioVAE(), device=torch.device("cpu"))
+    latents = torch.zeros(2, 32, 603)
+    latents[0, 0] = torch.arange(603, dtype=torch.float32)
+    decoder.append(latents)
+    # 362 frames at 24 fps need 482666 samples; 603 latents give 482400.
+    samples = decoder.decode_range(453333, 482666)
+    assert samples.shape == (482666 - 453333, 2)
+    assert samples[-1, 0] == 0.0 and samples[-267, 0] == 602.0
+    with pytest.raises(RuntimeError, match="do not cover"):
+        decoder.decode_range(482400, 482400 + 2000)

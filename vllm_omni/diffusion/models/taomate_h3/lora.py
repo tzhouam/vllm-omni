@@ -36,10 +36,7 @@ import torch.nn as nn
 from safetensors import safe_open
 from vllm.logger import init_logger
 
-from vllm_omni.diffusion.models.minimax_h3.minimax_h3_transformer import (
-    MiniMaxH3DiTModel,
-    _reorder_grouped_qkv_to_qkv,
-)
+from vllm_omni.diffusion.models.minimax_h3.minimax_h3_transformer import MiniMaxH3DiTModel
 
 logger = init_logger(__name__)
 
@@ -168,15 +165,10 @@ class TaoMateLoRAAdapter:
                         f"TaoMate-H3 LoRA {target}: A {tuple(a.shape)} / B {tuple(b.shape)} do not match the "
                         f"linear ({out_features}, {in_features}); tensor parallel is not supported by this adapter"
                     )
-                if target.endswith("attn.qkv_proj"):
-                    # The base QKV weight rows were permuted from the grouped
-                    # per-head layout to [Q; K; V] when loaded; permute B alike.
-                    b = _reorder_grouped_qkv_to_qkv(
-                        b,
-                        num_query_groups=arch.num_attention_heads,
-                        heads_per_group=1,
-                        head_dim=arch.attention_head_dim,
-                    )
+                # The adapter's fused-QKV ``lora_b`` is already in the merged
+                # [Q; K; V] row order of the loaded base weight (the release
+                # loader reorders only the grouped base checkpoint), so no
+                # permutation is applied here.
                 lora_a[target] = a.to(device=device, dtype=dtype).contiguous()
                 lora_b[target] = b.to(device=device, dtype=dtype).contiguous()
                 del weight

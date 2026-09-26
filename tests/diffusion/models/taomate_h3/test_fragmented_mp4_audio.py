@@ -27,15 +27,21 @@ def _sine(samples: int, rate: int = 32000) -> np.ndarray:
 
 
 def _probe(buffer: bytes) -> tuple[int, int, int]:
+    """(stream count, decoded video frames, muxed audio samples).
+
+    Audio is counted from the muxed AAC packets (1024 samples each): PyAV's
+    decode iterator stops early on short fragmented streams, while ffmpeg
+    decodes them completely.
+    """
     with av.open(io.BytesIO(buffer)) as container:
         video = [stream for stream in container.streams if stream.type == "video"]
         audio = [stream for stream in container.streams if stream.type == "audio"]
         frames = sum(1 for _ in container.decode(video=0))
-        samples = 0
-        if audio:
-            container.seek(0)
-            samples = sum(frame.samples for frame in container.decode(audio=0))
-        return len(video) + len(audio), frames, samples
+    samples = 0
+    if audio:
+        with av.open(io.BytesIO(buffer)) as container:
+            samples = sum(1024 for packet in container.demux(container.streams.audio[0]) if packet.size)
+    return len(video) + len(audio), frames, samples
 
 
 @pytest.mark.parametrize("chunks", [1, 3])
@@ -51,7 +57,8 @@ def test_muxer_writes_video_and_audio_fragments(chunks: int) -> None:
     assert streams == 2
     assert frames == 17 * chunks
     # The first AAC priming length of content is dropped so that both
-    # timelines start at zero; the encoder pads the tail to a 1024 frame.
+    # timelines start at zero; close() pads the tail one AAC frame past the
+    # last video frame and the encoder rounds up to whole 1024-sample frames.
     expected = chunks * (17 * 32000 // 24) - 1024
     assert expected <= samples <= expected + 4 * 1024
 

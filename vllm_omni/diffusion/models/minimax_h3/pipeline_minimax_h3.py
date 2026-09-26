@@ -608,8 +608,9 @@ class MiniMaxH3Pipeline(
 
     supports_step_execution: ClassVar[bool] = True
     # DiT implementation constructed for ``transformer`` (and ``transformers_ref``).
-    # A derived pipeline may point this at a ``MiniMaxH3DiTModel`` subclass.
-    _transformer_cls: ClassVar[type[MiniMaxH3DiTModel]] = MiniMaxH3DiTModel
+    # ``None`` means this module's ``MiniMaxH3DiTModel`` (resolved at call time);
+    # a derived pipeline may point this at a subclass.
+    _transformer_cls: ClassVar[type[MiniMaxH3DiTModel] | None] = None
     supports_request_cancellation: ClassVar[bool] = True
 
     _dit_modules: ClassVar[list[str]] = ["transformer", "transformers_ref"]
@@ -951,7 +952,8 @@ class MiniMaxH3Pipeline(
             od_config.quantization_config,
             "transformer",
         )
-        self.transformer = type(self)._transformer_cls(
+        transformer_cls = type(self)._transformer_cls or MiniMaxH3DiTModel
+        self.transformer = transformer_cls(
             od_config,
             quant_config=transformer_quant_config,
             diffusers_weights=modular,
@@ -962,7 +964,7 @@ class MiniMaxH3Pipeline(
                 "FastH3 V2 full checkpoint: 8 transformer forwards, video/audio shifts 10/3, VSA sparsity=0.8 tile=64"
             )
         if ref2va_model_path is not None:
-            self.transformers_ref = type(self)._transformer_cls(
+            self.transformers_ref = transformer_cls(
                 od_config,
                 quant_config=transformer_quant_config,
                 diffusers_weights=modular,
