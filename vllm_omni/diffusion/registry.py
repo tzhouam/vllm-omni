@@ -169,6 +169,11 @@ _DIFFUSION_MODELS = {
         "pipeline",
         "LingBotWorldCausalDMDPipeline",
     ),
+    "TaoMateH3Pipeline": (
+        "taomate_h3",
+        "pipeline",
+        "TaoMateH3Pipeline",
+    ),
     "LongCatImagePipeline": (
         "longcat_image",
         "pipeline_longcat_image",
@@ -419,6 +424,7 @@ _NO_CACHE_ACCELERATION = {
     "Pi0Pipeline",
     "Pi05Pipeline",
     "LingBotWorldCausalDMDPipeline",
+    "TaoMateH3Pipeline",
 }
 
 
@@ -664,6 +670,7 @@ _DIFFUSION_POST_PROCESS_FUNCS = {
     "WanT2VDMD2Pipeline": "get_wan22_post_process_func",
     "WanI2VDMD2Pipeline": "get_wan22_i2v_post_process_func",
     "LingBotWorldCausalDMDPipeline": "get_lingbot_world_post_process_func",
+    "TaoMateH3Pipeline": "get_taomate_h3_post_process_func",
     "LongCatImagePipeline": "get_longcat_image_post_process_func",
     "LongCatVideoAvatarPipeline": "get_longcat_video_avatar_post_process_func",
     "BagelPipeline": "get_bagel_post_process_func",
