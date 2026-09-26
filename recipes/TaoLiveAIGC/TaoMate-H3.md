@@ -53,6 +53,12 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_seed` | 8301 | Default seed; request `k` draws audio noise from `seed + k` and video noise from `seed + k * 1000003` |
 | `taomate_h3_audio_kv_reset_requests` | 12 | Drop the audio KV history every N requests (video sink and recents are kept) |
 | `taomate_h3_allow_no_lora` | false | Stream the base H3 without the adapter (debugging only) |
+| `taomate_h3_pad_text_tokens` | unset | Prompt token budget that pins every phase and teacher document to one packed length per kind (for compiled or CUDA-graph runs) |
+
+The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
+one throwaway five-second request at load time (the pipeline opts into this warmup in eager
+mode as well), so the first chunk of a session arrives in about 3 s instead of 17-20 s on
+a cold server.
 
 ## Stream
 
@@ -86,10 +92,10 @@ Steady-state chunk period after the cold start, one session, measured locally:
 | phases 1-2 | 34 | 0.85-0.95 s |
 | phase 3 | 17 | 0.7-0.85 s |
 
-That is 4.3-4.9 s of generation per 4.958 s request, i.e. real time with a thin margin
-in eager mode; the cold first chunk of a server took 16.7 s. With
-`enforce_eager: false` the AR runner warms the compiled blocks up at load time
-(`ar_diffusion_warmup_requests` runs one throwaway request).
+A 13-request session (1552 frames, 64.6 s of video and audio) took 4.1 s of wall time per
+4.958 s request in steady state (real-time factor 0.82); the first chunk arrived after
+2.9 s with the load-time warmup. Regional `torch.compile` (`enforce_eager: false`,
+`VLLM_OMNI_TORCH_DYNAMO_RECOMPILE_LIMIT=64`) gave no steady-state gain over eager here.
 
 ## Limits
 

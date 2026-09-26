@@ -60,7 +60,12 @@ from vllm_omni.model_executor.models.minimax_h3.conditioning import MiniMaxH3Enc
 from vllm_omni.model_executor.models.minimax_h3.encoder_processing import PreparedEncoderInputs
 
 from .attention import StreamContext, StreamMode, stream_context
-from .audio_teacher import TaoMateAudioTeacher, TeacherResult, official_request_noise
+from .audio_teacher import (
+    ROLLOVER_LATENTS_PER_CHANNEL,
+    TaoMateAudioTeacher,
+    TeacherResult,
+    official_request_noise,
+)
 from .geometry import (
     AUDIO_SAMPLE_RATE,
     PHASE_GROUP_COUNTS,
@@ -84,6 +89,12 @@ from .transformer import TaoMateH3DiTModel
 logger = init_logger(__name__)
 
 NUM_PHASES = len(PHASE_GROUP_COUNTS)
+# Largest per-phase audio latent count over the first and the steady-state
+# request geometries (audio boundaries are rounded on the global timeline).
+_MAX_PHASE_AUDIO_LATENTS = tuple(
+    max(request_plan(index).phases[phase].audio_latent_count for index in range(0, 8))
+    for phase in range(NUM_PHASES)
+)
 STUDENT_STEPS = 3
 DEFAULT_SEED = 8301
 DEFAULT_HEIGHT = 864
@@ -185,9 +196,11 @@ class _Session:
         video_decoder: StreamingVideoDecoder,
         audio_decoder: StreamingAudioDecoder,
         audio_kv_reset_requests: int,
+        pad_text_tokens: int = 0,
     ) -> None:
         self.session_id = session_id
         self.canvas = canvas
+        self.pad_text_tokens = int(pad_text_tokens)
         self.seed = int(seed)
         self.cache = CleanAVKVCache(contract)
         self.video_decoder = video_decoder
@@ -258,6 +271,29 @@ class _Session:
         self.request = None
         self.phase = None
 
+    # -- pinned shapes ---------------------------------------------------------
+
+    def pinned_phase_seq_len(self, phase: StreamPhase, text_len: int) -> int | None:
+        """Fixed packed length for this phase kind, or ``None`` when unpinned."""
+        if self.pad_text_tokens <= 0:
+            return None
+        if text_len > self.pad_text_tokens:
+            logger.warning_once(
+                "TaoMate-H3 prompt has %d tokens, above taomate_h3_pad_text_tokens=%d; this phase runs unpinned",
+                text_len,
+                self.pad_text_tokens,
+            )
+            return None
+        audio_rows = 2 * _MAX_PHASE_AUDIO_LATENTS[phase.index]
+        used = self.pad_text_tokens + audio_rows + phase.video_latent_count * self.canvas.frame_rows
+        return -(-used // 64) * 64
+
+    def pinned_teacher_seq_len(self, text_len: int, *, with_reference: bool) -> int | None:
+        if self.pad_text_tokens <= 0 or text_len > self.pad_text_tokens:
+            return None
+        rows = 2 * (REQUEST_AUDIO_LATENTS + (ROLLOVER_LATENTS_PER_CHANNEL if with_reference else 0))
+        return -(-(self.pad_text_tokens + rows) // 64) * 64
+
     # -- phases ------------------------------------------------------------
 
     def begin_phase(self, phase_index: int, *, transformer: TaoMateH3DiTModel, device: torch.device) -> _PhaseState:
@@ -272,6 +308,7 @@ class _Session:
             media_time_origin=self.media_time_origin,
             video_latent_offset=self.video_latent_offset,
             audio_latent_offset=self.audio_latent_offset,
+            seq_len=self.pinned_phase_seq_len(phase, request.text_len),
         )
         tags = packed["token_tags"].clone()
         tags[packed["text_pos"].view(-1)] = request.text_tags.detach().to("cpu", torch.long)
@@ -343,8 +380,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
     # The three student steps of a phase run back to back; the scheduler regains
     # control at the phase boundary, where prompt interactions are applied.
     supports_chunk_step_grouping: ClassVar[bool] = True
-    # Generic warmup cannot synthesize a session; the AR runner warms up lazily.
+    # Generic warmup cannot synthesize a session; the AR runner's rollout
+    # warmup (one throwaway request) replaces it, in eager mode too: a cold
+    # server otherwise spends 17-20 s on its first chunk, 3 s when warm.
     dummy_run_num_frames: ClassVar[int] = 0
+    ar_diffusion_warmup_eager: ClassVar[bool] = True
     _transformer_cls: ClassVar[type] = TaoMateH3DiTModel
 
     def __init__(self, *, od_config: OmniDiffusionConfig, prefix: str = "") -> None:
@@ -364,6 +404,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             model_config.get("taomate_h3_audio_kv_reset_requests", DEFAULT_AUDIO_KV_RESET_REQUESTS)
         )
         self._tm_allow_no_lora = bool(model_config.get("taomate_h3_allow_no_lora", False))
+        # Optional fixed packed lengths: with a prompt budget every phase kind
+        # and the teacher documents keep one shape across prompts, which is
+        # what compiled blocks and CUDA graphs need to stay warm.
+        pad_text = model_config.get("taomate_h3_pad_text_tokens")
+        self._tm_pad_text_tokens = int(pad_text) if pad_text else 0
         self.taomate_lora: TaoMateLoRAAdapter | None = None
         self._tm_teacher: TaoMateAudioTeacher | None = None
         self._tm_sessions: dict[str, _Session] = {}
@@ -641,6 +686,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             ),
             audio_decoder=StreamingAudioDecoder(self.audio_vae, device=self.device),
             audio_kv_reset_requests=self._tm_audio_kv_reset_requests,
+            pad_text_tokens=self._tm_pad_text_tokens,
         )
         self._tm_sessions[session_id] = session
         state.chunk_num_steps = STUDENT_STEPS
@@ -710,6 +756,9 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             audio_seed=request.audio_seed,
             previous_clean=session.teacher_previous_clean,
             previous_audio_latent_count=session.teacher_previous_count,
+            seq_len=session.pinned_teacher_seq_len(
+                request.text_len, with_reference=session.teacher_previous_clean is not None
+            ),
         )
         request.teacher = result
         request.teacher_seconds = time.perf_counter() - started

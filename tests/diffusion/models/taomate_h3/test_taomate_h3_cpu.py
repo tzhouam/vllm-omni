@@ -369,3 +369,41 @@ def test_audio_decoder_pads_the_rounded_tail_but_rejects_missing_audio() -> None
     assert samples[-1, 0] == 0.0 and samples[-267, 0] == 602.0
     with pytest.raises(RuntimeError, match="do not cover"):
         decoder.decode_range(482400, 482400 + 2000)
+
+
+# ----------------------------------------------------------------------------
+# pinned packed lengths
+
+
+def test_pinned_lengths_cover_every_phase_and_teacher_document() -> None:
+    from vllm_omni.diffusion.models.taomate_h3 import pipeline as pipeline_module
+    from vllm_omni.diffusion.models.taomate_h3.audio_teacher import ROLLOVER_LATENTS_PER_CHANNEL
+    from vllm_omni.diffusion.models.taomate_h3.kv_cache import KVContract
+
+    canvas = geo.CanvasGeometry(height=864, width=480)
+    session = pipeline_module._Session(
+        session_id="s",
+        canvas=canvas,
+        seed=1,
+        contract=KVContract(num_layers=1, local_heads=1, head_dim=1),
+        video_decoder=None,  # type: ignore[arg-type]
+        audio_decoder=None,  # type: ignore[arg-type]
+        audio_kv_reset_requests=12,
+        pad_text_tokens=128,
+    )
+    seen: set[tuple[int, int]] = set()
+    for request_index in range(6):
+        plan = geo.request_plan(request_index)
+        for phase in plan.phases:
+            pinned = session.pinned_phase_seq_len(phase, text_len=40)
+            assert pinned is not None and pinned % 64 == 0
+            used = 128 + 2 * phase.audio_latent_count + phase.video_latent_count * canvas.frame_rows
+            assert pinned >= used
+            seen.add((phase.index, pinned))
+    # Two shapes for phase 0 (12 latents once, then 10) and one per later phase.
+    assert len(seen) == 5
+    teacher_first = session.pinned_teacher_seq_len(40, with_reference=False)
+    teacher_next = session.pinned_teacher_seq_len(40, with_reference=True)
+    assert teacher_first == -(-(128 + 2 * 207) // 64) * 64
+    assert teacher_next == -(-(128 + 2 * (207 + ROLLOVER_LATENTS_PER_CHANNEL)) // 64) * 64
+    assert session.pinned_phase_seq_len(plan.phases[0], text_len=200) is None
