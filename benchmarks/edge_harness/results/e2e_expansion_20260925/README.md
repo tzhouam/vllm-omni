@@ -24,6 +24,13 @@ matches, but the worst state relative L2 was 1.3387% at 500 tokens and
 not repair the 1000-token maximum or first >1% state error. These are HX370
 WSL CPU controls; neither result advances S25 beyond its one-layer NPU
 component evidence.
+A later [layer-11 attention trace](evidence/spark_decode_boundary/README.md#first-bf16-divergence-and-failed-static-shape-alternatives)
+found the first 500-token-prompt hidden divergence at decode position 562:
+the valid Q×K scores and value inputs were bitwise equal, while the padded
+BF16 softmax probabilities differed. FP32 score/value matmuls, right-aligned
+full-cache packing and FP64 softmax each failed the new-K/V 1% gate earlier
+than the original static run. These CPU diagnostics narrow the next artifact
+experiment but do not qualify a mobile implementation.
 
 The [MiniCPM-o HX370 AMD NPU projection experiment](evidence/minicpmo_amd_npu_projection/README.md)
 extracts a state-safe speech-token projection after the CPU speech head.

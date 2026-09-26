@@ -141,10 +141,51 @@ source bitwise, so these failures are specific to the tested padded static
 attention layouts. Top-1 agreement on this teacher-forced fixture does not
 clear the state gate or establish free-running generation quality.
 
-The next numerical experiment should isolate BF16 attention reduction and
-padding behavior at the first failing position, then evaluate a compiled
-target artifact using its actual supported shapes and cache ordering. No
+The next artifact experiment should test a target-compatible filled-length
+attention normalization and cache ordering on its actual compiled backend. No
 full-device Spark E2E or mobile performance claim follows from these CPU runs.
+
+## First BF16 divergence and failed static-shape alternatives
+
+The [position-562 attention-input trace](cross_512_bf16_static628_trace_attention_inputs562_63.json)
+used the same 500-token prompt, 628-slot full cache, chronological sliding
+ring, BF16 source arithmetic and eight HX370 WSL CPU threads. Layers 0–10
+returned bitwise-equal hidden states. Layer 11, a full-attention layer, is the
+first different hidden state (0.1808% relative L2). Its valid Q×K score
+entries and repeated value inputs were **bitwise equal** between source and
+export. The padded export's BF16 softmax probabilities first differed by
+0.00509% relative L2; the ensuing probability×value result differed by
+0.00774%. Downstream layers amplified this into the 1.2693% new-K/V error at
+position 562. This identifies the first observed numerical boundary, not a
+universal root cause for other prompts or devices. The earlier
+[hidden-only trace](cross_512_bf16_static628_trace562_63.json) and
+[matmul-output trace](cross_512_bf16_static628_trace_attention562_63.json)
+are retained as intermediate records.
+
+Several CPU-only alternatives were measured on the same real checkpoint and
+prompt. Their different step counts are shown explicitly; each still matched
+the source next-token choice at every tested step. The original fixed-buffer
+run was bitwise through its first eight steps and first failed the 1% state
+gate at position 562.
+
+| Padded 628-slot CPU diagnostic | Decode steps | Worst logits relative L2 | Worst new-K/V relative L2 | First >1% state position |
+|---|---:|---:|---:|---:|
+| [Original BF16, first 64 steps](cross_512_bf16_ordered_static628_kv_128.json) | 64 of 128 | 0.3738% | 1.2693% | 562 |
+| [FP32 score matmul](cross_512_bf16_static628_fp32_score_8.json) | 8 | 0.5056% | 20.7464% | 500 |
+| [FP32 value matmul](cross_512_bf16_static628_fp32_value_64.json) | 64 | 4.2858% | 34.2471% | 500 |
+| [Right-aligned full cache](cross_512_bf16_static628_rightfull_64.json) | 64 | 2.2862% | 34.7933% | 501 |
+| [FP64 softmax, cast back to BF16](cross_512_bf16_static628_softmax_fp64_128.json) | 128 | 0.8542% | 19.7564% | 514 |
+
+The input-repacking and precision experiments are diagnostic controls, not
+compiled or device-executable fixes. Promoting attention arithmetic changed
+the trained BF16 computation and often introduced an error before the original
+position-562 boundary. The [eight-step FP64 control](cross_512_bf16_static628_softmax_fp64_8.json)
+was bitwise equal, illustrating why a short prefix does not qualify the
+128-step state path. A target-compatible design must either preserve the
+source's effective filled-length softmax behavior or establish an accepted
+task-level tolerance for a different normalization. The present reference
+still lacks a qualified static-shape numerical path across 512/1024 and has
+no S25 complete-request measurement.
 
 Reproduce from the repository root with the local checkpoint and CPU venv:
 

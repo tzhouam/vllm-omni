@@ -89,6 +89,10 @@ class SparkStepConfig:
     """``hf_bf16_reference`` reproduces the checkpoint's BF16 rounding on CPU.
     It is a numerical reference only; the existing mobile export remains FP32.
     """
+    attention_accumulation: str = "bf16"
+    """CPU-only BF16 diagnostic: optionally promote score and/or value matmul.
+    The trained model uses ``bf16``; other modes probe shape-dependent rounding.
+    """
 
     def __post_init__(self) -> None:
         if self.num_attention_heads % self.num_key_value_heads:
@@ -105,6 +109,12 @@ class SparkStepConfig:
             raise ValueError(f"unknown gelu_mode: {self.gelu_mode}")
         if self.arithmetic_mode not in ("fp32_export", "hf_bf16_reference"):
             raise ValueError(f"unknown arithmetic_mode: {self.arithmetic_mode}")
+        if self.attention_accumulation not in (
+            "bf16", "fp32_score", "fp32_value", "fp32_both"
+        ):
+            raise ValueError(f"unknown attention_accumulation: {self.attention_accumulation}")
+        if self.arithmetic_mode != "hf_bf16_reference" and self.attention_accumulation != "bf16":
+            raise ValueError("attention accumulation diagnostics require BF16 reference")
 
     @property
     def group_size(self) -> int:
@@ -183,6 +193,8 @@ class _Layer(nn.Module):
     def forward(self, x, cos, sin, k_cache, v_cache, mask):
         cfg = self.cfg
         source_bf16 = cfg.arithmetic_mode == "hf_bf16_reference"
+        fp32_score = cfg.attention_accumulation in ("fp32_score", "fp32_both")
+        fp32_value = cfg.attention_accumulation in ("fp32_value", "fp32_both")
         def linear(module: nn.Linear, value: torch.Tensor) -> torch.Tensor:
             if source_bf16:
                 return torch.nn.functional.linear(value, module.weight.to(value.dtype))
@@ -239,7 +251,11 @@ class _Layer(nn.Module):
             if source_bf16:
                 keys_for_attention = keys.repeat_interleave(g, dim=1)
                 vals_for_attention = vals.repeat_interleave(g, dim=1)
-                scores = torch.matmul(q, keys_for_attention.transpose(2, 3)) * scale + mask
+                if fp32_score:
+                    scores = (torch.matmul(q.float(), keys_for_attention.float().transpose(2, 3))
+                              * scale + mask.float())
+                else:
+                    scores = torch.matmul(q, keys_for_attention.transpose(2, 3)) * scale + mask
             else:
                 vals_for_attention = vals
                 scores = torch.matmul(qg, keys.transpose(2, 3)) * scale + mask
@@ -248,7 +264,9 @@ class _Layer(nn.Module):
                 probs = torch.softmax(scores.float(), dim=-1).to(torch.bfloat16)
             else:
                 probs = torch.softmax(scores, dim=-1)
-            attn = torch.matmul(probs, vals_for_attention)
+            attn = (torch.matmul(probs.float(), vals_for_attention.float()).to(probs.dtype)
+                    if source_bf16 and fp32_value
+                    else torch.matmul(probs, vals_for_attention))
             k_out, v_out = k, v
         else:
             # Roll the window: the oldest entry falls off the front.
@@ -259,7 +277,11 @@ class _Layer(nn.Module):
             if source_bf16:
                 keys_for_attention = keys.repeat_interleave(g, dim=1)
                 vals_for_attention = vals.repeat_interleave(g, dim=1)
-                scores = torch.matmul(q, keys_for_attention.transpose(2, 3)) * scale + mask
+                if fp32_score:
+                    scores = (torch.matmul(q.float(), keys_for_attention.float().transpose(2, 3))
+                              * scale + mask.float())
+                else:
+                    scores = torch.matmul(q, keys_for_attention.transpose(2, 3)) * scale + mask
             else:
                 vals_for_attention = vals
                 scores = torch.matmul(qg, keys.transpose(2, 3)) * scale + mask
@@ -268,7 +290,9 @@ class _Layer(nn.Module):
                 probs = torch.softmax(scores.float(), dim=-1).to(torch.bfloat16)
             else:
                 probs = torch.softmax(scores, dim=-1)
-            attn = torch.matmul(probs, vals_for_attention)
+            attn = (torch.matmul(probs.float(), vals_for_attention.float()).to(probs.dtype)
+                    if source_bf16 and fp32_value
+                    else torch.matmul(probs, vals_for_attention))
             k_out = keys if self.layer_type == SLIDING else k
             v_out = vals if self.layer_type == SLIDING else v
 
@@ -520,6 +544,7 @@ def config_from_spark(
     cache_layout: str = "auto",
     gelu_mode: str = "exact",
     arithmetic_mode: str = "fp32_export",
+    attention_accumulation: str = "bf16",
 ) -> SparkStepConfig:
     """Build a step config from a Spark ``config.json``.
 
@@ -550,6 +575,7 @@ def config_from_spark(
         cache_layout=cache_layout,
         gelu_mode=gelu_mode,
         arithmetic_mode=arithmetic_mode,
+        attention_accumulation=attention_accumulation,
         first_layer=first,
     )
 

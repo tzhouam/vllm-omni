@@ -64,6 +64,13 @@ def main() -> None:
     parser.add_argument("--export-arithmetic",
                         choices=("fp32_export", "hf_bf16_reference"),
                         default="fp32_export")
+    parser.add_argument("--attention-accumulation",
+                        choices=("bf16", "fp32_score", "fp32_value", "fp32_both"),
+                        default="bf16",
+                        help="CPU diagnostic for BF16 attention matmul rounding")
+    parser.add_argument("--softmax-accumulation", choices=("source_fp32", "fp64"),
+                        default="source_fp32",
+                        help="CPU diagnostic for padded attention normalization")
     parser.add_argument("--cache-layout", choices=("auto", "roll"), default="auto")
     parser.add_argument("--compact-inputs", action="store_true",
                         help="diagnose static padding by using only filled cache slots")
@@ -71,6 +78,10 @@ def main() -> None:
                         choices=("all", "sliding", "full"), default="all")
     parser.add_argument("--ordered-sliding", action="store_true",
                         help="read the physical ring in chronological order")
+    parser.add_argument("--right-align-full", action="store_true",
+                        help="place filled full-cache entries next to the new token in a padded CPU diagnostic")
+    parser.add_argument("--trace-position", type=int, default=-1,
+                        help="capture source/export hidden-state parity after each layer at this decode position")
     args = parser.parse_args()
     if args.decode_steps < 1:
         raise ValueError("decode-steps must be positive")
@@ -78,6 +89,10 @@ def main() -> None:
         raise ValueError("full-bucket-width cannot be negative")
     if args.ordered_sliding and args.cache_layout == "roll":
         raise ValueError("ordered-sliding applies only to the ring layout")
+    if args.right_align_full and args.compact_inputs and args.compact_layer_type in ("all", "full"):
+        raise ValueError("right-aligned full cache conflicts with compact full inputs")
+    if args.softmax_accumulation != "source_fp32" and args.export_arithmetic != "hf_bf16_reference":
+        raise ValueError("promoted softmax needs the BF16 source reference mode")
 
     torch.set_num_threads(8)
     hf_config = AutoConfig.from_pretrained(
@@ -147,6 +162,7 @@ def main() -> None:
         cfg = config_from_spark(
             raw_config, arithmetic_mode=args.export_arithmetic,
             cache_layout=args.cache_layout,
+            attention_accumulation=args.attention_accumulation,
         )
         step = SparkDecodeStep(cfg).eval()
         copied = load_spark_weights(step, args.model)
@@ -172,6 +188,8 @@ def main() -> None:
         state.seed(cached_tensors, position)
         steps: list[dict] = []
         bucket_transitions: list[dict] = []
+        traced_layer_hidden: list[dict] = []
+        traced_attention_matmuls: list[dict] = []
         for _ in range(args.decode_steps):
             decode_position = state.position
             if args.full_bucket_width and decode_position >= state.max_context:
@@ -190,6 +208,17 @@ def main() -> None:
                     if layer_type == SLIDING:
                         step_inputs[7 + 2 * i] = state.buffers[2 * i].index_select(2, order)
                         step_inputs[8 + 2 * i] = state.buffers[2 * i + 1].index_select(2, order)
+            if args.right_align_full:
+                capacity = state.max_context
+                step_inputs[6] = torch.full_like(step_inputs[6], float("-inf"))
+                step_inputs[6][:, :, :, capacity - decode_position:] = 0
+                for i, layer_type in enumerate(cfg.layer_types):
+                    if layer_type == FULL:
+                        for kv in (0, 1):
+                            source = state.buffers[2 * i + kv]
+                            packed = torch.zeros_like(source)
+                            packed[:, :, capacity - decode_position:] = source[:, :, :decode_position]
+                            step_inputs[7 + 2 * i + kv] = packed
             if args.compact_inputs:
                 compact_sw = args.compact_layer_type in ("all", "sliding")
                 compact_full = args.compact_layer_type in ("all", "full")
@@ -210,14 +239,130 @@ def main() -> None:
                             or (layer_type == FULL and compact_full)):
                         step_inputs[7 + 2 * i] = state.buffers[2 * i][:, :, :decode_position]
                         step_inputs[8 + 2 * i] = state.buffers[2 * i + 1][:, :, :decode_position]
-            out = step(*step_inputs)
-            ref = model(
-                torch.tensor([[current_token]]),
-                past_key_values=reference_cache,
-                cache_position=torch.tensor([decode_position]),
-                use_cache=True,
-                logits_to_keep=1,
-            )
+            hooks = []
+            export_hidden: dict[int, torch.Tensor] = {}
+            source_hidden: dict[int, torch.Tensor] = {}
+            if decode_position == args.trace_position:
+                for i, layer in enumerate(step.layers):
+                    hooks.append(layer.register_forward_hook(
+                        lambda _module, _inputs, output, index=i:
+                        export_hidden.__setitem__(index, output[0].detach().clone())
+                    ))
+                for i, layer in enumerate(model.model.layers):
+                    hooks.append(layer.register_forward_hook(
+                        lambda _module, _inputs, output, index=i:
+                        source_hidden.__setitem__(index, output.detach().clone())
+                    ))
+            export_matmuls: list[dict[str, torch.Tensor]] = []
+            source_matmuls: list[dict[str, torch.Tensor]] = []
+            def trace_matmuls(call, captured):
+                original = torch.matmul
+                def recording_matmul(left, right, *matmul_args, **matmul_kwargs):
+                    result = original(left, right, *matmul_args, **matmul_kwargs)
+                    captured.append({
+                        "left": left.detach().clone(),
+                        "right": right.detach().clone(),
+                        "output": result.detach().clone(),
+                    })
+                    return result
+                torch.matmul = recording_matmul
+                try:
+                    return call()
+                finally:
+                    torch.matmul = original
+            def run_step():
+                if args.softmax_accumulation == "source_fp32":
+                    return step(*step_inputs)
+                original = torch.softmax
+                def promoted_softmax(scores, dim, *softmax_args, **softmax_kwargs):
+                    return original(scores.double(), dim, *softmax_args,
+                                    **softmax_kwargs).float()
+                torch.softmax = promoted_softmax
+                try:
+                    return step(*step_inputs)
+                finally:
+                    torch.softmax = original
+            try:
+                if hooks:
+                    out = trace_matmuls(run_step, export_matmuls)
+                    ref = trace_matmuls(lambda: model(
+                        torch.tensor([[current_token]]),
+                        past_key_values=reference_cache,
+                        cache_position=torch.tensor([decode_position]),
+                        use_cache=True,
+                        logits_to_keep=1,
+                    ), source_matmuls)
+                else:
+                    out = run_step()
+                    ref = model(
+                        torch.tensor([[current_token]]),
+                        past_key_values=reference_cache,
+                        cache_position=torch.tensor([decode_position]),
+                        use_cache=True,
+                        logits_to_keep=1,
+                    )
+            finally:
+                for hook in hooks:
+                    hook.remove()
+            if hooks:
+                if len(export_hidden) != cfg.num_layers or len(source_hidden) != cfg.num_layers:
+                    raise ValueError("trace did not capture every source/export layer")
+                traced_layer_hidden = [
+                    {"layer": i,
+                     "relative_l2": relative_l2(source_hidden[i], export_hidden[i]),
+                     "bitwise_equal": torch.equal(source_hidden[i], export_hidden[i]),
+                     "max_abs_error": float((source_hidden[i].double()
+                                             - export_hidden[i].double()).abs().max())}
+                    for i in range(cfg.num_layers)
+                ]
+                if len(export_matmuls) != 2 * cfg.num_layers or len(source_matmuls) != 2 * cfg.num_layers:
+                    raise ValueError("trace did not capture two attention matmuls per layer")
+                for i, layer_type in enumerate(cfg.layer_types):
+                    source_score = source_matmuls[2 * i]["output"]
+                    export_score = export_matmuls[2 * i]["output"]
+                    if layer_type == FULL and not args.right_align_full:
+                        export_score = torch.cat(
+                            (export_score[..., :decode_position], export_score[..., -1:]),
+                            dim=-1,
+                        )
+                    elif layer_type == FULL and args.right_align_full:
+                        export_score = export_score[..., -decode_position - 1:]
+                    if export_score.shape != source_score.shape:
+                        raise ValueError(f"trace score shape mismatch at layer {i}")
+                    source_prob = source_matmuls[2 * i + 1]["left"]
+                    export_prob = export_matmuls[2 * i + 1]["left"]
+                    source_values = source_matmuls[2 * i + 1]["right"]
+                    export_values = export_matmuls[2 * i + 1]["right"]
+                    if layer_type == FULL and not args.right_align_full:
+                        export_prob = torch.cat(
+                            (export_prob[..., :decode_position], export_prob[..., -1:]),
+                            dim=-1,
+                        )
+                        export_values = torch.cat(
+                            (export_values[..., :decode_position, :],
+                             export_values[..., -1:, :]),
+                            dim=-2,
+                        )
+                    elif layer_type == FULL and args.right_align_full:
+                        export_prob = export_prob[..., -decode_position - 1:]
+                        export_values = export_values[..., -decode_position - 1:, :]
+                    if (export_prob.shape != source_prob.shape
+                            or export_values.shape != source_values.shape):
+                        raise ValueError(f"trace probability/value shape mismatch at layer {i}")
+                    source_value = source_matmuls[2 * i + 1]["output"]
+                    export_value = export_matmuls[2 * i + 1]["output"]
+                    traced_attention_matmuls.append({
+                        "layer": i,
+                        "layer_type": layer_type,
+                        "score_relative_l2": relative_l2(source_score, export_score),
+                        "score_bitwise_equal": torch.equal(source_score, export_score),
+                        "probability_relative_l2": relative_l2(source_prob, export_prob),
+                        "probability_bitwise_equal": torch.equal(source_prob, export_prob),
+                        "value_input_relative_l2": relative_l2(source_values, export_values),
+                        "value_input_bitwise_equal": torch.equal(source_values, export_values),
+                        "value_relative_l2": relative_l2(source_value, export_value),
+                        "value_bitwise_equal": torch.equal(source_value, export_value),
+                    })
             ref_logits = ref.logits[0, -1].float()
             got_logits = out[0][0].float()
             if not torch.isfinite(ref_logits).all() or not torch.isfinite(got_logits).all():
@@ -298,10 +443,16 @@ def main() -> None:
         "dtype": (f"HF {args.reference_dtype}; step {args.export_arithmetic}; "
                   "same checkpoint weights"),
         "export_arithmetic": args.export_arithmetic,
+        "attention_accumulation": args.attention_accumulation,
+        "softmax_accumulation": args.softmax_accumulation,
         "cache_layout": args.cache_layout,
         "compact_inputs": args.compact_inputs,
         "compact_layer_type": args.compact_layer_type,
         "ordered_sliding": args.ordered_sliding,
+        "right_align_full": args.right_align_full,
+        "trace_position": args.trace_position,
+        "traced_layer_hidden": traced_layer_hidden,
+        "traced_attention_matmuls": traced_attention_matmuls,
         "steps": steps,
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
