@@ -759,7 +759,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 # and never re-decode the finished phase while idling
                 state.step_in_chunk = 0
                 state.step_index = 0
+                # Idle steps emit nothing: stop the AR runner from grouping them as
+                # one chunk's denoise steps, so every idle step returns to the
+                # scheduler (where the client's prompt update arrives).
+                self.supports_chunk_step_grouping = False
                 return
+            self.__dict__.pop("supports_chunk_step_grouping", None)  # back to the class policy
             state.extra["taomate_held"] = False
             state.extra["taomate_prompt_version"] = version
             if state.prompt_embeds is None:

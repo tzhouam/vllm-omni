@@ -465,6 +465,7 @@ def test_hold_idles_at_a_request_boundary_until_a_prompt_update(monkeypatch) -> 
     assert state.extra["taomate_held"] is True
     assert state.step_in_chunk == 0  # the runner must not decode the held boundary again
     assert state.current_timestep is not None  # the runner's InputBatch still batches the held state
+    assert pipe.supports_chunk_step_grouping is False  # each idle step goes back to the scheduler
 
     applies = []
     monkeypatch.setattr(pipe, "apply_interaction_at_chunk_boundary", lambda s: applies.append(1), raising=False)
@@ -480,6 +481,7 @@ def test_hold_idles_at_a_request_boundary_until_a_prompt_update(monkeypatch) -> 
         pipe.denoise_step(None, states=[state])
     assert state.extra["taomate_held"] is False
     assert state.extra["taomate_prompt_version"] == 2
+    assert pipe.supports_chunk_step_grouping is True  # the started request's steps group again
 
 
 def test_hold_never_blocks_the_first_request_or_request_mode(monkeypatch) -> None:
