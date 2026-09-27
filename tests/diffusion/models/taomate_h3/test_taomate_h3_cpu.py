@@ -450,6 +450,8 @@ def _hold_state(chunk_index: int, applied_version: int):
     state.total_chunks = 400
     state.chunk_num_steps = 3
     state.step_in_chunk = 3
+    state.step_index = 3  # end of the previous phase, as the runner leaves it
+    state.timesteps = torch.tensor([1.0, 0.6, 0.3])
     state.prompt_embeds = torch.zeros(4, 8)
     state.extra = {"taomate_prompt_version": applied_version, "text_tags": torch.ones(4, dtype=torch.long)}
     state.interaction_sessions["prompt"] = SimpleNamespace(version=applied_version)
@@ -462,6 +464,7 @@ def test_hold_idles_at_a_request_boundary_until_a_prompt_update(monkeypatch) -> 
     pipe.prepare_next_chunk(state)
     assert state.extra["taomate_held"] is True
     assert state.step_in_chunk == 0  # the runner must not decode the held boundary again
+    assert state.current_timestep is not None  # the runner's InputBatch still batches the held state
 
     applies = []
     monkeypatch.setattr(pipe, "apply_interaction_at_chunk_boundary", lambda s: applies.append(1), raising=False)

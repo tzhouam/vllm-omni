@@ -755,7 +755,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 # Hold at the request boundary until the client locks this
                 # request's prompt; denoise_step polls (see _tm_hold_for_prompt).
                 state.extra["taomate_held"] = True
+                # the runner batches every scheduled state: keep a valid current timestep
+                # and never re-decode the finished phase while idling
                 state.step_in_chunk = 0
+                state.step_index = 0
                 return
             state.extra["taomate_held"] = False
             state.extra["taomate_prompt_version"] = version
