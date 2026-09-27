@@ -1,0 +1,62 @@
+# TaoMate-H3 streaming on two GPUs: pure Ulysses sequence parallel (USP2),
+# tensor parallel 1, AR-Diffusion stepwise engine, streaming output, FP8
+# online linears and CUDA-graph replay of the audio teacher.
+#
+# Serve (under a GPU reservation on the shared machine):
+#
+#   gpu run --gpus 2 --timeout 4h --note "taomate-h3 usp2" -- \
+#     vllm serve /path/to/MiniMax-H3/FL2VA --omni --trust-remote-code \
+#       --deploy-config vllm_omni/deploy/taomate_h3_usp2_realtime.yaml \
+#       --lora-path /path/to/TaoMate-H3 --port 8000
+#
+# Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): eager BF16 at
+# USP2 measures 6.3 s of wall time per 4.958 s request at 480x864 on two
+# H200-class GPUs (real-time factor 1.27), i.e. not real time. This config
+# turns on the two levers that do not change the generated content, FP8
+# linears and teacher CUDA graphs; their combined effect on two GPUs is not
+# measured yet (the four-GPU recipe stays the real-time deployment).
+
+pipeline: taomate_h3
+async_chunk: false
+distributed_executor_backend: mp
+dtype: bfloat16
+
+stages:
+  - stage_id: 0
+    devices: "0,1"
+    max_num_seqs: 1
+    enforce_eager: true
+    # Online FP8 weights and activations for the DiT linears (the LoRA hooks
+    # add their BF16 delta on top; the teacher shares the same weights).
+    quantization: fp8
+    model_class_name: TaoMateH3Pipeline
+    engine_backend: vllm_omni.experimental.ar_diffusion.engine.ARDiffusionEngine
+    step_execution: true
+    streaming_output: true
+    parallel_config:
+      tensor_parallel_size: 1
+      sequence_parallel_size: 2
+      ulysses_degree: 2
+      ring_degree: 1
+      text_encoder_tp_size: 2
+      vae_patch_parallel_size: 2
+      vae_parallel_mode: tile
+    default_sampling_params:
+      num_inference_steps: 3
+      output_type: np
+      fps: 24
+    model_config:
+      taomate_h3_width: 480
+      taomate_h3_height: 864
+      taomate_h3_seed: 8301
+      taomate_h3_audio_kv_reset_requests: 12
+      # One packed length per document kind (prompts up to 256 tokens), so
+      # the teacher's graphs are keyed by prompt length only.
+      taomate_h3_pad_text_tokens: 256
+      # Replay the audio teacher's nine forwards from CUDA graphs (one graph
+      # per document shape, LRU of taomate_h3_cuda_graph_max_entries).
+      taomate_h3_teacher_cuda_graph: true
+      taomate_h3_cuda_graph_max_entries: 16
+      ar_diffusion_kv_config:
+        gpu_memory_fraction: 0.02
+        warmup_cudagraph: true

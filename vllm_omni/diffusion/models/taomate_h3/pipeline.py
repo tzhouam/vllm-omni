@@ -47,9 +47,9 @@ from vllm_omni.diffusion.models.minimax_h3.packed_tokens import (
     minimax_h3_unpatchify_video_tokens,
 )
 from vllm_omni.diffusion.models.minimax_h3.pipeline_minimax_h3 import MiniMaxH3Pipeline
+from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.diffusion.worker.input_batch import InputBatch
 from vllm_omni.diffusion.worker.request_batch import DiffusionRequestBatch
-from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.diffusion.worker.utils import StepRequestState
 from vllm_omni.errors import OmniClientError
 from vllm_omni.experimental.ar_diffusion.capability import ARDiffusionKVBranchSpec, ARDiffusionKVCacheSpec
@@ -59,13 +59,14 @@ from vllm_omni.inputs.data import OmniDiffusionSamplingParams
 from vllm_omni.model_executor.models.minimax_h3.conditioning import MiniMaxH3EncoderMediaInput
 from vllm_omni.model_executor.models.minimax_h3.encoder_processing import PreparedEncoderInputs
 
-from .attention import StreamContext, StreamMode, stream_context
+from .attention import StreamContext, StreamMode, _ulysses_state, stream_context
 from .audio_teacher import (
     ROLLOVER_LATENTS_PER_CHANNEL,
     TaoMateAudioTeacher,
     TeacherResult,
     official_request_noise,
 )
+from .cuda_graph import GraphedForward
 from .geometry import (
     AUDIO_SAMPLE_RATE,
     PHASE_GROUP_COUNTS,
@@ -92,8 +93,7 @@ NUM_PHASES = len(PHASE_GROUP_COUNTS)
 # Largest per-phase audio latent count over the first and the steady-state
 # request geometries (audio boundaries are rounded on the global timeline).
 _MAX_PHASE_AUDIO_LATENTS = tuple(
-    max(request_plan(index).phases[phase].audio_latent_count for index in range(0, 8))
-    for phase in range(NUM_PHASES)
+    max(request_plan(index).phases[phase].audio_latent_count for index in range(0, 8)) for phase in range(NUM_PHASES)
 )
 STUDENT_STEPS = 3
 DEFAULT_SEED = 8301
@@ -255,7 +255,9 @@ class _Session:
             self.media_time_origin = text_len
         if index > 0 and self.audio_kv_reset_requests > 0 and index % self.audio_kv_reset_requests == 0:
             dropped = self.cache.drop_audio_history()
-            logger.info("TaoMate-H3 session %s: dropped %d audio KV rows at request %d", self.session_id, dropped, index)
+            logger.info(
+                "TaoMate-H3 session %s: dropped %d audio KV rows at request %d", self.session_id, dropped, index
+            )
         self.request = _RequestState(
             index=index,
             plan=plan,
@@ -418,6 +420,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._tm_pad_text_tokens = int(pad_text) if pad_text else 0
         # Per-phase stage timings in the log (adds device synchronizations).
         self._tm_log_timings = bool(model_config.get("taomate_h3_log_timings", False))
+        # Opt-in CUDA-graph replay of the audio teacher's nine launch-bound
+        # forwards (one graph per document shape; see cuda_graph.py).
+        self._tm_teacher_cuda_graph = bool(model_config.get("taomate_h3_teacher_cuda_graph", False))
+        self._tm_cuda_graph_max_entries = int(model_config.get("taomate_h3_cuda_graph_max_entries", 16))
+        if self._tm_cuda_graph_max_entries < 1:
+            raise ValueError("taomate_h3_cuda_graph_max_entries must be at least 1")
         # Opt-in just-in-time prompt lock for clients that choose each request's
         # prompt at the last moment: request k >= 1 starts only after a prompt
         # update was applied since request k-1 started. Until then the session
@@ -431,6 +439,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._tm_output_rank = int(self._dit_rank) == 0
         self.taomate_lora: TaoMateLoRAAdapter | None = None
         self._tm_teacher: TaoMateAudioTeacher | None = None
+        self._tm_teacher_graph: GraphedForward | None = None
         self._tm_sessions: dict[str, _Session] = {}
         self._ar_diffusion_kv_state: ARDiffusionKVState | None = None
         if getattr(self, "transformers_ref", None) is not None:
@@ -462,7 +471,22 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 "TaoMate-H3 requires --lora-path pointing at the TaoLiveAIGC/TaoMate-H3 adapter; "
                 "set model_config.taomate_h3_allow_no_lora=true to stream the base H3 without it"
             )
-        self._tm_teacher = TaoMateAudioTeacher(self.transformer, lora=self.taomate_lora, device=self.device)
+        graph: GraphedForward | None = None
+        if self._tm_teacher_cuda_graph:
+            _, _, group = _ulysses_state()
+            graph = GraphedForward(
+                self.transformer,
+                device=self.device,
+                max_entries=self._tm_cuda_graph_max_entries,
+                group=group,
+                name="TaoMate-H3 teacher",
+            )
+            if not graph.enabled:
+                logger.warning("TaoMate-H3 teacher CUDA graphs requested but the device is not CUDA; running eager")
+        self._tm_teacher_graph = graph
+        self._tm_teacher = TaoMateAudioTeacher(
+            self.transformer, lora=self.taomate_lora, device=self.device, graph=graph
+        )
         return loaded
 
     @property
@@ -575,7 +599,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         session = self._tm_sessions.pop(session_id, None)
         if session is not None:
             session.close()
-            torch.cuda.empty_cache() if torch.cuda.is_available() else None
+            if torch.cuda.is_available():
+                torch.accelerator.empty_cache()
 
     def _require_bound_ar_state(self) -> None:
         if self._ar_diffusion_kv_state is None:
@@ -775,7 +800,9 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             if text_embeddings.ndim == 3 and text_embeddings.shape[0] == 1:
                 text_embeddings = text_embeddings[0]
             if text_embeddings.ndim != 2:
-                raise RuntimeError(f"TaoMate-H3 prompt embeddings must be [L, 5120], got {tuple(text_embeddings.shape)}")
+                raise RuntimeError(
+                    f"TaoMate-H3 prompt embeddings must be [L, 5120], got {tuple(text_embeddings.shape)}"
+                )
             tags = state.extra.get("text_tags")
             if tags is None or int(tags.shape[0]) != int(text_embeddings.shape[0]):
                 # A prompt interaction replaced the embeddings; TaoMate prompts are plain text rows.
@@ -867,7 +894,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         with stream_context(session.stream_context(StreamMode.NOISY)), torch.inference_mode():
             velocity_video, _ = self.transformer(**forward_kwargs)
         if self._tm_log_timings:
-            torch.cuda.synchronize() if velocity_video.is_cuda else None
+            if velocity_video.is_cuda:
+                torch.accelerator.synchronize()
         phase_state.timings["denoise"] = phase_state.timings.get("denoise", 0.0) + (time.perf_counter() - started)
         session.stats["student_forwards"] += 1
         return velocity_video.float()
@@ -930,7 +958,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         cache.retain_sink_and_recent_commits()
         session.stats["clean_forwards"] += 1
         if self._tm_log_timings and torch.cuda.is_available():
-            torch.cuda.synchronize()
+            torch.accelerator.synchronize()
         phase_state.timings["commit"] = time.perf_counter() - commit_started
 
         # Publish this phase: incremental video decode plus the aligned audio.
@@ -967,9 +995,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         session.frames_published = frame_start + num_frames
         phase_seconds = time.perf_counter() - phase_state.started_at
         if self._tm_log_timings:
+            graph = self._tm_teacher_graph
             logger.info(
                 "TaoMate-H3 %s request %d phase %d: %.3f s total (teacher %.3f, denoise x3 %.3f, commit %.3f, "
-                "video decode %.3f, audio decode %.3f), %d frames, history %d rows",
+                "video decode %.3f, audio decode %.3f), %d frames, history %d rows%s",
                 session.session_id,
                 request.index,
                 phase.index,
@@ -981,9 +1010,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 phase_state.timings.get("audio_decode", 0.0),
                 num_frames,
                 cache.history_tokens,
+                "" if graph is None else f", teacher graphs {graph.stats()}",
             )
         payload: dict[str, Any] = {
-            "video": frames if frames is not None else np.zeros((0, session.canvas.height, session.canvas.width, 3), np.uint8),
+            "video": frames
+            if frames is not None
+            else np.zeros((0, session.canvas.height, session.canvas.width, 3), np.uint8),
             "audio": audio,
         }
         metadata: dict[str, Any] = {

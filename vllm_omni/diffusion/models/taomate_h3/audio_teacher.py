@@ -25,10 +25,12 @@ import torch.nn as nn
 
 from vllm_omni.diffusion.models.minimax_h3.denoise_loop import MiniMaxH3DenoiseBranch
 
+from .cuda_graph import GraphedForward
 from .geometry import REQUEST_AUDIO_LATENTS, REQUEST_VIDEO_LATENTS, CanvasGeometry, StreamPlan
 from .lora import TaoMateLoRAAdapter
 from .packed import taomate_audio_only_frozen_prefix_packed_layout, taomate_audio_only_packed_layout
 from .schedule import TEACHER_STATE_NUMBERS, euler_eta0_update_, teacher_sigmas
+from .transformer import LocalEmbedPlan, local_embed_plan
 
 ROLLOVER_LATENTS_PER_CHANNEL = 40
 AUDIO_ROW_WIDTH = 32
@@ -58,7 +60,9 @@ def official_request_noise(
         dtype=torch.float32,
         device="cpu",
     )
-    audio = torch.randn(2 * REQUEST_AUDIO_LATENTS, AUDIO_ROW_WIDTH, generator=generator, dtype=torch.float32, device="cpu")
+    audio = torch.randn(
+        2 * REQUEST_AUDIO_LATENTS, AUDIO_ROW_WIDTH, generator=generator, dtype=torch.float32, device="cpu"
+    )
     return video, audio
 
 
@@ -84,11 +88,15 @@ class TaoMateAudioTeacher:
         *,
         lora: TaoMateLoRAAdapter | None,
         device: torch.device,
+        graph: GraphedForward | None = None,
     ) -> None:
         self.transformer = transformer
         self.lora = lora
         self.device = device
+        # Optional CUDA-graph replay of the nine fixed-shape forwards.
+        self.graph = graph
         self.sigmas_video, self.sigmas_audio = teacher_sigmas()
+        self.forwards = 0
 
     def build_branch(
         self,
@@ -129,6 +137,19 @@ class TaoMateAudioTeacher:
             device=self.device,
         )
         branch.prepare_rope_table(self.transformer)
+        attach_teacher_timestep_slots(branch)
+        plan_local = getattr(self.transformer, "plan_local_embed", None)
+        branch.taomate_embed_plan = (
+            plan_local(
+                img_pos=branch.img_pos,
+                audio_pos=branch.audio_pos,
+                text_pos=packed["text_pos"],
+                seq_len=branch.seq_len,
+                device=self.device,
+            )
+            if callable(plan_local)
+            else None
+        )
         return branch
 
     @torch.inference_mode()
@@ -182,20 +203,21 @@ class TaoMateAudioTeacher:
         captured: dict[int, torch.Tensor] = {}
         steps = len(self.sigmas_video) - 1
         lora_scope = self.lora.disabled() if self.lora is not None else _NullScope()
-        with lora_scope:
+        plan: LocalEmbedPlan | None = getattr(branch, "taomate_embed_plan", None)
+        with lora_scope, local_embed_plan(plan):
             for step in range(steps):
-                s_v, s_v_next = self.sigmas_video[step], self.sigmas_video[step + 1]
+                s_v = self.sigmas_video[step]
                 s_a, s_a_next = self.sigmas_audio[step], self.sigmas_audio[step + 1]
                 t_v, t_a = 1.0 - s_v, 1.0 - s_a
-                forward_kwargs = branch.forward_kwargs(
+                forward_kwargs = teacher_forward_kwargs(
+                    branch,
                     video_rows=video_rows,
                     audio_rows=audio_rows,
                     t_video=t_v,
                     t_audio=t_a,
-                    imgvid_cond_timestep=t_v,
-                    audio_ref_cond_timestep=1.0,
                 )
-                _, velocity_audio = self.transformer(**forward_kwargs)
+                _, velocity_audio = self._forward(forward_kwargs, plan=plan)
+                self.forwards += 1
                 velocity_target = velocity_audio.float()[target]
                 target_rows = audio_rows[ref_rows:]
                 euler_eta0_update_(target_rows, velocity_target, sigma_curr=s_a, sigma_next=s_a_next)
@@ -204,6 +226,67 @@ class TaoMateAudioTeacher:
                     captured[state_number] = target_rows.detach().clone()
         milestones = [captured[number] for number in TEACHER_STATE_NUMBERS]
         return TeacherResult(milestones=milestones, audio_latent_count=active_audio_latents, forwards=steps)
+
+    def _forward(self, forward_kwargs: dict, *, plan: LocalEmbedPlan | None) -> tuple[torch.Tensor, torch.Tensor]:
+        graph = self.graph
+        if graph is None or not graph.enabled:
+            return self.transformer(**forward_kwargs)
+        # The graph is captured with the LoRA hooks disabled and this
+        # document's embedding plan installed; both are part of its identity.
+        variant = ("teacher", "lora_off", None if plan is None else plan.fingerprint)
+        return graph(variant=variant, **forward_kwargs)
+
+
+# Timestep slots of a teacher document: every row's AdaLN timestep is one of
+# three values, so ``unique_timesteps`` is written as a fixed three-row vector
+# and ``inverse_indices`` as a constant slot map. This replaces the per-forward
+# ``torch.unique`` (a host synchronization) and keeps the timestep tensors at
+# one shape for CUDA-graph replay. Duplicate slot values (both timesteps are 0
+# at the first step) are harmless: the DiT gathers per row, uniqueness is not
+# required.
+TEACHER_SLOT_TEXT = 0  # text and padding rows: the video timestep
+TEACHER_SLOT_REFERENCE = 1  # clean reference audio rows: timestep 1
+TEACHER_SLOT_TARGET = 2  # denoised audio rows: the audio timestep
+
+
+def attach_teacher_timestep_slots(branch: MiniMaxH3DenoiseBranch) -> torch.Tensor:
+    """Store the branch's constant slot map (``branch.taomate_inverse_indices``)."""
+    inverse = torch.full((branch.seq_len,), TEACHER_SLOT_TEXT, dtype=torch.long)
+    audio_pos = branch.audio_pos.view(-1).to(torch.long)
+    update = branch.audio_update_mask.view(-1).to(torch.bool)
+    inverse[audio_pos[~update]] = TEACHER_SLOT_REFERENCE
+    inverse[audio_pos[update]] = TEACHER_SLOT_TARGET
+    if branch.img_pos.numel():
+        raise ValueError("teacher documents carry no video rows")
+    branch.taomate_inverse_indices = inverse.to(branch.device)
+    return branch.taomate_inverse_indices
+
+
+def teacher_forward_kwargs(
+    branch: MiniMaxH3DenoiseBranch,
+    *,
+    video_rows: torch.Tensor,
+    audio_rows: torch.Tensor,
+    t_video: float,
+    t_audio: float,
+) -> dict:
+    """The branch's forward kwargs with fixed-slot timesteps (no host sync)."""
+    inverse = getattr(branch, "taomate_inverse_indices", None)
+    if inverse is None:
+        inverse = attach_teacher_timestep_slots(branch)
+    x = branch.x_base.clone()
+    if video_rows.shape[0]:
+        x[0].index_copy_(0, branch.img_pos_dev, video_rows)
+    audio_x = branch.audio_x_base.clone()
+    audio_x[0].index_copy_(0, branch.audio_pos_dev, audio_rows)
+    unique = torch.tensor([float(t_video), 1.0, float(t_audio)], dtype=torch.float32, device=branch.device)
+    return {
+        **branch.static_kwargs,
+        "x": x,
+        "audio_x": audio_x,
+        "unique_timesteps": unique,
+        "inverse_indices": inverse,
+    }
 
 
 class _NullScope:
@@ -214,4 +297,11 @@ class _NullScope:
         return None
 
 
-__all__ = ["ROLLOVER_LATENTS_PER_CHANNEL", "TaoMateAudioTeacher", "TeacherResult", "official_request_noise"]
+__all__ = [
+    "ROLLOVER_LATENTS_PER_CHANNEL",
+    "TaoMateAudioTeacher",
+    "TeacherResult",
+    "attach_teacher_timestep_slots",
+    "official_request_noise",
+    "teacher_forward_kwargs",
+]

@@ -57,6 +57,8 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_log_timings` | false | Log per-phase stage timings (adds device synchronizations) |
 | `taomate_h3_hold_for_prompt` | false | Just-in-time lock: request `k >= 1` starts only after a `session.interaction` prompt update arrived since request `k-1` started; until then the stream idles at the request boundary (send `session.ping` to keep the stall timer fresh). For clients that choose every request's prompt at the last moment |
 | `taomate_h3_hold_poll_seconds` | 0.02 | Idle-step period while a request boundary is held |
+| `taomate_h3_teacher_cuda_graph` | false | Replay the audio teacher's nine forwards from CUDA graphs, one graph per document shape (prompt length, first or later request, reference tail or not). The first capture is checked with `torch.cuda.set_sync_debug_mode("error")`; any capture failure falls back to eager for the rest of the process, agreed across the Ulysses group |
+| `taomate_h3_cuda_graph_max_entries` | 16 | Resident teacher graphs (least recently used shape evicted); they share one memory pool |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
 one throwaway five-second request at load time (the pipeline opts into this warmup in eager
@@ -103,6 +105,39 @@ forwards 0.42 s, clean commit 0.15 s, video decode 0.2 s, audio decode 0.03 s. R
 `torch.compile` (`enforce_eager: false`, `VLLM_OMNI_TORCH_DYNAMO_RECOMPILE_LIMIT=64`) and
 FP8 online linears (`quantization: fp8`) gave no steady-state gain over eager here (4.3 s per
 request); the launch-bound teacher forwards and the per-phase VAE decode are the next targets.
+
+## Two GPUs (USP2): `vllm_omni/deploy/taomate_h3_usp2_realtime.yaml`
+
+The two-GPU config keeps TP=1 and splits the heads across two Ulysses ranks
+(`sequence_parallel_size: 2`, `text_encoder_tp_size: 2`, `vae_patch_parallel_size: 2`).
+Memory per rank in eager BF16 is 100.7 GB after load (measured locally). Eager BF16 is
+**not** real time on two H200-class GPUs at 480x864 (measured locally, 2026-09-28, five
+requests, constant prompt, `taomate_h3_log_timings: true`, rank 0):
+
+| Stage | 34-frame phase | 17-frame phase |
+| --- | --- | --- |
+| audio teacher (once per request, 9 forwards) | 0.78-0.84 s | - |
+| 3 student forwards | 0.77-0.81 s | 0.43 s |
+| clean-commit forward + cache append | 0.29-0.32 s | 0.16 s |
+| tile-parallel video VAE decode | 0.35-0.37 s | 0.18 s |
+| audio VAE decode | 0.03 s | 0.03 s |
+
+Per request: 2.29 + 1.55 + 1.59 + 0.86 = 6.3 s of wall time for 4.958 s of content
+(real-time factor 1.27; the client saw 6.4 s between request starts). Against the USP4
+breakdown the DiT forwards take 1.9x longer per rank (2200 instead of 1100 rows through the
+linears, twice the heads in attention), the VAE decode 1.8x, and the launch-bound teacher
+is unchanged.
+
+The two-GPU deploy config therefore enables the levers that leave the generated content
+unchanged: `quantization: fp8` for the DiT linears (the GEMMs are about 60% of a student
+forward at USP2, estimate from parameter and row counts) and `taomate_h3_teacher_cuda_graph`
+(the teacher's forwards run a few hundred rows and are launch-bound at about 85-90 ms each;
+their device work is a fraction of that). Their combined effect on two GPUs is **not measured
+yet**; the budget they must reach is 4.958 s per request, of which the VAE decode alone takes
+1.26 s at USP2. Reusing the last denoise step's K/V instead of the clean-commit forward (the
+LingBot-World `reuse_last_step_kv` pattern) is not offered: TaoMate's last student forward
+runs at sigma 0.853 of the shift-12 schedule (the ladder is 1.0, 0.961, 0.853, 0), far from
+the clean K/V the model was trained to attend to.
 
 ## Limits
 
