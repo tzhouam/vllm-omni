@@ -55,6 +55,8 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_allow_no_lora` | false | Stream the base H3 without the adapter (debugging only) |
 | `taomate_h3_pad_text_tokens` | unset | Prompt token budget that pins every phase and teacher document to one packed length per kind (for compiled or CUDA-graph runs) |
 | `taomate_h3_log_timings` | false | Log per-phase stage timings (adds device synchronizations) |
+| `taomate_h3_hold_for_prompt` | false | Just-in-time lock: request `k >= 1` starts only after a `session.interaction` prompt update arrived since request `k-1` started; until then the stream idles at the request boundary (send `session.ping` to keep the stall timer fresh). For clients that choose every request's prompt at the last moment |
+| `taomate_h3_hold_poll_seconds` | 0.02 | Idle-step period while a request boundary is held |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
 one throwaway five-second request at load time (the pipeline opts into this warmup in eager

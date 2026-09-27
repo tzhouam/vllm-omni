@@ -407,3 +407,86 @@ def test_pinned_lengths_cover_every_phase_and_teacher_document() -> None:
     assert teacher_first == -(-(128 + 2 * 207) // 64) * 64
     assert teacher_next == -(-(128 + 2 * (207 + ROLLOVER_LATENTS_PER_CHANNEL)) // 64) * 64
     assert session.pinned_phase_seq_len(plan.phases[0], text_len=200) is None
+
+
+# ----------------------------------------------------------------------------
+# just-in-time prompt hold (model_config.taomate_h3_hold_for_prompt)
+
+
+_NUM_PHASES = 4  # 34/34/34/17-frame phases per five-second request
+
+
+class _RequestStarted(Exception):
+    pass
+
+
+def _hold_pipeline(monkeypatch):
+    from types import SimpleNamespace
+
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import TaoMateH3Pipeline
+
+    pipe = object.__new__(TaoMateH3Pipeline)  # no weights: only the boundary logic runs
+    pipe._tm_hold_for_prompt = True
+    pipe._tm_hold_poll_seconds = 0.0
+    monkeypatch.setattr(TaoMateH3Pipeline, "device", torch.device("cpu"), raising=False)
+
+    def begin_request(**kwargs):
+        raise _RequestStarted
+
+    session = SimpleNamespace(begin_request=begin_request)
+    monkeypatch.setattr(pipe, "_session", lambda state: session, raising=False)
+    monkeypatch.setattr(pipe, "_require_bound_ar_state", lambda: None, raising=False)
+    return pipe
+
+
+def _hold_state(chunk_index: int, applied_version: int):
+    from types import SimpleNamespace
+
+    from vllm_omni.diffusion.worker.utils import StepRequestState
+    from vllm_omni.inputs.data import OmniDiffusionSamplingParams
+
+    state = StepRequestState(request_id="r", sampling=OmniDiffusionSamplingParams())
+    state.chunk_index = chunk_index
+    state.total_chunks = 400
+    state.chunk_num_steps = 3
+    state.step_in_chunk = 3
+    state.prompt_embeds = torch.zeros(4, 8)
+    state.extra = {"taomate_prompt_version": applied_version, "text_tags": torch.ones(4, dtype=torch.long)}
+    state.interaction_sessions["prompt"] = SimpleNamespace(version=applied_version)
+    return state
+
+
+def test_hold_idles_at_a_request_boundary_until_a_prompt_update(monkeypatch) -> None:
+    pipe = _hold_pipeline(monkeypatch)
+    state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)  # request 1, no new prompt yet
+    pipe.prepare_next_chunk(state)
+    assert state.extra["taomate_held"] is True
+    assert state.step_in_chunk == 0  # the runner must not decode the held boundary again
+
+    applies = []
+    monkeypatch.setattr(pipe, "apply_interaction_at_chunk_boundary", lambda s: applies.append(1), raising=False)
+    assert pipe.denoise_step(None, states=[state]) is None  # idle step
+    pipe.step_scheduler(state, None)  # no-op while held
+    assert state.step_in_chunk == 0 and applies == [1]
+
+    def apply_prompt(s):
+        s.interaction_sessions["prompt"].version += 1
+
+    monkeypatch.setattr(pipe, "apply_interaction_at_chunk_boundary", apply_prompt, raising=False)
+    with pytest.raises(_RequestStarted):  # the new prompt releases the hold and starts request 1
+        pipe.denoise_step(None, states=[state])
+    assert state.extra["taomate_held"] is False
+    assert state.extra["taomate_prompt_version"] == 2
+
+
+def test_hold_never_blocks_the_first_request_or_request_mode(monkeypatch) -> None:
+    pipe = _hold_pipeline(monkeypatch)
+    with pytest.raises(_RequestStarted):  # request 0 uses the session.start prompt
+        pipe.prepare_next_chunk(_hold_state(chunk_index=0, applied_version=0))
+    state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)
+    state.extra["taomate_no_hold"] = True
+    with pytest.raises(_RequestStarted):
+        pipe.prepare_next_chunk(state)
+    pipe._tm_hold_for_prompt = False
+    with pytest.raises(_RequestStarted):  # default: free-running stream keeps the last prompt
+        pipe.prepare_next_chunk(_hold_state(chunk_index=_NUM_PHASES, applied_version=1))

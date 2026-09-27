@@ -109,6 +109,12 @@ _AUDIO_ROW_WIDTH = 32
 _AR_BRANCH = "main"
 
 
+def _prompt_version(state: StepRequestState) -> int:
+    """Count of prompt updates applied to this stream (bumped by the prompt interaction handler)."""
+    session = state.interaction_sessions.get("prompt")
+    return int(getattr(session, "version", 0) or 0)
+
+
 def _validate_parallel_config(od_config: OmniDiffusionConfig) -> None:
     parallel = od_config.parallel_config
     tp = int(getattr(parallel, "tensor_parallel_size", 1) or 1)
@@ -412,6 +418,14 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._tm_pad_text_tokens = int(pad_text) if pad_text else 0
         # Per-phase stage timings in the log (adds device synchronizations).
         self._tm_log_timings = bool(model_config.get("taomate_h3_log_timings", False))
+        # Opt-in just-in-time prompt lock for clients that choose each request's
+        # prompt at the last moment: request k >= 1 starts only after a prompt
+        # update was applied since request k-1 started. Until then the session
+        # idles at the request boundary (one short no-op step per poll), so the
+        # stream cannot run ahead of the client and start a request on a stale
+        # prompt. Off by default: the free-running stream keeps the last prompt.
+        self._tm_hold_for_prompt = bool(model_config.get("taomate_h3_hold_for_prompt", False))
+        self._tm_hold_poll_seconds = float(model_config.get("taomate_h3_hold_poll_seconds", 0.02))
         # The executor returns the output of DiT rank 0; the other ranks take
         # part in the collectives but do not convert or decode media.
         self._tm_output_rank = int(self._dit_rank) == 0
@@ -597,6 +611,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         req = request.requests[0]
         state = StepRequestState(request_id=req.request_id, sampling=req.sampling_params, prompt=req.prompt)
         self.prepare_encode(state)
+        state.extra["taomate_no_hold"] = True  # one call, no client to wait for
         self.prepare_next_chunk(state)
         frames: list[np.ndarray] = []
         audio: list[np.ndarray] = []
@@ -730,6 +745,20 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         session = self._session(state)
         phase_index = state.chunk_index % NUM_PHASES
         if phase_index == 0:
+            version = _prompt_version(state)
+            if (
+                self._tm_hold_for_prompt
+                and state.chunk_index >= NUM_PHASES
+                and not state.extra.get("taomate_no_hold")
+                and version <= int(state.extra.get("taomate_prompt_version", 0))
+            ):
+                # Hold at the request boundary until the client locks this
+                # request's prompt; denoise_step polls (see _tm_hold_for_prompt).
+                state.extra["taomate_held"] = True
+                state.step_in_chunk = 0
+                return
+            state.extra["taomate_held"] = False
+            state.extra["taomate_prompt_version"] = version
             if state.prompt_embeds is None:
                 raise RuntimeError("TaoMate-H3 request needs prompt embeddings")
             text_embeddings = state.prompt_embeds
@@ -795,6 +824,15 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             raise ValueError("TaoMate-H3 step execution serves one session per forward")
         self._require_bound_ar_state()
         state = states[0]
+        if state.extra.get("taomate_held"):
+            # Still at a held request boundary: apply any prompt the client sent
+            # since the last step (the same interaction sequence reaches every
+            # rank, so all ranks decide alike), then start the request or idle.
+            self.apply_interaction_at_chunk_boundary(state)
+            self.prepare_next_chunk(state)
+            if state.extra.get("taomate_held"):
+                time.sleep(self._tm_hold_poll_seconds)
+                return None
         session = self._session(state)
         request = session.request
         phase_state = session.phase
@@ -826,8 +864,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         session.stats["student_forwards"] += 1
         return velocity_video.float()
 
-    def step_scheduler(self, state: StepRequestState, noise_pred: torch.Tensor, **kwargs: Any) -> None:
+    def step_scheduler(self, state: StepRequestState, noise_pred: torch.Tensor | None, **kwargs: Any) -> None:
         del kwargs
+        if noise_pred is None and state.extra.get("taomate_held"):
+            return  # idle step at a held request boundary: nothing advances
         session = self._session(state)
         request = session.request
         phase_state = session.phase
