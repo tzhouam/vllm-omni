@@ -62,19 +62,60 @@ def text_only_positions(ids: torch.Tensor) -> torch.Tensor:
     return torch.arange(length, device=ids.device, dtype=ids.dtype).view(1, 1, -1).expand(3, 1, -1)
 
 
+def rotary_embeddings_graph_safe(
+    rotary: nn.Module, inv_freq: torch.Tensor, positions: torch.Tensor, dtype: torch.dtype
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """``rotary.forward`` with a device-resident ``inv_freq``.
+
+    The encoder's rotary module recomputes ``inv_freq`` on the host and copies
+    it to the device at every call; that copy synchronizes and cannot be
+    captured. The math below is the module's, on the same inputs.
+    """
+    from vllm_omni.diffusion.models.minimax_h3.encoder import _apply_interleaved_mrope
+
+    inv_freq_expanded = inv_freq[None, None, :, None].float().expand(3, positions.shape[1], -1, 1)
+    position_ids_expanded = positions[:, :, None, :].float()
+    freqs = (inv_freq_expanded.float() @ position_ids_expanded.float()).transpose(2, 3)
+    freqs = _apply_interleaved_mrope(freqs, rotary.mrope_section)
+    emb = torch.cat((freqs, freqs), dim=-1)
+    return emb.cos().to(dtype=dtype), emb.sin().to(dtype=dtype)
+
+
 class GraphSafeTextEncode(nn.Module):
     """``encoder._encode`` for text-only prompts, written for CUDA-graph capture."""
 
     def __init__(self, encoder: nn.Module) -> None:
         super().__init__()
         self.encoder = encoder
+        rotary = getattr(encoder.text_model, "rotary_emb", None)
+        get_inv_freq = getattr(rotary, "_get_inv_freq", None)
+        device = getattr(encoder, "device_target", None)
+        self.inv_freq: torch.Tensor | None = None
+        if callable(get_inv_freq) and device is not None:
+            # One host-to-device copy at construction instead of one per forward.
+            self.inv_freq = get_inv_freq(torch.device(device)).contiguous()
 
     def forward(self, *, input_ids: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
         text_model = self.encoder.text_model
         ids = input_ids.view(1, -1).to(torch.long)
-        inputs_embeds = embed_tokens_graph_safe(text_model.embed_tokens, ids)
-        hidden = text_model(inputs_embeds, text_only_positions(ids))[0]
-        return hidden.to(torch.bfloat16)
+        hidden = embed_tokens_graph_safe(text_model.embed_tokens, ids)
+        positions = text_only_positions(ids)
+        if self.inv_freq is None:
+            hidden = text_model(hidden, positions)
+        else:
+            # text_model.forward without the deepstack branch (text-only prompt).
+            position_embeddings = rotary_embeddings_graph_safe(
+                text_model.rotary_emb, self.inv_freq, positions, hidden.dtype
+            )
+            for layer in text_model.layers:
+                hidden = layer(hidden, position_embeddings=position_embeddings)
+        return hidden[0].to(torch.bfloat16)
 
 
-__all__ = ["GraphSafeTextEncode", "cudnn_sdp_enabled", "embed_tokens_graph_safe", "text_only_positions"]
+__all__ = [
+    "GraphSafeTextEncode",
+    "cudnn_sdp_enabled",
+    "embed_tokens_graph_safe",
+    "rotary_embeddings_graph_safe",
+    "text_only_positions",
+]

@@ -73,8 +73,26 @@ def test_graph_safe_text_encode_runs_the_text_model_on_the_embedding() -> None:
         return inputs_embeds * 2.0
 
     text_model.embed_tokens = SimpleNamespace(_tp_size=1, weight=torch.arange(8.0).view(4, 2))  # type: ignore[attr-defined]
-    module = GraphSafeTextEncode(SimpleNamespace(text_model=text_model))
+    module = GraphSafeTextEncode(SimpleNamespace(text_model=text_model))  # no rotary module: whole-model path
+    assert module.inv_freq is None
     hidden = module(input_ids=torch.tensor([3, 1, 0]))
     assert hidden.dtype == torch.bfloat16 and tuple(hidden.shape) == (3, 2)
     assert torch.equal(hidden.float(), torch.tensor([[12.0, 14.0], [4.0, 6.0], [0.0, 2.0]]))
     assert tuple(seen["positions"].shape) == (3, 1, 3)
+
+
+def test_graph_safe_rotary_matches_the_encoder_module() -> None:
+    """The wrapper's rotary math equals the encoder module's forward for text-only positions."""
+    from vllm_omni.diffusion.models.minimax_h3.encoder import MiniMaxH3Qwen3VLTextRotaryEmbedding
+    from vllm_omni.diffusion.models.taomate_h3.text_encode import rotary_embeddings_graph_safe
+
+    rotary = MiniMaxH3Qwen3VLTextRotaryEmbedding.__new__(MiniMaxH3Qwen3VLTextRotaryEmbedding)
+    torch.nn.Module.__init__(rotary)
+    rotary.dim = 16
+    rotary.base = 10000.0
+    rotary.mrope_section = [4, 2, 2]
+    positions = text_only_positions(torch.zeros(1, 7, dtype=torch.long))
+    x = torch.zeros(1, 7, 16, dtype=torch.bfloat16)
+    cos_ref, sin_ref = rotary(x, positions)
+    cos, sin = rotary_embeddings_graph_safe(rotary, rotary._get_inv_freq(torch.device("cpu")), positions, x.dtype)
+    assert torch.equal(cos, cos_ref) and torch.equal(sin, sin_ref)

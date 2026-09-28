@@ -33,6 +33,7 @@ group when one is given) and the caller falls back to eager execution.
 from __future__ import annotations
 
 import dataclasses
+import traceback
 from collections import OrderedDict
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -294,6 +295,7 @@ class GraphedForward:
                     self._pool = graph.pool()
         except Exception as exc:  # noqa: BLE001 - any capture failure means eager from now on
             failure = f"{type(exc).__name__}: {exc}"
+            logger.warning("%s CUDA graph capture failed:\n%s", self.name, traceback.format_exc())
         ok = self._agree(failure is None)
         if not ok:
             del graph, outputs, static
