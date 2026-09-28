@@ -543,6 +543,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # projections (a few rows per layer) are recomputed and the student
         # forwards run without that synchronization.
         self._tm_adaln_cache = bool(model_config.get("taomate_h3_adaln_cache", True))
+        # Run the phase's video VAE decode on a second CUDA stream, queued
+        # before the clean-commit forward, so the launch-bound commit and the
+        # device-bound decode overlap (the decode only needs the clean latents).
+        self._tm_decode_overlap = bool(model_config.get("taomate_h3_decode_overlap", False))
+        self._tm_decode_stream: Any = None
         if self._tm_cuda_graph_max_entries < 1:
             raise ValueError("taomate_h3_cuda_graph_max_entries must be at least 1")
         # Requests of the load-time warmup session. Later requests cycle
@@ -1081,6 +1086,14 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         state.step_index = 0
         state.step_in_chunk = 0
 
+    def _decode_stream(self) -> Any:
+        """The video decode's CUDA stream when the overlap is enabled on a CUDA device, else None."""
+        if not self._tm_decode_overlap or self.device.type != "cuda":
+            return None
+        if self._tm_decode_stream is None:
+            self._tm_decode_stream = torch.cuda.Stream(device=self.device)
+        return self._tm_decode_stream
+
     def _warm_teacher_shapes(self, session: _Session, request: _RequestState) -> None:
         graph = self._tm_teacher_graph
         if graph is None or not graph.enabled or self._tm_teacher is None:
@@ -1281,6 +1294,22 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         phase = phase_state.phase
         audio_rows = state.extra["audio_rows"]
         clean_video = session.renorm_clean_video_rows(state.latents)
+        latent = minimax_h3_unpatchify_video_tokens(
+            clean_video,
+            latent_shape=(phase.video_latent_count, session.canvas.latent_h // 2, session.canvas.latent_w // 2, 24),
+            patch_size=(1, 2, 2),
+        )
+        decode_stream = self._decode_stream()
+        decode_started = time.perf_counter()
+        frames_device: Any = None
+        frame_start = 0
+        if decode_stream is not None:
+            # Queue the decode first, on its own stream: it waits for the clean
+            # latents and then runs alongside the launch-bound commit forward.
+            decode_stream.wait_stream(torch.cuda.current_stream(self.device))
+            with torch.cuda.stream(decode_stream):
+                latent.record_stream(decode_stream)
+                frame_start, frames_device = session.video_decoder.push_device(latent)
         # Sigma-zero forward: recompute this chunk's K/V from its clean latents
         # and append them to the persistent history.
         cache = session.cache
@@ -1310,19 +1339,21 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         phase_state.timings["commit"] = time.perf_counter() - commit_started
 
         # Publish this phase: incremental video decode plus the aligned audio.
-        decode_started = time.perf_counter()
-        latent = minimax_h3_unpatchify_video_tokens(
-            clean_video,
-            latent_shape=(phase.video_latent_count, session.canvas.latent_h // 2, session.canvas.latent_w // 2, 24),
-            patch_size=(1, 2, 2),
-        )
-        frame_start, frames_device = session.video_decoder.push_device(latent)
+        if decode_stream is None:
+            decode_started = time.perf_counter()
+            frame_start, frames_device = session.video_decoder.push_device(latent)
         # The decode runs on the device; build the next phase's layout (and
         # the next request's noise) on the host meanwhile, then fetch.
         ahead_started = time.perf_counter()
         session.prepare_ahead(completed_phase_index=phase.index)
         phase_state.timings["prepare_ahead"] = time.perf_counter() - ahead_started
-        frames = session.video_decoder.to_host(frames_device)
+        if decode_stream is not None:
+            with torch.cuda.stream(decode_stream):
+                frames = session.video_decoder.to_host(frames_device)
+            # Later work on the main stream may reuse the decoder's buffers.
+            torch.cuda.current_stream(self.device).wait_stream(decode_stream)
+        else:
+            frames = session.video_decoder.to_host(frames_device)
         phase_state.timings["video_decode"] = time.perf_counter() - decode_started
         completed_chunk_index = state.chunk_index
         state.chunk_index += 1
