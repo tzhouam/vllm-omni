@@ -11,9 +11,9 @@
 #
 # Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
 # 480x864 on two H200-class GPUs, this config streams 4.958 s requests in
-# 4.91-4.97 s of wall time (real-time factor 0.99-1.00; eager BF16 took 6.3 s).
-# Real time with about 1% headroom: clients should buffer about one second,
-# and a prompt update costs a 0.13-0.27 s text re-encode in that request. FP8 linears and the
+# 4.78 s of wall time with step_async_output (real-time factor 0.96; eager
+# BF16 took 6.3 s). Prompts of 3-60 words; persona-length prompts (330-405
+# tokens) ran at factor 1.02 before this knob and are not re-measured yet. FP8 linears and the
 # CUDA-graph teacher do not change the generated content; the decoder tile
 # only changes how the VAE is split across the two ranks. The four-GPU recipe
 # keeps a 20% margin.
@@ -72,9 +72,9 @@ stages:
       taomate_h3_vae_decoder_tile_size: 480
       # Pack each phase's frames into shared memory on the worker's background
       # thread instead of the step thread (about 45 ms per phase at 480x864).
-      # Off until validated on GPU (the executor must route step replies
-      # through its result pump, see multiproc_executor.py).
-      step_async_output: false
+      # Measured locally: 4.98 -> 4.78 s per 4.958 s request with a constant
+      # short prompt (ten requests), prompt updates unaffected.
+      step_async_output: true
       ar_diffusion_kv_config:
         gpu_memory_fraction: 0.02
         warmup_cudagraph: true
