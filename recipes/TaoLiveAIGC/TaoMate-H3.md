@@ -160,9 +160,12 @@ of 32 tokens, `taomate_h3_log_timings: true`, rank 0; the warmup already holds t
 Per request the phases take 1.51 + 1.19 + 1.24 + 0.76 = 4.70 s of GPU time, and the wall
 time between the ends of consecutive requests (phases plus the runner's output handling) is
 4.91-4.97 s for 4.958 s of content: real-time factor 0.99-1.00, against 1.27 for eager BF16.
-The client saw 4.92-4.95 s between the first chunks of consecutive requests. This is real
-time with no headroom: a playback buffer of about one second is needed, and the two events
-below each stall the stream once.
+Without the timing instrumentation a ten-request session gave 4.98 s per request on average
+between the first chunks of consecutive requests (range 4.70-5.10 s; measured locally), so
+the device synchronizations of the log cost nothing. This is real time with no headroom: a
+playback buffer of about one second is needed, and the two events below each stall the
+stream once. The 0.05 s per phase between the end of a phase and the next preparation is
+the runner's output transport (34 uint8 frames, 42 MB, leave the worker process per phase).
 
 - **A prompt length without a resident graph** captures the teacher graphs of that length
   inside the stream: about 0.7 s per shape (three shapes for a session's first prompt, two
@@ -174,9 +177,17 @@ below each stall the stream once.
   and the live sessions captured nothing.
 - **A prompt update** re-encodes the text on the workers (Qwen3-VL at TP2): 0.13-0.27 s
   for 21-32 tokens, inside the phase in which the update arrives, so a request that also
-  applies an update took 5.1-5.2 s of wall time (measured locally). A client that changes
-  the prompt every request therefore runs at real-time factor 1.03-1.05 and drains its
-  buffer by about 0.2 s per request; one that changes it every few requests stays level.
+  applies an update took 5.1-5.3 s of wall time (measured locally). A client that changes
+  the prompt every request therefore runs at real-time factor 1.03-1.07 and drains its
+  buffer by 0.2-0.3 s per request; one that changes it every few requests stays level.
+
+Next levers, in order of expected gain per effort (estimates from the stage breakdown, not
+measured): move the frame transport off the step loop or into shared memory (0.2 s per
+request, runner change); hide or graph the prompt re-encode (0.13-0.27 s per update);
+serve the student from a second FP8 weight set with the LoRA merged in (about 300 fewer
+launches per forward, 0.2-0.25 s per request, small numeric change); CUDA graphs for the
+student forwards over preallocated KV history buffers (the forwards are launch-bound at
+about 60 ms of CPU per forward, up to 0.9 s per request, large change).
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
