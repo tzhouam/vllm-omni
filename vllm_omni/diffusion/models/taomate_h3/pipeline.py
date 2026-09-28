@@ -86,6 +86,7 @@ from .lora import TaoMateLoRAAdapter, is_taomate_lora_dir
 from .packed import taomate_phase_packed_layout
 from .schedule import euler_eta0_update_, student_sigmas
 from .stream_decode import StreamingAudioDecoder, StreamingVideoDecoder, samples_at_frame
+from .text_encode import GraphSafeTextEncode, cudnn_sdp_enabled
 from .transformer import TaoMateH3DiTModel
 
 logger = init_logger(__name__)
@@ -462,6 +463,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # forwards (one graph per document shape; see cuda_graph.py).
         self._tm_teacher_cuda_graph = bool(model_config.get("taomate_h3_teacher_cuda_graph", False))
         self._tm_cuda_graph_max_entries = int(model_config.get("taomate_h3_cuda_graph_max_entries", 16))
+        # Opt-in CUDA-graph replay of the text-only prompt encode (one graph
+        # per token count; see text_encode.py). Prompt updates re-encode on
+        # the workers inside the step loop, launch-bound at 0.15-0.27 s.
+        self._tm_text_encoder_cuda_graph = bool(model_config.get("taomate_h3_text_encoder_cuda_graph", False))
         if self._tm_cuda_graph_max_entries < 1:
             raise ValueError("taomate_h3_cuda_graph_max_entries must be at least 1")
         # Requests of the load-time warmup session. Later requests cycle
@@ -517,6 +522,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self.taomate_lora: TaoMateLoRAAdapter | None = None
         self._tm_teacher: TaoMateAudioTeacher | None = None
         self._tm_teacher_graph: GraphedForward | None = None
+        self._tm_text_graph: GraphedForward | None = None
         self._tm_sessions: dict[str, _Session] = {}
         self._tm_warmup_session_ids: set[str] = set()
         self._ar_diffusion_kv_state: ARDiffusionKVState | None = None
@@ -599,10 +605,52 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             if not graph.enabled:
                 logger.warning("TaoMate-H3 teacher CUDA graphs requested but the device is not CUDA; running eager")
         self._tm_teacher_graph = graph
+        self._tm_text_graph = self._build_text_encoder_graph()
         self._tm_teacher = TaoMateAudioTeacher(
             self.transformer, lora=self.taomate_lora, device=self.device, graph=graph
         )
         return loaded
+
+    def _build_text_encoder_graph(self) -> GraphedForward | None:
+        if not self._tm_text_encoder_cuda_graph:
+            return None
+        encoder = getattr(self, "text_encoder", None)
+        loaded = getattr(encoder, "is_loaded", False)
+        if callable(loaded):
+            loaded = loaded()
+        if encoder is None or not loaded:
+            return None  # not an encoder TP rank
+        group = getattr(self, "text_encoder_group", None)
+        device_group = getattr(group, "device_group", None) if int(getattr(group, "world_size", 1)) > 1 else None
+        text_graph = GraphedForward(
+            GraphSafeTextEncode(encoder),
+            device=self.device,
+            max_entries=max(self._tm_cuda_graph_max_entries, 128),
+            group=device_group,
+            name="TaoMate-H3 text encoder",
+        )
+        if not text_graph.enabled:
+            logger.warning("TaoMate-H3 text encoder CUDA graphs requested but the device is not CUDA; running eager")
+            return None
+        return text_graph
+
+    def _encode_text_hidden(  # type: ignore[override]
+        self, input_ids: torch.Tensor, vision_kwargs: dict[str, torch.Tensor]
+    ) -> torch.Tensor:
+        """Text-only prompts replay a captured encoder graph; anything else takes the upstream path."""
+        text_graph = self._tm_text_graph
+        if (
+            text_graph is None
+            or not text_graph.enabled
+            or vision_kwargs
+            or getattr(self, "_model_cpu_offload_modules", None)
+            or self._uses_manual_component_offload(self.text_encoder)
+        ):
+            return super()._encode_text_hidden(input_ids, vision_kwargs)
+        self.text_encoder.load_to_device()
+        ids = input_ids.to(device=self.device, dtype=torch.long).view(-1)
+        with cudnn_sdp_enabled(True), torch.inference_mode():
+            return text_graph(variant=("text_encode",), input_ids=ids)
 
     @property
     def lora_is_fused(self) -> bool:
@@ -1007,6 +1055,23 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             time.perf_counter() - started,
             graph.num_graphs,
         )
+        text_graph = self._tm_text_graph
+        if text_graph is not None and text_graph.enabled:
+            started = time.perf_counter()
+            before = text_graph.captures
+            with cudnn_sdp_enabled(True), torch.inference_mode():
+                for text_len in lengths:
+                    if not text_graph.enabled:
+                        break
+                    ids = torch.ones(text_len, dtype=torch.long, device=self.device)
+                    text_graph(variant=("text_encode",), pin=True, input_ids=ids)
+            logger.info(
+                "TaoMate-H3 warmup: captured %d text encoder graph(s) for prompts of %d-%d tokens in %.1f s",
+                text_graph.captures - before,
+                lengths[0],
+                lengths[-1],
+                time.perf_counter() - started,
+            )
 
     def _run_teacher(self, session: _Session) -> None:
         request = session.request
@@ -1212,7 +1277,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 period,
                 num_frames,
                 cache.history_tokens,
-                "" if graph is None else f", teacher graphs {graph.stats()}",
+                ""
+                if graph is None
+                else f", teacher graphs {graph.stats()}"
+                + ("" if self._tm_text_graph is None else f", text graphs {self._tm_text_graph.stats()}"),
             )
         session.last_phase_end = phase_end
         payload: dict[str, Any] = {
