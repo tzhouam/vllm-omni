@@ -64,7 +64,7 @@ Per-deployment knobs live under `model_config`:
 | `step_async_output` | false | Generic step-execution knob (read by the worker, not by the pipeline): pack each streamed chunk's media into shared memory on the worker's background thread and let the engine await it, instead of copying the 42 MB of frames per phase on the step thread (about 45 ms per phase at 480x864, measured locally). GPU validation pending |
 | `taomate_h3_text_encoder_cuda_graph` | false | Replay the text-only prompt encode of a prompt update from a CUDA graph (one graph per token count, captured for `taomate_h3_teacher_graph_text_lengths` at load, exact: the encoder's own modules run with graph-safe indexing). Prompts with images or videos, offloaded encoders and non-encoder ranks keep the eager path |
 | `taomate_h3_adaln_cache` | true | Exact AdaLN projection cache. Its key is a host digest of the timestep embedding (one device-to-host copy per forward); `false` recomputes the few projected rows per layer and removes that synchronization from every student forward |
-| `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward, so the device-bound decode overlaps the launch-bound commit (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase) |
+| `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase). Measured locally at persona length: no gain (phase totals within 0.015 s of the serial order), because the commit forward is device time too; kept as an experiment knob |
 | `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). At 480x864 the checkpoint's 256 px tiles form a 3x5 grid covering 2.4x the canvas; 480 gives two 480x480 tiles (1.1x the canvas), one per tile rank at USP2. Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
 | `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16) |
 
@@ -240,19 +240,22 @@ touching the model; it is not implemented yet.
 **Where the time goes at persona length (measured locally, 2026-09-28 12:35, two GPUs, 12
 requests, host issue time of each forward logged next to its wall time):** the three student
 forwards of a 34-frame phase take 0.68-0.71 s of wall time with 0.41-0.43 s of host issue time,
-so they are device-bound (about 0.23 s of device work each); the 17-frame phase (0.44 s wall,
-0.41 s issue) and every clean-commit forward (0.25-0.27 s wall, 0.15 s issue) are launch-bound.
+so they are device-bound (about 0.23 s of device work each). The 17-frame phase (0.44 s wall,
+0.41 s issue) and the clean-commit forward (0.25-0.27 s wall, 0.15 s issue) looked launch-bound
+by that test, but a commit forward runs the same rows as a student forward (about 0.23 s of
+device work), so its wall time is device time as well and the host merely finishes issuing
+early; overlapping the video decode with it gave nothing (see `taomate_h3_decode_overlap`).
 A steady request is teacher 0.36 + student forwards 2.52 + commits 0.95 + VAE decode 0.73 +
-preparation 0.07 + inter-phase gaps 0.24 = 5.07 s. Consequences: CUDA graphs over the student
-forwards would recover only the launch-bound parts (about 0.15-0.2 s per request) and are not
-pursued; the streaming attention already runs FlashAttention-3 (`fa3_fwd_interface`); the
+preparation 0.07 + inter-phase gaps 0.24 = 5.07 s. Consequences: the device is saturated end to end, so CUDA graphs over the student
+forwards would recover little (at most the 17-frame phase's margin, well under 0.1 s per
+request) and are not pursued; the streaming attention already runs FlashAttention-3 (`fa3_fwd_interface`); the
 prompt re-encode is solved (0.048 s per update from the graph). Two overlaps address the rest
 without touching the model: the next phase's packed layout and the next request's noise draws
 are built on the host while the device decodes (`prepare` 0.01-0.04 s -> 0.001-0.02 s per
-phase, measured), and `taomate_h3_decode_overlap: true` queues the video decode on a second
-CUDA stream before the launch-bound commit forward so both run at once (expected gain up to
-0.1 s per 34-frame phase; measurement pending). The remaining levers are the transport gap
-(`step_async_output`, see above) and the LoRA delta's device time (0.2-0.3 s per request).
+phase, measured; period unchanged within noise). What is left is device work and the host
+transport: the LoRA delta's device time (0.2-0.3 s per request, a merged FP8 student weight
+set) and the inter-phase transport gap (0.24 s per request, `step_async_output`); together they
+cover the 0.1 s per request that persona-length prompts with a change every request still lack.
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
