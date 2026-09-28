@@ -11,12 +11,14 @@
 #
 # Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
 # 480x864 on two H200-class GPUs, this config streams 4.958 s requests in
-# 4.78 s of wall time with step_async_output (real-time factor 0.96; eager
-# BF16 took 6.3 s). Prompts of 3-60 words; persona-length prompts (330-405
-# tokens) ran at factor 1.02 before this knob and are not re-measured yet. FP8 linears and the
-# CUDA-graph teacher do not change the generated content; the decoder tile
-# only changes how the VAE is split across the two ranks. The four-GPU recipe
-# keeps a 20% margin.
+# 4.78 s of wall time with short prompts (real-time factor 0.96) and in
+# 4.87 s with persona-length prompts (330-410 tokens) that change every
+# request (factor 0.98, 30 requests; eager BF16 took 6.3 s). FP8 linears and
+# the CUDA-graph teacher and text encoder do not change the generated content;
+# the decoder tile only changes how the VAE is split across the two ranks.
+# Size taomate_h3_pad_text_tokens and taomate_h3_teacher_graph_text_lengths
+# to the deployment's prompts (below: 330-410-token persona prompts). The
+# four-GPU recipe keeps a 20% margin.
 
 pipeline: taomate_h3
 async_chunk: false
@@ -54,19 +56,19 @@ stages:
       taomate_h3_audio_kv_reset_requests: 12
       # One packed length per document kind (prompts up to 256 tokens), so
       # the teacher's graphs are keyed by prompt length only.
-      taomate_h3_pad_text_tokens: 256
+      taomate_h3_pad_text_tokens: 512
       # Replay the audio teacher's nine forwards from CUDA graphs (one graph
       # per document shape, LRU of taomate_h3_cuda_graph_max_entries).
       taomate_h3_teacher_cuda_graph: true
-      # Capture the teacher graphs of prompts with 1-96 tokens during the
+      # Capture the teacher graphs of prompts with 300-420 tokens during the
       # load-time warmup (3 shapes per token count, about 0.5 s each), so a
       # prompt update never captures inside the stream. Other lengths are
       # captured lazily at the request that first needs them.
-      taomate_h3_teacher_graph_text_lengths: "1-96"
+      taomate_h3_teacher_graph_text_lengths: "300-420"
       # Replay the text-only prompt encode of an update from a CUDA graph too
       # (one graph per token count, captured for the same range at load).
       taomate_h3_text_encoder_cuda_graph: true
-      taomate_h3_cuda_graph_max_entries: 320
+      taomate_h3_cuda_graph_max_entries: 512
       # One 480x480 decoder tile per column pair (2 tiles = the 2 tile ranks) instead
       # of the checkpoint's 3x5 grid of 256 px tiles that covers 2.4x the canvas.
       taomate_h3_vae_decoder_tile_size: 480

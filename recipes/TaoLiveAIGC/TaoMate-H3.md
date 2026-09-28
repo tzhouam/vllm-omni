@@ -265,6 +265,15 @@ per request with the content changing per update; no warnings. The phase totals 
 had also been slowing the following phase's host work. The two-GPU deploy config turns the
 knob on. Persona-length prompts are not re-measured with it yet (factor 1.02 before).
 
+**Persona-length prompts with a change every request are real time on two GPUs (measured
+locally, 2026-09-28 14:15, 30 requests, 332-340-token prompts, a new prompt every request, all
+of: FP8, teacher and text-encoder graphs for 320-420 tokens, 64-token text buckets, fused LoRA
+hooks, AdaLN cache off, `step_async_output`):** 4.87 s per 4.958 s request on average (warm
+4.87, maximum 4.99), real-time factor 0.98, and the stream gained 1.0 s over the 30 requests
+instead of drifting. Per 34-frame phase: teacher 0.35 (request start only), 3 student forwards
+0.68-0.71, commit 0.25-0.27, VAE decode 0.22-0.23, 0.06 s between phases. The margin is 2%; a
+client should still buffer about one second for the first request (3.3 s) and for jitter.
+
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
 text length would need extra rows inside that prefix, which changes the attention), so
