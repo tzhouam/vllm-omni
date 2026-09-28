@@ -226,6 +226,26 @@ def test_clone_static_rejects_opaque_objects() -> None:
     with pytest.raises(TypeError):
         clone_static({"x": Holder()})
     assert clone_static({"x": (1, 2.0, "s", None, [torch.ones(1)])})["x"][4][0].item() == 1.0
+    # Tensor-free objects (layout dataclasses, devices, dtypes) pass through.
+    layout = _teacher_branch(with_reference=True, seq_len=640).static_kwargs.get("video_layout")
+    cloned = clone_static({"device": torch.device("cpu"), "dtype": torch.float32, "layout": layout})
+    assert cloned["device"] == torch.device("cpu") and cloned["layout"] is layout
+
+
+def test_real_teacher_kwargs_are_graph_cloneable() -> None:
+    """The teacher's forward kwargs (branch statics included) must pass the kwargs-tree guard."""
+    for with_reference in (False, True):
+        branch = _teacher_branch(with_reference=with_reference, seq_len=640)
+        kwargs = teacher_forward_kwargs(
+            branch,
+            video_rows=torch.empty(0, 96),
+            audio_rows=torch.randn(int(branch.audio_pos.numel()), 32),
+            t_video=0.5,
+            t_audio=0.5,
+        )
+        static = clone_static(kwargs)
+        assert copy_into(static, kwargs) >= 4
+        assert kwargs_signature(static) == kwargs_signature(kwargs)
 
 
 def test_copy_into_refreshes_an_alias_with_other_strides() -> None:

@@ -66,12 +66,25 @@ def kwargs_signature(value: Any) -> Any:
     return ("repr", type(value).__qualname__, repr(value))
 
 
+def _holds_tensor(value: Any) -> bool:
+    if isinstance(value, torch.Tensor):
+        return True
+    if isinstance(value, dict):
+        return any(_holds_tensor(item) for item in value.values())
+    if isinstance(value, (list, tuple)):
+        return any(_holds_tensor(item) for item in value)
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        return any(_holds_tensor(getattr(value, field.name)) for field in dataclasses.fields(value))
+    return False
+
+
 def clone_static(value: Any) -> Any:
     """Deep-copy the tensors of a kwargs tree into fresh contiguous buffers.
 
-    The tree may hold tensors, primitives, dicts, lists and tuples only: a
-    tensor hidden in any other object would keep its capture-time address
-    without being refreshed on replay, so such objects are rejected.
+    Tensors are reached through dicts, lists and tuples only. Any other object
+    (a layout dataclass, a device, a dtype) is passed through unchanged and
+    must not hold a tensor: it would keep its capture-time address without
+    being refreshed on replay, so such objects are rejected.
     """
     if isinstance(value, torch.Tensor):
         return value.detach().clone(memory_format=torch.contiguous_format)
@@ -81,9 +94,14 @@ def clone_static(value: Any) -> Any:
         return tuple(clone_static(item) for item in value)
     if isinstance(value, list):
         return [clone_static(item) for item in value]
-    if isinstance(value, _PRIMITIVES):
+    if isinstance(value, (*_PRIMITIVES, torch.device, torch.dtype, torch.Size)):
         return value
-    raise TypeError(f"graph kwargs may hold tensors, primitives, dicts, lists and tuples only, got {type(value)!r}")
+    if dataclasses.is_dataclass(value) and not isinstance(value, type) and not _holds_tensor(value):
+        return value
+    raise TypeError(
+        "graph kwargs may hold tensors inside dicts, lists and tuples, primitives, torch.device/dtype/Size and "
+        f"tensor-free dataclasses only, got {type(value)!r}"
+    )
 
 
 def copy_into(static: Any, current: Any) -> int:
