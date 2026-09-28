@@ -620,7 +620,7 @@ def test_teacher_warm_shapes_cover_the_request_cycle(monkeypatch) -> None:
 
     signatures: list = []
 
-    def fake_forward(forward_kwargs, *, plan):
+    def fake_forward(forward_kwargs, *, plan, pin=False):
         signatures.append(kwargs_signature(forward_kwargs))
         _Graph.captures += 1
         return None, None

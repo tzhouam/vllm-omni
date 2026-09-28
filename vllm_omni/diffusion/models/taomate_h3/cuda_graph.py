@@ -67,7 +67,12 @@ def kwargs_signature(value: Any) -> Any:
 
 
 def clone_static(value: Any) -> Any:
-    """Deep-copy the tensors of a kwargs tree into fresh contiguous buffers."""
+    """Deep-copy the tensors of a kwargs tree into fresh contiguous buffers.
+
+    The tree may hold tensors, primitives, dicts, lists and tuples only: a
+    tensor hidden in any other object would keep its capture-time address
+    without being refreshed on replay, so such objects are rejected.
+    """
     if isinstance(value, torch.Tensor):
         return value.detach().clone(memory_format=torch.contiguous_format)
     if isinstance(value, dict):
@@ -76,7 +81,9 @@ def clone_static(value: Any) -> Any:
         return tuple(clone_static(item) for item in value)
     if isinstance(value, list):
         return [clone_static(item) for item in value]
-    return value
+    if isinstance(value, _PRIMITIVES):
+        return value
+    raise TypeError(f"graph kwargs may hold tensors, primitives, dicts, lists and tuples only, got {type(value)!r}")
 
 
 def copy_into(static: Any, current: Any) -> int:
@@ -87,7 +94,7 @@ def copy_into(static: Any, current: Any) -> int:
     if isinstance(static, torch.Tensor):
         if not isinstance(current, torch.Tensor) or static.shape != current.shape or static.dtype != current.dtype:
             raise ValueError("graph input differs in shape or dtype from the captured buffer")
-        if static.data_ptr() != current.data_ptr():
+        if static.data_ptr() != current.data_ptr() or static.stride() != current.stride():
             static.copy_(current)
         return 1
     if isinstance(static, dict):
@@ -111,6 +118,9 @@ class _Entry:
     # through a context variable). The entry owns a reference so the memory
     # cannot be freed and reused while the graph is resident.
     keep_alive: tuple[Any, ...] = ()
+    # Pinned entries (captured up front for a configured shape range) are
+    # never evicted by later, unpinned shapes.
+    pinned: bool = False
     replays: int = 0
 
 
@@ -165,6 +175,7 @@ class GraphedForward:
         self._entries: OrderedDict[Any, _Entry] = OrderedDict()
         self._pool: Any = None
         self._probe_pending = True
+        self._pinned_overflow_warned = False
         self.captures = 0
         self.replays = 0
         self.evictions = 0
@@ -173,15 +184,17 @@ class GraphedForward:
 
     # -- public --------------------------------------------------------------
 
-    def __call__(self, *, variant: Any = None, keep_alive: tuple[Any, ...] = (), **kwargs: Any) -> Any:
+    def __call__(
+        self, *, variant: Any = None, keep_alive: tuple[Any, ...] = (), pin: bool = False, **kwargs: Any
+    ) -> Any:
         """Run ``module(**kwargs)``, by replay when a graph of this shape exists.
 
         ``variant`` distinguishes module states the kwargs do not show (for
         example whether the LoRA hooks are enabled, or which embedding plan is
         installed); ``keep_alive`` holds every object outside ``kwargs`` whose
-        tensors the forward reads, so a resident graph keeps them allocated.
-        Returned tensors are clones, so the caller may hold them across the
-        next call.
+        tensors the forward reads, so a resident graph keeps them allocated;
+        ``pin`` exempts a newly captured graph from LRU eviction. Returned
+        tensors are clones, so the caller may hold them across the next call.
         """
         if not self.enabled:
             self.eager_calls += 1
@@ -189,11 +202,12 @@ class GraphedForward:
         key = (kwargs_signature(variant), kwargs_signature(kwargs))
         entry = self._entries.get(key)
         if entry is None:
-            entry = self._capture(key, kwargs, keep_alive, variant)
+            entry = self._capture(key, kwargs, keep_alive, variant, pin=pin)
             if entry is None:
                 self.eager_calls += 1
                 return self.module(**kwargs)
         else:
+            entry.pinned = entry.pinned or pin
             copy_into(entry.static_kwargs, kwargs)
             self._entries.move_to_end(key)
         entry.graph.replay()
@@ -208,6 +222,7 @@ class GraphedForward:
     def stats(self) -> dict[str, int]:
         return {
             "graphs": len(self._entries),
+            "pinned": sum(1 for entry in self._entries.values() if entry.pinned),
             "captures": self.captures,
             "replays": self.replays,
             "evictions": self.evictions,
@@ -224,7 +239,13 @@ class GraphedForward:
     # -- capture -------------------------------------------------------------
 
     def _capture(
-        self, key: Any, kwargs: dict[str, Any], keep_alive: tuple[Any, ...] = (), variant: Any = None
+        self,
+        key: Any,
+        kwargs: dict[str, Any],
+        keep_alive: tuple[Any, ...] = (),
+        variant: Any = None,
+        *,
+        pin: bool = False,
     ) -> _Entry | None:
         failure: str | None = None
         static: dict[str, Any] = {}
@@ -261,10 +282,19 @@ class GraphedForward:
             self.disable(failure or "a peer rank failed to capture")
             return None
         if len(self._entries) >= self.max_entries:
-            _, evicted = self._entries.popitem(last=False)
-            del evicted
-            self.evictions += 1
-        entry = _Entry(graph=graph, static_kwargs=static, outputs=outputs, keep_alive=tuple(keep_alive))
+            victim = next((k for k, e in self._entries.items() if not e.pinned), None)
+            if victim is None:
+                if not self._pinned_overflow_warned:
+                    self._pinned_overflow_warned = True
+                    logger.warning(
+                        "%s: all %d resident CUDA graphs are pinned; growing past max_entries",
+                        self.name,
+                        len(self._entries),
+                    )
+            else:
+                del self._entries[victim]
+                self.evictions += 1
+        entry = _Entry(graph=graph, static_kwargs=static, outputs=outputs, keep_alive=tuple(keep_alive), pinned=pin)
         self._entries[key] = entry
         self.captures += 1
         logger.info("%s CUDA graph captured for %s (%d resident)", self.name, variant, len(self._entries))

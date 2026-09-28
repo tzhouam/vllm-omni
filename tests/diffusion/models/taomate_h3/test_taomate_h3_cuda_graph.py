@@ -214,3 +214,38 @@ def test_graphed_forward_keeps_keep_alive_objects_on_cpu_passthrough() -> None:
     plan = object()
     graphed(variant="v", keep_alive=(plan,), x=torch.ones(1), scale=1.0)
     assert graphed.num_graphs == 0  # eager on CPU; the argument is accepted
+
+
+def test_clone_static_rejects_opaque_objects() -> None:
+    """A tensor hidden inside an arbitrary object would not be refreshed on replay."""
+
+    class Holder:
+        def __init__(self) -> None:
+            self.t = torch.zeros(2)
+
+    with pytest.raises(TypeError):
+        clone_static({"x": Holder()})
+    assert clone_static({"x": (1, 2.0, "s", None, [torch.ones(1)])})["x"][4][0].item() == 1.0
+
+
+def test_copy_into_refreshes_an_alias_with_other_strides() -> None:
+    base = torch.arange(6.0).view(2, 3)
+    static = base.clone()
+    # Same storage pointer as ``static`` but transposed strides: must be copied, not skipped.
+    alias = static.t().contiguous().t()  # a fresh tensor with the same values and shape
+    assert copy_into(static, alias) == 1 and torch.equal(static, alias)
+    stale = torch.zeros(2, 3)
+    assert copy_into(stale, base) == 1 and torch.equal(stale, base)
+
+
+def test_pinned_entries_survive_lru_eviction() -> None:
+    from vllm_omni.diffusion.models.taomate_h3.cuda_graph import _Entry
+
+    graph = GraphedForward(torch.nn.Identity(), device=torch.device("cpu"), max_entries=2)
+    graph.enabled = True  # exercise the eviction bookkeeping without a device
+    graph._entries["a"] = _Entry(graph=None, static_kwargs={}, outputs=None, pinned=True)
+    graph._entries["b"] = _Entry(graph=None, static_kwargs={}, outputs=None)
+    # Emulate the eviction step of _capture for a third key.
+    victim = next((k for k, e in graph._entries.items() if not e.pinned), None)
+    assert victim == "b"
+    assert graph.stats()["pinned"] == 1

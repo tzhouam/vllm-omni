@@ -997,6 +997,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 seq_len_for=lambda with_reference, n=text_len: session.pinned_teacher_seq_len(
                     n, with_reference=with_reference
                 ),
+                pin=True,
             )
         logger.info(
             "TaoMate-H3 warmup: captured %d teacher graph(s) for prompts of %d-%d tokens in %.1f s (%d resident)",

@@ -18,6 +18,7 @@ model exactly.
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -36,6 +37,14 @@ from .transformer import LocalEmbedPlan, local_embed_plan
 ROLLOVER_LATENTS_PER_CHANNEL = 40
 AUDIO_ROW_WIDTH = 32
 VIDEO_ROW_WIDTH = 96
+
+
+def _positions_digest(*positions: torch.Tensor) -> str:
+    digest = hashlib.sha1()
+    for tensor in positions:
+        digest.update(tensor.detach().to("cpu", torch.int64).contiguous().numpy().tobytes())
+        digest.update(b"|")
+    return digest.hexdigest()
 
 
 def official_request_noise(
@@ -154,12 +163,15 @@ class TaoMateAudioTeacher:
         # document can need different plans inside and outside a runner step.
         span_of = getattr(self.transformer, "_rope_local_span", None)
         span = tuple(span_of(int(branch.seq_len))) if callable(span_of) else (0, int(branch.seq_len))
+        # Counts plus a digest of the row positions themselves: two documents
+        # with equal counts but other positions must not share a plan.
         shape = (
             int(branch.seq_len),
             int(branch.text_len),
             int(branch.audio_pos.numel()),
             int((~branch.audio_update_mask).sum()),
             *span,
+            _positions_digest(text_pos, branch.audio_pos, branch.img_pos),
         )
         if shape not in self._embed_plans:
             self._embed_plans[shape] = plan_local(
@@ -184,6 +196,7 @@ class TaoMateAudioTeacher:
         text_tags: torch.Tensor,
         canvas: CanvasGeometry,
         seq_len_for: Callable[[bool], int | None],
+        pin: bool = False,
     ) -> int:
         """Capture the teacher graphs of every document shape a session of this prompt uses.
 
@@ -222,7 +235,7 @@ class TaoMateAudioTeacher:
                 forward_kwargs = teacher_forward_kwargs(
                     branch, video_rows=video_rows, audio_rows=audio_rows, t_video=0.0, t_audio=0.0
                 )
-                self._forward(forward_kwargs, plan=embed_plan)
+                self._forward(forward_kwargs, plan=embed_plan, pin=pin)
             if not graph.enabled:
                 break
         return graph.captures - captures_before
@@ -302,14 +315,16 @@ class TaoMateAudioTeacher:
         milestones = [captured[number] for number in TEACHER_STATE_NUMBERS]
         return TeacherResult(milestones=milestones, audio_latent_count=active_audio_latents, forwards=steps)
 
-    def _forward(self, forward_kwargs: dict, *, plan: LocalEmbedPlan | None) -> tuple[torch.Tensor, torch.Tensor]:
+    def _forward(
+        self, forward_kwargs: dict, *, plan: LocalEmbedPlan | None, pin: bool = False
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         graph = self.graph
         if graph is None or not graph.enabled:
             return self.transformer(**forward_kwargs)
         # The graph is captured with the LoRA hooks disabled and this
         # document's embedding plan installed; both are part of its identity.
         variant = ("teacher", "lora_off", None if plan is None else plan.fingerprint)
-        return graph(variant=variant, keep_alive=() if plan is None else (plan,), **forward_kwargs)
+        return graph(variant=variant, keep_alive=() if plan is None else (plan,), pin=pin, **forward_kwargs)
 
 
 # Timestep slots of a teacher document: every row's AdaLN timestep is one of
