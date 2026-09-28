@@ -56,6 +56,9 @@ stages:
       # Replay the audio teacher's nine forwards from CUDA graphs (one graph
       # per document shape, LRU of taomate_h3_cuda_graph_max_entries).
       taomate_h3_teacher_cuda_graph: true
+      # One 480x480 decoder tile per column pair (2 tiles = the 2 tile ranks) instead
+      # of the checkpoint's 3x5 grid of 256 px tiles that covers 2.4x the canvas.
+      taomate_h3_vae_decoder_tile_size: 480
       taomate_h3_cuda_graph_max_entries: 16
       ar_diffusion_kv_config:
         gpu_memory_fraction: 0.02

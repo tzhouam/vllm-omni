@@ -97,6 +97,10 @@ class TaoMateAudioTeacher:
         self.graph = graph
         self.sigmas_video, self.sigmas_audio = teacher_sigmas()
         self.forwards = 0
+        # One embedding plan per document shape. A captured graph reads the
+        # plan's index tensors by address, so the plan of a shape must stay
+        # the same object for as long as the process serves that shape.
+        self._embed_plans: dict[tuple[int, ...], LocalEmbedPlan | None] = {}
 
     def build_branch(
         self,
@@ -138,19 +142,28 @@ class TaoMateAudioTeacher:
         )
         branch.prepare_rope_table(self.transformer)
         attach_teacher_timestep_slots(branch)
+        branch.taomate_embed_plan = self._embed_plan_for(branch, text_pos=packed["text_pos"])
+        return branch
+
+    def _embed_plan_for(self, branch: MiniMaxH3DenoiseBranch, *, text_pos: torch.Tensor) -> LocalEmbedPlan | None:
         plan_local = getattr(self.transformer, "plan_local_embed", None)
-        branch.taomate_embed_plan = (
-            plan_local(
+        if not callable(plan_local):
+            return None
+        shape = (
+            int(branch.seq_len),
+            int(branch.text_len),
+            int(branch.audio_pos.numel()),
+            int((~branch.audio_update_mask).sum()),
+        )
+        if shape not in self._embed_plans:
+            self._embed_plans[shape] = plan_local(
                 img_pos=branch.img_pos,
                 audio_pos=branch.audio_pos,
-                text_pos=packed["text_pos"],
+                text_pos=text_pos,
                 seq_len=branch.seq_len,
                 device=self.device,
             )
-            if callable(plan_local)
-            else None
-        )
-        return branch
+        return self._embed_plans[shape]
 
     @torch.inference_mode()
     def run_request(
@@ -234,7 +247,7 @@ class TaoMateAudioTeacher:
         # The graph is captured with the LoRA hooks disabled and this
         # document's embedding plan installed; both are part of its identity.
         variant = ("teacher", "lora_off", None if plan is None else plan.fingerprint)
-        return graph(variant=variant, **forward_kwargs)
+        return graph(variant=variant, keep_alive=() if plan is None else (plan,), **forward_kwargs)
 
 
 # Timestep slots of a teacher document: every row's AdaLN timestep is one of

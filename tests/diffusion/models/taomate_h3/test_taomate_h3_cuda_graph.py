@@ -195,3 +195,22 @@ def test_teacher_fixed_slot_timesteps_match_the_branch_fill(with_reference: bool
     first = teacher_forward_kwargs(branch, video_rows=video_rows, audio_rows=audio_rows, t_video=0.1, t_audio=0.2)
     second = teacher_forward_kwargs(branch, video_rows=video_rows, audio_rows=audio_rows * 2, t_video=0.7, t_audio=0.9)
     assert kwargs_signature(first) == kwargs_signature(second)
+
+
+def test_vae_tile_values_are_multiples_of_16() -> None:
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import validate_vae_tile_value
+
+    assert validate_vae_tile_value(None, "x", minimum=16) is None
+    assert validate_vae_tile_value(480, "x", minimum=16) == 480
+    assert validate_vae_tile_value(0, "x", minimum=0) == 0
+    for bad in (True, 15, 100, -16, 8.0):
+        with pytest.raises(ValueError):
+            validate_vae_tile_value(bad, "x", minimum=16)
+
+
+def test_graphed_forward_keeps_keep_alive_objects_on_cpu_passthrough() -> None:
+    module = _Doubler()
+    graphed = GraphedForward(module, device=torch.device("cpu"))
+    plan = object()
+    graphed(variant="v", keep_alive=(plan,), x=torch.ones(1), scale=1.0)
+    assert graphed.num_graphs == 0  # eager on CPU; the argument is accepted

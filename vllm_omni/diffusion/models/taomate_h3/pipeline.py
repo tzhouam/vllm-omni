@@ -382,6 +382,17 @@ class _Session:
         self.teacher_previous_count = None
 
 
+def validate_vae_tile_value(value: Any, name: str, *, minimum: int) -> int | None:
+    """A video VAE tile size or overlap: ``None`` or a multiple of 16 pixels >= ``minimum``."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"{name} must be an integer number of pixels")
+    if value < minimum or value % 16:
+        raise ValueError(f"{name} must be a multiple of 16 and at least {minimum}, got {value}")
+    return int(value)
+
+
 class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMixin):
     """Streaming TaoMate-H3 on the AR-Diffusion runtime."""
 
@@ -434,6 +445,19 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # prompt. Off by default: the free-running stream keeps the last prompt.
         self._tm_hold_for_prompt = bool(model_config.get("taomate_h3_hold_for_prompt", False))
         self._tm_hold_poll_seconds = float(model_config.get("taomate_h3_hold_poll_seconds", 0.02))
+        # Optional decoder tile size of the video VAE. The checkpoint tiles the
+        # decode in 256 px tiles with at least 64 px overlap: at 480x864 that is
+        # a 3x5 grid whose tiles cover 2.4x the canvas. A tile of 480 px gives
+        # one 480x480 tile per column pair (2 tiles, 1.1x the canvas), which is
+        # one tile per rank at USP2.
+        self._tm_vae_decoder_tile_size = validate_vae_tile_value(
+            model_config.get("taomate_h3_vae_decoder_tile_size"), "taomate_h3_vae_decoder_tile_size", minimum=16
+        )
+        self._tm_vae_decoder_tile_overlap_min = validate_vae_tile_value(
+            model_config.get("taomate_h3_vae_decoder_tile_overlap_min"),
+            "taomate_h3_vae_decoder_tile_overlap_min",
+            minimum=0,
+        )
         # The executor returns the output of DiT rank 0; the other ranks take
         # part in the collectives but do not convert or decode media.
         self._tm_output_rank = int(self._dit_rank) == 0
@@ -446,6 +470,43 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             raise ValueError("TaoMate-H3 serves the FL2VA partition only; do not load the Ref2VA DiT")
         if not self.load_text_encoder:
             raise ValueError("TaoMate-H3 encodes each request prompt locally; keep text_encoder loaded")
+        self._apply_vae_decoder_tiling()
+
+    def _apply_vae_decoder_tiling(self) -> None:
+        vae = getattr(self, "video_vae", None)
+        model = getattr(vae, "model", None)
+        if model is None:
+            return
+        if self._tm_vae_decoder_tile_size is not None:
+            model.decoder_tile_size = self._tm_vae_decoder_tile_size
+        if self._tm_vae_decoder_tile_overlap_min is not None:
+            model.decoder_tile_overlap_min = self._tm_vae_decoder_tile_overlap_min
+        count = getattr(vae, "_decoder_tile_count", None)
+        if not callable(count):
+            return
+        canvas = self._tm_default_canvas
+        try:
+            tiles = int(count(torch.zeros(1, 1, 1, canvas.latent_h, canvas.latent_w)))
+        except Exception as exc:  # noqa: BLE001 - diagnostics only
+            logger.warning("TaoMate-H3: could not resolve the video VAE decoder tile grid: %s", exc)
+            return
+        parallel = int(getattr(vae, "parallel_size", 1))
+        logger.info(
+            "TaoMate-H3 video VAE decoder: tile %s px, overlap >= %s px, %d tile(s) at %dx%d, %d tile rank(s)",
+            getattr(model, "decoder_tile_size", "?"),
+            getattr(model, "decoder_tile_overlap_min", "?"),
+            tiles,
+            canvas.height,
+            canvas.width,
+            parallel,
+        )
+        if parallel > 1 and tiles < parallel:
+            logger.warning(
+                "TaoMate-H3: %d decoder tile(s) for %d tile-parallel ranks; the VAE falls back to its slower "
+                "single-group decode. Lower taomate_h3_vae_decoder_tile_size.",
+                tiles,
+                parallel,
+            )
 
     # -- weights ----------------------------------------------------------
 

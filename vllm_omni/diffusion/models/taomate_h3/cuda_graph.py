@@ -106,6 +106,11 @@ class _Entry:
     graph: Any
     static_kwargs: dict[str, Any]
     outputs: Any
+    # Objects whose tensors the captured kernels read by address although
+    # they are not among the kwargs (for example an embedding plan installed
+    # through a context variable). The entry owns a reference so the memory
+    # cannot be freed and reused while the graph is resident.
+    keep_alive: tuple[Any, ...] = ()
     replays: int = 0
 
 
@@ -168,12 +173,15 @@ class GraphedForward:
 
     # -- public --------------------------------------------------------------
 
-    def __call__(self, *, variant: Any = None, **kwargs: Any) -> Any:
+    def __call__(self, *, variant: Any = None, keep_alive: tuple[Any, ...] = (), **kwargs: Any) -> Any:
         """Run ``module(**kwargs)``, by replay when a graph of this shape exists.
 
         ``variant`` distinguishes module states the kwargs do not show (for
-        example whether the LoRA hooks are enabled). Returned tensors are
-        clones, so the caller may hold them across the next call.
+        example whether the LoRA hooks are enabled, or which embedding plan is
+        installed); ``keep_alive`` holds every object outside ``kwargs`` whose
+        tensors the forward reads, so a resident graph keeps them allocated.
+        Returned tensors are clones, so the caller may hold them across the
+        next call.
         """
         if not self.enabled:
             self.eager_calls += 1
@@ -181,7 +189,7 @@ class GraphedForward:
         key = (kwargs_signature(variant), kwargs_signature(kwargs))
         entry = self._entries.get(key)
         if entry is None:
-            entry = self._capture(key, kwargs)
+            entry = self._capture(key, kwargs, keep_alive)
             if entry is None:
                 self.eager_calls += 1
                 return self.module(**kwargs)
@@ -215,7 +223,7 @@ class GraphedForward:
 
     # -- capture -------------------------------------------------------------
 
-    def _capture(self, key: Any, kwargs: dict[str, Any]) -> _Entry | None:
+    def _capture(self, key: Any, kwargs: dict[str, Any], keep_alive: tuple[Any, ...] = ()) -> _Entry | None:
         failure: str | None = None
         static: dict[str, Any] = {}
         graph: Any = None
@@ -251,7 +259,7 @@ class GraphedForward:
             _, evicted = self._entries.popitem(last=False)
             del evicted
             self.evictions += 1
-        entry = _Entry(graph=graph, static_kwargs=static, outputs=outputs)
+        entry = _Entry(graph=graph, static_kwargs=static, outputs=outputs, keep_alive=tuple(keep_alive))
         self._entries[key] = entry
         self.captures += 1
         logger.info("%s CUDA graph captured (%d resident)", self.name, len(self._entries))

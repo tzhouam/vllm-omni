@@ -182,7 +182,9 @@ def _fake_kv(rows: int, contract: KVContract) -> tuple[torch.Tensor, torch.Tenso
     return key, value
 
 
-def _stage_chunk(cache: CleanAVKVCache, contract: KVContract, *, video_rows: int, audio_rows: int, text_rows: int) -> None:
+def _stage_chunk(
+    cache: CleanAVKVCache, contract: KVContract, *, video_rows: int, audio_rows: int, text_rows: int
+) -> None:
     seq = text_rows + audio_rows + video_rows + 3
     tags = torch.full((seq,), -1, dtype=torch.long)
     tags[:text_rows] = TEXT_TOKEN_TAG
@@ -416,7 +418,7 @@ def test_pinned_lengths_cover_every_phase_and_teacher_document() -> None:
 _NUM_PHASES = 4  # 34/34/34/17-frame phases per five-second request
 
 
-class _RequestStarted(Exception):
+class _RequestStartedError(Exception):
     pass
 
 
@@ -431,7 +433,7 @@ def _hold_pipeline(monkeypatch):
     monkeypatch.setattr(TaoMateH3Pipeline, "device", torch.device("cpu"), raising=False)
 
     def begin_request(**kwargs):
-        raise _RequestStarted
+        raise _RequestStartedError
 
     session = SimpleNamespace(begin_request=begin_request)
     monkeypatch.setattr(pipe, "_session", lambda state: session, raising=False)
@@ -477,7 +479,7 @@ def test_hold_idles_at_a_request_boundary_until_a_prompt_update(monkeypatch) -> 
         s.interaction_sessions["prompt"].version += 1
 
     monkeypatch.setattr(pipe, "apply_interaction_at_chunk_boundary", apply_prompt, raising=False)
-    with pytest.raises(_RequestStarted):  # the new prompt releases the hold and starts request 1
+    with pytest.raises(_RequestStartedError):  # the new prompt releases the hold and starts request 1
         pipe.denoise_step(None, states=[state])
     assert state.extra["taomate_held"] is False
     assert state.extra["taomate_prompt_version"] == 2
@@ -486,12 +488,12 @@ def test_hold_idles_at_a_request_boundary_until_a_prompt_update(monkeypatch) -> 
 
 def test_hold_never_blocks_the_first_request_or_request_mode(monkeypatch) -> None:
     pipe = _hold_pipeline(monkeypatch)
-    with pytest.raises(_RequestStarted):  # request 0 uses the session.start prompt
+    with pytest.raises(_RequestStartedError):  # request 0 uses the session.start prompt
         pipe.prepare_next_chunk(_hold_state(chunk_index=0, applied_version=0))
     state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)
     state.extra["taomate_no_hold"] = True
-    with pytest.raises(_RequestStarted):
+    with pytest.raises(_RequestStartedError):
         pipe.prepare_next_chunk(state)
     pipe._tm_hold_for_prompt = False
-    with pytest.raises(_RequestStarted):  # default: free-running stream keeps the last prompt
+    with pytest.raises(_RequestStartedError):  # default: free-running stream keeps the last prompt
         pipe.prepare_next_chunk(_hold_state(chunk_index=_NUM_PHASES, applied_version=1))
