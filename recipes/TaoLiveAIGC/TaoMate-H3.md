@@ -194,8 +194,11 @@ prompts run unpinned (one warning), so every teacher document shape is captured 
 the pinned-length assumptions do not hold. For that workload set `taomate_h3_pad_text_tokens`
 at or above the longest prompt (e.g. 448) and a graph range around the real lengths (e.g.
 `"300-430"`, about 390 graphs), and expect the larger documents (about 320 more text rows per
-phase) to run somewhat slower than measured here; the request period for that setting is not
-measured yet.
+phase) to run somewhat slower than measured here; the two-GPU request period for that setting
+is not measured yet. On four GPUs (the USP4 recipe, eager BF16, `taomate_h3_hold_for_prompt`
+on) persona prompts of 330-405 tokens with a prompt update on almost every request measured a
+median of 4.29 s and a maximum of 4.53 s between consecutive requests' first chunks over 54
+requests, real-time factor about 0.86 (measured locally by a peer session, 2026-09-28).
 
 Next levers, in order of expected gain per effort (estimates from the stage breakdown, not
 measured): move the frame transport off the step loop or into shared memory (0.2 s per
