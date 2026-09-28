@@ -402,6 +402,26 @@ class _Session:
         self.teacher_previous_count = None
 
 
+def _device_timer(enabled: bool) -> tuple[Any, Any] | None:
+    """Record a start event now and return (start, end) events, or None when disabled."""
+    if not enabled:
+        return None
+    start = torch.cuda.Event(enable_timing=True)
+    end = torch.cuda.Event(enable_timing=True)
+    start.record()
+    return start, end
+
+
+def _device_seconds(events: tuple[Any, Any] | None) -> float:
+    """Device time between the recorded start and now (the caller synchronized already)."""
+    if events is None:
+        return 0.0
+    start, end = events
+    end.record()
+    end.synchronize()
+    return float(start.elapsed_time(end)) / 1000.0
+
+
 def parse_text_length_range(value: Any, name: str = "taomate_h3_teacher_graph_text_lengths") -> range | None:
     """Parse ``"lo-hi"`` (or ``[lo, hi]``) into an inclusive range of prompt token counts, or ``None``."""
     if value is None or value == "" or value is False:
@@ -1173,11 +1193,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             audio_ref_cond_timestep=1.0,
         )
         started = time.perf_counter()
+        events = _device_timer(self._tm_log_timings and self.device.type == "cuda")
         with stream_context(session.stream_context(StreamMode.NOISY)), torch.inference_mode():
             velocity_video, _ = self.transformer(**forward_kwargs)
         if self._tm_log_timings:
             if velocity_video.is_cuda:
                 torch.accelerator.synchronize()
+            phase_state.timings["denoise_gpu"] = phase_state.timings.get("denoise_gpu", 0.0) + _device_seconds(events)
         phase_state.timings["denoise"] = phase_state.timings.get("denoise", 0.0) + (time.perf_counter() - started)
         session.stats["student_forwards"] += 1
         return velocity_video.float()
@@ -1221,6 +1243,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # and append them to the persistent history.
         cache = session.cache
         commit_started = time.perf_counter()
+        commit_events = _device_timer(self._tm_log_timings and self.device.type == "cuda")
         cache.begin_clean_commit(cache.committed_blocks)
         try:
             forward_kwargs = phase_state.branch.forward_kwargs(
@@ -1241,6 +1264,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         session.stats["clean_forwards"] += 1
         if self._tm_log_timings and torch.cuda.is_available():
             torch.accelerator.synchronize()
+            phase_state.timings["commit_gpu"] = _device_seconds(commit_events)
         phase_state.timings["commit"] = time.perf_counter() - commit_started
 
         # Publish this phase: incremental video decode plus the aligned audio.
@@ -1284,15 +1308,18 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             # it (phase preparation, output handling, interaction apply).
             period = 0.0 if session.last_phase_end is None else phase_end - session.last_phase_end
             logger.info(
-                "TaoMate-H3 %s request %d phase %d: %.3f s total (teacher %.3f, denoise x3 %.3f, commit %.3f, "
-                "video decode %.3f, audio decode %.3f, prepare %.3f), period %.3f s, %d frames, history %d rows%s",
+                "TaoMate-H3 %s request %d phase %d: %.3f s total (teacher %.3f, denoise x3 %.3f [gpu %.3f], "
+                "commit %.3f [gpu %.3f], video decode %.3f, audio decode %.3f, prepare %.3f), period %.3f s, "
+                "%d frames, history %d rows%s",
                 session.session_id,
                 request.index,
                 phase.index,
                 phase_seconds,
                 request.teacher_seconds if phase.index == 0 else 0.0,
                 phase_state.timings.get("denoise", 0.0),
+                phase_state.timings.get("denoise_gpu", 0.0),
                 phase_state.timings.get("commit", 0.0),
+                phase_state.timings.get("commit_gpu", 0.0),
                 phase_state.timings.get("video_decode", 0.0),
                 phase_state.timings.get("audio_decode", 0.0),
                 session.prepare_seconds,
