@@ -92,12 +92,22 @@ class StreamingVideoDecoder:
         overlap = 3 * _OVERLAP_FRAMES * self.height * self.width * 4
         return latent_rows + overlap
 
-    def _to_uint8(self, frames: torch.Tensor) -> np.ndarray:
-        # frames: [1, 3, T, H, W] in VAE output space -> [T, H, W, 3] uint8, cropped to the canvas
+    def _to_uint8_device(self, frames: torch.Tensor) -> torch.Tensor:
+        # frames: [1, 3, T, H, W] in VAE output space -> [T, H, W, 3] uint8 on the device, cropped to the canvas
         reverted = self.vae._revert_decoded_inplace(frames.float())
         reverted = reverted[..., : self.height, : self.width]
         pixels = reverted[0].permute(1, 2, 3, 0).mul(255.0).round_().clamp_(0, 255).to(torch.uint8)
-        return pixels.contiguous().cpu().numpy()
+        return pixels.contiguous()
+
+    @staticmethod
+    def to_host(frames: torch.Tensor | np.ndarray | None) -> np.ndarray | None:
+        """Fetch device frames from ``push_device`` (a host wait); host arrays pass through."""
+        if frames is None or isinstance(frames, np.ndarray):
+            return frames
+        return frames.cpu().numpy()
+
+    def _to_uint8(self, frames: torch.Tensor) -> np.ndarray:
+        return self._to_uint8_device(frames).cpu().numpy()
 
     def advance(self, latents: torch.Tensor) -> torch.Tensor | None:
         """Append ``[1, 24, n, H, W]`` normalized latents and decode every complete window."""
@@ -132,15 +142,25 @@ class StreamingVideoDecoder:
                 self.base = keep_from
         return torch.cat(outputs, dim=2) if outputs else None
 
-    def push(self, latents: torch.Tensor) -> tuple[int, np.ndarray | None]:
-        """Collective: append latents; return ``(frame_start, uint8 [T, H, W, 3] or None)``."""
+    def push_device(self, latents: torch.Tensor) -> tuple[int, torch.Tensor | np.ndarray | None]:
+        """Collective: append latents and queue the decode; frames stay on the device.
+
+        Returns ``(frame_start, uint8 [T, H, W, 3] device tensor or None)``; call
+        :meth:`to_host` for the array once the caller has nothing left to do
+        while the device finishes the decode.
+        """
         frame_start = self.frames_emitted
         frames = self.advance(latents)
         if frames is None:
             return frame_start, None
         if not self.emit_frames:
             return frame_start, np.zeros((int(frames.shape[2]), 0, 0, 3), dtype=np.uint8)
-        return frame_start, self._to_uint8(frames)
+        return frame_start, self._to_uint8_device(frames)
+
+    def push(self, latents: torch.Tensor) -> tuple[int, np.ndarray | None]:
+        """Collective: append latents; return ``(frame_start, uint8 [T, H, W, 3] or None)``."""
+        frame_start, frames = self.push_device(latents)
+        return frame_start, self.to_host(frames)
 
     def flush(self) -> tuple[int, np.ndarray | None]:
         """Emit the held five-frame overlap of the last window (end of a session)."""

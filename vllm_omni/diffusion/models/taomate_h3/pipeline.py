@@ -228,6 +228,11 @@ class _Session:
         self.phase: _PhaseState | None = None
         self.sigmas_video, self.sigmas_audio = student_sigmas()
         self.stats: dict[str, float] = {"teacher_seconds": 0.0, "student_forwards": 0, "clean_forwards": 0}
+        # Host-side work for the coming phase, computed while the device
+        # decodes the current one: ``(key, packed layout)`` and the next
+        # request's noise draws. See ``prepare_ahead``.
+        self.layout_ahead: tuple[tuple[Any, ...], dict[str, Any]] | None = None
+        self.noise_ahead: tuple[int, torch.Tensor, torch.Tensor] | None = None
         # Timing bookkeeping (taomate_h3_log_timings): the last phase
         # preparation and the wall-clock end of the last logged phase.
         self.prepare_seconds = 0.0
@@ -250,13 +255,17 @@ class _Session:
         transport_audio = REQUEST_AUDIO_LATENTS - plan.audio_latent_count
         audio_seed = self.seed + index
         video_seed = (self.seed + index * _VIDEO_NOISE_REQUEST_STRIDE) % (2**63)
-        _, official_audio = official_request_noise(seed=audio_seed, canvas=self.canvas)
+        ahead = self.noise_ahead
+        self.noise_ahead = None
+        if ahead is not None and ahead[0] == index:
+            official_audio, video_noise = ahead[1], ahead[2]
+        else:
+            official_audio, video_noise = self._request_noise(index)
         audio_rows = (
             official_audio.view(2, REQUEST_AUDIO_LATENTS, _AUDIO_ROW_WIDTH)[:, transport_audio:]
             .contiguous()
             .view(2 * plan.audio_latent_count, _AUDIO_ROW_WIDTH)
         )
-        video_noise, _ = official_request_noise(seed=video_seed, canvas=self.canvas)
         frame_rows = self.canvas.frame_rows
         video_rows = minimax_h3_patchify_video_latent(video_noise, patch_size=(1, 2, 2))[transport_video * frame_rows :]
         text_len = int(text_embeddings.shape[0])
@@ -279,6 +288,51 @@ class _Session:
             frame_rows=frame_rows,
         )
         return self.request
+
+    def _request_noise(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """The official audio draw and video draw of request ``index`` (host generators)."""
+        audio_seed = self.seed + index
+        video_seed = (self.seed + index * _VIDEO_NOISE_REQUEST_STRIDE) % (2**63)
+        _, official_audio = official_request_noise(seed=audio_seed, canvas=self.canvas)
+        video_noise, _ = official_request_noise(seed=video_seed, canvas=self.canvas)
+        return official_audio, video_noise
+
+    def _layout_key(self, request_index: int, phase_index: int, text_len: int) -> tuple[Any, ...]:
+        return (request_index, phase_index, int(text_len), self.media_time_origin)
+
+    def prepare_ahead(self, *, completed_phase_index: int) -> None:
+        """Host work for the phase after ``completed_phase_index``, to overlap the device's decode.
+
+        Within a request the next phase's layout is fully determined. Across a
+        request boundary the layout is built for the current prompt length (a
+        prompt update of another length at the boundary makes ``begin_phase``
+        recompute it) and the next request's noise draws are made now.
+        """
+        request = self.request
+        if request is None or self.media_time_origin is None:
+            return
+        if completed_phase_index + 1 < NUM_PHASES:
+            request_index, phase_index = request.index, completed_phase_index + 1
+            video_offset, audio_offset = self.video_latent_offset, self.audio_latent_offset
+            plan = request.plan
+        else:
+            request_index, phase_index = request.index + 1, 0
+            video_offset = self.video_latent_offset + request.plan.video_latent_count
+            audio_offset = self.audio_latent_offset + request.plan.audio_latent_count
+            plan = request_plan(request_index)
+            self.noise_ahead = (request_index, *self._request_noise(request_index))
+        phase = plan.phases[phase_index]
+        packed = taomate_phase_packed_layout(
+            text_len=request.text_len,
+            phase=phase,
+            latent_h=self.canvas.latent_h,
+            latent_w=self.canvas.latent_w,
+            media_time_origin=self.media_time_origin,
+            video_latent_offset=video_offset,
+            audio_latent_offset=audio_offset,
+            seq_len=self.pinned_phase_seq_len(phase, request.text_len),
+        )
+        self.layout_ahead = (self._layout_key(request_index, phase_index, request.text_len), packed)
 
     def finish_request(self) -> None:
         request = self.request
@@ -329,16 +383,21 @@ class _Session:
         request = self.request
         assert request is not None and self.media_time_origin is not None
         phase = request.plan.phases[phase_index]
-        packed = taomate_phase_packed_layout(
-            text_len=request.text_len,
-            phase=phase,
-            latent_h=self.canvas.latent_h,
-            latent_w=self.canvas.latent_w,
-            media_time_origin=self.media_time_origin,
-            video_latent_offset=self.video_latent_offset,
-            audio_latent_offset=self.audio_latent_offset,
-            seq_len=self.pinned_phase_seq_len(phase, request.text_len),
-        )
+        ahead = self.layout_ahead
+        self.layout_ahead = None
+        if ahead is not None and ahead[0] == self._layout_key(request.index, phase_index, request.text_len):
+            packed = ahead[1]
+        else:
+            packed = taomate_phase_packed_layout(
+                text_len=request.text_len,
+                phase=phase,
+                latent_h=self.canvas.latent_h,
+                latent_w=self.canvas.latent_w,
+                media_time_origin=self.media_time_origin,
+                video_latent_offset=self.video_latent_offset,
+                audio_latent_offset=self.audio_latent_offset,
+                seq_len=self.pinned_phase_seq_len(phase, request.text_len),
+            )
         tags = packed["token_tags"].clone()
         tags[packed["text_pos"].view(-1)] = request.text_tags.detach().to("cpu", torch.long)
         branch = MiniMaxH3DenoiseBranch(
@@ -1257,7 +1316,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             latent_shape=(phase.video_latent_count, session.canvas.latent_h // 2, session.canvas.latent_w // 2, 24),
             patch_size=(1, 2, 2),
         )
-        frame_start, frames = session.video_decoder.push(latent)
+        frame_start, frames_device = session.video_decoder.push_device(latent)
+        # The decode runs on the device; build the next phase's layout (and
+        # the next request's noise) on the host meanwhile, then fetch.
+        ahead_started = time.perf_counter()
+        session.prepare_ahead(completed_phase_index=phase.index)
+        phase_state.timings["prepare_ahead"] = time.perf_counter() - ahead_started
+        frames = session.video_decoder.to_host(frames_device)
         phase_state.timings["video_decode"] = time.perf_counter() - decode_started
         completed_chunk_index = state.chunk_index
         state.chunk_index += 1

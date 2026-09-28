@@ -650,3 +650,82 @@ def test_teacher_graph_text_length_range_parses() -> None:
     for bad in ("10-8", "0-4", "a-b", "1-2-3", 0):
         with pytest.raises(ValueError):
             parse_text_length_range(bad)
+
+
+# ----------------------------------------------------------------------------
+# host preparation of the next phase overlapped with the device decode
+
+
+def _ahead_session(pad_text_tokens: int = 128):
+    from types import SimpleNamespace
+
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import _Session
+
+    canvas = geo.CanvasGeometry(height=864, width=480)
+    session = _Session(
+        session_id="s",
+        canvas=canvas,
+        seed=7,
+        contract=KVContract(num_layers=1, local_heads=1, head_dim=8),
+        video_decoder=None,  # type: ignore[arg-type]
+        audio_decoder=None,  # type: ignore[arg-type]
+        audio_kv_reset_requests=12,
+        pad_text_tokens=pad_text_tokens,
+    )
+    return session, SimpleNamespace()
+
+
+def test_prepare_ahead_layout_matches_a_fresh_one_and_noise_is_reused() -> None:
+    from vllm_omni.diffusion.models.taomate_h3 import geometry as geo
+    from vllm_omni.diffusion.models.taomate_h3.packed import taomate_phase_packed_layout
+
+    session, transformer = _ahead_session()
+    device = torch.device("cpu")
+    session.begin_request(
+        text_embeddings=torch.zeros(40, 5120), text_tags=torch.ones(40, dtype=torch.long), device=device
+    )
+    session.begin_phase(0, transformer=transformer, device=device)
+    session.prepare_ahead(completed_phase_index=0)
+    assert session.layout_ahead is not None and session.noise_ahead is None
+    ahead_packed = session.layout_ahead[1]
+    fresh = taomate_phase_packed_layout(
+        text_len=40,
+        phase=geo.request_plan(0).phases[1],
+        latent_h=session.canvas.latent_h,
+        latent_w=session.canvas.latent_w,
+        media_time_origin=session.media_time_origin,
+        video_latent_offset=0,
+        audio_latent_offset=0,
+        seq_len=session.pinned_phase_seq_len(geo.request_plan(0).phases[1], 40),
+    )
+    for key in ("img_position_ids", "img_pos", "audio_pos", "token_tags", "cu_seqlens"):
+        assert torch.equal(ahead_packed[key], fresh[key]), key
+    phase_state = session.begin_phase(1, transformer=transformer, device=device)
+    assert session.layout_ahead is None and phase_state.seq_len == int(fresh["seq_len"])
+    # Across the request boundary: the noise draws of request 1 are made ahead and consumed.
+    session.begin_phase(3, transformer=transformer, device=device)
+    session.prepare_ahead(completed_phase_index=3)
+    assert session.noise_ahead is not None and session.noise_ahead[0] == 1
+    expected_audio, expected_video = session._request_noise(1)
+    session.finish_request()
+    request = session.begin_request(
+        text_embeddings=torch.zeros(40, 5120), text_tags=torch.ones(40, dtype=torch.long), device=device
+    )
+    assert session.noise_ahead is None and request.index == 1
+    fresh_request_rows = expected_audio.view(2, geo.REQUEST_AUDIO_LATENTS, 32)[
+        :, geo.REQUEST_AUDIO_LATENTS - request.plan.audio_latent_count :
+    ]
+    assert torch.equal(request.audio_rows.view(2, -1, 32), fresh_request_rows)
+    # A prompt of another length at the boundary makes begin_phase rebuild the layout.
+    session.finish_request()
+    session.begin_request(
+        text_embeddings=torch.zeros(40, 5120), text_tags=torch.ones(40, dtype=torch.long), device=device
+    )
+    session.begin_phase(3, transformer=transformer, device=device)
+    session.prepare_ahead(completed_phase_index=3)
+    session.finish_request()
+    session.begin_request(
+        text_embeddings=torch.zeros(50, 5120), text_tags=torch.ones(50, dtype=torch.long), device=device
+    )
+    phase_state = session.begin_phase(0, transformer=transformer, device=device)
+    assert phase_state.branch.text_len == 50 and session.layout_ahead is None
