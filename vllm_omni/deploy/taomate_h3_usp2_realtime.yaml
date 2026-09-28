@@ -68,6 +68,9 @@ stages:
       # Replay the text-only prompt encode of an update from a CUDA graph too
       # (one graph per token count, captured for the same range at load).
       taomate_h3_text_encoder_cuda_graph: true
+      # The exact AdaLN projection cache keys on a host digest of the timestep
+      # embedding (one device-to-host copy per forward); recompute instead.
+      taomate_h3_adaln_cache: false
       taomate_h3_cuda_graph_max_entries: 512
       # One 480x480 decoder tile per column pair (2 tiles = the 2 tile ranks) instead
       # of the checkpoint's 3x5 grid of 256 px tiles that covers 2.4x the canvas.
