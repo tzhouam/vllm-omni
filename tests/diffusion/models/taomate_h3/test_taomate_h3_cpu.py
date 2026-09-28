@@ -399,15 +399,17 @@ def test_pinned_lengths_cover_every_phase_and_teacher_document() -> None:
         for phase in plan.phases:
             pinned = session.pinned_phase_seq_len(phase, text_len=40)
             assert pinned is not None and pinned % 64 == 0
-            used = 128 + 2 * phase.audio_latent_count + phase.video_latent_count * canvas.frame_rows
-            assert pinned >= used
+            used = 40 + 2 * phase.audio_latent_count + phase.video_latent_count * canvas.frame_rows
+            assert used <= pinned < used + 64 + 64  # one 64-token bucket of text padding plus the 64-row alignment
             seen.add((phase.index, pinned))
     # Two shapes for phase 0 (12 latents once, then 10) and one per later phase.
     assert len(seen) == 5
     teacher_first = session.pinned_teacher_seq_len(40, with_reference=False)
     teacher_next = session.pinned_teacher_seq_len(40, with_reference=True)
-    assert teacher_first == -(-(128 + 2 * 207) // 64) * 64
-    assert teacher_next == -(-(128 + 2 * (207 + ROLLOVER_LATENTS_PER_CHANNEL)) // 64) * 64
+    # A 40-token prompt reserves one 64-token bucket, not the whole 128-token budget.
+    assert teacher_first == -(-(64 + 2 * 207) // 64) * 64
+    assert teacher_next == -(-(64 + 2 * (207 + ROLLOVER_LATENTS_PER_CHANNEL)) // 64) * 64
+    assert session.text_budget(40) == 64 and session.text_budget(65) == 128 and session.text_budget(300) == 128
     assert session.pinned_phase_seq_len(plan.phases[0], text_len=200) is None
 
 

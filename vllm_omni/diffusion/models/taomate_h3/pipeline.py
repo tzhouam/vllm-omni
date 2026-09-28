@@ -94,6 +94,7 @@ logger = init_logger(__name__)
 NUM_PHASES = len(PHASE_GROUP_COUNTS)
 # Largest per-phase audio latent count over the first and the steady-state
 # request geometries (audio boundaries are rounded on the global timeline).
+_TEXT_BUCKET = 64  # pinned text budgets grow in steps of this many tokens
 _MAX_PHASE_AUDIO_LATENTS = tuple(
     max(request_plan(index).phases[phase].audio_latent_count for index in range(0, 8)) for phase in range(NUM_PHASES)
 )
@@ -302,14 +303,25 @@ class _Session:
             )
             return None
         audio_rows = 2 * _MAX_PHASE_AUDIO_LATENTS[phase.index]
-        used = self.pad_text_tokens + audio_rows + phase.video_latent_count * self.canvas.frame_rows
+        used = self.text_budget(text_len) + audio_rows + phase.video_latent_count * self.canvas.frame_rows
         return -(-used // 64) * 64
+
+    def text_budget(self, text_len: int) -> int:
+        """Text rows reserved in a pinned document: the prompt's length rounded up to 64, capped by the budget.
+
+        One budget per 64-token bucket instead of the whole ``pad_text_tokens``
+        keeps the padding below 64 rows per document (a 335-token prompt under a
+        512 budget would otherwise carry 177 pad rows through every forward).
+        Documents of one bucket share their packed length; teacher graphs are
+        keyed by the exact token count in any case.
+        """
+        return min(self.pad_text_tokens, -(-int(text_len) // _TEXT_BUCKET) * _TEXT_BUCKET)
 
     def pinned_teacher_seq_len(self, text_len: int, *, with_reference: bool) -> int | None:
         if self.pad_text_tokens <= 0 or text_len > self.pad_text_tokens:
             return None
         rows = 2 * (REQUEST_AUDIO_LATENTS + (ROLLOVER_LATENTS_PER_CHANNEL if with_reference else 0))
-        return -(-(self.pad_text_tokens + rows) // 64) * 64
+        return -(-(self.text_budget(text_len) + rows) // 64) * 64
 
     # -- phases ------------------------------------------------------------
 
