@@ -65,7 +65,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_text_encoder_cuda_graph` | false | Replay the text-only prompt encode of a prompt update from a CUDA graph (one graph per token count, captured for `taomate_h3_teacher_graph_text_lengths` at load, exact: the encoder's own modules run with graph-safe indexing). Prompts with images or videos, offloaded encoders and non-encoder ranks keep the eager path |
 | `taomate_h3_adaln_cache` | true | Exact AdaLN projection cache. Its key is a host digest of the timestep embedding (one device-to-host copy per forward); `false` recomputes the few projected rows per layer and removes that synchronization from every student forward |
 | `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase). Measured locally at persona length: no gain (phase totals within 0.015 s of the serial order), because the commit forward is device time too; kept as an experiment knob |
-| `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). At 480x864 the checkpoint's 256 px tiles form a 3x5 grid covering 2.4x the canvas; 480 gives two 480x480 tiles (1.1x the canvas), one per tile rank at USP2. Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
+| `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). **Do not raise it: 480 px tiles render a uniform 16 px lattice over the whole frame (isolated 2026-09-28).** Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
 | `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16) |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
@@ -116,16 +116,18 @@ request); the launch-bound teacher forwards and the per-phase VAE decode are the
 
 ## Two GPUs (USP2): `vllm_omni/deploy/taomate_h3_usp2_realtime.yaml`
 
-> **Quality finding (2026-09-28, frames compared locally):** `quantization: fp8` (online
-> per-tensor FP8 on every DiT linear, the setting behind every two-GPU number below) renders a
-> uniform 16 px lattice over the whole frame, deformed faces and smeared texture from the first
-> chunk on, while the eager BF16 baseline and the release runtime are clean. The lattice is the
-> DiT's token grid, not VAE tile seams or codec blocking. The earlier statement that FP8 does
-> not change the generated content was wrong. The fix under test keeps the patch, condition,
-> time, refiner, AdaLN and final projections in BF16 and quantizes the 50 blocks with
-> per-channel weight and per-token activation scales (`method: fp8_per_channel` with an
-> `ignore` list, see the config); until it is validated, use BF16 (`quantization` unset)
-> and accept 5.4 s per request on two GPUs, or the four-GPU recipe.
+> **Quality finding (2026-09-28, frames compared locally and reviewed by a second model):**
+> `taomate_h3_vae_decoder_tile_size: 480`, the setting behind every two-GPU number below,
+> renders a uniform 16 px lattice over the whole frame, deformed faces and smeared texture from
+> the first chunk on. Isolated with four runs on the same persona prompt: eager BF16 without the
+> tile is clean; BF16 with the 480 px tile shows the lattice; per-channel FP8 (blocks only,
+> boundary layers in BF16) without the tile is clean and sharp; per-channel FP8 with the tile
+> shows the lattice. The lattice has the VAE's 16 px stride, so the decoder cannot be tiled at
+> 480 px (the checkpoint's own 256 px tiles are correct; the mechanism inside the checkpoint's
+> decoder was not traced). The per-tensor `quantization: fp8` was never isolated from this bug;
+> the config now uses per-channel FP8, which is validated. Consequence: the VAE decode costs
+> 0.36 s per 34-frame phase again and a persona-length request takes about 5.4 s (real-time
+> factor 1.09) with correct output; the 4.87-5.05 s figures were measured with the broken decode.
 
 The two-GPU config keeps TP=1 and splits the heads across two Ulysses ranks
 (`sequence_parallel_size: 2`, `text_encoder_tp_size: 2`, `vae_patch_parallel_size: 2`).

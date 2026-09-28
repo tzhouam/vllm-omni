@@ -10,19 +10,17 @@
 #       --lora-path /path/to/TaoMate-H3 --port 8000
 #
 # Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
-# 480x864 on two H200-class GPUs, this config streams 4.958 s requests in
-# 4.78 s of wall time with short prompts (real-time factor 0.96) and in
-# 4.87 s with persona-length prompts (330-410 tokens) that change every
-# request (factor 0.98, 30 requests; eager BF16 took 6.3 s). The CUDA-graph
-# teacher and text encoder and the decoder tile do not change the generated
-# content. QUALITY: per-tensor FP8 on every DiT linear (quantization: fp8)
-# renders a 16 px lattice and deformed faces; a per-channel FP8 with the
-# boundary layers in BF16 is under validation (recipe, quality finding). Until
-# then leave quantization unset (BF16) if image quality matters more than the
-# 0.4 s per request it costs.
-# Size taomate_h3_pad_text_tokens and taomate_h3_teacher_graph_text_lengths
-# to the deployment's prompts (below: 330-410-token persona prompts). The
-# four-GPU recipe keeps a 20% margin.
+# 480x864 on two H200-class GPUs. QUALITY FINDING (2026-09-28): the 480 px
+# decoder tile behind the earlier 4.78-5.05 s figures rendered a uniform 16 px
+# lattice and deformed faces; without it (this config) the output matches
+# eager BF16 and the VAE decode costs 0.36 s per 34-frame phase again, so a
+# persona-length request (330-410 tokens, prompt change every request) takes
+# about 5.4 s of wall time (real-time factor 1.09): correct output, not yet
+# real time. Eager BF16 took 6.3 s. The CUDA-graph teacher and text encoder
+# do not change the generated content; the per-channel FP8 below was
+# validated visually against eager BF16. Size taomate_h3_pad_text_tokens and
+# taomate_h3_teacher_graph_text_lengths to the deployment's prompts (below:
+# 330-410-token persona prompts). The four-GPU recipe keeps a 14% margin.
 
 pipeline: taomate_h3
 async_chunk: false
@@ -34,9 +32,21 @@ stages:
     devices: "0,1"
     max_num_seqs: 1
     enforce_eager: true
-    # Online FP8 weights and activations for the DiT linears (the LoRA hooks
-    # add their BF16 delta on top; the teacher shares the same weights).
-    quantization: fp8
+    # Online FP8 for the DiT blocks only: per-channel weight scales with
+    # per-token activation scales (validated visually against eager BF16);
+    # the layers that map between pixels, tokens and timesteps and the text
+    # encoder stay in BF16. The LoRA hooks add their BF16 delta on top.
+    quantization:
+      transformer:
+        method: fp8_per_channel
+        ignore:
+          - "*patch_proj*"
+          - "*condition_proj*"
+          - "*time_embedder*"
+          - "*token_refiner*"
+          - "*final_layer*"
+          - "*adaln_proj*"
+      text_encoder: null
     model_class_name: TaoMateH3Pipeline
     engine_backend: vllm_omni.experimental.ar_diffusion.engine.ARDiffusionEngine
     step_execution: true
@@ -76,9 +86,9 @@ stages:
       # embedding (one device-to-host copy per forward); recompute instead.
       taomate_h3_adaln_cache: false
       taomate_h3_cuda_graph_max_entries: 512
-      # One 480x480 decoder tile per column pair (2 tiles = the 2 tile ranks) instead
-      # of the checkpoint's 3x5 grid of 256 px tiles that covers 2.4x the canvas.
-      taomate_h3_vae_decoder_tile_size: 480
+      # Do not set taomate_h3_vae_decoder_tile_size: 480 px decoder tiles render
+      # a uniform 16 px lattice over the frame (isolated 2026-09-28); the
+      # checkpoint's 256 px tiles are the correct decode.
       # Pack each phase's frames into shared memory on the worker's background
       # thread instead of the step thread (about 45 ms per phase at 480x864).
       # Measured locally: 4.98 -> 4.78 s per 4.958 s request with a constant
