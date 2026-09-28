@@ -187,6 +187,16 @@ the runner's output transport (34 uint8 frames, 42 MB, leave the worker process 
   the 101 requests, four graph captures for a 3-token prompt because the range then started
   at 8 tokens (the config now starts at 1).
 
+**Prompt length caveat.** Every number above is for prompts of 3-60 words (up to 96 tokens
+of the FL2VA tokenizer). Persona prompts of the live agent measure 345-360 tokens (measured
+locally by a peer session), above the config's `taomate_h3_pad_text_tokens: 256`: such
+prompts run unpinned (one warning), so every teacher document shape is captured lazily and
+the pinned-length assumptions do not hold. For that workload set `taomate_h3_pad_text_tokens`
+at or above the longest prompt (e.g. 448) and a graph range around the real lengths (e.g.
+`"300-430"`, about 390 graphs), and expect the larger documents (about 320 more text rows per
+phase) to run somewhat slower than measured here; the request period for that setting is not
+measured yet.
+
 Next levers, in order of expected gain per effort (estimates from the stage breakdown, not
 measured): move the frame transport off the step loop or into shared memory (0.2 s per
 request, runner change); hide or graph the prompt re-encode (0.13-0.27 s per update);
