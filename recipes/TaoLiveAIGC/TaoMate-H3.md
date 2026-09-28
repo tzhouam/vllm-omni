@@ -199,7 +199,9 @@ phase) to run somewhat slower than measured here. Measured locally by a peer ses
 GPUs (FP8, teacher graphs, pad 512, graph range 320-420, 480x864, 2026-09-28): 330-405-token
 prompts with 17 updates over 44 requests gave a median of 5.26 s (min 5.15, max 5.35) between
 consecutive requests' first chunks, **real-time factor 1.06, not real time** (about 0.3 s of
-drift per request). The two-GPU deployment is therefore real time for short prompts only; the
+drift per request); a 100-request run with 332-340-token prompts and an update every request
+(same server, AdaLN cache off, encoder graphs) gave 5.31 s per request mean, 5.33 s warm and 37 s
+of drift over 101 requests, real-time factor 1.07. The two-GPU deployment is therefore real time for short prompts only; the
 persona workload needs roughly another 6-7%. A pad just above the longest prompt (416 rather
 than 512 for these prompts) removes about 100 wasted rows per phase document (estimate 1-2%).
 On four GPUs (the USP4 recipe, eager BF16, `taomate_h3_hold_for_prompt`
