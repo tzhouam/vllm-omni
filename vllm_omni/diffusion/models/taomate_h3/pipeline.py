@@ -467,6 +467,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # per token count; see text_encode.py). Prompt updates re-encode on
         # the workers inside the step loop, launch-bound at 0.15-0.27 s.
         self._tm_text_encoder_cuda_graph = bool(model_config.get("taomate_h3_text_encoder_cuda_graph", False))
+        # The exact AdaLN projection cache keys its entries by a host digest of
+        # the timestep embedding (a device-to-host copy per forward). Off, the
+        # projections (a few rows per layer) are recomputed and the student
+        # forwards run without that synchronization.
+        self._tm_adaln_cache = bool(model_config.get("taomate_h3_adaln_cache", True))
         if self._tm_cuda_graph_max_entries < 1:
             raise ValueError("taomate_h3_cuda_graph_max_entries must be at least 1")
         # Requests of the load-time warmup session. Later requests cycle
@@ -606,6 +611,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 logger.warning("TaoMate-H3 teacher CUDA graphs requested but the device is not CUDA; running eager")
         self._tm_teacher_graph = graph
         self._tm_text_graph = self._build_text_encoder_graph()
+        if not self._tm_adaln_cache:
+            cache = getattr(self.transformer, "adaln_cache", None)
+            if cache is not None and hasattr(cache, "max_bytes"):
+                cache.max_bytes = 0
+                logger.info("TaoMate-H3: AdaLN projection cache off (taomate_h3_adaln_cache: false)")
         self._tm_teacher = TaoMateAudioTeacher(
             self.transformer, lora=self.taomate_lora, device=self.device, graph=graph
         )

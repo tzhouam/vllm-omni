@@ -208,6 +208,9 @@ class TaoMateLoRAAdapter:
         scale = float(self.scale)
         adapter = self
 
+        lora_a_t = lora_a.t()
+        lora_b_t = lora_b.t()
+
         def hook(module: nn.Module, args: tuple, output):
             if not adapter.enabled:
                 return None
@@ -216,8 +219,15 @@ class TaoMateLoRAAdapter:
                 out = output[0]
             else:
                 out = output
-            flat = x.reshape(-1, x.shape[-1])
-            delta = torch.matmul(torch.matmul(flat.to(lora_a.dtype), lora_a.t()), lora_b.t())
+            flat = x.reshape(-1, x.shape[-1]).to(lora_a.dtype)
+            low_rank = torch.matmul(flat, lora_a_t)
+            out_rows = out.reshape(-1, out.shape[-1])
+            if out_rows.dtype == low_rank.dtype and out_rows.data_ptr() == out.data_ptr():
+                # One GEMM with the scale and the residual add in its epilogue
+                # (two launches per target instead of four; the sum rounds once).
+                out_rows.addmm_(low_rank, lora_b_t, alpha=scale)
+                return None
+            delta = torch.matmul(low_rank, lora_b_t)
             if scale != 1.0:
                 delta = delta * scale
             out.add_(delta.reshape(out.shape).to(out.dtype))
