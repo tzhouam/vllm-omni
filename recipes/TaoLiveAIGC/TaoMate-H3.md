@@ -271,8 +271,15 @@ of: FP8, teacher and text-encoder graphs for 320-420 tokens, 64-token text bucke
 hooks, AdaLN cache off, `step_async_output`):** 4.87 s per 4.958 s request on average (warm
 4.87, maximum 4.99), real-time factor 0.98, and the stream gained 1.0 s over the 30 requests
 instead of drifting. Per 34-frame phase: teacher 0.35 (request start only), 3 student forwards
-0.68-0.71, commit 0.25-0.27, VAE decode 0.22-0.23, 0.06 s between phases. The margin is 2%; a
-client should still buffer about one second for the first request (3.3 s) and for jitter.
+0.68-0.71, commit 0.25-0.27, VAE decode 0.22-0.23, 0.06 s between phases. The margin is 2% and
+it depends on the host: a 100-request session right after it on the same server averaged 4.99 s
+(gained 0.7 s over the first 50 requests, then lost 5.7 s over the next 50 while the shared
+machine's load average was 35); the device-bound stages did not move (student forwards 0.68,
+commit 0.25) but the host-side parts did (frame fetch and packing +0.04 s per phase, launch
+times +0.02 s, phase preparation +0.01 s), i.e. CPU contention from other users' jobs. On a host
+without competing load the 4.87 s figure is the expected steady state; on a shared host the
+config sits at the line, and a client should buffer 1-2 s. A further 5% of device time (the
+LoRA delta, see above) would make the margin independent of host load.
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
