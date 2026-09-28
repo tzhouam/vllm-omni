@@ -209,6 +209,18 @@ on) persona prompts of 330-405 tokens with a prompt update on almost every reque
 median of 4.29 s and a maximum of 4.53 s between consecutive requests' first chunks over 54
 requests, real-time factor about 0.86 (measured locally by a peer session, 2026-09-28).
 
+**LoRA path cost (measured locally, 2026-09-28).** The same two-GPU config served the base H3
+without the adapter (`taomate_h3_allow_no_lora: true`, content not meaningful, timing valid):
+3 student forwards 0.62 s per 34-frame phase (0.67-0.70 s with the pre-fusion hooks), commit
+0.23 s (0.25 s), 4.70 s of wall time per request against 4.95 s: the LoRA hooks cost about
+0.25 s per request with two GEMMs and an add per target, about half of that after the fused
+`addmm_` (208 targets, two launches each; estimate). Recovering the rest needs the delta merged
+into a second FP8 weight set for the student (8 GB per rank). A CPU check of the merge on 22
+targets (`|D|/|W|` = 0.2-1.2%): per-tensor e4m3 requantization keeps the delta in expectation
+(projection of Q(W+D)-Q(W) onto D is 1.01-1.05 |D|) with requantization noise of about 2.6 |D|
+orthogonal to it, and the total error against the BF16 student is 0.0265 either way, so the
+merge is unbiased but re-rolls the FP8 noise; it is an opt-in trade, not an exact optimization.
+
 Next levers, in order of expected gain per effort (estimates from the stage breakdown, not
 measured): move the frame transport off the step loop or into shared memory (0.2 s per
 request, runner change); hide or graph the prompt re-encode (0.13-0.27 s per update);
