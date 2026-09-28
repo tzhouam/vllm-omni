@@ -142,7 +142,7 @@ unchanged, plus a decoder tiling that only changes how the VAE is split across t
 - `taomate_h3_vae_decoder_tile_size: 480` (two 480x480 tiles, one per rank, instead of the
   checkpoint's 3x5 grid of 256 px tiles that decodes 2.4x the canvas);
 - `taomate_h3_pad_text_tokens: 256` so every document kind has one packed length, and
-  `taomate_h3_teacher_graph_text_lengths: "8-96"` so the graphs of every plausible prompt
+  `taomate_h3_teacher_graph_text_lengths: "1-96"` so the graphs of every plausible prompt
   length exist before the first client connects.
 
 Measured locally (2026-09-28, 480x864, two H200-class GPUs, five requests, constant prompt
@@ -174,13 +174,17 @@ the runner's output transport (34 uint8 frames, 42 MB, leave the worker process 
   while the allocator regrows. Measured without the length range: a session start cost
   2.1 s before the first chunk, and each prompt update with a new token count stretched
   the next request by 2-3 s. With `taomate_h3_teacher_graph_text_lengths: "8-96"` the
-  warmup captured 267 graphs in 149 s (measured locally; about 1.3 GB of static inputs)
+  warmup captured 267 graphs in 149-165 s (measured locally; about 1.3 GB of static inputs)
   and the live sessions captured nothing.
 - **A prompt update** re-encodes the text on the workers (Qwen3-VL at TP2): 0.13-0.27 s
   for 21-32 tokens, inside the phase in which the update arrives, so a request that also
   applies an update took 5.1-5.3 s of wall time (measured locally). A client that changes
   the prompt every request therefore runs at real-time factor 1.03-1.07 and drains its
   buffer by 0.2-0.3 s per request; one that changes it every few requests stays level.
+  Measured over a 100-request session with a different prompt (3-60 words) every request:
+  5.09 s per request once warm (requests 20-100; real-time factor 1.03), 20 s of drift over
+  the 101 requests, four graph captures for a 3-token prompt because the range then started
+  at 8 tokens (the config now starts at 1).
 
 Next levers, in order of expected gain per effort (estimates from the stage breakdown, not
 measured): move the frame transport off the step loop or into shared memory (0.2 s per
