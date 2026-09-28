@@ -61,7 +61,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_cuda_graph_max_entries` | 16 | Resident teacher graphs (least recently used shape evicted); they share one memory pool |
 | `taomate_h3_warmup_requests` | 4 | Requests of the load-time warmup session. Later requests cycle through three audio latent counts (198, 198, 199 per channel), so four requests visit every teacher document shape: the graphs are captured and every phase size has been allocated before the first client connects |
 | `taomate_h3_teacher_graph_text_lengths` | unset | Prompt token counts (`"lo-hi"`) whose teacher graphs are captured during the load-time warmup, three document shapes per count (about 0.5 s and 5 MB each, estimate); these graphs are pinned against LRU eviction by later shapes. A teacher graph is keyed by the prompt's token count, so without this each new prompt length captures inside the stream (about 0.7 s per shape). Needs `taomate_h3_pad_text_tokens` and enough `taomate_h3_cuda_graph_max_entries` |
-| `step_async_output` | false | Generic step-execution knob (read by the worker, not by the pipeline): pack each streamed chunk's media into shared memory on the worker's background thread and let the engine await it, instead of copying the 42 MB of frames per phase on the step thread (about 45 ms per phase at 480x864, measured locally). GPU validation pending |
+| `step_async_output` | false | Generic step-execution knob (read by the worker and the executor, not by the pipeline): pack each streamed chunk's media into shared memory on the worker's background thread and let the engine await it, instead of copying the 42 MB of frames per phase on the step thread. Measured locally at USP2: 4.98 -> 4.78 s per request (ten requests, constant short prompt); prompt updates unaffected |
 | `taomate_h3_text_encoder_cuda_graph` | false | Replay the text-only prompt encode of a prompt update from a CUDA graph (one graph per token count, captured for `taomate_h3_teacher_graph_text_lengths` at load, exact: the encoder's own modules run with graph-safe indexing). Prompts with images or videos, offloaded encoders and non-encoder ranks keep the eager path |
 | `taomate_h3_adaln_cache` | true | Exact AdaLN projection cache. Its key is a host digest of the timestep embedding (one device-to-host copy per forward); `false` recomputes the few projected rows per layer and removes that synchronization from every student forward |
 | `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase). Measured locally at persona length: no gain (phase totals within 0.015 s of the serial order), because the commit forward is device time too; kept as an experiment knob |
@@ -256,6 +256,14 @@ phase, measured; period unchanged within noise). What is left is device work and
 transport: the LoRA delta's device time (0.2-0.3 s per request, a merged FP8 student weight
 set) and the inter-phase transport gap (0.24 s per request, `step_async_output`); together they
 cover the 0.1 s per request that persona-length prompts with a change every request still lack.
+
+**`step_async_output` validated (measured locally, 2026-09-28 14:00, two GPUs, ten 32-token
+requests, timings on):** 4.78 s between consecutive requests' first chunks (4.61-4.84 s;
+4.98 s without the knob), real-time factor 0.96; the prompt-update session ran 4.75-4.90 s
+per request with the content changing per update; no warnings. The phase totals fell by
+0.05-0.1 s each while the inter-phase gap stayed at 0.05 s, so the removed shared-memory copy
+had also been slowing the following phase's host work. The two-GPU deploy config turns the
+knob on. Persona-length prompts are not re-measured with it yet (factor 1.02 before).
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
