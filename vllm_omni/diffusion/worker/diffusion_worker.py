@@ -82,7 +82,13 @@ from vllm_omni.diffusion.sched.interface import (
 )
 from vllm_omni.diffusion.vllm_config import create_diffusion_vllm_config
 from vllm_omni.diffusion.worker.diffusion_model_runner import DiffusionModelRunner
-from vllm_omni.diffusion.worker.utils import BaseRunnerOutput, BatchRunnerOutput, RunnerOutput
+from vllm_omni.diffusion.worker.utils import (
+    STEP_ASYNC_OUTPUT_KEY,
+    BaseRunnerOutput,
+    BatchRunnerOutput,
+    RunnerOutput,
+    step_async_output_enabled,
+)
 from vllm_omni.engine.stage_init_utils import set_death_signal
 from vllm_omni.inputs.data import OmniInteractionPrompt
 from vllm_omni.lora.request import LoRARequest
@@ -94,16 +100,7 @@ logger = init_logger(__name__)
 
 _ASYNC_OUTPUT_THREAD_JOIN_TIMEOUT_S = 10.0
 
-# model_config key: in step execution, hand every chunk's media to the
-# background D2H/SHM thread and reply with a lightweight placeholder that
-# carries the chunk's ``async_output_id`` (the engine's step streaming awaits
-# it). Off by default: the step thread then packs the media itself.
-STEP_ASYNC_OUTPUT_KEY = "step_async_output"
-
-
-def step_async_output_enabled(od_config: Any) -> bool:
-    model_config = getattr(od_config, "model_config", None) or {}
-    return bool(getattr(od_config, "step_execution", False)) and bool(model_config.get(STEP_ASYNC_OUTPUT_KEY, False))
+__all_step_async__ = (STEP_ASYNC_OUTPUT_KEY, step_async_output_enabled)  # re-exported for callers of this module
 
 
 def detach_step_media(

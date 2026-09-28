@@ -35,6 +35,7 @@ from vllm_omni.diffusion.offloader.config import (
 from vllm_omni.diffusion.sched.request_scheduler import build_request_batch_sampling_params_key
 from vllm_omni.diffusion.utils.future_utils import try_set_exception, try_set_result
 from vllm_omni.diffusion.worker import WorkerProc
+from vllm_omni.diffusion.worker.utils import step_async_output_enabled
 
 if TYPE_CHECKING:
     from vllm_omni.diffusion.sched.interface import DiffusionSchedulerOutput
@@ -218,7 +219,12 @@ class MultiprocDiffusionExecutor(DiffusionExecutor):
         # When pumps are active they are the sole readers of the worker result
         # queues; non-async messages are placed here for collective_rpc().
         self._sync_result_buffer: queue.Queue = queue.Queue()
-        if not self.od_config.step_execution:
+        # The pumps own the worker result queues whenever asynchronous outputs
+        # can appear on them: request mode, or step execution with
+        # model_config.step_async_output (chunk media packed on the worker's
+        # background thread and delivered as OUTPUT_READY).
+        self._pump_results = (not self.od_config.step_execution) or step_async_output_enabled(self.od_config)
+        if self._pump_results:
             self._start_result_pump()
 
         self._start_worker_monitor()
@@ -263,7 +269,7 @@ class MultiprocDiffusionExecutor(DiffusionExecutor):
                 if remaining <= 0:
                     raise TimeoutError(f"RPC call to {method} timed out.")
                 chunk_timeout = min(_DEQUEUE_TIMEOUT_S, remaining)
-            if not self.od_config.step_execution:
+            if self._pump_results:
                 try:
                     return self._sync_result_buffer.get(timeout=chunk_timeout)
                 except queue.Empty:

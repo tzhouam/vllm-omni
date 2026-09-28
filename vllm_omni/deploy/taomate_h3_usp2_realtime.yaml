@@ -72,7 +72,9 @@ stages:
       taomate_h3_vae_decoder_tile_size: 480
       # Pack each phase's frames into shared memory on the worker's background
       # thread instead of the step thread (about 45 ms per phase at 480x864).
-      step_async_output: true
+      # Off until validated on GPU (the executor must route step replies
+      # through its result pump, see multiproc_executor.py).
+      step_async_output: false
       ar_diffusion_kv_config:
         gpu_memory_fraction: 0.02
         warmup_cudagraph: true
