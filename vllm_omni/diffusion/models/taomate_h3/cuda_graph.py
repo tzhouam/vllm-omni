@@ -189,7 +189,7 @@ class GraphedForward:
         key = (kwargs_signature(variant), kwargs_signature(kwargs))
         entry = self._entries.get(key)
         if entry is None:
-            entry = self._capture(key, kwargs, keep_alive)
+            entry = self._capture(key, kwargs, keep_alive, variant)
             if entry is None:
                 self.eager_calls += 1
                 return self.module(**kwargs)
@@ -223,7 +223,9 @@ class GraphedForward:
 
     # -- capture -------------------------------------------------------------
 
-    def _capture(self, key: Any, kwargs: dict[str, Any], keep_alive: tuple[Any, ...] = ()) -> _Entry | None:
+    def _capture(
+        self, key: Any, kwargs: dict[str, Any], keep_alive: tuple[Any, ...] = (), variant: Any = None
+    ) -> _Entry | None:
         failure: str | None = None
         static: dict[str, Any] = {}
         graph: Any = None
@@ -239,8 +241,11 @@ class GraphedForward:
                     self._probe_pending = False
                 side = torch.cuda.Stream(device=self.device)
                 side.wait_stream(torch.cuda.current_stream(self.device))
+                # The first capture warms lazy kernel/library state for the
+                # whole process; later shapes need a single warm forward.
+                warmups = self.warmup_iters if self.captures == 0 else min(self.warmup_iters, 1)
                 with torch.cuda.stream(side):
-                    for _ in range(self.warmup_iters):
+                    for _ in range(warmups):
                         self.module(**static)
                 torch.cuda.current_stream(self.device).wait_stream(side)
                 graph = torch.cuda.CUDAGraph()
@@ -262,7 +267,7 @@ class GraphedForward:
         entry = _Entry(graph=graph, static_kwargs=static, outputs=outputs, keep_alive=tuple(keep_alive))
         self._entries[key] = entry
         self.captures += 1
-        logger.info("%s CUDA graph captured (%d resident)", self.name, len(self._entries))
+        logger.info("%s CUDA graph captured for %s (%d resident)", self.name, variant, len(self._entries))
         return entry
 
     def _agree(self, ok: bool) -> bool:

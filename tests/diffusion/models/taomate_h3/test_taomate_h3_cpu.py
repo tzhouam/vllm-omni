@@ -497,3 +497,154 @@ def test_hold_never_blocks_the_first_request_or_request_mode(monkeypatch) -> Non
     pipe._tm_hold_for_prompt = False
     with pytest.raises(_RequestStartedError):  # default: free-running stream keeps the last prompt
         pipe.prepare_next_chunk(_hold_state(chunk_index=_NUM_PHASES, applied_version=1))
+
+
+# ----------------------------------------------------------------------------
+# load-time warmup (model_config.taomate_h3_warmup_requests)
+
+
+def test_warmup_session_visits_every_teacher_shape():
+    """Four warmup requests cover the first request and the three-request audio latent cycle."""
+    from vllm_omni.diffusion.models.taomate_h3.geometry import (
+        REQUEST_NATIVE_FRAMES,
+        STEADY_NATIVE_FRAMES,
+        phases_for_frames,
+        request_plan,
+    )
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import TaoMateH3Pipeline
+
+    pipe = object.__new__(TaoMateH3Pipeline)
+    pipe._tm_warmup_requests = 4
+    pipe._tm_warmup_session_ids = set()
+    pipe._tm_default_height = 864
+    pipe._tm_default_width = 480
+    pipe._tm_default_seed = 8301
+    requests = list(pipe.ar_diffusion_warmup_requests("warmup"))
+    assert len(requests) == 1
+    num_frames = requests[0].sampling_params.num_frames
+    assert num_frames == REQUEST_NATIVE_FRAMES + 3 * STEADY_NATIVE_FRAMES
+    assert phases_for_frames(num_frames) == 4 * _NUM_PHASES
+    assert requests[0].sampling_params.extra_args["session_id"] == "warmup"
+    assert pipe._tm_warmup_session_ids == {"warmup"}  # the load-time graph pre-capture keys on it
+    # The teacher document shape is set by the request's audio latent count;
+    # every count of the steady-state cycle appears within the first four requests.
+    counts = {request_plan(index).audio_latent_count for index in range(4)}
+    assert counts == {request_plan(index).audio_latent_count for index in range(40)}
+
+
+# ----------------------------------------------------------------------------
+# prompt updates keep the runner's recorded prompt length and the token tags in step
+
+
+def _prompt_state(text_len: int):
+    from vllm_omni.diffusion.worker.utils import StepRequestState
+    from vllm_omni.inputs.data import OmniDiffusionSamplingParams
+
+    state = StepRequestState(request_id="r", sampling=OmniDiffusionSamplingParams())
+    state.prompt_embeds = torch.zeros(text_len, 8)
+    state.txt_seq_lens = [text_len]
+    state.extra = {"text_tags": torch.ones(text_len, dtype=torch.long)}
+    # Enough denoise state for InputBatch.make_batch.
+    state.latents = torch.zeros(2, 3)
+    state.timesteps = torch.tensor([1.0, 0.5])
+    state.step_index = 0
+    return state
+
+
+@pytest.mark.parametrize("new_len", [3, 7])
+def test_prompt_update_records_the_new_length_and_tags(new_len: int) -> None:
+    """A shorter or longer prompt must not be padded or truncated to the first prompt's length."""
+    from vllm_omni.diffusion.interaction.modality_handlers.taomate_h3_prompt import (
+        TaoMateH3PromptInteractionHandler,
+        TaoMateQueuedPromptEvent,
+    )
+    from vllm_omni.diffusion.worker.input_batch import InputBatch
+
+    calls: list[str] = []
+
+    def encode(*, prompt: str, **kwargs):
+        calls.append(prompt)
+        rows = len(prompt.split())
+        tags = torch.ones(rows, dtype=torch.long)
+        tags[0] = 0  # the encoder marks template tokens with tag 0
+        return torch.full((rows, 8), float(rows)), tags
+
+    handler = TaoMateH3PromptInteractionHandler(encode_prompt=encode, device=torch.device("cpu"), dtype=torch.bfloat16)
+    state = _prompt_state(text_len=4)
+    prompt = " ".join(["word"] * new_len)
+    handler.enqueue(state, event_id="e1", received_at=0.0, payload={"prompt": prompt}, transition_chunks=5)
+    event = state.interaction_sessions["prompt"].pending_event
+    assert isinstance(event, TaoMateQueuedPromptEvent) and event.transition_chunks == 0  # always a hard switch
+    assert calls == [prompt]
+
+    metadata = handler.apply_at_chunk_boundary(state, boundary_at=1.0)
+    assert metadata is not None and metadata.completed_event_ids == ["e1"]
+    assert state.prompt_embeds is not None and tuple(state.prompt_embeds.shape) == (new_len, 8)
+    assert state.txt_seq_lens == [new_len] and state.prompt_embeds_mask is None
+    assert torch.equal(state.extra["text_tags"], event.target_text_tags)
+    assert int(state.extra["text_tags"][0]) == 0
+
+    # The step runner's batch now pads to the new length, i.e. not at all.
+    batch = InputBatch.make_batch([state])
+    assert batch.prompt_embeds is not None and tuple(batch.prompt_embeds.shape) == (1, new_len, 8)
+    assert torch.equal(batch.prompt_embeds[0], torch.full((new_len, 8), float(new_len)))
+    assert tuple(state.prompt_embeds.shape[-2:]) == (new_len, 8)
+
+    # A second boundary without a new prompt changes nothing.
+    handler.apply_at_chunk_boundary(state, boundary_at=2.0)
+    assert state.txt_seq_lens == [new_len]
+
+
+def test_teacher_warm_shapes_cover_the_request_cycle(monkeypatch) -> None:
+    """Session-start warming runs one forward per distinct teacher document shape (three)."""
+    from types import SimpleNamespace
+
+    from vllm_omni.diffusion.models.taomate_h3.audio_teacher import TaoMateAudioTeacher
+    from vllm_omni.diffusion.models.taomate_h3.cuda_graph import kwargs_signature
+    from vllm_omni.diffusion.models.taomate_h3.geometry import CanvasGeometry
+
+    teacher = TaoMateAudioTeacher(SimpleNamespace(), lora=None, device=torch.device("cpu"))
+    assert (
+        teacher.warm_shapes(
+            text_embeddings=torch.zeros(5, 5120),
+            text_tags=torch.ones(5, dtype=torch.long),
+            canvas=CanvasGeometry(height=864, width=480),
+            seq_len_for=lambda with_reference: None,
+        )
+        == 0
+    )  # no graph: nothing to warm
+
+    class _Graph:
+        enabled = True
+        captures = 0
+
+    signatures: list = []
+
+    def fake_forward(forward_kwargs, *, plan):
+        signatures.append(kwargs_signature(forward_kwargs))
+        _Graph.captures += 1
+        return None, None
+
+    teacher.graph = _Graph()
+    monkeypatch.setattr(teacher, "_forward", fake_forward)
+    captured = teacher.warm_shapes(
+        text_embeddings=torch.zeros(5, 5120),
+        text_tags=torch.ones(5, dtype=torch.long),
+        canvas=CanvasGeometry(height=864, width=480),
+        seq_len_for=lambda with_reference: 640 if with_reference else 576,
+    )
+    assert captured == 3 and len(signatures) == 3 and len(set(signatures)) == 3
+    audio_rows = sorted(dict(sig[1])["audio_x"][1][1] for sig in signatures)
+    assert audio_rows == [576, 640, 640]  # x/audio_x carry the pinned document length
+
+
+def test_teacher_graph_text_length_range_parses() -> None:
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import parse_text_length_range
+
+    assert parse_text_length_range(None) is None and parse_text_length_range("") is None
+    assert list(parse_text_length_range("8-10")) == [8, 9, 10]
+    assert list(parse_text_length_range([3, 4])) == [3, 4]
+    assert list(parse_text_length_range(7)) == [7]
+    for bad in ("10-8", "0-4", "a-b", "1-2-3", 0):
+        with pytest.raises(ValueError):
+            parse_text_length_range(bad)

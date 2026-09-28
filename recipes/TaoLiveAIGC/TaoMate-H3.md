@@ -59,6 +59,10 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_hold_poll_seconds` | 0.02 | Idle-step period while a request boundary is held |
 | `taomate_h3_teacher_cuda_graph` | false | Replay the audio teacher's nine forwards from CUDA graphs, one graph per document shape (prompt length, first or later request, reference tail or not). The first capture is checked with `torch.cuda.set_sync_debug_mode("error")`; any capture failure falls back to eager for the rest of the process, agreed across the Ulysses group |
 | `taomate_h3_cuda_graph_max_entries` | 16 | Resident teacher graphs (least recently used shape evicted); they share one memory pool |
+| `taomate_h3_warmup_requests` | 4 | Requests of the load-time warmup session. Later requests cycle through three audio latent counts (198, 198, 199 per channel), so four requests visit every teacher document shape: the graphs are captured and every phase size has been allocated before the first client connects |
+| `taomate_h3_teacher_graph_text_lengths` | unset | Prompt token counts (`"lo-hi"`) whose teacher graphs are captured during the load-time warmup, three document shapes per count (about 0.5 s and 5 MB each). A teacher graph is keyed by the prompt's token count, so without this each new prompt length captures inside the stream (about 0.7 s per shape). Needs `taomate_h3_pad_text_tokens` and enough `taomate_h3_cuda_graph_max_entries` |
+| `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). At 480x864 the checkpoint's 256 px tiles form a 3x5 grid covering 2.4x the canvas; 480 gives two 480x480 tiles (1.1x the canvas), one per tile rank at USP2. Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
+| `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16) |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
 one throwaway five-second request at load time (the pipeline opts into this warmup in eager
@@ -129,15 +133,59 @@ linears, twice the heads in attention), the VAE decode 1.8x, and the launch-boun
 is unchanged.
 
 The two-GPU deploy config therefore enables the levers that leave the generated content
-unchanged: `quantization: fp8` for the DiT linears (the GEMMs are about 60% of a student
-forward at USP2, estimate from parameter and row counts) and `taomate_h3_teacher_cuda_graph`
-(the teacher's forwards run a few hundred rows and are launch-bound at about 85-90 ms each;
-their device work is a fraction of that). Their combined effect on two GPUs is **not measured
-yet**; the budget they must reach is 4.958 s per request, of which the VAE decode alone takes
-1.26 s at USP2. Reusing the last denoise step's K/V instead of the clean-commit forward (the
-LingBot-World `reuse_last_step_kv` pattern) is not offered: TaoMate's last student forward
-runs at sigma 0.853 of the shift-12 schedule (the ladder is 1.0, 0.961, 0.853, 0), far from
-the clean K/V the model was trained to attend to.
+unchanged, plus a decoder tiling that only changes how the VAE is split across the ranks:
+
+- `quantization: fp8` for the DiT linears (the GEMMs are about 60% of a student forward at
+  USP2, estimate from parameter and row counts);
+- `taomate_h3_teacher_cuda_graph` (the teacher's forwards run a few hundred rows and are
+  launch-bound at about 85-90 ms each; a replay takes 38 ms);
+- `taomate_h3_vae_decoder_tile_size: 480` (two 480x480 tiles, one per rank, instead of the
+  checkpoint's 3x5 grid of 256 px tiles that decodes 2.4x the canvas);
+- `taomate_h3_pad_text_tokens: 256` so every document kind has one packed length, and
+  `taomate_h3_teacher_graph_text_lengths: "8-96"` so the graphs of every plausible prompt
+  length exist before the first client connects.
+
+Measured locally (2026-09-28, 480x864, two H200-class GPUs, five requests, constant prompt
+of 32 tokens, `taomate_h3_log_timings: true`, rank 0; the warmup already holds the graphs):
+
+| Stage | 34-frame phase | 17-frame phase |
+| --- | --- | --- |
+| audio teacher (once per request, 9 graph replays) | 0.35 s | - |
+| 3 student forwards (FP8) | 0.67-0.70 s | 0.42-0.45 s |
+| clean-commit forward + cache append | 0.24-0.26 s | 0.15-0.17 s |
+| tile-parallel video VAE decode (2 x 480 px tiles) | 0.21-0.22 s | 0.10 s |
+| audio VAE decode | 0.03 s | 0.03 s |
+| phase preparation (packing, RoPE table) | 0.01-0.03 s | 0.00 s |
+
+Per request the phases take 1.51 + 1.19 + 1.24 + 0.76 = 4.70 s of GPU time, and the wall
+time between the ends of consecutive requests (phases plus the runner's output handling) is
+4.91-4.97 s for 4.958 s of content: real-time factor 0.99-1.00, against 1.27 for eager BF16.
+The client saw 4.92-4.95 s between the first chunks of consecutive requests. This is real
+time with no headroom: a playback buffer of about one second is needed, and the two events
+below each stall the stream once.
+
+- **A prompt length without a resident graph** captures the teacher graphs of that length
+  inside the stream: about 0.7 s per shape (three shapes for a session's first prompt, two
+  per later prompt update), plus one or two slow commits (0.5-0.9 s) right after a capture
+  while the allocator regrows. Measured without the length range: a session start cost
+  2.1 s before the first chunk, and each prompt update with a new token count stretched
+  the next request by 2-3 s. With `taomate_h3_teacher_graph_text_lengths: "8-96"` the
+  warmup captured 267 graphs in 149 s (measured locally; about 1.3 GB of static inputs)
+  and the live sessions captured nothing.
+- **A prompt update** re-encodes the text on the workers (Qwen3-VL at TP2): 0.13-0.27 s
+  for 21-32 tokens, inside the phase in which the update arrives, so a request that also
+  applies an update took 5.1-5.2 s of wall time (measured locally). A client that changes
+  the prompt every request therefore runs at real-time factor 1.03-1.05 and drains its
+  buffer by about 0.2 s per request; one that changes it every few requests stays level.
+
+Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
+document's valid rows as a prefix whose length is a Python int of the forward (a fixed
+text length would need extra rows inside that prefix, which changes the attention), so
+the graphs of a length range are captured up front instead. Reusing the last denoise
+step's K/V instead of the clean-commit forward (the LingBot-World `reuse_last_step_kv`
+pattern) is not offered: TaoMate's last student forward runs at sigma 0.853 of the shift-12
+schedule (the ladder is 1.0, 0.961, 0.853, 0), far from the clean K/V the model was trained
+to attend to.
 
 ## Limits
 

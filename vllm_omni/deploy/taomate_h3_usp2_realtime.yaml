@@ -9,12 +9,14 @@
 #       --deploy-config vllm_omni/deploy/taomate_h3_usp2_realtime.yaml \
 #       --lora-path /path/to/TaoMate-H3 --port 8000
 #
-# Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): eager BF16 at
-# USP2 measures 6.3 s of wall time per 4.958 s request at 480x864 on two
-# H200-class GPUs (real-time factor 1.27), i.e. not real time. This config
-# turns on the two levers that do not change the generated content, FP8
-# linears and teacher CUDA graphs; their combined effect on two GPUs is not
-# measured yet (the four-GPU recipe stays the real-time deployment).
+# Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
+# 480x864 on two H200-class GPUs, this config streams 4.958 s requests in
+# 4.91-4.97 s of wall time (real-time factor 0.99-1.00; eager BF16 took 6.3 s).
+# Real time with about 1% headroom: clients should buffer about one second,
+# and a prompt update costs a 0.13-0.27 s text re-encode in that request. FP8 linears and the
+# CUDA-graph teacher do not change the generated content; the decoder tile
+# only changes how the VAE is split across the two ranks. The four-GPU recipe
+# keeps a 20% margin.
 
 pipeline: taomate_h3
 async_chunk: false
@@ -56,10 +58,15 @@ stages:
       # Replay the audio teacher's nine forwards from CUDA graphs (one graph
       # per document shape, LRU of taomate_h3_cuda_graph_max_entries).
       taomate_h3_teacher_cuda_graph: true
+      # Capture the teacher graphs of prompts with 8-96 tokens during the
+      # load-time warmup (3 shapes per token count, about 0.5 s each), so a
+      # prompt update never captures inside the stream. Other lengths are
+      # captured lazily at the request that first needs them.
+      taomate_h3_teacher_graph_text_lengths: "8-96"
+      taomate_h3_cuda_graph_max_entries: 320
       # One 480x480 decoder tile per column pair (2 tiles = the 2 tile ranks) instead
       # of the checkpoint's 3x5 grid of 256 px tiles that covers 2.4x the canvas.
       taomate_h3_vae_decoder_tile_size: 480
-      taomate_h3_cuda_graph_max_entries: 16
       ar_diffusion_kv_config:
         gpu_memory_fraction: 0.02
         warmup_cudagraph: true

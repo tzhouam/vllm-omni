@@ -73,6 +73,7 @@ from .geometry import (
     REQUEST_AUDIO_LATENTS,
     REQUEST_NATIVE_FRAMES,
     REQUEST_VIDEO_LATENTS,
+    STEADY_NATIVE_FRAMES,
     VIDEO_FPS,
     CanvasGeometry,
     StreamPhase,
@@ -225,6 +226,12 @@ class _Session:
         self.phase: _PhaseState | None = None
         self.sigmas_video, self.sigmas_audio = student_sigmas()
         self.stats: dict[str, float] = {"teacher_seconds": 0.0, "student_forwards": 0, "clean_forwards": 0}
+        # Timing bookkeeping (taomate_h3_log_timings): the last phase
+        # preparation and the wall-clock end of the last logged phase.
+        self.prepare_seconds = 0.0
+        self.last_phase_end: float | None = None
+        # Teacher graphs of this session's prompt length captured (first step).
+        self.teacher_shapes_warm = False
 
     # -- request lifecycle -------------------------------------------------
 
@@ -382,6 +389,26 @@ class _Session:
         self.teacher_previous_count = None
 
 
+def parse_text_length_range(value: Any, name: str = "taomate_h3_teacher_graph_text_lengths") -> range | None:
+    """Parse ``"lo-hi"`` (or ``[lo, hi]``) into an inclusive range of prompt token counts, or ``None``."""
+    if value is None or value == "" or value is False:
+        return None
+    if isinstance(value, str):
+        parts = value.replace(":", "-").split("-")
+        if len(parts) != 2:
+            raise ValueError(f"{name} must look like 'lo-hi', got {value!r}")
+        lo, hi = (int(part.strip()) for part in parts)
+    elif isinstance(value, (list, tuple)) and len(value) == 2:
+        lo, hi = int(value[0]), int(value[1])
+    elif isinstance(value, int) and not isinstance(value, bool):
+        lo = hi = int(value)
+    else:
+        raise ValueError(f"{name} must be 'lo-hi', [lo, hi] or a single token count, got {value!r}")
+    if lo < 1 or hi < lo:
+        raise ValueError(f"{name} needs 1 <= lo <= hi, got {lo}-{hi}")
+    return range(lo, hi + 1)
+
+
 def validate_vae_tile_value(value: Any, name: str, *, minimum: int) -> int | None:
     """A video VAE tile size or overlap: ``None`` or a multiple of 16 pixels >= ``minimum``."""
     if value is None:
@@ -437,6 +464,32 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._tm_cuda_graph_max_entries = int(model_config.get("taomate_h3_cuda_graph_max_entries", 16))
         if self._tm_cuda_graph_max_entries < 1:
             raise ValueError("taomate_h3_cuda_graph_max_entries must be at least 1")
+        # Requests of the load-time warmup session. Later requests cycle
+        # through three audio latent counts (198, 198, 199 per channel), so
+        # four requests visit every teacher document shape once: the graphs
+        # are captured and the allocator has seen every phase size before the
+        # first client connects.
+        self._tm_warmup_requests = int(model_config.get("taomate_h3_warmup_requests", 4))
+        if self._tm_warmup_requests < 1:
+            raise ValueError("taomate_h3_warmup_requests must be at least 1")
+        # Prompt token counts whose teacher graphs are captured during the
+        # load-time warmup (three document shapes per count). A teacher graph
+        # is keyed by the prompt's token count, so without this every new
+        # prompt length costs one capture per shape inside the live stream.
+        self._tm_teacher_graph_text_lengths = parse_text_length_range(
+            model_config.get("taomate_h3_teacher_graph_text_lengths")
+        )
+        if self._tm_teacher_graph_text_lengths is not None:
+            needed = 3 * len(self._tm_teacher_graph_text_lengths)
+            if self._tm_pad_text_tokens <= 0:
+                raise ValueError("taomate_h3_teacher_graph_text_lengths needs taomate_h3_pad_text_tokens")
+            if self._tm_teacher_graph_text_lengths[-1] > self._tm_pad_text_tokens:
+                raise ValueError("taomate_h3_teacher_graph_text_lengths must stay within taomate_h3_pad_text_tokens")
+            if needed > self._tm_cuda_graph_max_entries:
+                raise ValueError(
+                    f"taomate_h3_teacher_graph_text_lengths needs {needed} resident graphs; raise "
+                    f"taomate_h3_cuda_graph_max_entries (now {self._tm_cuda_graph_max_entries})"
+                )
         # Opt-in just-in-time prompt lock for clients that choose each request's
         # prompt at the last moment: request k >= 1 starts only after a prompt
         # update was applied since request k-1 started. Until then the session
@@ -465,6 +518,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._tm_teacher: TaoMateAudioTeacher | None = None
         self._tm_teacher_graph: GraphedForward | None = None
         self._tm_sessions: dict[str, _Session] = {}
+        self._tm_warmup_session_ids: set[str] = set()
         self._ar_diffusion_kv_state: ARDiffusionKVState | None = None
         if getattr(self, "transformers_ref", None) is not None:
             raise ValueError("TaoMate-H3 serves the FL2VA partition only; do not load the Ref2VA DiT")
@@ -594,7 +648,14 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             if prompt is None:
                 raise ValueError("encode_prompt needs prepared inputs or a prompt string")
             prepared = self._prepared_text_inputs(prompt, canvas=self._tm_default_canvas)
-        return super().encode_prompt(prepared)
+        if not self._tm_log_timings:
+            return super().encode_prompt(prepared)
+        started = time.perf_counter()
+        hidden, tags = super().encode_prompt(prepared)
+        if hidden.is_cuda:
+            torch.accelerator.synchronize()
+        logger.info("TaoMate-H3 prompt encode: %.3f s, %d tokens", time.perf_counter() - started, hidden.shape[0])
+        return hidden, tags
 
     # -- AR-Diffusion capability --------------------------------------------
 
@@ -659,9 +720,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
     def _release_session(self, session_id: str) -> None:
         session = self._tm_sessions.pop(session_id, None)
         if session is not None:
+            # The caching allocator keeps the freed blocks: the next session
+            # reuses them instead of paying cudaMalloc again for every new
+            # history size in its first request.
             session.close()
-            if torch.cuda.is_available():
-                torch.accelerator.empty_cache()
 
     def _require_bound_ar_state(self) -> None:
         if self._ar_diffusion_kv_state is None:
@@ -740,11 +802,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         )
 
     def ar_diffusion_warmup_requests(self, session_id: str) -> Iterator[OmniDiffusionRequest]:
-        """One five-second request that exercises every phase shape, the teacher and the decoders."""
+        """One session of ``taomate_h3_warmup_requests`` requests: every phase and teacher shape, the decoders."""
+        num_frames = REQUEST_NATIVE_FRAMES + (self._tm_warmup_requests - 1) * STEADY_NATIVE_FRAMES
+        self._tm_warmup_session_ids.add(session_id)
         yield OmniDiffusionRequest(
             prompt="A presenter smiles at the camera and greets the audience warmly.",
             sampling_params=OmniDiffusionSamplingParams(
-                num_frames=REQUEST_NATIVE_FRAMES,
+                num_frames=num_frames,
                 height=self._tm_default_height,
                 width=self._tm_default_width,
                 seed=self._tm_default_seed,
@@ -829,6 +893,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         if state.request_denoise_completed:
             return
         session = self._session(state)
+        prepare_started = time.perf_counter()
+        try:
+            self._prepare_next_chunk(state, session)
+        finally:
+            session.prepare_seconds = time.perf_counter() - prepare_started
+
+    def _prepare_next_chunk(self, state: StepRequestState, session: _Session) -> None:
         phase_index = state.chunk_index % NUM_PHASES
         if phase_index == 0:
             version = _prompt_version(state)
@@ -880,6 +951,61 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         )
         state.step_index = 0
         state.step_in_chunk = 0
+
+    def _warm_teacher_shapes(self, session: _Session, request: _RequestState) -> None:
+        graph = self._tm_teacher_graph
+        if graph is None or not graph.enabled or self._tm_teacher is None:
+            return
+        lengths = self._tm_teacher_graph_text_lengths
+        if lengths is not None and self._is_warmup_session(session):
+            self._precapture_teacher_graphs(session, request, lengths)
+        started = time.perf_counter()
+        text_len = request.text_len
+        captured = self._tm_teacher.warm_shapes(
+            text_embeddings=request.text_embeddings,
+            text_tags=request.text_tags,
+            canvas=session.canvas,
+            seq_len_for=lambda with_reference: session.pinned_teacher_seq_len(text_len, with_reference=with_reference),
+        )
+        if captured:
+            logger.info(
+                "TaoMate-H3 session %s: captured %d teacher graph(s) for %d text rows in %.2f s",
+                session.session_id,
+                captured,
+                text_len,
+                time.perf_counter() - started,
+            )
+
+    def _is_warmup_session(self, session: _Session) -> bool:
+        return session.session_id in self._tm_warmup_session_ids
+
+    def _precapture_teacher_graphs(self, session: _Session, request: _RequestState, lengths: range) -> None:
+        """Capture the teacher graphs of every configured prompt length (load-time warmup only)."""
+        teacher = self._tm_teacher
+        graph = self._tm_teacher_graph
+        assert teacher is not None and graph is not None
+        started = time.perf_counter()
+        width = int(request.text_embeddings.shape[1])
+        captured = 0
+        for text_len in lengths:
+            if not graph.enabled:
+                break
+            captured += teacher.warm_shapes(
+                text_embeddings=torch.zeros((text_len, width), dtype=request.text_embeddings.dtype, device=self.device),
+                text_tags=torch.ones(text_len, dtype=torch.long),
+                canvas=session.canvas,
+                seq_len_for=lambda with_reference, n=text_len: session.pinned_teacher_seq_len(
+                    n, with_reference=with_reference
+                ),
+            )
+        logger.info(
+            "TaoMate-H3 warmup: captured %d teacher graph(s) for prompts of %d-%d tokens in %.1f s (%d resident)",
+            captured,
+            lengths[0],
+            lengths[-1],
+            time.perf_counter() - started,
+            graph.num_graphs,
+        )
 
     def _run_teacher(self, session: _Session) -> None:
         request = session.request
@@ -935,6 +1061,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         if request is None or phase_state is None or state.latents is None:
             raise RuntimeError("TaoMate-H3 denoise_step called before prepare_next_chunk")
         if request.teacher is None:
+            if not session.teacher_shapes_warm:
+                # First step of the session, inside the runner's forward
+                # context (the sequence-parallel span is resolved from it):
+                # capture the teacher graphs of this prompt length now rather
+                # than inside the first requests of the stream.
+                session.teacher_shapes_warm = True
+                self._warm_teacher_shapes(session, request)
             self._run_teacher(session)
         step = state.step_in_chunk
         if step >= STUDENT_STEPS:
@@ -1054,12 +1187,17 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             audio = np.zeros((0, 2), dtype=np.float32)
         phase_state.timings["audio_decode"] = time.perf_counter() - audio_started
         session.frames_published = frame_start + num_frames
-        phase_seconds = time.perf_counter() - phase_state.started_at
+        phase_end = time.perf_counter()
+        phase_seconds = phase_end - phase_state.started_at
         if self._tm_log_timings:
             graph = self._tm_teacher_graph
+            # ``period`` is the wall time between the ends of consecutive
+            # phases: the phase itself plus everything the runner does around
+            # it (phase preparation, output handling, interaction apply).
+            period = 0.0 if session.last_phase_end is None else phase_end - session.last_phase_end
             logger.info(
                 "TaoMate-H3 %s request %d phase %d: %.3f s total (teacher %.3f, denoise x3 %.3f, commit %.3f, "
-                "video decode %.3f, audio decode %.3f), %d frames, history %d rows%s",
+                "video decode %.3f, audio decode %.3f, prepare %.3f), period %.3f s, %d frames, history %d rows%s",
                 session.session_id,
                 request.index,
                 phase.index,
@@ -1069,10 +1207,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 phase_state.timings.get("commit", 0.0),
                 phase_state.timings.get("video_decode", 0.0),
                 phase_state.timings.get("audio_decode", 0.0),
+                session.prepare_seconds,
+                period,
                 num_frames,
                 cache.history_tokens,
                 "" if graph is None else f", teacher graphs {graph.stats()}",
             )
+        session.last_phase_end = phase_end
         payload: dict[str, Any] = {
             "video": frames
             if frames is not None

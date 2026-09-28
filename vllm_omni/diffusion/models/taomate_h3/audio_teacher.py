@@ -18,6 +18,7 @@ model exactly.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import torch
@@ -26,7 +27,7 @@ import torch.nn as nn
 from vllm_omni.diffusion.models.minimax_h3.denoise_loop import MiniMaxH3DenoiseBranch
 
 from .cuda_graph import GraphedForward
-from .geometry import REQUEST_AUDIO_LATENTS, REQUEST_VIDEO_LATENTS, CanvasGeometry, StreamPlan
+from .geometry import REQUEST_AUDIO_LATENTS, REQUEST_VIDEO_LATENTS, CanvasGeometry, StreamPlan, request_plan
 from .lora import TaoMateLoRAAdapter
 from .packed import taomate_audio_only_frozen_prefix_packed_layout, taomate_audio_only_packed_layout
 from .schedule import TEACHER_STATE_NUMBERS, euler_eta0_update_, teacher_sigmas
@@ -149,11 +150,16 @@ class TaoMateAudioTeacher:
         plan_local = getattr(self.transformer, "plan_local_embed", None)
         if not callable(plan_local):
             return None
+        # The rank's row span comes from the forward context, so the same
+        # document can need different plans inside and outside a runner step.
+        span_of = getattr(self.transformer, "_rope_local_span", None)
+        span = tuple(span_of(int(branch.seq_len))) if callable(span_of) else (0, int(branch.seq_len))
         shape = (
             int(branch.seq_len),
             int(branch.text_len),
             int(branch.audio_pos.numel()),
             int((~branch.audio_update_mask).sum()),
+            *span,
         )
         if shape not in self._embed_plans:
             self._embed_plans[shape] = plan_local(
@@ -164,6 +170,62 @@ class TaoMateAudioTeacher:
                 device=self.device,
             )
         return self._embed_plans[shape]
+
+    # Requests whose teacher documents cover every shape a session visits: the
+    # first request (207 audio latents, no reference) and the three-request
+    # cycle of later requests (198, 198, 199 latents with a reference tail).
+    WARM_REQUEST_INDICES = (0, 1, 2, 3)
+
+    @torch.inference_mode()
+    def warm_shapes(
+        self,
+        *,
+        text_embeddings: torch.Tensor,
+        text_tags: torch.Tensor,
+        canvas: CanvasGeometry,
+        seq_len_for: Callable[[bool], int | None],
+    ) -> int:
+        """Capture the teacher graphs of every document shape a session of this prompt uses.
+
+        One forward per warm request index (a replay when the shape's graph
+        already exists) with zero audio rows; the content is irrelevant, only
+        the shapes are. Returns the number of graphs captured. Without an
+        enabled graph nothing runs.
+        """
+        graph = self.graph
+        if graph is None or not graph.enabled:
+            return 0
+        captures_before = graph.captures
+        video_rows = torch.empty((0, VIDEO_ROW_WIDTH), dtype=torch.float32, device=self.device)
+        seen: set[tuple[int, int | None]] = set()
+        for index in self.WARM_REQUEST_INDICES:
+            plan = request_plan(index)
+            previous = None if index == 0 else request_plan(index - 1).audio_latent_count
+            key = (plan.audio_latent_count, None if previous is None else ROLLOVER_LATENTS_PER_CHANNEL)
+            if key in seen:
+                continue
+            seen.add(key)
+            branch = self.build_branch(
+                text_embeddings=text_embeddings,
+                text_tags=text_tags,
+                canvas=canvas,
+                audio_latent_count=plan.audio_latent_count,
+                previous_audio_latent_count=previous,
+                seq_len=seq_len_for(previous is not None),
+            )
+            audio_rows = torch.zeros(
+                (int(branch.audio_pos.numel()), AUDIO_ROW_WIDTH), dtype=torch.float32, device=self.device
+            )
+            embed_plan: LocalEmbedPlan | None = getattr(branch, "taomate_embed_plan", None)
+            lora_scope = self.lora.disabled() if self.lora is not None else _NullScope()
+            with lora_scope, local_embed_plan(embed_plan):
+                forward_kwargs = teacher_forward_kwargs(
+                    branch, video_rows=video_rows, audio_rows=audio_rows, t_video=0.0, t_audio=0.0
+                )
+                self._forward(forward_kwargs, plan=embed_plan)
+            if not graph.enabled:
+                break
+        return graph.captures - captures_before
 
     @torch.inference_mode()
     def run_request(
