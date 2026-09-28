@@ -221,6 +221,20 @@ targets (`|D|/|W|` = 0.2-1.2%): per-tensor e4m3 requantization keeps the delta i
 orthogonal to it, and the total error against the BF16 student is 0.0265 either way, so the
 merge is unbiased but re-rolls the FP8 noise; it is an opt-in trade, not an exact optimization.
 
+**Latest persona-length state (measured locally by the sibling session, 2026-09-28 12:30, two
+GPUs, 332-340-token prompts with an update every request, 64-token text buckets, fused LoRA
+hooks, text-encoder graphs, 31 requests):** 5.05 s per request (real-time factor 1.02); per
+34-frame phase teacher 0.35, 3 student forwards 0.68-0.71, commit 0.25-0.27, VAE decode 0.21,
+preparation 0.02-0.04, and 0.045 s between the end of a phase and the next preparation, i.e.
+0.18 s per request of output transport. That transport is the worker packing the phase's 42 MB
+of uint8 frames into a fresh POSIX shared-memory segment on the step thread (`ipc.py`
+`_array_to_shm`: segment creation, first-touch page faults and a memcpy); the worker already
+has a background packing thread with a side-stream D2H path, but `_return_result` and the
+thread's creation are limited to request mode (`not step_execution`). Moving step-mode chunk
+outputs onto that thread (worker, executor id propagation, and the engine's chunk streaming
+awaiting `OUTPUT_READY` per chunk) is the remaining lever that closes the persona gap without
+touching the model; it is not implemented yet.
+
 Next levers, in order of expected gain per effort (estimates from the stage breakdown, not
 measured): move the frame transport off the step loop or into shared memory (0.2 s per
 request, runner change); hide or graph the prompt re-encode (0.13-0.27 s per update);
