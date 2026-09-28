@@ -13,9 +13,13 @@
 # 480x864 on two H200-class GPUs, this config streams 4.958 s requests in
 # 4.78 s of wall time with short prompts (real-time factor 0.96) and in
 # 4.87 s with persona-length prompts (330-410 tokens) that change every
-# request (factor 0.98, 30 requests; eager BF16 took 6.3 s). FP8 linears and
-# the CUDA-graph teacher and text encoder do not change the generated content;
-# the decoder tile only changes how the VAE is split across the two ranks.
+# request (factor 0.98, 30 requests; eager BF16 took 6.3 s). The CUDA-graph
+# teacher and text encoder and the decoder tile do not change the generated
+# content. QUALITY: per-tensor FP8 on every DiT linear (quantization: fp8)
+# renders a 16 px lattice and deformed faces; a per-channel FP8 with the
+# boundary layers in BF16 is under validation (recipe, quality finding). Until
+# then leave quantization unset (BF16) if image quality matters more than the
+# 0.4 s per request it costs.
 # Size taomate_h3_pad_text_tokens and taomate_h3_teacher_graph_text_lengths
 # to the deployment's prompts (below: 330-410-token persona prompts). The
 # four-GPU recipe keeps a 20% margin.

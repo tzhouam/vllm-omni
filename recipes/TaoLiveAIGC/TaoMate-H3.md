@@ -116,6 +116,17 @@ request); the launch-bound teacher forwards and the per-phase VAE decode are the
 
 ## Two GPUs (USP2): `vllm_omni/deploy/taomate_h3_usp2_realtime.yaml`
 
+> **Quality finding (2026-09-28, frames compared locally):** `quantization: fp8` (online
+> per-tensor FP8 on every DiT linear, the setting behind every two-GPU number below) renders a
+> uniform 16 px lattice over the whole frame, deformed faces and smeared texture from the first
+> chunk on, while the eager BF16 baseline and the release runtime are clean. The lattice is the
+> DiT's token grid, not VAE tile seams or codec blocking. The earlier statement that FP8 does
+> not change the generated content was wrong. The fix under test keeps the patch, condition,
+> time, refiner, AdaLN and final projections in BF16 and quantizes the 50 blocks with
+> per-channel weight and per-token activation scales (`method: fp8_per_channel` with an
+> `ignore` list, see the config); until it is validated, use BF16 (`quantization` unset)
+> and accept 5.4 s per request on two GPUs, or the four-GPU recipe.
+
 The two-GPU config keeps TP=1 and splits the heads across two Ulysses ranks
 (`sequence_parallel_size: 2`, `text_encoder_tp_size: 2`, `vae_patch_parallel_size: 2`).
 Memory per rank in eager BF16 is 100.7 GB after load (measured locally). Eager BF16 is
