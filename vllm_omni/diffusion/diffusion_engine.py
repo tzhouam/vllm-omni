@@ -1664,6 +1664,11 @@ class DiffusionEngine:
             # Tell the executor to drop it before returning the aborted result.
             if runner_output is not None and runner_output.async_output_id is not None:
                 self.executor.drop_output(runner_output.async_output_id)
+            # Step execution with step_async_output: the chunk's media is
+            # pending under the placeholder result's id.
+            pending = runner_output.result if runner_output is not None else None
+            if pending is not None and pending.async_output_id is not None and pending.output is None:
+                self.executor.drop_output(pending.async_output_id)
             # Preserve runner-provided abort details when available.
             if runner_output is not None and runner_output.result is not None and runner_output.result.aborted:
                 return runner_output.result
