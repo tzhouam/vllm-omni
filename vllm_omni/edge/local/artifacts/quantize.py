@@ -137,14 +137,16 @@ def quantize_a16w8(
     reader: ArrayCalibrationReader,
     *,
     op_types_to_quantize: tuple[str, ...] | None = None,
+    nodes_to_quantize: tuple[str, ...] | None = None,
     per_channel: bool | None = None,
 ) -> dict[str, Any]:
     """Quantize an ONNX graph to A16W8 QDQ, the shape XDNA2 partitions.
 
     The default quantization settings come from
     :mod:`vllm_omni.edge.npu_ryzenai`. ``per_channel`` permits a recorded
-    experimental variant; NPU placement and numerical validation must still
-    be checked for that exported graph.
+    experimental variant, and ``nodes_to_quantize`` permits a named subgraph
+    probe. NPU placement and numerical validation must still be checked for
+    each exported graph.
     """
     from onnxruntime.quantization import QuantFormat, quantize_static
 
@@ -162,6 +164,7 @@ def quantize_a16w8(
         reader,
         quant_format=QuantFormat.QDQ,
         op_types_to_quantize=list(op_types_to_quantize) if op_types_to_quantize else None,
+        nodes_to_quantize=list(nodes_to_quantize) if nodes_to_quantize else None,
         **kwargs,
     )
     reader.rewind()
@@ -170,6 +173,8 @@ def quantize_a16w8(
         "activation_type": str(kwargs["activation_type"]),
         "weight_type": str(kwargs["weight_type"]),
         "per_channel": kwargs["per_channel"],
+        "op_types_to_quantize": list(op_types_to_quantize) if op_types_to_quantize else None,
+        "nodes_to_quantize": list(nodes_to_quantize) if nodes_to_quantize else None,
         "quant_format": "QDQ",
         "calibration": reader.record.to_dict(),
         "source_sha256_prefix": _digest(source)[:16],

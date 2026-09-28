@@ -49,6 +49,40 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _force_cpu_gelu_boundary(path: Path) -> None:
+    """Keep GELU out of a two-Gemm VitisAI fusion with explicit FP64 casts.
+
+    The experimental FP64/tanh-GELU change is checked against the unchanged
+    Torch merger below. This variant currently fails NPU placement; retaining
+    its exporter makes that refusal reproducible. The external weight file
+    stays beside the ONNX graph.
+    """
+    import onnx
+    from onnx import TensorProto, helper
+
+    graph = onnx.load(str(path), load_external_data=False)
+    nodes = list(graph.graph.node)
+    gelu_index = next(i for i, node in enumerate(nodes) if node.op_type == "Gelu")
+    gelu = nodes[gelu_index]
+    original_input, original_output = gelu.input[0], gelu.output[0]
+    del gelu.attribute[:]
+    gelu.attribute.append(helper.make_attribute("approximate", "tanh"))
+    gelu.input[0] = "gelu_cpu_f64_input"
+    gelu.output[0] = "gelu_cpu_f64_output"
+    before = helper.make_node(
+        "Cast", [original_input], [gelu.input[0]], to=TensorProto.DOUBLE,
+        name="gelu_cpu_boundary_in",
+    )
+    after = helper.make_node(
+        "Cast", [gelu.output[0]], [original_output], to=TensorProto.FLOAT,
+        name="gelu_cpu_boundary_out",
+    )
+    del graph.graph.node[:]
+    graph.graph.node.extend(nodes[:gelu_index] + [before, gelu, after] + nodes[gelu_index + 1:])
+    onnx.save_model(graph, str(path))
+    onnx.checker.check_model(str(path))
+
+
 def _metrics(actual: np.ndarray, reference: np.ndarray) -> dict[str, float]:
     delta = actual.astype(np.float64) - reference.astype(np.float64)
     return {
@@ -63,10 +97,16 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--images", type=Path, nargs="+", required=True)
     parser.add_argument("--quantize-ops", choices=["all", "gemm"], default="all")
+    parser.add_argument("--gemm-node", choices=["both", "fc1", "fc2"], default="both")
+    parser.add_argument("--cpu-gelu-boundary", action="store_true")
     parser.add_argument("--per-channel", action="store_true")
     args = parser.parse_args()
     if len(args.images) < 3:
         parser.error("use at least two calibration images and one held-out image")
+    if args.gemm_node != "both" and args.quantize_ops != "gemm":
+        parser.error("--gemm-node requires --quantize-ops gemm")
+    if args.cpu_gelu_boundary and args.quantize_ops != "gemm":
+        parser.error("--cpu-gelu-boundary requires --quantize-ops gemm")
 
     args.out.mkdir(parents=True, exist_ok=True)
     torch.set_num_threads(12)
@@ -114,7 +154,14 @@ def main() -> None:
         optimize=True,
     )
     sanitize = sanitize_onnx(source)
-    variant = f"{args.quantize_ops}{'_perchannel' if args.per_channel else ''}"
+    if args.cpu_gelu_boundary:
+        _force_cpu_gelu_boundary(source)
+    variant = (
+        f"{args.quantize_ops}"
+        f"{'_' + args.gemm_node if args.gemm_node != 'both' else ''}"
+        f"{'_perchannel' if args.per_channel else ''}"
+        f"{'_cpu_gelu' if args.cpu_gelu_boundary else ''}"
+    )
     qdq = args.out / f"merger_a16w8_{variant}.onnx"
     calibration_arrays = activations[:-1]
     digest = hashlib.sha256()
@@ -133,6 +180,10 @@ def main() -> None:
         qdq,
         ArrayCalibrationReader("x", calibration_arrays, record),
         op_types_to_quantize=("Gemm",) if args.quantize_ops == "gemm" else None,
+        nodes_to_quantize=(
+            ("node_linear",) if args.gemm_node == "fc1" else
+            ("node_linear_1",) if args.gemm_node == "fc2" else None
+        ),
         per_channel=True if args.per_channel else None,
     )
 
@@ -167,6 +218,8 @@ def main() -> None:
         "sanitization": sanitize,
         "quantization": quantization,
         "quantize_ops": args.quantize_ops,
+        "gemm_node": args.gemm_node,
+        "cpu_gelu_boundary": args.cpu_gelu_boundary,
         "artifacts": {
             "fp32_sha256": _file_sha256(source),
             "fp32_external_data_sha256": _file_sha256(

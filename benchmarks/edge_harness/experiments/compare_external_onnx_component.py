@@ -31,6 +31,7 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--profile-dir", type=Path, required=True)
     parser.add_argument("--output-npz", type=Path)
+    parser.add_argument("--worker-peak-rss-hint-bytes", type=int, default=1073741824)
     args = parser.parse_args()
     with np.load(args.inputs) as loaded:
         inputs = {name: loaded[name] for name in loaded.files}
@@ -47,7 +48,7 @@ def main() -> None:
         enumerate_devices(load_profile()),
         require="npu:amd",
         min_fraction_on_target=0.10,
-        worker_peak_rss_hint_bytes=1073741824,
+        worker_peak_rss_hint_bytes=args.worker_peak_rss_hint_bytes,
     )
     if not plan.admitted:
         raise RuntimeError(plan.summary())

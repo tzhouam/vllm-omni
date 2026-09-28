@@ -1,0 +1,301 @@
+{
+  "source_graph": "/tmp/qwen38_merger_npu_20260927/merger_fp32.onnx",
+  "quantized_graph": "/tmp/qwen38_merger_npu_20260927/merger_a16w8_gemm_fc2_perchannel.onnx",
+  "input_shapes": {
+    "x": [
+      784,
+      1152
+    ]
+  },
+  "output_shape": [
+    196,
+    5120
+  ],
+  "source_vs_quantized_cpu": {
+    "relative_l2": 0.0023256092745504364,
+    "max_abs": 0.05435943603515625
+  },
+  "quantized_cpu_vs_npu": {
+    "relative_l2": 0.00010299070232182617,
+    "max_abs": 0.003658294677734375
+  },
+  "source_vs_npu": {
+    "relative_l2": 0.0023256082200484806,
+    "max_abs": 0.05435943603515625
+  },
+  "placement": {
+    "ep": "vitisai",
+    "graph_path": "/tmp/qwen38_merger_npu_20260927/merger_a16w8_gemm_fc2_perchannel.onnx",
+    "device_name": "",
+    "placement_granularity": "graph_nodes",
+    "session_providers": [
+      "vitisai",
+      "CPUExecutionProvider"
+    ],
+    "available_providers": [
+      "AzureExecutionProvider",
+      "CPUExecutionProvider",
+      "vitisai"
+    ],
+    "node_counts": {
+      "CPUExecutionProvider": 6,
+      "vitisai": 1
+    },
+    "total_nodes": 7,
+    "target_nodes": 1,
+    "fraction_on_target": 0.14285714285714285,
+    "session_create_s": 14.75437450001482,
+    "warmup_s": 0.028280299971811473,
+    "rss_bytes": 747294720,
+    "inputs": [
+      {
+        "name": "x",
+        "type": "tensor(float)",
+        "shape": [
+          784,
+          1152
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "y",
+        "type": "tensor(float)",
+        "shape": [
+          196,
+          5120
+        ]
+      }
+    ],
+    "profile_path": "\\\\wsl.localhost\\Ubuntu\\tmp\\qwen38_merger_npu_20260927\\qwen38_vision_merger_448__2026-09-27_04-37-58_445.json",
+    "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+    "requested_provider_missing": "",
+    "fallback_note": "",
+    "onnxruntime": "1.30.0",
+    "device_id_requested": null,
+    "note": ""
+  },
+  "timing": {
+    "worker_s": 0.025554400053806603,
+    "round_trip_s": 0.03919920197222382,
+    "transport_s": 0.013644801918417215
+  },
+  "stats": {
+    "runs": 1,
+    "total_run_s": 0.025554400053806603,
+    "rss_bytes": 751702016,
+    "peak_rss_bytes": 1164537856,
+    "report": {
+      "ep": "vitisai",
+      "onnxruntime": "1.30.0",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "session_create_s": 14.75437450001482,
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            784,
+            1152
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "y",
+          "type": "tensor(float)",
+          "shape": [
+            196,
+            5120
+          ]
+        }
+      ],
+      "warmup_s": 0.028280299971811473,
+      "profile_path": "\\\\wsl.localhost\\Ubuntu\\tmp\\qwen38_merger_npu_20260927\\qwen38_vision_merger_448__2026-09-27_04-37-58_445.json",
+      "node_counts": {
+        "CPUExecutionProvider": 6,
+        "vitisai": 1
+      },
+      "total_nodes": 7,
+      "target_nodes": 1,
+      "fraction_on_target": 0.14285714285714285,
+      "rss_bytes": 747294720
+    }
+  },
+  "plan": {
+    "artifact": {
+      "path": "/tmp/qwen38_merger_npu_20260927/merger_a16w8_gemm_fc2_perchannel.onnx",
+      "sha256": "90c343e1cbd113cbfc1a0efc258e4ea79c8194197b8916901240d66cfb466dc4",
+      "bytes": 108652903,
+      "fmt": "onnx:a16w8",
+      "opset": 21,
+      "source_model": "Qwen3.8-27B-FP8",
+      "source_revision": null,
+      "component": "qwen38_vision_merger_448",
+      "exporter": "probe_qwen38_vision_merger_npu.py",
+      "input_spec": [],
+      "output_spec": [],
+      "calibration": null,
+      "parity": null,
+      "notes": ""
+    },
+    "device": {
+      "device_id": "npu:amd",
+      "kind": "npu",
+      "vendor": "amd",
+      "name": "NPU Compute Accelerator Device",
+      "backend": "ort:vitisai",
+      "runnable": true,
+      "memory_pool": "host_ram",
+      "memory_bytes": 0,
+      "compute_capability": null,
+      "weight_formats": [
+        "onnx:a16w8"
+      ],
+      "evidence": "B",
+      "reason": "An MCDM device; WSL2's GPU-PV forwards WDDM display adapters only, so it has no device node here and nothing installed inside WSL reaches it. It does work from a Windows-side process -- onnxruntime>=1.25 plus the WindowsWorkload.EP.AMD.VitisAI.Framework appx, loading onnxruntime_vitisai_ep.dll (not the RyzenAI *Light* EP beside it) with its own directory on the DLL search path, against an A16W8-quantized opset-21 graph. Measured 5.3x the CPU on a 1024x2048x2048 GEMM. See vllm_omni/edge/npu_ryzenai.py.",
+      "masked": false,
+      "extra": {
+        "source": "wsl-interop",
+        "probe_route": "ryzenai-ep-windows",
+        "host_pool_bytes": 33184976896,
+        "host_pool_available_bytes": 30114791424,
+        "worker_route": "ort-vitisai",
+        "worker_interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+        "routes": [
+          {
+            "name": "ort-vitisai",
+            "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+            "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+            "ep": "vitisai",
+            "is_windows": true,
+            "available": true,
+            "reason": "",
+            "extra": null
+          }
+        ],
+        "executes": "exported graphs, not checkpoints",
+        "dedicated_vram_bytes": 0
+      }
+    },
+    "route": {
+      "name": "ort-vitisai",
+      "interpreter": "/mnt/c/Users/zhout/npu-ep/Scripts/python.exe",
+      "worker": "/home/zhout/project/edge_infer/vllm-omni-edge/vllm_omni/edge/local/external/worker_ort.py",
+      "ep": "vitisai",
+      "is_windows": true,
+      "available": true,
+      "reason": "",
+      "extra": null
+    },
+    "reservations": [
+      {
+        "pool": "host_ram",
+        "purpose": "graph weights",
+        "bytes": 108652903,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "D",
+        "note": "the exported file, onnx:a16w8, sha 90c343e1cbd1",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker runtime",
+        "bytes": 1663021107,
+        "lifetime": "session",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "interpreter plus execution provider in the worker process; measured 270 MiB for a VitisAI session on a 2 MiB graph and 369 MiB for a DirectML session on the 27B vision tower. NOTE: on an integrated GPU the device allocations come out of this same system RAM and do not appear in the worker's working set, so the measured figure is a lower bound for this pool, not a total; includes 10% headroom on measured worker peak 1610612736 bytes after subtracting graph file bytes",
+        "actual_upper_bound_bytes": 1055884953
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "worker workspace",
+        "bytes": 268435456,
+        "lifetime": "request",
+        "reclaimable": "on_release",
+        "evidence": "E",
+        "note": "activations and EP scratch; not separable by any counter here",
+        "actual_upper_bound_bytes": null
+      },
+      {
+        "pool": "host_ram",
+        "purpose": "external reserve",
+        "bytes": 1073741824,
+        "lifetime": "session",
+        "reclaimable": "no",
+        "evidence": "E",
+        "note": "host RAM this engine does not control; the Windows side included",
+        "actual_upper_bound_bytes": null
+      }
+    ],
+    "refusals": [],
+    "min_fraction_on_target": 0.1,
+    "worker_peak_rss_hint_bytes": 1610612736,
+    "observed_worker_peak_rss_bytes": 1164537856,
+    "budget_bytes": 3113851290,
+    "admitted": true,
+    "report": {
+      "ep": "vitisai",
+      "graph_path": "/tmp/qwen38_merger_npu_20260927/merger_a16w8_gemm_fc2_perchannel.onnx",
+      "device_name": "",
+      "placement_granularity": "graph_nodes",
+      "session_providers": [
+        "vitisai",
+        "CPUExecutionProvider"
+      ],
+      "available_providers": [
+        "AzureExecutionProvider",
+        "CPUExecutionProvider",
+        "vitisai"
+      ],
+      "node_counts": {
+        "CPUExecutionProvider": 6,
+        "vitisai": 1
+      },
+      "total_nodes": 7,
+      "target_nodes": 1,
+      "fraction_on_target": 0.14285714285714285,
+      "session_create_s": 14.75437450001482,
+      "warmup_s": 0.028280299971811473,
+      "rss_bytes": 747294720,
+      "inputs": [
+        {
+          "name": "x",
+          "type": "tensor(float)",
+          "shape": [
+            784,
+            1152
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "y",
+          "type": "tensor(float)",
+          "shape": [
+            196,
+            5120
+          ]
+        }
+      ],
+      "profile_path": "\\\\wsl.localhost\\Ubuntu\\tmp\\qwen38_merger_npu_20260927\\qwen38_vision_merger_448__2026-09-27_04-37-58_445.json",
+      "ep_directory": "C:\\Program Files\\WindowsApps\\WindowsWorkload.EP.AMD.VitisAI.Framework.1.8_1.8.63.0_x64__8wekyb3d8bbwe\\ExecutionProvider",
+      "requested_provider_missing": "",
+      "fallback_note": "",
+      "onnxruntime": "1.30.0",
+      "device_id_requested": null,
+      "note": ""
+    }
+  }
+}
