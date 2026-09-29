@@ -335,8 +335,21 @@ DiT; the remaining exact lever is the VAE decode path.
 174 ms, of which 159 ms of device time: 100 ms in the 3D ViT decoder's fp16 cuBLAS GEMMs, 33 ms
 in its attention (PyTorch's flash SDPA), 7 ms `silu_and_mul`, 12 ms residual and norm kernels,
 4 ms casts; the convolutions are negligible. Batching the tiles (`taomate_h3_vae_stack_tiling`)
-gives identical output and no speed change, so the GEMMs are not starved by small batches; the
-decoder is simply large for the frame count it produces.
+gives identical output and no speed change, so the GEMMs are not starved by small batches: the
+decoder is a 2.4 B-parameter 3D ViT (36 blocks, width 2048, FFN 16384, 32 heads of 64) and one
+window is about 69 TFLOP of GEMM, i.e. the 100 ms already run at the cards' fp16 tensor-core rate
+(about 690 TFLOP/s). Its attention (288 calls of 1797x1797, head dim 64) runs at about 220 TFLOP/s
+and a FlashAttention-3 swap would save roughly 15 ms per window (0.03 s per request); nothing
+larger remains in the decode without lower precision.
+
+**What is left at exact numerics (2026-09-29).** With the DiT and the VAE both at tensor-core rate,
+the two-GPU config runs persona-length prompts with a change every request at about 4.7-4.8 s per
+4.958 s request (real-time factor 0.95-0.97, a 3-5% margin on a quiet host). The remaining
+speed-ups all change numerics and would need a quality gate against eager BF16 (sharpness and frame
+difference on the persona prompt) before use: FP8 attention in the DiT (25% faster attention,
+about 0.2 s per request), FP8 GEMMs in the VAE decoder (about 0.15 s per request), FP8 for the
+DiT's boundary layers (small). They are not enabled.
+
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
