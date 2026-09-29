@@ -11,9 +11,9 @@
 #
 # Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
 # 480x864 on two H200-class GPUs with persona-length prompts (330-410 tokens)
-# that change every request: 4.60 s of wall time per 4.958 s request
-# (real-time factor 0.93 over a 7-request run; a 100-request confirmation is
-# recorded in the recipe). Eager BF16 took 6.3 s. Output quality matches
+# that change every request: 4.69 s of wall time per 4.958 s request on
+# average over 100 requests (real-time factor 0.945, one request above
+# budget, the stream gained 26 s), 4.60 s in a 7-request run with timings. Eager BF16 took 6.3 s. Output quality matches
 # eager BF16 (frames compared): the CUDA-graph teacher and text encoder are
 # exact; per-channel FP8 with BF16 boundary layers, the merged student
 # weights and the 32 px tile overlap were each checked visually. The earlier

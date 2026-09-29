@@ -302,14 +302,19 @@ without competing load the 4.87 s figure is the expected steady state; on a shar
 config sits at the line, and a client should buffer 1-2 s. A further 5% of device time (the
 LoRA delta, see above) would make the margin independent of host load.
 
-**Two GPUs at persona length after the quality fix (measured locally, 2026-09-29, 7 requests,
-332-340-token prompts changing every request, per-channel FP8 with BF16 boundary layers, merged
-student weights, teacher and text-encoder graphs, 64-token buckets, AdaLN cache off,
-`step_async_output`, 256 px decoder tiles with 32 px minimum overlap):** 4.60 s per 4.958 s
-request, **real-time factor 0.93** with output that matches eager BF16. Per 34-frame phase:
-teacher 0.39 (request start only), 3 student forwards 0.65-0.68, commit 0.23-0.25, VAE decode
-0.19, 0.06 s between phases. The two levers that closed the gap after the tile bug: the merged
-student weights (0.12 s per request) and the 32 px tile overlap (0.6 s per request).
+**Two GPUs at persona length after the quality fix (measured locally, 2026-09-29, the deploy
+config: per-channel FP8 with BF16 boundary layers, merged student weights, teacher and
+text-encoder graphs, 64-token buckets, AdaLN cache off, `step_async_output`, 256 px decoder
+tiles with 32 px minimum overlap):** a 100-request session with a different 332-340-token
+prompt every request averaged **4.69 s per 4.958 s request (real-time factor 0.945)**, one
+request above budget (5.61 s), and the stream gained 25.8 s over the 100 requests on a host
+with load average 21; a 7-request run with timings on gave 4.60 s. Output matches eager BF16
+(frames at 12, 120, 300 and 480 s checked). Per 34-frame phase: teacher 0.39 (request start
+only), 3 student forwards 0.65-0.68, commit 0.23-0.25, VAE decode 0.19, 0.06 s between phases.
+The two levers that closed the gap after the tile bug: the merged student weights (0.12 s per
+request) and the 32 px tile overlap (0.6 s per request). Memory: the two ranks reported 139 and
+143 GB in use (caching allocator included) on 144 GB cards; if a deployment runs short, quantize
+the text encoder too (`text_encoder: {method: fp8_per_channel}`, about 4 GB per rank).
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
