@@ -547,6 +547,14 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # before the clean-commit forward, so the launch-bound commit and the
         # device-bound decode overlap (the decode only needs the clean latents).
         self._tm_decode_overlap = bool(model_config.get("taomate_h3_decode_overlap", False))
+        # Profile one chunk (phase) with torch.profiler: the three student
+        # forwards, the commit forward and the decode of chunk index
+        # taomate_h3_profile_chunk; writes a kernel table and a Chrome trace
+        # per rank into taomate_h3_profile_dir. For finding hot spots only.
+        profile_chunk = model_config.get("taomate_h3_profile_chunk")
+        self._tm_profile_chunk = None if profile_chunk is None else int(profile_chunk)
+        self._tm_profile_dir = str(model_config.get("taomate_h3_profile_dir", "/tmp/taomate_h3_profile"))
+        self._tm_profiler: Any = None
         self._tm_decode_stream: Any = None
         # Merge the LoRA delta into a second weight set for the student (per
         # target a shadow linear quantized like the base by the loader); the
@@ -1100,6 +1108,36 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         state.step_index = 0
         state.step_in_chunk = 0
 
+    def _start_profiler(self) -> Any:
+        activities = [torch.profiler.ProfilerActivity.CPU]
+        if self.device.type == "cuda":
+            activities.append(torch.profiler.ProfilerActivity.CUDA)
+        profiler = torch.profiler.profile(activities=activities, record_shapes=True, with_stack=False)
+        profiler.__enter__()
+        logger.info("TaoMate-H3 profiler started for chunk %d", self._tm_profile_chunk)
+        return profiler
+
+    def _stop_profiler(self, session_id: str, chunk_index: int) -> None:
+        profiler = self._tm_profiler
+        self._tm_profiler = None
+        if profiler is None:
+            return
+        if self.device.type == "cuda":
+            torch.accelerator.synchronize()
+        profiler.__exit__(None, None, None)
+        import os
+
+        os.makedirs(self._tm_profile_dir, exist_ok=True)
+        stem = os.path.join(self._tm_profile_dir, f"chunk{chunk_index}_rank{int(self._dit_rank)}")
+        sort_key = "cuda_time_total" if self.device.type == "cuda" else "cpu_time_total"
+        with open(stem + "_kernels.txt", "w") as handle:
+            handle.write(profiler.key_averages().table(sort_by=sort_key, row_limit=80))
+        try:
+            profiler.export_chrome_trace(stem + "_trace.json")
+        except Exception as exc:  # noqa: BLE001 - the table is the primary output
+            logger.warning("TaoMate-H3 profiler: chrome trace export failed: %s", exc)
+        logger.info("TaoMate-H3 profiler: wrote %s_kernels.txt (%s)", stem, session_id)
+
     def _decode_stream(self) -> Any:
         """The video decode's CUDA stream when the overlap is enabled on a CUDA device, else None."""
         if not self._tm_decode_overlap or self.device.type != "cuda":
@@ -1234,6 +1272,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         phase_state = session.phase
         if request is None or phase_state is None or state.latents is None:
             raise RuntimeError("TaoMate-H3 denoise_step called before prepare_next_chunk")
+        if (
+            self._tm_profile_chunk is not None
+            and state.chunk_index == self._tm_profile_chunk
+            and state.step_in_chunk == 0
+            and self._tm_profiler is None
+        ):
+            self._tm_profiler = self._start_profiler()
         if request.teacher is None:
             if not session.teacher_shapes_warm:
                 # First step of the session, inside the runner's forward
@@ -1429,6 +1474,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 + ("" if self._tm_text_graph is None else f", text graphs {self._tm_text_graph.stats()}"),
             )
         session.last_phase_end = phase_end
+        if self._tm_profiler is not None and completed_chunk_index == self._tm_profile_chunk:
+            self._stop_profiler(session.session_id, completed_chunk_index)
         payload: dict[str, Any] = {
             "video": frames
             if frames is not None
