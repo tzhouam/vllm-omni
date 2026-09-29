@@ -59,6 +59,11 @@ class StreamContext:
     token_tags: torch.Tensor
     commit_mask: torch.Tensor
     seq_len: int
+    # ``(start, length)`` when the rows are one contiguous range (the pinned
+    # phase layout: text rows, then audio and video rows); slices then replace
+    # the gathers.
+    condition_span: tuple[int, int] | None = None
+    media_span: tuple[int, int] | None = None
     kernel_calls: int = 0
 
 
@@ -225,26 +230,36 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
         scale = float(self.softmax_scale)
         condition_rows = context.condition_rows
         media_rows = context.media_rows
-        k_condition = k.index_select(0, condition_rows)
-        v_condition = v.index_select(0, condition_rows)
+        c_span, m_span = context.condition_span, context.media_span
+        if c_span is not None:
+            q_condition = q[c_span[0] : c_span[0] + c_span[1]]
+            k_condition = k[c_span[0] : c_span[0] + c_span[1]]
+            v_condition = v[c_span[0] : c_span[0] + c_span[1]]
+        else:
+            q_condition = q.index_select(0, condition_rows)
+            k_condition = k.index_select(0, condition_rows)
+            v_condition = v.index_select(0, condition_rows)
         condition_out = _dense_attention(
-            q.index_select(0, condition_rows),
+            q_condition,
             k_condition,
             v_condition,
             scale=scale,
             flash_attn_func=self._flash_attn_func,
         )
-        history = context.cache.history(self.layer_name)
-        k_media = k.index_select(0, media_rows)
-        v_media = v.index_select(0, media_rows)
-        if history is None:
-            keys = torch.cat((k_condition, k_media), dim=0)
-            values = torch.cat((v_condition, v_media), dim=0)
+        if m_span is not None:
+            q_media = q[m_span[0] : m_span[0] + m_span[1]]
+            k_media = k[m_span[0] : m_span[0] + m_span[1]]
+            v_media = v[m_span[0] : m_span[0] + m_span[1]]
         else:
-            keys = torch.cat((k_condition, history.key, k_media), dim=0)
-            values = torch.cat((v_condition, history.value, v_media), dim=0)
+            q_media = q.index_select(0, media_rows)
+            k_media = k.index_select(0, media_rows)
+            v_media = v.index_select(0, media_rows)
+        # One contiguous [history | media | condition] view per layer: the live
+        # rows are copied into the cache's scratch rows; no per-layer
+        # concatenation of the history.
+        keys, values = context.cache.assemble(self.layer_name, k_condition, v_condition, k_media, v_media)
         media_out = _dense_attention(
-            q.index_select(0, media_rows),
+            q_media,
             keys,
             values,
             scale=scale,
@@ -252,10 +267,19 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
         )
         context.kernel_calls += 2
         out = torch.zeros_like(q)
-        out.index_copy_(0, condition_rows, condition_out)
-        out.index_copy_(0, media_rows, media_out)
+        if c_span is not None:
+            out[c_span[0] : c_span[0] + c_span[1]] = condition_out
+        else:
+            out.index_copy_(0, condition_rows, condition_out)
+        if m_span is not None:
+            out[m_span[0] : m_span[0] + m_span[1]] = media_out
+        else:
+            out.index_copy_(0, media_rows, media_out)
         if context.mode is StreamMode.CLEAN_COMMIT:
-            context.cache.stage(self.layer_name, k, v, context.token_tags, context.commit_mask)
+            # The clean media rows already sit right after the history.
+            context.cache.stage_in_place(
+                self.layer_name, int(k_media.shape[0]), context.token_tags, context.commit_mask
+            )
         return out
 
 

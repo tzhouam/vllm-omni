@@ -837,3 +837,90 @@ def test_fp8_activation_quant_is_pointed_at_the_cuda_kernel() -> None:
     assert use_cuda_fp8_activation_quant(root) == 1
     assert quant._forward_method("x") == "cuda"
     assert use_cuda_fp8_activation_quant(root) == 0  # idempotent
+
+
+# ----------------------------------------------------------------------------
+# buffered K/V cache: in-place assembly, staging and compaction match the reference semantics
+
+
+def _reference_history(commits: list[tuple[torch.Tensor, torch.Tensor, list[int]]], selection):
+    """History rows after ``selection`` of (block, video_only) over committed (key, value, tags) blocks."""
+    keys, values = [], []
+    for block, video_only in selection:
+        key, value, tags = commits[block]
+        keep = [i for i, tag in enumerate(tags) if not video_only or tag == VIDEO_TOKEN_TAG]
+        idx = torch.tensor(keep)
+        keys.append(key.index_select(0, idx))
+        values.append(value.index_select(0, idx))
+    return torch.cat(keys), torch.cat(values)
+
+
+def test_kv_cache_assemble_and_in_place_staging_match_concatenation() -> None:
+    torch.manual_seed(1)
+    contract = KVContract(num_layers=2, local_heads=2, head_dim=4)
+    cache = CleanAVKVCache(contract, capacity_rows=8)  # small: forces a buffer growth below
+    text, audio, video = 3, 2, 4
+    seq = text + audio + video
+    tags = torch.tensor([1] * text + [AUDIO_TOKEN_TAG] * audio + [VIDEO_TOKEN_TAG] * video)
+    mask = torch.tensor([False] * text + [True] * (audio + video))
+    commits: list[tuple[torch.Tensor, torch.Tensor, list[int]]] = []
+    for block in range(4):
+        cache.begin_clean_commit(block)
+        for layer in contract.layer_names:
+            k = torch.randn(seq, 2, 4, dtype=torch.bfloat16)
+            v = torch.randn(seq, 2, 4, dtype=torch.bfloat16)
+            history = cache.history(layer)
+            keys, values = cache.assemble(layer, k[:text], v[:text], k[text:], v[text:])
+            expected_k = torch.cat(([history.key] if history is not None else []) + [k[text:], k[:text]])
+            expected_v = torch.cat(([history.value] if history is not None else []) + [v[text:], v[:text]])
+            assert torch.equal(keys, expected_k) and torch.equal(values, expected_v)
+            cache.stage_in_place(layer, audio + video, tags, mask)
+            if layer == contract.layer_names[0]:
+                commits.append((k[text:].clone(), v[text:].clone(), tags[text:].tolist()))
+        cache.commit()
+        cache.retain_sink_and_recent_commits()
+    # After four commits the policy keeps block 0 video-only and blocks 2 and 3 whole.
+    assert cache.committed_blocks == 4 and cache.history_tokens == video + 2 * (audio + video)
+    ref_k, ref_v = _reference_history(commits, [(0, True), (2, False), (3, False)])
+    history = cache.history(contract.layer_names[0])
+    assert torch.equal(history.key, ref_k) and torch.equal(history.value, ref_v)
+    # Dropping the audio history compacts to the video rows of every kept block.
+    removed = cache.drop_audio_history()
+    assert removed == 2 * audio and cache.history_tokens == 3 * video
+    ref_k, ref_v = _reference_history(commits, [(0, True), (2, True), (3, True)])
+    history = cache.history(contract.layer_names[0])
+    assert torch.equal(history.key, ref_k) and torch.equal(history.value, ref_v)
+
+
+def test_kv_cache_stage_paths_agree() -> None:
+    """stage() (full-sequence rows) and assemble()+stage_in_place() leave the same history."""
+    contract = KVContract(num_layers=1, local_heads=1, head_dim=2)
+    layer = contract.layer_names[0]
+    seq, text = 6, 2
+    tags = torch.tensor([1, 1, AUDIO_TOKEN_TAG, AUDIO_TOKEN_TAG, VIDEO_TOKEN_TAG, VIDEO_TOKEN_TAG])
+    mask = torch.tensor([False, False, True, True, True, True])
+    k = torch.randn(seq, 1, 2, dtype=torch.bfloat16)
+    v = torch.randn(seq, 1, 2, dtype=torch.bfloat16)
+    a = CleanAVKVCache(contract)
+    a.begin_clean_commit(0)
+    a.stage(layer, k, v, tags, mask)
+    a.commit()
+    b = CleanAVKVCache(contract)
+    b.begin_clean_commit(0)
+    b.assemble(layer, k[:text], v[:text], k[text:], v[text:])
+    b.stage_in_place(layer, seq - text, tags, mask)
+    b.commit()
+    assert torch.equal(a.history(layer).key, b.history(layer).key)
+    assert torch.equal(a.history(layer).value, b.history(layer).value)
+    with pytest.raises(RuntimeError):
+        b.begin_clean_commit(1)
+        b.stage_in_place(layer, seq - text - 1, tags, mask)  # row count must match the mask
+
+
+def test_contiguous_span_detection() -> None:
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import _contiguous_span
+
+    assert _contiguous_span(torch.arange(5, 12)) == (5, 7)
+    assert _contiguous_span(torch.tensor([3])) == (3, 1)
+    assert _contiguous_span(torch.tensor([1, 2, 4])) is None
+    assert _contiguous_span(torch.tensor([], dtype=torch.long)) is None

@@ -190,6 +190,8 @@ class _PhaseState:
     token_tags: torch.Tensor
     commit_mask: torch.Tensor
     seq_len: int
+    condition_span: tuple[int, int] | None = None
+    media_span: tuple[int, int] | None = None
     started_at: float = field(default_factory=time.perf_counter)
     timings: dict[str, float] = field(default_factory=dict)
 
@@ -208,12 +210,13 @@ class _Session:
         audio_decoder: StreamingAudioDecoder,
         audio_kv_reset_requests: int,
         pad_text_tokens: int = 0,
+        kv_capacity_rows: int | None = None,
     ) -> None:
         self.session_id = session_id
         self.canvas = canvas
         self.pad_text_tokens = int(pad_text_tokens)
         self.seed = int(seed)
-        self.cache = CleanAVKVCache(contract)
+        self.cache = CleanAVKVCache(contract, capacity_rows=kv_capacity_rows)
         self.video_decoder = video_decoder
         self.audio_decoder = audio_decoder
         self.audio_kv_reset_requests = int(audio_kv_reset_requests)
@@ -411,11 +414,12 @@ class _Session:
         # the sequence-parallel span is only known under the runner's forward
         # context, and ``prepare_next_chunk`` runs outside it.
         seq_len = int(packed["seq_len"])
-        condition_rows = packed["text_pos"].view(-1).to(device=device, dtype=torch.long)
-        media_rows = torch.cat((packed["audio_pos"].view(-1), packed["img_pos"].view(-1))).sort().values
-        media_rows = media_rows.to(device=device, dtype=torch.long)
+        condition_cpu = packed["text_pos"].view(-1).to(torch.long)
+        media_cpu = torch.cat((packed["audio_pos"].view(-1), packed["img_pos"].view(-1))).sort().values.to(torch.long)
+        condition_rows = condition_cpu.to(device=device)
+        media_rows = media_cpu.to(device=device)
         commit_mask = torch.zeros(seq_len, dtype=torch.bool)
-        commit_mask[media_rows.cpu()] = True
+        commit_mask[media_cpu] = True
         self.phase = _PhaseState(
             phase=phase,
             branch=branch,
@@ -424,6 +428,8 @@ class _Session:
             token_tags=tags.to(device=device, dtype=torch.long),
             commit_mask=commit_mask.to(device=device),
             seq_len=seq_len,
+            condition_span=_contiguous_span(condition_cpu),
+            media_span=_contiguous_span(media_cpu),
         )
         return self.phase
 
@@ -438,6 +444,8 @@ class _Session:
             token_tags=phase.token_tags,
             commit_mask=phase.commit_mask,
             seq_len=phase.seq_len,
+            condition_span=phase.condition_span,
+            media_span=phase.media_span,
         )
 
     def renorm_clean_video_rows(self, rows: torch.Tensor) -> torch.Tensor:
@@ -502,6 +510,19 @@ def parse_text_length_range(value: Any, name: str = "taomate_h3_teacher_graph_te
     if lo < 1 or hi < lo:
         raise ValueError(f"{name} needs 1 <= lo <= hi, got {lo}-{hi}")
     return range(lo, hi + 1)
+
+
+def _contiguous_span(rows: torch.Tensor) -> tuple[int, int] | None:
+    """``(start, length)`` if the sorted host row indices are one contiguous range, else None."""
+    if rows.numel() == 0:
+        return None
+    start = int(rows[0])
+    length = int(rows.numel())
+    if int(rows[-1]) - start + 1 != length:
+        return None
+    if length > 1 and not bool(torch.all(rows[1:] - rows[:-1] == 1)):
+        return None
+    return start, length
 
 
 def validate_vae_tile_value(value: Any, name: str, *, minimum: int) -> int | None:
@@ -1075,6 +1096,9 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             audio_decoder=StreamingAudioDecoder(self.audio_vae, device=self.device),
             audio_kv_reset_requests=self._tm_audio_kv_reset_requests,
             pad_text_tokens=self._tm_pad_text_tokens,
+            # History bound plus the largest live document, so the per-layer
+            # K/V buffers are allocated once.
+            kv_capacity_rows=self._dense_kv_rows_bound(canvas) + max(self._tm_pad_text_tokens, 256) + 4352,
         )
         self._tm_sessions[session_id] = session
         state.chunk_num_steps = STUDENT_STEPS

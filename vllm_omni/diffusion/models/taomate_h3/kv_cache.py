@@ -77,11 +77,20 @@ class CleanAVKVCache:
     each commit and ``drop_audio_history`` implements the periodic audio reset.
     """
 
-    def __init__(self, contract: KVContract) -> None:
+    def __init__(self, contract: KVContract, capacity_rows: int | None = None) -> None:
         self.contract = contract
         self._layer_names = set(contract.layer_names)
-        self._history: dict[str, AVKV] = {}
-        self._staged: dict[str, AVKV] = {}
+        # One persistent K and V buffer per layer, ``[capacity, heads, dim]``:
+        # rows ``[0, _rows)`` hold the committed history, the rows after them
+        # are scratch for the live document (its media rows first, then its
+        # condition rows), so a forward attends to one contiguous view and a
+        # commit only moves the history end. Allocated on first use, grown on
+        # demand; ``capacity_rows`` sizes the first allocation.
+        self._buffers: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
+        self._rows = 0
+        self._capacity_hint = int(capacity_rows) if capacity_rows else 0
+        # Layers whose media rows already sit at ``[_rows, _rows + n)`` for the active commit.
+        self._staged: dict[str, int] = {}
         self._staged_block: int | None = None
         self._staged_tags: tuple[int, ...] | None = None
         self._staged_indices: torch.Tensor | None = None
@@ -95,9 +104,7 @@ class CleanAVKVCache:
 
     @property
     def history_tokens(self) -> int:
-        if not self._history:
-            return 0
-        return int(next(iter(self._history.values())).key.shape[0])
+        return self._rows
 
     @property
     def history_audio_tokens(self) -> int:
@@ -113,7 +120,99 @@ class CleanAVKVCache:
 
     def history(self, layer_name: str) -> AVKV | None:
         self._validate_layer_name(layer_name)
-        return self._history.get(layer_name)
+        buffers = self._buffers.get(layer_name)
+        if buffers is None or self._rows == 0:
+            return None
+        key, value = buffers
+        return AVKV(key=key[: self._rows], value=value[: self._rows])
+
+    def _buffers_for(self, layer_name: str, like: torch.Tensor, needed_rows: int) -> tuple[torch.Tensor, torch.Tensor]:
+        """The layer's K/V buffers with room for ``needed_rows`` rows, on ``like``'s device."""
+        buffers = self._buffers.get(layer_name)
+        tail = (self.contract.local_heads, self.contract.head_dim)
+        if buffers is None:
+            capacity = max(self._capacity_hint, needed_rows)
+            key = torch.empty((capacity, *tail), dtype=self.contract.dtype, device=like.device)
+            value = torch.empty_like(key)
+            buffers = (key, value)
+            self._buffers[layer_name] = buffers
+        elif buffers[0].shape[0] < needed_rows:
+            capacity = max(needed_rows, 2 * buffers[0].shape[0])
+            key = torch.empty((capacity, *tail), dtype=self.contract.dtype, device=like.device)
+            value = torch.empty_like(key)
+            key[: self._rows].copy_(buffers[0][: self._rows])
+            value[: self._rows].copy_(buffers[1][: self._rows])
+            buffers = (key, value)
+            self._buffers[layer_name] = buffers
+        return buffers
+
+    def assemble(
+        self,
+        layer_name: str,
+        k_condition: torch.Tensor,
+        v_condition: torch.Tensor,
+        k_media: torch.Tensor,
+        v_media: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Keys and values of the live document as one view: ``[history | media | condition]``.
+
+        The live rows are copied into the layer's scratch rows after the
+        history (media first, so that a clean commit can keep them in place).
+        Attention is invariant to the key order, so this equals the
+        concatenation the layer used to build.
+        """
+        self._validate_layer_name(layer_name)
+        media_rows = int(k_media.shape[0])
+        condition_rows = int(k_condition.shape[0])
+        total = self._rows + media_rows + condition_rows
+        key, value = self._buffers_for(layer_name, k_media, total)
+        start = self._rows
+        key[start : start + media_rows].copy_(k_media)
+        value[start : start + media_rows].copy_(v_media)
+        key[start + media_rows : total].copy_(k_condition)
+        value[start + media_rows : total].copy_(v_condition)
+        return key[:total], value[:total]
+
+    def stage_in_place(
+        self,
+        layer_name: str,
+        media_rows: int,
+        token_tags: torch.Tensor,
+        commit_mask: torch.Tensor,
+    ) -> None:
+        """Stage the media rows an ``assemble`` call just wrote at ``[rows, rows + media_rows)``."""
+        if not self.clean_commit_active:
+            raise RuntimeError("begin_clean_commit() must be called before stage_in_place()")
+        self._validate_layer_name(layer_name)
+        if layer_name in self._staged:
+            raise RuntimeError(f"{layer_name}: KV was staged more than once")
+        tags = self._commit_tags(token_tags, commit_mask)
+        if len(tags) != int(media_rows):
+            raise RuntimeError(
+                f"{layer_name}: assembled {media_rows} media rows but the commit mask selects {len(tags)}"
+            )
+        if layer_name not in self._buffers:
+            raise RuntimeError(f"{layer_name}: stage_in_place() without a prior assemble()")
+        self._staged[layer_name] = int(media_rows)
+
+    def _commit_tags(self, token_tags: torch.Tensor, commit_mask: torch.Tensor) -> tuple[int, ...]:
+        """Resolve (once per commit) the modality tags of the rows entering the history."""
+        if token_tags.ndim != 1 or commit_mask.ndim != 1:
+            raise RuntimeError("token_tags and commit_mask must be rank-1")
+        if token_tags.shape[0] != commit_mask.shape[0]:
+            raise RuntimeError("packed metadata lengths differ")
+        if self._staged_tags is None:
+            indices = torch.nonzero(commit_mask.to(torch.bool), as_tuple=False).flatten()
+            if indices.numel() == 0:
+                raise RuntimeError("clean commit did not contain audio/video rows")
+            selected_tags = token_tags.index_select(0, indices)
+            tags = tuple(int(tag) for tag in selected_tags.detach().cpu().tolist())
+            if frozenset(tags) != frozenset((VIDEO_TOKEN_TAG, AUDIO_TOKEN_TAG)):
+                raise RuntimeError("each clean chunk must contain both video and audio KV")
+            self._staged_indices = indices
+            self._staged_tags = tags
+        assert self._staged_tags is not None
+        return self._staged_tags
 
     def begin_clean_commit(self, block_index: int) -> None:
         if self.clean_commit_active:
@@ -147,20 +246,9 @@ class CleanAVKVCache:
             raise RuntimeError(f"{layer_name}: KV was staged more than once")
         if key.shape != value.shape or key.ndim != 3:
             raise RuntimeError(f"{layer_name}: key/value must have matching rank-3 shapes")
-        if token_tags.ndim != 1 or commit_mask.ndim != 1:
-            raise RuntimeError("token_tags and commit_mask must be rank-1")
         if token_tags.shape[0] != key.shape[0] or commit_mask.shape[0] != key.shape[0]:
             raise RuntimeError(f"{layer_name}: packed metadata length does not match KV rows")
-        if self._staged_indices is None:
-            indices = torch.nonzero(commit_mask.to(torch.bool), as_tuple=False).flatten()
-            if indices.numel() == 0:
-                raise RuntimeError("clean commit did not contain audio/video rows")
-            selected_tags = token_tags.index_select(0, indices)
-            tags = tuple(int(tag) for tag in selected_tags.detach().cpu().tolist())
-            if frozenset(tags) != frozenset((VIDEO_TOKEN_TAG, AUDIO_TOKEN_TAG)):
-                raise RuntimeError("each clean chunk must contain both video and audio KV")
-            self._staged_indices = indices
-            self._staged_tags = tags
+        tags = self._commit_tags(token_tags, commit_mask)
         indices = self._staged_indices
         assert indices is not None
         pair = AVKV(
@@ -168,7 +256,12 @@ class CleanAVKVCache:
             value=value.index_select(0, indices).detach().to(self.contract.dtype),
         )
         _validate_av_pair(pair, self.contract, layer_name=layer_name)
-        self._staged[layer_name] = pair
+        # Place the rows where stage_in_place() expects them: right after the history.
+        count = len(tags)
+        buf_key, buf_value = self._buffers_for(layer_name, pair.key, self._rows + count)
+        buf_key[self._rows : self._rows + count].copy_(pair.key)
+        buf_value[self._rows : self._rows + count].copy_(pair.value)
+        self._staged[layer_name] = count
 
     def commit(self) -> None:
         """Atomically append all staged layers to the persistent history."""
@@ -179,19 +272,10 @@ class CleanAVKVCache:
             raise RuntimeError(f"clean KV commit is missing {len(missing)} transformer layers")
         assert self._staged_tags is not None
         token_count = len(self._staged_tags)
-        # One layer at a time, so old and new histories are never both resident
-        # for every layer at the steady-state memory peak.
-        for layer_name in self.contract.layer_names:
-            current = self._staged.pop(layer_name)
-            previous = self._history.pop(layer_name, None)
-            if previous is None:
-                combined = current
-            else:
-                combined = AVKV(
-                    key=torch.cat((previous.key, current.key), dim=0),
-                    value=torch.cat((previous.value, current.value), dim=0),
-                )
-            self._history[layer_name] = combined
+        if any(count != token_count for count in self._staged.values()):
+            raise RuntimeError("clean KV commit staged different row counts across layers")
+        # The staged rows already sit right after the history in every buffer.
+        self._rows += token_count
         self._commit_token_counts.append(token_count)
         self._commit_token_tags.append(self._staged_tags)
         self._block_index += 1
@@ -224,7 +308,7 @@ class CleanAVKVCache:
         self._clear_staging()
 
     def clear(self) -> None:
-        self._history.clear()
+        self._rows = 0
         self._commit_token_counts.clear()
         self._commit_token_tags.clear()
         self._block_index = 0
@@ -248,20 +332,28 @@ class CleanAVKVCache:
             selected_counts.append(len(kept_tags))
             selected_tags.append(kept_tags)
         if not selected_rows:
-            self._history.clear()
+            self._rows = 0
             self._commit_token_counts.clear()
             self._commit_token_tags.clear()
             return
-        next_history: dict[str, AVKV] = {}
-        indices: torch.Tensor | None = None
-        for layer_name, pair in self._history.items():
-            if indices is None or indices.device != pair.key.device:
-                indices = torch.tensor(selected_rows, dtype=torch.long, device=pair.key.device)
-            next_history[layer_name] = AVKV(
-                key=pair.key.index_select(0, indices),
-                value=pair.value.index_select(0, indices),
-            )
-        self._history = next_history
+        # Compact the surviving rows to the front of every buffer. The kept
+        # rows form a few contiguous runs (a block's video rows follow its
+        # audio rows), so this is a handful of slice copies per layer.
+        runs: list[tuple[int, int]] = []
+        for row in selected_rows:
+            if runs and runs[-1][1] == row:
+                runs[-1] = (runs[-1][0], row + 1)
+            else:
+                runs.append((row, row + 1))
+        for key, value in self._buffers.values():
+            position = 0
+            for start, end in runs:
+                length = end - start
+                if start != position:
+                    key[position : position + length].copy_(key[start:end].clone())
+                    value[position : position + length].copy_(value[start:end].clone())
+                position += length
+        self._rows = len(selected_rows)
         self._commit_token_counts = selected_counts
         self._commit_token_tags = selected_tags
 
