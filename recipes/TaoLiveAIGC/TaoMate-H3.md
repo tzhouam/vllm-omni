@@ -352,12 +352,16 @@ Ulysses all-to-all (58 ms), a tile-decode barrier wait (56 ms) and small element
 (47 ms). Two of these are removed at identical numerics: the streaming attention now keeps one
 persistent K and V buffer per layer (history in front, the phase's rows copied behind it, a commit
 only advances the history end, retention compacts a few contiguous runs), and the activation
-quantization runs vLLM's CUDA op (`taomate_h3_fp8_quant_cuda_op`). Expected together: about
-0.13 s per 34-frame phase, 0.4 s per request (estimate from the profile; measurement pending).
+quantization runs vLLM's CUDA op (`taomate_h3_fp8_quant_cuda_op`). Measured together on the same
+server (exact output, merge off, 21 persona-length requests with a new prompt each): **4.58 s per
+4.958 s request on average, 4.73 s at most, real-time factor 0.92**, against 4.97 s before the two
+fixes; per 34-frame phase the three student forwards fell from 0.69 to 0.66 s, the commit from 0.26
+to 0.23 s and the 17-frame phase from 0.83 to 0.71 s of period.
 
-**What is left at exact numerics (2026-09-29).** With the DiT and the VAE both at tensor-core rate,
-the two-GPU config runs persona-length prompts with a change every request at about 4.7-4.8 s per
-4.958 s request (real-time factor 0.95-0.97, a 3-5% margin on a quiet host). The remaining
+**What is left at exact numerics (2026-09-29).** With the DiT and the VAE both at tensor-core rate
+and the K/V assembly and quantization overheads removed, the two-GPU config runs persona-length
+prompts with a change every request at about 4.6 s per 4.958 s request (real-time factor 0.92,
+an 8% margin). The remaining
 speed-ups all change numerics and would need a quality gate against eager BF16 (sharpness and frame
 difference on the persona prompt) before use: FP8 attention in the DiT (25% faster attention,
 about 0.2 s per request), FP8 GEMMs in the VAE decoder (about 0.15 s per request), FP8 for the
