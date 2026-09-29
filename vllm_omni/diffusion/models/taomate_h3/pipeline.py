@@ -462,6 +462,28 @@ class _Session:
         self.teacher_previous_count = None
 
 
+def use_cuda_fp8_activation_quant(module: torch.nn.Module) -> int:
+    """Point every FP8 linear's ``QuantFP8`` at its CUDA kernel; returns how many were switched.
+
+    vLLM's ``QuantFP8`` is a ``CustomOp``: when the custom op is not enabled
+    by the compilation config it dispatches to ``forward_native`` compiled
+    with inductor. The CUDA kernel computes the same per-token scale and
+    payload (amax / 448, clamp, round to e4m3).
+    """
+    switched = 0
+    for child in module.modules():
+        quant_method = getattr(child, "quant_method", None)
+        kernel = getattr(quant_method, "fp8_linear", None)
+        quant = getattr(kernel, "quant_fp8", None)
+        forward_cuda = getattr(quant, "forward_cuda", None)
+        if quant is None or not callable(forward_cuda) or getattr(quant, "_taomate_cuda_quant", False):
+            continue
+        quant._forward_method = forward_cuda
+        quant._taomate_cuda_quant = True
+        switched += 1
+    return switched
+
+
 def parse_text_length_range(value: Any, name: str = "taomate_h3_teacher_graph_text_lengths") -> range | None:
     """Parse ``"lo-hi"`` (or ``[lo, hi]``) into an inclusive range of prompt token counts, or ``None``."""
     if value is None or value == "" or value is False:
@@ -634,6 +656,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # tensor-core rate. Same math per tile; batching only changes the
         # GEMM tiling, so outputs agree to fp16 rounding.
         self._tm_vae_stack_tiling = bool(model_config.get("taomate_h3_vae_stack_tiling", False))
+        # Run the FP8 linears' dynamic per-token activation quantization with
+        # vLLM's CUDA op. In eager mode vLLM otherwise compiles the op's
+        # native torch implementation with inductor, whose reduction kernel
+        # read the activations at about 600 GB/s here (54 ms per 34-frame
+        # phase, profiled) against about 1.3 TB/s for the CUDA op.
+        self._tm_fp8_quant_cuda_op = bool(model_config.get("taomate_h3_fp8_quant_cuda_op", True))
         # The executor returns the output of DiT rank 0; the other ranks take
         # part in the collectives but do not convert or decode media.
         self._tm_output_rank = int(self._dit_rank) == 0
@@ -732,6 +760,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 logger.warning("TaoMate-H3 teacher CUDA graphs requested but the device is not CUDA; running eager")
         self._tm_teacher_graph = graph
         self._tm_text_graph = self._build_text_encoder_graph()
+        if self._tm_fp8_quant_cuda_op and self.device.type == "cuda":
+            switched = use_cuda_fp8_activation_quant(self.transformer)
+            if switched:
+                logger.info("TaoMate-H3: %d FP8 linears quantize activations with the CUDA op", switched)
         if not self._tm_adaln_cache:
             cache = getattr(self.transformer, "adaln_cache", None)
             if cache is not None and hasattr(cache, "max_bytes"):

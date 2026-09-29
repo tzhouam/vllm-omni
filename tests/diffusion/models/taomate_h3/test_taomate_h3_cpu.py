@@ -812,3 +812,28 @@ def test_hold_bound_can_fall_back_to_a_neutral_prompt(monkeypatch) -> None:
     with pytest.raises(_RequestStartedError):
         pipe.prepare_next_chunk(state2)
     assert calls == ["She listens quietly."]
+
+
+def test_fp8_activation_quant_is_pointed_at_the_cuda_kernel() -> None:
+    from types import SimpleNamespace
+
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import use_cuda_fp8_activation_quant
+
+    class _Quant:
+        def __init__(self) -> None:
+            self._forward_method = self.forward_native
+
+        def forward_native(self, x):
+            return "native"
+
+        def forward_cuda(self, x):
+            return "cuda"
+
+    quant = _Quant()
+    linear = torch.nn.Linear(2, 2)
+    linear.quant_method = SimpleNamespace(fp8_linear=SimpleNamespace(quant_fp8=quant))  # type: ignore[attr-defined]
+    plain = torch.nn.Linear(2, 2)  # no quant method: untouched
+    root = torch.nn.Sequential(linear, plain)
+    assert use_cuda_fp8_activation_quant(root) == 1
+    assert quant._forward_method("x") == "cuda"
+    assert use_cuda_fp8_activation_quant(root) == 0  # idempotent
