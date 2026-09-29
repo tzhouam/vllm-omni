@@ -320,6 +320,16 @@ request) and the 32 px tile overlap (0.6 s per request). Memory: the two ranks r
 143 GB in use (caching allocator included) on 144 GB cards; if a deployment runs short, quantize
 the text encoder too (`text_encoder: {method: fp8_per_channel}`, about 4 GB per rank).
 
+**Kernel choice, measured locally (2026-09-29, one GPU, the DiT's shapes at 3840 rows per rank):**
+the served Cutlass per-token/per-channel FP8 GEMM runs at 1.27-1.46 PFLOP/s (qkv 0.61 ms, out
+0.23 ms, fc1 0.86 ms, fc2 0.47 ms per block), within 5% of cuBLASLt's rowwise `torch._scaled_mm`
+and about 1.9x faster than BF16 cuBLAS; the per-token quantization prologue costs 0.03-0.07 ms
+per linear. FlashAttention-3 in BF16 runs the 3840x17000 attention of one block in 1.34 ms
+(700 TFLOP/s); its FP8 path is 25% faster but changes the numerics and is not enabled. A
+student forward is therefore about 108 ms of GEMM and 67 ms of attention out of 210 ms, both
+near the cards' FP8/BF16 tensor-core rates, so no exact kernel substitution remains for the
+DiT; the remaining exact lever is the VAE decode path.
+
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
 text length would need extra rows inside that prefix, which changes the attention), so
