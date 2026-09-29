@@ -72,6 +72,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). **Do not raise it: 384 and 480 px tiles render a 16 px lattice over the whole frame (isolated 2026-09-28/29; the decoder's positional ids are normalized to the tile extent).** Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
 | `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16). At 480x864 the checkpoint's 64 px gives 15 tiles of 256 px covering 2.37x the canvas; 32 px gives 8 tiles covering 1.26x and halves the decode (0.37 -> 0.19 s per 34-frame phase, measured locally) with no seams at the tile borders (2x crops compared against the 64 px decode); 16 px gives the same 8 tiles |
 | `taomate_h3_vae_stack_tiling` | false | Decode a rank's video VAE tiles as one batched forward of the 3D ViT decoder (the checkpoint's `stack_tiling`). Measured locally on one GPU (8 tiles, 7-latent window): output bit-identical to sequential tiles, 170 vs 174 ms, peak memory 5.9 vs 9.1 GB, so the two-GPU config turns it on for the memory |
+| `taomate_h3_fp8_quant_cuda_op` | true | Quantize the FP8 linears' activations with vLLM's CUDA op instead of the inductor-compiled native path (profiled on the two-GPU server: the inductor reduction kernel took 54 ms per 34-frame phase at about 600 GB/s; the CUDA op reads the rows at about 1.3 TB/s). Same per-token scale and e4m3 payload |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
 one throwaway five-second request at load time (the pipeline opts into this warmup in eager
@@ -341,6 +342,18 @@ window is about 69 TFLOP of GEMM, i.e. the 100 ms already run at the cards' fp16
 (about 690 TFLOP/s). Its attention (288 calls of 1797x1797, head dim 64) runs at about 220 TFLOP/s
 and a FlashAttention-3 swap would save roughly 15 ms per window (0.03 s per request); nothing
 larger remains in the decode without lower precision.
+
+**On-server phase profile and two exact fixes (2026-09-29, two GPUs, one 34-frame phase, rank 0).**
+Of about 1.2 s of device time per phase, the DiT's FlashAttention-3 took 300 ms and its FP8 GEMMs
+259 ms; the rest was overhead: assembling keys and values for the streaming attention (a
+`torch.cat` of the 120 MB history per layer per forward, stacks, gathers and index copies: about
+135 ms), copies (63 ms), an inductor-compiled FP8 activation-quantization kernel (54 ms), the
+Ulysses all-to-all (58 ms), a tile-decode barrier wait (56 ms) and small elementwise kernels
+(47 ms). Two of these are removed at identical numerics: the streaming attention now keeps one
+persistent K and V buffer per layer (history in front, the phase's rows copied behind it, a commit
+only advances the history end, retention compacts a few contiguous runs), and the activation
+quantization runs vLLM's CUDA op (`taomate_h3_fp8_quant_cuda_op`). Expected together: about
+0.13 s per 34-frame phase, 0.4 s per request (estimate from the profile; measurement pending).
 
 **What is left at exact numerics (2026-09-29).** With the DiT and the VAE both at tensor-core rate,
 the two-GPU config runs persona-length prompts with a change every request at about 4.7-4.8 s per
