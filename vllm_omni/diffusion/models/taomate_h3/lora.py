@@ -264,19 +264,34 @@ class TaoMateLoRAAdapter:
         modules = dict(transformer.named_modules())
         for target in self.targets:
             module = modules[target]
-            weight = module.weight
-            if weight.dtype not in (torch.bfloat16, torch.float16, torch.float32):
-                raise TaoMateLoRAError(
-                    f"{target}: base weight is {weight.dtype}; the LoRA merge must run before online quantization"
-                )
+            out_features, in_features = _linear_shape(module)
             delta = torch.matmul(self._lora_b[target].float(), self._lora_a[target].float()) * float(self.scale)
-            if tuple(delta.shape) != tuple(weight.shape):
+            if tuple(delta.shape) != (out_features, in_features):
                 raise TaoMateLoRAError(
-                    f"{target}: delta {tuple(delta.shape)} does not match weight {tuple(weight.shape)}"
+                    f"{target}: delta {tuple(delta.shape)} does not match the linear ({out_features}, {in_features})"
                 )
-            merged = (weight.detach().to(delta.device, torch.float32) + delta).to(weight.dtype)
+            weight = module.weight.detach()
+            quantized = weight.dtype not in (torch.bfloat16, torch.float16, torch.float32)
+            if quantized:
+                # The loader quantized the base while loading it: dequantize
+                # (per-tensor or per-channel scale, stored transposed or not),
+                # merge in float32, and requantize the twin with the same method.
+                base = _dequantize_linear_weight(module, out_features, in_features)
+                merged = (base + delta.to(base.device)).to(torch.bfloat16)
+            else:
+                merged = (weight.to(delta.device, torch.float32) + delta).to(weight.dtype)
             shadow = _shadow_linear(module, merged)
             module.add_module("taomate_student", shadow)
+            if quantized:
+                quant_method = getattr(module, "quant_method", None)
+                if quant_method is None or not hasattr(quant_method, "process_weights_after_loading"):
+                    raise TaoMateLoRAError(f"{target}: quantized base weight without a quantization method")
+                quant_method.process_weights_after_loading(shadow)
+                if shadow.weight.dtype != weight.dtype or tuple(shadow.weight.shape) != tuple(weight.shape):
+                    raise TaoMateLoRAError(
+                        f"{target}: requantized student weight {shadow.weight.dtype} {tuple(shadow.weight.shape)} "
+                        f"differs from the base {weight.dtype} {tuple(weight.shape)}"
+                    )
             self._shadows[target] = (module, shadow)
         # The delta now lives in the student weights; hooks must not add it again.
         self.enabled = False
@@ -342,6 +357,32 @@ class TaoMateLoRAAdapter:
         return sum(t.numel() * t.element_size() for t in self._lora_a.values()) + sum(
             t.numel() * t.element_size() for t in self._lora_b.values()
         )
+
+
+def _dequantize_linear_weight(module: nn.Module, out_features: int, in_features: int) -> torch.Tensor:
+    """``[out, in]`` float32 base weight of an online-quantized vLLM linear.
+
+    Online FP8 methods store the quantized weight either as ``[out, in]`` or
+    transposed as ``[in, out]`` (the Cutlass kernels want the latter) with a
+    per-tensor scale (one element) or a per-channel scale (``[out, 1]``).
+    """
+    weight = module.weight.detach()
+    if tuple(weight.shape) == (in_features, out_features) and in_features != out_features:
+        weight = weight.t()
+    elif tuple(weight.shape) != (out_features, in_features):
+        raise TaoMateLoRAError(
+            f"unexpected quantized weight shape {tuple(weight.shape)} for ({out_features}, {in_features})"
+        )
+    scale = getattr(module, "weight_scale", None)
+    if scale is None:
+        raise TaoMateLoRAError("quantized linear without weight_scale")
+    scale = scale.detach().to(torch.float32)
+    base = weight.to(torch.float32)
+    if scale.numel() == 1:
+        return base * scale.reshape(())
+    if scale.numel() == out_features:
+        return base * scale.reshape(out_features, 1)
+    raise TaoMateLoRAError(f"unsupported weight_scale shape {tuple(scale.shape)} for ({out_features}, {in_features})")
 
 
 def _shadow_linear(module: nn.Module, merged_weight: torch.Tensor) -> nn.Module:
