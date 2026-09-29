@@ -11,15 +11,15 @@
 #
 # Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
 # 480x864 on two H200-class GPUs with persona-length prompts (330-410 tokens)
-# that change every request: 4.69 s of wall time per 4.958 s request on
-# average over 100 requests (real-time factor 0.945, one request above
-# budget, the stream gained 26 s), 4.60 s in a 7-request run with timings. Eager BF16 took 6.3 s. Output quality matches
-# eager BF16 (frames compared): the CUDA-graph teacher and text encoder are
-# exact; per-channel FP8 with BF16 boundary layers, the merged student
-# weights and the 32 px tile overlap were each checked visually. The earlier
-# 480 px decoder tile (16 px lattice) is gone. Size taomate_h3_pad_text_tokens
-# and taomate_h3_teacher_graph_text_lengths to the deployment's prompts
-# (below: 330-410-token persona prompts).
+# that change every request: 4.69 s of wall time per 4.958 s request over
+# 100 requests with the LoRA delta merged into the FP8 student weights, which
+# turned out to blur the video (see taomate_h3_lora_merge below); with the
+# merge off, as configured here, expect about 4.81 s (estimate: the merge
+# saved 0.12 s per request), real-time factor about 0.97. Eager BF16 took
+# 6.3 s. The CUDA-graph teacher and text encoder are exact; per-channel FP8
+# with BF16 boundary layers and the 32 px tile overlap were checked visually.
+# Size taomate_h3_pad_text_tokens and taomate_h3_teacher_graph_text_lengths
+# to the deployment's prompts (below: 330-410-token persona prompts).
 
 pipeline: taomate_h3
 async_chunk: false
@@ -84,9 +84,12 @@ stages:
       # The exact AdaLN projection cache keys on a host digest of the timestep
       # embedding (one device-to-host copy per forward); recompute instead.
       taomate_h3_adaln_cache: false
-      # Merge the LoRA delta into a second per-channel FP8 weight set for the
-      # student (8 GB per rank); the base weights serve the audio teacher.
-      taomate_h3_lora_merge: true
+      # Do not merge the LoRA delta into the FP8 student weights: the delta is
+      # 0.2-0.7% of |W| and per-channel FP8 requantization turns 83-98% of it
+      # into rounding error; the merged student renders about 14x less sharp
+      # video (Laplacian variance 105-110 vs about 1500 for eager BF16,
+      # measured locally on 25 frames each). The BF16 delta stays on the hooks.
+      taomate_h3_lora_merge: false
       # 256 px decoder tiles (the only tile size the decoder renders correctly)
       # with a 32 px minimum overlap: 8 tiles covering 1.26x the canvas instead of
       # the checkpoint's 15 tiles at 64 px overlap covering 2.37x (no seams,
