@@ -16,7 +16,7 @@
 # output matching eager BF16 (the LoRA delta stays on the hooks; the merged
 # FP8 weights that blurred the video are off). Eager BF16 took 6.3 s. Size
 # taomate_h3_pad_text_tokens and taomate_h3_teacher_graph_text_lengths to
-# the deployment's prompts (below: 330-410-token persona prompts); start-up
+# the deployment's prompts (below: the live-agent lesson prompts of 373-444 tokens, p99 424); start-up
 # takes about 7 minutes with the graph captures, so raise the stage init
 # timeout.
 
@@ -72,11 +72,11 @@ stages:
       # Replay the audio teacher's nine forwards from CUDA graphs (one graph
       # per document shape, LRU of taomate_h3_cuda_graph_max_entries).
       taomate_h3_teacher_cuda_graph: true
-      # Capture the teacher graphs of prompts with 300-420 tokens during the
+      # Capture the teacher graphs of prompts with 360-470 tokens during the
       # load-time warmup (3 shapes per token count, about 0.5 s each), so a
       # prompt update never captures inside the stream. Other lengths are
       # captured lazily at the request that first needs them.
-      taomate_h3_teacher_graph_text_lengths: "300-420"
+      taomate_h3_teacher_graph_text_lengths: "360-470"
       # Replay the text-only prompt encode of an update from a CUDA graph too
       # (one graph per token count, captured for the same range at load).
       taomate_h3_text_encoder_cuda_graph: true
@@ -85,9 +85,10 @@ stages:
       taomate_h3_adaln_cache: false
       # Do not merge the LoRA delta into the FP8 student weights: the delta is
       # 0.2-0.7% of |W| and per-channel FP8 requantization turns 83-98% of it
-      # into rounding error; the merged student renders about 14x less sharp
-      # video (Laplacian variance 105-110 vs about 1500 for eager BF16,
-      # measured locally on 25 frames each). The BF16 delta stays on the hooks.
+      # into rounding error; the merged student renders about 4.7x less sharp
+      # video (median Laplacian variance 105-110 against 497 without the merge
+      # and 500-512 for the four-GPU BF16 demo, measured locally on 24-25
+      # frames each). The BF16 delta stays on the hooks.
       taomate_h3_lora_merge: false
       # 256 px decoder tiles (the only tile size the decoder renders correctly)
       # with a 32 px minimum overlap: 8 tiles covering 1.26x the canvas instead of
