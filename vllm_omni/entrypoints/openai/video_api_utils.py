@@ -942,9 +942,7 @@ class FragmentedMP4VideoEncoder:
                 height=frames_u8.shape[1],
                 fps=self._fps,
                 video_codec_options=self._video_codec_options,
-                audio_sample_rate=(
-                    (audio_sample_rate or DEFAULT_AUDIO_SAMPLE_RATE) if audio_np is not None else None
-                ),
+                audio_sample_rate=((audio_sample_rate or DEFAULT_AUDIO_SAMPLE_RATE) if audio_np is not None else None),
                 audio_channels=1 if audio_channels == 1 else 2,
             )
         chunk = b""

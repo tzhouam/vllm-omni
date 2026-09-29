@@ -387,7 +387,7 @@ class FragmentedMP4Muxer:
         if self._closed:
             return b""
         if self._audio_stream is not None and self._audio_samples_written:
-            # The mov muxer mis-times the final video fragment unless the audio
+            # The mov muxer mistimes the final video fragment unless the audio
             # track outlasts the video track, so pad the audio with silence to
             # one AAC frame past the last video frame.
             video_end = Fraction(self._video_frames_written) * self._ticks_per_frame / _MUX_CLOCK_HZ
