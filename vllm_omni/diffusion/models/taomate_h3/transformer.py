@@ -150,8 +150,10 @@ class TaoMateH3DiTModel(MiniMaxH3DiTModel):
         # The graph-safe embedding below re-implements the upstream method; if
         # upstream changes its contract the plan path is switched off rather
         # than trusted.
-        parameters = set(inspect.signature(MiniMaxH3DiTModel._embed).parameters) - {"self"}
-        self.local_embed_plan_supported = parameters == _EMBED_PARAMETERS
+        # (A distinct name: the API docs render this assignment and cross-link
+        # bare identifiers; "parameters" is an ambiguous anchor there.)
+        embed_signature = set(inspect.signature(MiniMaxH3DiTModel._embed).parameters) - {"self"}
+        self.local_embed_plan_supported = embed_signature == _EMBED_PARAMETERS
         if not self.local_embed_plan_supported:
             logger.warning(
                 "TaoMate-H3: MiniMaxH3DiTModel._embed signature changed; graph-safe embedding plans are disabled"
