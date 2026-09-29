@@ -26,6 +26,7 @@ runtime applies it unpermuted), so it is consumed as stored.
 
 from __future__ import annotations
 
+import copy
 import json
 import math
 from collections.abc import Iterator
@@ -113,6 +114,13 @@ class TaoMateLoRAAdapter:
         self._handles: list[torch.utils.hooks.RemovableHandle] = []
         self._bound_targets: tuple[str, ...] = ()
         self.enabled = True
+        # Merged student weights (see build_merged_student): per target the
+        # module and its shadow linear holding W + scale * B @ A, plus the
+        # parameter sets swapped in for the student and for the base model.
+        self._shadows: dict[str, tuple[nn.Module, nn.Module]] = {}
+        self._base_params: dict[str, dict[str, torch.Tensor]] = {}
+        self._student_params: dict[str, dict[str, torch.Tensor]] = {}
+        self._student_installed = False
 
     @property
     def targets(self) -> tuple[str, ...]:
@@ -235,9 +243,100 @@ class TaoMateLoRAAdapter:
 
         return hook
 
+    # -- merged student weights ------------------------------------------
+
+    @property
+    def merged(self) -> bool:
+        return bool(self._shadows)
+
+    def build_merged_student(self, transformer: nn.Module) -> int:
+        """Give every target a shadow linear whose weight is ``W + scale * B @ A``.
+
+        Must run while the base weights are still BF16, before the loader's
+        online quantization: the shadow is registered as a submodule of its
+        target (``<target>.taomate_student``) so the loader quantizes it with
+        the target's own quantization method (per-channel FP8 keeps the delta
+        at channel resolution). Afterwards the student forwards use the shadow's
+        parameters and the hooks stay off; the base parameters are swapped back
+        in for the teacher (``disabled()``). Returns the number of targets.
+        """
+        if self._shadows:
+            return len(self._shadows)
+        modules = dict(transformer.named_modules())
+        for target in self.targets:
+            module = modules[target]
+            weight = module.weight
+            if weight.dtype not in (torch.bfloat16, torch.float16, torch.float32):
+                raise TaoMateLoRAError(
+                    f"{target}: base weight is {weight.dtype}; the LoRA merge must run before online quantization"
+                )
+            delta = torch.matmul(self._lora_b[target].float(), self._lora_a[target].float()) * float(self.scale)
+            if tuple(delta.shape) != tuple(weight.shape):
+                raise TaoMateLoRAError(
+                    f"{target}: delta {tuple(delta.shape)} does not match weight {tuple(weight.shape)}"
+                )
+            quant_method = getattr(module, "quant_method", None)
+            memo = {id(quant_method): quant_method} if quant_method is not None else {}
+            shadow = copy.deepcopy(module, memo)
+            shadow._forward_hooks.clear()
+            shadow._forward_pre_hooks.clear()
+            with torch.no_grad():
+                shadow.weight.copy_((weight.to(delta.device, torch.float32) + delta).to(weight.dtype))
+            module.add_module("taomate_student", shadow)
+            self._shadows[target] = (module, shadow)
+        # The delta now lives in the student weights; hooks must not add it again.
+        self.enabled = False
+        self._student_installed = False
+        return len(self._shadows)
+
+    @staticmethod
+    def _param_set(module: nn.Module) -> dict[str, torch.Tensor]:
+        names = [name for name, _ in module.named_parameters(recurse=False)]
+        names += [name for name, _ in module.named_buffers(recurse=False)]
+        return {name: getattr(module, name) for name in names}
+
+    def _snapshot_base(self) -> None:
+        if self._base_params:
+            return
+        for target, (module, shadow) in self._shadows.items():
+            student = self._param_set(shadow)
+            base = {name: getattr(module, name) for name in student if hasattr(module, name)}
+            missing = set(student) - set(base)
+            if missing:
+                raise TaoMateLoRAError(f"{target}: student parameters {sorted(missing)} have no base counterpart")
+            if any(getattr(shadow, name).dtype != base[name].dtype for name in student):
+                raise TaoMateLoRAError(f"{target}: student and base parameters differ in dtype (quantized alike?)")
+            self._base_params[target] = base
+            self._student_params[target] = student
+
+    def _install(self, params: dict[str, dict[str, torch.Tensor]]) -> None:
+        for target, (module, _) in self._shadows.items():
+            for name, value in params[target].items():
+                # Assigning a registered Parameter or buffer swaps it in place.
+                setattr(module, name, value)
+
+    def ensure_student(self) -> None:
+        """Install the merged student weights (no-op without a merge or when installed)."""
+        if not self._shadows or self._student_installed:
+            return
+        self._snapshot_base()
+        self._install(self._student_params)
+        self._student_installed = True
+
     @contextmanager
     def disabled(self) -> Iterator[None]:
         """Run the base model without the adapter (the audio teacher path)."""
+        if self._shadows:
+            # Base weights for the teacher, student weights back afterwards.
+            self._snapshot_base()
+            self._install(self._base_params)
+            self._student_installed = False
+            try:
+                yield
+            finally:
+                self._install(self._student_params)
+                self._student_installed = True
+            return
         previous = self.enabled
         self.enabled = False
         try:

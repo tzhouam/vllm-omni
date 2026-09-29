@@ -729,3 +729,36 @@ def test_prepare_ahead_layout_matches_a_fresh_one_and_noise_is_reused() -> None:
     )
     phase_state = session.begin_phase(0, transformer=transformer, device=device)
     assert phase_state.branch.text_len == 50 and session.layout_ahead is None
+
+
+def test_lora_merge_builds_student_shadows_and_swaps_parameter_sets(tmp_path) -> None:
+    """The merged student weight is W + scale * B @ A; modes swap the target's parameters, not its hooks."""
+    model = _tiny_transformer()
+    adapter_dir = _write_adapter(tmp_path, model)
+    adapter = TaoMateLoRAAdapter.load(adapter_dir, transformer=model, device=torch.device("cpu"), dtype=torch.float32)
+    fc2 = model.get_submodule("blocks.0.mlp.fc2")
+    base_weight = fc2.weight.detach().clone()
+    a = _adapter_tensor(tmp_path, "blocks.0.mlp.fc2.lora_a")
+    b = _adapter_tensor(tmp_path, "blocks.0.mlp.fc2.lora_b")
+    fc2_in = torch.randn(5, 6)
+    with adapter.disabled():
+        base_out, _ = fc2(fc2_in)
+    hooked_out, _ = fc2(fc2_in)
+
+    merged = adapter.build_merged_student(model)
+    assert merged == len(adapter.targets) and adapter.merged and adapter.enabled is False
+    shadow = fc2.taomate_student
+    torch.testing.assert_close(shadow.weight, base_weight + b @ a * adapter.scale, rtol=1e-5, atol=1e-5)
+    assert not shadow._forward_hooks and torch.equal(fc2.weight, base_weight)  # base untouched until installed
+
+    adapter.ensure_student()
+    assert fc2.weight is shadow.weight
+    student_out, _ = fc2(fc2_in)
+    torch.testing.assert_close(student_out, hooked_out, rtol=1e-4, atol=1e-4)  # same math as the hooks
+    with adapter.disabled():
+        assert torch.equal(fc2.weight, base_weight)
+        teacher_out, _ = fc2(fc2_in)
+        torch.testing.assert_close(teacher_out, base_out)
+    assert fc2.weight is shadow.weight  # student weights back after the teacher
+    again, _ = fc2(fc2_in)
+    torch.testing.assert_close(again, student_out)

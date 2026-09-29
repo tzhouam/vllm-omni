@@ -548,6 +548,15 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # device-bound decode overlap (the decode only needs the clean latents).
         self._tm_decode_overlap = bool(model_config.get("taomate_h3_decode_overlap", False))
         self._tm_decode_stream: Any = None
+        # Merge the LoRA delta into a second weight set for the student (per
+        # target a shadow linear quantized like the base by the loader); the
+        # base weights stay for the audio teacher. Removes the hook GEMMs.
+        self._tm_lora_merge = bool(model_config.get("taomate_h3_lora_merge", False))
+        # cuDNN autotuning for the fixed-shape convolutions of the VAE decode
+        # (every window and tile has the same shape after the first request).
+        if bool(model_config.get("taomate_h3_cudnn_benchmark", False)):
+            torch.backends.cudnn.benchmark = True
+            logger.info("TaoMate-H3: cudnn.benchmark enabled (taomate_h3_cudnn_benchmark)")
         if self._tm_cuda_graph_max_entries < 1:
             raise ValueError("taomate_h3_cuda_graph_max_entries must be at least 1")
         # Requests of the load-time warmup session. Later requests cycle
@@ -663,6 +672,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 device=self.device,
                 dtype=torch.bfloat16,
             )
+            if self._tm_lora_merge:
+                merged = self.taomate_lora.build_merged_student(self.transformer)
+                logger.info(
+                    "TaoMate-H3 LoRA merged into student weights for %d targets (taomate_h3_lora_merge)", merged
+                )
         elif lora_path:
             raise ValueError(
                 f"--lora-path {lora_path!r} is not a TaoMate-H3 native adapter directory "
@@ -1244,6 +1258,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             imgvid_cond_timestep=t_video,
             audio_ref_cond_timestep=1.0,
         )
+        if self.taomate_lora is not None:
+            self.taomate_lora.ensure_student()
         started = time.perf_counter()
         with stream_context(session.stream_context(StreamMode.NOISY)), torch.inference_mode():
             velocity_video, _ = self.transformer(**forward_kwargs)
@@ -1313,6 +1329,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # Sigma-zero forward: recompute this chunk's K/V from its clean latents
         # and append them to the persistent history.
         cache = session.cache
+        if self.taomate_lora is not None:
+            self.taomate_lora.ensure_student()
         commit_started = time.perf_counter()
         cache.begin_clean_commit(cache.committed_blocks)
         try:
