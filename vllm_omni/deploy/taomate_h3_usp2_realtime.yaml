@@ -11,8 +11,9 @@
 #
 # Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
 # 480x864 on two H200-class GPUs with persona-length prompts (330-410 tokens)
-# that change every request: 4.58 s of wall time per 4.958 s request on
-# average over 21 requests, 4.73 s at most (real-time factor 0.92), with the
+# that change every request: 4.74 s of wall time per 4.958 s request on
+# average over 100 requests, 4.88 s at most, none above budget (real-time
+# factor 0.96; 4.58 s over a 21-request run), with the
 # output matching eager BF16 (the LoRA delta stays on the hooks; the merged
 # FP8 weights that blurred the video are off). Eager BF16 took 6.3 s. Size
 # taomate_h3_pad_text_tokens and taomate_h3_teacher_graph_text_lengths to

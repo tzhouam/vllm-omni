@@ -356,7 +356,12 @@ quantization runs vLLM's CUDA op (`taomate_h3_fp8_quant_cuda_op`). Measured toge
 server (exact output, merge off, 21 persona-length requests with a new prompt each): **4.58 s per
 4.958 s request on average, 4.73 s at most, real-time factor 0.92**, against 4.97 s before the two
 fixes; per 34-frame phase the three student forwards fell from 0.69 to 0.66 s, the commit from 0.26
-to 0.23 s and the 17-frame phase from 0.83 to 0.71 s of period.
+to 0.23 s and the 17-frame phase from 0.83 to 0.71 s of period. A 100-request session on the same
+server (new prompt every request, host load average about 30) averaged **4.74 s per request (warm
+4.76 s), minimum 4.38 s, maximum 4.88 s, no request above 4.958 s**, and the stream gained 22 s over
+the 100 requests; the test driver's last prompt update, scheduled on the wall clock, then arrived
+after the stream had finished and was rejected with an error message, which is the expected
+behaviour for an update to a completed session.
 
 **What is left at exact numerics (2026-09-29).** With the DiT and the VAE both at tensor-core rate
 and the K/V assembly and quantization overheads removed, the two-GPU config runs persona-length
