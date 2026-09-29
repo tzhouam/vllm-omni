@@ -10,17 +10,16 @@
 #       --lora-path /path/to/TaoMate-H3 --port 8000
 #
 # Status (see recipes/TaoLiveAIGC/TaoMate-H3.md, "Two GPUs"): measured locally at
-# 480x864 on two H200-class GPUs. QUALITY FINDING (2026-09-28): the 480 px
-# decoder tile behind the earlier 4.78-5.05 s figures rendered a uniform 16 px
-# lattice and deformed faces; without it (this config) the output matches
-# eager BF16 and the VAE decode costs 0.36 s per 34-frame phase again, so a
-# persona-length request (330-410 tokens, prompt change every request) takes
-# about 5.4 s of wall time (real-time factor 1.09): correct output, not yet
-# real time. Eager BF16 took 6.3 s. The CUDA-graph teacher and text encoder
-# do not change the generated content; the per-channel FP8 below was
-# validated visually against eager BF16. Size taomate_h3_pad_text_tokens and
-# taomate_h3_teacher_graph_text_lengths to the deployment's prompts (below:
-# 330-410-token persona prompts). The four-GPU recipe keeps a 14% margin.
+# 480x864 on two H200-class GPUs with persona-length prompts (330-410 tokens)
+# that change every request: 4.60 s of wall time per 4.958 s request
+# (real-time factor 0.93 over a 7-request run; a 100-request confirmation is
+# recorded in the recipe). Eager BF16 took 6.3 s. Output quality matches
+# eager BF16 (frames compared): the CUDA-graph teacher and text encoder are
+# exact; per-channel FP8 with BF16 boundary layers, the merged student
+# weights and the 32 px tile overlap were each checked visually. The earlier
+# 480 px decoder tile (16 px lattice) is gone. Size taomate_h3_pad_text_tokens
+# and taomate_h3_teacher_graph_text_lengths to the deployment's prompts
+# (below: 330-410-token persona prompts).
 
 pipeline: taomate_h3
 async_chunk: false
@@ -88,6 +87,11 @@ stages:
       # Merge the LoRA delta into a second per-channel FP8 weight set for the
       # student (8 GB per rank); the base weights serve the audio teacher.
       taomate_h3_lora_merge: true
+      # 256 px decoder tiles (the only tile size the decoder renders correctly)
+      # with a 32 px minimum overlap: 8 tiles covering 1.26x the canvas instead of
+      # the checkpoint's 15 tiles at 64 px overlap covering 2.37x (no seams,
+      # checked at the tile borders); halves the decode time.
+      taomate_h3_vae_decoder_tile_overlap_min: 32
       taomate_h3_cuda_graph_max_entries: 512
       # Do not set taomate_h3_vae_decoder_tile_size: 480 px decoder tiles render
       # a uniform 16 px lattice over the frame (isolated 2026-09-28); the

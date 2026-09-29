@@ -68,7 +68,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_lora_merge` | false | Merge the LoRA delta into a second weight set for the student (per target a shadow linear `W + scale*B@A`, quantized like the base by the loader, per-channel FP8 keeps the delta at channel resolution); the base weights stay for the audio teacher, parameters are swapped per mode and the hook GEMMs disappear. Measured locally at persona length: 3 student forwards 0.69 -> 0.65 s and commit 0.256 -> 0.24 s per 34-frame phase, 0.12 s per request; frames clean (the FP8 rounding of the merged weights differs from the base's, so the video differs like another seed). Costs 8 GB per rank |
 | `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase). Measured locally at persona length: no gain (phase totals within 0.015 s of the serial order), because the commit forward is device time too; kept as an experiment knob |
 | `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). **Do not raise it: 384 and 480 px tiles render a 16 px lattice over the whole frame (isolated 2026-09-28/29; the decoder's positional ids are normalized to the tile extent).** Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
-| `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16) |
+| `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16). At 480x864 the checkpoint's 64 px gives 15 tiles of 256 px covering 2.37x the canvas; 32 px gives 8 tiles covering 1.26x and halves the decode (0.37 -> 0.19 s per 34-frame phase, measured locally) with no seams at the tile borders (2x crops compared against the 64 px decode); 16 px gives the same 8 tiles |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
 one throwaway five-second request at load time (the pipeline opts into this warmup in eager
@@ -301,6 +301,15 @@ times +0.02 s, phase preparation +0.01 s), i.e. CPU contention from other users'
 without competing load the 4.87 s figure is the expected steady state; on a shared host the
 config sits at the line, and a client should buffer 1-2 s. A further 5% of device time (the
 LoRA delta, see above) would make the margin independent of host load.
+
+**Two GPUs at persona length after the quality fix (measured locally, 2026-09-29, 7 requests,
+332-340-token prompts changing every request, per-channel FP8 with BF16 boundary layers, merged
+student weights, teacher and text-encoder graphs, 64-token buckets, AdaLN cache off,
+`step_async_output`, 256 px decoder tiles with 32 px minimum overlap):** 4.60 s per 4.958 s
+request, **real-time factor 0.93** with output that matches eager BF16. Per 34-frame phase:
+teacher 0.39 (request start only), 3 student forwards 0.65-0.68, commit 0.23-0.25, VAE decode
+0.19, 0.06 s between phases. The two levers that closed the gap after the tile bug: the merged
+student weights (0.12 s per request) and the 32 px tile overlap (0.6 s per request).
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
