@@ -26,7 +26,6 @@ runtime applies it unpermuted), so it is consumed as stored.
 
 from __future__ import annotations
 
-import copy
 import json
 import math
 from collections.abc import Iterator
@@ -275,13 +274,8 @@ class TaoMateLoRAAdapter:
                 raise TaoMateLoRAError(
                     f"{target}: delta {tuple(delta.shape)} does not match weight {tuple(weight.shape)}"
                 )
-            quant_method = getattr(module, "quant_method", None)
-            memo = {id(quant_method): quant_method} if quant_method is not None else {}
-            shadow = copy.deepcopy(module, memo)
-            shadow._forward_hooks.clear()
-            shadow._forward_pre_hooks.clear()
-            with torch.no_grad():
-                shadow.weight.copy_((weight.to(delta.device, torch.float32) + delta).to(weight.dtype))
+            merged = (weight.detach().to(delta.device, torch.float32) + delta).to(weight.dtype)
+            shadow = _shadow_linear(module, merged)
             module.add_module("taomate_student", shadow)
             self._shadows[target] = (module, shadow)
         # The delta now lives in the student weights; hooks must not add it again.
@@ -348,6 +342,34 @@ class TaoMateLoRAAdapter:
         return sum(t.numel() * t.element_size() for t in self._lora_a.values()) + sum(
             t.numel() * t.element_size() for t in self._lora_b.values()
         )
+
+
+def _shadow_linear(module: nn.Module, merged_weight: torch.Tensor) -> nn.Module:
+    """A shallow twin of a vLLM linear that owns ``merged_weight`` and shares everything else.
+
+    vLLM's parameter classes cannot be deep-copied, so the twin copies the
+    module's attribute dictionary, gets fresh parameter/buffer/hook registries,
+    a plain Parameter for the weight (the bias, if any, is shared) and the
+    module's quantization method, and is still unprocessed so the loader's
+    online quantization treats it like the base linear.
+    """
+    shadow = object.__new__(type(module))
+    shadow.__dict__.update(module.__dict__)
+    shadow._parameters = {}
+    shadow._buffers = {}
+    shadow._non_persistent_buffers_set = set()
+    shadow._modules = {}
+    for name, value in module.__dict__.items():
+        if name.endswith("hooks") and isinstance(value, dict):
+            shadow.__dict__[name] = type(value)()
+    shadow._parameters["weight"] = nn.Parameter(merged_weight.contiguous(), requires_grad=False)
+    bias = module._parameters.get("bias")
+    if bias is not None:
+        shadow._parameters["bias"] = bias
+    for name, buffer in module._buffers.items():
+        shadow._buffers[name] = buffer
+    shadow._already_called_process_weights_after_loading = False
+    return shadow
 
 
 def _linear_shape(module: nn.Module) -> tuple[int, int]:
