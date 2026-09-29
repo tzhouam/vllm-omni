@@ -628,6 +628,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             "taomate_h3_vae_decoder_tile_overlap_min",
             minimum=0,
         )
+        # Decode a rank's tiles as one batch through the ViT decoder (the
+        # checkpoint's ``stack_tiling``) instead of one forward per tile: the
+        # per-tile GEMMs are small (about 1800 tokens) and run far below the
+        # tensor-core rate. Same math per tile; batching only changes the
+        # GEMM tiling, so outputs agree to fp16 rounding.
+        self._tm_vae_stack_tiling = bool(model_config.get("taomate_h3_vae_stack_tiling", False))
         # The executor returns the output of DiT rank 0; the other ranks take
         # part in the collectives but do not convert or decode media.
         self._tm_output_rank = int(self._dit_rank) == 0
@@ -653,6 +659,9 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             model.decoder_tile_size = self._tm_vae_decoder_tile_size
         if self._tm_vae_decoder_tile_overlap_min is not None:
             model.decoder_tile_overlap_min = self._tm_vae_decoder_tile_overlap_min
+        if self._tm_vae_stack_tiling:
+            model.stack_tiling = True
+            logger.info("TaoMate-H3 video VAE decoder: local tiles decoded as one batch (stack_tiling)")
         count = getattr(vae, "_decoder_tile_count", None)
         if not callable(count):
             return
