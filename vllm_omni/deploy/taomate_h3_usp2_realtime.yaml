@@ -85,6 +85,9 @@ stages:
       # The exact AdaLN projection cache keys on a host digest of the timestep
       # embedding (one device-to-host copy per forward); recompute instead.
       taomate_h3_adaln_cache: false
+      # Merge the LoRA delta into a second per-channel FP8 weight set for the
+      # student (8 GB per rank); the base weights serve the audio teacher.
+      taomate_h3_lora_merge: true
       taomate_h3_cuda_graph_max_entries: 512
       # Do not set taomate_h3_vae_decoder_tile_size: 480 px decoder tiles render
       # a uniform 16 px lattice over the frame (isolated 2026-09-28); the

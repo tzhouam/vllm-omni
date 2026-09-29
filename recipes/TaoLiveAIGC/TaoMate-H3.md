@@ -65,7 +65,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_text_encoder_cuda_graph` | false | Replay the text-only prompt encode of a prompt update from a CUDA graph (one graph per token count, captured for `taomate_h3_teacher_graph_text_lengths` at load, exact: the encoder's own modules run with graph-safe indexing). Prompts with images or videos, offloaded encoders and non-encoder ranks keep the eager path |
 | `taomate_h3_adaln_cache` | true | Exact AdaLN projection cache. Its key is a host digest of the timestep embedding (one device-to-host copy per forward); `false` recomputes the few projected rows per layer and removes that synchronization from every student forward |
 | `taomate_h3_cudnn_benchmark` | false | cuDNN autotuning for the fixed-shape VAE convolutions (measured: no change) |
-| `taomate_h3_lora_merge` | false | Merge the LoRA delta into a second weight set for the student (per target a shadow linear `W + scale*B@A`, quantized like the base by the loader, per-channel FP8 keeps the delta at channel resolution); the base weights stay for the audio teacher, parameters are swapped per mode and the hook GEMMs disappear. Under validation |
+| `taomate_h3_lora_merge` | false | Merge the LoRA delta into a second weight set for the student (per target a shadow linear `W + scale*B@A`, quantized like the base by the loader, per-channel FP8 keeps the delta at channel resolution); the base weights stay for the audio teacher, parameters are swapped per mode and the hook GEMMs disappear. Measured locally at persona length: 3 student forwards 0.69 -> 0.65 s and commit 0.256 -> 0.24 s per 34-frame phase, 0.12 s per request; frames clean (the FP8 rounding of the merged weights differs from the base's, so the video differs like another seed). Costs 8 GB per rank |
 | `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase). Measured locally at persona length: no gain (phase totals within 0.015 s of the serial order), because the commit forward is device time too; kept as an experiment knob |
 | `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). **Do not raise it: 384 and 480 px tiles render a 16 px lattice over the whole frame (isolated 2026-09-28/29; the decoder's positional ids are normalized to the tile extent).** Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
 | `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16) |
@@ -132,7 +132,10 @@ request); the launch-bound teacher forwards and the per-phase VAE decode are the
 > cuDNN autotuning (`taomate_h3_cudnn_benchmark`) does not change the decode time. The per-tensor `quantization: fp8` was never isolated from this bug;
 > the config now uses per-channel FP8, which is validated. Consequence: the VAE decode costs
 > 0.36 s per 34-frame phase again and a persona-length request takes about 5.4 s (real-time
-> factor 1.09) with correct output; the 4.87-5.05 s figures were measured with the broken decode.
+> factor 1.09) with correct output, 5.28 s with the merged student weights below; the 4.87-5.05 s
+> figures were measured with the broken decode. Regional `torch.compile` (`enforce_eager: false`)
+> fails to build with the merged weights (inductor backend error) and breaks the teacher graph
+> capture; it stays off.
 
 The two-GPU config keeps TP=1 and splits the heads across two Ulysses ranks
 (`sequence_parallel_size: 2`, `text_encoder_tp_size: 2`, `vae_patch_parallel_size: 2`).
