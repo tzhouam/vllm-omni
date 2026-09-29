@@ -71,6 +71,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase). Measured locally at persona length: no gain (phase totals within 0.015 s of the serial order), because the commit forward is device time too; kept as an experiment knob |
 | `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). **Do not raise it: 384 and 480 px tiles render a 16 px lattice over the whole frame (isolated 2026-09-28/29; the decoder's positional ids are normalized to the tile extent).** Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
 | `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16). At 480x864 the checkpoint's 64 px gives 15 tiles of 256 px covering 2.37x the canvas; 32 px gives 8 tiles covering 1.26x and halves the decode (0.37 -> 0.19 s per 34-frame phase, measured locally) with no seams at the tile borders (2x crops compared against the 64 px decode); 16 px gives the same 8 tiles |
+| `taomate_h3_vae_stack_tiling` | false | Decode a rank's video VAE tiles as one batched forward of the 3D ViT decoder (the checkpoint's `stack_tiling`). Measured locally on one GPU (8 tiles, 7-latent window): output bit-identical to sequential tiles, 170 vs 174 ms, peak memory 5.9 vs 9.1 GB, so the two-GPU config turns it on for the memory |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
 one throwaway five-second request at load time (the pipeline opts into this warmup in eager
@@ -329,6 +330,13 @@ per linear. FlashAttention-3 in BF16 runs the 3840x17000 attention of one block 
 student forward is therefore about 108 ms of GEMM and 67 ms of attention out of 210 ms, both
 near the cards' FP8/BF16 tensor-core rates, so no exact kernel substitution remains for the
 DiT; the remaining exact lever is the VAE decode path.
+
+**Video VAE decode profile (measured locally, 2026-09-29, one GPU, one 7-latent window, 8 tiles):**
+174 ms, of which 159 ms of device time: 100 ms in the 3D ViT decoder's fp16 cuBLAS GEMMs, 33 ms
+in its attention (PyTorch's flash SDPA), 7 ms `silu_and_mul`, 12 ms residual and norm kernels,
+4 ms casts; the convolutions are negligible. Batching the tiles (`taomate_h3_vae_stack_tiling`)
+gives identical output and no speed change, so the GEMMs are not starved by small batches; the
+decoder is simply large for the frame count it produces.
 
 Teacher graphs are keyed by the prompt's token count because the H3 attention treats the
 document's valid rows as a prefix whose length is a Python int of the forward (a fixed
