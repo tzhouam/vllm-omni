@@ -433,6 +433,8 @@ def _hold_pipeline(monkeypatch):
     pipe._tm_hold_for_prompt = True
     pipe._tm_hold_poll_seconds = 0.0
     pipe._tm_hold_max_seconds = 0.0
+    pipe._tm_hold_fallback_prompt = None
+    pipe._tm_hold_fallback_encoded = None
     monkeypatch.setattr(TaoMateH3Pipeline, "device", torch.device("cpu"), raising=False)
 
     def begin_request(**kwargs):
@@ -779,3 +781,34 @@ def test_hold_is_released_after_its_time_bound(monkeypatch) -> None:
         pipe.prepare_next_chunk(state)
     assert state.extra["taomate_held"] is False and "taomate_hold_since" not in state.extra
     assert state.extra["taomate_prompt_version"] == 1  # a late update still applies at the next boundary
+
+
+def test_hold_bound_can_fall_back_to_a_neutral_prompt(monkeypatch) -> None:
+    """With taomate_h3_hold_fallback_prompt the expired hold runs a neutral prompt, not the previous line."""
+    pipe = _hold_pipeline(monkeypatch)
+    pipe._tm_hold_max_seconds = 0.05
+    pipe._tm_hold_fallback_prompt = "She listens quietly."
+    calls: list[str] = []
+
+    def encode_prompt(prompt: str):
+        calls.append(prompt)
+        tags = torch.ones(6, dtype=torch.long)
+        tags[0] = 0
+        return torch.full((6, 8), 7.0), tags
+
+    monkeypatch.setattr(pipe, "encode_prompt", encode_prompt, raising=False)
+    state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)
+    pipe.prepare_next_chunk(state)
+    state.extra["taomate_hold_since"] -= 1.0
+    with pytest.raises(_RequestStartedError):
+        pipe.prepare_next_chunk(state)
+    assert calls == ["She listens quietly."]
+    assert tuple(state.prompt_embeds.shape) == (6, 8) and state.txt_seq_lens == [6]
+    assert int(state.extra["text_tags"][0]) == 0
+    # The encoding is cached: a second expiry does not re-encode.
+    state2 = _hold_state(chunk_index=2 * _NUM_PHASES, applied_version=1)
+    pipe.prepare_next_chunk(state2)
+    state2.extra["taomate_hold_since"] -= 1.0
+    with pytest.raises(_RequestStartedError):
+        pipe.prepare_next_chunk(state2)
+    assert calls == ["She listens quietly."]

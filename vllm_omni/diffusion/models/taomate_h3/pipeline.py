@@ -38,6 +38,7 @@ from vllm.logger import init_logger
 
 from vllm_omni.diffusion.data import DiffusionOutput, OmniDiffusionConfig
 from vllm_omni.diffusion.interaction.mixin import InteractionMixin
+from vllm_omni.diffusion.interaction.modality_handlers.taomate_h3_prompt import sync_prompt_length
 from vllm_omni.diffusion.interaction.types import ChunkMediaSpec
 from vllm_omni.diffusion.models.interface import SupportsStepExecution
 from vllm_omni.diffusion.models.minimax_h3.denoise_loop import MiniMaxH3DenoiseBranch
@@ -608,6 +609,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._tm_hold_max_seconds = float(model_config.get("taomate_h3_hold_max_seconds", 0.0))
         if self._tm_hold_max_seconds < 0:
             raise ValueError("taomate_h3_hold_max_seconds must be >= 0")
+        # Prompt used for a request whose hold ran out (instead of replaying the
+        # previous prompt, which may be a spoken line): a neutral "listening"
+        # description encoded once on first use. None replays the previous prompt.
+        fallback = model_config.get("taomate_h3_hold_fallback_prompt")
+        self._tm_hold_fallback_prompt = str(fallback) if fallback else None
+        self._tm_hold_fallback_encoded: tuple[torch.Tensor, torch.Tensor] | None = None
         # Optional decoder tile size of the video VAE. The checkpoint tiles the
         # decode in 256 px tiles with at least 64 px overlap: at 480x864 that is
         # a 3x5 grid whose tiles cover 2.4x the canvas. A tile of 480 px gives
@@ -1229,7 +1236,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             )
 
     def _hold_expired(self, state: StepRequestState) -> bool:
-        """True when the bounded hold at this request boundary has run out (the request then starts as is)."""
+        """True when the bounded hold at this request boundary has run out (the request then starts).
+
+        Every DiT rank polls with its own clock, so the decision is agreed
+        across the ranks (any rank past the bound releases all of them);
+        otherwise one rank could start the request while its peer keeps
+        holding, and the next collective would hang.
+        """
         limit = self._tm_hold_max_seconds
         if limit <= 0:
             return False
@@ -1237,17 +1250,50 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         now = time.perf_counter()
         if since is None:
             state.extra["taomate_hold_since"] = now
+            expired_here = False
+        else:
+            expired_here = now - since >= limit
+        if not self._ranks_agree_any(expired_here):
             return False
-        if now - since < limit:
-            return False
+        fallback = self._hold_fallback_embeddings()
+        if fallback is not None:
+            hidden, tags = fallback
+            state.prompt_embeds = hidden
+            sync_prompt_length(state, text_tags=tags)
+            what = "the fallback prompt"
+        else:
+            what = "the previous prompt"
         logger.warning(
-            "TaoMate-H3 %s: no prompt within %.1f s of the request boundary at chunk %d; continuing with the "
-            "previous prompt (a late update applies one request later)",
+            "TaoMate-H3 %s: no prompt within %.1f s of the request boundary at chunk %d; the request runs with %s "
+            "(a late update applies one request later)",
             state.request_id,
             limit,
             state.chunk_index,
+            what,
         )
         return True
+
+    def _ranks_agree_any(self, flag: bool) -> bool:
+        """Logical OR of ``flag`` over the DiT ranks (a plain value when there is one rank)."""
+        try:
+            _, _, group = _ulysses_state()
+        except Exception:  # noqa: BLE001 - no distributed state (single process, CPU tests)
+            return flag
+        if group is None or not torch.distributed.is_initialized() or torch.distributed.get_world_size(group) <= 1:
+            return flag
+        vote = torch.tensor([1 if flag else 0], dtype=torch.int32, device=self.device)
+        torch.distributed.all_reduce(vote, op=torch.distributed.ReduceOp.MAX, group=group)
+        return bool(int(vote.item()))
+
+    def _hold_fallback_embeddings(self) -> tuple[torch.Tensor, torch.Tensor] | None:
+        if self._tm_hold_fallback_prompt is None:
+            return None
+        if self._tm_hold_fallback_encoded is None:
+            # Every rank reaches this together (after the agreement above), as
+            # encode_prompt requires.
+            hidden, tags = self.encode_prompt(prompt=self._tm_hold_fallback_prompt)
+            self._tm_hold_fallback_encoded = (hidden.detach(), tags.detach())
+        return self._tm_hold_fallback_encoded
 
     def _run_teacher(self, session: _Session) -> None:
         request = session.request
