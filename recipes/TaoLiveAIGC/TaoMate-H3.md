@@ -56,6 +56,7 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_pad_text_tokens` | unset | Prompt token budget that pins every phase and teacher document to one packed length per kind (for compiled or CUDA-graph runs). The text rows reserved are the prompt's length rounded up to 64 tokens, capped by this budget, so a 335-token prompt under a 512 budget carries at most 49 pad rows. Prompts above the budget run unpinned (warning once). Real persona prompts measure 330-410 tokens (cited from the live-agent team), so deployments should set 512 |
 | `taomate_h3_log_timings` | false | Log per-phase stage timings (adds device synchronizations) |
 | `taomate_h3_hold_for_prompt` | false | Just-in-time lock: request `k >= 1` starts only after a `session.interaction` prompt update arrived since request `k-1` started; until then the stream idles at the request boundary (send `session.ping` to keep the stall timer fresh). For clients that choose every request's prompt at the last moment |
+| `taomate_h3_hold_max_seconds` | 0 | Bound on the just-in-time hold: after this many seconds at a request boundary without a new prompt, the request starts with the previous prompt and a late update applies one request later (a warning is logged). 0 keeps the hold unbounded, which stalls the stream for as long as the client's prompt decision takes (measured locally in the live-agent demo: an 8 s stall while a hosted LLM took 4 s to decide). Real-time deployments that hold should set about 0.5-1.0 |
 | `taomate_h3_hold_poll_seconds` | 0.02 | Idle-step period while a request boundary is held |
 | `taomate_h3_teacher_cuda_graph` | false | Replay the audio teacher's nine forwards from CUDA graphs, one graph per document shape (prompt length, first or later request, reference tail or not). The first capture is checked with `torch.cuda.set_sync_debug_mode("error")`; any capture failure falls back to eager for the rest of the process, agreed across the Ulysses group |
 | `taomate_h3_cuda_graph_max_entries` | 16 | Resident teacher graphs (least recently used shape evicted); they share one memory pool |
@@ -326,6 +327,11 @@ step's K/V instead of the clean-commit forward (the LingBot-World `reuse_last_st
 pattern) is not offered: TaoMate's last student forward runs at sigma 0.853 of the shift-12
 schedule (the ladder is 1.0, 0.961, 0.853, 0), far from the clean K/V the model was trained
 to attend to.
+
+**Start-up time.** With the teacher and text-encoder graph captures for a 120-token range the two-GPU
+server takes about 7 minutes to become ready (3 min of loading, 3-4 min of captures), which exceeds
+vLLM-Omni's default stage initialization timeout of 600 s; raise it (for example 1800 s) or narrow
+`taomate_h3_teacher_graph_text_lengths` to the deployment's prompt lengths.
 
 ## Limits
 

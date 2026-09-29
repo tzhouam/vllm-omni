@@ -432,6 +432,7 @@ def _hold_pipeline(monkeypatch):
     pipe = object.__new__(TaoMateH3Pipeline)  # no weights: only the boundary logic runs
     pipe._tm_hold_for_prompt = True
     pipe._tm_hold_poll_seconds = 0.0
+    pipe._tm_hold_max_seconds = 0.0
     monkeypatch.setattr(TaoMateH3Pipeline, "device", torch.device("cpu"), raising=False)
 
     def begin_request(**kwargs):
@@ -762,3 +763,19 @@ def test_lora_merge_builds_student_shadows_and_swaps_parameter_sets(tmp_path) ->
     assert fc2.weight is shadow.weight  # student weights back after the teacher
     again, _ = fc2(fc2_in)
     torch.testing.assert_close(again, student_out)
+
+
+def test_hold_is_released_after_its_time_bound(monkeypatch) -> None:
+    """taomate_h3_hold_max_seconds: a slow prompt decision stalls the stream at most that long."""
+    pipe = _hold_pipeline(monkeypatch)
+    pipe._tm_hold_max_seconds = 0.05
+    state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)  # request 1, no new prompt
+    pipe.prepare_next_chunk(state)
+    assert state.extra["taomate_held"] is True and "taomate_hold_since" in state.extra
+    pipe.prepare_next_chunk(state)  # still within the bound
+    assert state.extra["taomate_held"] is True
+    state.extra["taomate_hold_since"] -= 1.0  # the bound has passed
+    with pytest.raises(_RequestStartedError):  # the request starts with the previous prompt
+        pipe.prepare_next_chunk(state)
+    assert state.extra["taomate_held"] is False and "taomate_hold_since" not in state.extra
+    assert state.extra["taomate_prompt_version"] == 1  # a late update still applies at the next boundary

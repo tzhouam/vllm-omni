@@ -601,6 +601,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # prompt. Off by default: the free-running stream keeps the last prompt.
         self._tm_hold_for_prompt = bool(model_config.get("taomate_h3_hold_for_prompt", False))
         self._tm_hold_poll_seconds = float(model_config.get("taomate_h3_hold_poll_seconds", 0.02))
+        # Bound on the hold: after this many seconds at a request boundary
+        # without a new prompt, the request starts with the previous prompt and
+        # a late update applies one request later. 0 keeps the hold unbounded
+        # (a slow prompt decision then stalls the stream for as long as it takes).
+        self._tm_hold_max_seconds = float(model_config.get("taomate_h3_hold_max_seconds", 0.0))
+        if self._tm_hold_max_seconds < 0:
+            raise ValueError("taomate_h3_hold_max_seconds must be >= 0")
         # Optional decoder tile size of the video VAE. The checkpoint tiles the
         # decode in 256 px tiles with at least 64 px overlap: at 480x864 that is
         # a 3x5 grid whose tiles cover 2.4x the canvas. A tile of 480 px gives
@@ -1064,6 +1071,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 and state.chunk_index >= NUM_PHASES
                 and not state.extra.get("taomate_no_hold")
                 and version <= int(state.extra.get("taomate_prompt_version", 0))
+                and not self._hold_expired(state)
             ):
                 # Hold at the request boundary until the client locks this
                 # request's prompt; denoise_step polls (see _tm_hold_for_prompt).
@@ -1079,6 +1087,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 return
             self.__dict__.pop("supports_chunk_step_grouping", None)  # back to the class policy
             state.extra["taomate_held"] = False
+            state.extra.pop("taomate_hold_since", None)
             state.extra["taomate_prompt_version"] = version
             if state.prompt_embeds is None:
                 raise RuntimeError("TaoMate-H3 request needs prompt embeddings")
@@ -1218,6 +1227,27 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 lengths[-1],
                 time.perf_counter() - started,
             )
+
+    def _hold_expired(self, state: StepRequestState) -> bool:
+        """True when the bounded hold at this request boundary has run out (the request then starts as is)."""
+        limit = self._tm_hold_max_seconds
+        if limit <= 0:
+            return False
+        since = state.extra.get("taomate_hold_since")
+        now = time.perf_counter()
+        if since is None:
+            state.extra["taomate_hold_since"] = now
+            return False
+        if now - since < limit:
+            return False
+        logger.warning(
+            "TaoMate-H3 %s: no prompt within %.1f s of the request boundary at chunk %d; continuing with the "
+            "previous prompt (a late update applies one request later)",
+            state.request_id,
+            limit,
+            state.chunk_index,
+        )
+        return True
 
     def _run_teacher(self, session: _Session) -> None:
         request = session.request
