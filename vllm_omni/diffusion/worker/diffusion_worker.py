@@ -8,6 +8,7 @@ Handles GPU infrastructure initialization and delegates model operations
 to DiffusionModelRunner.
 """
 
+import copy
 import gc
 import multiprocessing as mp
 import os
@@ -81,7 +82,13 @@ from vllm_omni.diffusion.sched.interface import (
 )
 from vllm_omni.diffusion.vllm_config import create_diffusion_vllm_config
 from vllm_omni.diffusion.worker.diffusion_model_runner import DiffusionModelRunner
-from vllm_omni.diffusion.worker.utils import BaseRunnerOutput, BatchRunnerOutput
+from vllm_omni.diffusion.worker.utils import (
+    STEP_ASYNC_OUTPUT_KEY,
+    BaseRunnerOutput,
+    BatchRunnerOutput,
+    RunnerOutput,
+    step_async_output_enabled,
+)
 from vllm_omni.engine.stage_init_utils import set_death_signal
 from vllm_omni.inputs.data import OmniInteractionPrompt
 from vllm_omni.lora.request import LoRARequest
@@ -92,6 +99,57 @@ from vllm_omni.worker.gpu_memory_utils import get_process_gpu_memory
 logger = init_logger(__name__)
 
 _ASYNC_OUTPUT_THREAD_JOIN_TIMEOUT_S = 10.0
+
+__all_step_async__ = (STEP_ASYNC_OUTPUT_KEY, step_async_output_enabled)  # re-exported for callers of this module
+
+
+def detach_step_media(
+    output: Any,
+    *,
+    new_id: Callable[[], str],
+    record_event: Callable[[], Any],
+    enqueue: Callable[[DiffusionOutput, str, Any], None],
+) -> int:
+    """Replace the media-bearing results of a step reply by placeholders.
+
+    ``output`` is a stepwise reply (a ``BatchRunnerOutput``, a ``RunnerOutput``
+    or an RPC envelope dict carrying one under ``"result"``). Every result
+    that holds media and no error is handed to ``enqueue(original, id, event)``
+    for background packing, and the reply keeps a shallow copy of it without
+    the media and with ``async_output_id`` set. Returns the number of detached
+    results. Nothing else about the reply changes, so the scheduler still sees
+    every ``finished``/``step_index``/chunk field immediately.
+    """
+    batch = output.get("result") if isinstance(output, dict) else output
+    if isinstance(batch, RunnerOutput):
+        runner_outputs = [batch]
+    elif isinstance(batch, BatchRunnerOutput):
+        runner_outputs = list(batch.runner_outputs)
+    else:
+        return 0
+    detached = 0
+    for runner_output in runner_outputs:
+        result = runner_output.result
+        if not isinstance(result, DiffusionOutput) or result.error or result.aborted or result.async_output_id:
+            continue
+        if result.output is None and getattr(result, "media", None) is None:
+            continue
+        async_output_id = new_id()
+        gpu_event = record_event()
+        placeholder = copy.copy(result)
+        placeholder.output = None
+        placeholder.media = None
+        placeholder.trajectory_timesteps = None
+        placeholder.trajectory_latents = None
+        placeholder.trajectory_log_probs = None
+        placeholder.trajectory_decoded = None
+        placeholder.async_output_id = async_output_id
+        enqueue(result, async_output_id, gpu_event)
+        runner_output.result = placeholder
+        detached += 1
+    return detached
+
+
 # Maximum time (in seconds) to wait for pending background D2H / SHM packing
 # to drain before the worker executes memory-releasing lifecycle tasks
 # (e.g. during sleep/wake transitions). This barrier prevents device tensors
@@ -1139,6 +1197,10 @@ class CustomPipelineWorkerExtension:
 class WorkerProc:
     """Wrapper that runs one Worker in a separate process."""
 
+    # Step execution packs chunk media on the background thread only when the
+    # model_config knob is on (set in __init__); off keeps the synchronous path.
+    _step_async_output: bool = False
+
     def __init__(
         self,
         od_config: OmniDiffusionConfig,
@@ -1183,7 +1245,8 @@ class WorkerProc:
         # enqueues OUTPUT_READY while the main loop enqueues COMPUTE_DONE, so
         # unsynchronized writers can target the same block and drop a message.
         self._result_mq_lock = threading.Lock()
-        if not self.od_config.step_execution:
+        self._step_async_output = step_async_output_enabled(self.od_config)
+        if not self.od_config.step_execution or self._step_async_output:
             self._async_output_queue = queue.Queue()
             self._async_output_thread = threading.Thread(
                 target=self._async_output_loop,
@@ -1243,6 +1306,18 @@ class WorkerProc:
             self._enqueue_result(msg)
             return
 
+        if self._step_async_output and self._async_output_queue is not None:
+            # Step execution: the reply itself stays synchronous (the scheduler
+            # needs its bookkeeping now) but each chunk's media is packed by
+            # the background thread and fetched by the engine's step streaming
+            # through the placeholder's async_output_id.
+            detach_step_media(
+                output,
+                new_id=WorkerProc._generate_async_output_id,
+                record_event=current_omni_platform.record_device_event,
+                enqueue=self._queue_async_output,
+            )
+
         # Sync path (original, or async fallback).
         try:
             pack_diffusion_output_shm(output)
@@ -1258,6 +1333,11 @@ class WorkerProc:
             if hasattr(output, "output"):
                 logger.warning("SHM pack failed for model output: %s", e)
         self._enqueue_result(output)
+
+    def _queue_async_output(self, output: DiffusionOutput, async_output_id: str, gpu_event: Any) -> None:
+        with self._async_output_done:
+            self._async_output_pending += 1
+        self._async_output_queue.put((output, async_output_id, gpu_event))
 
     def _async_output_loop(self):
         """Background thread: D2H + SHM packing for async diffusion output.

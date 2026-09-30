@@ -227,3 +227,17 @@ class BatchRunnerOutput(BaseRunnerOutput):
     @classmethod
     def from_list(cls, runner_output_list: list[RunnerOutput]) -> BatchRunnerOutput:
         return cls(runner_outputs=runner_output_list)
+
+
+# model_config key: in step execution, hand every streamed chunk's media to the
+# worker's background D2H/SHM thread and reply with a lightweight placeholder
+# carrying the chunk's ``async_output_id``; the executor then routes worker
+# replies through its result pump (as in request mode) and the engine's step
+# streaming awaits the media. Off by default: the step thread packs the media.
+STEP_ASYNC_OUTPUT_KEY = "step_async_output"
+
+
+def step_async_output_enabled(od_config: Any) -> bool:
+    """True when step execution should pack chunk media asynchronously."""
+    model_config = getattr(od_config, "model_config", None) or {}
+    return bool(getattr(od_config, "step_execution", False)) and bool(model_config.get(STEP_ASYNC_OUTPUT_KEY, False))
