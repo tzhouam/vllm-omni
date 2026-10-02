@@ -1,0 +1,26 @@
+{
+  "scope": "Whisper tiny.en proxy only; independent 16-second slices check whether full-length decode alone caused repetition",
+  "full_wav_sha256": "eec1125123e6c3ada3ea3ca790e05c6b85bbfbadaa14e2f9fbe8704d4b923a92",
+  "reference_text": "Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. ",
+  "full_transcript": "Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly.",
+  "full_word_error_rate": 0.5,
+  "segments": [
+    {
+      "start_s": 0,
+      "end_s": 16,
+      "wav_sha256": "b84b59ec1eaa0d02c6cc3d79b1392cb8a5e676613ad7f76f1f622836c48ae8c1",
+      "transcript": "Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly."
+    },
+    {
+      "start_s": 16,
+      "end_s": 32.32,
+      "wav_sha256": "8a4ea7379775298ce5ec670138f4ac1ba88aee84b085da337641f0c096cf7c2d",
+      "transcript": "Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly."
+    }
+  ],
+  "conclusion": "The recorded prompt repeats the opening sentence four times. Two non-overlapping 16-second ASR segments together match all 72 reference words (WER 0); one full 32.32-second Whisper pass overtranscribed the repeated prompt (WER 0.5). This proxy does not establish perceptual or speaker quality.",
+  "segment_joined_transcript": "Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today, we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly. Today we are testing a local speech system. It should speak clearly and keep the audio flowing smoothly.",
+  "reference_word_count": 72,
+  "segment_joined_word_count": 72,
+  "segment_joined_word_error_rate": 0.0
+}

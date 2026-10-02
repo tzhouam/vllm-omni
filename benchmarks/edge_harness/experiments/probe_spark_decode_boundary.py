@@ -82,6 +82,9 @@ def main() -> None:
                         help="place filled full-cache entries next to the new token in a padded CPU diagnostic")
     parser.add_argument("--trace-position", type=int, default=-1,
                         help="capture source/export hidden-state parity after each layer at this decode position")
+    parser.add_argument("--free-running", action="store_true",
+                        help="feed each path its own next token; after the first divergence, "
+                             "only sequence agreement remains comparable")
     args = parser.parse_args()
     if args.decode_steps < 1:
         raise ValueError("decode-steps must be positive")
@@ -148,7 +151,8 @@ def main() -> None:
 
     with torch.inference_mode():
         prefill = model(prompt_ids, use_cache=True, logits_to_keep=1)
-        current_token = int(prefill.logits[0, -1].argmax())
+        current_reference_token = int(prefill.logits[0, -1].argmax())
+        current_export_token = current_reference_token
         reference_cache = prefill.past_key_values
         cache_shapes = [
             [list(layer.keys.shape), list(layer.values.shape)]
@@ -190,6 +194,7 @@ def main() -> None:
         bucket_transitions: list[dict] = []
         traced_layer_hidden: list[dict] = []
         traced_attention_matmuls: list[dict] = []
+        histories_aligned = True
         for _ in range(args.decode_steps):
             decode_position = state.position
             if args.full_bucket_width and decode_position >= state.max_context:
@@ -198,7 +203,7 @@ def main() -> None:
                 state.grow_full_capacity(next_capacity)
                 bucket_transitions.append({"position": decode_position,
                                            "full_capacity": next_capacity})
-            x = model.model.embedding(torch.tensor([[current_token]])).float()
+            x = model.model.embedding(torch.tensor([[current_export_token]])).float()
             step_inputs = list(state.step_inputs(x))
             if (args.ordered_sliding and cfg.layout_for(SLIDING) == "ring"
                     and decode_position >= cfg.sliding_window - 1):
@@ -286,7 +291,7 @@ def main() -> None:
                 if hooks:
                     out = trace_matmuls(run_step, export_matmuls)
                     ref = trace_matmuls(lambda: model(
-                        torch.tensor([[current_token]]),
+                        torch.tensor([[current_reference_token]]),
                         past_key_values=reference_cache,
                         cache_position=torch.tensor([decode_position]),
                         use_cache=True,
@@ -295,7 +300,7 @@ def main() -> None:
                 else:
                     out = run_step()
                     ref = model(
-                        torch.tensor([[current_token]]),
+                        torch.tensor([[current_reference_token]]),
                         past_key_values=reference_cache,
                         cache_position=torch.tensor([decode_position]),
                         use_cache=True,
@@ -373,43 +378,51 @@ def main() -> None:
             cache_mismatch_layers = []
             max_new_kv_relative_l2 = 0.0
             worst_new_kv = None
-            if args.export_arithmetic == "hf_bf16_reference":
+            if histories_aligned and args.export_arithmetic == "hf_bf16_reference":
                 for i, layer in enumerate(reference_cache.layers):
                     if (not torch.equal(out[1 + 2 * i][:, :, -1:], layer.keys[:, :, -1:])
                             or not torch.equal(out[2 + 2 * i][:, :, -1:], layer.values[:, :, -1:])):
                         cache_mismatch_layers.append(i)
-            for i, layer in enumerate(reference_cache.layers):
-                for kind, reference, actual in (
-                    ("key", layer.keys[:, :, -1:], out[1 + 2 * i][:, :, -1:]),
-                    ("value", layer.values[:, :, -1:], out[2 + 2 * i][:, :, -1:]),
-                ):
-                    error = relative_l2(reference, actual)
-                    if error > max_new_kv_relative_l2:
-                        max_new_kv_relative_l2 = error
-                        worst_new_kv = {
-                            "layer": i,
-                            "kind": kind,
-                            "reference_l2_norm": float(torch.linalg.vector_norm(
-                                reference.double())),
-                            "candidate_l2_norm": float(torch.linalg.vector_norm(
-                                actual.double())),
-                            "max_abs_error": float((reference.double()
-                                                    - actual.double()).abs().max()),
-                        }
+            if histories_aligned:
+                for i, layer in enumerate(reference_cache.layers):
+                    for kind, reference, actual in (
+                        ("key", layer.keys[:, :, -1:], out[1 + 2 * i][:, :, -1:]),
+                        ("value", layer.values[:, :, -1:], out[2 + 2 * i][:, :, -1:]),
+                    ):
+                        error = relative_l2(reference, actual)
+                        if error > max_new_kv_relative_l2:
+                            max_new_kv_relative_l2 = error
+                            worst_new_kv = {
+                                "layer": i,
+                                "kind": kind,
+                                "reference_l2_norm": float(torch.linalg.vector_norm(
+                                    reference.double())),
+                                "candidate_l2_norm": float(torch.linalg.vector_norm(
+                                    actual.double())),
+                                "max_abs_error": float((reference.double()
+                                                        - actual.double()).abs().max()),
+                            }
             steps.append({
                 "position": decode_position,
-                "input_token": current_token,
+                "input_token": current_reference_token,
+                "export_input_token": current_export_token,
+                "histories_aligned": histories_aligned,
                 "hf_next_token": next_ref,
                 "export_next_token": next_export,
                 "top1_match": next_ref == next_export,
-                "logits_relative_l2": float(delta.norm() / ref_logits.norm()),
-                "logits_max_abs": float(delta.abs().max()),
+                "logits_relative_l2": (float(delta.norm() / ref_logits.norm())
+                                        if histories_aligned else None),
+                "logits_max_abs": (float(delta.abs().max()) if histories_aligned else None),
                 "cache_mismatch_layers": cache_mismatch_layers,
-                "max_new_kv_relative_l2": max_new_kv_relative_l2,
+                "max_new_kv_relative_l2": (max_new_kv_relative_l2
+                                           if histories_aligned else None),
                 "worst_new_kv": worst_new_kv,
             })
             state.commit(out, expected_position=decode_position)
-            current_token = next_ref
+            if args.free_running:
+                histories_aligned = histories_aligned and next_ref == next_export
+            current_reference_token = next_ref
+            current_export_token = next_export if args.free_running else next_ref
 
     mismatch_positions = [s["position"] for s in steps if not s["top1_match"]]
     report = {
@@ -428,9 +441,15 @@ def main() -> None:
         "decode_steps": args.decode_steps,
         "top1_matches": args.decode_steps - len(mismatch_positions),
         "mismatch_positions": mismatch_positions,
-        "max_logits_relative_l2": max(s["logits_relative_l2"] for s in steps),
-        "max_logits_abs": max(s["logits_max_abs"] for s in steps),
-        "max_new_kv_relative_l2": max(s["max_new_kv_relative_l2"] for s in steps),
+        "first_sequence_divergence_position": (
+            mismatch_positions[0] if mismatch_positions else None
+        ),
+        "max_logits_relative_l2": max(s["logits_relative_l2"] for s in steps
+                                      if s["logits_relative_l2"] is not None),
+        "max_logits_abs": max(s["logits_max_abs"] for s in steps
+                              if s["logits_max_abs"] is not None),
+        "max_new_kv_relative_l2": max(s["max_new_kv_relative_l2"] for s in steps
+                                      if s["max_new_kv_relative_l2"] is not None),
         "final_position": state.position,
         "full_cache_capacity": state.max_context,
         "initial_full_cache_capacity": initial_capacity,
@@ -449,6 +468,7 @@ def main() -> None:
         "compact_inputs": args.compact_inputs,
         "compact_layer_type": args.compact_layer_type,
         "ordered_sliding": args.ordered_sliding,
+        "free_running": args.free_running,
         "right_align_full": args.right_align_full,
         "trace_position": args.trace_position,
         "traced_layer_hidden": traced_layer_hidden,

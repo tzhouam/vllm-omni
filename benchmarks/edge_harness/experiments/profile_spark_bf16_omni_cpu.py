@@ -48,6 +48,8 @@ async def profile(args: argparse.Namespace) -> dict:
             digest = hashlib.sha256(json.dumps(record.output_token_ids).encode()).hexdigest()
             runs.append({
                 "kind": "warmup" if index < args.warmups else "measured",
+                "batch_size": 1,
+                "concurrency": 1,
                 "prompt_name": name,
                 "prompt_tokens": record.prompt_tokens,
                 "output_tokens": record.output_tokens,
@@ -67,6 +69,9 @@ async def profile(args: argparse.Namespace) -> dict:
     report = {
         "scope": "Spark-X2.5-1.7B dense BF16 complete text requests through Omni on WSL HX370 CPU",
         "status": "scoped_e2e_profiled",
+        "request_batch_size": 1,
+        "max_active_requests": 1,
+        "qualification_protocol": "one-short-prompt diagnostic; not single_request_batch1_v1",
         "model": str(args.model.resolve()),
         "runtime": runtime_versions().to_dict(),
         "plan": plan.to_dict(),

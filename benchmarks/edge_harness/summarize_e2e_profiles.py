@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Combine the complete qualification matrix with measured local profiling runs.
+"""Combine the archived 2026-09-22 matrix with measured local profiling runs.
 
 A completed benchmark is not automatically a quality-qualified model release.
 Missing runs and insufficient samples remain explicit rather than becoming zeroes.
+For current coverage use the rolling 60-cell ledger, not this historical matrix.
 """
 
 import argparse
@@ -13,6 +14,13 @@ import math
 import time
 from collections import defaultdict
 from pathlib import Path
+
+from single_request_protocol import (
+    LENGTH_BANDS,
+    MIN_MEASURED_PER_BAND,
+    MIN_SUSTAINED_SECONDS,
+    PROTOCOL,
+)
 
 RUNS = {
     ("pc_cpu_wsl", "spark"): "spark-cpu-wsl",
@@ -251,6 +259,20 @@ def profile(path):
         return missing_report(path)
     report = execution_report(path)
     rows = read_lines(path / "requests.jsonl")
+    recorded_protocol = report.get("profile_protocol") or {}
+    protocol_name = recorded_protocol.get("name", "historical_concurrency_sweep_v1")
+    single_request = protocol_name == PROTOCOL
+    protocol_violations = []
+    if single_request:
+        if recorded_protocol.get("request_batch_size") != 1 or recorded_protocol.get("max_active_requests") != 1:
+            protocol_violations.append("report_does_not_declare_batch1_concurrency1")
+        for row in rows:
+            if row.get("phase") in ("warmup", "measured", "sustained") and (
+                row.get("batch_size") != 1 or row.get("concurrency") != 1
+            ):
+                protocol_violations.append(f"non_single_request_sample:{row.get('request_id')}")
+    elif protocol_name != "historical_concurrency_sweep_v1":
+        protocol_violations.append(f"unknown_protocol:{protocol_name}")
     groups = defaultdict(list)
     for row in rows:
         if row["phase"] == "measured":
@@ -298,8 +320,17 @@ def profile(path):
                 "requests_with_playback_stalls": sum((s.get("stall_at_ttfa_ms") or 0) > 0 for s in samples),
             }
         )
-    expected = set(itertools.product(("short", "medium", "long"), (1, 2, 4)))
-    enough = all(len(groups.get(key, [])) >= 20 for key in expected)
+    expected = set(itertools.product(LENGTH_BANDS, (1,) if single_request else (1, 2, 4)))
+    enough = all(len(groups.get(key, [])) >= MIN_MEASURED_PER_BAND for key in expected)
+    if single_request:
+        unexpected = set(groups) - expected
+        if unexpected:
+            protocol_violations.append(f"unexpected_measured_groups:{sorted(unexpected)}")
+        for length in LENGTH_BANDS:
+            if not any(row.get("phase") == "warmup" and row.get("length_band") == length for row in rows):
+                protocol_violations.append(f"missing_warmup:{length}")
+        if not any(row.get("phase") == "sustained" for row in rows):
+            protocol_violations.append("missing_sustained_requests")
     metric_gaps = []
     for key, samples in groups.items():
         for sample in samples:
@@ -312,7 +343,15 @@ def profile(path):
             if missing:
                 metric_gaps.append({"configuration": key, "request_id": sample.get("request_id"), "fields": missing})
     metrics_complete = enough and not metric_gaps
-    sustained = report.get("sustained_wall_s", 0) >= 1800
+    recorded_output = output_checks(rows)
+    sustained = report.get("sustained_wall_s", 0) >= MIN_SUSTAINED_SECONDS
+    timing_complete = report["status"] == "completed" and metrics_complete and sustained
+    timing_complete = timing_complete and not protocol_violations
+    if single_request:
+        # A timing protocol cannot be complete when its archived requests
+        # include malformed, unfinished, duplicated, or non-finite output.
+        # This remains a metadata check, not a task-quality verdict.
+        timing_complete = timing_complete and recorded_output["recorded_invariants_pass"]
     return {
         "status": report["status"],
         "error": report.get("error"),
@@ -320,14 +359,20 @@ def profile(path):
         "report_write_permission_errors": report.get("report_write_permission_errors", 0),
         "last_report_write_error": report.get("last_report_write_error"),
         "source": str(report_path),
+        "profile_protocol": protocol_name,
+        "protocol_violations": protocol_violations,
+        "historical_protocol_complete": (
+            timing_complete if protocol_name == "historical_concurrency_sweep_v1" else False
+        ),
+        "batch1_protocol_complete": timing_complete if single_request else False,
         "minimum_20_per_configuration": enough,
         "sustained_30_minutes": sustained,
         "required_metrics_complete": metrics_complete,
         "metric_gaps": metric_gaps,
-        "profile_protocol_complete": report["status"] == "completed" and metrics_complete and sustained,
+        "profile_protocol_complete": timing_complete if single_request else False,
         "sustained_wall_s": report.get("sustained_wall_s"),
         "quality_gate": report.get("quality_gate", "not established by this profiling run"),
-        "recorded_output_checks": output_checks(rows),
+        "recorded_output_checks": recorded_output,
         "measurements": measurements,
         "cancel": report.get("cancel"),
         "memory": report.get("memory") or report.get("usage_after_close", {}).get("peaks"),
@@ -353,7 +398,10 @@ def build(matrix_path, run_root):
         "schema": 1,
         "generated_unix": time.time(),
         "source_matrix": str(matrix_path),
-        "scope": "All 60 pairings checked; runnable current E2E paths profiled, unavailable paths retain reasons.",
+        "scope": (
+            "Archived 2026-09-22 60-pair matrix and five baseline runs; "
+            "current rolling coverage is tracked in the separate qualification ledger."
+        ),
         "percentiles": "nearest rank; warmups and sustained runs excluded from configuration percentiles",
         "devices": matrix["devices"],
         "models": matrix["models"],
@@ -400,7 +448,8 @@ def main():
     lines = [
         "# E2E check and profiling",
         "",
-        "All 60 pairings have a disposition. Profiling completion does not imply full release qualification.",
+        "This is the archived 2026-09-22 matrix. For current 60-cell coverage, use the rolling "
+        "qualification ledger. Profiling completion does not imply full release qualification.",
         "",
         "## Configuration × model",
         "",

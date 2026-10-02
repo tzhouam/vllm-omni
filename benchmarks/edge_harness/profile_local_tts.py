@@ -14,9 +14,11 @@ from pathlib import Path
 
 from gpu_telemetry import GpuTelemetry
 from profile_local_text import HOST_ENVIRONMENT, save
+from single_request_protocol import LENGTH_BANDS, metadata as protocol_metadata, validate_settings
 
 
 async def run(args):
+    validate_settings(args.batch_size, args.concurrency)
     import torch
     import vllm_omni
     from transformers import AutoTokenizer
@@ -42,6 +44,7 @@ async def run(args):
         "platform": platform.platform(),
         "runtime": runtime_versions().to_dict(),
         "settings": vars(args),
+        "profile_protocol": protocol_metadata(),
         "start_unix": time.time(),
         "requests": 0,
         "cache_condition": "existing disk/JIT caches; not cold disk",
@@ -69,8 +72,10 @@ async def run(args):
                 "The garden has trees, flowers, and a small pond. We walk along the path and listen to the birds."
             ),
             "long": (
-                "Today we are testing a local speech system. "
-                "It should speak clearly and keep the audio flowing smoothly. " * 4
+                (
+                    "Today we are testing a local speech system. "
+                    "It should speak clearly and keep the audio flowing smoothly. "
+                ) * 4
             ),
         }
         prompts = {}
@@ -145,6 +150,7 @@ async def run(args):
                 "submitted_unix": submitted_unix,
                 "finished_unix": time.time(),
                 "concurrency": concurrency,
+                "batch_size": 1,
                 "sr": sr,
                 "chunks_all": chunks,
                 "finished": finished,
@@ -166,14 +172,11 @@ async def run(args):
             report["requests"] = counter
             save(args.out / "report.json", report)
 
-        for concurrency in (args.concurrency,) if args.concurrency is not None else (1, 2, 4):
-            for name in (args.length_band,) if args.length_band else prompts:
-                await asyncio.gather(*(request(name, concurrency, "warmup") for _ in range(concurrency)))
-                for i in range(0, args.repeats, concurrency):
-                    await asyncio.gather(
-                        *(request(name, concurrency, "measured") for _ in range(min(concurrency, args.repeats - i)))
-                    )
-                print(f"profiled {name} concurrency={concurrency}", flush=True)
+        for name in (args.length_band,) if args.length_band else LENGTH_BANDS:
+            await request(name, 1, "warmup")
+            for _ in range(args.repeats):
+                await request(name, 1, "measured")
+            print(f"profiled {name} batch_size=1 concurrency=1", flush=True)
         report["sustained_wall_s"] = 0.0
         if args.sustained_seconds > 0:
             start = time.perf_counter()
@@ -217,6 +220,7 @@ if __name__ == "__main__":
     p.add_argument("--out", required=True, type=Path)
     p.add_argument("--repeats", default=20, type=int)
     p.add_argument("--sustained-seconds", default=1800, type=float)
+    p.add_argument("--batch-size", type=int, choices=(1,), default=1)
     p.add_argument("--gpu-telemetry-interval-s", default=0.0, type=float,
                    help="Sample device-wide NVML and host telemetry; 0 disables sampling.")
     p.add_argument(
@@ -227,8 +231,9 @@ if __name__ == "__main__":
     p.add_argument(
         "--concurrency",
         type=int,
-        choices=(1, 2, 4),
-        help="Select one concurrency for a separate instrumentation diagnostic.",
+        choices=(1,),
+        default=1,
+        help="Only one active request is permitted for profiling.",
     )
     args = p.parse_args()
     os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")

@@ -5,6 +5,11 @@ Capacities are admission ceilings for this controller, captured before loads.
 They are not fresh `available` samples: resident allocations remain charged,
 so sampling available memory cannot subtract our own allocation a second time.
 Refresh ceilings only with an explicit, reconciled controller budget.
+
+Reservations are declared memory claims, not readings of actual allocation.
+For native vLLM stages, StageRuntime checks independently knowable allocation
+floors before reserving, but current StageClient does not report a post-load
+peak. Such claims must be reported as declarative, not verified safe bounds.
 """
 
 from __future__ import annotations
@@ -35,20 +40,37 @@ class ResourceLedger:
         self._lock = threading.RLock()
 
     def reserve(self, owner: str, demands: Mapping[str, int]) -> Reservation:
+        return self.reserve_many({owner: demands})[owner]
+
+    def reserve_many(self, requests: Mapping[str, Mapping[str, int]]) -> dict[str, Reservation]:
+        """Admit all stage claims together, or admit none of them.
+
+        A pipeline has to fit as a whole before its first stage starts. Checking
+        each stage against a fresh ``available`` sample would overlook other
+        stages' future allocations, especially for shared CPU/iGPU/NPU RAM.
+        """
         with self._lock:
-            if not owner or owner in self._active:
-                raise ValueError(f"reservation owner missing or already active: {owner}")
-            if not demands or any(type(n) is not int or n < 0 for n in demands.values()):
-                raise ValueError("nonnegative memory demands are required")
-            for pool, count in demands.items():
-                if pool not in self.capacities:
-                    raise ResourceUnavailable(f"unknown memory pool: {pool}")
+            if not requests:
+                raise ValueError("at least one reservation is required")
+            for owner, demands in requests.items():
+                if not owner or owner in self._active:
+                    raise ValueError(f"reservation owner missing or already active: {owner}")
+                if not demands or any(type(n) is not int or n < 0 for n in demands.values()):
+                    raise ValueError("nonnegative memory demands are required")
+                for pool in demands:
+                    if pool not in self.capacities:
+                        raise ResourceUnavailable(f"unknown memory pool: {pool}")
+            for pool, capacity in self.capacities.items():
                 used = sum(r.demands.get(pool, 0) for r in self._active.values())
-                if used + count > self.capacities[pool]:
-                    raise ResourceUnavailable(f"{pool}: {used} reserved + {count} requested > {self.capacities[pool]}")
-            reservation = Reservation(owner, MappingProxyType(dict(demands)))
-            self._active[owner] = reservation
-            return reservation
+                requested = sum(demands.get(pool, 0) for demands in requests.values())
+                if used + requested > capacity:
+                    raise ResourceUnavailable(f"{pool}: {used} reserved + {requested} requested > {capacity}")
+            reservations = {
+                owner: Reservation(owner, MappingProxyType(dict(demands)))
+                for owner, demands in requests.items()
+            }
+            self._active.update(reservations)
+            return reservations
 
     def release(self, reservation: Reservation, *, drained: bool) -> bool:
         with self._lock:

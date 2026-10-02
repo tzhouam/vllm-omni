@@ -1,0 +1,39 @@
+{
+  "contract_fixture_version": 2,
+  "protocol_version": 2,
+  "required_features": ["backend-state", "ordered-events", "credit-ack", "artifact-manifest-v2"],
+  "description": "Backend-owned state and credited ordered events; portable to native adapters",
+  "stream_limits": {"max_events": 2, "max_bytes": 5},
+  "request": {
+    "request_id": "request-2", "stage_id": 3, "epoch": 7,
+    "worker_generation": "worker-A", "operation": "run", "inputs": [],
+    "artifact_id": "sha256:artifact-A", "state_layout_version": 2,
+    "session_id": "session-2",
+    "state": {
+      "session_id": "session-2", "backend": "qnn", "artifact_id": "sha256:artifact-A",
+      "layout_version": 2, "epoch": 7, "replayable": false, "migratable": false,
+      "backend_instance_id": "device-process-A", "worker_generation": "worker-A",
+      "state_id": "opaque-state-A"
+    }
+  },
+  "events": [
+    {
+      "request_id": "request-2", "stage_id": 3, "epoch": 7, "seq": 1,
+      "kind": "pcm", "worker_generation": "worker-A", "buffers": [],
+      "terminal": false, "state": null, "started_monotonic_ns": 100,
+      "emitted_monotonic_ns": 101, "input_watermark": 12,
+      "payload_nbytes": 3, "release_token": "ack-1"
+    },
+    {
+      "request_id": "request-2", "stage_id": 3, "epoch": 7, "seq": 2,
+      "kind": "done", "worker_generation": "worker-A", "buffers": [],
+      "terminal": true, "state": null, "started_monotonic_ns": 102,
+      "emitted_monotonic_ns": 103, "input_watermark": 24,
+      "payload_nbytes": 2, "release_token": "ack-2"
+    }
+  ],
+  "reject_event_overrides": [
+    {"seq": 0}, {"epoch": 6}, {"worker_generation": "worker-B"},
+    {"payload_nbytes": 6}, {"release_token": ""}
+  ]
+}

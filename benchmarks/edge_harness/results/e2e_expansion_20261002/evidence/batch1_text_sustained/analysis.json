@@ -1,0 +1,224 @@
+{
+  "status": "completed",
+  "timing_protocol_complete": true,
+  "violations": [],
+  "measured": {
+    "short": {
+      "requests": 20,
+      "metrics": {
+        "wall_s": {
+          "n": 20,
+          "p50": 2.5708299049874768,
+          "p95": 2.721514084027149,
+          "mean": 2.5973400497459807,
+          "min": 2.4866898090112954,
+          "max": 2.7855299420189112
+        },
+        "ttft_s": {
+          "n": 20,
+          "p50": 0.033544301986694336,
+          "p95": 0.045839548110961914,
+          "mean": 0.03628306388854981,
+          "min": 0.02901911735534668,
+          "max": 0.051467180252075195
+        },
+        "decode_tok_per_s": {
+          "n": 20,
+          "p50": 49.80741980812221,
+          "p95": 51.285279602254455,
+          "mean": 49.63215275953748,
+          "min": 46.454046105332615,
+          "max": 51.731046954372026
+        }
+      },
+      "prompt_tokens": [
+        56
+      ]
+    },
+    "medium": {
+      "requests": 20,
+      "metrics": {
+        "wall_s": {
+          "n": 20,
+          "p50": 2.7496617239667103,
+          "p95": 3.0106543040601537,
+          "mean": 2.810579562355997,
+          "min": 2.685535743017681,
+          "max": 3.1447093160822988
+        },
+        "ttft_s": {
+          "n": 20,
+          "p50": 0.09151577949523926,
+          "p95": 0.10567426681518555,
+          "mean": 0.09297561645507812,
+          "min": 0.08031201362609863,
+          "max": 0.11206841468811035
+        },
+        "decode_tok_per_s": {
+          "n": 20,
+          "p50": 47.26308023479789,
+          "p95": 48.899776301468656,
+          "mean": 46.81709995781891,
+          "min": 41.52160227573628,
+          "max": 48.991992442007195
+        }
+      },
+      "prompt_tokens": [
+        488
+      ]
+    },
+    "long": {
+      "requests": 20,
+      "metrics": {
+        "wall_s": {
+          "n": 20,
+          "p50": 3.086531770066358,
+          "p95": 3.6143970460398123,
+          "mean": 3.160033234715229,
+          "min": 2.94040923693683,
+          "max": 3.6839427340310067
+        },
+        "ttft_s": {
+          "n": 20,
+          "p50": 0.3769564628601074,
+          "p95": 0.401745080947876,
+          "mean": 0.3745322823524475,
+          "min": 0.3448293209075928,
+          "max": 0.4212949275970459
+        },
+        "decode_tok_per_s": {
+          "n": 20,
+          "p50": 46.64361044228789,
+          "p95": 48.93317934673771,
+          "mean": 45.77792550934649,
+          "min": 38.92816119758133,
+          "max": 48.97855487333196
+        }
+      },
+      "prompt_tokens": [
+        1928
+      ]
+    }
+  },
+  "sustained": {
+    "requests": 613,
+    "declared_wall_s": 1801.7203420090955,
+    "observed_request_window_s": 1801.7194600105286,
+    "active_request_wall_s": 1800.9368748771958,
+    "active_fraction": 0.999565645401128,
+    "metrics": {
+      "wall_s": {
+        "n": 613,
+        "p50": 2.9615090140141547,
+        "p95": 3.1283825610298663,
+        "mean": 2.937906810566388,
+        "min": 2.5799584990600124,
+        "max": 3.576537830987945
+      },
+      "ttft_s": {
+        "n": 613,
+        "p50": 0.09519672393798828,
+        "p95": 0.10659646987915039,
+        "mean": 0.09548174343140246,
+        "min": 0.07947254180908203,
+        "max": 0.12091946601867676
+      },
+      "decode_tok_per_s": {
+        "n": 613,
+        "p50": 44.31028376463792,
+        "p95": 48.62572730695939,
+        "mean": 44.78826343630308,
+        "min": 36.71607330992325,
+        "max": 50.8322180672908
+      }
+    },
+    "first_vs_last": {
+      "cohort_size": 100,
+      "nonoverlapping": true,
+      "first_wall_s": {
+        "n": 100,
+        "p50": 2.782859569066204,
+        "p95": 3.1008561159251258,
+        "mean": 2.818649204793619,
+        "min": 2.666485061054118,
+        "max": 3.514769505010918
+      },
+      "last_wall_s": {
+        "n": 100,
+        "p50": 2.9280631110304967,
+        "p95": 3.1391326310113072,
+        "mean": 2.8936013140657453,
+        "min": 2.5799584990600124,
+        "max": 3.232702470966615
+      },
+      "first_ttft_s": {
+        "n": 100,
+        "p50": 0.09109759330749512,
+        "p95": 0.10404515266418457,
+        "mean": 0.09205838680267334,
+        "min": 0.07947254180908203,
+        "max": 0.11263298988342285
+      },
+      "last_ttft_s": {
+        "n": 100,
+        "p50": 0.09371566772460938,
+        "p95": 0.10274410247802734,
+        "mean": 0.09413072347640991,
+        "min": 0.08127856254577637,
+        "max": 0.10992169380187988
+      }
+    }
+  },
+  "output": {
+    "requests_checked": 678,
+    "findings": [],
+    "recorded_invariants_pass": true,
+    "scope": "Recorded stream metadata and finite audio only; not reference, perceptual or task quality."
+  },
+  "metric_gaps": [],
+  "telemetry": {
+    "samples": 2075,
+    "sampler_error": null,
+    "ranges": {
+      "gpu_temperature_c": {
+        "n": 2075,
+        "min": 56.0,
+        "max": 72.0
+      },
+      "gpu_power_mw": {
+        "n": 2075,
+        "min": 16139.0,
+        "max": 114757.0
+      },
+      "gpu_clock_sm_mhz": {
+        "n": 2075,
+        "min": 555.0,
+        "max": 2235.0
+      },
+      "gpu_clock_memory_mhz": {
+        "n": 2075,
+        "min": 405.0,
+        "max": 14001.0
+      },
+      "gpu_utilization_pct": {
+        "n": 2075,
+        "min": 2.0,
+        "max": 99.0
+      },
+      "gpu_memory_used_bytes": {
+        "n": 2075,
+        "min": 6371155968.0,
+        "max": 16413110272.0
+      },
+      "host_available_bytes": {
+        "n": 2075,
+        "min": 26470932480.0,
+        "max": 31097999360.0
+      }
+    },
+    "scope": "Whole GPU/host, not process-attributed; brief peaks may be missed."
+  },
+  "interval_scope": "submitted_unix + wall_s is a conservative end estimate; the source loop submits sequentially.",
+  "qualification": "Timing and recorded stream invariants only; reference quality and release gates remain separate.",
+  "percentiles": "nearest rank over raw requests; warmups and sustained requests excluded from length-band statistics"
+}

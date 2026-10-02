@@ -278,45 +278,82 @@ class StageRuntime:
             raise exc
 
     def _reserve_stage_resources(self, stage_plans) -> None:
-        """Explicit controller ceilings are mandatory for mixed graph plans.
+        """Reserve explicit controller budgets across native and graph stages.
 
-        Native stage budgets join the same transaction; absent estimates fail
-        closed rather than treating native allocations as free memory.
+        Legacy native-only plans without budgets retain their existing stage
+        admission path. Once any stage declares a resource budget, every stage
+        must do so: an unpriced native allocation cannot share a physical RAM
+        or VRAM ceiling with a priced graph allocation.
         """
         from vllm_omni.engine.resource_ledger import ResourceLedger
 
         replicas = [r for plan in stage_plans for r in plan.replicas]
-        if not any(r.metadata.stage_type == "graph" for r in replicas):
+        if not replicas:
+            return
+        has_graph = any(r.metadata.stage_type == "graph" for r in replicas)
+        budgets = [r.stage_cfg.engine_args.get("resource_budget") for r in replicas]
+        if not has_graph and any(r.launch_mode != "local" for r in replicas):
+            # This ledger represents one physical host. Distributed replicas
+            # require their own host-local controller and cannot consume this
+            # process's ceilings. Never silently ignore a declared budget.
+            if any(budgets):
+                raise ValueError("budgeted native pipelines require one local host controller")
+            return
+        if not has_graph and not any(budgets):
             return
         # One final consumer owns the ingress ticket. Fan-out or multiple final
         # outputs would need reference-counted leases before any early ACK can
         # release that ticket. Refuse those topologies in the v1 graph backend.
-        previous_stage = None
-        for index, plan in enumerate(stage_plans):
-            metadata = plan.replicas[0].metadata
-            expected_sources = [] if previous_stage is None else [previous_stage]
-            if (
-                list(metadata.engine_input_source or []) != expected_sources
-                or metadata.final_output != (index == len(stage_plans) - 1)
-            ):
-                raise ValueError("graph v1 requires a linear chain with exactly one final output")
-            previous_stage = metadata.stage_id
-        budgets = [r.stage_cfg.engine_args.get("resource_budget") for r in replicas]
+        if has_graph:
+            previous_stage = None
+            for index, plan in enumerate(stage_plans):
+                metadata = plan.replicas[0].metadata
+                expected_sources = [] if previous_stage is None else [previous_stage]
+                if (
+                    list(metadata.engine_input_source or []) != expected_sources
+                    or metadata.final_output != (index == len(stage_plans) - 1)
+                ):
+                    raise ValueError("graph v1 requires a linear chain with exactly one final output")
+                previous_stage = metadata.stage_id
         if any(not b for b in budgets):
-            raise ValueError("every stage in a graph pipeline must declare resource_budget capacities and demands")
+            raise ValueError("every stage in a budgeted pipeline must declare resource_budget capacities and demands")
         capacities = dict(budgets[0]["capacities"])
         if any(dict(b["capacities"]) != capacities for b in budgets):
             raise ValueError("all stages must agree on physical memory ceilings")
-        self.resource_ledger = ResourceLedger(capacities)
-        try:
-            for replica, budget in zip(replicas, budgets):
-                key = (replica.metadata.stage_id, replica.replica_id)
-                self._resource_reservations[key] = self.resource_ledger.reserve(str(key), dict(budget["demands"]))
-        except BaseException:
-            for reservation in self._resource_reservations.values():
-                self.resource_ledger.release(reservation, drained=True)
-            self._resource_reservations.clear()
-            raise
+        from vllm_omni.engine.stage_admission import check_native_resource_budget
+
+        if any(replica.metadata.stage_type != "graph" for replica in replicas) and "host_ram" in capacities:
+            import psutil
+
+            observed_available = int(psutil.virtual_memory().available)
+            if capacities["host_ram"] > observed_available:
+                raise ValueError(
+                    "native resource_budget host_ram ceiling exceeds currently available host RAM: "
+                    f"{capacities['host_ram']} > {observed_available} bytes"
+                )
+        for replica, budget in zip(replicas, budgets, strict=True):
+            if replica.metadata.stage_type != "graph":
+                floors = check_native_resource_budget(replica, budget)
+                logger.warning(
+                    "[admission] native stage %s/%s demand is declared, checked against floors %s; "
+                    "actual load peak is not verified by StageClient telemetry",
+                    replica.metadata.stage_id,
+                    replica.replica_id,
+                    floors,
+                )
+        ledger = ResourceLedger(capacities)
+        self.resource_ledger = ledger
+        claims = {
+            str((replica.metadata.stage_id, replica.replica_id)): dict(budget["demands"])
+            for replica, budget in zip(replicas, budgets, strict=True)
+        }
+        if len(claims) != len(replicas):
+            raise ValueError("budgeted pipeline has duplicate stage/replica reservation identities")
+        reservations = ledger.reserve_many(claims)
+        self._resource_reservations = {
+            (replica.metadata.stage_id, replica.replica_id): reservations[str((replica.metadata.stage_id, replica.replica_id))]
+            for replica in replicas
+        }
 
     def _release_unstarted_resources(self, initialized) -> None:
         if self.resource_ledger is None:

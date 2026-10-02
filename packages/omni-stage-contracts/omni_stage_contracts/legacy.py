@@ -52,6 +52,8 @@ class StateHandle:
             and other.artifact_id == self.artifact_id
             and other.layout_version == self.layout_version
             and other.epoch == self.epoch
+            and other.replayable == self.replayable
+            and other.migratable == self.migratable
         )
 
     def to_dict(self) -> dict[str, Any]:

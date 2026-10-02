@@ -1,0 +1,441 @@
+{
+  "status": "completed",
+  "timing_protocol_complete": true,
+  "violations": [],
+  "measured": {
+    "short": {
+      "requests": 20,
+      "metrics": {
+        "total_wall_s": {
+          "n": 20,
+          "p50": 0.6597934450255707,
+          "p95": 0.7348672429798171,
+          "mean": 0.652721162053058,
+          "min": 0.5066940489923581,
+          "max": 0.7646725770318881
+        },
+        "ttfa_ms": {
+          "n": 20,
+          "p50": 106.07022303156555,
+          "p95": 126.6576040070504,
+          "mean": 106.08311303658411,
+          "min": 91.08319797087461,
+          "max": 141.8723569950089
+        },
+        "playback_start_ms": {
+          "n": 20,
+          "p50": 106.07022303156555,
+          "p95": 126.6576040070504,
+          "mean": 106.08311303658411,
+          "min": 91.08319797087461,
+          "max": 141.8723569950089
+        },
+        "rtf_total": {
+          "n": 20,
+          "p50": 0.2197905317492162,
+          "p95": 0.23244530764511892,
+          "mean": 0.2219052121086531,
+          "min": 0.21037167603531595,
+          "max": 0.24610547660549562
+        },
+        "stall_at_ttfa_ms": {
+          "n": 20,
+          "p50": 0.0,
+          "p95": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "minimum_underrun_free_startup_buffer_ms": {
+          "n": 20,
+          "p50": 0.0,
+          "p95": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "playback": {
+        "requests": 20,
+        "requests_with_simulated_underruns": 0,
+        "simulated_underrun_count": 0,
+        "simulated_underrun_max_ms": 0.0,
+        "simulated_underrun_total_ms": 0,
+        "minimum_underrun_free_startup_buffer_ms": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "p50": 0.0,
+          "p95": 0.0
+        },
+        "scope": "Arrival-based simulated playback, starting at first audio; no sound-device measurement."
+      }
+    },
+    "medium": {
+      "requests": 20,
+      "metrics": {
+        "total_wall_s": {
+          "n": 20,
+          "p50": 1.6773111140355468,
+          "p95": 1.7588092610239983,
+          "mean": 1.649433086492354,
+          "min": 1.3988151839002967,
+          "max": 1.9050927680218592
+        },
+        "ttfa_ms": {
+          "n": 20,
+          "p50": 108.08265500236303,
+          "p95": 133.40555294416845,
+          "mean": 109.6633858338464,
+          "min": 88.26744696125388,
+          "max": 134.00753703899682
+        },
+        "playback_start_ms": {
+          "n": 20,
+          "p50": 108.08265500236303,
+          "p95": 133.40555294416845,
+          "mean": 109.6633858338464,
+          "min": 88.26744696125388,
+          "max": 134.00753703899682
+        },
+        "rtf_total": {
+          "n": 20,
+          "p50": 0.20355717403344015,
+          "p95": 0.21648781454793853,
+          "mean": 0.20654021608481066,
+          "min": 0.1989374822033086,
+          "max": 0.22433791594693855
+        },
+        "stall_at_ttfa_ms": {
+          "n": 20,
+          "p50": 0.0,
+          "p95": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "minimum_underrun_free_startup_buffer_ms": {
+          "n": 20,
+          "p50": 0.0,
+          "p95": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "playback": {
+        "requests": 20,
+        "requests_with_simulated_underruns": 0,
+        "simulated_underrun_count": 0,
+        "simulated_underrun_max_ms": 0.0,
+        "simulated_underrun_total_ms": 0,
+        "minimum_underrun_free_startup_buffer_ms": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "p50": 0.0,
+          "p95": 0.0
+        },
+        "scope": "Arrival-based simulated playback, starting at first audio; no sound-device measurement."
+      }
+    },
+    "long": {
+      "requests": 20,
+      "metrics": {
+        "total_wall_s": {
+          "n": 20,
+          "p50": 6.104271293035708,
+          "p95": 6.976316407090053,
+          "mean": 6.19765988511499,
+          "min": 5.446032433072105,
+          "max": 7.380147072020918
+        },
+        "ttfa_ms": {
+          "n": 20,
+          "p50": 104.51159998774529,
+          "p95": 148.17058702465147,
+          "mean": 112.41627821000293,
+          "min": 93.08730496559292,
+          "max": 151.14043094217777
+        },
+        "playback_start_ms": {
+          "n": 20,
+          "p50": 104.51159998774529,
+          "p95": 148.17058702465147,
+          "mean": 112.41627821000293,
+          "min": 93.08730496559292,
+          "max": 151.14043094217777
+        },
+        "rtf_total": {
+          "n": 20,
+          "p50": 0.19996705051616892,
+          "p95": 0.22021200779955977,
+          "mean": 0.20170437110703093,
+          "min": 0.19230340512260258,
+          "max": 0.22236322574982686
+        },
+        "stall_at_ttfa_ms": {
+          "n": 20,
+          "p50": 0.0,
+          "p95": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "minimum_underrun_free_startup_buffer_ms": {
+          "n": 20,
+          "p50": 0.0,
+          "p95": 0.0,
+          "mean": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "playback": {
+        "requests": 20,
+        "requests_with_simulated_underruns": 0,
+        "simulated_underrun_count": 0,
+        "simulated_underrun_max_ms": 0.0,
+        "simulated_underrun_total_ms": 0,
+        "minimum_underrun_free_startup_buffer_ms": {
+          "minimum": 0.0,
+          "maximum": 0.0,
+          "p50": 0.0,
+          "p95": 0.0
+        },
+        "scope": "Arrival-based simulated playback, starting at first audio; no sound-device measurement."
+      }
+    }
+  },
+  "sustained": {
+    "requests": 1076,
+    "declared_wall_s": 1801.5568153969944,
+    "observed_request_window_s": 1801.556139945984,
+    "metrics": {
+      "total_wall_s": {
+        "n": 1076,
+        "p50": 1.6607720180181786,
+        "p95": 1.9208753909915686,
+        "mean": 1.673349610894233,
+        "min": 1.2966074279975146,
+        "max": 2.864187764003873
+      },
+      "ttfa_ms": {
+        "n": 1076,
+        "p50": 108.02423895802349,
+        "p95": 142.7636300213635,
+        "mean": 111.8740190659454,
+        "min": 83.4314509993419,
+        "max": 201.39220100827515
+      },
+      "playback_start_ms": {
+        "n": 1076,
+        "p50": 108.02423895802349,
+        "p95": 142.7636300213635,
+        "mean": 111.8828800928495,
+        "min": 83.4314509993419,
+        "max": 201.39220100827515
+      },
+      "rtf_total": {
+        "n": 1076,
+        "p50": 0.2077265090650014,
+        "p95": 0.23016127228096017,
+        "mean": 0.2105280932576586,
+        "min": 0.19110556529694717,
+        "max": 0.2834978386019037
+      },
+      "stall_at_ttfa_ms": {
+        "n": 1076,
+        "p50": 0.0,
+        "p95": 0.0,
+        "mean": 0.008861026904099106,
+        "min": 0.0,
+        "max": 9.534464948810637
+      },
+      "minimum_underrun_free_startup_buffer_ms": {
+        "n": 1076,
+        "p50": 0.0,
+        "p95": 0.0,
+        "mean": 0.008861026904099106,
+        "min": 0.0,
+        "max": 9.534464948810637
+      }
+    },
+    "playback": {
+      "requests": 1076,
+      "requests_with_simulated_underruns": 1,
+      "simulated_underrun_count": 1,
+      "simulated_underrun_max_ms": 9.534464948810637,
+      "simulated_underrun_total_ms": 9.534464948810637,
+      "minimum_underrun_free_startup_buffer_ms": {
+        "minimum": 0.0,
+        "maximum": 9.534464948810637,
+        "p50": 0.0,
+        "p95": 0.0
+      },
+      "scope": "Arrival-based simulated playback, starting at first audio; no sound-device measurement."
+    },
+    "first_vs_last": {
+      "cohort_size": 100,
+      "nonoverlapping": true,
+      "first_n": 100,
+      "last_n": 100,
+      "first_total_wall_s": {
+        "n": 100,
+        "p50": 1.6776538700796664,
+        "p95": 1.8591668109875172,
+        "mean": 1.6772987544781062,
+        "min": 1.4211597930407152,
+        "max": 1.9838985370006412
+      },
+      "last_total_wall_s": {
+        "n": 100,
+        "p50": 1.6595728680258617,
+        "p95": 1.9220471599837765,
+        "mean": 1.6639423822285608,
+        "min": 1.2966074279975146,
+        "max": 2.1025957480305806
+      },
+      "first_ttfa_ms": {
+        "n": 100,
+        "p50": 107.22675593569875,
+        "p95": 136.4549589343369,
+        "mean": 111.02083634934388,
+        "min": 88.55631994083524,
+        "max": 200.01146593131125
+      },
+      "last_ttfa_ms": {
+        "n": 100,
+        "p50": 107.38535702694207,
+        "p95": 144.88171506673098,
+        "mean": 112.06065603881143,
+        "min": 87.84287597518414,
+        "max": 201.39220100827515
+      }
+    }
+  },
+  "output": {
+    "requests_checked": 1141,
+    "findings": [],
+    "recorded_invariants_pass": true,
+    "scope": "Recorded stream metadata and finite audio only; not reference, perceptual or task quality."
+  },
+  "failures": {
+    "recorded_output_failure_requests": 0,
+    "nonfinite_audio_requests": 0,
+    "unfinished_requests": 0,
+    "nonfinite_or_missing_metric_requests": 0
+  },
+  "finite_metric_gaps": [],
+  "telemetry": {
+    "sampler_error": null,
+    "whole_run": {
+      "samples": 2028,
+      "first_unix": 1790927919.662538,
+      "last_unix": 1790929958.814922,
+      "max_sample_gap_s": 1.603332757949829,
+      "ranges": {
+        "gpu_temperature_c": {
+          "n": 2028,
+          "min": 54.0,
+          "max": 72.0
+        },
+        "gpu_power_mw": {
+          "n": 2028,
+          "min": 15321.0,
+          "max": 128648.0
+        },
+        "gpu_clock_sm_mhz": {
+          "n": 2028,
+          "min": 547.0,
+          "max": 2400.0
+        },
+        "gpu_clock_memory_mhz": {
+          "n": 2028,
+          "min": 405.0,
+          "max": 14001.0
+        },
+        "gpu_throttle_reasons": {
+          "n": 2028,
+          "min": 0.0,
+          "max": 4.0
+        },
+        "gpu_utilization_pct": {
+          "n": 2028,
+          "min": 2.0,
+          "max": 80.0
+        },
+        "gpu_memory_used_bytes": {
+          "n": 2028,
+          "min": 6454390784.0,
+          "max": 18057818112.0
+        },
+        "host_available_bytes": {
+          "n": 2028,
+          "min": 24573988864.0,
+          "max": 30888538112.0
+        },
+        "host_cpu_utilization_pct": {
+          "n": 2028,
+          "min": 0.3,
+          "max": 58.7
+        }
+      },
+      "scope": "Sampled whole GPU/host, not process-attributed; brief peaks may be missed."
+    },
+    "sustained_window": {
+      "samples": 1792,
+      "first_unix": 1790928139.1006908,
+      "last_unix": 1790929939.69378,
+      "max_sample_gap_s": 1.0598692893981934,
+      "ranges": {
+        "gpu_temperature_c": {
+          "n": 1792,
+          "min": 64.0,
+          "max": 72.0
+        },
+        "gpu_power_mw": {
+          "n": 1792,
+          "min": 33150.0,
+          "max": 128648.0
+        },
+        "gpu_clock_sm_mhz": {
+          "n": 1792,
+          "min": 1462.0,
+          "max": 2197.0
+        },
+        "gpu_clock_memory_mhz": {
+          "n": 1792,
+          "min": 10820.0,
+          "max": 14001.0
+        },
+        "gpu_throttle_reasons": {
+          "n": 1792,
+          "min": 4.0,
+          "max": 4.0
+        },
+        "gpu_utilization_pct": {
+          "n": 1792,
+          "min": 37.0,
+          "max": 80.0
+        },
+        "gpu_memory_used_bytes": {
+          "n": 1792,
+          "min": 17251848192.0,
+          "max": 18057818112.0
+        },
+        "host_available_bytes": {
+          "n": 1792,
+          "min": 24573988864.0,
+          "max": 26054381568.0
+        },
+        "host_cpu_utilization_pct": {
+          "n": 1792,
+          "min": 7.5,
+          "max": 58.7
+        }
+      },
+      "scope": "Sampled whole GPU/host, not process-attributed; brief peaks may be missed."
+    }
+  },
+  "qualification": "Timing and recorded finite/output checks only; audio reference, speaker, listening, device-local playback, and release qualification remain separate.",
+  "percentiles": "nearest rank over raw requests; warmups, recovery probes and sustained requests excluded from per-band measured statistics"
+}

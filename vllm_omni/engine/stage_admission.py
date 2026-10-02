@@ -24,8 +24,10 @@ memory so it can also be exercised without a GPU.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from vllm.logger import init_logger
@@ -391,3 +393,86 @@ def _diffusion_utilization(replica: Any) -> float | None:
         if util is not None:
             return float(util)
     return None
+
+
+def check_native_resource_budget(replica: Any, budget: dict[str, Any]) -> dict[str, int]:
+    """Reject a declared native claim below independently knowable floors.
+
+    This is a *lower-bound* check, not a measured peak guarantee. In
+    particular, vLLM's host load/transient allocations and allocator peaks
+    are not exposed through the current StageClient. The ResourceLedger holds
+    the declared amount after this check, but callers must not report it as a
+    verified actual upper bound until post-load telemetry exists.
+
+    CPU requires a local weight artifact and explicit KV bytes. GPU requires
+    its configured utilization fraction of the physical device's *total* VRAM
+    (supplied as ``native_physical_vram_bytes``) and a
+    host staging claim of at least the largest local weight shard. Unknown
+    models, cache sizes and placement fail closed in budgeted pipelines.
+
+    The physical total is operator-supplied device metadata, not a value
+    independently probed by this function. Admission is only as trustworthy
+    as that recorded total and the declared demands; StageClient has no
+    post-load native peak telemetry yet.
+    """
+    capacities = dict(budget["capacities"])
+    demands = dict(budget["demands"])
+    label = f"stage{replica.metadata.stage_id}/replica{replica.replica_id}"
+    config = getattr(replica, "stage_vllm_config", None)
+    if config is None:
+        raise StageAdmissionError(f"{label}: native budget has no vLLM config to bound its allocation")
+    model = getattr(getattr(config, "model_config", None), "model", None)
+    root = Path(model) if isinstance(model, str) else None
+    shards = list(root.rglob("*.safetensors")) if root is not None and root.is_dir() else []
+    if not shards:
+        raise StageAdmissionError(f"{label}: native budget needs a local weight artifact for a weight/load floor")
+    weight_bytes = sum(path.stat().st_size for path in shards)
+    largest_shard = max(path.stat().st_size for path in shards)
+    if weight_bytes <= 0 or largest_shard <= 0:
+        raise StageAdmissionError(f"{label}: native weight artifact is empty")
+
+    runtime = getattr(replica.metadata, "runtime_cfg", None) or {}
+    devices = runtime.get("devices") if hasattr(runtime, "get") else getattr(runtime, "devices", None)
+    cache = getattr(config, "cache_config", None)
+    floors: dict[str, int] = {}
+    if isinstance(devices, str) and devices.strip().lower() == "cpu":
+        kv = getattr(cache, "kv_cache_memory_bytes", None)
+        if type(kv) is not int or kv <= 0:
+            raise StageAdmissionError(f"{label}: CPU native budget needs explicit kv_cache_memory_bytes")
+        floors["host_ram"] = weight_bytes + kv
+    else:
+        util = getattr(cache, "gpu_memory_utilization", None)
+        if not isinstance(util, (int, float)) or not (0 < float(util) <= 1):
+            raise StageAdmissionError(f"{label}: GPU native budget needs valid gpu_memory_utilization")
+        pool = budget.get("native_pool")
+        if pool is None:
+            private = [name for name in capacities if name not in ("host_ram", "wsl_ram")]
+            if len(private) != 1:
+                raise StageAdmissionError(f"{label}: set native_pool to the exact physical VRAM pool")
+            pool = private[0]
+        if pool not in capacities or pool in ("host_ram", "wsl_ram"):
+            raise StageAdmissionError(f"{label}: native_pool must name a physical VRAM ceiling")
+        physical_vram = budget.get("native_physical_vram_bytes")
+        if type(physical_vram) is not int or physical_vram <= 0:
+            raise StageAdmissionError(
+                f"{label}: GPU native budget needs exact positive native_physical_vram_bytes; "
+                "the controller ceiling is not physical device total VRAM"
+            )
+        if capacities[pool] > physical_vram:
+            raise StageAdmissionError(
+                f"{label}: {pool} controller ceiling {capacities[pool]} exceeds "
+                f"physical device total VRAM {physical_vram}"
+            )
+        # vLLM's utilization is the total memory it may occupy, inclusive of
+        # weights and KV. Capture can add a separate conservative reserve.
+        floors[pool] = math.ceil(physical_vram * float(util)) + graph_reserve_bytes(config)
+        floors["host_ram"] = largest_shard
+    if "wsl_ram" in capacities:
+        floors["wsl_ram"] = floors["host_ram"]
+    for pool, floor in floors.items():
+        if pool not in capacities or demands.get(pool, 0) < floor:
+            raise StageAdmissionError(
+                f"{label}: declared {pool} demand {demands.get(pool, 0)} bytes is below "
+                f"the independently known {floor}-byte native allocation floor"
+            )
+    return floors

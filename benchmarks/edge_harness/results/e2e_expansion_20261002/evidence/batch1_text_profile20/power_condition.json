@@ -1,0 +1,12 @@
+{
+  "sample_local_time": "2026-10-02T15:38:03.1199711+08:00",
+  "windows_battery_name": "A32-K55",
+  "windows_battery_status_code": 2,
+  "windows_estimated_charge_percent": 100,
+  "windows_active_power_scheme_guid": "27fa6203-3987-4dcc-918d-748559d549ec",
+  "windows_active_power_scheme_name": "Performance",
+  "nvidia_driver_version": "610.71",
+  "nvidia_power_limit_from_wsl": null,
+  "nvidia_power_limit_note": "nvidia-smi returned [N/A] for power.limit under WSL",
+  "gpu_telemetry_scope": "NVML device-wide board readings, not total laptop power or per-process attribution"
+}

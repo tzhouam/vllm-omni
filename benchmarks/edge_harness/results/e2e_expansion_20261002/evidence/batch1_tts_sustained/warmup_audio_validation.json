@@ -1,0 +1,29 @@
+[
+  {
+    "length_band": "short",
+    "request_id": "warmup-short-1-1",
+    "sample_rate": 24000,
+    "samples": 78720,
+    "wav_sha256": "4b7b04f936d48cbdd454f7924e839003b40925d88478a36c6c95df2def37947d",
+    "terminal_chunks": 1,
+    "chunk_hashes_verified": 5
+  },
+  {
+    "length_band": "medium",
+    "request_id": "warmup-medium-1-22",
+    "sample_rate": 24000,
+    "samples": 182400,
+    "wav_sha256": "0443398e4adf2dc03226b1808441a30791ca53349e55705184c1ca7c55ba52ac",
+    "terminal_chunks": 1,
+    "chunk_hashes_verified": 7
+  },
+  {
+    "length_band": "long",
+    "request_id": "warmup-long-1-43",
+    "sample_rate": 24000,
+    "samples": 775680,
+    "wav_sha256": "eec1125123e6c3ada3ea3ca790e05c6b85bbfbadaa14e2f9fbe8704d4b923a92",
+    "terminal_chunks": 1,
+    "chunk_hashes_verified": 19
+  }
+]

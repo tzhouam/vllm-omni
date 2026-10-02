@@ -26,18 +26,44 @@ from vllm_omni.engine.stage_runtime import StageRuntime
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def artifact(tmp_path):
+def artifact(tmp_path, *, schema_version=1, qualified=True):
     (tmp_path / "graph.onnx").write_bytes(b"synthetic graph, not model evidence")
     np.savez(tmp_path / "inputs.npz", x=np.ones((2, 3), dtype=np.float32))
     files = {n: hashlib.sha256((tmp_path / n).read_bytes()).hexdigest() for n in ("graph.onnx", "inputs.npz")}
+    metadata = {"graph_file": "graph.onnx", "example_inputs_file": "inputs.npz"}
+    if schema_version == 2:
+        descriptor = {
+            "checkpoint_id": "synthetic/test", "checkpoint_revision": "fixed-test",
+            "precision": "float32", "runtime": "ort-cpu", "runtime_version": "test",
+            "target_abi": "linux-x86_64", "adapter_version": "test",
+            "exporter_version": "test", "compiler_version": "none",
+            "state_layout_version": 1,
+            "shape_bucket": "2x3", "calibration_file": None,
+            "numerical_validation": {"file": "numeric.json", "passed": qualified},
+            "task_validation": {"file": "task.json", "passed": qualified},
+        }
+        for name in ("numeric.json", "task.json"):
+            kind = "numerical" if name == "numeric.json" else "task"
+            (tmp_path / name).write_text(json.dumps({
+                "schema_version": 1, "kind": kind,
+                "checkpoint_id": descriptor["checkpoint_id"],
+                "checkpoint_revision": descriptor["checkpoint_revision"],
+                "precision": descriptor["precision"],
+                "shape_bucket": descriptor["shape_bucket"],
+                "target_abi": descriptor["target_abi"],
+                "checks": [{"name": "test_error", "observed": 0.0 if qualified else 1.0,
+                            "comparison": "<=", "limit": 0.1}],
+            }))
+            files[name] = hashlib.sha256((tmp_path / name).read_bytes()).hexdigest()
+        metadata["artifact"] = descriptor
     path = tmp_path / "manifest.json"
     path.write_text(
         json.dumps(
             {
-                "schema_version": 1,
+                "schema_version": schema_version,
                 "component": "test",
                 "files": files,
-                "metadata": {"graph_file": "graph.onnx", "example_inputs_file": "inputs.npz"},
+                "metadata": metadata,
             }
         )
     )
@@ -54,10 +80,11 @@ def graph_runtime(tmp_path, monkeypatch):
     runtimes = []
 
     def create(
-        *, stages=1, capacity=1024 << 20, worker_config=None, start=True, chain=False, real_ort=False, entrypoint=None
+        *, stages=1, capacity=1024 << 20, worker_config=None, start=True, chain=False, real_ort=False,
+        entrypoint=None, manifest_schema_version=1, artifact_qualified=True
     ):
         config_path.write_text(json.dumps(worker_config or {}))
-        manifest = artifact(tmp_path)
+        manifest = artifact(tmp_path, schema_version=manifest_schema_version, qualified=artifact_qualified)
         if real_ort:
             onnx = pytest.importorskip("onnx")
             pytest.importorskip("onnxruntime")
@@ -258,12 +285,23 @@ def test_contract_rejects_shape_and_generation_mismatch():
     with pytest.raises(ValueError):
         BufferRef("x", "a", "1", "float32", (2, 3), 23)
     with pytest.raises(ValueError):
-        negotiate(2)
+        negotiate(3)
     with pytest.raises(ValueError):
         negotiate(1, ["zero-copy"])
     a = StateHandle("s", "ort", "sha", worker_generation="old")
     b = StateHandle("s", "ort", "sha", worker_generation="new")
     assert not a.accepts(b)
+
+
+def test_graph_v2_artifact_validation_gate(graph_runtime):
+    runtime = graph_runtime(manifest_schema_version=2, start=False)
+    with pytest.raises(ValueError, match="cannot bind v2 artifact ABI"):
+        runtime.initialize()
+    assert runtime.resource_ledger.snapshot()["owners"] == []
+    rejected = graph_runtime(manifest_schema_version=2, artifact_qualified=False, start=False)
+    with pytest.raises(ValueError, match="failed numerical or task validation"):
+        rejected.initialize()
+    assert rejected.resource_ledger.snapshot()["owners"] == []
 
 
 def test_atomic_shared_constraints_and_quarantine():

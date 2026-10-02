@@ -224,6 +224,18 @@ transport copies, retained output and headroom. The ledger does not claim to be
 an OS memory limiter or to attribute shared vendor allocations from RSS.
 Driver/cache memory outside the worker remains part of the deployment estimate.
 
+Budgeted native vLLM GPU stages also require `native_physical_vram_bytes`, the
+operator-reported **total** VRAM of the exact device named by `native_pool` (for example,
+`vram:0`). The controller ceiling may be lower than that total because other
+consumers or a safety margin use the card. Native admission charges at least
+`ceil(native_physical_vram_bytes * gpu_memory_utilization)` plus the graph
+capture reserve; using the controller ceiling in that formula would undercount
+vLLM's possible allocation. The stage refuses startup if this total is absent
+or smaller than the controller ceiling. This field is operator-supplied and is
+not independently probed by the budget checker. Native peak allocations are
+still declared claims, not measured bounds, until StageClient exposes load and
+steady-state memory telemetry.
+
 The graph worker environment needs NumPy, ONNX Runtime and ONNX (for checking
 external weight references against the manifest). Vendor providers need their
 own qualified environment. The controller need not install their runtimes.

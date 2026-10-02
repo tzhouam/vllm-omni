@@ -46,6 +46,7 @@ which is the intended direction.
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -202,6 +203,13 @@ class ExecutionPlan:
     admitted: bool
     request_limits: dict[str, int]
     notes: list[str] = field(default_factory=list)
+    route_id: str | None = None
+    """Identity of the *whole* execution route, including placement and mode.
+
+    It is not a primary device ID. A future multi-stage plan builder must
+    assign a distinct ID for each complete stage placement; this M0 planner
+    constructs only one-stage vLLM routes.
+    """
 
     # -- accounting ---------------------------------------------------------
     def reserved_bytes(self, pool: str, *, lifetimes: tuple[str, ...] | None = None) -> int:
@@ -224,8 +232,17 @@ class ExecutionPlan:
         if self.selected is None:
             return 0
         pool = self.selected.memory_pool
-        load = self.reserved_bytes(pool, lifetimes=("load", "session_weights"))
-        steady = self.reserved_bytes(pool)
+        # The loader's temporary copy is gone before KV allocation. Workspace
+        # and safety reserves are still required while loading, however, and
+        # a request's activations belong only to the steady/request phase.
+        load = sum(
+            r.bytes for r in self.reservations
+            if r.pool == pool and (
+                r.lifetime in ("load", "session_weights")
+                or r.purpose in ("backend_workspace", "external_reserve", "safety_margin")
+            )
+        )
+        steady = sum(r.bytes for r in self.reservations if r.pool == pool and r.lifetime != "load")
         return max(load, steady)
 
     def to_dict(self) -> dict[str, Any]:
@@ -243,6 +260,7 @@ class ExecutionPlan:
             "fallbacks": self.fallbacks,
             "request_limits": self.request_limits,
             "manifest": self.manifest.to_dict(),
+            "route_id": self.route_id,
             "notes": self.notes,
         }
 
@@ -273,6 +291,149 @@ class ExecutionPlan:
         for r in self.refusals:
             lines.append(f"  not used: [{r.code}] {r.device_id}: {r.message}")
         return "\n".join(lines)
+
+
+@dataclass(frozen=True)
+class ProfileContext:
+    """Exact workload and runtime identity for a whole-request comparison.
+
+    The environment fingerprint must include the device SKU, OS, driver and
+    loaded backend build. The workload fingerprint must include modality,
+    input/output sizes, context, checkpoint-specific preprocessing and power
+    condition. Callers should derive these from the recorded evidence, not a
+    display name such as ``S25`` or ``RTX 5090``.
+    """
+
+    artifact_id: str
+    checkpoint_sha256: str
+    environment_fingerprint: str
+    workload_fingerprint: str
+    power_condition: str
+    batch_size: int = 1
+    concurrency: int = 1
+
+
+@dataclass(frozen=True)
+class MeasuredRouteProfile:
+    """A qualified p95 for one route, including all stage handoffs.
+
+    ``startup_amortized_ms`` is the measured initialization cost assigned to
+    one interactive request. A proposed route must additionally have a paired
+    comparison against the baseline whose confidence interval excludes zero.
+    A component sum, hosted replay or simulated timing never passes this gate.
+    """
+
+    route_id: str
+    context: ProfileContext
+    p95_ms: float
+    sample_count: int
+    startup_amortized_ms: float
+    evidence: str
+    whole_request: bool
+    quality_passed: bool
+    memory_passed: bool
+    placement_verified: bool
+    sustained_passed: bool
+    paired_baseline_route_id: str | None = None
+    paired_gain_ci_lower_ms: float | None = None
+
+    @property
+    def qualified(self) -> bool:
+        return (
+            bool(self.route_id)
+            and bool(self.context.artifact_id)
+            and bool(self.context.checkpoint_sha256)
+            and bool(self.context.environment_fingerprint)
+            and bool(self.context.workload_fingerprint)
+            and bool(self.context.power_condition)
+            and self.context.batch_size == 1
+            and self.context.concurrency == 1
+            and self.sample_count >= 20
+            and self.evidence == "P"
+            and self.whole_request
+            and self.quality_passed
+            and self.memory_passed
+            and self.placement_verified
+            and self.sustained_passed
+            and math.isfinite(self.p95_ms)
+            and self.p95_ms > 0
+            and math.isfinite(self.startup_amortized_ms)
+            and self.startup_amortized_ms >= 0
+        )
+
+    @property
+    def interactive_p95_ms(self) -> float:
+        return self.p95_ms + self.startup_amortized_ms
+
+
+def select_measured_plan(
+    candidates: Sequence[ExecutionPlan],
+    profiles: Sequence[MeasuredRouteProfile],
+    context: ProfileContext,
+) -> ExecutionPlan:
+    """Promote a faster route only on matching batch-1 whole-chain evidence.
+
+    ``candidates[0]`` is the compatible unsplit baseline. Every candidate must
+    be a real, fully admitted plan with a unique whole-route ID; this function
+    does not construct staged candidates. The fallback is intentional when
+    evidence is absent, mismatched or too noisy; a stage-only latency cannot
+    justify changing placement for the complete request.
+    """
+    if not candidates:
+        raise ValueError("at least one admitted baseline plan is required")
+    if any(not plan.admitted or plan.selected is None for plan in candidates):
+        raise ValueError("route candidates must already pass capability and memory admission")
+    route_ids = [plan.route_id for plan in candidates]
+    if any(not route_id for route_id in route_ids) or len(set(route_ids)) != len(route_ids):
+        raise ValueError("admitted route candidates need distinct whole-plan route_id values")
+    baseline = candidates[0]
+    baseline_route_id = baseline.route_id
+    assert baseline_route_id is not None
+    assert baseline.selected is not None
+    if context.batch_size != 1 or context.concurrency != 1:
+        return baseline
+    if (
+        context.artifact_id != baseline.manifest.artifact_id
+        or not baseline.manifest.weight_sha256
+        or context.checkpoint_sha256 != baseline.manifest.weight_sha256
+    ):
+        return baseline
+    by_route: dict[str, MeasuredRouteProfile] = {}
+    ambiguous_routes: set[str] = set()
+    for profile in profiles:
+        if profile.context != context or not profile.qualified:
+            continue
+        if profile.route_id in by_route:
+            # Do not cherry-pick one of several runs with the same identity.
+            ambiguous_routes.add(profile.route_id)
+        else:
+            by_route[profile.route_id] = profile
+    for route_id in ambiguous_routes:
+        del by_route[route_id]
+    baseline_profile = by_route.get(baseline_route_id)
+    if baseline_profile is None:
+        return baseline
+    eligible = [baseline]
+    for plan in candidates[1:]:
+        assert plan.selected is not None
+        assert plan.route_id is not None
+        if (
+            plan.manifest.artifact_id != context.artifact_id
+            or plan.manifest.weight_sha256 != context.checkpoint_sha256
+        ):
+            continue
+        profile = by_route.get(plan.route_id)
+        if profile is None:
+            continue
+        if (
+            profile.paired_baseline_route_id == baseline_route_id
+            and profile.paired_gain_ci_lower_ms is not None
+            and math.isfinite(profile.paired_gain_ci_lower_ms)
+            and profile.paired_gain_ci_lower_ms > 0
+            and profile.interactive_p95_ms < baseline_profile.interactive_p95_ms
+        ):
+            eligible.append(plan)
+    return min(eligible, key=lambda plan: by_route[plan.route_id].interactive_p95_ms)
 
 
 def _kv_to_dict(kv: KVBudget | None) -> dict[str, Any] | None:
@@ -344,6 +505,34 @@ def _device_capacity(device: DeviceCapability) -> int:
     return device.memory_bytes
 
 
+def refuse_if_checkpoint_exceeds_ram(
+    manifest: ArtifactManifest,
+    *,
+    device_id: str,
+    usable_ram_bytes: int,
+) -> Refusal | None:
+    """Prove a same-checkpoint capacity refusal from an exact RAM ceiling.
+
+    This is only a lower bound: weights alone cannot establish that a model
+    *fits*. A target with unknown RAM must not be passed as zero or assigned a
+    guessed SKU value. The caller supplies measured usable RAM for that exact
+    target; no remote offload or checkpoint substitution is implied.
+    """
+    if type(usable_ram_bytes) is not int or usable_ram_bytes <= 0:
+        raise ValueError("exact positive usable_ram_bytes is required for a capacity conclusion")
+    if manifest.weight_bytes <= usable_ram_bytes:
+        return None
+    return Refusal(
+        REFUSE_CAPACITY,
+        device_id,
+        f"checkpoint {manifest.artifact_id} alone has {manifest.weight_bytes} weight bytes, "
+        f"exceeding {usable_ram_bytes} usable RAM bytes; KV, activations and workspace "
+        "would require additional memory",
+        "use a target with more usable RAM; a different quantized checkpoint is a "
+        "different artifact and must be qualified separately",
+    )
+
+
 def _candidate_order(devices: list[DeviceCapability]) -> list[DeviceCapability]:
     """Runnable devices, best first.
 
@@ -354,6 +543,26 @@ def _candidate_order(devices: list[DeviceCapability]) -> list[DeviceCapability]:
     """
     runnable = [d for d in devices if d.runnable and not runs_exported_graphs(d)]
     return sorted(runnable, key=lambda d: (d.memory_pool != "vram", -d.memory_bytes))
+
+
+def _text_route_id(
+    device: DeviceCapability,
+    *,
+    enforce_eager: bool,
+    kv_dtype: str,
+    max_model_len: int,
+    max_num_batched_tokens: int,
+    max_num_seqs: int,
+) -> str:
+    """Name a complete, single-stage vLLM route rather than only its device."""
+    return (
+        f"text/{device.backend}@{device.device_id}"
+        f"/eager={int(enforce_eager)}"
+        f"/kv={kv_dtype}"
+        f"/ctx={max_model_len}"
+        f"/chunk={max_num_batched_tokens}"
+        f"/seq={max_num_seqs}"
+    )
 
 
 def plan_text_session(
@@ -368,11 +577,16 @@ def plan_text_session(
     mask: str | frozenset[str] | None = None,
     platform_device_type: str | None = None,
     digest_weights: bool = False,
+    measured_profiles: Sequence[MeasuredRouteProfile] = (),
+    profile_context: ProfileContext | None = None,
 ) -> ExecutionPlan:
     """Plan one single-stage text session, or refuse with reasons.
 
     The caller gets a plan object either way: ``admitted`` says which, and
     ``refusals`` is never empty when it is ``False``.
+    Performance selection can compare the admitted one-stage device routes
+    produced here. Multi-stage routes require a separate real plan builder;
+    supplying a faster component profile cannot create one implicitly.
     """
     manifest = build_manifest(model_dir, digest_weights=digest_weights)
     profile = profile if profile is not None else load_profile()
@@ -385,6 +599,7 @@ def plan_text_session(
 
     refusals: list[Refusal] = []
     notes: list[str] = []
+    admitted_candidates: list[ExecutionPlan] = []
 
     try:
         hf_config = _load_hf_config(manifest)
@@ -464,6 +679,14 @@ def plan_text_session(
                 "max_num_batched_tokens": batched_tokens,
             },
             notes=notes,
+            route_id=_text_route_id(
+                device,
+                enforce_eager=enforce_eager,
+                kv_dtype=effective_kv_dtype,
+                max_model_len=max_model_len,
+                max_num_batched_tokens=batched_tokens,
+                max_num_seqs=max_num_seqs,
+            ),
         )
         required = plan.peak_bytes
         if required > capacity:
@@ -493,7 +716,19 @@ def plan_text_session(
             "activations, workspace and the load transient are estimates (E); "
             "engine.py records the measured peak against them after the load",
         ]
-        return plan
+        admitted_candidates.append(plan)
+
+    if admitted_candidates:
+        selected = admitted_candidates[0]
+        if profile_context is not None and measured_profiles:
+            selected = select_measured_plan(admitted_candidates, measured_profiles, profile_context)
+            if selected is not admitted_candidates[0]:
+                selected.notes.append(
+                    "selected by matched, qualified batch-1 whole-request p95 profile "
+                    "with positive paired gain confidence bound"
+                )
+        selected.refusals = list(refusals)
+        return selected
 
     return ExecutionPlan(
         manifest=manifest, devices=devices, selected=None, backend=None,

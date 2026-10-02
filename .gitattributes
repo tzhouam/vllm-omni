@@ -9,6 +9,8 @@
 *.md text eol=lf
 *.txt text eol=lf
 *.json text eol=lf
+# Preserve PowerShell-captured raw evidence bytes (including CRLF) exactly.
+benchmarks/edge_harness/results/e2e_expansion_20261002/evidence/*/power_snapshot_during.json binary -eol
 *.toml text eol=lf
 *.sh text eol=lf
 *.bat text eol=crlf

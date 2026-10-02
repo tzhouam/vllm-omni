@@ -1,0 +1,146 @@
+{
+  "captured_utc": "2026-10-02T07:22:04.623373+00:00",
+  "qai_hub_sdk_version": "0.55.0",
+  "depth": "D: hosted device registration only",
+  "batch_size": null,
+  "active_requests": null,
+  "devices": [
+    {
+      "requested_name": "Samsung Galaxy S25",
+      "exact_matches": 1,
+      "registrations": [
+        {
+          "name": "Samsung Galaxy S25",
+          "os": "15",
+          "attributes": [
+            "os:android",
+            "framework:tflite",
+            "framework:onnx",
+            "abi:aarch64-android",
+            "vendor:samsung",
+            "format:phone",
+            "chipset:qualcomm-snapdragon-8-elite-for-galaxy",
+            "chipset:sm8750-ac",
+            "hexagon:v79",
+            "soc-model:69",
+            "htp-supports-fp16:true",
+            "htp-supports-weight-sharing:true",
+            "framework:qnn"
+          ],
+          "ram_bytes": null,
+          "ram_source": "not disclosed by qai_hub Device fields or attributes"
+        }
+      ]
+    },
+    {
+      "requested_name": "Samsung Galaxy S24",
+      "exact_matches": 1,
+      "registrations": [
+        {
+          "name": "Samsung Galaxy S24",
+          "os": "14",
+          "attributes": [
+            "os:android",
+            "framework:tflite",
+            "framework:onnx",
+            "abi:aarch64-android",
+            "vendor:samsung",
+            "format:phone",
+            "chipset:qualcomm-snapdragon-8gen3",
+            "chipset:sm8650",
+            "hexagon:v75",
+            "soc-model:57",
+            "htp-supports-fp16:true",
+            "htp-supports-weight-sharing:true",
+            "framework:qnn"
+          ],
+          "ram_bytes": null,
+          "ram_source": "not disclosed by qai_hub Device fields or attributes"
+        }
+      ]
+    },
+    {
+      "requested_name": "Snapdragon X Elite CRD",
+      "exact_matches": 1,
+      "registrations": [
+        {
+          "name": "Snapdragon X Elite CRD",
+          "os": "11",
+          "attributes": [
+            "os:windows",
+            "format:compute",
+            "framework:onnx",
+            "vendor:qualcomm",
+            "abi:aarch64-windows",
+            "chipset:qualcomm-snapdragon-x-elite",
+            "chipset:sc8380xp",
+            "hexagon:v73",
+            "soc-model:60",
+            "htp-supports-fp16:true",
+            "htp-supports-weight-sharing:true",
+            "framework:qnn"
+          ],
+          "ram_bytes": null,
+          "ram_source": "not disclosed by qai_hub Device fields or attributes"
+        }
+      ]
+    },
+    {
+      "requested_name": "SA8775P ADP",
+      "exact_matches": 1,
+      "registrations": [
+        {
+          "name": "SA8775P ADP",
+          "os": "14",
+          "attributes": [
+            "os:android",
+            "framework:tflite",
+            "framework:onnx",
+            "vendor:qualcomm",
+            "abi:aarch64-android",
+            "format:auto",
+            "chipset:qualcomm-sa8775p",
+            "hexagon:v73",
+            "soc-model:52",
+            "htp-supports-fp16:true",
+            "htp-supports-weight-sharing:true",
+            "framework:qnn"
+          ],
+          "ram_bytes": null,
+          "ram_source": "not disclosed by qai_hub Device fields or attributes"
+        }
+      ]
+    },
+    {
+      "requested_name": "Dragonwing RB3 Gen 2 Vision Kit",
+      "exact_matches": 1,
+      "registrations": [
+        {
+          "name": "Dragonwing RB3 Gen 2 Vision Kit",
+          "os": "1.6",
+          "attributes": [
+            "os:qc_linux",
+            "framework:tflite",
+            "framework:onnx",
+            "vendor:qualcomm",
+            "abi:aarch64-oe-linux-gcc11",
+            "format:iot",
+            "chipset:qualcomm-qcs6490",
+            "chipset:qcs6490",
+            "chipset:qualcomm-dragonwing-qcs6490",
+            "hexagon:v68",
+            "soc-model:93",
+            "framework:qnn"
+          ],
+          "ram_bytes": null,
+          "ram_source": "not disclosed by qai_hub Device fields or attributes"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "This call does not lease a device or reveal exact RAM SKU.",
+    "No model component or complete request was executed.",
+    "Capacity refusals require exact artifact bytes and target usable RAM."
+  ]
+}

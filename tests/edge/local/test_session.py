@@ -3,6 +3,7 @@
 """The event stream: backpressure that blocks, and an epoch that fences."""
 
 import asyncio
+from dataclasses import replace
 
 import pytest
 
@@ -10,6 +11,7 @@ from vllm_omni.edge.local.session import (
     STATE_LAYOUT_VERSION,
     BoundedEventStream,
     ChunkEvent,
+    EventTooLarge,
     StateHandle,
     StreamClosed,
 )
@@ -47,6 +49,8 @@ def test_state_is_never_migratable_in_m0():
     handle = StateHandle(session_id="s", backend="vllm:cuda", artifact_id="abc")
     assert handle.migratable is False
     assert handle.replayable is True
+    assert not handle.accepts(replace(handle, migratable=True))
+    assert not handle.accepts(replace(handle, replayable=False))
 
 
 # ---------------------------------------------------------------- ordering
@@ -83,9 +87,14 @@ async def test_a_full_queue_blocks_the_producer():
     blocked = asyncio.create_task(stream.put(_event(2)))
     await asyncio.sleep(0.05)
     assert not blocked.done()
-    await stream.get()          # consumer drains one; credit returns
+    delivered = await stream.get()
+    assert delivered is not None
+    await asyncio.sleep(0.05)
+    assert not blocked.done(), "dequeue must not release credit before handling ends"
+    assert await stream.acknowledge(delivered)
     await asyncio.wait_for(blocked, timeout=1.0)
     assert stream.high_water_chunks == 2
+    assert stream.stats()["outstanding_chunks"] == 2
 
 
 async def test_the_byte_bound_also_blocks():
@@ -94,15 +103,113 @@ async def test_the_byte_bound_also_blocks():
     blocked = asyncio.create_task(stream.put(_event(1, text="b" * 40)))
     await asyncio.sleep(0.05)
     assert not blocked.done()
-    await stream.get()
+    delivered = await stream.get()
+    assert delivered is not None
+    await asyncio.sleep(0.05)
+    assert not blocked.done()
+    assert await stream.acknowledge(delivered.release_token)
     await asyncio.wait_for(blocked, timeout=1.0)
 
 
-async def test_an_oversized_event_still_gets_through_on_an_empty_queue():
-    """Otherwise one chunk larger than the whole bound deadlocks forever."""
+async def test_async_iteration_auto_acknowledges_on_next_pull_with_one_credit():
+    """A one-slot stream must progress without explicit profiler call-site ACKs."""
+    stream = BoundedEventStream(max_chunks=1, max_bytes=64)
+    first_handled = asyncio.Event()
+    release_first = asyncio.Event()
+    producer_progress = asyncio.Event()
+
+    async def produce() -> None:
+        await stream.put(_event(0))
+        await stream.put(_event(1))
+        producer_progress.set()
+        await stream.put(_event(2))
+        await stream.close()
+
+    async def consume() -> list[int]:
+        seen = []
+        async for event in stream:
+            seen.append(event.seq)
+            if event.seq == 0:
+                first_handled.set()
+                await release_first.wait()
+        return seen
+
+    producer = asyncio.create_task(produce())
+    consumer = asyncio.create_task(consume())
+    await asyncio.wait_for(first_handled.wait(), timeout=1.0)
+    assert not producer_progress.is_set()
+    assert stream.stats()["outstanding_chunks"] == 1
+    release_first.set()
+    assert await asyncio.wait_for(consumer, timeout=1.0) == [0, 1, 2]
+    await asyncio.wait_for(producer, timeout=1.0)
+    assert stream.stats()["outstanding_chunks"] == 0
+    assert stream.stats()["acknowledged_events"] == 3
+
+
+async def test_explicit_ack_is_idempotent_and_requires_the_delivery_token():
+    stream = BoundedEventStream(max_chunks=1, max_bytes=64)
+    event = _event(0)
+    await stream.put(event)
+    delivered = await stream.get()
+    assert delivered is not None
+    assert delivered.release_token and delivered.release_token != event.release_token
+    assert not await stream.acknowledge(event)
+    assert await stream.acknowledge(delivered)
+    assert not await stream.acknowledge(delivered)
+    assert stream.stats()["outstanding_chunks"] == 0
+
+
+async def test_wait_for_wrapper_does_not_ack_before_caller_handles_event():
+    stream = BoundedEventStream(max_chunks=1, max_bytes=64)
+    await stream.put(_event(0))
+    delivered = await asyncio.wait_for(stream.get(), timeout=1.0)
+    assert delivered is not None
+    # wait_for's internal get task has exited, but handling has not finished.
+    assert stream.stats()["outstanding_chunks"] == 1
+    blocked = asyncio.create_task(stream.put(_event(1)))
+    await asyncio.sleep(0.05)
+    assert not blocked.done()
+    assert await stream.acknowledge(delivered)
+    await asyncio.wait_for(blocked, timeout=1.0)
+    await stream.close()
+    assert [event.seq async for event in stream] == [1]
+    assert await stream.get() is None
+
+
+async def test_an_oversized_event_is_rejected_even_on_an_empty_queue():
+    """A producer must split PCM/text before it can exceed the byte credit."""
     stream = BoundedEventStream(max_chunks=4, max_bytes=8)
-    await asyncio.wait_for(stream.put(_event(0, text="x" * 400)), timeout=1.0)
-    assert (await stream.get()).seq == 0
+    with pytest.raises(EventTooLarge, match="fragment"):
+        await asyncio.wait_for(stream.put(_event(0, text="x" * 400)), timeout=1.0)
+    assert stream.high_water_bytes == 0
+
+
+async def test_nested_binary_payload_is_counted_and_snapshotted():
+    stream = BoundedEventStream(max_chunks=2, max_bytes=64)
+    payload = {"pcm": [bytearray(24), memoryview(bytes(24))]}
+    event = ChunkEvent(
+        request_id="r", stage_id=0, seq=0, epoch=0, kind="audio",
+        payload=payload, started_unix=0.0, emitted_unix=0.0,
+    )
+    await stream.put(event)
+    payload["pcm"][0].extend(bytes(200))
+    got = await stream.get()
+    assert got is not None
+    assert len(got.payload["pcm"][0]) == 24
+    assert stream.high_water_bytes == len("pcm") + 48
+    assert stream._bytes == len("pcm") + 48
+    assert await stream.acknowledge(got)
+    assert stream._bytes == 0
+
+
+async def test_unknown_payload_cannot_bypass_byte_accounting():
+    stream = BoundedEventStream(max_bytes=1)
+    event = ChunkEvent(
+        request_id="r", stage_id=0, seq=0, epoch=0, kind="audio",
+        payload=object(), started_unix=0.0, emitted_unix=0.0,
+    )
+    with pytest.raises(TypeError, match="unsupported event payload"):
+        await stream.put(event)
 
 
 async def test_closing_wakes_a_blocked_producer():
@@ -113,6 +220,71 @@ async def test_closing_wakes_a_blocked_producer():
     await stream.close()
     with pytest.raises(StreamClosed):
         await asyncio.wait_for(blocked, timeout=1.0)
+    # Normal close does not discard events that were already accepted.
+    assert [event.seq async for event in stream] == [0]
+
+
+async def test_retirement_keeps_delivered_credit_until_ack_and_fences_late_events():
+    stream = BoundedEventStream(max_chunks=2, max_bytes=64)
+    await stream.put(_event(0, epoch=0))
+    delivered = await stream.get()
+    assert delivered is not None
+    await stream.put(_event(1, epoch=0))
+    stale_waiter = asyncio.create_task(stream.put(_event(2, epoch=0)))
+    await asyncio.sleep(0.05)
+    assert not stale_waiter.done()
+
+    stream.retire_epoch(0)
+    await asyncio.wait_for(stale_waiter, timeout=1.0)
+    assert stream.stats()["outstanding_chunks"] == 1
+    assert stream.stats()["retired_delivered"] == 1
+    assert stream.dropped_stale == 2  # queued plus blocked producer
+    assert await stream.acknowledge(delivered)
+    assert stream.stats()["outstanding_chunks"] == 0
+
+    await stream.put(_event(0, epoch=1, text="recovered"))
+    await stream.close()
+    recovered = [event async for event in stream]
+    assert [(event.epoch, event.payload["text"]) for event in recovered] == [
+        (1, "recovered")
+    ]
+
+
+async def test_cancelled_delivery_still_blocks_new_epoch_until_explicit_ack():
+    stream = BoundedEventStream(max_chunks=1, max_bytes=64)
+    await stream.put(_event(0, epoch=0))
+    held = await stream.get()
+    assert held is not None
+    stream.retire_epoch(0)
+    stream.retire_epoch(0)
+    assert stream.stats()["retired_delivered"] == 1
+    pending = asyncio.create_task(stream.put(_event(0, epoch=1, text="next")))
+    await asyncio.sleep(0)
+    assert not pending.done()
+    assert stream.stats()["outstanding_chunks"] == 1
+
+    assert await stream.acknowledge(held)
+    await asyncio.wait_for(pending, timeout=1.0)
+    await stream.close()
+    next_event = await stream.get()
+    assert next_event is not None and next_event.epoch == 1
+    assert await stream.acknowledge(next_event)
+    assert await stream.get() is None
+
+
+async def test_cancelled_stream_wakes_waiting_consumer_without_late_event():
+    stream = BoundedEventStream(max_chunks=1, max_bytes=64)
+    await stream.put(_event(0))
+    delivered = await stream.get()
+    assert delivered is not None
+    waiting = asyncio.create_task(stream.get())
+    await asyncio.sleep(0)
+    stream.retire_epoch(0)
+    await stream.close()
+    assert await asyncio.wait_for(waiting, timeout=1.0) is None
+    assert stream.stats()["outstanding_chunks"] == 1
+    assert await stream.acknowledge(delivered)
+    assert stream.stats()["outstanding_chunks"] == 0
 
 
 # ------------------------------------------------------------------- epochs

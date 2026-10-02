@@ -1,0 +1,16 @@
+{
+  "captured_utc": "2026-10-02T07:50:36.456289+00:00",
+  "command": [
+    "hf",
+    "download",
+    "InternRobotics/InternData-A1",
+    "real_lerobotv30/genie1/Genie1-Place_Markpen.tar.gz",
+    "--repo-type",
+    "dataset",
+    "--dry-run"
+  ],
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Error: Access denied. This repository requires approval.\nHint: set HF_DEBUG=1 as environment variable for full traceback.",
+  "scope": "matching Place_Markpen reference archive access probe; no content downloaded"
+}

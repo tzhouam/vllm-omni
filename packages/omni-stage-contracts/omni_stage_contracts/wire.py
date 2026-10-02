@@ -73,6 +73,9 @@ MAX_PAYLOAD_BYTES = 2 << 30
 any legitimate stage payload here -- the largest is a vision tower's patch
 tensor, single-digit MB."""
 
+WIRE_PROTOCOL_VERSION = 1
+"""The graph worker socket implements only the legacy stateless framing."""
+
 
 class ProtocolError(RuntimeError):
     """The peer sent something this protocol cannot represent."""
@@ -155,7 +158,8 @@ def send_message(
     if op == OP_HELLO and os.environ.get("VLLM_OMNI_WORKER_IDENTITY"):
         body = {**(body or {}), "process_identity": json.loads(os.environ["VLLM_OMNI_WORKER_IDENTITY"])}
     header = json.dumps(
-        {"version": 1, "required_features": ["host-copy"], "op": op, "body": body or {}, "tensors": described}
+        {"version": WIRE_PROTOCOL_VERSION, "required_features": ["host-copy"],
+         "op": op, "body": body or {}, "tensors": described}
     ).encode("utf-8")
     if len(header) > MAX_HEADER_BYTES:
         raise ProtocolError(f"header is {len(header)} bytes, over the {MAX_HEADER_BYTES} limit")
@@ -188,7 +192,12 @@ def recv_message(
         if not isinstance(required, list) or any(not isinstance(f, str) for f in required):
             raise ValueError("required_features must be a list of names")
         # Missing version/features is the explicit legacy-v1 conversion.
-        negotiate(header.get("version", 1), required)
+        # The portable contract also defines v2, but this particular socket
+        # has no state/event/ACK frames yet and must not advertise v2 support.
+        version = header.get("version", WIRE_PROTOCOL_VERSION)
+        if type(version) is not int or version != WIRE_PROTOCOL_VERSION:
+            raise ValueError(f"unsupported graph wire protocol version: {version!r}")
+        negotiate(version, required)
     except ValueError as exc:
         raise ProtocolError(str(exc)) from exc
     if not isinstance(header.get("body", {}), dict) or not isinstance(header.get("tensors", []), list):

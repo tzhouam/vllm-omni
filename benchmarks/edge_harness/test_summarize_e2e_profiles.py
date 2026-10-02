@@ -13,6 +13,7 @@ from summarize_e2e_profiles import (
     read_lines,
     stats,
 )
+from single_request_protocol import metadata, validate_settings
 
 
 class ProfilingEvidenceTests(unittest.TestCase):
@@ -184,7 +185,63 @@ class ProfilingEvidenceTests(unittest.TestCase):
             for row in rows:
                 row.update(wall_s=2, ttft_s=0.1, decode_tok_per_s=10)
             (path / "requests.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
-            self.assertTrue(profile(path)["profile_protocol_complete"])
+            result = profile(path)
+            self.assertTrue(result["historical_protocol_complete"])
+            self.assertFalse(result["profile_protocol_complete"])
+
+    def test_batch1_protocol_requires_only_three_serial_groups_and_records_its_scope(self):
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root)
+            (path / "report.json").write_text(json.dumps({
+                "status": "completed", "sustained_wall_s": 1801,
+                "profile_protocol": metadata(),
+            }))
+            rows = []
+            for length in ("short", "medium", "long"):
+                rows.append({"phase": "warmup", "length_band": length, "concurrency": 1, "batch_size": 1})
+                rows.extend({
+                    "phase": "measured", "length_band": length,
+                    "concurrency": 1, "batch_size": 1,
+                    "wall_s": 2, "ttft_s": 0.1, "decode_tok_per_s": 10,
+                } for _ in range(20))
+            rows.append({"phase": "sustained", "length_band": "medium", "concurrency": 1, "batch_size": 1})
+            for index, row in enumerate(rows):
+                row.update({
+                    "request_id": f"request-{index}",
+                    "finished": True,
+                    "output_tokens": 128,
+                    "output_token_ids": [1] * 128,
+                    "arrivals": [{"sequence": 1, "epoch": 0, "kind": "done"}],
+                    "stream": {"high_water_chunks": 1, "max_chunks": 1,
+                               "high_water_bytes": 1, "max_bytes": 1},
+                })
+            requests = path / "requests.jsonl"
+            requests.write_text("".join(json.dumps(row) + "\n" for row in rows))
+            result = profile(path)
+            self.assertTrue(result["profile_protocol_complete"])
+            self.assertEqual(result["profile_protocol"], "single_request_batch1_v1")
+            self.assertEqual([m["concurrency"] for m in result["measurements"]], [1, 1, 1])
+            self.assertFalse(result["historical_protocol_complete"])
+
+            rows[1]["finished"] = False
+            requests.write_text("".join(json.dumps(row) + "\n" for row in rows))
+            result = profile(path)
+            self.assertFalse(result["profile_protocol_complete"])
+            self.assertFalse(result["recorded_output_checks"]["recorded_invariants_pass"])
+            rows[1]["finished"] = True
+
+            rows[1]["batch_size"] = 2
+            requests.write_text("".join(json.dumps(row) + "\n" for row in rows))
+            result = profile(path)
+            self.assertFalse(result["profile_protocol_complete"])
+            self.assertTrue(any("non_single_request_sample" in item for item in result["protocol_violations"]))
+
+    def test_batch1_settings_reject_multiple_active_requests(self):
+        validate_settings(1, 1)
+        with self.assertRaisesRegex(ValueError, "batch size 1 and concurrency 1"):
+            validate_settings(2, 1)
+        with self.assertRaisesRegex(ValueError, "batch size 1 and concurrency 1"):
+            validate_settings(1, 2)
 
 
 if __name__ == "__main__":

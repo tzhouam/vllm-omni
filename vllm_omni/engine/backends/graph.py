@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import dataclasses
 import math
+import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -45,6 +46,13 @@ class GraphStageClient(StageClientBase):
         try:
             manifest_path = Path(config["manifest"]).resolve()
             manifest = ArtifactManifest.read(manifest_path)
+            descriptor = manifest.artifact_metadata()
+            if descriptor is not None and not descriptor.qualified:
+                raise ValueError("graph artifact failed numerical or task validation")
+            if descriptor is not None:
+                raise ValueError(
+                    "external.graph.v1 cannot bind v2 artifact ABI, runtime, layout and shape to its worker"
+                )
             graph_name = manifest.metadata["graph_file"]
             examples_name = manifest.metadata["example_inputs_file"]
             if graph_name not in manifest.files or examples_name not in manifest.files:
@@ -96,6 +104,7 @@ class GraphStageClient(StageClientBase):
                 "worker_generation": self._generation,
                 "artifact_sha256": file_digest(manifest_path),
                 "component": manifest.component,
+                "artifact_schema_version": manifest.schema_version,
                 "route": route.to_dict(),
                 "reserved_bytes": dict(reservation.demands),
                 "max_io_bytes": self._max_io_bytes,
@@ -139,12 +148,16 @@ class GraphStageClient(StageClientBase):
 
     async def _run(self, request: StageRequest, inputs: dict[str, np.ndarray]) -> None:
         try:
+            started_ns = time.monotonic_ns()
             outputs, timing = await asyncio.to_thread(self._worker.run, inputs)
+            emitted_ns = time.monotonic_ns()
             refs = self._describe(outputs)
             if sum(x.nbytes for x in outputs.values()) + sum(x.nbytes for x in inputs.values()) > self._max_io_bytes:
                 raise ResourceUnavailable("combined graph input/output exceeds admitted I/O bound")
             event = StageEvent(
-                request.request_id, self.stage_id, request.epoch, 1, "tensor", self._generation, refs, terminal=True
+                request.request_id, self.stage_id, request.epoch, 1, "tensor", self._generation, refs,
+                terminal=True, started_monotonic_ns=started_ns, emitted_monotonic_ns=emitted_ns,
+                payload_nbytes=sum(ref.nbytes for ref in refs), release_token=uuid.uuid4().hex,
             )
             output = OmniRequestOutput(
                 request_id=request.request_id,

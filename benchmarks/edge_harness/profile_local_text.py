@@ -11,6 +11,9 @@ import time
 import traceback
 from pathlib import Path
 
+from gpu_telemetry import GpuTelemetry
+from single_request_protocol import LENGTH_BANDS, metadata as protocol_metadata, validate_settings
+
 
 def configure_host_environment():
     """Reuse the native Windows settings established by the acceptance runs."""
@@ -56,6 +59,7 @@ def save(path, value):
 
 
 async def run(args):
+    validate_settings(args.batch_size, args.concurrency)
     from vllm_omni.edge.local.engine import LocalTextEngine, apply_runtime_env
     from vllm_omni.edge.local.plan import plan_text_session
 
@@ -70,17 +74,22 @@ async def run(args):
         "runtime_env": apply_runtime_env(),
         "host_environment": HOST_ENVIRONMENT,
         "settings": vars(args),
+        "profile_protocol": protocol_metadata(),
         "cache_condition": "existing disk/JIT cache; not cold disk",
         "trace": "untraced; API event timings",
         "requests": 0,
     }
     save(args.out / "report.json", report)
     engine = None
+    gpu_telemetry = None
+    if args.gpu_telemetry_interval_s > 0:
+        gpu_telemetry = GpuTelemetry(args.out / "gpu_telemetry.jsonl", args.gpu_telemetry_interval_s)
+        gpu_telemetry.start()
     try:
         plan = plan_text_session(
             args.model,
             max_model_len=4096,
-            max_num_seqs=4,
+            max_num_seqs=1,
             max_num_batched_tokens=512,
             enforce_eager=True,
             digest_weights=True,
@@ -129,6 +138,7 @@ async def run(args):
                     phase=phase,
                     length_band=name,
                     concurrency=concurrency,
+                    batch_size=1,
                     wall_s=time.perf_counter() - start,
                     arrivals=arrivals,
                     stream=stream.stats(),
@@ -142,14 +152,11 @@ async def run(args):
             finally:
                 engine.close_session(session.session_id)
 
-        for concurrency in (1, 2, 4):
-            for name in prompts:
-                await asyncio.gather(*(request(name, concurrency, "warmup") for _ in range(concurrency)))
-                for i in range(0, args.repeats, concurrency):
-                    await asyncio.gather(
-                        *(request(name, concurrency, "measured") for _ in range(min(concurrency, args.repeats - i)))
-                    )
-                print(f"profiled {name} concurrency={concurrency}", flush=True)
+        for name in LENGTH_BANDS:
+            await request(name, 1, "warmup")
+            for _ in range(args.repeats):
+                await request(name, 1, "measured")
+            print(f"profiled {name} batch_size=1 concurrency=1", flush=True)
         thermal_start = time.perf_counter()
         report["sustained_start_unix"] = time.time()
         while time.perf_counter() - thermal_start < args.sustained_seconds:
@@ -181,6 +188,8 @@ async def run(args):
         if engine is not None:
             await engine.close()
             report["usage_after_close"] = engine.report_usage()
+        if gpu_telemetry is not None:
+            report["gpu_telemetry"] = gpu_telemetry.stop()
         report["end_unix"] = time.time()
         save(args.out / "report.json", report)
     return report["status"] == "completed"
@@ -192,6 +201,10 @@ if __name__ == "__main__":
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--repeats", type=int, default=20)
     p.add_argument("--sustained-seconds", type=float, default=1800)
+    p.add_argument("--batch-size", type=int, choices=(1,), default=1)
+    p.add_argument("--concurrency", type=int, choices=(1,), default=1)
+    p.add_argument("--gpu-telemetry-interval-s", type=float, default=0.0,
+                   help="Sample device-wide NVML and host telemetry; 0 disables sampling.")
     args = p.parse_args()
     os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
     from vllm_omni.windows.aio import install_selector_policy

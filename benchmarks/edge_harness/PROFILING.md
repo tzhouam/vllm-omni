@@ -3,6 +3,9 @@
 These runners exercise existing Omni implementations with real weights. They
 do not add device or model support. A completed timing run is distinct from
 reference-quality, streaming, fault-recovery and release qualification.
+**The current qualification protocol measures batch size 1 and one active
+request only.** Historical results at concurrency 2/4 remain archived as
+observations, but they do not enter current route selection or qualification.
 
 ## Matrix and prerequisites
 
@@ -11,6 +14,9 @@ PC/mobile/embedded configurations and five model families. Its raw evidence
 distinguishes complete pipelines from components and backend-only probes.
 Unavailable complete pipelines retain a reason and next repair step; a missing
 measurement is never represented as zero latency.
+That audit and the five-run summarizer below preserve the original 2026-09-22
+baseline. The [rolling 60-cell matrix and qualification ledger](results/e2e_profiling_20260922/evidence/summary/README.md)
+carry later evidence and are the current coverage source.
 
 Use the actual installed runtime and exact checkpoint identified in the result,
 including quantization, rather than substituting another family member. The
@@ -45,12 +51,18 @@ short `~/c29` vLLM cache path unless explicitly overridden. These reproduce
 settings required by the tested Windows installation; they are not a general
 claim about other CUDA/runtime versions.
 
-Both runners require a new output directory and default to:
+Both runners require a new output directory and enforce:
 
-- Three input lengths × concurrency 1/2/4 × 20 measured requests per group.
+- Three input lengths × batch size 1 × concurrency 1 × 20 measured requests per length.
 - Separate warmup requests, excluded from group percentiles.
-- At least 1800 seconds of continuous medium-input requests.
+- At least 1800 seconds of sequential medium-input requests.
 - Slow-consumer, cancellation and subsequent-request checks.
+
+The runners record `profile_protocol.name=single_request_batch1_v1` and
+`batch_size=1, concurrency=1` in each timed request. The CLI rejects any
+other batch size or concurrency. `max_num_batched_tokens` is a token budget,
+not a request batch-size setting. A one-band or shortened instrumentation run
+is useful diagnostically but cannot satisfy the full timing protocol.
 
 Text timing forces 128 output tokens with greedy sampling and records actual
 input lengths, token IDs, sequence/epoch metadata and queue high-water marks.
@@ -99,7 +111,7 @@ not that all checks passed. Any forced cleanup remains a finding.
 For a separate TTS stage-attribution diagnostic, enable the existing
 `VLLM_OMNI_STEP_STATS_DIR=/absolute/path/to/counters` hook and use
 `VLLM_OMNI_STEP_STATS_SYNC=0`. Run `profile_local_tts.py` with
-`--length-band medium --concurrency 1 --repeats 20 --sustained-seconds 0`
+`--length-band medium --concurrency 1 --batch-size 1 --repeats 20 --sustained-seconds 0`
 and a fresh output directory. This is not a full baseline run. The counters
 include warmup, slow-consumer, abort and recovery activity, and nested timers
 overlap. Preserve per-process summaries rather than pooling their percentiles.
@@ -118,16 +130,20 @@ python benchmarks/edge_harness/summarize_e2e_profiles.py \
 
 python benchmarks/edge_harness/analyze_profile_resources.py \
   --runs /absolute/path/to/run-root --out /absolute/path/to/resource-summary.json
+
+python benchmarks/edge_harness/experiments/verify_e2e_summary_table.py \
+  benchmarks/edge_harness/results/e2e_profiling_20260922/evidence/summary/README.md \
+  --json-out benchmarks/edge_harness/results/e2e_profiling_20260922/evidence/summary/qualification_status.json
 ```
 
 Use run directory names `spark-cpu-wsl`, `spark-cuda-wsl`,
 `spark-cuda-windows`, `tts-cuda-wsl` and `tts-cuda-windows`, with `-host`,
 `-trace` and `-reliability` suffixes for their corresponding records. The matrix
 summarizer verifies all sixty pairings and the original evidence hashes. It
-reports nearest-rank p50/p95 and sample counts, checks per-group coverage,
-flags recorded output-contract violations, and retains unavailable metrics.
-Batch-dependent greedy outputs are a numerical/reproducibility finding;
-timings alone cannot establish whether the cause is numerical or state-related.
+reports nearest-rank p50/p95 and sample counts, checks the three serial
+single-request groups, flags recorded output-contract violations, and retains
+unavailable metrics. It labels the historical concurrency sweep separately
+and never promotes those archived measurements to a current batch-1 pass.
 Delivery-spacing statistics pool adjacent intervals within each request; their
 sample count is the number of intervals. Text output updates may coalesce
 tokens, so this is delivery timing rather than isolated kernel inter-token
@@ -150,8 +166,12 @@ construction and imports; constructor timing alone excludes that preparation.
 Keep compile/load/run failures and their exact configurations. Before declaring
 a pairing qualified, review model-specific reference quality, complete declared
 modalities, state/stream correctness, memory admission, executed placement and
-the performance protocol. Missing artifacts, backends, device access, sensors
-or reference suites require explicit reasons and repair actions.
+the single-request performance protocol. Missing artifacts, backends, device
+access, sensors or reference suites require explicit reasons and repair actions.
+AI Hub component or host-replayed jobs are separately labeled from a resident
+device-local request; a component-time sum is an estimate, not whole-request
+latency. A capacity refusal requires measured device RAM and a pinned artifact
+budget, never just parameter count.
 
 After every writer exits, archive evidence with reversible compression of large
 uncompressed files and an original/stored byte-hash manifest:
