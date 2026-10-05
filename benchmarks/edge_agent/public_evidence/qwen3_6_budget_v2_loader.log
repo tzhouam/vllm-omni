@@ -1,0 +1,50 @@
+llama_model_load: using device Vulkan0 (NVIDIA GeForce RTX 5090 Laptop GPU)
+load_tensors: layer 0 assigned to device Vulkan0
+load_tensors: layer 1 assigned to device Vulkan0
+load_tensors: layer 2 assigned to device Vulkan0
+load_tensors: layer 3 assigned to device Vulkan0
+load_tensors: layer 4 assigned to device Vulkan0
+load_tensors: layer 5 assigned to device Vulkan0
+load_tensors: layer 6 assigned to device Vulkan0
+load_tensors: layer 7 assigned to device Vulkan0
+load_tensors: layer 8 assigned to device Vulkan0
+load_tensors: layer 9 assigned to device Vulkan0
+load_tensors: layer 10 assigned to device Vulkan0
+load_tensors: layer 11 assigned to device Vulkan0
+load_tensors: layer 12 assigned to device Vulkan0
+load_tensors: layer 13 assigned to device Vulkan0
+load_tensors: layer 14 assigned to device Vulkan0
+load_tensors: layer 15 assigned to device Vulkan0
+load_tensors: layer 16 assigned to device Vulkan0
+load_tensors: layer 17 assigned to device Vulkan0
+load_tensors: layer 18 assigned to device Vulkan0
+load_tensors: layer 19 assigned to device Vulkan0
+load_tensors: layer 20 assigned to device Vulkan0
+load_tensors: layer 21 assigned to device Vulkan0
+load_tensors: layer 22 assigned to device Vulkan0
+load_tensors: layer 23 assigned to device Vulkan0
+load_tensors: layer 24 assigned to device Vulkan0
+load_tensors: layer 25 assigned to device Vulkan0
+load_tensors: layer 26 assigned to device Vulkan0
+load_tensors: layer 27 assigned to device Vulkan0
+load_tensors: layer 28 assigned to device Vulkan0
+load_tensors: layer 29 assigned to device Vulkan0
+load_tensors: layer 30 assigned to device Vulkan0
+load_tensors: layer 31 assigned to device Vulkan0
+load_tensors: layer 32 assigned to device Vulkan0
+load_tensors: layer 33 assigned to device Vulkan0
+load_tensors: layer 34 assigned to device Vulkan0
+load_tensors: layer 35 assigned to device Vulkan0
+load_tensors: layer 36 assigned to device Vulkan0
+load_tensors: layer 37 assigned to device Vulkan0
+load_tensors: layer 38 assigned to device Vulkan0
+load_tensors: layer 39 assigned to device Vulkan0
+load_tensors: layer 40 assigned to device Vulkan0
+load_tensors: offloaded 41/41 layers to GPU
+load_tensors: CPU model buffer size = 16499.72 MiB
+load_tensors: Vulkan0 model buffer size = 1921.34 MiB
+llama.cpp capacity: Vulkan0 KV buffer size = 80.00 MiB
+llama.cpp capacity: Vulkan0 compute buffer size = 368.00 MiB
+clip_ctx: CLIP using Vulkan0 backend
+llama.cpp capacity: Vulkan0 compute buffer size = 248.10 MiB
+llama.cpp capacity: CPU compute buffer size = 24.93 MiB

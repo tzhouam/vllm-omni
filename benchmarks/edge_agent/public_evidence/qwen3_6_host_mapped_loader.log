@@ -1,0 +1,171 @@
+llama_model_load: using device Vulkan0 (NVIDIA GeForce RTX 5090 Laptop GPU)
+load_tensors: layer 0 assigned to device Vulkan0
+load_tensors: layer 1 assigned to device Vulkan0
+load_tensors: layer 2 assigned to device Vulkan0
+load_tensors: layer 3 assigned to device Vulkan0
+load_tensors: layer 4 assigned to device Vulkan0
+load_tensors: layer 5 assigned to device Vulkan0
+load_tensors: layer 6 assigned to device Vulkan0
+load_tensors: layer 7 assigned to device Vulkan0
+load_tensors: layer 8 assigned to device Vulkan0
+load_tensors: layer 9 assigned to device Vulkan0
+load_tensors: layer 10 assigned to device Vulkan0
+load_tensors: layer 11 assigned to device Vulkan0
+load_tensors: layer 12 assigned to device Vulkan0
+load_tensors: layer 13 assigned to device Vulkan0
+load_tensors: layer 14 assigned to device Vulkan0
+load_tensors: layer 15 assigned to device Vulkan0
+load_tensors: layer 16 assigned to device Vulkan0
+load_tensors: layer 17 assigned to device Vulkan0
+load_tensors: layer 18 assigned to device Vulkan0
+load_tensors: layer 19 assigned to device Vulkan0
+load_tensors: layer 20 assigned to device Vulkan0
+load_tensors: layer 21 assigned to device Vulkan0
+load_tensors: layer 22 assigned to device Vulkan0
+load_tensors: layer 23 assigned to device Vulkan0
+load_tensors: layer 24 assigned to device Vulkan0
+load_tensors: layer 25 assigned to device Vulkan0
+load_tensors: layer 26 assigned to device Vulkan0
+load_tensors: layer 27 assigned to device Vulkan0
+load_tensors: layer 28 assigned to device Vulkan0
+load_tensors: layer 29 assigned to device Vulkan0
+load_tensors: layer 30 assigned to device Vulkan0
+load_tensors: layer 31 assigned to device Vulkan0
+load_tensors: layer 32 assigned to device Vulkan0
+load_tensors: layer 33 assigned to device Vulkan0
+load_tensors: layer 34 assigned to device Vulkan0
+load_tensors: layer 35 assigned to device Vulkan0
+load_tensors: layer 36 assigned to device Vulkan0
+load_tensors: layer 37 assigned to device Vulkan0
+load_tensors: layer 38 assigned to device Vulkan0
+load_tensors: layer 39 assigned to device Vulkan0
+load_tensors: layer 40 assigned to device Vulkan0
+tensor blk.0.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.0.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.0.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.1.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.1.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.1.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.2.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.2.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.2.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.3.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.3.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.3.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.4.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.4.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.4.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.5.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.5.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.5.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.6.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.6.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.6.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.7.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.7.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.7.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.8.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.8.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.8.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.9.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.9.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.9.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.10.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.10.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.10.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.11.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.11.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.11.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.12.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.12.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.12.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.13.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.13.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.13.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.14.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.14.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.14.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.15.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.15.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.15.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.16.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.16.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.16.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.17.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.17.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.17.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.18.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.18.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.18.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.19.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.19.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.19.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.20.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.20.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.20.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.21.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.21.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.21.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.22.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.22.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.22.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.23.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.23.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.23.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.24.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.24.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.24.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.25.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.25.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.25.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.26.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.26.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.26.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.27.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.27.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.27.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.28.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.28.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.28.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.29.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.29.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.29.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.30.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.30.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.30.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.31.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.31.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.31.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.32.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.32.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.32.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.33.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.33.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.33.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.34.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.34.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.34.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.35.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.35.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.35.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.36.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.36.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.36.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.37.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.37.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.37.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.38.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.38.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.38.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.39.ffn_down_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.39.ffn_gate_exps.weight (redacted) buffer type overridden to Vulkan_Host
+tensor blk.39.ffn_up_exps.weight (redacted) buffer type overridden to Vulkan_Host
+load_tensors: offloaded 41/41 layers to GPU
+load_tensors: CPU model buffer size = 16499.72 MiB
+load_tensors: Vulkan0 model buffer size = 1921.34 MiB
+llama.cpp capacity: Vulkan0 KV buffer size = 80.00 MiB
+llama.cpp capacity: Vulkan0 compute buffer size = 368.00 MiB
+llama.cpp capacity: Vulkan_Host compute buffer size = 12.02 MiB
+clip_ctx: CLIP using Vulkan0 backend
+llama.cpp capacity: Vulkan0 compute buffer size = 248.10 MiB
+llama.cpp capacity: CPU compute buffer size = 24.93 MiB

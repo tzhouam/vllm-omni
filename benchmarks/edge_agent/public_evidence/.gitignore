@@ -1,0 +1,7 @@
+# Only reviewed aggregates and the named allowlisted logs belong here.
+# Raw profiles stay in ../results/.
+*
+!.gitignore
+!agent_native_smokes_20261005.json
+!qwen3_6_budget_v2_loader.log
+!qwen3_6_host_mapped_loader.log
