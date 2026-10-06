@@ -15,6 +15,21 @@ from typing import Callable, Mapping, Sequence
 TASK_CLASSES = frozenset({"basic", "browser_text", "browser_vision", "windows_settings", "memory", "code_tools", "long_reasoning"})
 LENGTH_BUCKETS = ("short", "medium", "long")
 FIXED_SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
+_TASK_LINK = re.compile(
+    r"https?://[^\s<>\"'`]+"
+    r"|\b(?:[a-z0-9_-]+\.)+[a-z0-9_-]+[^\s<>\"'`]*",
+    re.IGNORECASE,
+)
+
+
+def strip_task_links(text: str) -> str:
+    """Remove link spellings before interpreting user prose as tool intent.
+
+    A URL path such as ``/screen_capture`` is a resource name, not a request
+    to capture the Windows desktop.  Keep this rule shared with the controller's
+    permission check so classification cannot grant a capability from a link.
+    """
+    return _TASK_LINK.sub(" ", text)
 
 
 def nearest_rank(values: Sequence[float], fraction: float) -> float:
@@ -205,27 +220,28 @@ def select_route(
 def classify_task(text: str, *, has_image: bool = False) -> str:
     """A conservative local rule until a task classifier itself has evidence."""
     lowered = text.casefold()
+    prose = strip_task_links(lowered)
     if has_image:
         return "browser_vision"
-    if any(word in lowered for word in (
+    if any(word in prose for word in (
         "registry", "windows setting", "display setting", "mouse speed",
         "mouse_speed", "pointer speed", "settings_read", "settings_set",
         "系统设置", "注册表", "鼠标速度", "鼠标灵敏度",
     )):
         return "windows_settings"
-    if any(word in lowered for word in (
+    if any(word in prose for word in (
         "screenshot", "screen_capture", "screen capture", "screen understanding",
         "image", "visual", "图像", "图片", "截图", "屏幕", "视觉",
     )):
         return "browser_vision"
-    if any(word in lowered for word in ("code", "script", "debug", "代码", "编程")):
+    if any(word in prose for word in ("code", "script", "debug", "代码", "编程")):
         return "code_tools"
-    if any(word in lowered for word in ("remember", "memory", "recall", "记得", "回忆")):
+    if any(word in prose for word in ("remember", "memory", "recall", "记得", "回忆")):
         return "memory"
-    if any(word in lowered for word in ("browser", "website", "web page", "url", "网页", "浏览器", "链接")) or re.search(
+    if any(word in prose for word in ("browser", "website", "web page", "url", "网页", "浏览器", "链接")) or re.search(
         r"https?://|\b(?:[a-z0-9-]+\.)+(?:com|org|net|io|edu|gov)\b", lowered,
     ):
         return "browser_text"
-    if len(text) > 2000 or any(word in lowered for word in ("prove", "derive", "推导", "证明")):
+    if len(text) > 2000 or any(word in prose for word in ("prove", "derive", "推导", "证明")):
         return "long_reasoning"
     return "basic"

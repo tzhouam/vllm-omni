@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol
 
 from vllm_omni.edge.agent.router import (
-    Admission, Qualification, Route, classify_task, select_route,
+    Admission, Qualification, Route, classify_task, select_route, strip_task_links,
 )
 from vllm_omni.edge.agent.tools import (
     ApprovalRequired, ToolAction, ToolRequestCancelled, WindowsToolBoundary,
@@ -45,7 +45,6 @@ _TASK_TOOLS: Mapping[str, frozenset[str]] = {
     "code_tools": frozenset(),
     "long_reasoning": frozenset(),
 }
-_TASK_URL = re.compile(r"https?://[^\s<>\"'`]+", re.IGNORECASE)
 _DESKTOP_CAPTURE_REQUEST = re.compile(
     r"\bscreen_capture\b|\bdesktop (?:screen|screenshot)\b|"
     r"\bcapture (?:my |the )?screen\b|\bwindows screen\b|"
@@ -63,7 +62,7 @@ def _permitted_tools(task_class: str, trusted_task: str) -> frozenset[str]:
     permitted = _TASK_TOOLS[task_class]
     if task_class != "browser_vision":
         return permitted
-    task_without_urls = _TASK_URL.sub(" ", trusted_task)
+    task_without_urls = strip_task_links(trusted_task)
     if _DESKTOP_CAPTURE_REQUEST.search(task_without_urls):
         return permitted | {"screen_capture"}
     return permitted

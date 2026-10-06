@@ -90,6 +90,38 @@ def test_task_classifier_routes_mouse_speed_and_web_urls_to_tool_classes() -> No
     assert classify_task("Read the title at example.com") == "browser_text"
 
 
+@pytest.mark.parametrize("url", (
+    "https://example.com/code",
+    "https://example.com/image.jpg",
+    "https://example.com/settings_set",
+    "https://example.com/screen_capture",
+    "https://example.com/?x=a,screen_capture",
+    "https://example.com/image.jpg,settings_set",
+    "example.com/screen_capture",
+    "example.com/?x=a,screen_capture",
+    "example.com,screen_capture",
+))
+def test_task_classifier_does_not_treat_link_words_as_user_intent(url: str) -> None:
+    task = f"Read the page at {url}"
+    assert classify_task(task) == "browser_text"
+    assert "screen_capture" not in _permitted_tools(classify_task(task), task)
+
+
+def test_task_classifier_keeps_explicit_visual_code_and_settings_intent() -> None:
+    assert classify_task("Read the image at https://example.com/code") == "browser_vision"
+    assert classify_task("Explain this Python code from https://example.com/image") == "code_tools"
+    assert classify_task("Set mouse speed using https://example.com/image") == "windows_settings"
+    task = "Read the image at example.com/screen_capture"
+    assert classify_task(task) == "browser_vision"
+    assert "screen_capture" not in _permitted_tools("browser_vision", task)
+    assert "screen_capture" not in _permitted_tools(
+        "browser_vision", "Read the image at https://example.com/?x=a,screen_capture",
+    )
+    assert "screen_capture" in _permitted_tools(
+        "browser_vision", "Use screen_capture to read the Windows desktop, then open example.com/image",
+    )
+
+
 def test_browser_image_task_does_not_grant_desktop_capture() -> None:
     assert "browser_screenshot" in _permitted_tools(
         "browser_vision", "Read the image at https://example.com/image.jpg",
