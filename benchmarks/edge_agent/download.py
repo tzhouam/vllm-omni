@@ -34,6 +34,8 @@ from typing import Any, Callable, Iterable
 
 DEFAULT_CHUNK_BYTES = 16 * 1024 * 1024
 DEFAULT_FREE_RESERVE_BYTES = 2 * 1024 * 1024 * 1024
+MAX_RANGE_BYTES = 256 * 1024
+MAX_RANGE_RETRIES = 8
 _HEX40 = re.compile(r"[0-9a-fA-F]{40}\Z")
 _HEX64 = re.compile(r"[0-9a-fA-F]{64}\Z")
 _CONTENT_RANGE = re.compile(r"bytes (\d+)-(\d+)/(\d+)\Z")
@@ -257,7 +259,8 @@ class ArtifactDownloader:
             raise ValueError("chunk_bytes must be 1 KiB..256 MiB")
         if workers * chunk_bytes > 512 * 1024 * 1024:
             raise ValueError("workers × chunk_bytes exceeds 512 MiB in-flight limit")
-        if free_reserve_bytes < 0 or timeout_seconds <= 0 or retries < 1:
+        if (free_reserve_bytes < 0 or timeout_seconds <= 0
+                or not 1 <= retries <= MAX_RANGE_RETRIES):
             raise ValueError("invalid reserve, timeout, or retries")
         parsed = urllib.parse.urlparse(base_url)
         if parsed.scheme != "https" and not (parsed.scheme == "http" and
@@ -324,60 +327,76 @@ class ArtifactDownloader:
 
     def _fetch_chunk(self, artifact: Artifact, index: int) -> bytes:
         start, end = _chunk_bounds(index, artifact, self.chunk_bytes)
-        last_error: Exception | None = None
-        for attempt in range(self.retries):
-            try:
-                position = start
-                pieces: list[bytes] = []
-                # CDNs and local proxies can close a valid 206 response a few
-                # bytes early. Resume only that missing tail with another
-                # exact Range; the whole pinned LFS SHA is still mandatory.
-                for _segment in range(16):
-                    headers = {"Range": f"bytes={position}-{end}",
-                               "Accept-Encoding": "identity",
-                               "User-Agent": "omni-edge-agent-artifact-downloader/1"}
-                    if self.token:
-                        headers["Authorization"] = f"Bearer {self.token}"
-                    request = urllib.request.Request(self._url(artifact), headers=headers, method="GET")
+        pieces: list[bytes] = []
+        # The 16 MiB chunk remains the durable verification unit.  Transport
+        # requests are smaller because some CDNs truncate larger 206 bodies.
+        for range_start in range(start, end + 1, MAX_RANGE_BYTES):
+            range_end = min(end, range_start + MAX_RANGE_BYTES - 1)
+            position = range_start
+            last_error: Exception | None = None
+            for attempt in range(self.retries):
+                headers = {"Range": f"bytes={position}-{range_end}",
+                           "Accept-Encoding": "identity",
+                           "User-Agent": "omni-edge-agent-artifact-downloader/1"}
+                if self.token:
+                    headers["Authorization"] = f"Bearer {self.token}"
+                request = urllib.request.Request(self._url(artifact), headers=headers,
+                                                 method="GET")
+                try:
                     with self._opener.open(request, timeout=self.timeout_seconds) as response:
                         if response.status != 206:
                             raise DownloadError(
-                                f"server did not honor Range for {artifact.filename} chunk {index} "
-                                f"(HTTP {response.status})")
-                        match = _CONTENT_RANGE.fullmatch(response.headers.get("Content-Range", ""))
-                        if not match or tuple(map(int, match.groups())) != (position, end, artifact.size):
+                                f"server did not honor Range for {artifact.filename} "
+                                f"chunk {index} (HTTP {response.status})")
+                        match = _CONTENT_RANGE.fullmatch(
+                            response.headers.get("Content-Range", ""))
+                        if not match or tuple(map(int, match.groups())) != (
+                                position, range_end, artifact.size):
                             raise DownloadError(
                                 f"unexpected Content-Range for {artifact.filename} chunk {index}")
-                        expected = end - position + 1
+                        expected = range_end - position + 1
+                        lengths = response.headers.get_all("Content-Length", [])
+                        if len(lengths) != 1 or lengths[0] != str(expected):
+                            raise DownloadError(
+                                f"unexpected Content-Length for {artifact.filename} chunk {index}")
+                        encodings = response.headers.get_all("Content-Encoding", [])
+                        if (encodings and encodings != ["identity"]
+                                or response.headers.get("Transfer-Encoding") is not None):
+                            raise DownloadError(
+                                f"unexpected encoding for {artifact.filename} chunk {index}")
                         try:
                             body = response.read(expected + 1)
                         except http.client.IncompleteRead as exc:
                             body = exc.partial
-                        if not 0 < len(body) <= expected:
+                        if len(body) > expected:
                             raise DownloadError(
-                                f"invalid Range body for {artifact.filename} chunk {index}: "
-                                f"{len(body)}/{expected} bytes")
-                        pieces.append(body)
-                        position += len(body)
-                        if position == end + 1:
-                            return b"".join(pieces)
+                                f"oversized Range body for {artifact.filename} chunk {index}")
+                        if body:
+                            pieces.append(body)
+                            position += len(body)
+                        if position == range_end + 1:
+                            break
+                        last_error = DownloadError(
+                            f"short Range body for {artifact.filename} chunk {index}: "
+                            f"{position - range_start}/{range_end - range_start + 1} bytes")
+                except urllib.error.HTTPError as exc:
+                    if exc.code in {400, 401, 403, 404, 405, 410, 416}:
+                        raise DownloadError(
+                            f"HTTP {exc.code} for pinned artifact {artifact.filename} "
+                            f"at commit {artifact.revision}") from exc
+                    last_error = exc
+                except (urllib.error.URLError, TimeoutError, socket.timeout, OSError) as exc:
+                    last_error = exc
+                if attempt + 1 < self.retries:
+                    time.sleep(min(2 ** attempt, 8))
+            if position != range_end + 1:
                 raise DownloadError(
-                    f"incomplete Range for {artifact.filename} chunk {index}: "
-                    f"{position - start}/{end - start + 1} bytes after 16 segments")
-            except urllib.error.HTTPError as exc:
-                if exc.code in {400, 401, 403, 404, 405, 410, 416}:
-                    raise DownloadError(
-                        f"HTTP {exc.code} for pinned artifact {artifact.filename} "
-                        f"at commit {artifact.revision}") from exc
-                last_error = exc
-            except (urllib.error.URLError, TimeoutError, socket.timeout, OSError,
-                    DownloadError) as exc:
-                last_error = exc
-            if attempt + 1 < self.retries:
-                time.sleep(min(2 ** attempt, 8))
-        raise DownloadError(
-            f"failed to fetch {artifact.filename} chunk {index} after {self.retries} attempts: "
-            f"{last_error}") from last_error
+                    f"failed to fetch {artifact.filename} chunk {index} subrange "
+                    f"{range_start}-{range_end} after {self.retries} attempts: {last_error}") from last_error
+        body = b"".join(pieces)
+        if len(body) != end - start + 1:
+            raise DownloadError(f"incomplete chunk assembly for {artifact.filename} chunk {index}")
+        return body
 
     def download_one(self, artifact: Artifact,
                      progress_callback: Callable[[int, int], None] | None = None) -> DownloadResult:

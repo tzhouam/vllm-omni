@@ -119,8 +119,9 @@ matched at measurement time. A subsequent browser click/fill boundary change
 altered the imported Omni source, so this and the earlier three completed
 runs are historical for final-code qualification. None qualifies a default
 route: the independent signed memory, cancellation, placement, lineage, and
-bilingual quality gates have not been reviewed and attached. Other task
-classes require their own full profiles.
+bilingual quality gates have not been reviewed and attached. The separate
+current-source browser-text protocol below covers only its fixed local-page
+read task; other classes require their own full profiles.
 
 The separate Gemma artifact probe matches the pinned official GGUF and visual
 projector bytes to their published LFS identities, commit and license metadata.
@@ -137,9 +138,17 @@ environmental blocker, not a measured desktop-model failure. All indexed
 visual attempts predate the latest isolated-context network guard. The
 post-hardening browser-text smoke `native_f97dc44f38024b2d82794e73b1b745de`
 passed 6/6 measured requests with raw trace audit, but has only two requests
-per length and no endurance. A full browser-text protocol is in progress and
-has no audited outcome yet. Neither the smoke nor the in-progress run can
-qualify that task class.
+per length and no endurance. The following current-source fixed local-page
+read run `native_9f12bd06a5074fdd97429953825be09b` completed **60/60
+measured requests**, 20 per length after separate warmups, and **165/165
+sequential endurance requests** over 1,808.30 active seconds. Its raw trace,
+fixed-suite case, and batch-one protocol audits pass; imported-source and
+runtime digests matched the reviewed code at measurement time. Answer p95 was
+9.46, 11.97, and 14.44 seconds for short, medium, and long inputs, so medium
+and long missed the 10-second normal-answer target. This narrow fixed-page
+read result does not qualify a default route or open-web browsing, browser
+writes, desktop vision, or other task classes. Independent signed memory,
+cancellation, placement, lineage, and bilingual quality gates remain open.
 
 The production managed browser currently refuses `browser_click` and
 `browser_fill` before target inspection, approval, or page action. Native form

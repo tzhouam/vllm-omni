@@ -213,16 +213,24 @@ are also historical. No default route is qualified.
 
 The post-hardening browser-text-only smoke
 `native_f97dc44f38024b2d82794e73b1b745de` passed 6/6 with a valid raw
-trace audit. It has two measured requests per length and no endurance. A full
-browser-text protocol is running, with no audited outcome to report yet. An
-earlier browser-vision smoke passed 12/12, but a later desktop capture run
+trace audit. It has two measured requests per length and no endurance. Its
+current-source successor `native_9f12bd06a5074fdd97429953825be09b`
+completed the fixed local-page read protocol: **60/60 measured requests**
+(20 per length after separate warmups) and **165/165 sequential endurance
+requests** over 1,808.30 active seconds. Raw trace, fixed-suite case, and
+batch-one protocol audits pass; the imported-source/runtime digests matched
+the reviewed code at measurement time. Whole-Agent answer p95 was **9.46,
+11.97, and 14.44 seconds** for short, medium, and long cases, so medium and
+long missed the 10-second normal-answer target. The [rolling status](STATUS.md)
+reports TTFT, hashes, cold load, and sampled telemetry. This fixed-page read
+observation does not qualify open-web behavior, browser writes, vision, or a
+default route. An earlier browser-vision smoke passed 12/12, but a later desktop capture run
 without foreground verification reconstructed only 6/12 and cannot isolate
 model quality from visibility. A later visual attempt completed one
 warmup and one measured browser screenshot, then stopped before the next
 desktop case when Windows could not verify the Edge fixture in the
 foreground. All indexed visual attempts predate the latest browser hardening;
-no indexed browser or visual class has completed the full protocol on that
-source. The separate
+no visual class has completed the full protocol on that source. The separate
 [bilingual memory-quality probe](public_evidence/agent_memory_quality_20261006.json)
 retains a 3/4 failure and a later 4/4 observation, both unsigned; the 4/4
 run predates the later exact-content memory index. Default-route promotion
