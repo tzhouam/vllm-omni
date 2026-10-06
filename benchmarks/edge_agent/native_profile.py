@@ -36,6 +36,50 @@ from vllm_omni.edge.agent.tools import ManagedEdgeBrowser, WindowsScreen
 
 
 SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
+STRUCTURED_READ_URL_SUITE_ID = SUITE_ID + "+explicit-read-url-v1"
+ORDINARY_SUBMISSION_MODE = "model_selected_tools_v1"
+STRUCTURED_READ_URL_MODE = "explicit_read_url_v1"
+
+
+def _profile_classes(selected_classes: set[str] | None,
+                     structured_read_url: bool) -> set[str] | None:
+    """Keep the explicit URL workflow isolated to its fixed browser cases."""
+    if not structured_read_url:
+        return selected_classes
+    if selected_classes is None:
+        return {"browser_text"}
+    if selected_classes != {"browser_text"}:
+        raise ValueError("--structured-read-url requires only --task-class browser_text")
+    return selected_classes
+
+
+def _structured_input(case: AgentCase, fixture_origin: str) -> tuple[str, str]:
+    """Accept only exact generated fixtures, never parse a free-form prompt."""
+    if case.task_class != "browser_text" or case.metadata.get("kind") != "browser_text":
+        raise ValueError("structured Read URL accepts browser_text fixtures only")
+    canonical = [row for rows in build_paired_cases(fixture_origin, 10)["browser_text"].values()
+                 for row in rows if row.case_id == case.case_id]
+    if len(canonical) != 1 or case != canonical[0]:
+        raise ValueError("structured Read URL case differs from canonical fixed fixture")
+    return str(canonical[0].metadata["source"]), canonical[0].prompt
+
+
+def _input_contract(case: AgentCase, *, structured_read_url: bool,
+                    fixture_origin: str) -> dict[str, Any]:
+    url, instruction = (_structured_input(case, fixture_origin) if structured_read_url
+                        else (None, case.prompt))
+    payload = {
+        "submission_mode": (STRUCTURED_READ_URL_MODE if structured_read_url
+                            else ORDINARY_SUBMISSION_MODE),
+        "case_id": case.case_id,
+        "instruction_sha256": hashlib.sha256(instruction.encode("utf-8")).hexdigest(),
+        "instruction_utf8_bytes": len(instruction.encode("utf-8")),
+        "explicit_read_url": url,
+    }
+    payload["contract_sha256"] = hashlib.sha256(json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+    return payload
 
 
 def _foreground_fixture_window(title_marker: str) -> Mapping[str, Any]:
@@ -295,12 +339,15 @@ class NativeProfileBridge:
     """Keep one resident Omni route while every Agent request runs serially."""
 
     def __init__(self, *, native_config: Mapping[str, Any], config_root: Path,
-                 private_root: Path, fixture_origin: str, telemetry: WindowsTelemetry) -> None:
+                 private_root: Path, fixture_origin: str, telemetry: WindowsTelemetry,
+                 structured_read_url: bool = False) -> None:
         self.native_config = native_config
         self.config_root = config_root
         self.private_root = private_root
         self.fixture_origin = fixture_origin
         self.telemetry = telemetry
+        self.structured_read_url = structured_read_url
+        self.suite_id = (STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID)
         self.controller: Any = None
         self.route: ProfileRoute | None = None
         self._memory_path: Path | None = None
@@ -340,7 +387,7 @@ class NativeProfileBridge:
         config["qualification_bundles"] = []
         config["trusted_review_keys"] = {}
         config["experimental_bootstrap_route_id"] = route.route_id
-        config["qualification_suite_id"] = SUITE_ID
+        config["qualification_suite_id"] = self.suite_id
         self._preparation_counter += 1
         prefix = route.route_id.replace("/", "_") + f"-{self._preparation_counter}"
         self._memory_path = self.private_root / (prefix + ".sqlite")
@@ -397,6 +444,10 @@ class NativeProfileBridge:
                        phase: str, repetition: int) -> Mapping[str, Any]:
         if self.controller is None or self.route != route or self._memory_path is None:
             raise RuntimeError("route has not been cold-loaded")
+        input_contract = _input_contract(
+            case, structured_read_url=self.structured_read_url,
+            fixture_origin=self.fixture_origin,
+        )
         if self.controller.memory._path != self._memory_path:  # private benchmark DB only
             raise RuntimeError("benchmark memory path changed; refusing to delete events")
         self.telemetry.sample()  # abort the run if AC/battery condition drifted
@@ -404,6 +455,7 @@ class NativeProfileBridge:
         evidence: dict[str, Any] = {
             "private_memory_reset": True, "deleted_prior_fixture_events": deleted,
             "phase": phase, "repetition": repetition,
+            "input_contract": input_contract,
         }
         if self._fixture_screen is not None:
             self._fixture_screen.expected_title = None
@@ -446,7 +498,12 @@ class NativeProfileBridge:
             self._events = []
             self._emitter = emit
         try:
-            answer = await asyncio.wrap_future(self.controller.submit(case.prompt))
+            if self.structured_read_url:
+                url, instruction = _structured_input(case, self.fixture_origin)
+                answer = await asyncio.wrap_future(
+                    self.controller.submit_read_url(url, instruction))
+            else:
+                answer = await asyncio.wrap_future(self.controller.submit(case.prompt))
         finally:
             with self._lock:
                 events = list(self._events or [])
@@ -484,7 +541,8 @@ class NativeProfileBridge:
             self.route = None
 
 
-def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any]) -> ProfileConditions:
+def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
+                *, structured_read_url: bool = False) -> ProfileConditions:
     from vllm_omni.edge.agent.native_app import _fingerprint
     from vllm_omni.edge.agent.runtime_identity import (
         imported_omni_source_sha256, loaded_runtime_sha256,
@@ -497,6 +555,16 @@ def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any]) -
         except importlib.metadata.PackageNotFoundError:
             return "not-installed"
 
+    mode = STRUCTURED_READ_URL_MODE if structured_read_url else ORDINARY_SUBMISSION_MODE
+    notes = (
+        "Fixed loopback fixtures; sampled RAM/VRAM/NVIDIA device power/heat. "
+        "NVML GPU power is for the device as a whole, not model-only; system power unavailable. "
+        "Code case checks only static output, with no code execution tool. "
+        f"Submission mode: {mode}."
+    )
+    if structured_read_url:
+        notes += (" The canonical prompt is retained verbatim, so the URL also "
+                  "appears in the separate explicit URL field.")
     return ProfileConditions(
         hardware_id=f"{hardware.get('cpu')} | {hardware.get('gpu_name')} | "
                     f"RAM {hardware.get('host_ram_total_bytes')} bytes",
@@ -514,17 +582,17 @@ def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any]) -
             "vllm_omni_source": str(Path(__file__).resolve().parents[2]),
         },
         power_condition=str(hardware["power_condition"]),
-        suite_id=SUITE_ID,
+        suite_id=(STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID),
         environment_fingerprint=_fingerprint(dict(hardware)),
-        notes="Fixed loopback fixtures; sampled RAM/VRAM/NVIDIA device power/heat. "
-              "NVML GPU power is for the device as a whole, not model-only; system power unavailable. "
-              "Code case checks only static output, with no code execution tool.",
+        notes=notes,
     )
 
 
 async def run_native_profile(*, config_path: Path, lineage_path: Path,
                              output_dir: Path, selected_classes: set[str] | None = None,
-                             smoke: bool = False) -> Path:
+                             smoke: bool = False,
+                             structured_read_url: bool = False) -> Path:
+    selected_classes = _profile_classes(selected_classes, structured_read_url)
     if sys.platform != "win32":
         raise RuntimeError("whole-Agent profiling requires native Windows Python")
     from vllm_omni.edge.agent.native_app import _hardware_snapshot
@@ -534,7 +602,8 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
     lineage = json.loads(lineage_path.read_text(encoding="utf-8"))
     routes, provenance = load_profile_routes(native_config, lineage)
     hardware = _hardware_snapshot()
-    conditions = _conditions(hardware, native_config)
+    conditions = _conditions(hardware, native_config,
+                             structured_read_url=structured_read_url)
     speed = int(WindowsSettings().read("mouse_speed")["value"])
     work_root = output_dir.resolve() / ("native_" + uuid.uuid4().hex)
     work_root.mkdir(parents=True, exist_ok=False)
@@ -549,6 +618,8 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
         "scope": "whole_agent_batch1_paired_local_fixture",
         "protocol": "smoke_incomplete" if smoke else "full_20x3_and_30m",
         "automatic_qualification_export": False,
+        "submission_mode": (STRUCTURED_READ_URL_MODE if structured_read_url
+                            else ORDINARY_SUBMISSION_MODE),
         "qualification_blockers": [
             "independent memory admission evidence pending",
             "cancellation and recovery evidence pending",
@@ -577,10 +648,17 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                        for length, examples in buckets.items()}
                 for task, buckets in cases.items() if task in chosen
             }
+            manifest["case_input_contracts"] = {
+                task: {length: [_input_contract(
+                    case, structured_read_url=structured_read_url,
+                    fixture_origin=fixtures.origin,
+                ) for case in examples] for length, examples in buckets.items()}
+                for task, buckets in cases.items() if task in chosen
+            }
             bridge = NativeProfileBridge(
                 native_config=native_config, config_root=config_root,
                 private_root=private_root, fixture_origin=fixtures.origin,
-                telemetry=sampler,
+                telemetry=sampler, structured_read_url=structured_read_url,
             )
             try:
                 for task_class in sorted(chosen):
@@ -592,6 +670,7 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                     for route in routes:
                         result: dict[str, Any] = {"task_class": task_class,
                                                   "route_id": route.route_id,
+                                                  "submission_mode": manifest["submission_mode"],
                                                   "telemetry_interval_seconds": config.telemetry_interval_seconds}
                         entry = next(item for item in native_config["routes"]
                                      if item["route_id"] == route.route_id)
@@ -649,12 +728,15 @@ def main() -> None:
                                  "long_reasoning"))
     parser.add_argument("--smoke", action="store_true",
                         help="One measured request per length, no endurance; cannot qualify")
+    parser.add_argument("--structured-read-url", action="store_true",
+                        help="Profile only browser_text with explicit URL and canonical prompt instruction")
     args = parser.parse_args()
     index = asyncio.run(run_native_profile(
         config_path=args.config, lineage_path=args.lineage,
         output_dir=args.output_dir,
         selected_classes=set(args.task_class) if args.task_class else None,
         smoke=args.smoke,
+        structured_read_url=args.structured_read_url,
     ))
     print(index)
 

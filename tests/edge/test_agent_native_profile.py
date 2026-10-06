@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+import asyncio
+import hashlib
+from concurrent.futures import Future
 from dataclasses import asdict, replace
 from types import SimpleNamespace
 from urllib.request import urlopen
@@ -91,6 +94,69 @@ def test_loopback_fixtures_and_paired_languages_lengths():
         assert f"Omni visual fixture {site.origin.rsplit(':', 1)[-1]} en" in visual
         assert 'src="data:image/svg+xml;base64,' in visual
         assert "ORBIT-7391" in urlopen(site.origin + "/assets/en.svg").read().decode()
+
+
+def test_structured_read_url_uses_only_exact_canonical_browser_text():
+    with FixtureSite() as site:
+        cases = build_paired_cases(site.origin, 10)
+        case = cases["browser_text"]["long"][0]
+        url, instruction = native_profile._structured_input(case, site.origin)
+        assert url == case.metadata["source"]
+        assert instruction == case.prompt  # Preserve the paired input, including URL and filler.
+        contract = native_profile._input_contract(
+            case, structured_read_url=True, fixture_origin=site.origin)
+        ordinary = native_profile._input_contract(
+            case, structured_read_url=False, fixture_origin=site.origin)
+        assert contract["submission_mode"] == native_profile.STRUCTURED_READ_URL_MODE
+        assert contract["explicit_read_url"] == url
+        assert contract["instruction_sha256"] == hashlib.sha256(case.prompt.encode()).hexdigest()
+        assert contract["contract_sha256"] != ordinary["contract_sha256"]
+        with pytest.raises(ValueError, match="canonical fixed fixture"):
+            native_profile._structured_input(replace(case, prompt=case.prompt + " extra"), site.origin)
+        with pytest.raises(ValueError, match="browser_text fixtures only"):
+            native_profile._structured_input(cases["basic"]["short"][0], site.origin)
+
+
+def test_structured_read_url_bridge_calls_separate_controller_api(tmp_path):
+    with FixtureSite() as site:
+        case = build_paired_cases(site.origin, 10)["browser_text"]["short"][0]
+        calls = []
+
+        def submit_read_url(url, instruction):
+            calls.append((url, instruction))
+            future = Future()
+            future.set_result("answer")
+            return future
+
+        bridge = NativeProfileBridge(
+            native_config={}, config_root=tmp_path, private_root=tmp_path,
+            fixture_origin=site.origin,
+            telemetry=SimpleNamespace(sample=lambda: {"ram_used_bytes": 1}),
+            structured_read_url=True,
+        )
+        bridge.controller = SimpleNamespace(
+            submit_read_url=submit_read_url,
+            submit=lambda _prompt: pytest.fail("ordinary submit should not be used"),
+            memory=SimpleNamespace(_path=tmp_path / "memory.sqlite", delete_all=lambda: 0),
+            backends={"r": SimpleNamespace(execution_plan={"requested_device": "cpu"})},
+        )
+        bridge.route = _route()
+        bridge._memory_path = tmp_path / "memory.sqlite"
+        setup = bridge.before_request(_route(), case, "measured", 0)
+        assert setup["input_contract"]["submission_mode"] == native_profile.STRUCTURED_READ_URL_MODE
+        assert setup["input_contract"]["explicit_read_url"] == case.metadata["source"]
+        result = asyncio.run(bridge.run(_route(), case, lambda *_: None))
+        assert result.final_answer == "answer"
+        assert calls == [(case.metadata["source"], case.prompt)]
+        assert bridge.suite_id == native_profile.STRUCTURED_READ_URL_SUITE_ID
+
+
+def test_structured_mode_rejects_other_task_classes():
+    assert native_profile._profile_classes(None, True) == {"browser_text"}
+    assert native_profile._profile_classes({"browser_text"}, True) == {"browser_text"}
+    with pytest.raises(ValueError, match="requires only"):
+        native_profile._profile_classes({"browser_text", "basic"}, True)
+    assert native_profile._profile_classes({"basic"}, False) == {"basic"}
 
 
 def test_desktop_fixture_requires_verified_foreground_before_request(monkeypatch, tmp_path):
@@ -215,6 +281,24 @@ def test_native_cli_accepts_new_task_classes(monkeypatch, tmp_path, capsys, task
     assert captured["selected_classes"] == {task_class}
     assert captured["smoke"] is True
     assert capsys.readouterr().out.strip() == str(tmp_path / "index.json")
+
+
+def test_native_cli_selects_structured_read_url(monkeypatch, tmp_path):
+    captured = {}
+
+    async def fake_profile(**kwargs):
+        captured.update(kwargs)
+        return tmp_path / "index.json"
+
+    monkeypatch.setattr(native_profile, "run_native_profile", fake_profile)
+    monkeypatch.setattr("sys.argv", [
+        "native_profile", "--config", "config.json", "--lineage", "lineage.json",
+        "--output-dir", str(tmp_path), "--task-class", "browser_text",
+        "--structured-read-url", "--smoke",
+    ])
+    native_profile.main()
+    assert captured["selected_classes"] == {"browser_text"}
+    assert captured["structured_read_url"] is True
 
 
 def test_evaluator_requires_exact_answer_and_actual_read_evidence():

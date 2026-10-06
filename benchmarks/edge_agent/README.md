@@ -191,6 +191,19 @@ python -X utf8 -m benchmarks.edge_agent.native_profile `
   --task-class memory --smoke
 ```
 
+To measure the explicit **Read URL** action, select `--task-class browser_text`
+and `--structured-read-url`. This mode passes the fixed case's URL through the
+controller's separate trusted URL field and retains its canonical prompt
+verbatim as the answer instruction. The URL therefore occurs in both fields;
+the runner does not infer an action by parsing arbitrary prompt text. The
+ordinary browser-text mode remains selectable without the flag. Each mode has
+a distinct suite ID and records its mode, URL, instruction hash, and input
+contract hash in the private raw evidence, so their latency samples cannot be
+silently combined. Use the same config, route, canonical fixture content, and
+power condition when comparing them; the loopback port changes between runs
+and its exact URL is preserved in each raw trace. `--smoke` remains a
+functionality check, not a qualified latency result.
+
 Omit `--smoke` for the full protocol: separate warmups, 20 measured requests
 per length, and 30 minutes of consecutive single-request Agent work. The
 short smoke runs one measured pass over every Chinese/English case per length
