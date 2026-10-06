@@ -8,15 +8,21 @@ window then reports the missing optional dependency plainly.
 
 from __future__ import annotations
 
+import base64
+import binascii
+import hashlib
 import json
 import threading
 from typing import Any, Callable, Mapping, Protocol
+from urllib.parse import parse_qsl
 
 try:
     from PySide6.QtCore import QObject, Qt, Signal
     from PySide6.QtGui import QTextCursor
     from PySide6.QtWidgets import (
         QApplication,
+        QDialog,
+        QDialogButtonBox,
         QHBoxLayout,
         QLabel,
         QListWidget,
@@ -56,12 +62,82 @@ def _display_payload(value: Any) -> Any:
     if isinstance(value, Mapping):
         return {
             key: f"<image data, {value.get('size_bytes', 'unknown')} bytes>" if key == "base64"
+            else "<POST body; inspect the exact approval review>" if key == "body_b64"
             else _display_payload(item)
             for key, item in value.items()
         }
     if isinstance(value, (list, tuple)):
         return [_display_payload(item) for item in value]
     return value
+
+
+def _browser_post_review(challenge: Mapping[str, Any]) -> str:
+    """Render every approved POST byte while checking the bound UI metadata."""
+    action = challenge.get("action")
+    action = action if isinstance(action, Mapping) else {}
+    operation = challenge.get("operation", action.get("operation"))
+    arguments = challenge.get("arguments", action.get("arguments"))
+    target = challenge.get("target")
+    if operation != "browser_post" or not isinstance(arguments, Mapping) or not isinstance(target, Mapping):
+        raise ValueError("POST approval has no exact action and target")
+    url = arguments.get("url")
+    content_type = arguments.get("content_type")
+    body_b64 = arguments.get("body_b64")
+    if (not isinstance(url, str) or not url or not isinstance(content_type, str)
+            or not isinstance(body_b64, str)):
+        raise ValueError("POST approval has incomplete request data")
+    try:
+        body = base64.b64decode(body_b64, validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError("POST approval body is not canonical base64") from exc
+    if base64.b64encode(body).decode("ascii") != body_b64:
+        raise ValueError("POST approval body is not canonical base64")
+    digest = hashlib.sha256(body).hexdigest()
+    if (target.get("url") != url or target.get("content_type") != content_type
+            or type(target.get("body_size")) is not int or target["body_size"] != len(body)
+            or target.get("body_sha256") != digest):
+        raise ValueError("POST approval target, media type, size or SHA-256 does not match its body")
+    fingerprint = target.get("cookie_fingerprint")
+    if (not isinstance(fingerprint, str) or len(fingerprint) != 64
+            or any(char not in "0123456789abcdef" for char in fingerprint)):
+        raise ValueError("POST approval has no cookie context fingerprint")
+    lines = [
+        "HTTP POST — review the exact request before approving",
+        f"Target URL: {url}",
+        f"Current page: {target.get('current_url', 'unreported')}",
+        f"Content-Type: {content_type}",
+        f"Body size: {len(body)} bytes",
+        f"Body SHA-256: {digest}",
+        f"Cookie context fingerprint: {fingerprint}",
+        f"Applicable cookies: {target.get('cookie_count', 'unreported')}",
+        "Redirects and automatic retries: disabled",
+    ]
+    try:
+        decoded = body.decode("utf-8")
+    except UnicodeDecodeError:
+        lines.extend(["", "Body is not UTF-8; complete bytes appear below."])
+    else:
+        lines.extend(["", "Complete UTF-8 body (original whitespace preserved):", decoded])
+        if content_type == "application/x-www-form-urlencoded":
+            fields = parse_qsl(decoded, keep_blank_values=True)
+            lines.extend([
+                "", "Decoded form fields (order and duplicate names preserved):",
+                json.dumps(fields, ensure_ascii=False, indent=2),
+            ])
+        elif content_type == "application/json":
+            try:
+                parsed = json.loads(decoded)
+            except json.JSONDecodeError:
+                pass
+            else:
+                lines.extend([
+                    "", "Parsed JSON for review (the original bytes above remain authoritative):",
+                    json.dumps(parsed, ensure_ascii=False, indent=2),
+                ])
+    # A bytewise representation remains available even for text with hidden
+    # controls, CRLF normalization, or Unicode direction marks in a Qt widget.
+    lines.extend(["", "Complete request body bytes (hex):", body.hex(" ")])
+    return "\n".join(lines)
 
 
 if QApplication is None:
@@ -264,9 +340,40 @@ else:
             self.transcript.appendPlainText(f"[approval error] {detail}")
             self.status_label.setText(detail)
 
+        def _confirm_browser_post(self, review: str) -> bool:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Review exact browser POST")
+            dialog.resize(900, 680)
+            layout = QVBoxLayout(dialog)
+            explanation = QLabel(
+                "This sends one HTTP POST. Review the full target and body below; "
+                "a timeout may leave the server-side result uncertain."
+            )
+            explanation.setWordWrap(True)
+            layout.addWidget(explanation)
+            preview = QPlainTextEdit(dialog)
+            preview.setObjectName("browser_post_exact_review")
+            preview.setReadOnly(True)
+            preview.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+            preview.setPlainText(review)
+            layout.addWidget(preview)
+            buttons = QDialogButtonBox(
+                QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+                parent=dialog,
+            )
+            buttons.button(QDialogButtonBox.StandardButton.Ok).setText("Approve exact POST")
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+            return dialog.exec() == QDialog.DialogCode.Accepted
+
         def _approve_selected(self) -> None:
             item = self.approvals.currentItem()
-            if item is not None and item.data(Qt.ItemDataRole.UserRole + 1) == "high_impact_external_action":
+            if item is not None and item.data(Qt.ItemDataRole.UserRole + 3) == "browser_post":
+                review = item.data(Qt.ItemDataRole.UserRole + 2)
+                if not isinstance(review, str) or not self._confirm_browser_post(review):
+                    return
+            elif item is not None and item.data(Qt.ItemDataRole.UserRole + 1) == "high_impact_external_action":
                 choice = QMessageBox.question(
                     self, "Confirm high-impact browser action",
                     "This control may send, purchase, or delete data. Approve the exact action shown?",
@@ -357,15 +464,38 @@ else:
                 if isinstance(challenge, Mapping):
                     challenge_id = challenge.get("challenge_id")
                     if isinstance(challenge_id, str) and challenge_id:
-                        display = (
-                            f"{challenge.get('risk', 'action')}: {challenge.get('description', '')}\n"
-                            f"Target: {json.dumps(challenge.get('target', {}), ensure_ascii=False)}\n"
-                            f"Requested {challenge.get('operation', 'operation')}: "
-                            f"{json.dumps(challenge.get('arguments', {}), ensure_ascii=False)}"
-                        )
+                        action = challenge.get("action")
+                        action = action if isinstance(action, Mapping) else {}
+                        operation = challenge.get("operation", action.get("operation"))
+                        review = None
+                        if operation == "browser_post":
+                            try:
+                                review = _browser_post_review(challenge)
+                            except ValueError as exc:
+                                detail = f"POST approval cannot be reviewed: {exc}"
+                                self.transcript.appendPlainText(f"[approval error] {detail}")
+                                self.status_label.setText(detail)
+                                return
+                            target = challenge["target"]
+                            display = (
+                                "HTTP POST — exact request approval required\n"
+                                f"Target URL: {target['url']}\n"
+                                f"Content-Type: {target['content_type']}\n"
+                                f"Body: {target['body_size']} bytes; SHA-256 {target['body_sha256']}\n"
+                                "Select Approve to inspect every payload byte."
+                            )
+                        else:
+                            display = (
+                                f"{challenge.get('risk', 'action')}: {challenge.get('description', '')}\n"
+                                f"Target: {json.dumps(challenge.get('target', {}), ensure_ascii=False)}\n"
+                                f"Requested {operation or 'operation'}: "
+                                f"{json.dumps(challenge.get('arguments', {}), ensure_ascii=False)}"
+                            )
                         item = QListWidgetItem(display)
                         item.setData(Qt.ItemDataRole.UserRole, challenge_id)
                         item.setData(Qt.ItemDataRole.UserRole + 1, challenge.get("risk"))
+                        item.setData(Qt.ItemDataRole.UserRole + 2, review)
+                        item.setData(Qt.ItemDataRole.UserRole + 3, operation)
                         self.approvals.addItem(item)
                         self.approvals.setCurrentItem(item)
                         self.approve_button.setEnabled(True)
