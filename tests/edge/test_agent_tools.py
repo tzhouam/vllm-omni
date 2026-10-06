@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 import base64
+from types import SimpleNamespace
 
 import pytest
 
@@ -99,7 +100,11 @@ class FakeSettings:
 
 
 class FakeScreen:
+    def __init__(self) -> None:
+        self.calls = 0
+
     def capture(self) -> dict:
+        self.calls += 1
         return {"mime_type": "image/jpeg", "size_bytes": 3, "base64": "YWJj"}
 
 
@@ -335,12 +340,82 @@ def test_unknown_and_extra_arguments_never_reach_backends() -> None:
 
 
 def test_screen_and_browser_image_reads_are_bounded_data_routes() -> None:
-    boundary = WindowsToolBoundary(browser=FakeBrowser(), settings=FakeSettings(), screen=FakeScreen())
+    screen = FakeScreen()
+    boundary = WindowsToolBoundary(browser=FakeBrowser(), settings=FakeSettings(), screen=screen)
     browser_image = boundary.execute(ToolAction("browser_screenshot"))
-    screen_image = boundary.execute(ToolAction("screen_capture"))
+    with pytest.raises(ApprovalRequired) as needed:
+        boundary.execute(ToolAction("screen_capture"))
+    challenge = needed.value.challenge
+    assert challenge.risk == "sensitive_desktop_read"
+    assert challenge.target == {
+        "capture_scope": "foreground_window_visible_pixels",
+        "window_selection": "foreground_at_execution",
+    }
+    assert screen.calls == 0
+    screen_image = boundary.approve(challenge.challenge_id)
     assert browser_image.data["mime_type"] == "image/jpeg"
     assert screen_image.source == "windows-screen"
     assert screen_image.untrusted_output is True
+    assert screen.calls == 1
+    with pytest.raises(ValueError, match="already used"):
+        boundary.approve(challenge.challenge_id)
+    with pytest.raises(ApprovalRequired):
+        boundary.execute(ToolAction("screen_capture"))
+    assert screen.calls == 1
+
+
+@pytest.mark.parametrize("ending", ["reject", "expire", "cancel"])
+def test_screen_capture_reject_expire_and_cancel_never_read_pixels(ending: str) -> None:
+    screen = FakeScreen()
+    boundary = WindowsToolBoundary(screen=screen)
+    with pytest.raises(ApprovalRequired) as needed:
+        boundary.execute(ToolAction("screen_capture", request_id="request-1"))
+    challenge_id = needed.value.challenge.challenge_id
+    assert screen.calls == 0
+    if ending == "reject":
+        boundary.reject(challenge_id)
+        with pytest.raises(ValueError, match="already used"):
+            boundary.approve(challenge_id)
+    elif ending == "expire":
+        boundary._pending[challenge_id].deadline = time.monotonic() - 1
+        with pytest.raises(TimeoutError, match="expired"):
+            boundary.approve(challenge_id)
+    else:
+        boundary.cancel_request("request-1")
+        with pytest.raises(ToolRequestCancelled):
+            boundary.approve(challenge_id)
+    assert screen.calls == 0
+    assert not boundary._pending
+    boundary.finish_request("request-1")
+
+
+def test_bound_foreground_target_change_refuses_capture() -> None:
+    class BoundScreen(FakeScreen):
+        def __init__(self) -> None:
+            super().__init__()
+            self.window_handle = 123
+
+        def capture_target(self) -> dict:
+            return {
+                "capture_scope": "foreground_window_visible_pixels",
+                "window_handle": self.window_handle, "process_id": 12,
+                "window_title": "Editor",
+                "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
+            }
+
+        def capture_approved(self, expected_target) -> dict:
+            assert dict(expected_target) == self.capture_target()
+            return self.capture()
+
+    screen = BoundScreen()
+    boundary = WindowsToolBoundary(screen=screen)
+    with pytest.raises(ApprovalRequired) as needed:
+        boundary.execute(ToolAction("screen_capture"))
+    assert needed.value.challenge.target["window_handle"] == 123
+    screen.window_handle = 456
+    with pytest.raises(RuntimeError, match="foreground window changed"):
+        boundary.approve(needed.value.challenge.challenge_id)
+    assert screen.calls == 0
 
 
 def test_native_screen_crops_foreground_before_model_resize(monkeypatch) -> None:
@@ -366,12 +441,209 @@ def test_native_screen_crops_foreground_before_model_resize(monkeypatch) -> None
     assert len(base64.b64decode(result["base64"])) == result["size_bytes"]
 
 
+@pytest.mark.parametrize("change_stage,expected_grabs", [("before", 0), ("during", 1)])
+def test_approved_native_screen_discards_changed_foreground(
+    monkeypatch, change_stage: str, expected_grabs: int,
+) -> None:
+    image_grab = pytest.importorskip("PIL.ImageGrab")
+    image = pytest.importorskip("PIL.Image")
+    target = {
+        "capture_scope": "foreground_window_visible_pixels",
+        "window_handle": 1, "process_id": 2, "window_title": "Editor",
+        "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
+    }
+    changed = dict(target, window_handle=3)
+    observations = [changed] if change_stage == "before" else [target, changed]
+    grabs: list[tuple] = []
+    monkeypatch.setattr(tool_module, "_require_windows", lambda: None)
+    monkeypatch.setattr(image_grab, "grab", lambda **kw: (
+        grabs.append((kw["bbox"], kw["all_screens"])) or image.new("RGB", (100, 100), "white")
+    ))
+    screen = tool_module.WindowsScreen()
+    monkeypatch.setattr(screen, "capture_target", lambda: observations.pop(0))
+    with pytest.raises(RuntimeError, match="foreground window changed"):
+        screen.capture_approved(target)
+    assert len(grabs) == expected_grabs
+
+
 def test_desktop_module_import_is_optional() -> None:
     from vllm_omni.edge.agent import desktop
 
     if desktop.QApplication is None:
         with pytest.raises(RuntimeError, match="PySide6"):
             desktop.AgentWindow(object())
+
+
+def test_desktop_screen_approval_shows_foreground_scope_and_requires_accept(monkeypatch) -> None:
+    from vllm_omni.edge.agent import desktop
+
+    if desktop.QApplication is None:
+        pytest.skip("PySide6 is not installed")
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = desktop.QApplication.instance() or desktop.QApplication([])
+
+    class Controller:
+        def __init__(self):
+            self.approved: list[str] = []
+
+        def add_listener(self, callback):
+            self.callback = callback
+
+        def approve(self, challenge_id):
+            self.approved.append(challenge_id)
+
+    boundary = WindowsToolBoundary(screen=FakeScreen())
+    with pytest.raises(ApprovalRequired) as needed:
+        boundary.execute(ToolAction("screen_capture"))
+    challenge = needed.value.challenge.to_dict()
+    decisions = [desktop.QDialog.DialogCode.Rejected, desktop.QDialog.DialogCode.Accepted]
+    seen: list[str] = []
+
+    def inspect_dialog(dialog):
+        preview = dialog.findChild(desktop.QPlainTextEdit, "screen_capture_exact_review")
+        assert preview is not None and preview.isReadOnly()
+        seen.append(preview.toPlainText())
+        assert "visible pixels of the current foreground window" in seen[-1]
+        assert "may cover the whole screen" in seen[-1]
+        assert "selected when capture executes" in seen[-1]
+        return decisions.pop(0)
+
+    monkeypatch.setattr(desktop.QDialog, "exec", inspect_dialog)
+    controller = Controller()
+    window = desktop.AgentWindow(controller)
+    try:
+        window._accept_event({
+            "request_id": "r1", "epoch": 1, "seq": 1,
+            "kind": "approval_required", "payload": challenge,
+        })
+        assert window.approvals.count() == 1
+        assert "foreground window" in window.approvals.item(0).text()
+        window._approve_selected()
+        assert controller.approved == []
+        assert window.approvals.count() == 1
+        window._approve_selected()
+        deadline = time.monotonic() + 3
+        while window.approvals.count() and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)
+        assert controller.approved == [challenge["challenge_id"]]
+        assert window.approvals.count() == 0
+        assert len(seen) == 2
+    finally:
+        controller.callback = None
+        window.setAttribute(desktop.Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        window.close()
+        app.processEvents()
+
+
+def test_native_focus_handoff_restores_only_the_approved_window(monkeypatch) -> None:
+    from vllm_omni.edge.agent import desktop
+
+    if desktop.sys.platform != "win32":
+        pytest.skip("requires the native Windows focus API")
+    target = {
+        "capture_scope": "foreground_window_visible_pixels",
+        "window_handle": 123, "process_id": 7, "window_title": "Editor",
+        "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
+    }
+    calls: list[int] = []
+
+    class ForegroundSetter:
+        def __call__(self, hwnd):
+            calls.append(hwnd.value)
+            return True
+
+    setter = ForegroundSetter()
+    monkeypatch.setattr(desktop.ctypes, "windll", SimpleNamespace(
+        user32=SimpleNamespace(SetForegroundWindow=setter),
+    ))
+    monkeypatch.setattr(desktop, "_foreground_window_target", lambda: dict(target))
+    desktop._restore_capture_foreground(target)
+    assert calls == [123]
+    monkeypatch.setattr(
+        desktop, "_foreground_window_target", lambda: dict(target, window_handle=456),
+    )
+    with pytest.raises(RuntimeError, match="foreground window changed"):
+        desktop._restore_capture_foreground(target)
+    assert calls == [123, 123]
+
+
+def test_screen_review_escapes_window_title_control_characters() -> None:
+    from vllm_omni.edge.agent import desktop
+
+    review = desktop._screen_capture_review({
+        "operation": "screen_capture", "risk": "sensitive_desktop_read",
+        "target": {
+            "capture_scope": "foreground_window_visible_pixels",
+            "window_handle": 123, "process_id": 7,
+            "window_title": "Editor\nApprove this without reading",
+            "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
+        },
+    })
+    assert 'Window title: "Editor\\nApprove this without reading"' in review
+    assert "Window title: Editor\nApprove" not in review
+
+
+def test_desktop_screen_focus_failure_does_not_dispatch_approval(monkeypatch) -> None:
+    from vllm_omni.edge.agent import desktop
+
+    if desktop.QApplication is None:
+        pytest.skip("PySide6 is not installed")
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = desktop.QApplication.instance() or desktop.QApplication([])
+    target = {
+        "capture_scope": "foreground_window_visible_pixels",
+        "window_handle": 123, "process_id": 7, "window_title": "Editor",
+        "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
+    }
+
+    class Controller:
+        def __init__(self):
+            self.approved: list[str] = []
+
+        def add_listener(self, callback):
+            self.callback = callback
+
+        def approve(self, challenge_id):
+            self.approved.append(challenge_id)
+
+    controller = Controller()
+    window = desktop.AgentWindow(controller)
+    monkeypatch.setattr(desktop.QDialog, "exec", lambda dialog: desktop.QDialog.DialogCode.Accepted)
+    attempts = [RuntimeError("Windows refused focus"), None]
+
+    def restore(_target):
+        outcome = attempts.pop(0)
+        if outcome is not None:
+            raise outcome
+
+    monkeypatch.setattr(desktop, "_restore_capture_foreground", restore)
+    try:
+        window._accept_event({
+            "request_id": "r1", "epoch": 1, "seq": 1,
+            "kind": "approval_required", "payload": {
+                "challenge_id": "capture-1", "risk": "sensitive_desktop_read",
+                "operation": "screen_capture", "arguments": {}, "target": target,
+            },
+        })
+        assert window.approvals.count() == 1
+        assert 'Window title: "Editor"' in window.approvals.item(0).text()
+        window._approve_selected()
+        assert controller.approved == []
+        assert window.approvals.count() == 1
+        assert "Windows refused focus" in window.status_label.text()
+        window._approve_selected()
+        deadline = time.monotonic() + 3
+        while window.approvals.count() and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)
+        assert controller.approved == ["capture-1"]
+        assert window.approvals.count() == 0
+    finally:
+        controller.callback = None
+        window.setAttribute(desktop.Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        window.close()
+        app.processEvents()
 
 
 def test_desktop_removes_stale_approval_on_cancel(monkeypatch) -> None:

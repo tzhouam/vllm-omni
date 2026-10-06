@@ -10,11 +10,15 @@ from __future__ import annotations
 
 import base64
 import binascii
+import ctypes
 import hashlib
 import json
+import sys
 import threading
 from typing import Any, Callable, Mapping, Protocol
 from urllib.parse import parse_qsl
+
+from vllm_omni.edge.agent.tools import _foreground_window_target
 
 try:
     from PySide6.QtCore import QObject, Qt, Signal
@@ -138,6 +142,57 @@ def _browser_post_review(challenge: Mapping[str, Any]) -> str:
     # controls, CRLF normalization, or Unicode direction marks in a Qt widget.
     lines.extend(["", "Complete request body bytes (hex):", body.hex(" ")])
     return "\n".join(lines)
+
+
+def _screen_capture_review(challenge: Mapping[str, Any]) -> str:
+    """Show the exact foreground-window scope before a sensitive read."""
+    action = challenge.get("action")
+    action = action if isinstance(action, Mapping) else {}
+    operation = challenge.get("operation", action.get("operation"))
+    target = challenge.get("target")
+    if (operation != "screen_capture" or challenge.get("risk") != "sensitive_desktop_read"
+            or not isinstance(target, Mapping)
+            or target.get("capture_scope") != "foreground_window_visible_pixels"):
+        raise ValueError("screen capture approval has no verified foreground scope")
+    lines = [
+        "Sensitive desktop read — one foreground-window capture",
+        "Scope: visible pixels of the current foreground window; it may cover the whole screen.",
+    ]
+    if "window_handle" in target:
+        if (type(target.get("window_handle")) is not int
+                or type(target.get("process_id")) is not int
+                or not isinstance(target.get("window_title"), str)
+                or not isinstance(target.get("source_bbox"), Mapping)):
+            raise ValueError("screen capture approval has incomplete window identity")
+        lines.extend([
+            "Window title: " + json.dumps(target["window_title"] or "<untitled>", ensure_ascii=False),
+            f"Process ID: {target['process_id']}",
+            f"Window handle: {target['window_handle']}",
+            f"Visible bounds: {json.dumps(dict(target['source_bbox']), ensure_ascii=False)}",
+            "If the foreground window changes before or during capture, this approval fails.",
+        ])
+    elif target.get("window_selection") == "foreground_at_execution":
+        lines.append(
+            "The foreground window is selected when capture executes; it may change before then."
+        )
+    else:
+        raise ValueError("screen capture approval has no window selection rule")
+    return "\n".join(lines)
+
+
+def _restore_capture_foreground(target: Mapping[str, Any]) -> None:
+    """Hand focus back after the review dialog, before dispatching approval."""
+    if "window_handle" not in target:
+        return  # An injected backend selects the foreground window at execution.
+    if sys.platform != "win32" or type(target["window_handle"]) is not int:
+        raise RuntimeError("approved foreground window cannot be restored")
+    user32 = ctypes.windll.user32
+    user32.SetForegroundWindow.argtypes = [ctypes.c_void_p]
+    user32.SetForegroundWindow.restype = ctypes.c_bool
+    if not user32.SetForegroundWindow(ctypes.c_void_p(target["window_handle"])):
+        raise RuntimeError("Windows did not restore the approved foreground window")
+    if dict(_foreground_window_target()) != dict(target):
+        raise RuntimeError("foreground window changed after desktop approval")
 
 
 if QApplication is None:
@@ -369,11 +424,46 @@ else:
             layout.addWidget(buttons)
             return dialog.exec() == QDialog.DialogCode.Accepted
 
+        def _confirm_screen_capture(self, review: str) -> bool:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Review foreground-window capture")
+            dialog.resize(680, 400)
+            layout = QVBoxLayout(dialog)
+            preview = QPlainTextEdit(dialog)
+            preview.setObjectName("screen_capture_exact_review")
+            preview.setReadOnly(True)
+            preview.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
+            preview.setPlainText(review)
+            layout.addWidget(preview)
+            buttons = QDialogButtonBox(
+                QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel,
+                parent=dialog,
+            )
+            buttons.button(QDialogButtonBox.StandardButton.Ok).setText("Approve one capture")
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+            return dialog.exec() == QDialog.DialogCode.Accepted
+
         def _approve_selected(self) -> None:
             item = self.approvals.currentItem()
             if item is not None and item.data(Qt.ItemDataRole.UserRole + 3) == "browser_post":
                 review = item.data(Qt.ItemDataRole.UserRole + 2)
                 if not isinstance(review, str) or not self._confirm_browser_post(review):
+                    return
+            elif item is not None and item.data(Qt.ItemDataRole.UserRole + 3) == "screen_capture":
+                review = item.data(Qt.ItemDataRole.UserRole + 2)
+                if not isinstance(review, str) or not self._confirm_screen_capture(review):
+                    return
+                target = item.data(Qt.ItemDataRole.UserRole + 4)
+                try:
+                    if not isinstance(target, Mapping):
+                        raise RuntimeError("screen capture target is missing")
+                    _restore_capture_foreground(target)
+                except Exception as exc:
+                    detail = f"Screen capture approval held: {exc}"
+                    self.status_label.setText(detail)
+                    self.transcript.appendPlainText(f"[approval error] {detail}")
                     return
             elif item is not None and item.data(Qt.ItemDataRole.UserRole + 1) == "high_impact_external_action":
                 choice = QMessageBox.question(
@@ -486,6 +576,15 @@ else:
                                 f"Body: {target['body_size']} bytes; SHA-256 {target['body_sha256']}\n"
                                 "Select Approve to inspect every payload byte."
                             )
+                        elif operation == "screen_capture":
+                            try:
+                                review = _screen_capture_review(challenge)
+                            except ValueError as exc:
+                                detail = f"Screen capture approval cannot be reviewed: {exc}"
+                                self.transcript.appendPlainText(f"[approval error] {detail}")
+                                self.status_label.setText(detail)
+                                return
+                            display = review + "\nSelect Approve to confirm this one capture."
                         else:
                             display = (
                                 f"{challenge.get('risk', 'action')}: {challenge.get('description', '')}\n"
@@ -498,6 +597,8 @@ else:
                         item.setData(Qt.ItemDataRole.UserRole + 1, challenge.get("risk"))
                         item.setData(Qt.ItemDataRole.UserRole + 2, review)
                         item.setData(Qt.ItemDataRole.UserRole + 3, operation)
+                        if operation == "screen_capture":
+                            item.setData(Qt.ItemDataRole.UserRole + 4, dict(challenge["target"]))
                         self.approvals.addItem(item)
                         self.approvals.setCurrentItem(item)
                         self.approve_button.setEnabled(True)

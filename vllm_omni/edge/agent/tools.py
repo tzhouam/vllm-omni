@@ -895,6 +895,39 @@ def _foreground_window_bbox() -> tuple[int, int, int, int]:
     return (left, top, right, bottom)
 
 
+def _foreground_window_target() -> dict[str, Any]:
+    """Identify the visible foreground window without reading its pixels."""
+    user32 = ctypes.windll.user32
+    user32.GetForegroundWindow.restype = ctypes.c_void_p
+    hwnd = user32.GetForegroundWindow()
+    if not hwnd:
+        raise RuntimeError("no foreground window is available for capture")
+    bbox = _foreground_window_bbox()
+    if user32.GetForegroundWindow() != hwnd:
+        raise RuntimeError("foreground window changed during capture inspection")
+    user32.GetWindowThreadProcessId.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulong)]
+    user32.GetWindowThreadProcessId.restype = ctypes.c_ulong
+    pid = ctypes.c_ulong()
+    if not user32.GetWindowThreadProcessId(ctypes.c_void_p(hwnd), ctypes.byref(pid)):
+        raise OSError(ctypes.get_last_error(), "cannot identify foreground window process")
+    user32.GetWindowTextLengthW.argtypes = [ctypes.c_void_p]
+    user32.GetWindowTextLengthW.restype = ctypes.c_int
+    user32.GetWindowTextW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_int]
+    user32.GetWindowTextW.restype = ctypes.c_int
+    title_length = min(max(user32.GetWindowTextLengthW(ctypes.c_void_p(hwnd)), 0), 1024)
+    title = ctypes.create_unicode_buffer(title_length + 1)
+    user32.GetWindowTextW(ctypes.c_void_p(hwnd), title, len(title))
+    if user32.GetForegroundWindow() != hwnd:
+        raise RuntimeError("foreground window changed during capture inspection")
+    return {
+        "capture_scope": "foreground_window_visible_pixels",
+        "window_handle": int(hwnd), "process_id": int(pid.value),
+        "window_title": title.value,
+        "source_bbox": {"left": bbox[0], "top": bbox[1],
+                        "right": bbox[2], "bottom": bbox[3]},
+    }
+
+
 class WindowsScreen:
     """Bounded snapshot of the visible foreground window.
 
@@ -909,13 +942,28 @@ class WindowsScreen:
             raise ValueError("max_bytes must be at least 64,000")
         self.max_bytes = max_bytes
 
-    def capture(self) -> Mapping[str, Any]:
+    def capture_target(self) -> Mapping[str, Any]:
+        return _foreground_window_target()
+
+    def capture_approved(self, expected_target: Mapping[str, Any]) -> Mapping[str, Any]:
+        return self.capture(expected_target=expected_target)
+
+    def capture(self, *, expected_target: Mapping[str, Any] | None = None) -> Mapping[str, Any]:
         try:
             from PIL import ImageGrab
         except ImportError as exc:
             raise RuntimeError("install Pillow for native screen capture") from exc
-        bbox = _foreground_window_bbox()
+        if expected_target is None:
+            bbox = _foreground_window_bbox()
+        else:
+            observed = dict(self.capture_target())
+            if observed != dict(expected_target):
+                raise RuntimeError("foreground window changed after capture approval")
+            bounds = observed["source_bbox"]
+            bbox = (bounds["left"], bounds["top"], bounds["right"], bounds["bottom"])
         image = ImageGrab.grab(bbox=bbox, all_screens=True).convert("RGB")
+        if expected_target is not None and dict(self.capture_target()) != dict(expected_target):
+            raise RuntimeError("foreground window changed during approved capture")
         original_size = image.size
         # The admitted multimodal StageClient accepts at most 1024² pixels.
         # Resize at the tool boundary and report the source dimensions so the
@@ -1046,7 +1094,7 @@ class WindowsToolBoundary:
             if needs_approval:
                 challenge = self._propose(action, context=navigation_context)
                 raise ApprovalRequired(challenge)
-        if action.operation in _WRITE_OPERATIONS:
+        if action.operation in _WRITE_OPERATIONS or action.operation == "screen_capture":
             challenge = self._propose(action)
             raise ApprovalRequired(challenge)
         with self._lock:
@@ -1109,6 +1157,13 @@ class WindowsToolBoundary:
             current = dict(self.settings.read(str(action.arguments["setting"])))
             if current != pending.context:
                 raise RuntimeError("Windows setting changed after approval was requested")
+        elif action.operation == "screen_capture" and "window_handle" in pending.context:
+            target_reader = getattr(self.screen, "capture_target", None)
+            if not callable(target_reader):
+                raise RuntimeError("approved foreground target can no longer be verified")
+            current = dict(target_reader())
+            if current != pending.context:
+                raise RuntimeError("foreground window changed after capture approval was requested")
         # Cancellation may have arrived while the target was being inspected.
         # This is the final admission point for a write; an action admitted
         # before cancellation must be drained and reported by the controller.
@@ -1142,6 +1197,12 @@ class WindowsToolBoundary:
                 context = {"url": str(action.arguments["url"])}
             elif action.operation == "settings_set":
                 context = dict(self.settings.read(str(action.arguments["setting"])))
+            elif action.operation == "screen_capture":
+                target_reader = getattr(self.screen, "capture_target", None)
+                context = (dict(target_reader()) if callable(target_reader) else {
+                    "capture_scope": "foreground_window_visible_pixels",
+                    "window_selection": "foreground_at_execution",
+                })
             else:
                 context = {}
         # Keep the exact target used for the UI challenge immutable until
@@ -1151,6 +1212,8 @@ class WindowsToolBoundary:
         risk = "system_change" if action.operation == "settings_set" else "external_action"
         if action.operation in {"browser_open", "browser_follow", "browser_post"}:
             risk = "high_impact_external_action"
+        if action.operation == "screen_capture":
+            risk = "sensitive_desktop_read"
         if action.operation == "browser_click":
             if _high_impact_text(*(context.get(key) for key in
                                    ("text", "aria_label", "href", "url", "form_action"))):
@@ -1161,6 +1224,11 @@ class WindowsToolBoundary:
             "browser_click": "Click a browser control; this may send, buy, delete, or change external data",
             "browser_fill": "Fill a browser control; this may save data on an external site",
             "browser_post": "Send this exact HTTP POST body to the approved same-origin URL once",
+            "screen_capture": (
+                "Capture visible pixels of the current foreground window once; "
+                "it may cover the whole screen. A changed foreground target is refused "
+                "when the backend can identify it"
+            ),
             "settings_set": "Change an allowlisted Windows setting",
         }[action.operation]
         challenge = ApprovalChallenge(
@@ -1261,7 +1329,13 @@ class WindowsToolBoundary:
             data = self.browser.screenshot()
             source = str(data.get("url", self.browser.current_url()))
         elif op == "screen_capture":
-            data = self.screen.capture()
+            approved_capture = getattr(self.screen, "capture_approved", None)
+            if navigation_context is not None and "window_handle" in navigation_context:
+                if not callable(approved_capture):
+                    raise RuntimeError("approved foreground target cannot be bound during capture")
+                data = approved_capture(navigation_context)
+            else:
+                data = self.screen.capture()
             source = "windows-screen"
         elif op == "browser_click":
             authorized_click = getattr(self.browser, "click_authorized", None)
