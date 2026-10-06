@@ -15,21 +15,25 @@ from typing import Callable, Mapping, Sequence
 TASK_CLASSES = frozenset({"basic", "browser_text", "browser_vision", "windows_settings", "memory", "code_tools", "long_reasoning"})
 LENGTH_BUCKETS = ("short", "medium", "long")
 FIXED_SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
-_TASK_LINK = re.compile(
-    r"https?://[^\s<>\"'`]+"
-    r"|\b(?:[a-z0-9_-]+\.)+[a-z0-9_-]+[^\s<>\"'`]*",
-    re.IGNORECASE,
-)
+_DOTTED_TOKEN = re.compile(r"\w+\.\w+", re.UNICODE)
 
 
 def strip_task_links(text: str) -> str:
-    """Remove link spellings before interpreting user prose as tool intent.
+    """Mask URL- and path-shaped tokens before interpreting tool intent.
 
-    A URL path such as ``/screen_capture`` is a resource name, not a request
-    to capture the Windows desktop.  Keep this rule shared with the controller's
-    permission check so classification cannot grant a capability from a link.
+    A path such as ``/screen_capture`` or ``C:\\screen_capture`` is a resource
+    name, not a request to capture the desktop. Consume the entire token,
+    including quotes, brackets, and punctuation; explicit instructions next
+    to a link need whitespace separation. This fail-closed rule is shared with
+    the controller's permission check.
     """
-    return _TASK_LINK.sub(" ", text)
+    def mask(match: re.Match[str]) -> str:
+        token = match.group()
+        if "/" in token or "\\" in token or _DOTTED_TOKEN.search(token):
+            return " "
+        return token
+
+    return re.sub(r"\S+", mask, text)
 
 
 def nearest_rank(values: Sequence[float], fraction: float) -> float:
@@ -231,8 +235,9 @@ def classify_task(text: str, *, has_image: bool = False) -> str:
         return "windows_settings"
     if any(word in prose for word in (
         "screenshot", "screen_capture", "screen capture", "screen understanding",
+        "desktop screen", "desktop screenshot", "windows screen",
         "image", "visual", "图像", "图片", "截图", "屏幕", "视觉",
-    )):
+    )) or re.search(r"\bcapture (?:my |the )?screen\b", prose):
         return "browser_vision"
     if any(word in prose for word in ("code", "script", "debug", "代码", "编程")):
         return "code_tools"

@@ -97,9 +97,15 @@ def test_task_classifier_routes_mouse_speed_and_web_urls_to_tool_classes() -> No
     "https://example.com/screen_capture",
     "https://example.com/?x=a,screen_capture",
     "https://example.com/image.jpg,settings_set",
+    "https://example.com/'screen_capture'",
+    "https://example.com/`screen_capture`",
+    '<https://example.com/>screen_capture',
+    'https://example.com/"settings_set"',
     "example.com/screen_capture",
     "example.com/?x=a,screen_capture",
     "example.com,screen_capture",
+    "example.com/'screen_capture'",
+    "example.com/<screen_capture>",
 ))
 def test_task_classifier_does_not_treat_link_words_as_user_intent(url: str) -> None:
     task = f"Read the page at {url}"
@@ -117,9 +123,44 @@ def test_task_classifier_keeps_explicit_visual_code_and_settings_intent() -> Non
     assert "screen_capture" not in _permitted_tools(
         "browser_vision", "Read the image at https://example.com/?x=a,screen_capture",
     )
+    for link in (
+        "https://example.com/'screen_capture'",
+        "https://example.com/`screen_capture`",
+        "<https://example.com/>screen_capture",
+        "example.com/<screen_capture>",
+    ):
+        assert "screen_capture" not in _permitted_tools(
+            "browser_vision", f"Read the image at {link}",
+        )
     assert "screen_capture" in _permitted_tools(
         "browser_vision", "Use screen_capture to read the Windows desktop, then open example.com/image",
     )
+
+
+@pytest.mark.parametrize("link", (
+    "localhost/screen_capture",
+    "127.0.0.1/screen_capture",
+    "例子.com/屏幕截图",
+    "/screen_capture",
+    "./screen_capture",
+    "C:\\screen_capture",
+    "https://example.com/<screen_capture>",
+))
+def test_url_and_path_tokens_cannot_grant_desktop_capture(link: str) -> None:
+    task = f"Use the browser to read {link}"
+    assert classify_task(task) == "browser_text"
+    assert "screen_capture" not in _permitted_tools("browser_vision", f"Read the image at {link}")
+
+
+@pytest.mark.parametrize("task", (
+    "Capture my screen",
+    "Capture the screen",
+    "Show the desktop screen",
+    "Read the Windows screen",
+))
+def test_explicit_desktop_capture_request_selects_vision_and_grants_tool(task: str) -> None:
+    assert classify_task(task) == "browser_vision"
+    assert "screen_capture" in _permitted_tools("browser_vision", task)
 
 
 def test_browser_image_task_does_not_grant_desktop_capture() -> None:
