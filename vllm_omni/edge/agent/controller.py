@@ -145,6 +145,7 @@ class AgentController:
         admit: Callable[[Route], Admission], environment_fingerprint: str,
         power_condition: str, qualification_suite_id: str,
         bootstrap_route_id: str | None = None,
+        power_condition_provider: Callable[[], str] | None = None,
         limits: AgentLimits = AgentLimits(), session_id: str | None = None,
     ) -> None:
         self.routes = list(routes)
@@ -155,6 +156,10 @@ class AgentController:
         self.admit = admit
         self.environment_fingerprint = environment_fingerprint
         self.power_condition = power_condition
+        # Synthetic controllers keep their declared condition; the native app
+        # injects a live sensor so a long-running process cannot reuse an old
+        # AC/battery qualification after the machine changes power source.
+        self._power_condition_provider = power_condition_provider or (lambda: self.power_condition)
         self.qualification_suite_id = qualification_suite_id
         self.bootstrap_route_id = bootstrap_route_id
         self.limits = limits
@@ -181,6 +186,36 @@ class AgentController:
 
     def add_listener(self, callback: Callable[[Mapping[str, Any]], None]) -> None:
         self._listeners.append(callback)
+
+    def _current_power_condition(self, task_class: str) -> str | None:
+        try:
+            condition = self._power_condition_provider()
+        except Exception as exc:
+            self._emit("refusal", {
+                "task_class": task_class,
+                "message": "Current power condition could not be verified",
+                "reason": f"{type(exc).__name__}: {exc}",
+            })
+            return None
+        if not isinstance(condition, str) or not condition.strip():
+            self._emit("refusal", {
+                "task_class": task_class,
+                "message": "Current power condition could not be verified",
+            })
+            return None
+        return condition
+
+    @staticmethod
+    async def _release_loaded_backend(backend: ModelBackend) -> None:
+        closer = getattr(backend, "close", None)
+        if not callable(closer):
+            raise RuntimeError("loaded route has no release operation after power condition change")
+        released = (await closer() if inspect.iscoroutinefunction(closer)
+                    else await asyncio.to_thread(closer))
+        if inspect.isawaitable(released):
+            released = await released
+        if released is False:
+            raise RuntimeError("loaded route could not be released after power condition change")
 
     def _emit(self, kind: str, payload: Mapping[str, Any], *, source: str = "agent") -> str:
         self._seq += 1
@@ -439,16 +474,24 @@ class AgentController:
             )
             task_class = "browser_text" if read_url is not None else classify_task(prompt)
             permitted_tools = _permitted_tools(task_class, prompt)
+            power_condition = self._current_power_condition(task_class)
+            if power_condition is None:
+                return None
             decision = select_route(
                 task_class, self.routes, self.qualifications,
                 suite_id=self.qualification_suite_id,
                 environment_fingerprint=self.environment_fingerprint,
-                power_condition=self.power_condition, admit=self.admit,
-                bootstrap_route_id=self.bootstrap_route_id,
+                power_condition=power_condition, admit=self.admit,
+                # A configured experimental bootstrap cannot silently take
+                # over when the app's original power condition changes.
+                bootstrap_route_id=(self.bootstrap_route_id if power_condition == self.power_condition
+                                    else None),
             )
             if decision.route is None:
                 self._emit("refusal", {"task_class": task_class, "reasons": dict(decision.refusals),
-                                       "message": "No admitted, qualified complete route for this task"})
+                                       "power_condition": power_condition,
+                                       "initial_power_condition": self.power_condition,
+                                       "message": "No admitted, qualified complete route for this task and current power condition"})
                 return None
             route = decision.route
             backend = self.backends.get(route.route_id)
@@ -472,6 +515,19 @@ class AgentController:
                         with contextlib.suppress(Exception):
                             await load_task
                         raise
+            loaded_power_condition = self._current_power_condition(task_class)
+            if loaded_power_condition is None:
+                await self._release_loaded_backend(backend)
+                return None
+            if loaded_power_condition != power_condition:
+                await self._release_loaded_backend(backend)
+                self._emit("refusal", {
+                    "task_class": task_class, "route_id": route.route_id,
+                    "message": "Power condition changed during route loading; retry with current qualification",
+                    "selected_power_condition": power_condition,
+                    "observed_power_condition": loaded_power_condition,
+                })
+                return None
             execution_plan = getattr(backend, "execution_plan", None)
             if isinstance(execution_plan, Mapping):
                 requested_placement = execution_plan.get("requested_device")

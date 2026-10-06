@@ -135,11 +135,18 @@ def _dxgi_adapter_inventory() -> list[dict[str, Any]]:
         return []
 
 
+def _power_condition() -> str:
+    import psutil
+
+    battery = psutil.sensors_battery()
+    return ("AC" if battery is not None and battery.power_plugged else
+            "battery" if battery is not None else "unknown")
+
+
 def _hardware_snapshot(*, include_topology: bool = True) -> dict[str, Any]:
     import psutil
 
     vm = psutil.virtual_memory()
-    battery = psutil.sensors_battery()
     vram_available = None
     gpu_name = None
     driver = None
@@ -170,10 +177,7 @@ def _hardware_snapshot(*, include_topology: bool = True) -> dict[str, Any]:
         "gpu_name": gpu_name,
         "gpu_driver": driver,
         "dxgi_adapters": _dxgi_adapter_inventory() if include_topology else [],
-        "power_condition": (
-            "AC" if battery is not None and battery.power_plugged else
-            "battery" if battery is not None else "unknown"
-        ),
+        "power_condition": _power_condition(),
     }
 
 
@@ -345,6 +349,7 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
         tools=WindowsToolBoundary(), admit=coordinator.admit,
         environment_fingerprint=_fingerprint(hardware),
         power_condition=hardware["power_condition"],
+        power_condition_provider=_power_condition,
         qualification_suite_id=data.get("qualification_suite_id", "edge-agent-paired-v1"),
         bootstrap_route_id=data.get("experimental_bootstrap_route_id"),
         limits=AgentLimits(**data.get("limits", {})),

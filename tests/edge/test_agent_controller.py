@@ -294,6 +294,153 @@ def _controller(tmp_path, backend, tools):
     )
 
 
+def _qualified_controller(tmp_path, backend, power_condition_provider):
+    store = EncryptedMemoryStore(tmp_path / "memory.sqlite", AesGcmCipher(b"k" * 32))
+    return AgentController(
+        routes=[_route("qualified")],
+        qualifications=[_profile("qualified", successes=20, seconds=1)],
+        backends={"qualified": backend}, memory=store,
+        tools=WindowsToolBoundary(browser=_Browser()),
+        admit=lambda route: Admission(True, "live memory available"),
+        environment_fingerprint="hardware", power_condition="AC",
+        power_condition_provider=power_condition_provider,
+        qualification_suite_id="paired", bootstrap_route_id="qualified",
+    )
+
+
+def test_live_power_change_between_turns_refuses_resident_ac_route(tmp_path) -> None:
+    condition = {"value": "AC"}
+
+    class ResidentBackend(_Backend):
+        def __init__(self):
+            super().__init__(["ready"])
+            self.starts = 0
+            self.resident = False
+
+        def start(self):
+            self.starts += 1
+            self.resident = True
+
+    backend = ResidentBackend()
+    controller = _qualified_controller(tmp_path, backend, lambda: condition["value"])
+    events = []
+    controller.add_listener(events.append)
+    try:
+        assert controller.submit("Say ready").result(timeout=10) == "ready"
+        assert backend.resident
+        condition["value"] = "battery"
+        assert controller.submit("Say ready again").result(timeout=10) is None
+        assert backend.starts == 1
+        assert len(backend.prompts) == 1
+        assert [event["kind"] for event in events].count("route") == 1
+        refusal = [event for event in events if event["kind"] == "refusal"][-1]
+        assert refusal["payload"]["power_condition"] == "battery"
+        assert refusal["payload"]["initial_power_condition"] == "AC"
+        assert "no current whole-Agent batch-1 qualification" in refusal["payload"]["reasons"]["qualified"]
+    finally:
+        controller.close()
+
+
+def test_power_change_during_load_refuses_before_model_generation(tmp_path) -> None:
+    condition = {"value": "AC"}
+
+    class SwitchingBackend(_Backend):
+        def __init__(self):
+            super().__init__(["unused"])
+            self.close_calls = 0
+
+        def start(self):
+            condition["value"] = "battery"
+
+        def close(self):
+            self.close_calls += 1
+            return True
+
+    backend = SwitchingBackend()
+    controller = _qualified_controller(tmp_path, backend, lambda: condition["value"])
+    events = []
+    controller.add_listener(events.append)
+    try:
+        assert controller.submit("Say ready").result(timeout=10) is None
+        assert backend.prompts == []
+        assert backend.close_calls == 1
+        assert not any(event["kind"] in {"route", "final"} for event in events)
+        refusal = next(event for event in events if event["kind"] == "refusal")
+        assert refusal["payload"]["selected_power_condition"] == "AC"
+        assert refusal["payload"]["observed_power_condition"] == "battery"
+        assert "changed during route loading" in refusal["payload"]["message"]
+    finally:
+        controller.close()
+
+
+def test_power_change_release_failure_surfaces_error(tmp_path) -> None:
+    condition = {"value": "AC"}
+
+    class UndrainedBackend(_Backend):
+        def __init__(self):
+            super().__init__(["unused"])
+            self.close_calls = 0
+
+        def start(self):
+            condition["value"] = "battery"
+
+        def close(self):
+            self.close_calls += 1
+            return self.close_calls > 1
+
+    backend = UndrainedBackend()
+    controller = _qualified_controller(tmp_path, backend, lambda: condition["value"])
+    events = []
+    controller.add_listener(events.append)
+    try:
+        with pytest.raises(RuntimeError, match="could not be released"):
+            controller.submit("Say ready").result(timeout=10)
+        assert backend.prompts == []
+        assert backend.close_calls == 1
+        assert any(event["kind"] == "error" for event in events)
+        assert not any(event["kind"] in {"route", "final"} for event in events)
+    finally:
+        controller.close()
+
+
+def test_native_entrypoint_wires_live_power_reader(tmp_path, monkeypatch) -> None:
+    import vllm_omni.edge.agent.native_app as native_app
+
+    config_path = tmp_path / "native.json"
+    config_path.write_text(json.dumps({"routes": [{
+        "route_id": "cpu", "artifact_id": "artifact", "model": "model",
+        "placement": "cpu", "memory_demands": {"host_ram": 1},
+        "model_file": "unused.gguf", "model_sha256": "a" * 64,
+        "server_bin": "unused.exe", "server_sha256": "b" * 64,
+        "log_file": "unused.log", "memory_overhead_bytes": 1,
+    }]}), encoding="utf-8")
+    hardware = {
+        "host_ram_available_bytes": 100, "vram_available_bytes": None,
+        "gpu_name": None, "power_condition": "AC",
+    }
+    condition = {"value": "AC"}
+    captured = {}
+
+    class CapturedController:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setattr(native_app.sys, "platform", "win32")
+    monkeypatch.setattr(native_app, "_hardware_snapshot", lambda **_kwargs: hardware)
+    monkeypatch.setattr(native_app, "_fingerprint", lambda _hardware: "hardware")
+    monkeypatch.setattr(native_app, "_power_condition", lambda: condition["value"])
+    monkeypatch.setattr(native_app, "EncryptedMemoryStore", lambda _path: object())
+    monkeypatch.setattr(native_app, "WindowsToolBoundary", lambda: object())
+    monkeypatch.setattr(native_app, "AgentController", CapturedController)
+
+    controller, snapshot = native_app.build_controller(config_path)
+    assert isinstance(controller, CapturedController)
+    assert snapshot["power_condition"] == "AC"
+    assert captured["power_condition"] == "AC"
+    condition["value"] = "battery"
+    assert captured["power_condition_provider"]() == "battery"
+
+
 def test_bootstrap_is_explicit_and_observations_persist_encrypted(tmp_path) -> None:
     backend = _Backend(['{"final":"ready"}'])
     controller = _controller(tmp_path, backend, WindowsToolBoundary(browser=_Browser()))
