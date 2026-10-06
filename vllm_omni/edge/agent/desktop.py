@@ -29,6 +29,7 @@ try:
         QDialogButtonBox,
         QHBoxLayout,
         QLabel,
+        QLineEdit,
         QListWidget,
         QListWidgetItem,
         QMainWindow,
@@ -49,6 +50,7 @@ class DesktopController(Protocol):
 
     def add_listener(self, callback: Callable[[Any], None]) -> None: ...
     def submit(self, prompt: str) -> Any: ...
+    def submit_read_url(self, url: str, instruction: str) -> Any: ...
     def cancel(self) -> Any: ...
     def approve(self, challenge_id: str) -> Any: ...
     def reject(self, challenge_id: str) -> Any: ...
@@ -267,6 +269,16 @@ else:
             self.prompt.setPlaceholderText("Describe a browser, Windows Settings, memory, or code task")
             self.prompt.setMaximumHeight(110)
             layout.addWidget(self.prompt)
+            read_controls = QHBoxLayout()
+            read_controls.addWidget(QLabel("URL to read:"))
+            self.read_url_field = QLineEdit()
+            self.read_url_field.setPlaceholderText("https://example.com/page")
+            self.read_url_field.setAccessibleName("URL for explicit Read URL action")
+            read_controls.addWidget(self.read_url_field, stretch=1)
+            self.read_url_button = QPushButton("读取 URL / Read URL")
+            self.read_url_button.clicked.connect(self._submit_read_url)
+            read_controls.addWidget(self.read_url_button)
+            layout.addLayout(read_controls)
             controls = QHBoxLayout()
             self.send_button = QPushButton("发送 / Send")
             self.cancel_button = QPushButton("取消 / Cancel")
@@ -298,14 +310,29 @@ else:
             prompt = self.prompt.toPlainText().strip()
             if not prompt or self._active:
                 return
-            self.prompt.clear()
-            self.transcript.appendPlainText(f"\nYou: {prompt}\n")
+            self._start_request(prompt)
+            self._invoke(self.controller.submit, prompt)
+
+        def _submit_read_url(self) -> None:
+            url = self.read_url_field.text().strip()
+            instruction = self.prompt.toPlainText().strip()
+            if not url or not instruction or self._active:
+                return
+            self._start_request(
+                f"Read URL: {url}\nInstruction: {instruction}", clear_prompt=False,
+            )
+            self._invoke(self.controller.submit_read_url, url, instruction)
+
+        def _start_request(self, displayed_task: str, *, clear_prompt: bool = True) -> None:
+            if clear_prompt:
+                self.prompt.clear()
+            self.transcript.appendPlainText(f"\nYou: {displayed_task}\n")
             self._active = True
             self.send_button.setEnabled(False)
+            self.read_url_button.setEnabled(False)
             self.cancel_button.setEnabled(True)
             self.clear_memory_button.setEnabled(False)
             self.status_label.setText("Running one local request")
-            self._invoke(self.controller.submit, prompt)
 
         def _cancel(self) -> None:
             if self._active:
@@ -619,6 +646,7 @@ else:
                 self.reject_button.setEnabled(True)
                 self._active = False
                 self.send_button.setEnabled(True)
+                self.read_url_button.setEnabled(True)
                 self.cancel_button.setEnabled(False)
                 self.clear_memory_button.setEnabled(True)
                 self.status_label.setText(kind)
@@ -629,6 +657,7 @@ else:
             self.status_label.setText(message)
             self._active = False
             self.send_button.setEnabled(True)
+            self.read_url_button.setEnabled(True)
             self.cancel_button.setEnabled(False)
             self.clear_memory_button.setEnabled(True)
 

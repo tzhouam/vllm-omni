@@ -25,6 +25,7 @@ from vllm_omni.edge.agent.router import (
 )
 from vllm_omni.edge.agent.tools import (
     ApprovalRequired, ToolAction, ToolRequestCancelled, WindowsToolBoundary,
+    _explicit_task_urls,
 )
 from vllm_omni.engine.resource_ledger import GraphRequestGate
 
@@ -109,6 +110,14 @@ def _safe_observation(value: Mapping[str, Any], limit: int) -> tuple[str, str | 
         image = data.pop("base64")
     rendered = json.dumps(data, ensure_ascii=False, sort_keys=True)
     return rendered[:limit], image
+
+
+def _validate_structured_read_url(url: str, instruction: str) -> None:
+    if (not isinstance(url, str) or not url or
+            _explicit_task_urls(url) != frozenset({url})):
+        raise ValueError("a single absolute URL is required for Read URL")
+    if not isinstance(instruction, str) or not instruction.strip():
+        raise ValueError("a nonempty instruction is required for Read URL")
 
 
 def _recall_payload(value: Any) -> Any:
@@ -232,6 +241,88 @@ class AgentController:
                 self._record_tool_result(result, completed_during_cancel=True)
             raise
 
+    async def _execute_tool_action(
+        self, action: ToolAction, *, permitted_tools: frozenset[str],
+        task_class: str, route: Route, request_id: str,
+        observations: list[dict[str, str]], image_data_url: str | None,
+    ) -> str | None:
+        """Run one admitted action and its automatic navigation observation."""
+        if action.operation not in permitted_tools:
+            raise PermissionError(
+                f"{action.operation} is not admitted for the {task_class} task class"
+            )
+        self._emit("tool_proposed", {"operation": action.operation,
+                                     "arguments": dict(action.arguments)})
+        try:
+            result = await self._run_tool(self.tools.execute, action,
+                                          operation=action.operation)
+        except ApprovalRequired as required:
+            challenge = required.challenge
+            pending: asyncio.Future[bool] = asyncio.get_running_loop().create_future()
+            with self._lock:
+                self._approval = (challenge.challenge_id, pending)
+            self._emit("approval_required", {
+                "challenge_id": challenge.challenge_id, "risk": challenge.risk,
+                "description": challenge.description, "target": dict(challenge.target),
+                "operation": action.operation,
+                "arguments": dict(action.arguments),
+            })
+            try:
+                approved = await asyncio.wait_for(pending, self.limits.approval_timeout_s)
+            finally:
+                with self._lock:
+                    if self._approval is not None and self._approval[1] is pending:
+                        self._approval = None
+            if not approved:
+                with contextlib.suppress(ValueError):
+                    self.tools.reject(challenge.challenge_id)
+                raise PermissionError("user rejected the proposed action")
+            result = await self._run_tool(self.tools.approve,
+                                          challenge.challenge_id,
+                                          operation=action.operation)
+        observed_results = [result]
+        while observed_results:
+            observed_result = observed_results.pop(0)
+            self._record_tool_result(observed_result)
+            observation, jpeg_b64 = _safe_observation(
+                observed_result.data, self.limits.max_tool_observation_chars,
+            )
+            observations.append({
+                "source": observed_result.source,
+                "operation": observed_result.operation,
+                "untrusted_data": observation,
+            })
+            if jpeg_b64 is not None:
+                if "image" not in route.modalities:
+                    raise RuntimeError("route cannot interpret the captured image; no vision model was admitted")
+                # The existing Omni llama.cpp multimodal StageClient accepts
+                # PNG. Refuse if its admitted image bound cannot hold this.
+                from io import BytesIO
+                from PIL import Image
+
+                raw = base64.b64decode(jpeg_b64, validate=True)
+                with Image.open(BytesIO(raw)) as image:
+                    converted = BytesIO()
+                    image.save(converted, format="PNG")
+                image_data_url = "data:image/png;base64," + base64.b64encode(converted.getvalue()).decode("ascii")
+            if observed_result is result and action.operation in {"browser_open", "browser_follow"}:
+                # Navigation is read-only. Complete its observation before
+                # model planning so the page is not reopened for its text.
+                followup_operation = (
+                    "browser_screenshot" if task_class == "browser_vision"
+                    else "browser_read"
+                )
+                followup = ToolAction(followup_operation, {}, request_id=request_id)
+                self._emit("tool_proposed", {
+                    "operation": followup.operation, "arguments": {},
+                    "automatic_after_navigation": action.operation,
+                })
+                observed_results.append(await self._run_tool(
+                    self.tools.execute, followup,
+                    operation=followup.operation,
+                ))
+        return image_data_url
+
     def _ensure_loop(self) -> asyncio.AbstractEventLoop:
         with self._lock:
             if self._loop is not None:
@@ -252,6 +343,14 @@ class AgentController:
         return self._loop
 
     def submit(self, prompt: str) -> Future[Any]:
+        return self._submit(prompt, read_url=None)
+
+    def submit_read_url(self, url: str, instruction: str) -> Future[Any]:
+        """Start one explicit UI read; chat text alone never selects this path."""
+        _validate_structured_read_url(url, instruction)
+        return self._submit(instruction, read_url=url)
+
+    def _submit(self, prompt: str, *, read_url: str | None) -> Future[Any]:
         if not isinstance(prompt, str) or not prompt.strip():
             raise ValueError("a nonempty Agent task is required")
         with self._lock:
@@ -270,7 +369,7 @@ class AgentController:
             self._turn_done.clear()
             turn = self.run_turn(
                 prompt, request_id=request_id, epoch=epoch,
-                _reservation=reservation,
+                _reservation=reservation, read_url=read_url,
             )
             try:
                 self._current = asyncio.run_coroutine_threadsafe(turn, loop)
@@ -301,7 +400,8 @@ class AgentController:
             return self._current
 
     async def run_turn(self, prompt: str, *, request_id: str, epoch: int,
-                       _reservation: object | None = None) -> str | None:
+                       _reservation: object | None = None,
+                       read_url: str | None = None) -> str | None:
         with self._lock:
             owner = (request_id, epoch)
             if (self._turn_owner is not None and
@@ -322,11 +422,18 @@ class AgentController:
         backend: ModelBackend | None = None
         was_cancelled = False
         try:
-            self.tools.register_user_task(request_id, prompt)
+            if read_url is not None:
+                _validate_structured_read_url(read_url, prompt)
+            # The structured URL field, not arbitrary instruction/model text,
+            # is the only URL registered for this explicit fast path.
+            self.tools.register_user_task(request_id, read_url if read_url is not None else prompt)
             current_observation_id = self._emit(
-                "user_observation", {"text": prompt}, source="user",
+                "user_observation", (
+                    {"text": prompt, "read_url": read_url, "mode": "read_url"}
+                    if read_url is not None else {"text": prompt}
+                ), source="user",
             )
-            task_class = classify_task(prompt)
+            task_class = "browser_text" if read_url is not None else classify_task(prompt)
             permitted_tools = _permitted_tools(task_class, prompt)
             decision = select_route(
                 task_class, self.routes, self.qualifications,
@@ -402,8 +509,12 @@ class AgentController:
             # Recall covers the user's encrypted local history across those
             # launches, while individual events retain their original session
             # provenance and can still be deleted by session or source event.
+            task = (
+                f"Read this URL: {read_url}\nInstruction: {prompt}"
+                if read_url is not None else prompt
+            )
             memory = self.memory.search(
-                prompt, limit=self.limits.max_memory_matches, kinds=_RECALL_KINDS,
+                task, limit=self.limits.max_memory_matches, kinds=_RECALL_KINDS,
                 exclude_event_ids=frozenset({current_observation_id}),
             )
             recalled = [
@@ -415,8 +526,15 @@ class AgentController:
             self._memory_sources.extend(item["event_id"] for item in recalled)
             observations: list[dict[str, str]] = []
             image_data_url: str | None = None
+            if read_url is not None:
+                image_data_url = await self._execute_tool_action(
+                    ToolAction("browser_open", {"url": read_url}, request_id=request_id),
+                    permitted_tools=permitted_tools, task_class=task_class,
+                    route=route, request_id=request_id,
+                    observations=observations, image_data_url=image_data_url,
+                )
             for step in range(self.limits.max_model_steps):
-                model_prompt = self._build_prompt(prompt, task_class, recalled, observations)
+                model_prompt = self._build_prompt(task, task_class, recalled, observations)
                 model_request_id = f"{request_id}-step-{step}"
                 self._active_model_request = model_request_id
                 pieces: list[str] = []
@@ -454,84 +572,11 @@ class AgentController:
                                          "streamed": protocol_json is False})
                     return answer
                 action = ToolAction(value["tool"], value["args"], request_id=request_id)
-                if action.operation not in permitted_tools:
-                    raise PermissionError(
-                        f"{action.operation} is not admitted for the {task_class} task class"
-                    )
-                self._emit("tool_proposed", {"operation": action.operation,
-                                             "arguments": dict(action.arguments)})
-                try:
-                    result = await self._run_tool(self.tools.execute, action,
-                                                  operation=action.operation)
-                except ApprovalRequired as required:
-                    challenge = required.challenge
-                    pending: asyncio.Future[bool] = asyncio.get_running_loop().create_future()
-                    with self._lock:
-                        self._approval = (challenge.challenge_id, pending)
-                    self._emit("approval_required", {
-                        "challenge_id": challenge.challenge_id, "risk": challenge.risk,
-                        "description": challenge.description, "target": dict(challenge.target),
-                        "operation": action.operation,
-                        "arguments": dict(action.arguments),
-                    })
-                    try:
-                        approved = await asyncio.wait_for(pending, self.limits.approval_timeout_s)
-                    finally:
-                        with self._lock:
-                            if self._approval is not None and self._approval[1] is pending:
-                                self._approval = None
-                    if not approved:
-                        with contextlib.suppress(ValueError):
-                            self.tools.reject(challenge.challenge_id)
-                        raise PermissionError("user rejected the proposed action")
-                    result = await self._run_tool(self.tools.approve,
-                                                  challenge.challenge_id,
-                                                  operation=action.operation)
-                observed_results = [result]
-                while observed_results:
-                    observed_result = observed_results.pop(0)
-                    self._record_tool_result(observed_result)
-                    observation, jpeg_b64 = _safe_observation(
-                        observed_result.data, self.limits.max_tool_observation_chars,
-                    )
-                    observations.append({
-                        "source": observed_result.source,
-                        "operation": observed_result.operation,
-                        "untrusted_data": observation,
-                    })
-                    if jpeg_b64 is not None:
-                        if "image" not in route.modalities:
-                            raise RuntimeError("route cannot interpret the captured image; no vision model was admitted")
-                        # The existing Omni llama.cpp multimodal StageClient
-                        # accepts PNG. Refuse later if its admitted image bound
-                        # cannot hold this explicit conversion.
-                        from io import BytesIO
-                        from PIL import Image
-
-                        raw = base64.b64decode(jpeg_b64, validate=True)
-                        with Image.open(BytesIO(raw)) as image:
-                            converted = BytesIO()
-                            image.save(converted, format="PNG")
-                        image_data_url = "data:image/png;base64," + base64.b64encode(converted.getvalue()).decode("ascii")
-                    if observed_result is result and action.operation in {"browser_open", "browser_follow"}:
-                        # Navigation is a read-only operation. Complete its
-                        # observation before asking the model to plan again;
-                        # otherwise a model can repeatedly reopen the same
-                        # URL after seeing only the page title. Record the
-                        # navigation result first, even if reading fails.
-                        followup_operation = (
-                            "browser_screenshot" if task_class == "browser_vision"
-                            else "browser_read"
-                        )
-                        followup = ToolAction(followup_operation, {}, request_id=request_id)
-                        self._emit("tool_proposed", {
-                            "operation": followup.operation, "arguments": {},
-                            "automatic_after_navigation": action.operation,
-                        })
-                        observed_results.append(await self._run_tool(
-                            self.tools.execute, followup,
-                            operation=followup.operation,
-                        ))
+                image_data_url = await self._execute_tool_action(
+                    action, permitted_tools=permitted_tools, task_class=task_class,
+                    route=route, request_id=request_id,
+                    observations=observations, image_data_url=image_data_url,
+                )
             raise RuntimeError("Agent reached the configured model/tool step limit without a final answer")
         except asyncio.CancelledError:
             if backend is not None and self._active_model_request is not None:

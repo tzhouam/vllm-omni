@@ -11,6 +11,60 @@ import pytest
 from vllm_omni.edge.agent import desktop
 
 
+def test_read_url_button_uses_separate_structured_action_not_chat_send(monkeypatch) -> None:
+    if desktop.QApplication is None:
+        pytest.skip("PySide6 is not installed")
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = desktop.QApplication.instance() or desktop.QApplication([])
+
+    class Controller:
+        def add_listener(self, callback):
+            self.callback = callback
+
+        def submit(self, prompt):
+            raise AssertionError("structured Read URL must not submit ordinary chat")
+
+        def submit_read_url(self, url, instruction):
+            return (url, instruction)
+
+    controller = Controller()
+    window = desktop.AgentWindow(controller)
+    calls = []
+    window._invoke = lambda callback, *args: calls.append((callback, args))
+    try:
+        window.read_url_field.setText("https://example.test/page")
+        window.prompt.setPlainText("Answer with the title")
+        window._submit_read_url()
+        assert calls == [(
+            controller.submit_read_url,
+            ("https://example.test/page", "Answer with the title"),
+        )]
+        assert not window.send_button.isEnabled()
+        assert not window.read_url_button.isEnabled()
+        assert window.read_url_field.text() == "https://example.test/page"
+        assert window.prompt.toPlainText() == "Answer with the title"
+        assert "Read URL: https://example.test/page" in window.transcript.toPlainText()
+
+        window._accept_event({
+            "request_id": "request-1", "epoch": 1, "seq": 1,
+            "kind": "final", "payload": {"answer": "Example"},
+        })
+        assert window.send_button.isEnabled()
+        assert window.read_url_button.isEnabled()
+
+        # A URL left in the separate field cannot make ordinary Send use it.
+        window.read_url_field.setText("https://example.test/other")
+        window.prompt.setPlainText("Say hello")
+        window._submit()
+        assert calls[-1] == (controller.submit, ("Say hello",))
+        assert window.read_url_field.text() == "https://example.test/other"
+    finally:
+        controller.callback = None
+        window.setAttribute(desktop.Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        window.close()
+        app.processEvents()
+
+
 def _challenge(body: bytes, *, content_type: str = "application/json") -> dict:
     url = "https://example.test/api/submit?source=agent"
     return {
