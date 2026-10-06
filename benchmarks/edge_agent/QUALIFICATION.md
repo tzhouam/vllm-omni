@@ -107,5 +107,9 @@ records a valid trace audit, 60/60 measured successes (20 per length), and
 1,800.42 seconds of active endurance across 172 requests. Those measurements
 remain useful historical evidence, but the run cannot qualify the current
 release because it lacks the loaded-source/runtime digests and predates the
-current code. A fresh full protocol on the current loaded code and the
-separate signed gates are required.
+current code. A second current-source [public aggregate entry](public_evidence/agent_native_smokes_20261005.json)
+has 60/60 measured fixed-memory successes, 158 sequential requests over
+1,806.73 active seconds, a valid raw trace audit, and matching loaded-source
+and runtime digests. It still does not qualify a default route: the independent
+signed memory, cancellation, placement, lineage, and quality gates have not
+been reviewed and attached, and other task classes need their own full profiles.

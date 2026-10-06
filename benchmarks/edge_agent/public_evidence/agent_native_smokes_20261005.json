@@ -1700,6 +1700,157 @@
       "run_id": "native_5c400dad75f44554873c7aaa178261bd",
       "scope": "whole_agent_batch1_paired_local_fixture",
       "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "35d43bf93ddec314f5ff9d29a647361124ed12b909099b721d1d310aa2c6b393",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 28358651904,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 19809656832
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "ed9a7b0bc0f038c3ae22c433f4c3d27d6a7fd7512ebdf5fda8cc9ba3a6009682",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "073e718e7ef6baaa8165c621035f7fa61e1f071378ab467ebd129feeef553d72",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "22d88ba2cce519abf79f8e5323cc5652a5230e043047f54c3347bc67de989612",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "full_20x3_and_30m",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 30.7444919,
+          "correctness_pass": true,
+          "e2e_trace_pass": true,
+          "endurance_requests": 158,
+          "endurance_wall_seconds": 1809.5108734001406,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                838,
+                2516
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2512,
+                2516
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                200,
+                624
+              ],
+              "prompt_utf8_bytes_min_max": [
+                598,
+                624
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                26,
+                108
+              ],
+              "prompt_utf8_bytes_min_max": [
+                76,
+                108
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 16.3902476,
+              "answer_p95_s": 17.061594,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 13.6138926,
+              "ttft_p95_s": 14.1361,
+              "warmup_requests": 2
+            },
+            "medium": {
+              "answer_p50_s": 9.6202905,
+              "answer_p95_s": 10.5911505,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 6.9662597,
+              "ttft_p95_s": 7.582391,
+              "warmup_requests": 2
+            },
+            "short": {
+              "answer_p50_s": 8.6018621,
+              "answer_p95_s": 9.0623727,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 5.9298414,
+              "ttft_p95_s": 6.1489816,
+              "warmup_requests": 2
+            }
+          },
+          "measured_attempts": 60,
+          "measured_successes": 60,
+          "memory_evidence_scope": "corrected_seed_fixed_fixture_profile",
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": true,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 60,
+          "raw_recomputed_measured_successes": 60,
+          "raw_sha256": "18f084827f374e86a6a95f9e25da1e39aa046c1a2319e818625b33d67c040624",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": true,
+          "status": "evidence_recorded",
+          "summary_sha256": "17ba182c8e95db8266693e3fdbd2f20ad75859d09e727021ce32d1fd72ed8305",
+          "sustained_seconds": 1806.7312913999997,
+          "task_class": "memory",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 106.131,
+              "gpu_temp_c_peak": 65.0,
+              "ram_used_bytes_peak": 59347034112.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 20492722176.0
+            },
+            "sample_count": 22792,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.1,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_a165341a6b4d4843a219473929833cbe",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
     }
   ],
   "schema": "omni-agent-public-aggregate-v2",

@@ -172,7 +172,7 @@ The [rolling status](STATUS.md) explains what those observations establish.
 Raw `results/native_*/index.json`, summaries, JSONL, and unsanitized logs are
 gitignored and available only on the profiling host. Earlier six-of-six memory
 fixtures used the wrong seed event kind and cannot validate retrieval; a
-corrected Gemma memory smoke is recorded separately. All current smokes remain
+corrected Gemma memory smoke is recorded separately. All short smokes remain
 below the 20-per-length and 30-minute qualification thresholds.
 
 The full Gemma fixed-memory protocol started on 2026-10-05 before the
@@ -180,6 +180,11 @@ trusted-task browser URL policy, runtime digest capture, and strengthened
 cancellation proof were added. Its [public entry](public_evidence/agent_native_smokes_20261005.json)
 records a valid full trace audit, 60/60 measured successes (20 per length),
 and 172 sequential endurance requests over 1,800.42 seconds of active work.
-Those measurements are historical protocol evidence, but cannot qualify the
-current loaded code; repeat the full protocol after those changes before
-requesting promotion.
+Those measurements are historical protocol evidence and cannot qualify the
+current loaded code. A second [hash-bound run](public_evidence/agent_native_smokes_20261005.json)
+on the current source passed 60/60 measured fixed-memory requests and 158
+sequential endurance requests over 1,806.73 seconds of active Agent work.
+Its raw trace audit, protocol, and source/runtime digest comparison pass.
+This establishes the fixed memory task only; default-route promotion still
+requires separate signed memory, cancellation, placement, lineage, and quality
+evidence, plus full browser and visual task qualification.
