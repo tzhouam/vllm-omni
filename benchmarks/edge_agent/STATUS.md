@@ -10,16 +10,28 @@ Early indexes recorded the installed `vllm_omni` distribution metadata even thou
 
 Evidence depth follows the architecture's D/B/C/P/E vocabulary: the machine inventory is D; verified llama.cpp device execution is B; audited, complete fixed-fixture Agent requests are narrow P observations for their tested task and model. A failed or unreconstructible trace is retained as a failure observation. The two Qwen load refusals have no P-level model request; the later host-mapped single text request is a very narrow P observation. None of these smokes is a qualified performance profile or an estimate promoted as measurement.
 
+The [structured Read URL profile](public_evidence/agent_structured_read_url_full_20261006.json) and a [same-source ordinary browser profile](public_evidence/agent_native_browser_text_same_source_20261006.json) are further separate full runs. They cover fixed loopback pages only; their raw indexes, summaries, and requests remain private. The [Gemma documentary lineage receipt](public_evidence/agent_gemma4_lineage_review_20261006.json) records publisher claims and artifact identity without a signed release gate. The [Qwen3-30B 12-layer proposal](experiments/QWEN3_30B_LAYER12.md) remains unrun.
+
+The structured and later ordinary runs captured identical imported-source and loaded-runtime identities, which matched the code at review. Earlier full memory and older ordinary browser-text runs still support their recorded sources but need repetition for strict final-code matching. Any later Omni edit makes both new loopback profiles historical for that release check until repeated.
+
 ## Implemented behavior and evidence depth
 
 | Area | Current behavior | Evidence boundary |
 |---|---|---|
 | Native app | PySide6 interface, ordered streaming, route/placement display, cancellation, exact-action approval UI, explicit clear-memory action | Windows app construction and live requests; no usability qualification |
+| Structured Read URL | Separate user-supplied URL field invokes the same guarded `browser_open` and `browser_read` tools before the first model step | The recorded-source fixed-loopback text run passed 60/60 measured and 266/266 endurance requests. Its warm complete-answer p95 was 6.77/6.89/8.79 s; cold load was 38.15 s separately. No general browsing, intrinsic model-speedup, or release claim follows. |
+| Ordinary browser text on matched source | Model-selected tools with the same fixed page tasks and artifact | The separate run passed 60/60 measured and 97/97 endurance requests; p95 was 17.51/17.83/21.90 s. The two workflows have the same recorded imported source/runtime but different model inputs and run order. |
 | Memory | Windows DPAPI encrypted event store, keyed English/Chinese term, event-kind and exact-content indexes, bounded candidate decryption, v1/v2 database migration, cross-session recall, source provenance, cascading deletion | DPAPI round trip and controller tests pass. Earlier six-of-six fixture outcomes do **not** validate retrieval because those runs seeded an event kind that the retrieval index did not search. The latest Gemma fixed-memory protocol passed 60/60 measured and 564/564 sequential endurance requests with raw trace, protocol, and fixed-suite case audits on the recorded source. A later independent bilingual cross-session run bound to this full profile passed 4/4 source/distractor, exact answer, and deletion cases. Earlier 3/4 and unbound 4/4 quality runs remain historical. Exact repeated questions no longer consume every recall slot in a unit regression; paraphrased echoes can still crowd a finite lexical search. No native long-history measurement or signed quality gate exists yet. |
 | Tools | Managed isolated Edge context with guarded reads/navigation, bounded browser/desktop screenshots, allowlisted Windows Settings read and approved mouse-speed change. Only an exact authorized top-level GET may reach the managed page network path; background HTTP, redirects and WebSockets are blocked. A separate, explicitly approved one-shot `browser_post` HTTP path exists for canonical same-origin requests. Production `browser_click`, `browser_fill`, and DOM form submission remain disabled. Each `screen_capture` now requires one-shot sensitive-read UI approval bound to the native foreground window identity. | The recorded-source full browser-text fixed-page read protocol `native_054cd07c271e4e698d4f5bc4f275dbaa` passed 60/60 measured and 160/160 sequential endurance requests with raw trace, case, and protocol audits; all three answer p95 values missed 10 s. Earlier full run `native_9f12bd06a5074fdd97429953825be09b` predates `browser_post`. An earlier browser-vision smoke passed 12/12 on older code; later desktop foreground verification failed. No desktop model-quality conclusion follows. There is no full visual profile, live browser-write qualification, or live settings write qualification. |
 | Router | Whole-Agent route ranking by paired success rate then complete-answer p95; explicit experimental bootstrap and refusal reasons | Unit tests; no default route has passed all qualification gates. |
-| Placement | Existing Omni llama.cpp stage emits bounded SSE text deltas and checks actual CPU/Vulkan placement; host coordinator holds one resident route and one physical-pool reservation | Native Spark CPU and one-layer CPU+Vulkan requests; Gemma offloaded 40/61 layers to Vulkan0 and served requests, with 6588.22 MiB CPU-mapped and 11332.48 MiB Vulkan0 model buffers. These are narrow functional observations, not evidence that splitting accelerators improves Agent latency. |
+| Placement | Existing Omni llama.cpp stage emits bounded SSE text deltas and checks startup-reported CPU/Vulkan model and buffer placement; host coordinator holds one resident route and one physical-pool reservation | Native Spark CPU and one-layer CPU+Vulkan requests; Gemma offloaded 40/61 layers to Vulkan0 and served requests, with 6588.22 MiB CPU-mapped and 11332.48 MiB Vulkan0 model buffers. Startup reports do not establish per-operation compute location. These are narrow functional observations, not evidence that splitting accelerators improves Agent latency. |
 | Profiling | Paired Chinese/English fixed Agent tasks in three lengths, separate warmups, full-request traces, TTFT/answer latency, telemetry, and a 20-per-length plus 30-minute sequential protocol | Twenty earlier indexed runs are **smoke or setup attempts**, generally two measured requests per length and zero sustained seconds. Four historical Gemma fixed-memory runs and an older browser-text run met the protocol. Separately published recorded-source full runs passed fixed memory (60/60 measured, 564/564 endurance) and fixed-page browser text (60/60 measured, 160/160 endurance). The newer browser-text answer p95 was 11.72/11.19/13.58 s, above the 10 s target. A later catalog metadata change requires repeat for strict current-head matching. These are narrow fixed-task observations, not release qualification. |
+
+Route and stage schemas now reject absent or zero host-RAM claims; discrete
+GPU placements also require a positive VRAM claim, while shared-memory iGPU
+placements use host RAM as their physical pool. A CPU-only stage cannot charge
+an unrelated VRAM pool. These checks make admission declarations explicit,
+but they do not measure load peaks or prove a route fits the live machine.
 
 The browser write boundary refuses `browser_click` and `browser_fill` before
 target inspection or approval. DOM form submission remains disabled because
@@ -168,6 +180,106 @@ metadata change alters imported-source identity; strict current-head release
 matching requires a repeat. Independent signed qualification gates remain
 open, and latency optimization is still needed for the 10 s target.
 
+## Ordinary model-selected fixed-loopback protocol on the matched source
+
+Gemma 4 31B QAT Q4_0 + F16 projector on CPU+Vulkan0 completed
+`native_a7b7fd87c72b45928358b4af963baefd` with **60/60 measured**
+fixed loopback page reads (20 per input length after two warmups per length)
+and **97/97 sequential endurance** requests over **1,808.01 s active Agent
+time** (1,810.61 s wall time). Batch size and concurrency were both 1;
+confirmed cold load took **39.13 s**. The model selected `browser_open`, the
+controller automatically followed it with `browser_read`, and the private
+trace recorded two backend model steps per request. Raw trace, fixed-suite
+case, batch-one protocol, and reported-placement audits passed with no errors.
+
+The [public aggregate](public_evidence/agent_native_browser_text_same_source_20261006.json)
+binds the private index SHA-256
+`dcb255fda1d7622b97f09b5d3583d4382c8e9266ab4e89e4260d57c79650d827`,
+summary SHA-256
+`cee9a814ac9dfd4691d05542870f8400819a70384eba74b0b5f7146f9ce56546`,
+and raw JSONL SHA-256
+`073402391611f50e9a4ddd1c4e7ca0fc23cd284e09973b9881d639df65339e51`.
+Its imported Omni source `d2dcde784e1bfad92fc5bf9fee5a92dd0aaa688b37c41d0462f705a9dd8cedfc`
+and loaded runtime `aa48712b0e0e3fed0cf6ad5810a9337b78360f41f1ace507c7b4d1311860c160`
+match the structured run below. The report binds the same Gemma model,
+projector, llama-server, config, precision, laptop, driver, and recorded AC
+condition. Future Omni edits make both recorded-source profiles historical
+for strict final-HEAD release matching.
+
+| Input length | Measured requests | Answer p50 / p95 | First token p50 / p95 |
+|---|---:|---:|---:|
+| Short | 20 | 17.16 / 17.51 s | 15.19 / 15.38 s |
+| Medium | 20 | 17.60 / 17.83 s | 15.63 / 15.84 s |
+| Long | 20 | 20.28 / 21.90 s | 18.36 / 19.59 s |
+
+These nearest-rank complete-answer p95 values **miss the 10 s warm-answer
+target** on this fixed fixture. They exclude cold loading and reference
+evaluation. Across measured and endurance requests, 26,747 samples saw up
+to 64,978,690,048 B system-wide used RAM, 21,321,125,888 B device-wide
+used VRAM, 146.244 W NVIDIA device power, and 73 °C GPU temperature.
+Sampled maxima exclude cold loading, are lower bounds on instantaneous
+peaks, and are not isolated model usage; whole-system power was unavailable.
+This result does not qualify open-web navigation, writes, vision, or a
+default route. Independent signed qualification gates remain open.
+
+## Structured Read URL fixed-loopback protocol on its recorded source
+
+Gemma 4 31B QAT Q4_0 + F16 projector on CPU+Vulkan0 completed
+`native_14ecb025374d47168a29e822a5fbf87d` through the **separate explicit
+Read URL field**. It passed **60/60 measured requests**, 20 per short,
+medium, and long input after two warmups per length, and **266/266 sequential
+endurance requests** over **1,802.69 s active Agent time** (1,809.80 s wall
+time). Batch size and concurrency were both 1. The fixed case's canonical
+instruction was retained verbatim and its URL was also supplied in the
+structured field. Raw trace, fixed-suite case and input-contract, and
+measurement-protocol audits passed without errors. All 332 requests recorded
+the ordered `browser_open` → `browser_read` → model response chain; each
+recorded a first backend-model-prompt SHA-256 and length. Confirmed cold load
+took **38.15 s**.
+
+The [public aggregate](public_evidence/agent_structured_read_url_full_20261006.json)
+binds the private index SHA-256
+`b9e382230dc8bad3f8ac3e393fbc8f7b1f5d817559e5e0531683dd076f946f16`,
+summary SHA-256
+`58bb3ffa1ddd5c61f320d2bcd41cc174aa486da43877c59489474ff107e97bb8`,
+and raw JSONL SHA-256
+`024e2f26a985bcdddb3d839b9200d563b50944c0e55d19582d9e4934d9c28f20`.
+The imported Omni source SHA-256 was
+`d2dcde784e1bfad92fc5bf9fee5a92dd0aaa688b37c41d0462f705a9dd8cedfc`;
+the loaded Agent runtime SHA-256 was
+`aa48712b0e0e3fed0cf6ad5810a9337b78360f41f1ace507c7b4d1311860c160`.
+Both matched the reviewed live source and runtime after measurement. The
+report also binds the pinned model, projector, and llama-server hashes,
+Windows 11 build 26200, NVIDIA driver 610.71, RTX 5090 Laptop GPU, AC
+power, precision, and startup-reported CPU+Vulkan0 placement. Independent
+runtime-placement review remains pending.
+
+| Input length | Measured requests | Answer p50 / p95 | First token p50 / p95 |
+|---|---:|---:|---:|
+| Short | 20 | 6.45 / 6.77 s | 4.42 / 4.60 s |
+| Medium | 20 | 6.55 / 6.89 s | 4.60 / 4.73 s |
+| Long | 20 | 7.33 / 8.79 s | 5.43 / 6.55 s |
+
+These nearest-rank complete-answer p95 values meet the **10 s warm-answer
+target** for this fixed structured workflow. They exclude the separate cold
+load and reference evaluation. Across measured and endurance requests,
+20,475 telemetry samples saw up to 64,684,179,456 B system-wide used RAM,
+21,315,854,336 B device-wide used VRAM, 157.322 W NVIDIA device power, and
+74 °C GPU temperature. These sampled maxima exclude cold loading, are lower
+bounds on instantaneous peaks, and do not isolate this route's incremental
+use; whole-system power was unavailable. Unlike the ordinary browsing run
+above, this workflow supplies an explicit trusted URL and reads the page
+before its first model step. The same-source ordinary run above had p95
+17.51/17.83/21.90 s and two model steps per request, versus
+6.77/6.89/8.79 s and one model step here. This is an observed difference
+between two complete **Agent workflows**, not an intrinsic model-speedup
+claim: the user-supplied fields, first model prompts, fixture ports, and
+run order differ. The
+result covers fixed loopback text pages only, not open-web behavior,
+browser writes, desktop vision, other task classes, or a default route.
+Independent signed memory, cancellation, placement, lineage, and reference
+quality gates remain open; later Omni edits require source matching again.
+
 ## Historical fixed browser-text protocol (before browser POST)
 
 Gemma 4 31B QAT Q4_0 + F16 projector on CPU+Vulkan0 completed run `native_9f12bd06a5074fdd97429953825be09b` with **60/60 measured fixed local-page read successes**, 20 per input length after two warmups per length, and **165/165 sequential endurance requests** over **1,808.30 s active Agent time** (1,811.34 s wall time). Raw trace, batch-one measurement protocol, fixed-suite case, tool-safety, stability, and reported-placement audits pass without recorded audit errors. Confirmed cold load took **24.60 s**. The SHA-256 digests are index `2184397192ec8fcfc8a7cdd5aab1bf8b0cfbc231662da8bd942db198256bf405`, summary `a90bcacf35fffb15fdffe2df1770e5c030c848666412ba70cd7d71a76e31b553`, and raw JSONL `8f2f380983a9e695516420e99417570a56311d63f0fd5b6817bbf43d1f591625`. Imported Omni source `721a12158e9d70d6a394ac9cf06c4af0147c175cff70d3a3f9f634527135914c` and loaded Agent runtime `1b58e8a3530bf45aabdafe391bd87b6781d57b2c9bf3a6f446c444bfb7cfc6f6` matched the reviewed code at measurement time. The [public aggregate](public_evidence/agent_native_smokes_20261005.json) also binds the config, checkpoint, executable, and projector hashes and records the prompt character/UTF-8 byte ranges; those ranges are not model-token counts.
@@ -243,15 +355,18 @@ Earlier setup failures remain preserved in the aggregate as classified refusal c
 
 The [catalog](../../vllm_omni/edge/agent/catalog.py) records proposed quantization variants, decimal file sizes, modalities, and lineage/license review. File size only supports a download preflight. Exact local artifact hashes and revisions are bound when available; mere presence on disk never selects a default.
 
-- **Gemma 4 31B QAT Q4_0:** Official GGUF and F16 visual projector are locally pinned by SHA-256 and artifact revision. A 40-layer CPU+Vulkan placement served historical and newer recorded-source full fixed-memory and browser-text read protocols. The newer browser-text p95 misses the 10 s normal-answer target at every input length. Browser vision has an earlier 12/12 narrow smoke, a later unverified-desktop regression, and a foreground setup blocker; no full visual profile exists on the latest source. The artifact probe checks published LFS identity and license metadata, not base-model provenance. The route remains unqualified.
+An [unsigned Gemma documentary lineage receipt](public_evidence/agent_gemma4_lineage_review_20261006.json) matches the pinned publisher LFS hashes recorded by the private local probe and records the publisher's stated QAT base and Apache-2.0 license. It does **not** independently verify the model's derivation or satisfy the signed checkpoint-lineage gate.
+
+- **Gemma 4 31B QAT Q4_0:** Official GGUF and F16 visual projector are locally pinned by SHA-256 and artifact revision. A 40-layer CPU+Vulkan placement served historical and newer recorded-source full fixed-memory and browser-text read protocols. The newer **ordinary** browser-text p95 misses the 10 s normal-answer target at every input length, while the separate structured Read URL fixed-loopback run meets that warm-answer target. Browser vision has an earlier 12/12 narrow smoke, a later unverified-desktop regression, and a foreground setup blocker; no full visual profile exists on the latest source. The artifact probe checks published LFS identity and license metadata, not base-model provenance. The route remains unqualified.
 - **Qwen3.6-35B-A3B UD-IQ4_XS:** The model and projector files are locally hash-pinned, while exact base-checkpoint lineage remains unverified. The first CPU-experts/Vulkan load was explicitly refused because its declared **17.0 decimal GB** CPU weight budget was too small. The preserved, sanitized [budget-v2 loader log](public_evidence/qwen3_6_budget_v2_loader.log) reports **16,499.72 MiB** CPU and **1,921.34 MiB** Vulkan0 model buffers; its SHA-256 is in the public aggregate. The first attempt's loader log was overwritten, so that public log binds the second attempt's buffer figures, while the separate first-run refusal is hash-bound by its private JSONL. An **18 GB** CPU budget admitted the buffers in the second attempt, but strict placement verification refused it: llama.cpp reported expert overrides on `Vulkan_Host`, not verified `CPU`, under `--n-cpu-moe 40`. A third, explicitly named **`Vulkan_Host+Vulkan0`** experimental variant completed one native Windows Agent text request with the exact trivial answer `ready` and ordered streaming. Its [sanitized loader log](public_evidence/qwen3_6_host_mapped_loader.log) has 120 expert tensor override lines and is SHA-bound in the [public aggregate](public_evidence/agent_native_smokes_20261005.json), along with the request/config hashes. A separate [browser-screenshot request](public_evidence/agent_qwen3_6_visual_20261006.json) produced the exact fixed-fixture answer and expected browser tools, but the strict E2E/placement evaluator **failed**: actual placement was null while the requested route was `Vulkan_Host+Vulkan0`, with only override-selection evidence. This is not verified visual quality or placement. Actual expert storage and compute remain unverified; no full task profile or qualification exists. The CPU-experts route remains refused, and the host-mapped route is experimental.
 - **Qwen3-30B-A3B Q4_K_M:** The official 18,556,685,824-byte text GGUF is locally verified against SHA-256 `0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5` at artifact commit `e4d4bafdfb96a411a163846265362aceb0b9c63a`; base-checkpoint lineage remains unverified. A strict CPU-experts40 configuration refused startup before any Agent request because **120 expert tensor overrides were reported as `Vulkan_Host`, not verified `CPU`**. A separately named host-mapped-experts40 variant completed **one** batch-one text Agent request with the exact trivial answer `ready` and ordered events. Its 266 samples at 0.1 s saw sampled whole-system incremental peaks of 14,672,949,248 B RAM and 4,604,002,304 B VRAM, compared with declared 24 GB/12 GB admission claims. Those increments are lower bounds, not isolated model use or verified expert storage/compute. See the [hash-bound public observations](public_evidence/agent_qwen3_30b_native_20261006.json). The host-mapped route is experimental and no Qwen3-30B task or performance qualification exists.
+- **Qwen3-30B 12-layer proposal:** A separate [experimental CPU+Vulkan config](experiments/QWEN3_30B_LAYER12.md) requests 12 GPU layers without CPU-expert or host-mapped-expert overrides. Its 24 GB host and 12 GB VRAM reservations are static ceilings, not measurements; the config has not been loaded or profiled. The 12-layer choice is not an optimized split.
 - **Other 30–122B/120B candidates:** Catalogued without local whole-Agent qualification. DeepSeek full IQ1_S, GLM-5.3-Flash minimum, and MiniMax-M3 minimum remain capacity-only entries without whole-weight downloads on this laptop.
 
 No route is release-qualified or installed as a default. The Spark bootstrap is visibly experimental. The 10-second normal and 60-second upgraded answer goals remain targets, not measured conclusions.
 
 ## Remaining qualification
 
-Improve the recorded-source fixed browser-text route's complete-answer latency, then repeat the protocol against final imported source identity after the catalog metadata change. The recorded-source fixed-memory and browser-text protocols are complete for their narrow fixtures, but strict current-head matching, open-domain memory, and independent signed gates remain open. Extend full profiling to visual, setting, code, broader memory quality, and paired candidate routes, with batch size 1 and one active request. A separate live approved `browser_post` Agent task needs its own exact-action and server-result checks; the read-only fixture cannot qualify it. For each model/task class, perform separate warmups, **at least 20 measured complete requests per short, medium, and long input**, followed by **30 minutes of active sequential Agent work** under one stable power condition. Review exact answer quality, required tool actions, ordered traces, cold load, RAM/VRAM sampled peaks and load peaks, placement logs, cancellation and recovery, and quantization or pruning loss. The sampled RAM/VRAM/GPU power telemetry is a lower bound on instantaneous peaks; NVIDIA device power is not whole-system power. The fixed code case measures static reasoning only, and fixture success is not open-world quality.
+Improve the ordinary model-selected browser-text route's complete-answer latency and repeat its protocol against the final imported source identity. The structured explicit Read URL route meets the warm 10 s target only on the fixed loopback fixture; its distinct user input and model prompt do not establish a general speedup. The earlier recorded-source fixed-memory and ordinary browser-text protocols are complete for their narrow fixtures, but strict current-head matching, open-domain memory, and independent signed gates remain open. Both new loopback runs matched the reviewed source at measurement; later Omni edits require repetition for final-code qualification. Extend full profiling to visual, setting, code, broader memory quality, and paired candidate routes, with batch size 1 and one active request. A separate live approved `browser_post` Agent task needs its own exact-action and server-result checks; the read-only fixture cannot qualify it. For each model/task class, perform separate warmups, **at least 20 measured complete requests per short, medium, and long input**, followed by **30 minutes of active sequential Agent work** under one stable power condition. Review exact answer quality, required tool actions, ordered traces, cold load, RAM/VRAM sampled peaks and load peaks, placement logs, cancellation and recovery, and quantization or pruning loss. The sampled RAM/VRAM/GPU power telemetry is a lower bound on instantaneous peaks; NVIDIA device power is not whole-system power. The fixed code case measures static reasoning only, and fixture success is not open-world quality.
 
 Independent signed evidence is still required for memory admission, cancellation/recovery, runtime placement, checkpoint lineage, and bilingual reference quality before any route can become a default; see [QUALIFICATION.md](QUALIFICATION.md). The current quality verifier accepts only exact matching lowercase SHA-256 hashes under `comparison: exact_sha256`; graded or semantic quality needs a separate reviewed comparator. The separate memory and placement probes remain diagnostics because sampled pool increments and startup logs do not establish their full release claims. A complete fixed-memory profile alone cannot set those gates. Preserve both rejected and passing configurations, with raw records private and public hashes updated when new evidence supersedes the smokes.

@@ -24,6 +24,13 @@ bind both outcomes to private raw records. That one request does not meet the
 20-per-length and 30-minute protocol, establish expert compute location, or
 qualify a default route.
 
+A separate [12-layer CPU+Vulkan proposal](experiments/QWEN3_30B_LAYER12.md)
+uses the same pinned Qwen3-30B artifact without requesting CPU-expert or
+host-mapped-expert overrides. Its memory ceilings are declarations, and its
+12-layer split has **not** been loaded, measured, or shown to outperform an
+unsplit route. It remains an experimental config pending live admission,
+startup placement, and complete-request checks.
+
 The [GSQ-RCO unpruned Q2_0](https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF)
 and [pruned Coder IQ1_M](https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-Coder-GGUF)
 are distinct artifacts. Both require their two GGUF shards, and vision also
@@ -94,6 +101,11 @@ and loaded Agent/dependency runtime, including imported vLLM and shared stage
 contract Python sources. Release review requires those digests to
 match the code currently loaded by the app, along with the full native behavior
 config. Older runs without the digests cannot qualify the current release.
+Route and stage validation now requires a positive host-RAM claim and a
+positive claim on the GPU's **declared physical pool** for GPU placements:
+discrete GPU VRAM or shared host RAM for an integrated GPU. A CPU-only stage
+cannot claim unrelated VRAM. This prevents an absent or zero pool declaration
+from passing admission; it does not measure loading or request memory peaks.
 
 The fixed task set pairs Chinese and English at short, medium, and long input
 lengths. `browser_text` covers a local text page on CPU or another text route;
@@ -167,6 +179,16 @@ timed request, with setup evidence in the raw record. This avoids memory
 leakage across repeats or candidate routes. The code case checks static code
 reasoning only; no code-execution tool is qualified by it.
 
+The Gemma and Spark `.experimental.json` configurations and the Spark lineage
+file in the commands below are ignored, host-local files; a clean clone does
+not contain them. Create them for the target machine before running these
+commands.
+The tracked [Qwen3-30B experimental configuration](configs/windows_laptop_qwen3_30b_a3b_q4_k_m_layer12.experimental.json)
+and [lineage record](configs/windows_laptop_qwen3_30b_a3b_q4_k_m_layer12.lineage.experimental.json)
+show the field structure only. Replace their model identity, artifact and
+runtime hashes, paths, placement, and memory claims with verified values for
+the chosen route; the 12-layer split and budgets have not been measured.
+
 Use native Windows Python with this checkout on `PYTHONPATH` and `-X utf8`:
 
 ```powershell
@@ -176,10 +198,10 @@ python -X utf8 -m vllm_omni.edge.agent.native_app `
   --config (Join-Path $repo 'benchmarks/edge_agent/configs/windows_laptop_gemma4_31b_hybrid.experimental.json')
 ```
 
-That starts the PySide6 desktop Agent. The bundled route is visibly
-experimental until a reviewed qualification bundle is installed; its model
-and projector files must exist at the pinned paths in the local config. For
-the whole-request profiler, run:
+With the host-local config in place, that starts the PySide6 desktop Agent.
+The route is visibly experimental until a reviewed qualification bundle is
+installed; its model and projector files must exist at the pinned paths in the
+local config. For the whole-request profiler, run:
 
 ```powershell
 $repo = (Get-Item .).FullName
@@ -303,8 +325,45 @@ The loaded Agent runtime SHA-256 was
 subsequent catalog metadata changes require a new matching profile for strict
 current-head release review. The [rolling status](STATUS.md) reports TTFT,
 hashes, cold load, and sampled telemetry. These fixed-page reads do not qualify
-open-web behavior, browser writes, vision, or a default route. An earlier
-browser-vision smoke passed 12/12, but a later desktop capture run
+open-web behavior, browser writes, vision, or a default route.
+
+A later [ordinary browser-text full profile on the structured run's recorded source](public_evidence/agent_native_browser_text_same_source_20261006.json)
+`native_a7b7fd87c72b45928358b4af963baefd` passed **60/60 measured**
+fixed loopback page reads and **97/97 sequential endurance** requests over
+1,808.01 active seconds. Its short, medium, and long complete-answer p95 was
+**17.51, 17.83, and 21.90 seconds**; confirmed cold load was **39.13 seconds**.
+The imported Omni source and loaded Agent runtime SHA-256 values match the
+structured profile below exactly, as do the pinned Gemma artifact, projector,
+llama-server, config, laptop, driver, and recorded AC condition. This ordinary
+mode lets the model choose `browser_open`, then automatically reads the page;
+the private trace records two backend model steps per request. The result
+supports this fixed task and recorded source, not open-web quality or release
+qualification. Subsequent Omni changes require a new final-code match.
+
+A separate [structured Read URL full profile](public_evidence/agent_structured_read_url_full_20261006.json)
+`native_14ecb025374d47168a29e822a5fbf87d` passed **60/60 measured**
+fixed loopback page reads (20 per length after two warmups per length) and
+**266/266 sequential endurance** requests over 1,802.69 active seconds.
+Complete-answer p95 was **6.77, 6.89, and 8.79 seconds** for short, medium,
+and long inputs; the confirmed cold load was **38.15 seconds** and is separate
+from those warm-request timings. Its imported Omni source
+`d2dcde784e1bfad92fc5bf9fee5a92dd0aaa688b37c41d0462f705a9dd8cedfc`
+and loaded runtime
+`aa48712b0e0e3fed0cf6ad5810a9337b78360f41f1ace507c7b4d1311860c160`
+matched the source checked after the run and the ordinary profile above. The
+report binds the model, projector, llama-server, config, hardware, driver,
+and AC condition to private
+raw evidence. Its canonical instruction and separate explicit URL are a
+different UI workflow from ordinary model-selected navigation. All 332
+structured requests used one backend model step after the guarded tools,
+whereas all 163 ordinary requests used two. The source-matched runs show a
+fixed-fixture workflow latency difference, **not** an intrinsic model or
+open-web speedup: the UI inputs, first model prompts, fixture ports, and run
+order differ.
+This result is limited to the
+fixed loopback fixture and is **not** a signed qualification or default route.
+
+An earlier browser-vision smoke passed 12/12, but a later desktop capture run
 without foreground verification reconstructed only 6/12 and cannot isolate
 model quality from visibility. A later visual attempt completed one
 warmup and one measured browser screenshot, then stopped before the next
@@ -323,7 +382,10 @@ evidence. This does not verify visual model quality or expert placement.
 Default-route promotion
 still requires independent signed memory, cancellation, placement, lineage,
 and quality evidence. The current Gemma artifact probe binds official
-GGUF/projector LFS bytes, revision and license metadata but does not verify
-base-model provenance or replace human review. The signed quality gate accepts
+GGUF/projector LFS bytes, revision and license metadata. Its separate
+[unsigned documentary lineage review](public_evidence/agent_gemma4_lineage_review_20261006.json)
+records the publisher's stated QAT base and Apache-2.0 license, while leaving
+derivation unverified; neither record is a signed lineage gate or replaces
+human review. The signed quality gate accepts
 only `comparison: exact_sha256` with equal lowercase answer/reference hashes;
 semantic or graded quality needs a separate reviewed comparator.
