@@ -43,7 +43,16 @@ or runtime proof. With `--candidate`, it verifies the manifest binding but
 reports `reviewed_binding_only_download_not_eligible` because live capacity
 and runtime execution were not checked. Passing `--check` does not authorize
 a network download.
-`--reset-partial` remains local maintenance. Example strict invocation:
+`--reset-partial` remains local maintenance.
+
+On 2026-10-06, a native Windows `--check` of the pinned Qwen3-30B manifest
+returned `reviewed_binding_only_download_not_eligible` and left a missing
+destination uncreated. A strict Gemma download attempt using the earlier
+fixed-memory profile was refused before destination creation because the
+catalog edit changed the Omni source hash. These are CLI boundary checks;
+neither downloaded weights nor ran a model.
+
+Example strict invocation:
 
 ```powershell
 python -X utf8 -m benchmarks.edge_agent.download `
