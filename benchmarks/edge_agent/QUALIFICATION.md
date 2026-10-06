@@ -108,9 +108,9 @@ enough for the intended task. `native_app` rechecks live memory admission and
 actual placement on every selected request; a reviewed route still cannot run
 when resources or power condition differ.
 
-The four completed [Gemma fixed-memory protocols](public_evidence/agent_native_smokes_20261005.json)
+The four historical [Gemma fixed-memory protocols](public_evidence/agent_native_smokes_20261005.json)
 each had 60/60 measured successes and 30 minutes of active sequential work
-at their recorded code states. The newest completed run
+at their recorded code states. The latest of those historical runs,
 `native_4bba0301e4d04f4f9af9dd45e1c6deea` has 60/60 measured
 fixed-memory successes (20 per length), 611/611 sequential endurance
 requests over 1,802.26 active seconds, and valid raw trace, measurement
@@ -118,9 +118,26 @@ protocol and fixed-suite case audits. Its imported source and runtime digests
 matched at measurement time. Subsequent browser click/fill boundary and
 approved-POST changes altered the imported Omni source, so this and the
 earlier three completed runs are historical for final-code qualification.
-None qualifies a default route: the independent signed memory, cancellation,
-placement, lineage, and
-bilingual quality gates have not been reviewed and attached. The separate
+The newer [current-source fixed-memory profile](public_evidence/agent_native_memory_current_20261006.json)
+`native_17a071233dec43b892cade1e8ebbe512` passed **60/60 measured**
+requests, 20 per length, and **564/564 sequential endurance** requests over
+1,803.75 active seconds. Raw trace, fixed-suite case, and batch-one protocol
+audits passed without errors. Its loaded Agent runtime digest is
+`c15b43d95183c4cb55fb5352d112891187751f0eb203704c524d4659a80816e9`.
+Whole-answer p95 was 2.58, 2.80, and 4.10 s for short, medium, and long
+fixed-memory inputs. The large difference from prior memory timings has no
+established cause or controlled paired comparison and must not be called a
+route speedup.
+
+A separate [profile-bound bilingual quality probe](public_evidence/agent_memory_quality_20261006.json)
+passed **4/4** source/distractor, exact-answer, and deletion cases. Bound
+[memory-admission and cancel/recovery diagnostics](public_evidence/agent_native_memory_diagnostics_20261006.json)
+show one complete measured Agent turn, two preallocation over-ceiling refusals,
+released ledgers, and an exact recovered answer after cancellation. Their
+raw hashes and profile binding are public; full traces remain private. These
+diagnostics have **not** been independently reviewed and signed as the five
+required release gates, and the four-case suite cannot establish open-domain
+memory quality. No route is a qualified default. The separate
 later browser-text protocol below covers only its fixed local-page read task
 and predates the approved HTTP POST path; it is also historical for
 current-code release matching. Other classes require their own full profiles.
@@ -130,9 +147,9 @@ projector bytes to their published LFS identities, commit and license metadata.
 It explicitly does not verify base-model provenance and remains a private,
 unsigned observation requiring human review. Sampled whole-system memory
 increments and startup offload logs are diagnostic observations, not complete
-memory-admission or per-operation placement proofs. An earlier 4/4 bilingual
-memory-quality observation predates the exact-content index change and
-must be repeated before it can support a current-code quality review. An
+memory-admission or per-operation placement proofs. The earlier unbound 4/4
+bilingual memory observation predates the exact-content index change; the
+newer bound 4/4 run above is still narrow and unsigned. An
 earlier browser-vision attempt completed one warmup and one measured
 browser screenshot, then stopped during setup of the next desktop case because
 Windows could not verify the Edge window in the foreground. This is an

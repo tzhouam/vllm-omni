@@ -1,7 +1,7 @@
 {
   "schema": "edge-agent-memory-quality-aggregate-v1",
   "reviewed_date": "2026-10-06",
-  "review_method": "The reviewer recomputed both private raw JSONL SHA-256 values, inspected all 16 ordered Agent turns per run, rechecked reference equality, source and distractor lineage, deletion flags, and each summary count from the raw records. The two runs used the same withheld private fixture seed.",
+  "review_method": "The first two private runs were reviewed as a pair using the same withheld seed. For the later bound run, the reviewer recomputed private raw/index SHA-256 values, checked its full-profile index/raw binding and loaded runtime identity, and inspected all four raw case check sets and the summary counts. Prompts, answers, and seed remain private.",
   "scope": "four bilingual cross-session Gemma memory cases with similar distractors and source deletion",
   "batch_size": 1,
   "concurrency": 1,
@@ -59,8 +59,30 @@
         {"case_id": "en_zh", "passed": true, "failed_checks": []},
         {"case_id": "zh_en", "passed": true, "failed_checks": []}
       ]
+    },
+    {
+      "run_id": "memory_quality_442380f3ffa6407c95481631f45af084",
+      "result": "all_fixed_cases_passed_profile_bound",
+      "code_state": "matches native_17a071233dec43b892cade1e8ebbe512 at measurement; later source changes require a new match check",
+      "loaded_runtime_sha256": "c15b43d95183c4cb55fb5352d112891187751f0eb203704c524d4659a80816e9",
+      "raw_sha256": "92357057a84c2e7b29a0034cc6c2a538cb76321113a454df09b81e8300f203f3",
+      "index_sha256": "4a1ba91aba2d12b6758103e95397f34c67a0a97a1f5cf0bf2f71219a686efbca",
+      "profile_binding": {
+        "schema": "omni-agent-profile-binding-v1",
+        "profile_run_id": "native_17a071233dec43b892cade1e8ebbe512",
+        "profile_index_sha256": "72245cb72f0a69b48705e954d8093175807b166f775aa9fa9d2db68f707dce8f",
+        "profile_raw_sha256": "c1e529753b530003533cef17edde8e32334f0153fdad3d6b8ec9055c919b30d1"
+      },
+      "cases": 4,
+      "passed": 4,
+      "per_case": [
+        {"case_id": "en_en", "passed": true, "failed_checks": []},
+        {"case_id": "zh_zh", "passed": true, "failed_checks": []},
+        {"case_id": "en_zh", "passed": true, "failed_checks": []},
+        {"case_id": "zh_en", "passed": true, "failed_checks": []}
+      ]
     }
   ],
   "failed_check_note": "after_delete_unknown also requires the retained distractor in post-deletion provenance; in the earlier en_zh run it was not retrieved, so that combined check failed despite correct abstention text.",
-  "limits": "This is one request per case and state, not a 20-per-length latency profile or 30-minute run. It does not establish open-domain retrieval quality, independent placement proof, or signed release qualification."
+  "limits": "Each quality run has one recall request per case and state; the later run is bound to a separate full 20-per-length and 30-minute profile, but the four-case probe itself is not that timing protocol. The observations do not establish open-domain retrieval quality, independent placement proof, or signed release qualification."
 }

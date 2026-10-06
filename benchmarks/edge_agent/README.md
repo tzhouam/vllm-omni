@@ -233,8 +233,8 @@ fixtures used the wrong seed event kind and cannot validate retrieval; a
 corrected Gemma memory smoke is recorded separately. All short smokes remain
 below the 20-per-length and 30-minute qualification thresholds.
 
-Four completed Gemma fixed-memory runs passed the 20-per-length and
-30-minute protocol at their recorded code states. The newest completed
+Four historical Gemma fixed-memory runs passed the 20-per-length and
+30-minute protocol at their recorded code states. The latest of those
 [hash-bound run](public_evidence/agent_native_smokes_20261005.json)
 `native_4bba0301e4d04f4f9af9dd45e1c6deea` passed 60/60 measured
 fixed-memory requests and 611/611 sequential endurance requests over
@@ -245,7 +245,19 @@ the [rolling status](STATUS.md) gives the index/summary hashes and p50/p95.
 Its source/runtime digests matched at measurement time, but subsequent browser
 boundary changes make it historical for final-code release matching. The
 earlier three full profiles, including `native_37aad46efd4f4893a497a7bfaa83599d`,
-are also historical. No default route is qualified.
+are also historical. A separate [current-source fixed-memory profile](public_evidence/agent_native_memory_current_20261006.json)
+`native_17a071233dec43b892cade1e8ebbe512` passed **60/60 measured**
+requests (20 per length) and **564/564 sequential endurance** requests over
+1,803.75 seconds of active Agent work. Raw trace, case, and batch-one protocol
+audits passed. Complete-answer p95 was **2.58, 2.80, and 4.10 seconds** for
+short, medium, and long fixed-memory inputs. The difference from historical
+short/medium timing is unexplained and is not a controlled route speedup.
+The [profile-bound bilingual quality aggregate](public_evidence/agent_memory_quality_20261006.json)
+records **4/4** narrow cross-session source, exact-answer, and deletion
+checks. The [bound admission and cancellation diagnostics](public_evidence/agent_native_memory_diagnostics_20261006.json)
+record one complete turn, two preallocation budget refusals, released ledgers,
+and an exact recovered answer on a new worker generation. These observations
+remain unsigned and do not qualify a default route.
 
 The post-hardening browser-text-only smoke
 `native_f97dc44f38024b2d82794e73b1b745de` passed 6/6 with a valid raw
@@ -269,9 +281,16 @@ warmup and one measured browser screenshot, then stopped before the next
 desktop case when Windows could not verify the Edge fixture in the
 foreground. All indexed visual attempts predate the latest browser hardening;
 no visual class has completed the full protocol on that source. The separate
-[bilingual memory-quality probe](public_evidence/agent_memory_quality_20261006.json)
-retains a 3/4 failure and a later 4/4 observation, both unsigned; the 4/4
-run predates the later exact-content memory index. Default-route promotion
+[bilingual memory-quality aggregate](public_evidence/agent_memory_quality_20261006.json)
+retains an earlier 3/4 failure and unbound 4/4 observation, plus the newer
+profile-bound 4/4 result. All remain unsigned; the unbound 4/4 run predates
+the later exact-content memory index. A separate
+[Qwen3.6 browser-screenshot request](public_evidence/agent_qwen3_6_visual_20261006.json)
+produced the exact fixed-fixture answer and expected browser tools, but its
+strict E2E/placement evaluator **failed** because actual placement was null;
+the requested `Vulkan_Host+Vulkan0` route has only override-selection
+evidence. This does not verify visual model quality or expert placement.
+Default-route promotion
 still requires independent signed memory, cancellation, placement, lineage,
 and quality evidence. The current Gemma artifact probe binds official
 GGUF/projector LFS bytes, revision and license metadata but does not verify

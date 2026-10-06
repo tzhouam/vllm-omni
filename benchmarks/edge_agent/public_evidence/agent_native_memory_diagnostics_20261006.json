@@ -1,0 +1,34 @@
+{
+  "schema": "edge-agent-native-memory-diagnostics-v1",
+  "reviewed_date": "2026-10-06",
+  "scope": "two unsigned batch-one diagnostics bound to the current-source Gemma fixed-memory profile",
+  "qualification_status": "functional_diagnostics_only; no independent signed gate or default route",
+  "profile": {
+    "run_id": "native_17a071233dec43b892cade1e8ebbe512",
+    "index_sha256": "72245cb72f0a69b48705e954d8093175807b166f775aa9fa9d2db68f707dce8f",
+    "raw_sha256": "c1e529753b530003533cef17edde8e32334f0153fdad3d6b8ec9055c919b30d1"
+  },
+  "memory_admission": {
+    "private_record_sha256": "822402f15269c9ae20917392cf3c9682d2c3015ac0834eb60ddae3fe0092d704",
+    "result": "one_complete_agent_turn_measured_without_error",
+    "telemetry_samples": 283,
+    "ledger_reservation_bytes": {"host_ram": 22000000000, "vram": 18500000000},
+    "sampled_global_incremental_peak_bytes": {"host_ram": 19766419456, "vram": 14630879232},
+    "host_and_vram_over_ceiling_refusals_before_physical_allocation": true,
+    "host_and_vram_reserved_bytes_after_release": {"host_ram": 0, "vram": 0},
+    "startup_log_placement_observed": true,
+    "signed_gate": false
+  },
+  "cancel_recovery": {
+    "private_record_sha256": "cd2bd8f9ac48da94b780e0852849dc415f4fd33b45ffb80a84f883f84790be15",
+    "result": "cancelled_stream_then_restarted_request_passed",
+    "cancelled_events": 1,
+    "state_released_events": 1,
+    "worker_exit_confirmed": true,
+    "stage_and_host_ledgers_empty": true,
+    "restarted_worker_generation_changed": true,
+    "recovery_answer_exact": true,
+    "signed_gate": false
+  },
+  "limits": "Memory samples are whole-system incremental lower bounds and can include other processes or miss transient peaks. The loader log does not prove each operation's execution placement. These short diagnostics are bound to one profile but have not been independently signed as release qualification gates."
+}
