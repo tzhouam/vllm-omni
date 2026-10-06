@@ -64,6 +64,7 @@ _MAX_POST_BODY_BYTES = 64 * 1024
 _MAX_POST_URL_BYTES = 2048
 _MAX_POST_RESPONSE_EXCERPT_BYTES = 4096
 _POST_TOTAL_TIMEOUT_SECONDS = 30.0
+_SCREEN_CAPTURE_SCOPE = "visible_screen_pixels_within_foreground_window_bounds"
 _POST_CONTENT_TYPES = frozenset({
     "application/json", "application/x-www-form-urlencoded",
     "text/plain; charset=utf-8", "application/octet-stream",
@@ -177,6 +178,8 @@ class SettingsBackend(Protocol):
 
 class ScreenBackend(Protocol):
     def capture(self) -> Mapping[str, Any]: ...
+    def capture_target(self) -> Mapping[str, Any]: ...
+    def capture_approved(self, expected_target: Mapping[str, Any]) -> Mapping[str, Any]: ...
 
 
 def _require_windows() -> None:
@@ -867,7 +870,7 @@ class WindowsSettings:
 
 
 def _foreground_window_bbox() -> tuple[int, int, int, int]:
-    """Return the foreground window's visible bounds in desktop coordinates."""
+    """Return the foreground window's screen rectangle in desktop coordinates."""
     class Rect(ctypes.Structure):
         _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
                     ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
@@ -896,7 +899,7 @@ def _foreground_window_bbox() -> tuple[int, int, int, int]:
 
 
 def _foreground_window_target() -> dict[str, Any]:
-    """Identify the visible foreground window without reading its pixels."""
+    """Identify the foreground window rectangle without reading screen pixels."""
     user32 = ctypes.windll.user32
     user32.GetForegroundWindow.restype = ctypes.c_void_p
     hwnd = user32.GetForegroundWindow()
@@ -920,7 +923,7 @@ def _foreground_window_target() -> dict[str, Any]:
     if user32.GetForegroundWindow() != hwnd:
         raise RuntimeError("foreground window changed during capture inspection")
     return {
-        "capture_scope": "foreground_window_visible_pixels",
+        "capture_scope": _SCREEN_CAPTURE_SCOPE,
         "window_handle": int(hwnd), "process_id": int(pid.value),
         "window_title": title.value,
         "source_bbox": {"left": bbox[0], "top": bbox[1],
@@ -929,11 +932,12 @@ def _foreground_window_target() -> dict[str, Any]:
 
 
 class WindowsScreen:
-    """Bounded snapshot of the visible foreground window.
+    """Bounded snapshot of screen pixels inside foreground-window bounds.
 
     Cropping before downscaling preserves legible text on multi-monitor
-    desktops.  This is a screen observation, so obscuring windows remain
-    visible in the capture; it does not use an off-screen window renderer.
+    desktops. This is a screen observation, not isolated window rendering:
+    overlays and other windows can appear, and desktop background can show
+    through transparent window corners.
     """
 
     def __init__(self, *, max_bytes: int = 2_000_000) -> None:
@@ -991,7 +995,7 @@ class WindowsScreen:
             raise RuntimeError("screen capture exceeds the configured image byte limit")
         return {
             "mime_type": "image/jpeg",
-            "capture_scope": "foreground_window_visible_pixels",
+            "capture_scope": _SCREEN_CAPTURE_SCOPE,
             "source_bbox": {"left": bbox[0], "top": bbox[1],
                             "right": bbox[2], "bottom": bbox[3]},
             "width": image.width,
@@ -1157,11 +1161,8 @@ class WindowsToolBoundary:
             current = dict(self.settings.read(str(action.arguments["setting"])))
             if current != pending.context:
                 raise RuntimeError("Windows setting changed after approval was requested")
-        elif action.operation == "screen_capture" and "window_handle" in pending.context:
-            target_reader = getattr(self.screen, "capture_target", None)
-            if not callable(target_reader):
-                raise RuntimeError("approved foreground target can no longer be verified")
-            current = dict(target_reader())
+        elif action.operation == "screen_capture":
+            current = self._screen_context()
             if current != pending.context:
                 raise RuntimeError("foreground window changed after capture approval was requested")
         # Cancellation may have arrived while the target was being inspected.
@@ -1198,11 +1199,7 @@ class WindowsToolBoundary:
             elif action.operation == "settings_set":
                 context = dict(self.settings.read(str(action.arguments["setting"])))
             elif action.operation == "screen_capture":
-                target_reader = getattr(self.screen, "capture_target", None)
-                context = (dict(target_reader()) if callable(target_reader) else {
-                    "capture_scope": "foreground_window_visible_pixels",
-                    "window_selection": "foreground_at_execution",
-                })
+                context = self._screen_context()
             else:
                 context = {}
         # Keep the exact target used for the UI challenge immutable until
@@ -1225,9 +1222,9 @@ class WindowsToolBoundary:
             "browser_fill": "Fill a browser control; this may save data on an external site",
             "browser_post": "Send this exact HTTP POST body to the approved same-origin URL once",
             "screen_capture": (
-                "Capture visible pixels of the current foreground window once; "
-                "it may cover the whole screen. A changed foreground target is refused "
-                "when the backend can identify it"
+                "Capture screen pixels within the approved foreground window's bounds once; "
+                "overlays, other windows, or background through transparent corners may appear. "
+                "A changed foreground target is refused"
             ),
             "settings_set": "Change an allowlisted Windows setting",
         }[action.operation]
@@ -1266,6 +1263,27 @@ class WindowsToolBoundary:
             "cookie_fingerprint": observed["cookie_fingerprint"],
             "cookie_count": observed.get("cookie_count"),
         }
+
+    def _screen_context(self) -> dict[str, Any]:
+        screen = self.screen
+        target_reader = getattr(screen, "capture_target", None)
+        approved_capture = getattr(screen, "capture_approved", None)
+        if not callable(target_reader) or not callable(approved_capture):
+            raise PermissionError("screen backend cannot bind an approved foreground target")
+        target = dict(target_reader())
+        bbox = target.get("source_bbox")
+        if (target.get("capture_scope") != _SCREEN_CAPTURE_SCOPE
+                or type(target.get("window_handle")) is not int
+                or target["window_handle"] <= 0
+                or type(target.get("process_id")) is not int
+                or target["process_id"] <= 0
+                or not isinstance(target.get("window_title"), str)
+                or not isinstance(bbox, Mapping)
+                or set(bbox) != {"left", "top", "right", "bottom"}
+                or any(type(value) is not int for value in bbox.values())
+                or bbox["right"] <= bbox["left"] or bbox["bottom"] <= bbox["top"]):
+            raise RuntimeError("screen backend did not report a bound foreground rectangle")
+        return target
 
     @staticmethod
     def _validate(action: ToolAction) -> None:
@@ -1329,13 +1347,14 @@ class WindowsToolBoundary:
             data = self.browser.screenshot()
             source = str(data.get("url", self.browser.current_url()))
         elif op == "screen_capture":
+            if navigation_context is None:
+                raise AssertionError("screen capture requires frozen approval context")
             approved_capture = getattr(self.screen, "capture_approved", None)
-            if navigation_context is not None and "window_handle" in navigation_context:
-                if not callable(approved_capture):
-                    raise RuntimeError("approved foreground target cannot be bound during capture")
-                data = approved_capture(navigation_context)
-            else:
-                data = self.screen.capture()
+            if not callable(approved_capture):
+                raise PermissionError("screen backend cannot bind an approved foreground target")
+            data = approved_capture(navigation_context)
+            if data.get("capture_scope") != _SCREEN_CAPTURE_SCOPE:
+                raise RuntimeError("screen backend did not report the approved capture scope")
             source = "windows-screen"
         elif op == "browser_click":
             authorized_click = getattr(self.browser, "click_authorized", None)

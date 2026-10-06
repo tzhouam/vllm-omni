@@ -18,7 +18,7 @@ import threading
 from typing import Any, Callable, Mapping, Protocol
 from urllib.parse import parse_qsl
 
-from vllm_omni.edge.agent.tools import _foreground_window_target
+from vllm_omni.edge.agent.tools import _SCREEN_CAPTURE_SCOPE, _foreground_window_target
 
 try:
     from PySide6.QtCore import QObject, Qt, Signal
@@ -152,39 +152,32 @@ def _screen_capture_review(challenge: Mapping[str, Any]) -> str:
     target = challenge.get("target")
     if (operation != "screen_capture" or challenge.get("risk") != "sensitive_desktop_read"
             or not isinstance(target, Mapping)
-            or target.get("capture_scope") != "foreground_window_visible_pixels"):
+            or target.get("capture_scope") != _SCREEN_CAPTURE_SCOPE):
         raise ValueError("screen capture approval has no verified foreground scope")
     lines = [
-        "Sensitive desktop read — one foreground-window capture",
-        "Scope: visible pixels of the current foreground window; it may cover the whole screen.",
+        "Sensitive desktop read — one screen capture within foreground-window bounds",
+        "Scope: visible screen pixels inside the current foreground window's bounding rectangle.",
+        "Overlays or other windows can appear; desktop background may show through transparent corners.",
+        "A maximized foreground window may make this rectangle cover the whole screen.",
     ]
-    if "window_handle" in target:
-        if (type(target.get("window_handle")) is not int
-                or type(target.get("process_id")) is not int
-                or not isinstance(target.get("window_title"), str)
-                or not isinstance(target.get("source_bbox"), Mapping)):
-            raise ValueError("screen capture approval has incomplete window identity")
-        lines.extend([
-            "Window title: " + json.dumps(target["window_title"] or "<untitled>", ensure_ascii=False),
-            f"Process ID: {target['process_id']}",
-            f"Window handle: {target['window_handle']}",
-            f"Visible bounds: {json.dumps(dict(target['source_bbox']), ensure_ascii=False)}",
-            "If the foreground window changes before or during capture, this approval fails.",
-        ])
-    elif target.get("window_selection") == "foreground_at_execution":
-        lines.append(
-            "The foreground window is selected when capture executes; it may change before then."
-        )
-    else:
-        raise ValueError("screen capture approval has no window selection rule")
+    if (type(target.get("window_handle")) is not int
+            or type(target.get("process_id")) is not int
+            or not isinstance(target.get("window_title"), str)
+            or not isinstance(target.get("source_bbox"), Mapping)):
+        raise ValueError("screen capture approval has incomplete window identity")
+    lines.extend([
+        "Window title: " + json.dumps(target["window_title"] or "<untitled>", ensure_ascii=False),
+        f"Process ID: {target['process_id']}",
+        f"Window handle: {target['window_handle']}",
+        f"Rectangle: {json.dumps(dict(target['source_bbox']), ensure_ascii=False)}",
+        "If the foreground window changes before or during capture, this approval fails.",
+    ])
     return "\n".join(lines)
 
 
 def _restore_capture_foreground(target: Mapping[str, Any]) -> None:
     """Hand focus back after the review dialog, before dispatching approval."""
-    if "window_handle" not in target:
-        return  # An injected backend selects the foreground window at execution.
-    if sys.platform != "win32" or type(target["window_handle"]) is not int:
+    if sys.platform != "win32" or type(target.get("window_handle")) is not int:
         raise RuntimeError("approved foreground window cannot be restored")
     user32 = ctypes.windll.user32
     user32.SetForegroundWindow.argtypes = [ctypes.c_void_p]

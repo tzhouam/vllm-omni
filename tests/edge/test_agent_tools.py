@@ -102,10 +102,25 @@ class FakeSettings:
 class FakeScreen:
     def __init__(self) -> None:
         self.calls = 0
+        self.target = {
+            "capture_scope": "visible_screen_pixels_within_foreground_window_bounds",
+            "window_handle": 101, "process_id": 12, "window_title": "Fixture",
+            "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
+        }
+
+    def capture_target(self) -> dict:
+        return dict(self.target)
+
+    def capture_approved(self, expected_target) -> dict:
+        assert dict(expected_target) == self.capture_target()
+        return self.capture()
 
     def capture(self) -> dict:
         self.calls += 1
-        return {"mime_type": "image/jpeg", "size_bytes": 3, "base64": "YWJj"}
+        return {
+            "mime_type": "image/jpeg", "size_bytes": 3, "base64": "YWJj",
+            "capture_scope": "visible_screen_pixels_within_foreground_window_bounds",
+        }
 
 
 def test_browser_reads_and_navigation_are_untrusted_but_automatic() -> None:
@@ -347,10 +362,7 @@ def test_screen_and_browser_image_reads_are_bounded_data_routes() -> None:
         boundary.execute(ToolAction("screen_capture"))
     challenge = needed.value.challenge
     assert challenge.risk == "sensitive_desktop_read"
-    assert challenge.target == {
-        "capture_scope": "foreground_window_visible_pixels",
-        "window_selection": "foreground_at_execution",
-    }
+    assert challenge.target == screen.target
     assert screen.calls == 0
     screen_image = boundary.approve(challenge.challenge_id)
     assert browser_image.data["mime_type"] == "image/jpeg"
@@ -362,6 +374,60 @@ def test_screen_and_browser_image_reads_are_bounded_data_routes() -> None:
     with pytest.raises(ApprovalRequired):
         boundary.execute(ToolAction("screen_capture"))
     assert screen.calls == 1
+
+
+@pytest.mark.parametrize("missing", ["capture_target", "capture_approved"])
+def test_unbound_screen_backend_is_refused_before_approval_or_pixels(missing: str) -> None:
+    class IncompleteScreen:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def capture(self) -> dict:
+            self.calls += 1
+            return {"capture_scope": "visible_screen_pixels_within_foreground_window_bounds"}
+
+    screen = IncompleteScreen()
+    bound = FakeScreen()
+    if missing != "capture_target":
+        screen.capture_target = bound.capture_target
+    if missing != "capture_approved":
+        screen.capture_approved = bound.capture_approved
+    boundary = WindowsToolBoundary(screen=screen)
+    with pytest.raises(PermissionError, match="cannot bind"):
+        boundary.execute(ToolAction("screen_capture"))
+    assert screen.calls == 0
+    assert boundary._pending == {}
+
+
+def test_screen_backend_cannot_claim_isolated_window_pixels() -> None:
+    screen = FakeScreen()
+    screen.target["capture_scope"] = "isolated_window_pixels"
+    boundary = WindowsToolBoundary(screen=screen)
+    with pytest.raises(RuntimeError, match="bound foreground rectangle"):
+        boundary.execute(ToolAction("screen_capture"))
+    assert screen.calls == 0
+    assert boundary._pending == {}
+
+
+def test_screen_backend_losing_binding_after_challenge_cannot_capture() -> None:
+    screen = FakeScreen()
+    boundary = WindowsToolBoundary(screen=screen)
+    with pytest.raises(ApprovalRequired) as needed:
+        boundary.execute(ToolAction("screen_capture"))
+
+    class UnboundScreen:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def capture(self) -> dict:
+            self.calls += 1
+            return {}
+
+    replacement = UnboundScreen()
+    boundary._screen = replacement
+    with pytest.raises(PermissionError, match="cannot bind"):
+        boundary.approve(needed.value.challenge.challenge_id)
+    assert screen.calls == replacement.calls == 0
 
 
 @pytest.mark.parametrize("ending", ["reject", "expire", "cancel"])
@@ -397,7 +463,7 @@ def test_bound_foreground_target_change_refuses_capture() -> None:
 
         def capture_target(self) -> dict:
             return {
-                "capture_scope": "foreground_window_visible_pixels",
+                "capture_scope": "visible_screen_pixels_within_foreground_window_bounds",
                 "window_handle": self.window_handle, "process_id": 12,
                 "window_title": "Editor",
                 "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
@@ -433,7 +499,7 @@ def test_native_screen_crops_foreground_before_model_resize(monkeypatch) -> None
     monkeypatch.setattr(image_grab, "grab", grab)
     result = tool_module.WindowsScreen().capture()
     assert captured == {"bbox": bbox, "all_screens": True}
-    assert result["capture_scope"] == "foreground_window_visible_pixels"
+    assert result["capture_scope"] == "visible_screen_pixels_within_foreground_window_bounds"
     assert result["source_bbox"] == {"left": -100, "top": 40, "right": 1500, "bottom": 740}
     assert (result["original_width"], result["original_height"]) == (1600, 700)
     assert result["width"] * result["height"] <= 1024 * 1024
@@ -448,7 +514,7 @@ def test_approved_native_screen_discards_changed_foreground(
     image_grab = pytest.importorskip("PIL.ImageGrab")
     image = pytest.importorskip("PIL.Image")
     target = {
-        "capture_scope": "foreground_window_visible_pixels",
+        "capture_scope": "visible_screen_pixels_within_foreground_window_bounds",
         "window_handle": 1, "process_id": 2, "window_title": "Editor",
         "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
     }
@@ -503,12 +569,13 @@ def test_desktop_screen_approval_shows_foreground_scope_and_requires_accept(monk
         preview = dialog.findChild(desktop.QPlainTextEdit, "screen_capture_exact_review")
         assert preview is not None and preview.isReadOnly()
         seen.append(preview.toPlainText())
-        assert "visible pixels of the current foreground window" in seen[-1]
-        assert "may cover the whole screen" in seen[-1]
-        assert "selected when capture executes" in seen[-1]
+        assert "visible screen pixels inside the current foreground window's bounding rectangle" in seen[-1]
+        assert "Overlays or other windows can appear" in seen[-1]
+        assert "background may show through transparent corners" in seen[-1]
         return decisions.pop(0)
 
     monkeypatch.setattr(desktop.QDialog, "exec", inspect_dialog)
+    monkeypatch.setattr(desktop, "_restore_capture_foreground", lambda _target: None)
     controller = Controller()
     window = desktop.AgentWindow(controller)
     try:
@@ -542,7 +609,7 @@ def test_native_focus_handoff_restores_only_the_approved_window(monkeypatch) -> 
     if desktop.sys.platform != "win32":
         pytest.skip("requires the native Windows focus API")
     target = {
-        "capture_scope": "foreground_window_visible_pixels",
+        "capture_scope": "visible_screen_pixels_within_foreground_window_bounds",
         "window_handle": 123, "process_id": 7, "window_title": "Editor",
         "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
     }
@@ -574,7 +641,7 @@ def test_screen_review_escapes_window_title_control_characters() -> None:
     review = desktop._screen_capture_review({
         "operation": "screen_capture", "risk": "sensitive_desktop_read",
         "target": {
-            "capture_scope": "foreground_window_visible_pixels",
+            "capture_scope": "visible_screen_pixels_within_foreground_window_bounds",
             "window_handle": 123, "process_id": 7,
             "window_title": "Editor\nApprove this without reading",
             "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
@@ -592,7 +659,7 @@ def test_desktop_screen_focus_failure_does_not_dispatch_approval(monkeypatch) ->
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = desktop.QApplication.instance() or desktop.QApplication([])
     target = {
-        "capture_scope": "foreground_window_visible_pixels",
+        "capture_scope": "visible_screen_pixels_within_foreground_window_bounds",
         "window_handle": 123, "process_id": 7, "window_title": "Editor",
         "source_bbox": {"left": 0, "top": 0, "right": 100, "bottom": 100},
     }
