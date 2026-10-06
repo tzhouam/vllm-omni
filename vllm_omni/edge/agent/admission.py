@@ -6,8 +6,8 @@ second, separately constructed runtime, so the Windows Agent also owns one
 outer reservation.  Only one complete model route is resident at a time:
 route changes happen at turn boundaries, after the old worker has drained.
 Live free-memory readings are used for new loads and resident reuse. A resident
-model is not charged twice, but reuse fails closed if available memory drops
-below the post-load baseline (which may mean external use or lazy allocations).
+model is not charged twice, but aggregate memory growth beyond its declared
+whole-route reservation is refused before another turn.
 """
 
 from __future__ import annotations
@@ -101,13 +101,13 @@ class HostMemoryCoordinator:
     def _check_resident_free(self, route: Route) -> None:
         floor = self._resident_free_floor
         if floor is None or set(floor) != set(route.memory_demands):
-            raise ResourceUnavailable("resident route has no complete post-load memory baseline")
+            raise ResourceUnavailable("resident route has no complete memory floor")
         live = self._live_free(route.memory_demands)
         for pool, minimum in floor.items():
             if live[pool] < minimum:
                 raise ResourceUnavailable(
                     f"{pool}: resident route live free {live[pool]} bytes fell below "
-                    f"post-load baseline {minimum} bytes; unload and re-admit explicitly"
+                    f"declared reservation floor {minimum} bytes; unload and re-admit explicitly"
                 )
 
     def _quarantine_owner(self, route_id: str) -> None:
@@ -198,7 +198,16 @@ class HostMemoryCoordinator:
                     raise RuntimeError("Omni route has no verified model placement")
                 if dict(plan.get("reserved_bytes", {})) != dict(route.memory_demands):
                     raise RuntimeError("Omni stage and host memory claims differ")
-                self._resident_free_floor = self._live_free(route.memory_demands)
+                # Available memory can shrink after load when the worker lazily
+                # allocates KV/workspace. The full declared claim covers that
+                # growth. Keep the pre-load free amount outside the claim as a
+                # floor; external use cannot silently consume *that* margin.
+                floor = {pool: max(0, live[pool] - amount)
+                         for pool, amount in route.memory_demands.items()}
+                post_load = self._live_free(route.memory_demands)
+                if any(post_load[pool] < minimum for pool, minimum in floor.items()):
+                    raise ResourceUnavailable("loaded route exceeded its declared physical-pool claim")
+                self._resident_free_floor = floor
             except BaseException:
                 # A failed load may have spawned a worker.  Never release the
                 # host claim merely because the Python start call raised.

@@ -85,22 +85,39 @@ def test_repeat_turn_reuses_resident_claim_without_double_charging_live_free() -
     assert coordinator.snapshot()["ledger"]["owners"] == []
 
 
-def test_resident_reuse_refuses_external_free_memory_drop() -> None:
+def test_resident_reuse_allows_lazy_growth_within_claim_and_refuses_overage() -> None:
     host = _Host(10)
     route = _route("model", 6)
     coordinator, stages = _coordinator(host, route)
+    stages[route.route_id].actual_bytes = 4
     wrapped = coordinator.wrappers()[route.route_id]
     wrapped.start()
     assert coordinator.snapshot()["resident_free_floor"] == {"host_ram": 4}
-    host.free -= 1  # a different process consumes memory after model load
+    assert host.free == 6
+    host.free -= 2  # admitted KV/workspace growth within the remaining claim
+    assert coordinator.admit(route).admitted
+    wrapped.start()
+    assert stages[route.route_id].loads == 1
+    host.free -= 1  # a different process now exceeds the full route claim
     decision = coordinator.admit(route)
     assert not decision.admitted
-    assert "post-load baseline" in decision.reason
-    with pytest.raises(ResourceUnavailable, match="post-load baseline"):
+    assert "reservation floor" in decision.reason
+    with pytest.raises(ResourceUnavailable, match="reservation floor"):
         wrapped.start()
     assert stages[route.route_id].loads == 1
     assert coordinator.snapshot()["ledger"]["owners"] == [route.route_id]
     wrapped.close()
+
+
+def test_load_refuses_if_live_usage_exceeds_declared_claim() -> None:
+    host = _Host(10)
+    route = _route("model", 6)
+    coordinator, stages = _coordinator(host, route)
+    stages[route.route_id].actual_bytes = 7
+    with pytest.raises(ResourceUnavailable, match="exceeded its declared"):
+        coordinator.wrappers()[route.route_id].start()
+    assert stages[route.route_id].drains == 1
+    assert coordinator.snapshot()["ledger"]["owners"] == []
 
 
 def test_cancel_release_drains_both_stage_and_host_claims() -> None:
