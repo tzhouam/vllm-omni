@@ -103,27 +103,40 @@ mouse-speed setting, seeded encrypted-memory recall, and a narrow Python-output
 question. Visual identifiers are rendered in an image, not in page body text.
 The length buckets use fixed prompt text and record characters, UTF-8 bytes,
 and a prompt SHA-256; model-specific tokenizer counts are not inferred.
-Browser navigation is confined to a loopback fixture;
-browser writes and setting changes are rejected at the tool boundary. A
-`browser_open` URL is allowed without approval only when it exactly matches
-an explicit URL in the trusted user task; model output and recalled page or
+Browser navigation is confined to a loopback fixture. The profiler rejects
+approval requests, so the fixed task set measures no browser or setting
+writes. A `browser_open` URL is allowed without approval only when it exactly
+matches an explicit URL in the trusted user task; model output and recalled page or
 memory text cannot authorize another destination. Following a page link without
 approval additionally requires that the visible, same-origin target URL was
 explicitly present in that trusted task; other link targets require exact-action
 approval. The managed browser opens a fresh isolated Edge context with no
 restored tabs. It installs HTTP and WebSocket guards before the first page
 exists. Only an exact authorized top-level GET navigation can reach the
-network; page-initiated background HTTP requests, frames, redirects, and
-WebSockets are blocked. This deliberately limits ordinary open-web images,
-scripts, fonts, and stylesheets; inline/data assets remain available, and
+managed page network path; page-initiated background HTTP requests, frames,
+redirects, and WebSockets are blocked. This deliberately limits ordinary
+open-web images, scripts, fonts, and stylesheets; inline/data assets remain available, and
 the fixed visual fixture embeds its image as a data URL.
 
 Production `browser_click` and `browser_fill` return an explicit refusal
-before target inspection, approval, or page action. Native form POST is not
-enabled: even constructing `FormData` can dispatch page JavaScript, while a
-click or fill may invoke handlers or external protocols outside HTTP routing.
-Injected mock backends exercise the generic approval contract but do not
-establish production browser-write support. The context is discarded when
+before target inspection, approval, or page action. DOM form submission is
+also disabled: even constructing `FormData` can dispatch page JavaScript,
+while a click or fill may invoke handlers or external protocols outside HTTP
+routing. A distinct `browser_post` operation can send **one approved HTTP
+POST** to the current managed page's origin without executing page JavaScript.
+It admits only a narrow canonical ASCII URL (at most 2,048 bytes), a canonical
+base64 body of at most 64 KiB, and one of four exact media types:
+`application/json`, `application/x-www-form-urlencoded`,
+`text/plain; charset=utf-8`, or `application/octet-stream`. The approval UI
+shows the complete target and body, including a bytewise view, plus a
+fingerprint of applicable cookies. Before sending, the tool rechecks the
+approved URL, body hash, current page, and cookie fingerprint. The isolated
+HTTP client disables redirects and automatic retries, caps the raw response
+excerpt at 4 KiB, and has a 30-second total deadline. A timeout or connection
+failure after dispatch has an **unknown server-side outcome** and must not be
+retried automatically. Its proxy, CA, and CSRF behavior can differ from Edge's
+page transport. Local transport and approval tests do not qualify a live
+browser-write Agent task or general web safety. The context is discarded when
 the Agent closes, so browser cookies and tabs do not persist between app
 sessions. Browser process-level traffic is outside page routing; the fixed
 local fixture is not evidence of general open-web safety.
@@ -223,12 +236,14 @@ are also historical. No default route is qualified.
 The post-hardening browser-text-only smoke
 `native_f97dc44f38024b2d82794e73b1b745de` passed 6/6 with a valid raw
 trace audit. It has two measured requests per length and no endurance. Its
-current-source successor `native_9f12bd06a5074fdd97429953825be09b`
+later successor `native_9f12bd06a5074fdd97429953825be09b`
 completed the fixed local-page read protocol: **60/60 measured requests**
 (20 per length after separate warmups) and **165/165 sequential endurance
 requests** over 1,808.30 active seconds. Raw trace, fixed-suite case, and
 batch-one protocol audits pass; the imported-source/runtime digests matched
-the reviewed code at measurement time. Whole-Agent answer p95 was **9.46,
+the reviewed code at measurement time. Subsequent `browser_post` changes make
+this full read-only profile historical for current-source release matching.
+Whole-Agent answer p95 was **9.46,
 11.97, and 14.44 seconds** for short, medium, and long cases, so medium and
 long missed the 10-second normal-answer target. The [rolling status](STATUS.md)
 reports TTFT, hashes, cold load, and sampled telemetry. This fixed-page read
