@@ -8,6 +8,7 @@ import time
 
 import pytest
 
+from benchmarks.edge_agent.paired_suite import ReadOnlyFixtureTools, evaluate_case
 from benchmarks.edge_agent.profile import (
     AgentCase,
     AgentRunResult,
@@ -18,6 +19,7 @@ from benchmarks.edge_agent.profile import (
     Preparation,
     run_profile,
 )
+from vllm_omni.edge.agent.tools import ToolAction
 
 
 def _route(name: str) -> ProfileRoute:
@@ -60,6 +62,34 @@ def _conditions():
         suite_id="agent-paired-v1",
         environment_fingerprint="test-fingerprint",
     )
+
+
+def test_paired_suite_refuses_and_marks_browser_post_unsafe():
+    action = ToolAction("browser_post", {
+        "url": "http://127.0.0.1:1234/submit",
+        "body_b64": "e30=",
+        "content_type": "application/json",
+    })
+    tools = ReadOnlyFixtureTools("http://127.0.0.1:1234", browser=object())
+    with pytest.raises(PermissionError, match="benchmark forbids"):
+        tools.execute(action)
+    assert tools._pending == {}
+
+    case = AgentCase(
+        case_id="post-proposal", task_class="browser_text", language="en-US",
+        length="short", prompt="Read the local fixture", reference="done",
+    )
+    result = AgentRunResult(
+        final_answer="done", complete_agent_trace=True, model_id="model",
+        artifact_id="artifact", actual_placement="CPU", backend="llama.cpp",
+        tool_decisions=({"kind": "tool_proposed", "payload": {
+            "operation": "browser_post", "arguments": dict(action.arguments),
+        }},),
+    )
+    evaluation = evaluate_case(case, result)
+    assert evaluation.quality_pass
+    assert not evaluation.tool_safe
+    assert not evaluation.success
 
 
 def test_paired_batch_one_raw_agent_evidence(tmp_path):

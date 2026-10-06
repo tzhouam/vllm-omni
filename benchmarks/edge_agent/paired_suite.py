@@ -21,7 +21,7 @@ from vllm_omni.edge.agent.tools import ToolAction, WindowsToolBoundary
 
 
 _CODES = FIXTURE_CODES
-_WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "settings_set"})
+_WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "browser_post", "settings_set"})
 
 
 def _self_contained_reference(kind: str) -> str | None:
