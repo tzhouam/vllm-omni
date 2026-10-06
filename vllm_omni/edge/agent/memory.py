@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Mapping, Protocol, Sequence
 
 
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 3
 _WORD_RE = re.compile(r"[a-z0-9]+|[\u3400-\u9fff]+")
 _CJK_RE = re.compile(r"^[\u3400-\u9fff]+$")
 _BINARY_PAYLOAD_KEYS = frozenset({"base64", "$bytes_b64", "image_data_url"})
@@ -317,6 +317,18 @@ class EncryptedMemoryStore:
                     PRIMARY KEY(event_id, term_tag)
                 );
                 CREATE INDEX IF NOT EXISTS terms_lookup ON term_index(term_tag);
+                CREATE TABLE IF NOT EXISTS event_kinds (
+                    event_id TEXT PRIMARY KEY REFERENCES events(event_id) ON DELETE CASCADE,
+                    kind_tag BLOB NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS event_kinds_lookup
+                    ON event_kinds(kind_tag, event_id);
+                CREATE TABLE IF NOT EXISTS event_content (
+                    event_id TEXT PRIMARY KEY REFERENCES events(event_id) ON DELETE CASCADE,
+                    content_tag BLOB NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS event_content_lookup
+                    ON event_content(content_tag, event_id);
                 CREATE TABLE IF NOT EXISTS derivations (
                     derived_id TEXT NOT NULL REFERENCES events(event_id) ON DELETE CASCADE,
                     source_id TEXT NOT NULL REFERENCES events(event_id) ON DELETE CASCADE,
@@ -344,7 +356,7 @@ class EncryptedMemoryStore:
                     "INSERT INTO meta(name,value) VALUES('index_key',?)",
                     (self._cipher.encrypt(secrets.token_bytes(32), b"index-key-v1"),),
                 )
-            elif version[0] != str(_SCHEMA_VERSION).encode():
+            elif version[0] not in {b"1", b"2", str(_SCHEMA_VERSION).encode()}:
                 raise MemoryIntegrityError("unsupported memory schema version")
             name = self._conn.execute(
                 "SELECT value FROM meta WHERE name='cipher_name'"
@@ -359,6 +371,26 @@ class EncryptedMemoryStore:
             self._index_key = self._cipher.decrypt(protected_key[0], b"index-key-v1")
             if len(self._index_key) != 32:
                 raise MemoryIntegrityError("memory index key has invalid length")
+            if version is not None and version[0] in {b"1", b"2"}:
+                # Backfill keyed metadata from authenticated ciphertext in one
+                # transaction. A failed upgrade keeps the old version and can
+                # be retried without losing any observations.
+                self._conn.execute("DELETE FROM event_kinds")
+                self._conn.execute("DELETE FROM event_content")
+                for row in self._conn.execute("SELECT * FROM events"):
+                    event = self._decode(row)
+                    self._conn.execute(
+                        "INSERT INTO event_kinds(event_id,kind_tag) VALUES(?,?)",
+                        (event.event_id, self._tag("kind", event.kind)),
+                    )
+                    self._conn.execute(
+                        "INSERT INTO event_content(event_id,content_tag) VALUES(?,?)",
+                        (event.event_id, self._content_tag(event)),
+                    )
+                self._conn.execute(
+                    "UPDATE meta SET value=? WHERE name='schema_version'",
+                    (str(_SCHEMA_VERSION).encode(),),
+                )
 
     def _tag(self, domain: str, value: str) -> bytes:
         return hmac.new(
@@ -369,6 +401,16 @@ class EncryptedMemoryStore:
 
     def _request_tag(self, session_id: str, request_id: str) -> bytes:
         return self._tag("request", session_id + "\0" + request_id)
+
+    def _content_tag(self, event: MemoryEvent) -> bytes:
+        # Request identity and time do not change the observed content. Keep
+        # the full canonical payload: a question without an answer must never
+        # collapse into an otherwise similar observation containing that fact.
+        content = json.dumps(
+            [event.kind, event.source, event.payload],
+            ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        )
+        return self._tag("content", content)
 
     @staticmethod
     def _observed_us(value: str) -> int:
@@ -484,6 +526,14 @@ class EncryptedMemoryStore:
                         for term in _event_terms(event)
                     ),
                 )
+                self._conn.execute(
+                    "INSERT INTO event_kinds(event_id,kind_tag) VALUES(?,?)",
+                    (event.event_id, self._tag("kind", event.kind)),
+                )
+                self._conn.execute(
+                    "INSERT INTO event_content(event_id,content_tag) VALUES(?,?)",
+                    (event.event_id, self._content_tag(event)),
+                )
                 self._conn.executemany(
                     "INSERT INTO derivations(derived_id,source_id) VALUES(?,?)",
                     ((event.event_id, source_id) for source_id in sources),
@@ -525,46 +575,109 @@ class EncryptedMemoryStore:
     def search(
         self, query: str, *, session_id: str | None = None, limit: int = 10,
         kinds: frozenset[str] | None = None,
+        exclude_event_ids: frozenset[str] = frozenset(),
     ) -> list[MemoryMatch]:
+        """Return source-weighted matches without exposing cleartext index terms.
+
+        Exclusions are applied inside the SQL candidate query, so the current
+        request cannot spend one of the limited recall slots on itself.
+        """
         if not 1 <= limit <= 1000:
             raise ValueError("limit must be between 1 and 1000")
         query_terms = _terms(query)
         if not query_terms:
             return []
+        if kinds is not None and not kinds:
+            return []
         term_tags = [self._tag("term", term) for term in query_terms]
         placeholders = ",".join("?" for _ in term_tags)
-        where = " AND e.session_tag=?" if session_id is not None else ""
-        args: list[Any] = list(term_tags)
+        where = ""
+        filter_args: list[Any] = []
         if session_id is not None:
-            args.append(self._tag("session", session_id))
-        # A kind filter is checked after decryption. Do not cap SQL candidates
-        # in that case: recent control events must not hide older observations.
-        if kinds is None:
-            # Fetch beyond the requested count so a corrupted/stale index
-            # entry cannot displace a legitimate plaintext match.
-            args.append(max(100, limit * 4))
+            where += " AND e.session_tag=?"
+            filter_args.append(self._tag("session", session_id))
+        excluded = tuple(exclude_event_ids)
+        if excluded:
+            where += " AND e.event_id NOT IN (" + ",".join("?" for _ in excluded) + ")"
+            filter_args.extend(excluded)
+        if kinds is not None:
+            kind_tags = [self._tag("kind", kind) for kind in sorted(kinds)]
+            where += " AND k.kind_tag IN (" + ",".join("?" for _ in kind_tags) + ")"
+            filter_args.extend(kind_tags)
+        # Rank and filter by keyed kind tags before decrypting candidates.
+        # Identical observations across requests take one candidate slot:
+        # repeated recall questions must not crowd out an older source fact.
+        # This exact-content grouping cannot solve paraphrase saturation.
+        candidate_limit = max(100, limit * 4)
         sql = (
-            "SELECT e.*, COUNT(*) AS hits FROM events e "
-            "JOIN term_index i ON i.event_id=e.event_id "
-            f"WHERE i.term_tag IN ({placeholders}){where} "
-            "GROUP BY e.event_id ORDER BY hits DESC,e.observed_us DESC"
+            "WITH term_frequency AS ("
+            " SELECT term_tag, COUNT(*) AS documents FROM term_index"
+            f" WHERE term_tag IN ({placeholders}) GROUP BY term_tag"
+            "), ranked AS (SELECT e.*, k.kind_tag, c.content_tag, "
+            "(CASE WHEN k.kind_tag=? THEN 0.25 ELSE 1.0 END) * "
+            "SUM(1.0 / f.documents / f.documents / f.documents / f.documents) AS weighted_hits "
+            "FROM events e JOIN term_index i ON i.event_id=e.event_id "
+            "JOIN term_frequency f ON f.term_tag=i.term_tag "
+            "JOIN event_kinds k ON k.event_id=e.event_id "
+            "JOIN event_content c ON c.event_id=e.event_id "
+            f"WHERE 1=1{where} "
+            "GROUP BY e.event_id), deduped AS ("
+            "SELECT ranked.*, ROW_NUMBER() OVER ("
+            "PARTITION BY content_tag "
+            "ORDER BY weighted_hits DESC,observed_us DESC,event_id DESC"
+            ") AS content_rank FROM ranked) "
+            "SELECT * FROM deduped WHERE content_rank=1 "
+            "ORDER BY weighted_hits DESC,observed_us DESC,event_id DESC LIMIT ?"
         )
-        if kinds is None:
-            sql += " LIMIT ?"
+        args: list[Any] = [*term_tags, self._tag("kind", "final"),
+                           *filter_args, candidate_limit]
         matches: list[MemoryMatch] = []
         with self._lock:
+            frequencies = {
+                row[0]: row[1] for row in self._conn.execute(
+                    "SELECT term_tag,COUNT(*) FROM term_index WHERE term_tag IN ("
+                    + placeholders + ") GROUP BY term_tag", term_tags,
+                )
+            }
+            weights = {
+                term: (1.0 / frequencies[self._tag("term", term)]) ** 4
+                for term in query_terms if self._tag("term", term) in frequencies
+            }
+            total_weight = sum(weights.values())
             for row in self._conn.execute(sql, args):
                 event = self._decode(row)
+                if (row["kind_tag"] != self._tag("kind", event.kind)
+                        or row["content_tag"] != self._content_tag(event)):
+                    raise MemoryIntegrityError("encrypted memory search index disagrees with event")
                 if kinds is not None and event.kind not in kinds:
-                    continue
+                    raise MemoryIntegrityError("encrypted memory kind index disagrees with event")
                 intersection = query_terms & _event_terms(event)
                 if intersection:
+                    # A generated answer may echo a prior observation. Keep
+                    # it searchable, but prefer the direct user/tool source
+                    # when both describe the same fact.
+                    origin_weight = 0.25 if event.kind == "final" else 1.0
                     matches.append(
-                        MemoryMatch(event=event, score=len(intersection) / len(query_terms))
+                        MemoryMatch(event=event, score=(
+                            sum(weights.get(term, 0.0) for term in intersection)
+                            / total_weight
+                        ) * origin_weight)
                     )
-                    if len(matches) >= limit:
-                        break
-        return matches
+        # The encrypted index can contain ordinary conversation questions and
+        # derivative Agent outputs as well as source observations. Rare query
+        # terms carry more evidence than generic bilingual instructions; a
+        # source with an exact distinctive name must not lose to recent echoes
+        # of "recall from memory". Fourth-power frequency suppression was
+        # chosen for the local event index so a few rare entity terms
+        # outrank dozens of repeated prompt-instruction terms. SQL and this
+        # plaintext recheck use the same weight, without storing cleartext
+        # terms. Generated final answers are then demoted by origin weight.
+        matches.sort(key=lambda match: (
+            match.score,
+            self._observed_us(match.event.observed_at),
+            match.event.event_id,
+        ), reverse=True)
+        return matches[:limit]
 
     def _delete_ids(self, initial_ids: Sequence[str]) -> int:
         if not initial_ids:

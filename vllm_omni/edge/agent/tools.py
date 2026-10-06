@@ -27,6 +27,8 @@ from typing import Any, Mapping, Protocol
 from types import MappingProxyType
 from urllib.parse import unquote, urljoin, urlparse
 
+import psutil
+
 
 _READ_OPERATIONS = frozenset({
     "browser_open",
@@ -47,8 +49,25 @@ _SETTINGS_PAGES = {
     "mouse": "ms-settings:mousetouchpad",
     "privacy_camera": "ms-settings:privacy-webcam",
 }
+_SETTINGS_PAGE_HEADINGS = {
+    "display": frozenset({"Display", "Screen", "显示", "屏幕"}),
+    "sound": frozenset({"Sound", "声音"}),
+    "mouse": frozenset({"Mouse", "鼠标"}),
+    "privacy_camera": frozenset({"Camera", "相机"}),
+}
+_PAGE_HEADING_IDS = frozenset({"pagetitle", "pageheader", "settingspagetitle"})
 _APPROVAL_TTL_SECONDS = 300.0
-_EXPLICIT_URL = re.compile(r"https?://[^\s<>\"'`]+", re.IGNORECASE)
+_MANAGED_BROWSER_WRITE_BLOCK_REASON = (
+    "Managed Edge browser clicks and fills are disabled until native interactions "
+    "can be isolated and verified"
+)
+# Treat prose punctuation as a boundary, including punctuation used next to
+# URLs in Chinese.  A bare URL containing literal Han characters is ambiguous
+# with adjacent prose; require an exact UI approval for that uncommon case.
+_EXPLICIT_URL = re.compile(
+    r"https?://[^\s<>\"'`，。；：！？、（）【】《》“”‘’,;!]+", re.IGNORECASE,
+)
+_TRAILING_URL_PUNCTUATION = ".:?)]}"
 _HIGH_IMPACT_CONTROL = re.compile(
     r"\b(send|submit|purchase|buy|checkout|pay|delete|remove|erase|reset|"
     r"logout|shutdown|revoke|transfer|withdraw|wire|unsubscribe|deactivate|"
@@ -170,11 +189,27 @@ def _origin(url: str) -> tuple[str, str, int]:
             parsed.port or (443 if parsed.scheme.lower() == "https" else 80))
 
 
+def _network_target(url: str) -> tuple[str, str, int, str, str, str]:
+    """Compare the actual HTTP request with an exact authorized navigation."""
+    parsed = urlparse(_http_url(url))
+    scheme, host, port = _origin(url)
+    return (scheme, host, port, parsed.path or "/", parsed.params, parsed.query)
+
+
 def _explicit_task_urls(task: str) -> frozenset[str]:
     """Only literal HTTP(S) URLs in the current trusted task grant auto-open."""
     urls: set[str] = set()
     for match in _EXPLICIT_URL.finditer(task):
-        candidate = match.group()
+        # An unquoted comma/semicolon/exclamation followed immediately by
+        # more URL-shaped text could itself be part of a URL.  Do not grant
+        # authority to the shorter prefix in that ambiguous spelling.
+        suffix = task[match.end():]
+        if (len(suffix) > 1 and suffix[0] in ",;!" and
+                not suffix[1].isspace() and suffix[1] not in ")]}>\"'`"):
+            continue
+        candidate = match.group().rstrip(_TRAILING_URL_PUNCTUATION)
+        if any("\u3400" <= char <= "\u9fff" for char in candidate):
+            continue
         try:
             _http_url(candidate)
         except ValueError:
@@ -194,21 +229,31 @@ def _high_impact_text(*values: Any) -> bool:
 
 
 class ManagedEdgeBrowser:
-    """One app-owned Edge profile; no arbitrary JavaScript or OS commands.
+    """One isolated app-owned Edge context; no arbitrary JavaScript or OS commands.
 
     Playwright is imported when the first browser action is executed.  Its
     synchronous context must be used from the same dedicated controller thread.
+    ``profile_dir`` remains an app configuration path for compatibility but
+    is never passed to Chromium; no stored tabs or cookies are restored.
     """
 
-    def __init__(self, profile_dir: Path | None = None, *, max_text_chars: int = 20_000) -> None:
+    def __init__(self, profile_dir: Path | None = None, *, max_text_chars: int = 20_000,
+                 headless: bool = False) -> None:
         _require_windows()
         local_app_data = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+        # Do not open any existing directory as a Chromium user-data-dir.
         self.profile_dir = profile_dir or local_app_data / "OmniEdgeAgent" / "browser-profile"
         self.max_text_chars = max_text_chars
+        self._headless = headless
         self._playwright: Any = None
+        self._browser: Any = None
         self._context: Any = None
         self._page: Any = None
         self._owner_thread: int | None = None
+        self._navigation_target: str | None = None
+        self._navigation_target_used = False
+        self._blocked_navigation: str | None = None
+        self._blocked_request_count = 0
         self._worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-edge-browser")
 
     def _call(self, function: Any, *args: Any) -> Any:
@@ -225,7 +270,6 @@ class ManagedEdgeBrowser:
                 from playwright.sync_api import sync_playwright
             except ImportError as exc:
                 raise RuntimeError("install playwright and its Edge browser integration") from exc
-            self.profile_dir.mkdir(parents=True, exist_ok=True)
             self._owner_thread = thread_id
             # Omni's native-Windows vLLM compatibility shim installs a
             # Selector policy for its own IPC. Playwright starts a Node driver
@@ -237,31 +281,153 @@ class ManagedEdgeBrowser:
                 if sys.platform == "win32":
                     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
                 self._playwright = sync_playwright().start()
+            except Exception:
+                self._owner_thread = None
+                raise
             finally:
                 asyncio.set_event_loop_policy(old_policy)
             try:
-                self._context = self._playwright.chromium.launch_persistent_context(
-                    str(self.profile_dir), channel="msedge", headless=False,
-                    accept_downloads=False,
+                # A persistent profile may restore a page before Playwright can
+                # install its route. An isolated context begins with no pages;
+                # install both guards before creating the first page.
+                self._browser = self._playwright.chromium.launch(
+                    channel="msedge", headless=self._headless,
                 )
-                self._page = self._context.pages[0] if self._context.pages else self._context.new_page()
+                self._context = self._browser.new_context(
+                    accept_downloads=False, service_workers="block",
+                )
+                if self._context.pages:
+                    raise RuntimeError("isolated Edge context unexpectedly contains a page")
+                self._context.route("**/*", self._guard_navigation)
+                # WebSocket traffic is not covered by HTTP routing.  A page
+                # read must not be able to open a separate write channel.
+                self._context.route_web_socket("**/*", lambda socket: socket.close())
+                self._page = self._context.new_page()
             except Exception:
-                self._playwright.stop()
-                self._playwright = None
-                self._owner_thread = None
+                try:
+                    if self._context is not None:
+                        self._context.close()
+                finally:
+                    try:
+                        if self._browser is not None:
+                            self._browser.close()
+                    finally:
+                        try:
+                            self._playwright.stop()
+                        finally:
+                            self._context = self._page = self._browser = self._playwright = None
+                            self._owner_thread = None
                 raise
         return self._page
 
     def current_url(self) -> str:
         return self._call(lambda: str(self._ensure_page().url))
 
+    def bring_to_front(self) -> Mapping[str, Any]:
+        """Select the managed tab for a trusted desktop fixture setup."""
+        def select() -> Mapping[str, Any]:
+            page = self._ensure_page()
+            page.bring_to_front()
+            return {"url": str(page.url), "title": page.title()}
+
+        return self._call(select)
+
     def open(self, url: str) -> Mapping[str, Any]:
         return self._call(self._open, url)
 
     def _open(self, url: str) -> Mapping[str, Any]:
         page = self._ensure_page()
-        page.goto(_http_url(url), wait_until="domcontentloaded", timeout=30_000)
-        return {"url": str(page.url), "title": page.title()}
+        target = _http_url(url)
+        self._navigation_target = target
+        self._navigation_target_used = False
+        self._blocked_navigation = None
+        blocked_before = self._blocked_request_count
+        try:
+            page.goto(target, wait_until="domcontentloaded", timeout=30_000)
+        except Exception as exc:
+            if self._blocked_navigation is not None:
+                # Chromium may still be loading its internal network-error
+                # page after an aborted navigation.  Replace that tab so the
+                # next approved navigation cannot race the error page.
+                page.close()
+                self._page = self._context.new_page()
+                raise PermissionError(self._blocked_navigation) from exc
+            raise
+        finally:
+            self._navigation_target = None
+            self._navigation_target_used = False
+        if self._blocked_navigation is not None:
+            raise PermissionError(self._blocked_navigation)
+        return {
+            "url": str(page.url), "title": page.title(),
+            "blocked_network_requests": self._blocked_request_count - blocked_before,
+            "blocked_network_requests_total": self._blocked_request_count,
+        }
+
+    def _block_request(self, route: Any, reason: str, *, navigation: bool = False) -> None:
+        self._blocked_request_count += 1
+        if navigation:
+            self._blocked_navigation = reason
+        route.abort("blockedbyclient")
+
+    def _guard_navigation(self, route: Any) -> None:
+        """Keep page-initiated writes and unreviewed redirects off the wire.
+
+        Playwright routes only the first URL in a redirect chain.  Fetching the
+        first response with redirects disabled lets us withhold a 3xx before
+        Chromium can send the second request, for documents and subresources.
+        """
+        request = route.request
+        if self._page is None:
+            self._block_request(route, "browser page is not ready")
+            return
+        navigation = request.is_navigation_request()
+        if navigation:
+            try:
+                top_level = request.frame == self._page.main_frame
+            except Exception:
+                top_level = False
+            if not top_level:
+                # An iframe or popup has no separately approved destination.
+                self._block_request(route, "unapproved document frame", navigation=False)
+                return
+            try:
+                authorized_target = (
+                    self._navigation_target is not None and
+                    not self._navigation_target_used and
+                    _network_target(request.url) == _network_target(self._navigation_target) and
+                    request.method.upper() == "GET"
+                )
+            except ValueError:
+                authorized_target = False
+            if not authorized_target:
+                self._block_request(
+                    route, "browser navigation target changed before request", navigation=True,
+                )
+                return
+            # A page cannot reload the approved URL repeatedly while
+            # page.goto is still waiting for DOMContentLoaded.
+            self._navigation_target_used = True
+        else:
+            # HTTP method and URL spelling do not prove a request is read-only.
+            # A script, image, stylesheet or favicon can issue a state-changing
+            # GET at an innocent-looking path or exfiltrate data in its query.
+            # Only the exact top-level navigation may reach the network.
+            # Inline/data assets remain available.
+            self._block_request(route, "background HTTP request requires separate approval")
+            return
+        try:
+            response = route.fetch(max_redirects=0, timeout=30_000)
+        except Exception:
+            route.abort("failed")
+            return
+        location = response.headers.get("location")
+        if 300 <= response.status < 400 and location:
+            self._block_request(
+                route, "HTTP redirect requires separate URL approval", navigation=navigation,
+            )
+            return
+        route.fulfill(response=response)
 
     def read(self) -> Mapping[str, Any]:
         return self._call(self._read)
@@ -274,6 +440,9 @@ class ManagedEdgeBrowser:
             "title": page.title(),
             "text": body[: self.max_text_chars],
             "truncated": len(body) > self.max_text_chars,
+            # A page can schedule traffic after open() returns.  The running
+            # total lets the next observation expose those blocked attempts.
+            "blocked_network_requests_total": self._blocked_request_count,
         }
 
     def screenshot(self) -> Mapping[str, Any]:
@@ -295,6 +464,7 @@ class ManagedEdgeBrowser:
             "size_bytes": len(image),
             "sha256": hashlib.sha256(image).hexdigest(),
             "base64": base64.b64encode(image).decode("ascii"),
+            "blocked_network_requests_total": self._blocked_request_count,
         }
 
     def follow(self, selector: str) -> Mapping[str, Any]:
@@ -332,23 +502,49 @@ class ManagedEdgeBrowser:
             "aria_label": locator.get_attribute("aria-label") or "",
             "href": locator.get_attribute("href") or "",
             "input_type": input_type,
+            **self._describe_form_submit(locator),
         }
 
-    def click(self, selector: str) -> Mapping[str, Any]:
-        return self._call(self._click, selector)
+    @staticmethod
+    def _describe_form_submit(locator: Any) -> Mapping[str, Any]:
+        form = locator.evaluate("""element => {
+            const owner = element.form;
+            if (!owner || element.type !== 'submit') return null;
+            const action = element.hasAttribute('formaction') ? element.formAction : owner.action;
+            const method = (element.hasAttribute('formmethod') ?
+                element.formMethod : owner.method).toUpperCase();
+            const target = (element.hasAttribute('formtarget') ?
+                element.formTarget : owner.target) || '_self';
+            const enctype = element.hasAttribute('formenctype') ?
+                element.formEnctype : owner.enctype;
+            // Constructing FormData fires the page's `formdata` event and is
+            // therefore not a read-only target description. Native form writes
+            // are currently disabled; report metadata without invoking it.
+            return {action, method, target, enctype, eligible: false};
+        }""")
+        if form is None:
+            return {}
+        action = str(form.get("action") or "")
+        try:
+            _http_url(action)
+        except ValueError:
+            form["eligible"] = False
+        return {f"form_{key}": value for key, value in form.items()}
 
-    def _click(self, selector: str) -> Mapping[str, Any]:
-        page = self._ensure_page()
-        page.locator(selector).click(timeout=15_000)
-        return {"url": str(page.url), "clicked": selector}
+    def click(self, selector: str) -> Mapping[str, Any]:
+        raise PermissionError(_MANAGED_BROWSER_WRITE_BLOCK_REASON)
+
+    def click_authorized(self, selector: str, target: Mapping[str, Any]) -> Mapping[str, Any]:
+        raise PermissionError(_MANAGED_BROWSER_WRITE_BLOCK_REASON)
+
+    def _click(self, selector: str, target: Mapping[str, Any] | None) -> Mapping[str, Any]:
+        raise PermissionError(_MANAGED_BROWSER_WRITE_BLOCK_REASON)
 
     def fill(self, selector: str, value: str) -> Mapping[str, Any]:
-        return self._call(self._fill, selector, value)
+        raise PermissionError(_MANAGED_BROWSER_WRITE_BLOCK_REASON)
 
     def _fill(self, selector: str, value: str) -> Mapping[str, Any]:
-        page = self._ensure_page()
-        page.locator(selector).fill(value, timeout=15_000)
-        return {"url": str(page.url), "filled": selector}
+        raise PermissionError(_MANAGED_BROWSER_WRITE_BLOCK_REASON)
 
     def close(self) -> None:
         self._call(self._close)
@@ -357,12 +553,20 @@ class ManagedEdgeBrowser:
     def _close(self) -> None:
         if self._owner_thread is not None and threading.get_ident() != self._owner_thread:
             raise RuntimeError("browser close must run on its controller thread")
-        if self._context is not None:
-            self._context.close()
-        if self._playwright is not None:
-            self._playwright.stop()
-        self._context = self._page = self._playwright = None
-        self._owner_thread = None
+        try:
+            if self._context is not None:
+                self._context.close()
+        finally:
+            try:
+                if self._browser is not None:
+                    self._browser.close()
+            finally:
+                try:
+                    if self._playwright is not None:
+                        self._playwright.stop()
+                finally:
+                    self._context = self._page = self._browser = self._playwright = None
+                    self._owner_thread = None
 
 
 class WindowsSettings:
@@ -397,14 +601,43 @@ class WindowsSettings:
             from pywinauto import Desktop
         except ImportError as exc:
             raise RuntimeError("install pywinauto for read-only Settings UI Automation") from exc
-        windows = [
-            window for window in Desktop(backend="uia").windows()
-            if "settings" in window.window_text().lower() or "设置" in window.window_text()
-        ]
-        if not windows:
-            raise RuntimeError("Windows Settings is not open")
-        window = windows[0]
-        texts = [child.window_text() for child in window.descendants() if child.window_text()]
+        matched: list[tuple[Any, list[str]]] = []
+        for window in Desktop(backend="uia").windows():
+            title = window.window_text().strip()
+            if title.casefold() not in {"settings", "设置"}:
+                continue
+            try:
+                process_name = psutil.Process(window.process_id()).name().casefold()
+            except (psutil.Error, OSError):
+                continue
+            if process_name not in {"applicationframehost.exe", "systemsettings.exe"}:
+                continue
+            descendants = window.descendants()
+            # A navigation entry may also say "Display" or "Camera".  Only a
+            # Settings breadcrumb or a page-title UIA control identifies the
+            # active page; general descendant text cannot establish it.
+            observed: set[str] = set()
+            for child in descendants:
+                automation_id = str(getattr(child.element_info, "automation_id", "")).casefold()
+                if automation_id == "permanentnavigationviewbreadcrumbbar":
+                    crumbs = [item.window_text().strip() for item in child.children()
+                              if item.element_info.control_type == "Button" and
+                              item.window_text().strip()]
+                    if crumbs:
+                        observed.add(crumbs[-1])
+                elif automation_id in _PAGE_HEADING_IDS:
+                    observed.add(child.window_text().strip())
+            page_headings = {
+                key for label in observed
+                for key, labels in _SETTINGS_PAGE_HEADINGS.items()
+                if label in labels
+            }
+            if page_headings == {page} and observed:
+                matched.append((window, [child.window_text() for child in descendants
+                                         if child.window_text()]))
+        if len(matched) != 1:
+            raise RuntimeError("the requested Windows Settings page cannot be verified")
+        window, texts = matched[0]
         return {"page": page, "window": window.window_text(), "text": "\n".join(texts)[:20_000]}
 
     def set(self, setting: str, value: Any) -> Mapping[str, Any]:
@@ -418,8 +651,42 @@ class WindowsSettings:
         return {"setting": setting, "previous": previous, "value": value}
 
 
+def _foreground_window_bbox() -> tuple[int, int, int, int]:
+    """Return the foreground window's visible bounds in desktop coordinates."""
+    class Rect(ctypes.Structure):
+        _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
+                    ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+
+    user32 = ctypes.windll.user32
+    user32.GetForegroundWindow.restype = ctypes.c_void_p
+    user32.IsWindowVisible.argtypes = [ctypes.c_void_p]
+    user32.IsIconic.argtypes = [ctypes.c_void_p]
+    user32.GetWindowRect.argtypes = [ctypes.c_void_p, ctypes.POINTER(Rect)]
+    hwnd = user32.GetForegroundWindow()
+    if not hwnd or not user32.IsWindowVisible(hwnd) or user32.IsIconic(hwnd):
+        raise RuntimeError("no visible foreground window is available for capture")
+    rect = Rect()
+    # DWM frame bounds are physical pixels, unlike the DPI-virtualized
+    # GetWindowRect returned to some processes.  Fall back for old Windows.
+    dwmapi = ctypes.windll.dwmapi
+    status = dwmapi.DwmGetWindowAttribute(
+        ctypes.c_void_p(hwnd), 9, ctypes.byref(rect), ctypes.sizeof(rect),
+    )
+    if status != 0 and not user32.GetWindowRect(hwnd, ctypes.byref(rect)):
+        raise OSError(ctypes.get_last_error(), "cannot locate foreground window")
+    left, top, right, bottom = rect.left, rect.top, rect.right, rect.bottom
+    if right <= left or bottom <= top:
+        raise RuntimeError("foreground window has no visible capture area")
+    return (left, top, right, bottom)
+
+
 class WindowsScreen:
-    """Bounded native screen snapshot for a visual Agent route."""
+    """Bounded snapshot of the visible foreground window.
+
+    Cropping before downscaling preserves legible text on multi-monitor
+    desktops.  This is a screen observation, so obscuring windows remain
+    visible in the capture; it does not use an off-screen window renderer.
+    """
 
     def __init__(self, *, max_bytes: int = 2_000_000) -> None:
         _require_windows()
@@ -432,7 +699,8 @@ class WindowsScreen:
             from PIL import ImageGrab
         except ImportError as exc:
             raise RuntimeError("install Pillow for native screen capture") from exc
-        image = ImageGrab.grab(all_screens=True).convert("RGB")
+        bbox = _foreground_window_bbox()
+        image = ImageGrab.grab(bbox=bbox, all_screens=True).convert("RGB")
         original_size = image.size
         # The admitted multimodal StageClient accepts at most 1024² pixels.
         # Resize at the tool boundary and report the source dimensions so the
@@ -441,6 +709,7 @@ class WindowsScreen:
         # PNG conversion and model submission.
         if image.width * image.height > 1024 * 1024:
             image.thumbnail((1024, 1024))
+        model_resized = image.size != original_size
         encoded = b""
         for quality in (85, 70, 55, 40):
             output = io.BytesIO()
@@ -448,8 +717,10 @@ class WindowsScreen:
             encoded = output.getvalue()
             if len(encoded) <= self.max_bytes:
                 break
+        byte_resized = False
         while len(encoded) > self.max_bytes and min(image.size) > 320:
             image.thumbnail((int(image.width * 0.75), int(image.height * 0.75)))
+            byte_resized = True
             output = io.BytesIO()
             image.save(output, format="JPEG", quality=40, optimize=True)
             encoded = output.getvalue()
@@ -457,11 +728,15 @@ class WindowsScreen:
             raise RuntimeError("screen capture exceeds the configured image byte limit")
         return {
             "mime_type": "image/jpeg",
+            "capture_scope": "foreground_window_visible_pixels",
+            "source_bbox": {"left": bbox[0], "top": bbox[1],
+                            "right": bbox[2], "bottom": bbox[3]},
             "width": image.width,
             "height": image.height,
             "original_width": original_size[0],
             "original_height": original_size[1],
-            "resized_for_model_pixel_limit": image.size != original_size,
+            "resized_for_model_pixel_limit": model_resized,
+            "resized_for_byte_limit": byte_resized,
             "size_bytes": len(encoded),
             "sha256": hashlib.sha256(encoded).hexdigest(),
             "base64": base64.b64encode(encoded).decode("ascii"),
@@ -537,8 +812,17 @@ class WindowsToolBoundary:
             self._screen = WindowsScreen()
         return self._screen
 
+    def _require_supported_browser_write(self, operation: str) -> None:
+        if (operation in {"browser_click", "browser_fill"} and
+                (self._browser is None or isinstance(self._browser, ManagedEdgeBrowser))):
+            # Reject before describe_target(), which evaluates page state, or
+            # before creating an approval for a write the real backend cannot
+            # safely execute. Injected test backends retain their own contract.
+            raise PermissionError(_MANAGED_BROWSER_WRITE_BLOCK_REASON)
+
     def execute(self, action: ToolAction) -> ToolResult:
         self._validate(action)
+        self._require_supported_browser_write(action.operation)
         with self._lock:
             self._require_active(action.request_id)
         navigation_context: Mapping[str, Any] | None = None
@@ -593,6 +877,7 @@ class WindowsToolBoundary:
         if time.monotonic() > pending.deadline:
             raise TimeoutError("approval challenge expired")
         action = pending.challenge.action
+        self._require_supported_browser_write(action.operation)
         if action.operation == "browser_follow":
             current, _ = self._navigation_context(action)
             if current != pending.context:
@@ -647,7 +932,7 @@ class WindowsToolBoundary:
             risk = "high_impact_external_action"
         if action.operation == "browser_click":
             if _high_impact_text(*(context.get(key) for key in
-                                   ("text", "aria_label", "href", "url"))):
+                                   ("text", "aria_label", "href", "url", "form_action"))):
                 risk = "high_impact_external_action"
         description = {
             "browser_open": "Open a URL that may send, delete, or change external data",
@@ -731,7 +1016,11 @@ class WindowsToolBoundary:
             data = self.screen.capture()
             source = "windows-screen"
         elif op == "browser_click":
-            data = self.browser.click(str(args["selector"]))
+            authorized_click = getattr(self.browser, "click_authorized", None)
+            if callable(authorized_click) and navigation_context is not None:
+                data = authorized_click(str(args["selector"]), navigation_context)
+            else:
+                data = self.browser.click(str(args["selector"]))
             source = str(data.get("url", self.browser.current_url()))
         elif op == "browser_fill":
             data = self.browser.fill(str(args["selector"]), str(args["value"]))

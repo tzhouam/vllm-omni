@@ -7,7 +7,7 @@ import asyncio
 import base64
 import hashlib
 import json
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 
 import pytest
@@ -16,17 +16,20 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from benchmarks.edge_agent import profile
 from benchmarks.edge_agent.evidence import (
-    GATE_SCHEMA, PROMOTION_SCHEMA, REQUIRED_GATES, bundle_signing_bytes,
+    GATE_SCHEMA, PROMOTION_SCHEMA, REQUIRED_GATES, audit_summary,
+    bundle_signing_bytes,
     load_reviewed_qualification,
 )
 from benchmarks.edge_agent.native_profile import SUITE_ID
-from benchmarks.edge_agent.paired_suite import evaluate_case
+from benchmarks.edge_agent.paired_suite import build_paired_cases, evaluate_case
 from benchmarks.edge_agent.profile import (
     AgentCase, AgentRunResult, Preparation, ProfileConditions, ProfileConfig,
     ProfileRoute, _telemetry_summary, run_profile,
 )
 from vllm_omni.edge.agent.native_app import _qualifications
-from vllm_omni.edge.agent.qualification import _verify_gate_observations
+from vllm_omni.edge.agent.qualification import (
+    _verify_gate_observations, verify_fixed_suite_cases,
+)
 from vllm_omni.edge.agent.runtime_identity import (
     imported_omni_source_sha256, loaded_runtime_sha256,
 )
@@ -59,7 +62,7 @@ def _ref(path):
     return {"path": str(path), "sha256": _sha(path)}
 
 
-def _qualified_fixture(tmp_path, monkeypatch):
+def _qualified_fixture(tmp_path, monkeypatch, *, measured_successes=60):
     route = ProfileRoute(
         route_id="reviewed-cpu", model_id="test-model", artifact_id="artifact",
         checkpoint_revision="0123456789abcdef0123456789abcdef01234567",
@@ -84,17 +87,19 @@ def _qualified_fixture(tmp_path, monkeypatch):
         power_condition="AC", suite_id=SUITE_ID,
         environment_fingerprint="fixed-test-host",
     )
-    cases = {length: [AgentCase(
-        case_id=f"code-{length}", task_class="code_tools", language="en-US",
-        length=length, prompt="What does the code print?", reference="14",
-        metadata={"kind": "code_reasoning", "required_operations": [],
-                  "quality_scope": "code_result_only_no_execution_tool"},
-    )] for length in ("short", "medium", "long")}
+    cases = build_paired_cases("http://127.0.0.1:12345", 10)["code_tools"]
+
+    measured_seen = 0
 
     async def fake_request(*, run_id, route, case, phase, repetition, **_):
+        nonlocal measured_seen
+        if phase == "measured":
+            measured_seen += 1
+        answer = ("14" if phase != "measured" or
+                  measured_seen <= measured_successes else "wrong")
         agent_events = [
             {"seq": 1, "request_id": "r", "epoch": 1,
-             "kind": "user_observation", "payload": {}},
+             "kind": "user_observation", "payload": {"text": case.prompt}},
             {"seq": 2, "request_id": "r", "epoch": 1, "kind": "route",
              "payload": {"route_id": route.route_id, "model": route.model_id,
                          "artifact_id": route.artifact_id,
@@ -103,10 +108,10 @@ def _qualified_fixture(tmp_path, monkeypatch):
             {"seq": 3, "request_id": "r", "epoch": 1,
              "kind": "model_metrics", "payload": {}},
             {"seq": 4, "request_id": "r", "epoch": 1,
-             "kind": "final", "payload": {"answer": "14"}},
+             "kind": "final", "payload": {"answer": answer}},
         ]
         result = AgentRunResult(
-            final_answer="14", complete_agent_trace=True,
+            final_answer=answer, complete_agent_trace=True,
             model_id=route.model_id, artifact_id=route.artifact_id,
             actual_placement="cpu", backend=route.backend,
             placement_evidence={"runtime_log": "pinned"},
@@ -120,7 +125,7 @@ def _qualified_fixture(tmp_path, monkeypatch):
             "events": [
                 *({"kind": "agent_event", "offset_s": 0.0, "payload": event}
                   for event in agent_events),
-                {"kind": "assistant_text_delta", "offset_s": .2, "payload": "14"},
+                {"kind": "assistant_text_delta", "offset_s": .2, "payload": answer},
             ],
             "result": asdict(result), "evaluation": asdict(evaluate_case(case, result)),
             "e2e_complete": True, "placement_matches": True,
@@ -204,8 +209,9 @@ def _qualified_fixture(tmp_path, monkeypatch):
             "task_class": "code_tools", "reference_suite_id": "independent-v1",
             "cases": [
                 {"language": language, "task_class": "code_tools",
-                 "passed": True, "reference_sha256": "c" * 64,
-                 "answer_sha256": "d" * 64}
+                 "passed": True, "comparison": "exact_sha256",
+                 "reference_sha256": "c" * 64,
+                 "answer_sha256": "c" * 64}
                 for language in ("en-US", "zh-CN")
             ],
         },
@@ -300,6 +306,25 @@ def test_cancel_receipt_rejects_release_kind_without_worker_proof(tmp_path):
         _verify_gate_observations("cancel_recovery", observations, {}, tmp_path)
 
 
+def test_reference_gate_rejects_inconsistent_signed_quality_claim(tmp_path):
+    cases = [
+        {"language": language, "task_class": "code_tools", "passed": True,
+         "comparison": "exact_sha256", "reference_sha256": "c" * 64,
+         "answer_sha256": "c" * 64}
+        for language in ("en-US", "zh-CN")
+    ]
+    observations = {"task_class": "code_tools",
+                    "reference_suite_id": "independent-v1", "cases": cases}
+    identity = {"suite_id": SUITE_ID}
+    _verify_gate_observations("reference_quality", observations, identity, tmp_path)
+    cases[1]["answer_sha256"] = "d" * 64
+    with pytest.raises(ValueError, match="reference quality evidence is incomplete"):
+        _verify_gate_observations("reference_quality", observations, identity, tmp_path)
+    cases[1]["answer_sha256"] = "C" * 64
+    with pytest.raises(ValueError, match="reference quality evidence is incomplete"):
+        _verify_gate_observations("reference_quality", observations, identity, tmp_path)
+
+
 def test_signed_profile_and_separate_gates_are_required(tmp_path, monkeypatch):
     sign, _, _, route, keys, _ = _qualified_fixture(tmp_path, monkeypatch)
     bundle = sign()
@@ -325,6 +350,51 @@ def test_signed_profile_and_separate_gates_are_required(tmp_path, monkeypatch):
         load_reviewed_qualification(bundle, trusted_keys=keys,
                                     native_config={"routes": [route],
                                                    "limits": {"max_model_steps": 9}})
+
+
+def test_fixed_suite_release_check_binds_reference_prompt_and_observation(
+        tmp_path, monkeypatch):
+    _, summary, _, _, _, _ = _qualified_fixture(tmp_path, monkeypatch)
+    audit = audit_summary(summary)
+    verify_fixed_suite_cases(audit)
+    original = [json.loads(line) for line in audit.raw_jsonl.read_text(encoding="utf-8").splitlines()]
+    first_request = next(i for i, row in enumerate(original)
+                         if row.get("record_type") == "request")
+    for mutation in ("reference", "prompt", "observed_prompt", "schedule"):
+        rows = json.loads(json.dumps(original))
+        row = rows[first_request]
+        if mutation == "reference":
+            row["case"]["reference"] = "incorrect"
+        elif mutation == "prompt":
+            row["case"]["prompt"] = "a substituted benchmark task"
+        elif mutation == "observed_prompt":
+            next(event for event in row["events"]
+                 if event.get("kind") == "agent_event" and
+                 event.get("payload", {}).get("kind") == "user_observation")["payload"]["payload"]["text"] = "different model input"
+        else:
+            row["repetition"] = 99
+        raw = tmp_path / f"tampered_{mutation}.jsonl"
+        raw.write_text("".join(json.dumps(item) + "\n" for item in rows), encoding="utf-8")
+        with pytest.raises(ValueError, match="fixed suite"):
+            verify_fixed_suite_cases(replace(audit, raw_jsonl=raw))
+
+
+@pytest.mark.parametrize("measured_successes", [0, 59])
+def test_signed_review_rejects_partial_fixed_suite_even_with_all_gate_receipts(
+        tmp_path, monkeypatch, measured_successes):
+    sign, summary, _, route, keys, _ = _qualified_fixture(
+        tmp_path, monkeypatch, measured_successes=measured_successes,
+    )
+    audited = audit_summary(summary)
+    assert audited.internally_valid
+    assert audited.trace_verified
+    assert audited.protocol_compliant
+    assert audited.measured_attempts == 60
+    assert audited.measured_successes == measured_successes
+    with pytest.raises(ValueError, match="every measured request to succeed"):
+        load_reviewed_qualification(
+            sign(), trusted_keys=keys, native_config={"routes": [route]},
+        )
 
 
 def test_reviewed_profile_refuses_changed_loaded_source(tmp_path, monkeypatch):

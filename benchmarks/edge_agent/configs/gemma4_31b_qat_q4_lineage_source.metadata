@@ -1,0 +1,8 @@
+{
+  "schema": "omni-agent-lineage-source-v1",
+  "repo": "google/gemma-4-31B-it-qat-q4_0-gguf",
+  "revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+  "source_repo": "https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf",
+  "license": "apache-2.0",
+  "declared_base_model": "google/gemma-4-31B-it-qat-q4_0-unquantized"
+}

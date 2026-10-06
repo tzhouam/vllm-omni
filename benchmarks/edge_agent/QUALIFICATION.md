@@ -11,7 +11,12 @@ One bundle qualifies **one route × task class × exact hardware/software/power
 condition**. The verifier rereads the complete-Agent JSONL, recomputes case
 evaluation, event order, TTFT, p50/p95, and endurance, and requires batch=1,
 one active request, separate warmups, at least 20 requests per short/medium/long
-input, and 30 minutes of active sequential Agent work. The indexed source
+input, and 30 minutes of active sequential Agent work. Every measured request
+must pass the fixed-suite output, tool-safety, trace, and placement checks;
+59/60 is an experiment, not a qualified default. Both the signed evidence
+verifier and the router reject a partial fixed-suite result, even if other gate
+flags are marked true. Among fully passing routes, whole-answer p95 breaks the
+quality tie. The indexed source
 configuration must still match the **entire live native behavior config**,
 including limits, route set, and bootstrap policy. Only review references
 (`qualification_bundles`, `trusted_review_keys`, and the legacy
@@ -79,7 +84,10 @@ separate raw JSON observation file. The raw file uses
 - Lineage: exact non-placeholder checkpoint revision and artifact hash,
   source repository, and license.
 - Quality: a separate bilingual reference suite with per-case reference and
-  answer hashes and passing results for this task class.
+  answer hashes and passing results for this task class. The current gate
+  accepts only `comparison: exact_sha256` with equal, lowercase SHA-256
+  hashes; semantic or graded quality needs its own reviewed comparator before
+  it can qualify a route.
 
 The reviewer signs the canonical UTF-8 bytes returned by
 `benchmarks.edge_agent.evidence.bundle_signing_bytes(bundle)` with their
@@ -100,16 +108,43 @@ enough for the intended task. `native_app` rechecks live memory admission and
 actual placement on every selected request; a reviewed route still cannot run
 when resources or power condition differ.
 
-The full Gemma fixed-memory protocol begun on 2026-10-05 loaded code before
-the trusted-task browser URL policy, runtime digest capture, and strengthened
-cancellation proof landed. Its [public aggregate entry](public_evidence/agent_native_smokes_20261005.json)
-records a valid trace audit, 60/60 measured successes (20 per length), and
-1,800.42 seconds of active endurance across 172 requests. Those measurements
-remain useful historical evidence, but the run cannot qualify the current
-release because it lacks the loaded-source/runtime digests and predates the
-current code. A second current-source [public aggregate entry](public_evidence/agent_native_smokes_20261005.json)
-has 60/60 measured fixed-memory successes, 158 sequential requests over
-1,806.73 active seconds, a valid raw trace audit, and matching loaded-source
-and runtime digests. It still does not qualify a default route: the independent
-signed memory, cancellation, placement, lineage, and quality gates have not
-been reviewed and attached, and other task classes need their own full profiles.
+The four completed [Gemma fixed-memory protocols](public_evidence/agent_native_smokes_20261005.json)
+each had 60/60 measured successes and 30 minutes of active sequential work
+at their recorded code states. The newest completed run
+`native_4bba0301e4d04f4f9af9dd45e1c6deea` has 60/60 measured
+fixed-memory successes (20 per length), 611/611 sequential endurance
+requests over 1,802.26 active seconds, and valid raw trace, measurement
+protocol and fixed-suite case audits. Its imported source and runtime digests
+matched at measurement time. A subsequent browser click/fill boundary change
+altered the imported Omni source, so this and the earlier three completed
+runs are historical for final-code qualification. None qualifies a default
+route: the independent signed memory, cancellation, placement, lineage, and
+bilingual quality gates have not been reviewed and attached. Other task
+classes require their own full profiles.
+
+The separate Gemma artifact probe matches the pinned official GGUF and visual
+projector bytes to their published LFS identities, commit and license metadata.
+It explicitly does not verify base-model provenance and remains a private,
+unsigned observation requiring human review. Sampled whole-system memory
+increments and startup offload logs are diagnostic observations, not complete
+memory-admission or per-operation placement proofs. An earlier 4/4 bilingual
+memory-quality observation predates the exact-content index change and
+must be repeated before it can support a current-code quality review. An
+earlier browser-vision attempt completed one warmup and one measured
+browser screenshot, then stopped during setup of the next desktop case because
+Windows could not verify the Edge window in the foreground. This is an
+environmental blocker, not a measured desktop-model failure. All indexed
+visual attempts predate the latest isolated-context network guard. The
+post-hardening browser-text smoke `native_f97dc44f38024b2d82794e73b1b745de`
+passed 6/6 measured requests with raw trace audit, but has only two requests
+per length and no endurance. A full browser-text protocol is in progress and
+has no audited outcome yet. Neither the smoke nor the in-progress run can
+qualify that task class.
+
+The production managed browser currently refuses `browser_click` and
+`browser_fill` before target inspection, approval, or page action. Native form
+POST and tool-initiated JavaScript write actions are not enabled; page scripts
+still run during rendering, and this is not a hardened web sandbox. Tests
+with injected mock browser backends validate approval semantics only; they
+cannot qualify a real browser-write route. A fixed-memory qualification, if
+eventually reviewed, would not extend to browser writes or other task classes.

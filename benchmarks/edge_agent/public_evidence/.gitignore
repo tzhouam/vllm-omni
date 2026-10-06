@@ -3,5 +3,6 @@
 *
 !.gitignore
 !agent_native_smokes_20261005.json
+!agent_memory_quality_20261006.json
 !qwen3_6_budget_v2_loader.log
 !qwen3_6_host_mapped_loader.log

@@ -12,6 +12,7 @@ import hashlib
 import base64
 import json
 import math
+import re
 from dataclasses import dataclass
 from pathlib import Path, PureWindowsPath
 from statistics import mean
@@ -21,12 +22,14 @@ from urllib.parse import urlparse
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 
-from vllm_omni.edge.agent.router import Qualification
+from vllm_omni.edge.agent.router import FIXED_SUITE_ID, Qualification
+from vllm_omni.edge.agent.fixed_suite import canonical_fixed_cases
 
 
-SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
+SUITE_ID = FIXED_SUITE_ID
 LENGTH_BUCKETS = ("short", "medium", "long")
 _WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "settings_set"})
+_SHA256_HEX = re.compile(r"[0-9a-f]{64}\Z")
 
 
 def _origin(url: str) -> str:
@@ -53,7 +56,7 @@ def _evaluate_case(case: Mapping[str, Any], result: Mapping[str, Any]) -> dict[s
     if expected_source.startswith("http"):
         source_ok = any(
             item.get("kind") == "tool_result" and
-            str(item.get("payload", {}).get("source", "")).startswith(expected_source)
+            str(item.get("payload", {}).get("source", "")) == expected_source
             for item in decisions
         )
         tool_safe &= all(
@@ -355,6 +358,90 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
     )
 
 
+def verify_fixed_suite_cases(audit: EvidenceAudit) -> None:
+    """Bind a release candidate to the exact fixed prompts and task schedule.
+
+    ``audit_summary`` also accepts synthetic diagnostic profiles. Release
+    promotion and gate assembly call this stricter check. The fixture's port
+    and the observed mouse setting vary per run; all other case fields are
+    reconstructed from the package-local canonical suite definition.
+    """
+    rows = [json.loads(line) for line in audit.raw_jsonl.read_text(encoding="utf-8").splitlines()]
+    manifest = rows[0]
+    requests = [row for row in rows if row.get("record_type") == "request"]
+    if not requests:
+        raise ValueError("fixed suite has no request records")
+    task_class = requests[0].get("case", {}).get("task_class")
+    origin = "http://127.0.0.1:1"
+    if task_class in {"browser_text", "browser_vision"}:
+        urls = [str(row.get("case", {}).get("metadata", {}).get("source", ""))
+                for row in requests]
+        urls = [url for url in urls if url.startswith("http")]
+        if not urls:
+            raise ValueError("fixed browser suite has no fixture URL")
+        parsed = urlparse(urls[0])
+        try:
+            port = parsed.port
+        except ValueError as exc:
+            raise ValueError("fixed browser suite has an invalid loopback port") from exc
+        if (parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or
+            parsed.username is not None or parsed.password is not None or
+            port is None or parsed.netloc != f"127.0.0.1:{port}"):
+            raise ValueError("fixed browser suite must use the exact IPv4 loopback fixture")
+        origin = f"http://127.0.0.1:{port}"
+    mouse_speed = 1
+    if task_class == "windows_settings":
+        try:
+            mouse_speed = int(requests[0]["case"]["reference"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("fixed Settings suite lacks an integer reference") from exc
+    try:
+        suites = canonical_fixed_cases(origin, mouse_speed)
+        expected = suites[task_class]
+        config = manifest["config"]
+        warmups = config["warmups_per_length"]
+        measured = config["measured_per_length"]
+        if type(warmups) is not int or type(measured) is not int or warmups < 1 or measured < 1:
+            raise ValueError("fixed suite has invalid request counts")
+        schedule = []
+        for length in LENGTH_BUCKETS:
+            cases = expected[length]
+            schedule.extend(("warmup", repetition, cases[repetition % len(cases)])
+                            for repetition in range(warmups))
+            schedule.extend(("measured", repetition, cases[repetition % len(cases)])
+                            for repetition in range(measured))
+        all_cases = [case for length in LENGTH_BUCKETS for case in expected[length]]
+        endurance = len(requests) - len(schedule)
+        if endurance < 1:
+            raise ValueError("fixed suite has no sustained requests")
+        schedule.extend(("endurance", repetition, all_cases[repetition % len(all_cases)])
+                        for repetition in range(endurance))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("fixed suite case construction failed") from exc
+    if len(requests) != len(schedule):
+        raise ValueError("fixed suite request count differs from canonical schedule")
+    for row, (phase, repetition, case) in zip(requests, schedule):
+        if (row.get("phase") != phase or row.get("repetition") != repetition or
+            row.get("case") != case):
+            raise ValueError("fixed suite request differs from canonical prompt, reference, metadata, or order")
+        observed = [event.get("payload", {}) for event in row.get("events", ())
+                    if event.get("kind") == "agent_event" and
+                    event.get("payload", {}).get("kind") == "user_observation"]
+        if (len(observed) != 1 or
+            observed[0].get("payload", {}).get("text") != case["prompt"]):
+            raise ValueError("fixed suite model received a prompt different from the evaluated case")
+        if task_class == "windows_settings":
+            readings = [event.get("payload", {}).get("payload", {})
+                        for event in row.get("events", ())
+                        if event.get("kind") == "agent_event" and
+                        event.get("payload", {}).get("kind") == "tool_result"]
+            if not any(item.get("operation") == "settings_read" and
+                       item.get("source") == "windows-setting:mouse_speed" and
+                       item.get("data", {}).get("value") == mouse_speed
+                       for item in readings):
+                raise ValueError("fixed Settings reference differs from observed tool reading")
+
+
 PROMOTION_SCHEMA = "omni-agent-qualification-review-v1"
 GATE_SCHEMA = "omni-agent-independent-gate-v1"
 REQUIRED_GATES = frozenset({
@@ -575,13 +662,17 @@ def _verify_gate_observations(name: str, observations: Mapping[str, Any],
         cases = observations.get("cases")
         if (observations.get("reference_suite_id") in (None, identity["suite_id"]) or
             not isinstance(cases, list) or len(cases) < 2 or
-            not {"en-US", "zh-CN"}.issubset({case.get("language") for case in cases}) or
-            any(case.get("task_class") != observations.get("task_class") or
+            not {"en-US", "zh-CN"}.issubset({case.get("language") for case in cases
+                                             if isinstance(case, Mapping)}) or
+            any(not isinstance(case, Mapping) or
+                case.get("task_class") != observations.get("task_class") or
                 case.get("passed") is not True or
+                case.get("comparison") != "exact_sha256" or
                 not isinstance(case.get("reference_sha256"), str) or
                 not isinstance(case.get("answer_sha256"), str) or
-                len(case["reference_sha256"]) != 64 or
-                len(case["answer_sha256"]) != 64
+                not _SHA256_HEX.fullmatch(case["reference_sha256"]) or
+                not _SHA256_HEX.fullmatch(case["answer_sha256"]) or
+                case["reference_sha256"] != case["answer_sha256"]
                 for case in cases)):
             raise ValueError("independent bilingual reference quality evidence is incomplete")
     else:
@@ -609,6 +700,9 @@ def load_reviewed_qualification(
     if not audit.internally_valid or not audit.trace_verified or not audit.protocol_compliant:
         raise ValueError("raw complete-Agent profile did not pass the batch-one audit: "
                          + "; ".join(audit.errors or ("protocol incomplete",)))
+    verify_fixed_suite_cases(audit)
+    if audit.measured_successes != audit.measured_attempts:
+        raise ValueError("fixed-suite qualification requires every measured request to succeed")
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     # An editable checkout can change without changing the installed wheel
     # version or hardware fingerprint. Old profiles without a digest are not

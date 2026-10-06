@@ -65,6 +65,9 @@ _LOG_EXPERT = re.compile(
     rf"\([^)]*\) buffer type overridden to ({_SAFE_DEVICE})(?:\s|$)"
 )
 _LOG_CLIP = re.compile(rf"clip_ctx: CLIP using ({_SAFE_DEVICE}) backend")
+_LOG_MODEL_LOADED = re.compile(
+    r"\d{1,4}(?:\.\d{1,4}){3}\s+I\s+srv\s+llama_server:\s+model loaded"
+)
 _LOG_LISTENING = re.compile(r"\bllama_server: listening on http://127\.0\.0\.1:(\d{1,5})(?:\s|$)")
 _LOG_ERROR_SEVERITY = re.compile(r"^(?:\d+\.){3}\d+\s+[EW]\s+")
 _LOG_ERROR_SOURCE = re.compile(r"^(?:ggml\w*|llama\w*|load_tensors|error|fatal|failed)\s*:", re.I)
@@ -108,6 +111,11 @@ def _sanitize_llama_log_line(line: str, *, expected_device_name: str | None) -> 
     match = _LOG_CLIP.search(line)
     if match:
         return f"clip_ctx: CLIP using {match[1]} backend"
+    if _LOG_MODEL_LOADED.fullmatch(line.strip()):
+        # A content-free, anchored server startup marker is needed by the
+        # independent placement gate. Request/response debug lines cannot
+        # masquerade as this exact logger record.
+        return "llama.cpp status: model loaded"
     if "warning: no usable GPU found" in line:
         return "warning: no usable GPU found"
 

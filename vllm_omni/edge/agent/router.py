@@ -14,6 +14,7 @@ from typing import Callable, Mapping, Sequence
 
 TASK_CLASSES = frozenset({"basic", "browser_text", "browser_vision", "windows_settings", "memory", "code_tools", "long_reasoning"})
 LENGTH_BUCKETS = ("short", "medium", "long")
+FIXED_SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
 
 
 def nearest_rank(values: Sequence[float], fraction: float) -> float:
@@ -79,6 +80,13 @@ class Qualification:
             errors.append("performance must use batch=1, one active request")
         if not 0 <= self.successes <= self.attempts or self.attempts == 0:
             errors.append("invalid paired task outcomes")
+        if self.suite_id == FIXED_SUITE_ID:
+            measured_count = sum(len(self.answer_latency_s.get(bucket, ()))
+                                 for bucket in LENGTH_BUCKETS)
+            if self.attempts != measured_count:
+                errors.append("fixed-suite attempts differ from measured latency samples")
+            if self.successes != self.attempts:
+                errors.append("fixed-suite qualification requires every measured request to succeed")
         for bucket in LENGTH_BUCKETS:
             latencies = self.answer_latency_s.get(bucket, ())
             firsts = self.ttft_s.get(bucket, ())

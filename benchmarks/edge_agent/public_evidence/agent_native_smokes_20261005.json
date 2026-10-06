@@ -1851,6 +1851,1349 @@
       "run_id": "native_a165341a6b4d4843a219473929833cbe",
       "scope": "whole_agent_batch1_paired_local_fixture",
       "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "35d43bf93ddec314f5ff9d29a647361124ed12b909099b721d1d310aa2c6b393",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 26535092224,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 19588026368
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "ed9a7b0bc0f038c3ae22c433f4c3d27d6a7fd7512ebdf5fda8cc9ba3a6009682",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "073e718e7ef6baaa8165c621035f7fa61e1f071378ab467ebd129feeef553d72",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "0929d148186ee5f7406badf19655a6bd9e969147c0cb5e1dd6672767863f320b",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "audit_error_codes": [
+            "incomplete_agent_trace"
+          ],
+          "protocol_compliant": false,
+          "raw_internally_valid": false,
+          "raw_recomputed_measured_attempts": 6,
+          "raw_recomputed_measured_successes": 0,
+          "raw_sha256": "df1fa3d0b1076e935662acd0282ab0f56d35654b93a7a79bb0779060b015a29e",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "status": "evidence_recorded",
+          "summary_sha256": "c67160f350c1d3201656096a94763b53a7fbf764ae88c9441aa2269789175ffc",
+          "task_class": "browser_text",
+          "trace_verified": false
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_f7c3a81a0ec04913b5807ee0f422e31b",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "35d43bf93ddec314f5ff9d29a647361124ed12b909099b721d1d310aa2c6b393",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 26827767808,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 19956543488
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "ed9a7b0bc0f038c3ae22c433f4c3d27d6a7fd7512ebdf5fda8cc9ba3a6009682",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "073e718e7ef6baaa8165c621035f7fa61e1f071378ab467ebd129feeef553d72",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "cd7038ade78e6cf5bfe7d167e536b773c60e7919fe32649c800180d3d3f64f6f",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "audit_error_codes": [
+            "incomplete_agent_trace"
+          ],
+          "protocol_compliant": false,
+          "raw_internally_valid": false,
+          "raw_recomputed_measured_attempts": 12,
+          "raw_recomputed_measured_successes": 5,
+          "raw_recomputed_vision_kinds": {
+            "desktop_screen": {
+              "attempts": 6,
+              "raw_recomputed_successes": 5
+            },
+            "screen_vision": {
+              "attempts": 6,
+              "raw_recomputed_successes": 0
+            }
+          },
+          "raw_sha256": "8157ca6d60c172af6da2a0ed7475bb60206e6758454c0acc73c3b71e4b3ff8bd",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "status": "evidence_recorded",
+          "summary_sha256": "ba77ca44ae534a84d823055d344b73f5716a8b97ace7a1ae81078675711b58f5",
+          "task_class": "browser_vision",
+          "trace_verified": false
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_a63d2c19e92a4f14973b627afd3f1eff",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "35d43bf93ddec314f5ff9d29a647361124ed12b909099b721d1d310aa2c6b393",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 26844672000,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 19854766080
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "ed9a7b0bc0f038c3ae22c433f4c3d27d6a7fd7512ebdf5fda8cc9ba3a6009682",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "073e718e7ef6baaa8165c621035f7fa61e1f071378ab467ebd129feeef553d72",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "7e21506b6b3ccd4e8aeb04a9f8153705e8be7d2442227aa17e98f2928b52b20a",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 24.5809688,
+          "correctness_pass": true,
+          "e2e_trace_pass": true,
+          "endurance_requests": 0,
+          "endurance_wall_seconds": 5.800044164061546e-06,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                870,
+                2531
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2531,
+                2542
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                232,
+                639
+              ],
+              "prompt_utf8_bytes_min_max": [
+                628,
+                639
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                58,
+                123
+              ],
+              "prompt_utf8_bytes_min_max": [
+                106,
+                123
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 11.5045554,
+              "answer_p95_s": 12.2418846,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 10.4298897,
+              "ttft_p95_s": 10.9718532,
+              "warmup_requests": 1
+            },
+            "medium": {
+              "answer_p50_s": 9.3561529,
+              "answer_p95_s": 9.4020805,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 8.2303055,
+              "ttft_p95_s": 8.3483496,
+              "warmup_requests": 1
+            },
+            "short": {
+              "answer_p50_s": 9.0904942,
+              "answer_p95_s": 9.2267321,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 8.0756897,
+              "ttft_p95_s": 8.1207021,
+              "warmup_requests": 1
+            }
+          },
+          "measured_attempts": 6,
+          "measured_successes": 6,
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": false,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 6,
+          "raw_recomputed_measured_successes": 6,
+          "raw_sha256": "e44c0e705758b12a300e43326ee521fbb751ee0c5c83f08e2bfbf0d4b2ffaa24",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": false,
+          "status": "evidence_recorded",
+          "summary_sha256": "00d7a3c508511f1a38f4c4a1d78bd7576d74bc35ebaa38a91c41a6e2feff6d0f",
+          "sustained_seconds": 0.0,
+          "task_class": "browser_text",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 158.837,
+              "gpu_temp_c_peak": 73.0,
+              "ram_used_bytes_peak": 60758384640.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 20483592192.0
+            },
+            "sample_count": 299,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.2,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_e63bb491e3a8483992a6b42642771f11",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "35d43bf93ddec314f5ff9d29a647361124ed12b909099b721d1d310aa2c6b393",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 26870095872,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 19829796864
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "ed9a7b0bc0f038c3ae22c433f4c3d27d6a7fd7512ebdf5fda8cc9ba3a6009682",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "073e718e7ef6baaa8165c621035f7fa61e1f071378ab467ebd129feeef553d72",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "83305121e1f0bcbe5f5f6700310527f1b48a540618d43b6b85479bc9fe42b894",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 24.6596378,
+          "correctness_pass": true,
+          "e2e_trace_pass": true,
+          "endurance_requests": 0,
+          "endurance_wall_seconds": 5.3998082876205444e-06,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                870,
+                2567
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2551,
+                2579
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                232,
+                675
+              ],
+              "prompt_utf8_bytes_min_max": [
+                644,
+                675
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                58,
+                159
+              ],
+              "prompt_utf8_bytes_min_max": [
+                122,
+                159
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 15.7728849,
+              "answer_p95_s": 28.974792,
+              "first_token_samples": 4,
+              "measured_requests": 4,
+              "ttft_p50_s": 14.4253802,
+              "ttft_p95_s": 27.5745743,
+              "warmup_requests": 1
+            },
+            "medium": {
+              "answer_p50_s": 10.5165264,
+              "answer_p95_s": 15.837426,
+              "first_token_samples": 4,
+              "measured_requests": 4,
+              "ttft_p50_s": 8.9620131,
+              "ttft_p95_s": 14.3438836,
+              "warmup_requests": 1
+            },
+            "short": {
+              "answer_p50_s": 12.5952433,
+              "answer_p95_s": 14.7611146,
+              "first_token_samples": 4,
+              "measured_requests": 4,
+              "ttft_p50_s": 11.5580353,
+              "ttft_p95_s": 13.4741003,
+              "warmup_requests": 1
+            }
+          },
+          "measured_attempts": 12,
+          "measured_successes": 12,
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": false,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 12,
+          "raw_recomputed_measured_successes": 12,
+          "raw_recomputed_vision_kinds": {
+            "desktop_screen": {
+              "attempts": 6,
+              "raw_recomputed_successes": 6
+            },
+            "screen_vision": {
+              "attempts": 6,
+              "raw_recomputed_successes": 6
+            }
+          },
+          "raw_sha256": "ae8a7f35f4c9b93c47975461348292b21a95923c51a92d66fe2a85ed5da5a478",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": false,
+          "status": "evidence_recorded",
+          "summary_sha256": "54008d928d8ec9ec53d8ee5c272dcce89fbdfa8dcdaceeb221f6afe3d6db36ed",
+          "sustained_seconds": 0.0,
+          "task_class": "browser_vision",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 109.747,
+              "gpu_temp_c_peak": 73.0,
+              "ram_used_bytes_peak": 61655687168.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 21105623040.0
+            },
+            "sample_count": 847,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.2,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_44aa3a9d92144e61a754931cbcc564c3",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "642f7160507633796ff4a676edb7abd254359d31f2e088e7b80837db22238eeb",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 30033485824,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20055502848
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "6c2b614e48495253854f60e62afec1080cd9619a648a85840ae8f675bb3c8821",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "47629284cb93cbb3b831e79629b01215315dfdbe02cf17b023f2aadef5993b2c",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "0ff922575d37dc61f6dc9277f96bc9e30c5827ab73dd4949eb417488908f869f",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 26.4491792,
+          "correctness_pass": true,
+          "e2e_trace_pass": true,
+          "endurance_requests": 0,
+          "endurance_wall_seconds": 5.800044164061546e-06,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                838,
+                2516
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2512,
+                2516
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                200,
+                624
+              ],
+              "prompt_utf8_bytes_min_max": [
+                598,
+                624
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                26,
+                108
+              ],
+              "prompt_utf8_bytes_min_max": [
+                76,
+                108
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 4.0298498,
+              "answer_p95_s": 4.1580787,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 2.9948058,
+              "ttft_p95_s": 3.0414019,
+              "warmup_requests": 1
+            },
+            "medium": {
+              "answer_p50_s": 2.8339129,
+              "answer_p95_s": 2.9045138,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 1.7620829,
+              "ttft_p95_s": 1.7825281,
+              "warmup_requests": 1
+            },
+            "short": {
+              "answer_p50_s": 2.3857058,
+              "answer_p95_s": 2.5595941,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 1.5065525,
+              "ttft_p95_s": 1.5360195,
+              "warmup_requests": 1
+            }
+          },
+          "measured_attempts": 6,
+          "measured_successes": 6,
+          "memory_evidence_scope": "corrected_seed_fixed_fixture_smoke",
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": false,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 6,
+          "raw_recomputed_measured_successes": 6,
+          "raw_sha256": "658fe10aae9a19d98e53da4c9c58e656d8e42e1af04f167ac9ecfc1c4a6bf608",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": false,
+          "status": "evidence_recorded",
+          "summary_sha256": "8fc68e44ad841650a1577c431345316cc50898af5a22b719e2187b2515487dae",
+          "sustained_seconds": 0.0,
+          "task_class": "memory",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 73.844,
+              "gpu_temp_c_peak": 71.0,
+              "ram_used_bytes_peak": 57089728512.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 20281446400.0
+            },
+            "sample_count": 95,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.2,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_95bccd7f0c1948a6aa36ff0f7e1392a4",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "642f7160507633796ff4a676edb7abd254359d31f2e088e7b80837db22238eeb",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 30079107072,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20006465536
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "6c2b614e48495253854f60e62afec1080cd9619a648a85840ae8f675bb3c8821",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "47629284cb93cbb3b831e79629b01215315dfdbe02cf17b023f2aadef5993b2c",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "14087a993f41a48f73a42dc3ca3c18e2c014059bf865c7ad4be5edbfca756f98",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "audit_error_codes": [
+            "incomplete_agent_trace"
+          ],
+          "protocol_compliant": false,
+          "raw_internally_valid": false,
+          "raw_recomputed_measured_attempts": 6,
+          "raw_recomputed_measured_successes": 4,
+          "raw_sha256": "6bd3f3dfa3fc1bdfbd0d90f874b6530a77d6427ee4e4563694550b854d572304",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "status": "evidence_recorded",
+          "summary_sha256": "9da7ab27860f71be1c339c32f72b6b4df46c831d165ecc6b4db0b8298594a9df",
+          "task_class": "browser_text",
+          "trace_verified": false
+        },
+        {
+          "audit_error_codes": [
+            "incomplete_agent_trace"
+          ],
+          "protocol_compliant": false,
+          "raw_internally_valid": false,
+          "raw_recomputed_measured_attempts": 12,
+          "raw_recomputed_measured_successes": 6,
+          "raw_recomputed_vision_kinds": {
+            "desktop_screen": {
+              "attempts": 6,
+              "raw_recomputed_successes": 0
+            },
+            "screen_vision": {
+              "attempts": 6,
+              "raw_recomputed_successes": 6
+            }
+          },
+          "raw_sha256": "d35999f628e4fb41327e72e1480808d7dbc5ebf284a70937570b5c12c311d138",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "status": "evidence_recorded",
+          "summary_sha256": "2a6182d56843a86e559e1f81609c33395b6d562b9013adb281aa5574d56f61e1",
+          "task_class": "browser_vision",
+          "trace_verified": false
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_24c076944c3d4dbc9d7e465b30818092",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "5b61a8a7c161b03261a96da98c60fb38e56c84f95e1ec817fee0101ea5b49774",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 30460801024,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20274360320
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "955fcebc02ca31d2a81667fe3f4ffb06b7af70e82a86f8b263221f3b9f62cf21",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "dc1a08ab15ab8fcc1a869b904799f692a78c43632d247fc1d1254019284e2da9",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "935624762ac696c95154532404175e7d7415ce9a37d0336fd8edf9f525c914bd",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 26.6851909,
+          "correctness_pass": true,
+          "e2e_trace_pass": true,
+          "endurance_requests": 0,
+          "endurance_wall_seconds": 4.09991480410099e-06,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                870,
+                2531
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2531,
+                2542
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                232,
+                639
+              ],
+              "prompt_utf8_bytes_min_max": [
+                628,
+                639
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                58,
+                123
+              ],
+              "prompt_utf8_bytes_min_max": [
+                106,
+                123
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 41.9596744,
+              "answer_p95_s": 43.3667246,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 38.7537416,
+              "ttft_p95_s": 39.6910534,
+              "warmup_requests": 1
+            },
+            "medium": {
+              "answer_p50_s": 31.7145126,
+              "answer_p95_s": 33.0383987,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 28.4993431,
+              "ttft_p95_s": 29.4302157,
+              "warmup_requests": 1
+            },
+            "short": {
+              "answer_p50_s": 30.1025475,
+              "answer_p95_s": 30.1694226,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 26.5246428,
+              "ttft_p95_s": 27.0289785,
+              "warmup_requests": 1
+            }
+          },
+          "measured_attempts": 6,
+          "measured_successes": 6,
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": false,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 6,
+          "raw_recomputed_measured_successes": 6,
+          "raw_sha256": "85b6f04a302b1cddf95dd526a23919e2bce32d58b89d096a9b7ee59b6cb10a4e",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": false,
+          "status": "evidence_recorded",
+          "summary_sha256": "3707fef93831d3a7163b51b774f5e85d5dfa8e20b1aa590657346d782a6522b7",
+          "sustained_seconds": 0.0,
+          "task_class": "browser_text",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 67.588,
+              "gpu_temp_c_peak": 63.0,
+              "ram_used_bytes_peak": 56187432960.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 20149968896.0
+            },
+            "sample_count": 1026,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.2,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_cd9ad9021a2a4365b0ae2b3926c6e54e",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "5b61a8a7c161b03261a96da98c60fb38e56c84f95e1ec817fee0101ea5b49774",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 31878176768,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20221411328
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "955fcebc02ca31d2a81667fe3f4ffb06b7af70e82a86f8b263221f3b9f62cf21",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "dc1a08ab15ab8fcc1a869b904799f692a78c43632d247fc1d1254019284e2da9",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "1422f682a0c974da21f728fa70c2cd839a8bec6475a6f779c01e45da6931e1dd",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "full_20x3_and_30m",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 30.437093,
+          "correctness_pass": true,
+          "e2e_trace_pass": true,
+          "endurance_requests": 383,
+          "endurance_wall_seconds": 1808.328052900033,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                838,
+                2516
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2512,
+                2516
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                200,
+                624
+              ],
+              "prompt_utf8_bytes_min_max": [
+                598,
+                624
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                26,
+                108
+              ],
+              "prompt_utf8_bytes_min_max": [
+                76,
+                108
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 14.4892643,
+              "answer_p95_s": 15.1280828,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 11.4387269,
+              "ttft_p95_s": 11.9739196,
+              "warmup_requests": 2
+            },
+            "medium": {
+              "answer_p50_s": 9.0516946,
+              "answer_p95_s": 9.5857687,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 6.3429369,
+              "ttft_p95_s": 6.4326779,
+              "warmup_requests": 2
+            },
+            "short": {
+              "answer_p50_s": 8.3571605,
+              "answer_p95_s": 9.0224832,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 5.3099912,
+              "ttft_p95_s": 5.9392216,
+              "warmup_requests": 2
+            }
+          },
+          "measured_attempts": 60,
+          "measured_successes": 60,
+          "memory_evidence_scope": "corrected_seed_fixed_fixture_profile",
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": true,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 60,
+          "raw_recomputed_measured_successes": 60,
+          "raw_sha256": "32db431f638ebbd27e5cfd3abb7b938abcd4a42699a2f3c93056573d024acbb8",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": true,
+          "status": "evidence_recorded",
+          "summary_sha256": "5dcc1ae9f856e0e9263d301dc73a8942bc3a59de0996034ce82df17e35e3649f",
+          "sustained_seconds": 1800.2620553999996,
+          "task_class": "memory",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 168.225,
+              "gpu_temp_c_peak": 75.0,
+              "ram_used_bytes_peak": 57920512000.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 21992443904.0
+            },
+            "sample_count": 22229,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.1,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_37aad46efd4f4893a497a7bfaa83599d",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "5b61a8a7c161b03261a96da98c60fb38e56c84f95e1ec817fee0101ea5b49774",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 30465871872,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20235296768
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "955fcebc02ca31d2a81667fe3f4ffb06b7af70e82a86f8b263221f3b9f62cf21",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "dc1a08ab15ab8fcc1a869b904799f692a78c43632d247fc1d1254019284e2da9",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "e59e3d5511995a19db39c26fd413a9985b255641a975312f1c73d8d7e2a9b41b",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "failure_code": "fixture_foreground_unverified",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "status": "failed_or_blocked",
+          "task_class": "browser_vision"
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_c0d671be35324049a35da329ff2f050c",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "a47e37c57af6e9a15c05f06286b832f00cfa6176c5c5c75dbfc8249f13208035",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 30241771520,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20225335296
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "d76042748ee08eea2f2abbd86d17f076dc869202ff8efe9215010f1212211cb0",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "1341a6080a30a45a8b84d20db51ceecbd40b17a1da5b641c23affdbb86f23ca7",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "e68e05d22cdac16102218582d5626ea2867a67b652a84fd21a94713143d16b1a",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "full_20x3_and_30m",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 32.3987125,
+          "correctness_pass": true,
+          "current_release_code_status": "profiled_before_current_imported_omni_source",
+          "e2e_trace_pass": true,
+          "endurance_requests": 611,
+          "endurance_wall_seconds": 1815.1801287000999,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                838,
+                2516
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2512,
+                2516
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                200,
+                624
+              ],
+              "prompt_utf8_bytes_min_max": [
+                598,
+                624
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                26,
+                108
+              ],
+              "prompt_utf8_bytes_min_max": [
+                76,
+                108
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 4.1677369,
+              "answer_p95_s": 4.6689631,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 2.9829432,
+              "ttft_p95_s": 3.3059892,
+              "warmup_requests": 2
+            },
+            "medium": {
+              "answer_p50_s": 9.4433214,
+              "answer_p95_s": 10.0453879,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 6.4328493,
+              "ttft_p95_s": 6.948876,
+              "warmup_requests": 2
+            },
+            "short": {
+              "answer_p50_s": 8.284546,
+              "answer_p95_s": 8.821568,
+              "first_token_samples": 20,
+              "measured_requests": 20,
+              "ttft_p50_s": 5.426935,
+              "ttft_p95_s": 5.8610531,
+              "warmup_requests": 2
+            }
+          },
+          "measured_attempts": 60,
+          "measured_successes": 60,
+          "memory_evidence_scope": "corrected_seed_fixed_fixture_profile",
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": true,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 60,
+          "raw_recomputed_measured_successes": 60,
+          "raw_sha256": "26f119de4e9db43756084cc1838a4423bb276d2f63c100422c45c30981a76ed5",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": true,
+          "status": "evidence_recorded",
+          "summary_sha256": "f9ffcfea6f41f763671b13034573dde5db36f5fd0737762c4cb927fc5e899bad",
+          "sustained_seconds": 1802.2568221000004,
+          "task_class": "memory",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 168.902,
+              "gpu_temp_c_peak": 74.0,
+              "ram_used_bytes_peak": 60003131392.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 21485121536.0
+            },
+            "sample_count": 20759,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.1,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_4bba0301e4d04f4f9af9dd45e1c6deea",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
+    },
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "d0568feb3da5dad843a388986977f57dacdf8432c9fd7c3a38d61b4563484174",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 25509257216,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20079292416
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "1b58e8a3530bf45aabdafe391bd87b6781d57b2c9bf3a6f446c444bfb7cfc6f6",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "721a12158e9d70d6a394ac9cf06c4af0147c175cff70d3a3f9f634527135914c",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "7d599e4d2db5d4109e2aec78de68b68220ed8b0dfb29111ed507fc87dae550b4",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.multimodal.v1",
+          "cold_start_s": 24.9634564,
+          "correctness_pass": true,
+          "e2e_trace_pass": true,
+          "endurance_requests": 0,
+          "endurance_wall_seconds": 4.600035026669502e-06,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                870,
+                2531
+              ],
+              "prompt_utf8_bytes_min_max": [
+                2531,
+                2542
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                232,
+                639
+              ],
+              "prompt_utf8_bytes_min_max": [
+                628,
+                639
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                58,
+                123
+              ],
+              "prompt_utf8_bytes_min_max": [
+                106,
+                123
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 12.3526445,
+              "answer_p95_s": 12.4790897,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 11.1219059,
+              "ttft_p95_s": 11.2581727,
+              "warmup_requests": 1
+            },
+            "medium": {
+              "answer_p50_s": 9.5293134,
+              "answer_p95_s": 9.9319043,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 8.5007048,
+              "ttft_p95_s": 8.7644956,
+              "warmup_requests": 1
+            },
+            "short": {
+              "answer_p50_s": 8.8914879,
+              "answer_p95_s": 9.2080643,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 7.8994983,
+              "ttft_p95_s": 8.0601739,
+              "warmup_requests": 1
+            }
+          },
+          "measured_attempts": 6,
+          "measured_successes": 6,
+          "placement": "cpu+Vulkan0",
+          "placement_evidence_present": true,
+          "protocol_compliant": false,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 6,
+          "raw_recomputed_measured_successes": 6,
+          "raw_sha256": "36b372b74504588ba6571216e305860ddfc1ca6c6051d071bcd675247300670d",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "stability_pass": false,
+          "status": "evidence_recorded",
+          "summary_sha256": "2c373bb14bd392a2727686c96d3e63acc102ef8f0c64800904ac863d7d5ea3fc",
+          "sustained_seconds": 0.0,
+          "task_class": "browser_text",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 123.398,
+              "gpu_temp_c_peak": 73.0,
+              "ram_used_bytes_peak": 60749791232.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 20281909248.0
+            },
+            "sample_count": 307,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.2,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_f97dc44f38024b2d82794e73b1b745de",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a"
     }
   ],
   "schema": "omni-agent-public-aggregate-v2",

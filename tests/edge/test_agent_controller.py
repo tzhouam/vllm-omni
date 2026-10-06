@@ -339,6 +339,119 @@ def test_tool_mutation_waits_for_ui_approval(tmp_path) -> None:
         controller.close()
 
 
+def test_direct_concurrent_turn_cannot_change_active_request_or_memory(tmp_path) -> None:
+    class WaitingBackend(_Backend):
+        def __init__(self):
+            super().__init__([])
+            self.entered = threading.Event()
+            self.resume: asyncio.Event | None = None
+
+        async def generate(self, prompt, *, request_id, max_tokens, image_data_url=None):
+            self.entered.set()
+            self.resume = asyncio.Event()
+            await self.resume.wait()
+            yield BackendChunk("first answer", terminal=True)
+
+    backend = WaitingBackend()
+    tools = WindowsToolBoundary(browser=_Browser())
+    controller = _controller(tmp_path, backend, tools)
+    events = []
+    controller.add_listener(events.append)
+    try:
+        first = controller.submit("Remember first request")
+        assert backend.entered.wait(5)
+        active_id = controller._request_id
+        active_epoch = controller._epoch
+        active_seq = controller._seq
+        active_sources = tuple(controller._memory_sources)
+        with pytest.raises(RuntimeError, match="already active"):
+            asyncio.run(controller.run_turn(
+                "Remember forbidden second request", request_id="foreign", epoch=99,
+            ))
+        assert (controller._request_id, controller._epoch, controller._seq) == (
+            active_id, active_epoch, active_seq,
+        )
+        assert tuple(controller._memory_sources) == active_sources
+        assert "foreign" not in tools._task_urls
+        assert backend.resume is not None
+        controller._loop.call_soon_threadsafe(backend.resume.set)
+        assert first.result(timeout=10) == "first answer"
+        assert all(e["request_id"] == active_id and e["epoch"] == active_epoch for e in events)
+        assert [e["seq"] for e in events] == list(range(1, len(events) + 1))
+        assert all(row.request_id == active_id for row in controller.memory.iter_events())
+    finally:
+        if backend.resume is not None:
+            controller._loop.call_soon_threadsafe(backend.resume.set)
+        controller.close()
+
+
+def test_reserved_turn_rejects_direct_entry_and_cancel_before_start_recovers(tmp_path) -> None:
+    backend = _Backend(["recovered"])
+    controller = _controller(tmp_path, backend, WindowsToolBoundary(browser=_Browser()))
+    events = []
+    controller.add_listener(events.append)
+    loop = controller._ensure_loop()
+    entered = threading.Event()
+    release = threading.Event()
+
+    def block_loop() -> None:
+        entered.set()
+        assert release.wait(5)
+
+    loop.call_soon_threadsafe(block_loop)
+    assert entered.wait(5)
+    try:
+        first = controller.submit("Never start this turn")
+        request_id, epoch = controller._request_id, controller._epoch
+        with pytest.raises(RuntimeError, match="already active"):
+            asyncio.run(controller.run_turn(
+                "Spoof the reserved request", request_id=request_id, epoch=epoch,
+            ))
+        assert controller._request_id == request_id
+        controller.cancel()
+        assert controller._turn_done.wait(5)
+        assert first.cancelled()
+        assert controller._turn_owner is None
+        release.set()
+        asyncio.run_coroutine_threadsafe(asyncio.sleep(0), loop).result(timeout=5)
+        assert not any(e["kind"] == "user_observation" for e in events)
+        assert controller.submit("Say recovered").result(timeout=10) == "recovered"
+    finally:
+        release.set()
+        controller.close()
+
+
+def test_stale_approval_raises_and_preserves_the_pending_action(tmp_path) -> None:
+    backend = _Backend([
+        json.dumps({"tool": "browser_fill", "args": {"selector": "#draft", "value": "hello"}}),
+        '{"final":"filled"}',
+    ])
+    browser = _Browser()
+    controller = _controller(tmp_path, backend, WindowsToolBoundary(browser=browser))
+    challenge = threading.Event()
+    ids: list[str] = []
+
+    def listener(event):
+        if event["kind"] == "approval_required":
+            ids.append(event["payload"]["challenge_id"])
+            challenge.set()
+
+    controller.add_listener(listener)
+    try:
+        turn = controller.submit("Fill the browser draft")
+        assert challenge.wait(5)
+        with pytest.raises(ValueError, match="not active"):
+            controller.approve("stale-challenge")
+        assert browser.filled == []
+        assert not turn.done()
+        controller.approve(ids[0])
+        assert turn.result(timeout=10) == "filled"
+        with pytest.raises(ValueError, match="not active"):
+            controller.reject(ids[0])
+    finally:
+        controller.close()
+
+
 def test_cancel_revokes_approved_write_queued_behind_another_tool(tmp_path) -> None:
     backend = _Backend([
         json.dumps({"tool": "browser_fill", "args": {"selector": "#draft", "value": "hello"}}),

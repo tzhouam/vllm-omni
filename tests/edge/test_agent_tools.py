@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import time
+import base64
+
 import pytest
 
 from vllm_omni.edge.agent.tools import (
@@ -8,6 +11,7 @@ from vllm_omni.edge.agent.tools import (
     ToolRequestCancelled,
     WindowsToolBoundary,
 )
+from vllm_omni.edge.agent import tools as tool_module
 
 
 class FakeBrowser:
@@ -339,6 +343,29 @@ def test_screen_and_browser_image_reads_are_bounded_data_routes() -> None:
     assert screen_image.untrusted_output is True
 
 
+def test_native_screen_crops_foreground_before_model_resize(monkeypatch) -> None:
+    image_grab = pytest.importorskip("PIL.ImageGrab")
+    image = pytest.importorskip("PIL.Image")
+    captured = {}
+    bbox = (-100, 40, 1500, 740)
+
+    def grab(*, bbox, all_screens):
+        captured.update(bbox=bbox, all_screens=all_screens)
+        return image.new("RGB", (1600, 700), "white")
+
+    monkeypatch.setattr(tool_module, "_require_windows", lambda: None)
+    monkeypatch.setattr(tool_module, "_foreground_window_bbox", lambda: bbox)
+    monkeypatch.setattr(image_grab, "grab", grab)
+    result = tool_module.WindowsScreen().capture()
+    assert captured == {"bbox": bbox, "all_screens": True}
+    assert result["capture_scope"] == "foreground_window_visible_pixels"
+    assert result["source_bbox"] == {"left": -100, "top": 40, "right": 1500, "bottom": 740}
+    assert (result["original_width"], result["original_height"]) == (1600, 700)
+    assert result["width"] * result["height"] <= 1024 * 1024
+    assert result["resized_for_model_pixel_limit"] is True
+    assert len(base64.b64decode(result["base64"])) == result["size_bytes"]
+
+
 def test_desktop_module_import_is_optional() -> None:
     from vllm_omni.edge.agent import desktop
 
@@ -380,6 +407,76 @@ def test_desktop_removes_stale_approval_on_cancel(monkeypatch) -> None:
         # The listener retains a bound method on the window.  Break that
         # cycle and dispose of the QWidget before QApplication teardown;
         # PySide can otherwise corrupt the Windows CRT heap at pytest exit.
+        controller.callback = None
+        window.setAttribute(desktop.Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        window.close()
+        app.processEvents()
+
+
+def test_desktop_reports_stale_approval_and_keeps_retryable_failure(monkeypatch) -> None:
+    from vllm_omni.edge.agent import desktop
+
+    if desktop.QApplication is None:
+        pytest.skip("PySide6 is not installed")
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = desktop.QApplication.instance() or desktop.QApplication([])
+
+    class Controller:
+        def __init__(self):
+            self.retry_attempts = 0
+
+        def add_listener(self, callback):
+            self.callback = callback
+
+        def approve(self, challenge_id):
+            if challenge_id == "stale":
+                raise ValueError("approval challenge is not active for this request")
+            self.retry_attempts += 1
+            if self.retry_attempts == 1:
+                raise RuntimeError("temporary delivery failure")
+
+    def wait_ui(predicate):
+        deadline = time.monotonic() + 3
+        while time.monotonic() < deadline:
+            app.processEvents()
+            if predicate():
+                return
+            time.sleep(.01)
+        assert predicate()
+
+    controller = Controller()
+    window = desktop.AgentWindow(controller)
+    window._active = True
+    window.send_button.setEnabled(False)
+    try:
+        for seq, challenge_id in ((1, "stale"), (2, "retry")):
+            window._accept_event({
+                "request_id": "r1", "epoch": 1, "seq": seq,
+                "kind": "approval_required", "payload": {
+                    "challenge_id": challenge_id, "risk": "low",
+                    "operation": "browser_follow", "arguments": {"selector": "a.next"},
+                    "target": {"url": "https://example.test/"},
+                },
+            })
+            assert window.approvals.count() == 1
+            window._approve_selected()
+            if challenge_id == "stale":
+                wait_ui(lambda: window.approvals.count() == 0)
+                assert "Approval failed (ValueError)" in window.status_label.text()
+                assert window._active and not window.send_button.isEnabled()
+            else:
+                wait_ui(lambda: "temporary delivery failure" in window.status_label.text())
+                assert window.approvals.count() == 1
+                assert window.approve_button.isEnabled()
+                window._approve_selected()
+                wait_ui(lambda: window.approvals.count() == 0)
+                assert controller.retry_attempts == 2
+        window._accept_event({
+            "request_id": "r1", "epoch": 1, "seq": 3,
+            "kind": "final", "payload": {"answer": "done"},
+        })
+        assert not window._active
+    finally:
         controller.callback = None
         window.setAttribute(desktop.Qt.WidgetAttribute.WA_DeleteOnClose, True)
         window.close()

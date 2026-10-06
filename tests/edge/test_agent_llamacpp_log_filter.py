@@ -33,10 +33,12 @@ def test_sanitizer_keeps_only_canonical_placement_and_diagnostic_fields() -> Non
         "tensor blk.0.ffn_down_exps.weight (400 MiB Q4) buffer type overridden to CPU",
         "tensor blk.0.ffn_gate_exps.weight (400 MiB Q4) buffer type overridden to CPU",
         "clip_ctx: CLIP using Vulkan0 backend",
+        "0.21.039.901 I srv  llama_server: model loaded",
         "error: failed to allocate secret customer content",
         'data: {"choices":[{"delta":{"content":"private answer"}}]}',
         'srv  log_server_r: request: {"messages":[{"content":"private prompt"}]}',
         '0.21.039.904 I srv log_server_r: user said out of memory and failed',
+        '0.21.039.904 I srv log_server_r: request said model loaded',
     ]
     safe = [
         _sanitize_llama_log_line(line, expected_device_name=DEVICE_NAME)
@@ -50,11 +52,16 @@ def test_sanitizer_keeps_only_canonical_placement_and_diagnostic_fields() -> Non
     assert "load_tensors: layer 12 assigned to device CPU" in persisted
     assert "tensor blk.0.ffn_up_exps.weight (redacted) buffer type overridden to CPU" in persisted
     assert "llama.cpp diagnostic: allocation_failed" in persisted
+    assert "llama.cpp status: model loaded" in persisted
     assert _sanitize_llama_log_line(
         "warning: no usable GPU found", expected_device_name=None,
     ) == "warning: no usable GPU found"
     assert _sanitize_llama_log_line(
         '0.21.039.904 I srv log_server_r: user said out of memory and failed',
+        expected_device_name=DEVICE_NAME,
+    ) is None
+    assert _sanitize_llama_log_line(
+        '0.21.039.904 I srv log_server_r: request said model loaded',
         expected_device_name=DEVICE_NAME,
     ) is None
     assert _hybrid_placement_evidence(
@@ -99,6 +106,7 @@ print('load_tensors: layer  60 assigned to device Vulkan0, is_swa = 0')
 print('load_tensors: offloaded 40/61 layers to GPU')
 print('load_tensors: CPU_Mapped model buffer size = 6588.22 MiB')
 print('load_tensors: Vulkan0 model buffer size = 4299.40 MiB')
+print('0.21.039.901 I srv  llama_server: model loaded')
 print('srv  llama_server: listening on http://127.0.0.1:29011')
 print('srv log_server_r: private prompt load_tensors: layer 999 assigned to device Vulkan0')
 sys.stdout.flush()
@@ -117,6 +125,7 @@ sys.stdout.flush()
     assert filtered.join_after_exit()
     assert "offloaded 40/61" in startup
     assert "Vulkan0 model buffer size" in startup
+    assert "model loaded" in path.read_text(encoding="utf-8")
     assert "private" not in startup
     assert "private" not in path.read_text(encoding="utf-8")
     assert "layer 999" not in path.read_text(encoding="utf-8")

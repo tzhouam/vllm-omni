@@ -77,6 +77,8 @@ else:
         event_received = Signal(object)
         callback_error = Signal(str)
         memory_cleared = Signal(int)
+        approval_resolved = Signal(str)
+        approval_error = Signal(str, str, str)
 
 
     class AgentWindow(QMainWindow):  # type: ignore[no-redef]
@@ -93,6 +95,8 @@ else:
             self._relay.event_received.connect(self._accept_event)
             self._relay.callback_error.connect(self._report_callback_error)
             self._relay.memory_cleared.connect(self._memory_cleared)
+            self._relay.approval_resolved.connect(self._approval_resolved)
+            self._relay.approval_error.connect(self._report_approval_error)
             self._last_seq: dict[tuple[str, int], int] = {}
             self._pending: dict[tuple[str, int], dict[int, Any]] = {}
             self._max_epoch: dict[str, int] = {}
@@ -215,8 +219,50 @@ else:
             if item is None:
                 return None
             challenge_id = item.data(Qt.ItemDataRole.UserRole)
-            self.approvals.takeItem(self.approvals.row(item))
             return str(challenge_id) if challenge_id else None
+
+        def _remove_approval(self, challenge_id: str) -> None:
+            for row in range(self.approvals.count()):
+                item = self.approvals.item(row)
+                if item.data(Qt.ItemDataRole.UserRole) == challenge_id:
+                    self.approvals.takeItem(row)
+                    return
+
+        def _dispatch_approval(self, challenge_id: str, *, approved: bool) -> None:
+            self.approve_button.setEnabled(False)
+            self.reject_button.setEnabled(False)
+
+            def run() -> None:
+                try:
+                    if approved:
+                        self.controller.approve(challenge_id)
+                    else:
+                        self.controller.reject(challenge_id)
+                except Exception as exc:
+                    self._relay.approval_error.emit(
+                        challenge_id, type(exc).__name__, str(exc),
+                    )
+                else:
+                    self._relay.approval_resolved.emit(challenge_id)
+
+            threading.Thread(target=run, daemon=True).start()
+
+        def _approval_resolved(self, challenge_id: str) -> None:
+            self._remove_approval(challenge_id)
+            self.approve_button.setEnabled(True)
+            self.reject_button.setEnabled(True)
+
+        def _report_approval_error(self, challenge_id: str, kind: str,
+                                   message: str) -> None:
+            # A stale challenge is no longer actionable. Other failures leave
+            # the item available for retry without ending the active request.
+            if kind == "ValueError":
+                self._remove_approval(challenge_id)
+            self.approve_button.setEnabled(True)
+            self.reject_button.setEnabled(True)
+            detail = f"Approval failed ({kind}): {message}"
+            self.transcript.appendPlainText(f"[approval error] {detail}")
+            self.status_label.setText(detail)
 
         def _approve_selected(self) -> None:
             item = self.approvals.currentItem()
@@ -231,12 +277,12 @@ else:
                     return
             challenge_id = self._approval_selected()
             if challenge_id:
-                self._invoke(self.controller.approve, challenge_id)
+                self._dispatch_approval(challenge_id, approved=True)
 
         def _reject_selected(self) -> None:
             challenge_id = self._approval_selected()
             if challenge_id:
-                self._invoke(self.controller.reject, challenge_id)
+                self._dispatch_approval(challenge_id, approved=False)
 
         def _accept_event(self, event: Any) -> None:
             request_id = _field(event, "request_id")
@@ -322,6 +368,8 @@ else:
                         item.setData(Qt.ItemDataRole.UserRole + 1, challenge.get("risk"))
                         self.approvals.addItem(item)
                         self.approvals.setCurrentItem(item)
+                        self.approve_button.setEnabled(True)
+                        self.reject_button.setEnabled(True)
                         self.status_label.setText("Waiting for your approval")
             elif kind == "refusal":
                 self.transcript.appendPlainText(
@@ -341,6 +389,8 @@ else:
                 )
             if kind in {"final", "answer", "refusal", "error", "cancelled"} or bool(_field(event, "terminal", False)):
                 self.approvals.clear()
+                self.approve_button.setEnabled(True)
+                self.reject_button.setEnabled(True)
                 self._active = False
                 self.send_button.setEnabled(True)
                 self.cancel_button.setEnabled(False)

@@ -37,6 +37,10 @@ _FAILURE_TYPES = {
     "TargetClosedError": "browser_target_closed",
     "ValueError": "profile_input_error",
 }
+_EXACT_FAILURES = {
+    "RuntimeError: Edge fixture window could not be verified in foreground":
+        "fixture_foreground_unverified",
+}
 _PRE_FIX_MEMORY_RUNS = frozenset({
     "native_1d0455bb82a74515b70cf0e07805e63c",
     "native_3ea19e21291c44c2a77f78bdc94c0f82",
@@ -50,9 +54,15 @@ _POST_FIX_MEMORY_RUNS = frozenset({
     "native_e1d90b1e97604ce7ae22aee28c2e950f",
     "native_5c400dad75f44554873c7aaa178261bd",
     "native_a165341a6b4d4843a219473929833cbe",
+    "native_95bccd7f0c1948a6aa36ff0f7e1392a4",
+    "native_37aad46efd4f4893a497a7bfaa83599d",
+    "native_4bba0301e4d04f4f9af9dd45e1c6deea",
 })
 _PRE_CURRENT_CODE_RUNS = frozenset({
     "native_5c400dad75f44554873c7aaa178261bd",
+    "native_a165341a6b4d4843a219473929833cbe",
+    "native_37aad46efd4f4893a497a7bfaa83599d",
+    "native_4bba0301e4d04f4f9af9dd45e1c6deea",
 })
 _LOADER_LOG_LINES = tuple(re.compile(pattern) for pattern in (
     r"llama_model_load: using device Vulkan[0-9]+ \([A-Za-z0-9 .,+()_=-]+\)",
@@ -108,6 +118,8 @@ def _failure_code(error: Any) -> str:
     # Publish only a known exception class; all other messages stay private.
     if not isinstance(error, str):
         return "unclassified_failure"
+    if error in _EXACT_FAILURES:
+        return _EXACT_FAILURES[error]
     return _FAILURE_TYPES.get(error.partition(":")[0], "unclassified_failure")
 
 
@@ -497,7 +509,7 @@ def summarize_index(path: Path) -> dict[str, Any]:
         }
         if path.parent.name in _PRE_CURRENT_CODE_RUNS:
             result["current_release_code_status"] = (
-                "profiled_before_browser_policy_runtime_identity_and_cancel_release_fixes")
+            "profiled_before_current_imported_omni_source")
         if task == "memory":
             # A prior fixture seeded an event kind that retrieval did not
             # search. Corrected runs remain scoped to the fixed fixture.

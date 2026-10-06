@@ -1,0 +1,66 @@
+{
+  "schema": "edge-agent-memory-quality-aggregate-v1",
+  "reviewed_date": "2026-10-06",
+  "review_method": "The reviewer recomputed both private raw JSONL SHA-256 values, inspected all 16 ordered Agent turns per run, rechecked reference equality, source and distractor lineage, deletion flags, and each summary count from the raw records. The two runs used the same withheld private fixture seed.",
+  "scope": "four bilingual cross-session Gemma memory cases with similar distractors and source deletion",
+  "batch_size": 1,
+  "concurrency": 1,
+  "requests_per_run": 16,
+  "qualification_status": "unsigned_narrow_quality_observation; no default route promotion",
+  "hardware": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+    "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "power_condition": "AC"
+  },
+  "route": {
+    "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+    "model": "Gemma 4 31B QAT Q4_0",
+    "backend": "external.llamacpp.multimodal.v1",
+    "reported_placement": "cpu+Vulkan0",
+    "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+    "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+    "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+    "projector_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+    "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+    "native_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a",
+    "lineage_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2"
+  },
+  "runs": [
+    {
+      "run_id": "memory_quality_77183f7ef47c4e37a00f6cb71620fbe9",
+      "result": "measured_retrieval_failure",
+      "code_state": "before encrypted-index ranking and current-request exclusion fix",
+      "loaded_runtime_sha256": "de896b18cf7e7bd5958008f1c44871d86ed2dc9ba274aaa6fcfacc4fb21d740a",
+      "raw_sha256": "9bb378ca59f293406622043a06cc15654bef79017fb246f0bc002da96d81e5a8",
+      "index_sha256": "ffda716f2d311b85830acaac50dfee62781b36e2dfed9a7cfaa51019a49646c9",
+      "cases": 4,
+      "passed": 3,
+      "per_case": [
+        {"case_id": "en_en", "passed": true, "failed_checks": []},
+        {"case_id": "zh_zh", "passed": true, "failed_checks": []},
+        {"case_id": "en_zh", "passed": false, "failed_checks": ["source_and_distractor_retrieved", "reference_answer_exact", "deletion_cascaded", "after_delete_unknown"]},
+        {"case_id": "zh_en", "passed": true, "failed_checks": []}
+      ]
+    },
+    {
+      "run_id": "memory_quality_06ae7be2fa3840b694f87d847910da0a",
+      "result": "all_fixed_cases_passed",
+      "code_state": "after encrypted-index ranking and current-request exclusion fix",
+      "loaded_runtime_sha256": "21209146124a2b9495a7cebad54bdad50e39e61d634fff6cd66d1bef4607580f",
+      "raw_sha256": "fe4e99e9b4af2fbed43ee6fc4d8f38fce4d0e24205103f9f7caa6990a9a6250a",
+      "index_sha256": "9bb2136cc1d680c96f7604908fbc2cba29011e63aca8889b95a4f6a0f2364a74",
+      "cases": 4,
+      "passed": 4,
+      "per_case": [
+        {"case_id": "en_en", "passed": true, "failed_checks": []},
+        {"case_id": "zh_zh", "passed": true, "failed_checks": []},
+        {"case_id": "en_zh", "passed": true, "failed_checks": []},
+        {"case_id": "zh_en", "passed": true, "failed_checks": []}
+      ]
+    }
+  ],
+  "failed_check_note": "after_delete_unknown also requires the retained distractor in post-deletion provenance; in the earlier en_zh run it was not retrieved, so that combined check failed despite correct abstention text.",
+  "limits": "This is one request per case and state, not a 20-per-length latency profile or 30-minute run. It does not establish open-domain retrieval quality, independent placement proof, or signed release qualification."
+}

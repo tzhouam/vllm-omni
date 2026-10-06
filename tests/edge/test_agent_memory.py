@@ -101,6 +101,8 @@ def test_derived_memory_and_index_deleted_with_source(tmp_path):
         assert store.search("深色模式") == []
         with sqlite3.connect(str(tmp_path / "agent.sqlite3")) as conn:
             assert conn.execute("SELECT COUNT(*) FROM term_index").fetchone()[0] == 0
+            assert conn.execute("SELECT COUNT(*) FROM event_kinds").fetchone()[0] == 0
+            assert conn.execute("SELECT COUNT(*) FROM event_content").fetchone()[0] == 0
             assert conn.execute("SELECT COUNT(*) FROM derivations").fetchone()[0] == 0
 
 
@@ -157,6 +159,186 @@ def test_explicit_deletion_and_no_implicit_retention(tmp_path):
         _append(store, request="r3")
         assert store.delete_all() == 1
         assert store.search("浏览器") == []
+
+
+def test_rare_bilingual_entity_outweighs_repeated_recall_boilerplate(tmp_path):
+    with _store(tmp_path) as store:
+        target = store.append_event(
+            session_id="earlier", request_id="source", epoch=0, sequence=0,
+            kind="user_observation",
+            payload={"text": "Amber compass (琥珀罗盘) identifier is IDA19F"},
+            source="user",
+        )
+        distractor = store.append_event(
+            session_id="earlier", request_id="distractor", epoch=0, sequence=0,
+            kind="user_observation",
+            payload={"text": "Amber notebook (琥珀笔记) identifier is IDB28E"},
+            source="user",
+        )
+        for index in range(6):
+            store.append_event(
+                session_id="recent", request_id=f"question-{index}",
+                epoch=0, sequence=0, kind="user_observation",
+                payload={"text": (
+                    "请从本地记忆中回忆别的条目标识符。只依据完全匹配的观察，"
+                    "不要使用相似条目。如果该观察不存在，只回答 UNKNOWN。"
+                )}, source="user",
+            )
+        query = (
+            "请从本地记忆中回忆琥珀罗盘（Amber compass）的标识符。"
+            "只依据完全匹配的观察，不要使用相似条目。"
+        )
+        current = store.append_event(
+            session_id="recent", request_id="current", epoch=0, sequence=0,
+            kind="user_observation", payload={"text": query}, source="user",
+        )
+        ranked = store.search(
+            query, kinds=frozenset({"user_observation", "final"}),
+            exclude_event_ids=frozenset({current.event_id}), limit=5,
+        )
+        ids = [match.event.event_id for match in ranked]
+        assert current.event_id not in ids
+        assert target.event_id in ids
+        assert distractor.event_id in ids
+
+
+def test_exact_recall_question_echoes_do_not_hide_older_distinct_facts(tmp_path):
+    with _store(tmp_path) as store:
+        sources = [
+            store.append_event(
+                session_id="old", request_id=f"fact-{index}", epoch=0, sequence=0,
+                kind="user_observation",
+                payload={"text": f"Amber compass identifier is {identifier}"},
+                source="user",
+            )
+            for index, identifier in enumerate(("IDA19F", "IDB28E"))
+        ]
+        question = "What is Amber compass identifier?"
+        for index in range(160):
+            store.append_event(
+                session_id="new", request_id=f"question-{index}", epoch=0,
+                sequence=0, kind="user_observation",
+                payload={"text": question}, source="user",
+            )
+        ranked = store.search(
+            question, kinds=frozenset({"user_observation"}), limit=5,
+        )
+        ids = {match.event.event_id for match in ranked}
+        assert all(source.event_id in ids for source in sources)
+        assert len([match for match in ranked if match.event.session_id == "new"]) == 1
+
+
+def test_direct_observation_ranks_ahead_of_derivative_final(tmp_path):
+    with _store(tmp_path) as store:
+        original = store.append_event(
+            session_id="s1", request_id="source", epoch=0, sequence=0,
+            kind="user_observation", payload={"text": "Orchid key IDA19F"}, source="user",
+        )
+        echo = store.append_event(
+            session_id="s2", request_id="answer", epoch=0, sequence=0,
+            kind="final", payload={"answer": "Orchid key IDA19F"}, source="agent",
+            derived_from=(original.event_id,),
+        )
+        ranked = store.search("Orchid key IDA19F", kinds=frozenset({
+            "user_observation", "final",
+        }))
+        assert [match.event.event_id for match in ranked] == [
+            original.event_id, echo.event_id,
+        ]
+        assert ranked[0].score > ranked[1].score
+
+
+def test_v1_encrypted_memory_migrates_to_keyed_search_indexes(tmp_path):
+    database = tmp_path / "agent.sqlite3"
+    with _store(tmp_path) as store:
+        source = store.append_event(
+            session_id="s1", request_id="source", epoch=0, sequence=0,
+            kind="user_observation", payload={"text": "Amber compass secret"},
+            source="user",
+        )
+        store.append_event(
+            session_id="s1", request_id="control", epoch=0, sequence=0,
+            kind="approval_required", payload={"text": "Amber approval"},
+            source="agent",
+        )
+    # A v1 database has the same encrypted event and term tables, without
+    # keyed kind or content indexes. Migration backfills from local ciphertext.
+    with sqlite3.connect(str(database)) as conn:
+        conn.execute("DROP TABLE event_kinds")
+        conn.execute("DROP TABLE event_content")
+        conn.execute("UPDATE meta SET value=? WHERE name='schema_version'", (b"1",))
+    with _store(tmp_path) as migrated:
+        matches = migrated.search("Amber", kinds=frozenset({"user_observation"}))
+        assert [match.event.event_id for match in matches] == [source.event_id]
+    with sqlite3.connect(str(database)) as conn:
+        assert conn.execute(
+            "SELECT value FROM meta WHERE name='schema_version'",
+        ).fetchone()[0] == b"3"
+        assert conn.execute("SELECT COUNT(*) FROM event_kinds").fetchone()[0] == 2
+        assert conn.execute("SELECT COUNT(*) FROM event_content").fetchone()[0] == 2
+    assert b"user_observation" not in database.read_bytes()
+
+
+def test_v2_encrypted_memory_migrates_content_index_without_losing_events(tmp_path):
+    database = tmp_path / "agent.sqlite3"
+    with _store(tmp_path) as store:
+        original = _append(store, payload={"text": "orchid key IDA19F"})
+    with sqlite3.connect(str(database)) as conn:
+        conn.execute("DROP TABLE event_content")
+        conn.execute("UPDATE meta SET value=? WHERE name='schema_version'", (b"2",))
+    with _store(tmp_path) as migrated:
+        matches = migrated.search("orchid", kinds=frozenset({"page_observation"}))
+        assert [match.event.event_id for match in matches] == [original.event_id]
+    with sqlite3.connect(str(database)) as conn:
+        assert conn.execute(
+            "SELECT value FROM meta WHERE name='schema_version'",
+        ).fetchone()[0] == b"3"
+        assert conn.execute("SELECT COUNT(*) FROM event_content").fetchone()[0] == 1
+
+
+@pytest.mark.skipif(os.name != "nt", reason="DPAPI requires native Windows")
+def test_v1_dpapi_memory_migrates_without_losing_observations(tmp_path):
+    database = tmp_path / "dpapi-agent.sqlite3"
+    with EncryptedMemoryStore(database) as store:
+        source = store.append_event(
+            session_id="s1", request_id="source", epoch=0, sequence=0,
+            kind="user_observation", payload={"text": "苍鹭包裹 identifier"},
+            source="user",
+        )
+    with sqlite3.connect(str(database)) as conn:
+        conn.execute("DROP TABLE event_kinds")
+        conn.execute("DROP TABLE event_content")
+        conn.execute("UPDATE meta SET value=? WHERE name='schema_version'", (b"1",))
+    with EncryptedMemoryStore(database) as migrated:
+        matches = migrated.search("苍鹭包裹", kinds=frozenset({"user_observation"}))
+        assert [match.event.event_id for match in matches] == [source.event_id]
+
+
+def test_kind_filter_bounds_decryptions_with_many_matching_control_events(tmp_path):
+    with _store(tmp_path) as store:
+        source = store.append_event(
+            session_id="s1", request_id="source", epoch=0, sequence=0,
+            kind="user_observation", payload={"text": "orchid identity"},
+            source="user",
+        )
+        for index in range(160):
+            store.append_event(
+                session_id="s1", request_id=f"control-{index}", epoch=0,
+                sequence=0, kind="approval_required",
+                payload={"text": "orchid control"}, source="agent",
+            )
+        original_decode = store._decode
+        decoded = []
+
+        def counted(row):
+            decoded.append(row["event_id"])
+            return original_decode(row)
+
+        store._decode = counted
+        matches = store.search("orchid", kinds=frozenset({"user_observation"}),
+                               limit=5)
+        assert [match.event.event_id for match in matches] == [source.event_id]
+        assert decoded == [source.event_id]
 
 
 @pytest.mark.skipif(os.name == "nt", reason="Windows has DPAPI by default")

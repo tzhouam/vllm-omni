@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import ctypes
 import hashlib
 import importlib.metadata
 import json
@@ -22,6 +23,7 @@ import uuid
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Mapping
+from urllib.parse import urlparse
 
 from benchmarks.edge_agent.paired_suite import (
     FixtureSite, ReadOnlyFixtureTools, build_paired_cases, evaluate_case,
@@ -30,10 +32,121 @@ from benchmarks.edge_agent.profile import (
     AgentCase, AgentRunResult, Preparation, ProfileConditions, ProfileConfig,
     ProfileRoute, run_profile,
 )
-from vllm_omni.edge.agent.tools import ManagedEdgeBrowser
+from vllm_omni.edge.agent.tools import ManagedEdgeBrowser, WindowsScreen
 
 
 SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
+
+
+def _foreground_fixture_window(title_marker: str) -> Mapping[str, Any]:
+    """Raise one fixture Edge window and verify it is actually foreground.
+
+    The profiler never calls this for a user's normal browser session.  A
+    failed focus check aborts setup instead of recording a model vision miss.
+    """
+    if sys.platform != "win32":
+        raise RuntimeError("desktop fixture visibility requires native Windows")
+    import psutil
+
+    user32 = ctypes.windll.user32
+    kernel32 = ctypes.windll.kernel32
+    wndproc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_ssize_t)
+    user32.EnumWindows.argtypes = [wndproc, ctypes.c_ssize_t]
+    user32.GetWindowTextLengthW.argtypes = [ctypes.c_void_p]
+    user32.GetWindowTextW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_int]
+    user32.GetWindowThreadProcessId.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulong)]
+    user32.GetForegroundWindow.restype = ctypes.c_void_p
+    user32.IsWindowVisible.argtypes = [ctypes.c_void_p]
+    user32.IsIconic.argtypes = [ctypes.c_void_p]
+    user32.ShowWindow.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    user32.SetForegroundWindow.argtypes = [ctypes.c_void_p]
+    user32.AttachThreadInput.argtypes = [ctypes.c_ulong, ctypes.c_ulong, ctypes.c_bool]
+    matches: list[tuple[int, str, int]] = []
+
+    @wndproc
+    def collect(hwnd: int, _unused: int) -> bool:
+        if not user32.IsWindowVisible(hwnd):
+            return True
+        length = user32.GetWindowTextLengthW(hwnd)
+        if length < len(title_marker):
+            return True
+        text_buffer = ctypes.create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, text_buffer, length + 1)
+        title = text_buffer.value
+        if title_marker not in title:
+            return True
+        pid = ctypes.c_ulong()
+        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        try:
+            executable = psutil.Process(pid.value).name().casefold()
+        except (psutil.Error, OSError):
+            return True
+        if executable == "msedge.exe":
+            matches.append((int(hwnd), title, pid.value))
+        return True
+
+    if not user32.EnumWindows(collect, 0):
+        raise OSError(ctypes.get_last_error(), "cannot enumerate desktop windows")
+    if len(matches) != 1:
+        raise RuntimeError(f"expected one visible Edge fixture window; found {len(matches)}")
+    hwnd, title, pid = matches[0]
+    user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+    if user32.GetForegroundWindow() != hwnd:
+        user32.SetForegroundWindow(hwnd)
+    if user32.GetForegroundWindow() != hwnd:
+        foreground = user32.GetForegroundWindow()
+        foreground_thread = user32.GetWindowThreadProcessId(foreground, None)
+        own_thread = kernel32.GetCurrentThreadId()
+        if foreground_thread and foreground_thread != own_thread:
+            attached = bool(user32.AttachThreadInput(own_thread, foreground_thread, True))
+            try:
+                user32.SetForegroundWindow(hwnd)
+            finally:
+                if attached:
+                    user32.AttachThreadInput(own_thread, foreground_thread, False)
+    if user32.GetForegroundWindow() != hwnd or user32.IsIconic(hwnd):
+        raise RuntimeError("Edge fixture window could not be verified in foreground")
+    return {"foreground_window_verified": True, "window_title": title,
+            "window_pid": pid, "window_handle": hwnd}
+
+
+def _verify_fixture_is_foreground(title_marker: str) -> None:
+    """Fail closed if another window took focus before the actual capture."""
+    import psutil
+
+    user32 = ctypes.windll.user32
+    user32.GetForegroundWindow.restype = ctypes.c_void_p
+    hwnd = user32.GetForegroundWindow()
+    if not hwnd or user32.IsIconic(hwnd):
+        raise RuntimeError("fixture window lost foreground before screen capture")
+    length = user32.GetWindowTextLengthW(hwnd)
+    buffer = ctypes.create_unicode_buffer(length + 1)
+    user32.GetWindowTextW(hwnd, buffer, length + 1)
+    pid = ctypes.c_ulong()
+    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    try:
+        executable = psutil.Process(pid.value).name().casefold()
+    except (psutil.Error, OSError) as exc:
+        raise RuntimeError("cannot verify foreground fixture process") from exc
+    if title_marker not in buffer.value or executable != "msedge.exe":
+        raise RuntimeError("fixture window lost foreground before screen capture")
+
+
+class _FixtureForegroundScreen:
+    """Benchmark-only screen backend; every capture checks visible target."""
+
+    def __init__(self) -> None:
+        self.expected_title: str | None = None
+        self._screen = WindowsScreen()
+
+    def capture(self) -> Mapping[str, Any]:
+        title = self.expected_title
+        if title is None:
+            raise RuntimeError("desktop fixture was not prepared for screen capture")
+        _verify_fixture_is_foreground(title)
+        result = self._screen.capture()
+        _verify_fixture_is_foreground(title)
+        return {**result, "fixture_foreground_verified": True}
 
 
 def load_profile_routes(config: Mapping[str, Any],
@@ -195,6 +308,7 @@ class NativeProfileBridge:
         self._events: list[Mapping[str, Any]] | None = None
         self._emitter: Any = None
         self._lock = threading.RLock()
+        self._fixture_screen: _FixtureForegroundScreen | None = None
 
     def _listen(self, event: Mapping[str, Any]) -> None:
         sanitized = _redact_image(dict(event))
@@ -241,8 +355,10 @@ class NativeProfileBridge:
         config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         controller, hardware = build_controller(config_path)
         controller.tools.close()
+        self._fixture_screen = _FixtureForegroundScreen()
         controller.tools = ReadOnlyFixtureTools(
             self.fixture_origin, browser=ManagedEdgeBrowser(profile_dir=browser_profile),
+            screen=self._fixture_screen,
         )
         controller.add_listener(self._listen)
         self.controller, self.route = controller, route
@@ -289,6 +405,8 @@ class NativeProfileBridge:
             "private_memory_reset": True, "deleted_prior_fixture_events": deleted,
             "phase": phase, "repetition": repetition,
         }
+        if self._fixture_screen is not None:
+            self._fixture_screen.expected_title = None
         if case.metadata.get("kind") == "memory_recall":
             label = "Cedar memory card" if case.language == "en-US" else "蓝杉记忆卡"
             event = self.controller.memory.append_event(
@@ -306,8 +424,19 @@ class NativeProfileBridge:
             lang = "en" if case.language == "en-US" else "zh"
             card = self.fixture_origin + f"/visual/{lang}"
             opened = self.controller.tools.browser.open(card)
+            browser = self.controller.tools.browser
+            selected = browser.bring_to_front()
+            marker = f"Omni visual fixture {urlparse(self.fixture_origin).port} {lang}"
+            if (opened.get("url") != card or selected.get("url") != card or
+                    opened.get("title") != marker or selected.get("title") != marker):
+                raise RuntimeError("desktop fixture page identity changed before capture")
+            focused = _foreground_fixture_window(marker)
+            if self._fixture_screen is None:
+                raise RuntimeError("desktop screen backend was not prepared")
+            self._fixture_screen.expected_title = marker
             evidence["displayed_fixture_url"] = opened["url"]
-            evidence["desktop_visibility_unverified"] = True
+            evidence["fixture_foreground_window"] = focused
+            evidence["fixture_visibility_checked_before_request"] = True
         return evidence
 
     async def run(self, route: ProfileRoute, case: AgentCase, emit: Any) -> AgentRunResult:

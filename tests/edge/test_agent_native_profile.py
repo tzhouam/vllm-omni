@@ -21,7 +21,7 @@ from benchmarks.edge_agent.profile import (
     AgentCase, AgentRunResult, Preparation, ProfileConditions, ProfileConfig,
     ProfileRoute, run_profile,
 )
-from vllm_omni.edge.agent.tools import ToolAction
+from vllm_omni.edge.agent.tools import ToolAction, _explicit_task_urls
 from vllm_omni.edge.agent.controller import _RECALL_KINDS
 from vllm_omni.edge.agent.memory import AesGcmCipher, EncryptedMemoryStore
 from vllm_omni.edge.agent.qualification import _evaluate_case as audit_evaluate_case
@@ -78,11 +78,77 @@ def test_loopback_fixtures_and_paired_languages_lengths():
                 for case in cases} == {"22"}
         assert {case.reference for cases in suites["long_reasoning"].values()
                 for case in cases} == {"11"}
+        for task_class in ("browser_text", "browser_vision"):
+            for cases in suites[task_class].values():
+                for case in cases:
+                    source = case.metadata["source"]
+                    if source.startswith("http://"):
+                        assert _explicit_task_urls(case.prompt) == frozenset({source})
         text = urlopen(site.origin + "/text/en").read().decode()
         visual = urlopen(site.origin + "/visual/en").read().decode()
         assert "CEDAR-4827" in text
         assert "ORBIT-7391" not in visual
+        assert f"Omni visual fixture {site.origin.rsplit(':', 1)[-1]} en" in visual
+        assert 'src="data:image/svg+xml;base64,' in visual
         assert "ORBIT-7391" in urlopen(site.origin + "/assets/en.svg").read().decode()
+
+
+def test_desktop_fixture_requires_verified_foreground_before_request(monkeypatch, tmp_path):
+    with FixtureSite() as site:
+        case = next(row for row in build_paired_cases(site.origin, 10)["browser_vision"]["short"]
+                    if row.metadata["kind"] == "desktop_screen")
+        marker = f"Omni visual fixture {site.origin.rsplit(':', 1)[-1]} en"
+
+        class Browser:
+            def open(self, url):
+                self.url = url
+                return {"url": url, "title": marker}
+
+            def bring_to_front(self):
+                return {"url": self.url, "title": marker}
+
+        path = tmp_path / "memory.sqlite"
+        bridge = NativeProfileBridge(
+            native_config={}, config_root=tmp_path, private_root=tmp_path,
+            fixture_origin=site.origin,
+            telemetry=SimpleNamespace(sample=lambda: {"ram_used_bytes": 1}),
+        )
+        bridge.controller = SimpleNamespace(
+            memory=SimpleNamespace(_path=path, delete_all=lambda: 0),
+            tools=SimpleNamespace(browser=Browser()),
+        )
+        bridge.route = _route()
+        bridge._memory_path = path
+        bridge._fixture_screen = SimpleNamespace(expected_title=None)
+        monkeypatch.setattr(native_profile, "_foreground_fixture_window",
+                            lambda title: {"foreground_window_verified": title == marker})
+        evidence = bridge.before_request(_route(), case, "measured", 0)
+        assert evidence["fixture_visibility_checked_before_request"] is True
+        assert evidence["fixture_foreground_window"]["foreground_window_verified"] is True
+        assert bridge._fixture_screen.expected_title == marker
+
+        def reject(_title):
+            raise RuntimeError("cannot foreground fixture")
+
+        monkeypatch.setattr(native_profile, "_foreground_fixture_window", reject)
+        with pytest.raises(RuntimeError, match="cannot foreground fixture"):
+            bridge.before_request(_route(), case, "measured", 1)
+        assert bridge._fixture_screen.expected_title is None
+
+
+def test_desktop_fixture_rechecks_foreground_on_actual_capture(monkeypatch):
+    checks = []
+    monkeypatch.setattr(native_profile, "_verify_fixture_is_foreground",
+                        lambda title: checks.append(title))
+    screen = native_profile._FixtureForegroundScreen.__new__(native_profile._FixtureForegroundScreen)
+    screen.expected_title = "unique title"
+    screen._screen = SimpleNamespace(capture=lambda: {"mime_type": "image/jpeg"})
+    captured = screen.capture()
+    assert captured["fixture_foreground_verified"] is True
+    assert checks == ["unique title", "unique title"]
+    screen.expected_title = None
+    with pytest.raises(RuntimeError, match="not prepared"):
+        screen.capture()
 
 
 @pytest.mark.parametrize("task_class", ["basic", "long_reasoning"])

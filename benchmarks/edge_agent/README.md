@@ -101,9 +101,31 @@ an explicit URL in the trusted user task; model output and recalled page or
 memory text cannot authorize another destination. Following a page link without
 approval additionally requires that the visible, same-origin target URL was
 explicitly present in that trusted task; other link targets require exact-action
-approval. Full-desktop `screen_capture` is available only when the trusted task
+approval. The managed browser opens a fresh isolated Edge context with no
+restored tabs. It installs HTTP and WebSocket guards before the first page
+exists. Only an exact authorized top-level GET navigation can reach the
+network; page-initiated background HTTP requests, frames, redirects, and
+WebSockets are blocked. This deliberately limits ordinary open-web images,
+scripts, fonts, and stylesheets; inline/data assets remain available, and
+the fixed visual fixture embeds its image as a data URL.
+
+Production `browser_click` and `browser_fill` return an explicit refusal
+before target inspection, approval, or page action. Native form POST is not
+enabled: even constructing `FormData` can dispatch page JavaScript, while a
+click or fill may invoke handlers or external protocols outside HTTP routing.
+Injected mock backends exercise the generic approval contract but do not
+establish production browser-write support. The context is discarded when
+the Agent closes, so browser cookies and tabs do not persist between app
+sessions. Browser process-level traffic is outside page routing; the fixed
+local fixture is not evidence of general open-web safety.
+`screen_capture` observes the visible foreground window, crops to its
+physical screen rectangle before model resizing, and records that rectangle
+and original/output dimensions. It is available only when the trusted task
 explicitly requests desktop capture; a request to inspect a browser image grants
-only `browser_screenshot`. A
+only `browser_screenshot`. The desktop fixture uses a unique Edge title, then
+verifies that exact window is foreground before the timed request and at the
+actual capture. If Windows denies focus, setup fails with a visibility blocker
+instead of scoring a blank or obscured capture as model quality. A
 separate, local-NTFS encrypted SQLite database is reset and seeded before each
 timed request, with setup evidence in the raw record. This avoids memory
 leakage across repeats or candidate routes. The code case checks static code
@@ -175,16 +197,38 @@ fixtures used the wrong seed event kind and cannot validate retrieval; a
 corrected Gemma memory smoke is recorded separately. All short smokes remain
 below the 20-per-length and 30-minute qualification thresholds.
 
-The full Gemma fixed-memory protocol started on 2026-10-05 before the
-trusted-task browser URL policy, runtime digest capture, and strengthened
-cancellation proof were added. Its [public entry](public_evidence/agent_native_smokes_20261005.json)
-records a valid full trace audit, 60/60 measured successes (20 per length),
-and 172 sequential endurance requests over 1,800.42 seconds of active work.
-Those measurements are historical protocol evidence and cannot qualify the
-current loaded code. A second [hash-bound run](public_evidence/agent_native_smokes_20261005.json)
-on the current source passed 60/60 measured fixed-memory requests and 158
-sequential endurance requests over 1,806.73 seconds of active Agent work.
-Its raw trace audit, protocol, and source/runtime digest comparison pass.
-This establishes the fixed memory task only; default-route promotion still
-requires separate signed memory, cancellation, placement, lineage, and quality
-evidence, plus full browser and visual task qualification.
+Four completed Gemma fixed-memory runs passed the 20-per-length and
+30-minute protocol at their recorded code states. The newest completed
+[hash-bound run](public_evidence/agent_native_smokes_20261005.json)
+`native_4bba0301e4d04f4f9af9dd45e1c6deea` passed 60/60 measured
+fixed-memory requests and 611/611 sequential endurance requests over
+1,802.26 seconds of active Agent work. Raw trace, measurement protocol and
+fixed-suite case audits pass. Its raw JSONL SHA-256 is
+`26f119de4e9db43756084cc1838a4423bb276d2f63c100422c45c30981a76ed5`;
+the [rolling status](STATUS.md) gives the index/summary hashes and p50/p95.
+Its source/runtime digests matched at measurement time, but subsequent browser
+boundary changes make it historical for final-code release matching. The
+earlier three full profiles, including `native_37aad46efd4f4893a497a7bfaa83599d`,
+are also historical. No default route is qualified.
+
+The post-hardening browser-text-only smoke
+`native_f97dc44f38024b2d82794e73b1b745de` passed 6/6 with a valid raw
+trace audit. It has two measured requests per length and no endurance. A full
+browser-text protocol is running, with no audited outcome to report yet. An
+earlier browser-vision smoke passed 12/12, but a later desktop capture run
+without foreground verification reconstructed only 6/12 and cannot isolate
+model quality from visibility. A later visual attempt completed one
+warmup and one measured browser screenshot, then stopped before the next
+desktop case when Windows could not verify the Edge fixture in the
+foreground. All indexed visual attempts predate the latest browser hardening;
+no indexed browser or visual class has completed the full protocol on that
+source. The separate
+[bilingual memory-quality probe](public_evidence/agent_memory_quality_20261006.json)
+retains a 3/4 failure and a later 4/4 observation, both unsigned; the 4/4
+run predates the later exact-content memory index. Default-route promotion
+still requires independent signed memory, cancellation, placement, lineage,
+and quality evidence. The current Gemma artifact probe binds official
+GGUF/projector LFS bytes, revision and license metadata but does not verify
+base-model provenance or replace human review. The signed quality gate accepts
+only `comparison: exact_sha256` with equal lowercase answer/reference hashes;
+semantic or graded quality needs a separate reviewed comparator.

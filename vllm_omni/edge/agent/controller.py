@@ -166,6 +166,9 @@ class AgentController:
         self._current: Future[Any] | None = None
         self._turn_done = threading.Event()
         self._turn_done.set()
+        self._turn_owner: tuple[str, int] | None = None
+        self._turn_started = False
+        self._reserved_turn_token: object | None = None
         self._request_id: str | None = None
         self._epoch = 0
         self._seq = 0
@@ -261,29 +264,77 @@ class AgentController:
         if not isinstance(prompt, str) or not prompt.strip():
             raise ValueError("a nonempty Agent task is required")
         with self._lock:
-            if not self._turn_done.is_set() or (self._current is not None and not self._current.done()):
+            if (self._turn_owner is not None or not self._turn_done.is_set()
+                    or (self._current is not None and not self._current.done())):
                 raise RuntimeError("one Agent request is already active")
+            loop = self._ensure_loop()
             self._epoch += 1
             self._seq = 0
             self._request_id = uuid.uuid4().hex
             request_id, epoch = self._request_id, self._epoch
-            loop = self._ensure_loop()
+            self._turn_owner = (request_id, epoch)
+            self._turn_started = False
+            reservation = object()
+            self._reserved_turn_token = reservation
             self._turn_done.clear()
-            self._current = asyncio.run_coroutine_threadsafe(
-                self.run_turn(prompt, request_id=request_id, epoch=epoch), loop,
+            turn = self.run_turn(
+                prompt, request_id=request_id, epoch=epoch,
+                _reservation=reservation,
             )
+            try:
+                self._current = asyncio.run_coroutine_threadsafe(turn, loop)
+            except Exception:
+                turn.close()
+                self._turn_owner = None
+                self._reserved_turn_token = None
+                self._turn_done.set()
+                raise
+            def settle_cancelled_before_start(done: Future[Any]) -> None:
+                if not done.cancelled():
+                    return
+                with self._lock:
+                    if (self._turn_owner != (request_id, epoch) or self._turn_started
+                            or self._reserved_turn_token is not reservation):
+                        return
+                    try:
+                        self.tools.finish_request(request_id)
+                        self._emit("cancelled", {
+                            "message": "Agent request cancelled before starting",
+                        })
+                    finally:
+                        self._turn_owner = None
+                        self._reserved_turn_token = None
+                        self._turn_done.set()
+
+            self._current.add_done_callback(settle_cancelled_before_start)
             return self._current
 
-    async def run_turn(self, prompt: str, *, request_id: str, epoch: int) -> str | None:
-        self._request_id, self._epoch, self._seq = request_id, epoch, 0
-        self._memory_sources = []
-        ticket = None
+    async def run_turn(self, prompt: str, *, request_id: str, epoch: int,
+                       _reservation: object | None = None) -> str | None:
+        with self._lock:
+            owner = (request_id, epoch)
+            if (self._turn_owner is not None and
+                    (self._turn_owner != owner or self._turn_started
+                     or _reservation is not self._reserved_turn_token)):
+                raise RuntimeError("one Agent request is already active")
+            if (self._turn_owner is None and
+                    (_reservation is not None or not self._turn_done.is_set())):
+                raise RuntimeError("one Agent request is already active")
+            # Acquire before touching request metadata or registering tools.
+            # A rejected direct run_turn must leave the active turn intact.
+            ticket = self._gate.acquire(request_id)
+            self._turn_owner = owner
+            self._turn_started = True
+            self._turn_done.clear()
+            self._request_id, self._epoch, self._seq = request_id, epoch, 0
+            self._memory_sources = []
         backend: ModelBackend | None = None
         was_cancelled = False
         try:
             self.tools.register_user_task(request_id, prompt)
-            ticket = self._gate.acquire(request_id)
-            self._emit("user_observation", {"text": prompt}, source="user")
+            current_observation_id = self._emit(
+                "user_observation", {"text": prompt}, source="user",
+            )
             task_class = classify_task(prompt)
             permitted_tools = _permitted_tools(task_class, prompt)
             decision = select_route(
@@ -349,12 +400,13 @@ class AgentController:
             # provenance and can still be deleted by session or source event.
             memory = self.memory.search(
                 prompt, limit=self.limits.max_memory_matches, kinds=_RECALL_KINDS,
+                exclude_event_ids=frozenset({current_observation_id}),
             )
             recalled = [
                 {"source": match.event.source, "kind": match.event.kind,
                  "event_id": match.event.event_id,
                  "text": json.dumps(_recall_payload(match.event.payload), ensure_ascii=False)[:1200]}
-                for match in memory if match.event.request_id != request_id
+                for match in memory
             ]
             self._memory_sources.extend(item["event_id"] for item in recalled)
             observations: list[dict[str, str]] = []
@@ -410,7 +462,8 @@ class AgentController:
                 except ApprovalRequired as required:
                     challenge = required.challenge
                     pending: asyncio.Future[bool] = asyncio.get_running_loop().create_future()
-                    self._approval = (challenge.challenge_id, pending)
+                    with self._lock:
+                        self._approval = (challenge.challenge_id, pending)
                     self._emit("approval_required", {
                         "challenge_id": challenge.challenge_id, "risk": challenge.risk,
                         "description": challenge.description, "target": dict(challenge.target),
@@ -420,7 +473,9 @@ class AgentController:
                     try:
                         approved = await asyncio.wait_for(pending, self.limits.approval_timeout_s)
                     finally:
-                        self._approval = None
+                        with self._lock:
+                            if self._approval is not None and self._approval[1] is pending:
+                                self._approval = None
                     if not approved:
                         with contextlib.suppress(ValueError):
                             self.tools.reject(challenge.challenge_id)
@@ -487,8 +542,7 @@ class AgentController:
         finally:
             self._active_model_request = None
             try:
-                if ticket is not None:
-                    self._gate.release(ticket)
+                self._gate.release(ticket)
                 self.tools.finish_request(request_id)
                 reporter = getattr(backend, "request_state_released", None)
                 if (was_cancelled and callable(reporter)
@@ -514,6 +568,9 @@ class AgentController:
             finally:
                 with self._lock:
                     self._memory_sources = []
+                    self._turn_owner = None
+                    self._turn_started = False
+                    self._reserved_turn_token = None
                     self._turn_done.set()
 
     @staticmethod
@@ -544,17 +601,34 @@ class AgentController:
                 self._current.cancel()
 
     def _resolve_approval(self, challenge_id: str, *, approved: bool) -> None:
-        loop = self._ensure_loop()
-
-        async def resolve() -> None:
+        with self._lock:
             pending = self._approval
             if pending is None or pending[0] != challenge_id:
                 raise ValueError("approval challenge is not active for this request")
-            future = pending[1]
-            if not future.done():
-                future.set_result(approved)
+        loop = pending[1].get_loop()
 
-        asyncio.run_coroutine_threadsafe(resolve(), loop)
+        def resolve() -> None:
+            if self._approval is not pending:
+                raise ValueError("approval challenge is not active for this request")
+            future = pending[1]
+            if future.done():
+                raise ValueError("approval challenge is no longer pending")
+            future.set_result(approved)
+
+        try:
+            running_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            running_loop = None
+        if running_loop is loop:
+            # An event listener may respond synchronously on the turn's loop.
+            resolve()
+            return
+
+        async def resolve_on_loop() -> None:
+            resolve()
+
+        # Observe the target loop's acknowledgement or stale-challenge error.
+        asyncio.run_coroutine_threadsafe(resolve_on_loop(), loop).result(timeout=10)
 
     def approve(self, challenge_id: str) -> None:
         self._resolve_approval(challenge_id, approved=True)

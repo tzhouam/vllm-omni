@@ -7,27 +7,59 @@ memory peaks, or 30-minute sustained operation.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import shutil
 import tempfile
 import threading
 from concurrent.futures import CancelledError
 from pathlib import Path
 
+from benchmarks.edge_agent.experiments.profile_binding import bind_profile_to_live
 from vllm_omni.edge.agent.native_app import build_controller
+
+
+def copy_log_no_clobber(source: Path, destination: Path) -> None:
+    """Keep a previous raw startup log intact even if a run name is reused."""
+    created = False
+    try:
+        with destination.open("xb") as output:
+            created = True
+            with source.open("rb") as original:
+                shutil.copyfileobj(original, output)
+            output.flush()
+            os.fsync(output.fileno())
+    except BaseException:
+        if created:
+            destination.unlink(missing_ok=True)
+        raise
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True, type=Path)
     parser.add_argument("--record", required=True, type=Path)
+    parser.add_argument("--profile-index", type=Path,
+                        help="Audited full-protocol profile to bind this later diagnostic")
     args = parser.parse_args()
-    source_config = json.loads(args.config.read_text(encoding="utf-8"))
+    source_config_bytes = args.config.read_bytes()
+    source_config = json.loads(source_config_bytes)
+    args.record.parent.mkdir(parents=True, exist_ok=True)
+    if args.record.exists():
+        raise FileExistsError(f"native cancel record already exists: {args.record}")
+    for route in source_config["routes"]:
+        log_copy = args.record.with_name(args.record.stem + f".{route['route_id']}.log")
+        if log_copy.exists():
+            raise FileExistsError(f"native cancel log already exists: {log_copy}")
     events: list[dict] = []
     cancel_requested = threading.Event()
     cancelled = threading.Event()
     outcome: dict[str, object] = {"batch_size": 1, "concurrency": 1,
-                                  "scope": "cancel_and_recover_functional_smoke"}
+                                  "scope": "cancel_and_recover_functional_smoke",
+                                  "source_config_sha256": hashlib.sha256(source_config_bytes).hexdigest(),
+                                  "profile_binding_requested": args.profile_index is not None,
+                                  "profile_binding": None}
     with tempfile.TemporaryDirectory(prefix="omni-agent-cancel-") as directory:
         root = Path(directory)
         config = dict(source_config)
@@ -57,8 +89,13 @@ def main() -> None:
             if event["kind"] == "cancelled":
                 cancelled.set()
 
-        controller.add_listener(listener)
         try:
+            if args.profile_index is not None:
+                outcome["profile_binding"] = bind_profile_to_live(
+                    args.profile_index, source_config_bytes=source_config_bytes,
+                    route_id=route_id, hardware=hardware,
+                )
+            controller.add_listener(listener)
             first = controller.submit(
                 "List each integer from 1 to 96, one number per line. Continue until 96."
             )
@@ -105,11 +142,10 @@ def main() -> None:
             try:
                 controller.close()
             finally:
-                args.record.parent.mkdir(parents=True, exist_ok=True)
                 for route in config["routes"]:
                     log = Path(route["log_file"])
                     if log.exists():
-                        shutil.copyfile(log, args.record.with_name(
+                        copy_log_no_clobber(log, args.record.with_name(
                             args.record.stem + f".{route['route_id']}.log"))
                 with args.record.open("x", encoding="utf-8") as output:
                     output.write(json.dumps({"record_type": "manifest", **outcome},

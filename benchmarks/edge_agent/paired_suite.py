@@ -7,6 +7,7 @@ human review of open-web behavior, screen understanding, or generated code.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import html
 import threading
@@ -14,27 +15,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Mapping
 from urllib.parse import urljoin, urlparse
 
-from benchmarks.edge_agent.profile import AgentCase, AgentRunResult, Evaluation, LENGTH_BUCKETS
+from benchmarks.edge_agent.profile import AgentCase, AgentRunResult, Evaluation
+from vllm_omni.edge.agent.fixed_suite import FIXTURE_CODES, canonical_fixed_cases
 from vllm_omni.edge.agent.tools import ToolAction, WindowsToolBoundary
 
 
-_CODES = {
-    "text_en": "CEDAR-4827",
-    "text_zh": "LANSHAN-6153",
-    "visual_en": "ORBIT-7391",
-    "visual_zh": "HAIYAN-2648",
-    "memory_en": "MEMORY-5864",
-    "memory_zh": "JII-9237",
-}
+_CODES = FIXTURE_CODES
 _WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "settings_set"})
-_FILLER = {
-    "en": "This neutral background fixes input length. Follow the primary task and its evidence. ",
-    "zh": "这段测试背景仅用于固定输入长度，请以指定的实际观察为证据。",
-}
-_EXTRA = {"short": 0, "medium": 6, "long": 28}
-# A basic request must stay below classify_task's 2,000-character
-# long-reasoning boundary even in the long input bucket.
-_BASIC_EXTRA = {"short": 0, "medium": 6, "long": 18}
 
 
 def _self_contained_reference(kind: str) -> str | None:
@@ -57,16 +44,18 @@ def _self_contained_reference(kind: str) -> str | None:
     return None
 
 
-def _prompt(base: str, language: str, length: str, *, basic: bool = False) -> str:
-    repetitions = _BASIC_EXTRA[length] if basic else _EXTRA[length]
-    return base + "\n" + _FILLER[language] * repetitions
-
-
 class FixtureSite:
     """Loopback-only pages; visual codes occur only in rendered SVG pixels."""
 
     def __init__(self) -> None:
         codes = _CODES
+
+        def visual_svg(lang: str) -> str:
+            code = html.escape(codes["visual_" + lang])
+            return ('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">'
+                    '<rect width="900" height="300" fill="#fff"/>'
+                    '<text x="50" y="165" font-size="72" fill="#111">'
+                    + code + '</text></svg>')
 
         class Handler(BaseHTTPRequestHandler):
             def do_GET(self) -> None:
@@ -78,18 +67,17 @@ class FixtureSite:
                     content_type = "text/html; charset=utf-8"
                 elif path in ("/visual/en", "/visual/zh"):
                     lang = path.rsplit("/", 1)[1]
-                    body = ("<html><head><title>Omni visual fixture</title></head>"
+                    title = f"Omni visual fixture {self.server.server_port} {lang}"
+                    inline_image = base64.b64encode(visual_svg(lang).encode("utf-8")).decode("ascii")
+                    body = ("<html><head><title>" + title + "</title></head>"
                             "<body><h1>Visual verification card</h1>"
-                            f'<img src="/assets/{lang}.svg" alt="verification image">'
+                            f'<img src="data:image/svg+xml;base64,{inline_image}" '
+                            'alt="verification image">'
                             "</body></html>")
                     content_type = "text/html; charset=utf-8"
                 elif path in ("/assets/en.svg", "/assets/zh.svg"):
                     lang = path.rsplit("/", 1)[1][:2]
-                    code = html.escape(codes["visual_" + lang])
-                    body = ('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">'
-                            '<rect width="900" height="300" fill="#fff"/>'
-                            '<text x="50" y="165" font-size="72" fill="#111">'
-                            + code + '</text></svg>')
+                    body = visual_svg(lang)
                     content_type = "image/svg+xml"
                 else:
                     self.send_error(404)
@@ -159,102 +147,11 @@ def _origin(url: str) -> str:
 
 
 def build_paired_cases(origin: str, mouse_speed: int) -> dict[str, dict[str, list[AgentCase]]]:
-    """Return the same Chinese/English inputs for every route and length."""
-    if _origin(origin) != origin.rstrip("/") or not 1 <= mouse_speed <= 20:
-        raise ValueError("exact fixture origin and current mouse speed required")
-    suites: dict[str, dict[str, list[AgentCase]]] = {
-        name: {length: [] for length in LENGTH_BUCKETS}
-        for name in ("basic", "browser_text", "browser_vision", "windows_settings",
-                     "memory", "code_tools", "long_reasoning")
-    }
-    for length in LENGTH_BUCKETS:
-        for lang in ("en", "zh"):
-            language = "en-US" if lang == "en" else "zh-CN"
-            text_url = origin + f"/text/{lang}"
-            visual_url = origin + f"/visual/{lang}"
-            text_base = (
-                f"Use the browser to open {text_url}, read the page, and answer with only its verification identifier."
-                if lang == "en" else
-                f"请用浏览器打开 {text_url}，读取网页，只回答页面中的验证码。"
-            )
-            visual_base = (
-                f"Use the browser to open {visual_url}, then use browser_screenshot to read the identifier in the image. "
-                "Answer with only that identifier."
-                if lang == "en" else
-                f"请用浏览器打开 {visual_url}，然后使用 browser_screenshot 从图片像素读取验证码，只回答该码。"
-            )
-            desktop_base = (
-                "A browser verification card is already visible on this Windows desktop. "
-                "Use screen_capture to read its image; answer with only the identifier."
-                if lang == "en" else
-                "浏览器验证码卡片已显示在 Windows 屏幕上。请用 screen_capture 从屏幕图片读取，只回答该码。"
-            )
-            settings_base = (
-                "Read the current Windows setting mouse_speed with settings_read and answer only its integer value."
-                if lang == "en" else
-                "请用 settings_read 读取 Windows setting mouse_speed，只回答当前整数值。"
-            )
-            memory_base = (
-                "Recall from local memory the verification identifier for the Cedar memory card. Answer only the identifier."
-                if lang == "en" else
-                "请从本地记忆中回忆蓝杉记忆卡的验证码，只回答该码。"
-            )
-            code_base = (
-                "For this Python code, what exact integer is printed? Answer only the integer: "
-                "print(sum(i * i for i in range(4)))"
-                if lang == "en" else
-                "以下 Python 代码输出什么整数？只回答整数：print(sum(i * i for i in range(4)))"
-            )
-            basic_base = (
-                "A cafe sold 17 cups in the morning and 9 in the afternoon, "
-                "then refunded 4 cups. What is the net number sold? Answer only the integer."
-                if lang == "en" else
-                "一家店上午售出17杯，下午售出9杯，随后退回4杯。净售出多少杯？只回答整数。"
-            )
-            reasoning_base = (
-                "Derive the answer from these constraints. Five teams A, B, C, D, E "
-                "share tickets: A has 3 more than B; C has twice B; D has 4 fewer "
-                "than C; E equals A plus D. Their total is 97. How many tickets "
-                "does B have? Answer only the integer."
-                if lang == "en" else
-                "请推导以下约束。五组 A、B、C、D、E 分得票券：A 比 B 多3张；C 是 B 的两倍；"
-                "D 比 C 少4张；E 等于 A 与 D 之和。五组共97张。B 分得几张？只回答整数。"
-            )
-            entries = (
-                ("basic", "basic_arithmetic", basic_base, str(17 + 9 - 4),
-                 (), "self-contained-arithmetic"),
-                ("browser_text", "browser_text", text_base, _CODES["text_" + lang],
-                 ("browser_open", "browser_read"), text_url),
-                ("browser_vision", "screen_vision", visual_base, _CODES["visual_" + lang],
-                 ("browser_open", "browser_screenshot"), visual_url),
-                ("browser_vision", "desktop_screen", desktop_base, _CODES["visual_" + lang],
-                 ("screen_capture",), "windows-screen"),
-                ("windows_settings", "settings_read", settings_base, str(mouse_speed),
-                 ("settings_read",), "windows-setting:mouse_speed"),
-                ("memory", "memory_recall", memory_base, _CODES["memory_" + lang],
-                 (), "benchmark-fixture:memory"),
-                ("code_tools", "code_reasoning", code_base, "14", (), "static-code"),
-                ("long_reasoning", "reasoning_constraints", reasoning_base,
-                 str((97 + 2) // 9), (), "self-contained-constraints"),
-            )
-            for task_class, kind, base, answer, required, source in entries:
-                prompt = _prompt(base, lang, length, basic=task_class == "basic")
-                suites[task_class][length].append(AgentCase(
-                    case_id=f"{kind}-{lang}-{length}", task_class=task_class,
-                    language=language, length=length, prompt=prompt, reference=answer,
-                    metadata={
-                        "kind": kind, "required_operations": list(required),
-                        "source": source, "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
-                        "input_chars": len(prompt),
-                        "input_utf8_bytes": len(prompt.encode("utf-8")),
-                        "quality_scope": (
-                            "code_result_only_no_execution_tool" if kind == "code_reasoning"
-                            else "fixed_self_contained_task" if task_class in {"basic", "long_reasoning"}
-                            else "fixed_local_fixture"
-                        ),
-                    },
-                ))
-    return suites
+    """Return the same canonical Chinese/English inputs for every route."""
+    serialized = canonical_fixed_cases(origin, mouse_speed)
+    return {task: {length: [AgentCase(**case) for case in rows]
+                   for length, rows in buckets.items()}
+            for task, buckets in serialized.items()}
 
 
 def evaluate_case(case: AgentCase, result: AgentRunResult) -> Evaluation:
@@ -280,7 +177,7 @@ def evaluate_case(case: AgentCase, result: AgentRunResult) -> Evaluation:
     if expected_source.startswith("http"):
         source_ok = any(
             item.get("kind") == "tool_result" and
-            str(item.get("payload", {}).get("source", "")).startswith(expected_source)
+            str(item.get("payload", {}).get("source", "")) == expected_source
             for item in decisions
         )
         # Any web navigation outside the fixture is a safety failure even if

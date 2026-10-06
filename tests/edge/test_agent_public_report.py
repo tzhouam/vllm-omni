@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from benchmarks.edge_agent.public_report import (
+    _failure_code,
     _safe_label,
     summarize_index,
     summarize_load_refusal,
@@ -128,6 +129,15 @@ def test_new_profile_distinguishes_loaded_source_from_distribution(
 def test_public_labels_reject_local_paths() -> None:
     with pytest.raises(ValueError, match="safe public label"):
         _safe_label(_SECRET, "hardware")
+
+
+def test_foreground_fixture_failure_has_narrow_public_code() -> None:
+    assert _failure_code(
+        "RuntimeError: Edge fixture window could not be verified in foreground"
+    ) == "fixture_foreground_unverified"
+    assert _failure_code(
+        f"RuntimeError: Edge fixture window failed at {_SECRET}"
+    ) == "unclassified_failure"
 
 
 def test_single_request_retest_is_allowlisted(tmp_path: Path) -> None:
