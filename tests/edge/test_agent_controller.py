@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import hashlib
 import json
 import threading
 import time
@@ -161,6 +163,26 @@ class _Browser:
     def fill(self, selector, value):
         self.filled.append((selector, value))
         return {"url": self.current_url(), "filled": selector}
+
+
+class _PostBrowser(_Browser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.sent: list[tuple[str, bytes, str, str, str]] = []
+
+    def post_context(self, url):
+        assert url == "https://example.com/submit"
+        return {
+            "current_url": self.current_url(),
+            "cookie_fingerprint": "a" * 64,
+            "cookie_count": 1,
+        }
+
+    def post_exact(self, url, body, content_type, cookie_fingerprint, page_url):
+        assert cookie_fingerprint == "a" * 64
+        assert page_url == self.current_url()
+        self.sent.append((url, body, content_type, cookie_fingerprint, page_url))
+        return {"url": url, "status": 200, "body_excerpt": "saved", "redirect_followed": False}
 
 
 def _controller(tmp_path, backend, tools):
@@ -376,6 +398,105 @@ def test_tool_mutation_waits_for_ui_approval(tmp_path) -> None:
         assert result.result(timeout=10) == "filled"
         assert browser.filled == [("#draft", "hello")]
         assert "untrusted_data" in backend.prompts[1]
+    finally:
+        controller.close()
+
+
+def _post_reply(body: bytes) -> str:
+    return json.dumps({
+        "tool": "browser_post",
+        "args": {
+            "url": "https://example.com/submit",
+            "body_b64": base64.b64encode(body).decode("ascii"),
+            "content_type": "application/json",
+        },
+    })
+
+
+def test_browser_post_is_admitted_only_for_browser_tasks_and_waits_for_approval(tmp_path) -> None:
+    for task_class in ("browser_text", "browser_vision"):
+        assert "browser_post" in _permitted_tools(task_class, "Use the browser")
+    for task_class in ("basic", "memory", "windows_settings", "code_tools", "long_reasoning"):
+        assert "browser_post" not in _permitted_tools(task_class, "Use the browser")
+
+    body = b'{"message":"exact bytes"}'
+    backend = _Backend([_post_reply(body), '{"final":"saved"}'])
+    browser = _PostBrowser()
+    boundary = WindowsToolBoundary(browser=browser)
+    controller = _controller(tmp_path, backend, boundary)
+    challenge = threading.Event()
+    events = []
+
+    def listener(event):
+        events.append(event)
+        if event["kind"] == "approval_required":
+            challenge.set()
+
+    controller.add_listener(listener)
+    try:
+        turn = controller.submit("Use the browser to POST JSON to https://example.com/submit")
+        assert challenge.wait(5)
+        approval = next(e["payload"] for e in events if e["kind"] == "approval_required")
+        assert approval["operation"] == "browser_post"
+        assert approval["risk"] == "high_impact_external_action"
+        assert approval["target"]["url"] == "https://example.com/submit"
+        assert approval["target"]["body_sha256"] == hashlib.sha256(body).hexdigest()
+        assert approval["target"]["body_size"] == len(body)
+        assert browser.sent == []
+        assert not turn.done()
+        policy = json.loads(backend.prompts[0])["policy"]
+        assert "body_b64" in policy and "content_type" in policy
+        assert "a person must approve" in policy
+        controller.approve(approval["challenge_id"])
+        assert turn.result(timeout=10) == "saved"
+        assert browser.sent == [(
+            "https://example.com/submit", body, "application/json", "a" * 64,
+            "https://example.com",
+        )]
+        results = [e for e in events if e["kind"] == "tool_result"]
+        assert len(results) == 1
+        assert results[0]["payload"]["operation"] == "browser_post"
+        assert results[0]["payload"]["data"]["status"] == 200
+        assert [e["kind"] for e in events].count("final") == 1
+        with pytest.raises(ValueError, match="already used"):
+            boundary.approve(approval["challenge_id"])
+    finally:
+        controller.close()
+
+
+@pytest.mark.parametrize("ending", ["reject", "cancel"])
+def test_browser_post_rejection_or_cancellation_sends_nothing(tmp_path, ending: str) -> None:
+    backend = _Backend([_post_reply(b'{"message":"never send"}')])
+    browser = _PostBrowser()
+    boundary = WindowsToolBoundary(browser=browser)
+    controller = _controller(tmp_path, backend, boundary)
+    challenge = threading.Event()
+    events = []
+
+    def listener(event):
+        events.append(event)
+        if event["kind"] == "approval_required":
+            challenge.set()
+
+    controller.add_listener(listener)
+    try:
+        turn = controller.submit("Use the browser to POST JSON to https://example.com/submit")
+        assert challenge.wait(5)
+        challenge_id = next(e["payload"]["challenge_id"] for e in events
+                            if e["kind"] == "approval_required")
+        assert browser.sent == []
+        if ending == "reject":
+            controller.reject(challenge_id)
+            with pytest.raises(PermissionError, match="rejected"):
+                turn.result(timeout=10)
+        else:
+            controller.cancel()
+            assert controller._turn_done.wait(5)
+            with pytest.raises(CancelledError):
+                turn.result()
+        assert browser.sent == []
+        assert not any(e["kind"] == "tool_result" for e in events)
+        assert not boundary._pending
     finally:
         controller.close()
 

@@ -29,9 +29,10 @@ from vllm_omni.edge.agent.tools import (
 from vllm_omni.engine.resource_ledger import GraphRequestGate
 
 _RECALL_KINDS = frozenset({"user_observation", "tool_result", "final"})
-_RECALL_EXCLUDED_KEYS = frozenset({"base64", "$bytes_b64", "image_data_url", "challenge_id"})
+_RECALL_EXCLUDED_KEYS = frozenset({"base64", "$bytes_b64", "body_b64", "image_data_url", "challenge_id"})
 _BROWSER_TEXT_TOOLS = frozenset({
     "browser_open", "browser_read", "browser_follow", "browser_click", "browser_fill",
+    "browser_post",
 })
 _TASK_TOOLS: Mapping[str, frozenset[str]] = {
     "basic": frozenset(),
@@ -589,11 +590,24 @@ class AgentController:
     @staticmethod
     def _build_prompt(task: str, task_class: str, memory: list[dict], observations: list[dict]) -> str:
         permitted = ", ".join(sorted(_permitted_tools(task_class, task))) or "none"
+        post_contract = (
+            "For browser_post, return args with exactly url, body_b64 (canonical base64 "
+            "of the exact request bytes), and content_type (application/json, "
+            "application/x-www-form-urlencoded, text/plain; charset=utf-8, or "
+            "application/octet-stream), with at most 64 KiB of body bytes. "
+            "The target must share the current browser "
+            "page origin, and a person must approve the exact URL, body, and cookie "
+            "context before any POST is sent. A tool proposal is never approval. "
+            "Redirects and retries are disabled; do not repeat a POST after an "
+            "uncertain network outcome. "
+            if task_class in {"browser_text", "browser_vision"} else ""
+        )
         policy = (
             "You are a local Windows Agent. For a final answer, write plain text. "
             "For a tool call, return exactly one JSON object: "
             "{\"tool\":\"operation\",\"args\":{...}}. "
             f"Permitted tool names for this task are {permitted}. "
+            f"{post_contract}"
             "After browser navigation, the controller automatically observes "
             "the opened page; answer from that observation when it contains "
             "the requested evidence instead of reopening the same URL. "
