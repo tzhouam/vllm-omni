@@ -12,7 +12,6 @@ import base64
 import contextlib
 import inspect
 import json
-import re
 import threading
 import time
 import uuid
@@ -21,7 +20,8 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol
 
 from vllm_omni.edge.agent.router import (
-    Admission, Qualification, Route, classify_task, select_route, strip_task_links,
+    Admission, Qualification, Route, classify_task, desktop_capture_requested,
+    select_route,
 )
 from vllm_omni.edge.agent.tools import (
     ApprovalRequired, ToolAction, ToolRequestCancelled, WindowsToolBoundary,
@@ -45,14 +45,6 @@ _TASK_TOOLS: Mapping[str, frozenset[str]] = {
     "code_tools": frozenset(),
     "long_reasoning": frozenset(),
 }
-_DESKTOP_CAPTURE_REQUEST = re.compile(
-    r"\bscreen_capture\b|\bdesktop (?:screen|screenshot)\b|"
-    r"\bcapture (?:my |the )?screen\b|\bwindows screen\b|"
-    r"屏幕截图|截取屏幕|抓取屏幕|Windows 屏幕",
-    re.IGNORECASE,
-)
-
-
 def _permitted_tools(task_class: str, trusted_task: str) -> frozenset[str]:
     """Grant full-desktop pixels only for an explicit trusted user request.
 
@@ -62,8 +54,7 @@ def _permitted_tools(task_class: str, trusted_task: str) -> frozenset[str]:
     permitted = _TASK_TOOLS[task_class]
     if task_class != "browser_vision":
         return permitted
-    task_without_urls = strip_task_links(trusted_task)
-    if _DESKTOP_CAPTURE_REQUEST.search(task_without_urls):
+    if desktop_capture_requested(trusted_task):
         return permitted | {"screen_capture"}
     return permitted
 

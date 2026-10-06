@@ -16,24 +16,41 @@ TASK_CLASSES = frozenset({"basic", "browser_text", "browser_vision", "windows_se
 LENGTH_BUCKETS = ("short", "medium", "long")
 FIXED_SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
 _DOTTED_TOKEN = re.compile(r"\w+\.\w+", re.UNICODE)
+_DESKTOP_CAPTURE_REQUEST = re.compile(
+    r"\b(?:use|run|invoke|call)\s+screen_capture\b|"
+    r"\bcapture (?:my |the )?screen\b|"
+    r"\b(?:show|read|view|inspect|describe|capture)\s+(?:my |the )?desktop (?:screen|screenshot)\b|"
+    r"\b(?:show|read|view|inspect|describe|capture)\s+(?:my |the )?windows screen\b|"
+    r"(?:请)?(?:使用|调用|用)\s*screen_capture\b|"
+    r"截取屏幕|抓取屏幕|捕获屏幕|(?:请)?(?:给我|生成|发我)屏幕截图|"
+    r"(?:查看|读取|显示|截取|抓取)\s*windows\s*屏幕",
+    re.IGNORECASE,
+)
 
 
 def strip_task_links(text: str) -> str:
     """Mask URL- and path-shaped tokens before interpreting tool intent.
 
     A path such as ``/screen_capture`` or ``C:\\screen_capture`` is a resource
-    name, not a request to capture the desktop. Consume the entire token,
-    including quotes, brackets, and punctuation; explicit instructions next
-    to a link need whitespace separation. This fail-closed rule is shared with
-    the controller's permission check.
+    name, not a request to capture the desktop. Relative queries/fragments
+    such as ``?screen_capture`` are likewise data. Consume the entire token,
+    including quotes and punctuation; explicit instructions next to a link
+    need whitespace separation. This fail-closed rule is shared with the
+    controller's permission check.
     """
     def mask(match: re.Match[str]) -> str:
         token = match.group()
-        if "/" in token or "\\" in token or _DOTTED_TOKEN.search(token):
+        if ("/" in token or "\\" in token or _DOTTED_TOKEN.search(token)
+                or any(marker in token[:-1] for marker in ("?", "#"))):
             return " "
         return token
 
     return re.sub(r"\S+", mask, text)
+
+
+def desktop_capture_requested(text: str) -> bool:
+    """Require a trusted, explicit desktop operation outside URL/path tokens."""
+    return _DESKTOP_CAPTURE_REQUEST.search(strip_task_links(text)) is not None
 
 
 def nearest_rank(values: Sequence[float], fraction: float) -> float:
@@ -234,10 +251,10 @@ def classify_task(text: str, *, has_image: bool = False) -> str:
     )):
         return "windows_settings"
     if any(word in prose for word in (
-        "screenshot", "screen_capture", "screen capture", "screen understanding",
+        "screenshot", "screen capture", "screen understanding",
         "desktop screen", "desktop screenshot", "windows screen",
         "image", "visual", "图像", "图片", "截图", "屏幕", "视觉",
-    )) or re.search(r"\bcapture (?:my |the )?screen\b", prose):
+    )) or desktop_capture_requested(prose):
         return "browser_vision"
     if any(word in prose for word in ("code", "script", "debug", "代码", "编程")):
         return "code_tools"

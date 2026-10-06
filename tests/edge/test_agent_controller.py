@@ -145,6 +145,12 @@ def test_task_classifier_keeps_explicit_visual_code_and_settings_intent() -> Non
     "./screen_capture",
     "C:\\screen_capture",
     "https://example.com/<screen_capture>",
+    "?screen_capture",
+    "#screen_capture",
+    "localhost?screen_capture",
+    "localhost#screen_capture",
+    "page?screen_capture",
+    "page#screen_capture",
 ))
 def test_url_and_path_tokens_cannot_grant_desktop_capture(link: str) -> None:
     task = f"Use the browser to read {link}"
@@ -157,10 +163,26 @@ def test_url_and_path_tokens_cannot_grant_desktop_capture(link: str) -> None:
     "Capture the screen",
     "Show the desktop screen",
     "Read the Windows screen",
+    "Use screen_capture to read the Windows desktop",
+    "请用 screen_capture 从屏幕图片读取",
+    "请截取屏幕",
+    "请给我屏幕截图",
 ))
 def test_explicit_desktop_capture_request_selects_vision_and_grants_tool(task: str) -> None:
     assert classify_task(task) == "browser_vision"
     assert "screen_capture" in _permitted_tools("browser_vision", task)
+
+
+@pytest.mark.parametrize("word", (
+    "screen_capture", "'screen_capture'", '"screen_capture"',
+    "`screen_capture`", "(screen_capture)", "屏幕截图",
+))
+def test_bare_or_quoted_capture_name_is_not_desktop_consent(word: str) -> None:
+    assert "screen_capture" not in _permitted_tools(
+        "browser_vision", f"Read the browser image at {word}",
+    )
+    if word != "屏幕截图":
+        assert classify_task(word) == "basic"
 
 
 def test_browser_image_task_does_not_grant_desktop_capture() -> None:
