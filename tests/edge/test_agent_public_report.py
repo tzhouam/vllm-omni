@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
 from pathlib import Path
 
 import pytest
@@ -11,16 +12,99 @@ import pytest
 from benchmarks.edge_agent.public_report import (
     _failure_code,
     _safe_label,
+    _structured_raw_verified,
+    _submission_mode,
     summarize_index,
     summarize_load_refusal,
     summarize_loader_log,
     summarize_navigation_retest,
     summarize_qwen_host_mapped_smoke,
 )
+from benchmarks.edge_agent.native_profile import (
+    MODEL_PROMPT_IDENTITY_CAPTURE, STRUCTURED_READ_URL_MODE,
+    STRUCTURED_READ_URL_SUITE_ID, _input_contract,
+)
+from benchmarks.edge_agent.paired_suite import FixtureSite, build_paired_cases
 
 
 _HASH = "a" * 64
 _SECRET = r"C:\Users\private\secret.txt"
+
+
+def _structured_index(origin: str) -> dict:
+    cases = build_paired_cases(origin, 10)["browser_text"]
+    return {
+        "conditions": {"suite_id": STRUCTURED_READ_URL_SUITE_ID},
+        "submission_mode": STRUCTURED_READ_URL_MODE,
+        "protocol": "smoke_incomplete",
+        "fixture_origin": origin,
+        "results": [{"task_class": "browser_text",
+                     "submission_mode": STRUCTURED_READ_URL_MODE}],
+        "case_input_contracts": {
+            "browser_text": {
+                length: [_input_contract(case, structured_read_url=True,
+                                         fixture_origin=origin) for case in examples]
+                for length, examples in cases.items()
+            },
+        },
+        "case_prompt_sha256": {
+            "browser_text": {
+                length: [case.metadata["prompt_sha256"] for case in examples]
+                for length, examples in cases.items()
+            },
+        },
+    }
+
+
+def test_structured_suite_requires_exact_mode_contract_and_full_prompt_capture():
+    with FixtureSite() as site:
+        index = _structured_index(site.origin)
+        assert _submission_mode(index) == STRUCTURED_READ_URL_MODE
+        index["results"][0]["protocol_compliant"] = True
+        with pytest.raises(ValueError, match="backend model prompt identity"):
+            _submission_mode(index)
+        index["results"][0]["protocol_compliant"] = False
+        index["protocol"] = "full_20x3_and_30m"
+        with pytest.raises(ValueError, match="backend model prompt identity"):
+            _submission_mode(index)
+        index["model_prompt_identity_capture"] = MODEL_PROMPT_IDENTITY_CAPTURE
+        assert _submission_mode(index) == STRUCTURED_READ_URL_MODE
+        index["case_input_contracts"]["browser_text"]["short"][0]["explicit_read_url"] = _SECRET
+        with pytest.raises(ValueError, match="input contracts"):
+            _submission_mode(index)
+        index = _structured_index("http://127.0.0.1:99999")
+        with pytest.raises(ValueError, match="exact loopback fixture origin"):
+            _submission_mode(index)
+
+
+def test_structured_raw_prompt_identity_is_required_only_when_declared(tmp_path):
+    with FixtureSite() as site:
+        case = build_paired_cases(site.origin, 10)["browser_text"]["short"][0]
+        proof = {"step": 0, "sha256": _HASH, "utf8_bytes": 123, "chars": 120}
+        row = {
+            "record_type": "request", "case": asdict(case),
+            "fixture_setup": {"input_contract": _input_contract(
+                case, structured_read_url=True, fixture_origin=site.origin)},
+            "events": [{"kind": "model_prompt_identity",
+                        "payload": {"first": proof, "model_steps": 1}}],
+            "result": {"complete_agent_trace": True, "placement_evidence": {
+                "first_model_prompt_identity": proof, "model_prompt_step_count": 1}},
+        }
+        raw = tmp_path / "samples.jsonl"
+        raw.write_text(json.dumps(row) + "\n", encoding="utf-8")
+        assert _structured_raw_verified(raw, site.origin,
+                                        require_model_prompt_identity=True)
+        row["events"] = []
+        raw.write_text(json.dumps(row) + "\n", encoding="utf-8")
+        assert not _structured_raw_verified(raw, site.origin,
+                                            require_model_prompt_identity=True)
+        assert _structured_raw_verified(raw, site.origin,
+                                        require_model_prompt_identity=False)
+        row["events"] = [{"kind": "model_prompt_identity", "payload": {
+            "first": {**proof, "utf8_bytes": True}, "model_steps": 1}}]
+        raw.write_text(json.dumps(row) + "\n", encoding="utf-8")
+        assert not _structured_raw_verified(raw, site.origin,
+                                            require_model_prompt_identity=True)
 
 
 def test_failed_index_exports_only_known_fields(tmp_path: Path) -> None:

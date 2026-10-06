@@ -203,6 +203,11 @@ silently combined. Use the same config, route, canonical fixture content, and
 power condition when comparing them; the loopback port changes between runs
 and its exact URL is preserved in each raw trace. `--smoke` remains a
 functionality check, not a qualified latency result.
+These are different UI workflows, not a pure one-step ablation: the structured
+controller prepends the explicit URL to the same canonical instruction and
+reads the page before the first model step. New runs privately record the
+actual first backend model prompt's SHA-256 and length after that observation;
+the public aggregate exposes only whether this identity was captured.
 
 Omit `--smoke` for the full protocol: separate warmups, 20 measured requests
 per length, and 30 minutes of consecutive single-request Agent work. The

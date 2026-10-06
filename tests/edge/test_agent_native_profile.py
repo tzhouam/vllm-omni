@@ -151,6 +151,60 @@ def test_structured_read_url_bridge_calls_separate_controller_api(tmp_path):
         assert bridge.suite_id == native_profile.STRUCTURED_READ_URL_SUITE_ID
 
 
+def test_prompt_identity_backend_preserves_cancel_and_close():
+    class Backend:
+        def __init__(self):
+            self.entered = asyncio.Event()
+            self.finalized = False
+            self.cancelled = []
+            self.closed = False
+
+        async def generate(self, prompt, *, request_id, max_tokens, image_data_url=None):
+            assert (prompt, request_id, max_tokens, image_data_url) == (
+                "actual model prompt", "request-step-0", 4, None)
+            try:
+                self.entered.set()
+                await asyncio.Event().wait()
+                yield "unreachable"
+            finally:
+                self.finalized = True
+
+        async def cancel(self, request_id):
+            self.cancelled.append(request_id)
+
+        def close(self):
+            self.closed = True
+
+    async def exercise():
+        backend = Backend()
+        wrapper = native_profile._PromptIdentityBackend(backend)
+
+        async def consume():
+            async for _ in wrapper.generate(
+                "actual model prompt", request_id="request-step-0", max_tokens=4):
+                pass
+
+        task = asyncio.create_task(consume())
+        await backend.entered.wait()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        await wrapper.cancel("request-step-0")
+        wrapper.close()
+        assert backend.finalized and backend.cancelled == ["request-step-0"]
+        assert backend.closed
+        assert wrapper.identities() == [{
+            "step": 0,
+            "sha256": hashlib.sha256(b"actual model prompt").hexdigest(),
+            "utf8_bytes": len(b"actual model prompt"),
+            "chars": len("actual model prompt"),
+        }]
+        wrapper.reset()
+        assert wrapper.identities() == []
+
+    asyncio.run(exercise())
+
+
 def test_structured_mode_rejects_other_task_classes():
     assert native_profile._profile_classes(None, True) == {"browser_text"}
     assert native_profile._profile_classes({"browser_text"}, True) == {"browser_text"}

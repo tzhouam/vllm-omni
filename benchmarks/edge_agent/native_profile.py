@@ -32,13 +32,13 @@ from benchmarks.edge_agent.profile import (
     AgentCase, AgentRunResult, Preparation, ProfileConditions, ProfileConfig,
     ProfileRoute, run_profile,
 )
+from vllm_omni.edge.agent.qualification import SUITE_ID, STRUCTURED_READ_URL_SUITE_ID
 from vllm_omni.edge.agent.tools import ManagedEdgeBrowser, WindowsScreen
 
 
-SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
-STRUCTURED_READ_URL_SUITE_ID = SUITE_ID + "+explicit-read-url-v1"
 ORDINARY_SUBMISSION_MODE = "model_selected_tools_v1"
 STRUCTURED_READ_URL_MODE = "explicit_read_url_v1"
+MODEL_PROMPT_IDENTITY_CAPTURE = "backend_generate_sha256_v1"
 
 
 def _profile_classes(selected_classes: set[str] | None,
@@ -335,6 +335,43 @@ class WindowsTelemetry:
             self._nvml = self._gpu = None
 
 
+class _PromptIdentityBackend:
+    """Observe exact model input at the backend boundary without retaining text."""
+
+    def __init__(self, backend: Any) -> None:
+        self._backend = backend
+        self._identities: list[dict[str, Any]] = []
+        self._lock = threading.Lock()
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._backend, name)
+
+    def reset(self) -> None:
+        with self._lock:
+            self._identities.clear()
+
+    def identities(self) -> list[dict[str, Any]]:
+        with self._lock:
+            return [dict(item) for item in self._identities]
+
+    async def generate(self, prompt: str, *, request_id: str, max_tokens: int,
+                       image_data_url: str | None = None) -> Any:
+        encoded = prompt.encode("utf-8")
+        with self._lock:
+            identity = {
+                "step": len(self._identities),
+                "sha256": hashlib.sha256(encoded).hexdigest(),
+                "utf8_bytes": len(encoded),
+                "chars": len(prompt),
+            }
+            self._identities.append(identity)
+        async for chunk in self._backend.generate(
+            prompt, request_id=request_id, max_tokens=max_tokens,
+            image_data_url=image_data_url,
+        ):
+            yield chunk
+
+
 class NativeProfileBridge:
     """Keep one resident Omni route while every Agent request runs serially."""
 
@@ -356,6 +393,7 @@ class NativeProfileBridge:
         self._emitter: Any = None
         self._lock = threading.RLock()
         self._fixture_screen: _FixtureForegroundScreen | None = None
+        self._prompt_backend: _PromptIdentityBackend | None = None
 
     def _listen(self, event: Mapping[str, Any]) -> None:
         sanitized = _redact_image(dict(event))
@@ -424,6 +462,8 @@ class NativeProfileBridge:
             raise RuntimeError("Omni worker did not become resident after cold load")
         if plan.get("requested_device") != route.expected_placement:
             raise RuntimeError("Omni worker placement differs from the paired route")
+        self._prompt_backend = _PromptIdentityBackend(backend)
+        controller.backends[route.route_id] = self._prompt_backend
         return Preparation(
             cold_start_confirmed=True, artifact_id=route.artifact_id,
             actual_placement=route.expected_placement,
@@ -497,6 +537,8 @@ class NativeProfileBridge:
         with self._lock:
             self._events = []
             self._emitter = emit
+        if self._prompt_backend is not None:
+            self._prompt_backend.reset()
         try:
             if self.structured_read_url:
                 url, instruction = _structured_input(case, self.fixture_origin)
@@ -505,10 +547,18 @@ class NativeProfileBridge:
             else:
                 answer = await asyncio.wrap_future(self.controller.submit(case.prompt))
         finally:
-            with self._lock:
-                events = list(self._events or [])
-                self._events = None
-                self._emitter = None
+            model_prompt_identities = (self._prompt_backend.identities()
+                                       if self._prompt_backend is not None else [])
+            try:
+                emit("model_prompt_identity", {
+                    "first": model_prompt_identities[0] if model_prompt_identities else None,
+                    "model_steps": len(model_prompt_identities),
+                })
+            finally:
+                with self._lock:
+                    events = list(self._events or [])
+                    self._events = None
+                    self._emitter = None
         identity = next((event.get("payload", {}) for event in events if event.get("kind") == "route"), {})
         backend = self.controller.backends[route.route_id]
         plan = backend.execution_plan
@@ -528,6 +578,9 @@ class NativeProfileBridge:
             placement_evidence={
                 "execution_plan": dict(plan) if isinstance(plan, Mapping) else {},
                 "terminal_model_metrics": terminal,
+                "first_model_prompt_identity": (
+                    model_prompt_identities[0] if model_prompt_identities else None),
+                "model_prompt_step_count": len(model_prompt_identities),
                 "independent_log_review_pending": True,
             },
             tool_decisions=decisions,
@@ -539,6 +592,7 @@ class NativeProfileBridge:
             self.controller.close()
             self.controller = None
             self.route = None
+            self._prompt_backend = None
 
 
 def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
@@ -620,6 +674,7 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
         "automatic_qualification_export": False,
         "submission_mode": (STRUCTURED_READ_URL_MODE if structured_read_url
                             else ORDINARY_SUBMISSION_MODE),
+        "model_prompt_identity_capture": MODEL_PROMPT_IDENTITY_CAPTURE,
         "qualification_blockers": [
             "independent memory admission evidence pending",
             "cancellation and recovery evidence pending",

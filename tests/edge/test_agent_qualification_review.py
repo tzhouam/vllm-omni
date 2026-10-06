@@ -9,6 +9,7 @@ import hashlib
 import json
 from dataclasses import asdict, replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from cryptography.hazmat.primitives import serialization
@@ -28,7 +29,8 @@ from benchmarks.edge_agent.profile import (
 )
 from vllm_omni.edge.agent.native_app import _qualifications
 from vllm_omni.edge.agent.qualification import (
-    _verify_gate_observations, verify_fixed_suite_cases,
+    STRUCTURED_READ_URL_SUITE_ID, _evaluate_case, _structured_contract,
+    _structured_request_valid, _verify_gate_observations, verify_fixed_suite_cases,
 )
 from vllm_omni.edge.agent.runtime_identity import (
     imported_omni_source_sha256, loaded_runtime_sha256,
@@ -377,6 +379,46 @@ def test_fixed_suite_release_check_binds_reference_prompt_and_observation(
         raw.write_text("".join(json.dumps(item) + "\n" for item in rows), encoding="utf-8")
         with pytest.raises(ValueError, match="fixed suite"):
             verify_fixed_suite_cases(replace(audit, raw_jsonl=raw))
+
+
+def test_structured_fixed_suite_binds_exact_read_url_and_contract(tmp_path):
+    origin = "http://127.0.0.1:12345"
+    cases = build_paired_cases(origin, 10)["browser_text"]
+    rows = [{"record_type": "manifest",
+             "conditions": {"suite_id": STRUCTURED_READ_URL_SUITE_ID},
+             "config": {"warmups_per_length": 1, "measured_per_length": 1}}]
+
+    def request(case, phase, repetition):
+        serialized = asdict(case)
+        return {"record_type": "request", "phase": phase, "repetition": repetition,
+                "case": serialized,
+                "fixture_setup": {"input_contract": _structured_contract(serialized)},
+                "events": [{"kind": "agent_event", "payload": {
+                    "kind": "user_observation", "payload": {
+                        "text": case.prompt, "read_url": case.metadata["source"],
+                        "mode": "read_url"}}}]}
+
+    for length in ("short", "medium", "long"):
+        case = cases[length][0]
+        rows.extend((request(case, "warmup", 0), request(case, "measured", 0)))
+    rows.append(request(cases["short"][0], "endurance", 0))
+    assert _structured_request_valid(rows[1], origin)
+    raw = tmp_path / "structured.jsonl"
+    raw.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    verify_fixed_suite_cases(SimpleNamespace(raw_jsonl=raw))
+    rows[1]["events"][0]["payload"]["payload"]["read_url"] = origin + "/text/zh"
+    assert not _structured_request_valid(rows[1], origin)
+    raw.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    with pytest.raises(ValueError, match="fixed structured suite"):
+        verify_fixed_suite_cases(SimpleNamespace(raw_jsonl=raw))
+
+
+def test_packaged_evaluator_rejects_browser_post_as_write():
+    case = {"reference": "ok", "metadata": {"required_operations": []}}
+    result = {"final_answer": "ok", "complete_agent_trace": True,
+              "tool_decisions": [{"kind": "tool_proposed", "payload": {
+                  "operation": "browser_post"}}]}
+    assert not _evaluate_case(case, result)["tool_safe"]
 
 
 @pytest.mark.parametrize("measured_successes", [0, 59])

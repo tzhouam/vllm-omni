@@ -27,14 +27,81 @@ from vllm_omni.edge.agent.fixed_suite import canonical_fixed_cases
 
 
 SUITE_ID = FIXED_SUITE_ID
+STRUCTURED_READ_URL_SUITE_ID = SUITE_ID + "+explicit-read-url-v1"
 LENGTH_BUCKETS = ("short", "medium", "long")
-_WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "settings_set"})
+_WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "browser_post", "settings_set"})
 _SHA256_HEX = re.compile(r"[0-9a-f]{64}\Z")
 
 
 def _origin(url: str) -> str:
     parsed = urlparse(url)
     return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def _structured_contract(case: Mapping[str, Any]) -> dict[str, Any]:
+    """Recompute the benchmark's explicit-URL input binding independently."""
+    prompt = case["prompt"]
+    encoded = prompt.encode("utf-8")
+    contract = {
+        "submission_mode": "explicit_read_url_v1",
+        "case_id": case["case_id"],
+        "instruction_sha256": hashlib.sha256(encoded).hexdigest(),
+        "instruction_utf8_bytes": len(encoded),
+        "explicit_read_url": case["metadata"]["source"],
+    }
+    contract["contract_sha256"] = hashlib.sha256(json.dumps(
+        contract, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+    return contract
+
+
+def _structured_request_valid(row: Mapping[str, Any], origin: str) -> bool:
+    """A hosted fixture URL is trusted only through the separate user field."""
+    try:
+        case = row["case"]
+        if case["task_class"] != "browser_text" or case["metadata"]["kind"] != "browser_text":
+            return False
+        expected = canonical_fixed_cases(origin, 10)["browser_text"][case["length"]]
+        if case not in expected:
+            return False
+        if row["fixture_setup"]["input_contract"] != _structured_contract(case):
+            return False
+        observed = [event.get("payload", {}).get("payload", {})
+                    for event in row.get("events", ())
+                    if event.get("kind") == "agent_event" and
+                    event.get("payload", {}).get("kind") == "user_observation"]
+        if (len(observed) != 1 or observed[0].get("text") != case["prompt"] or
+                observed[0].get("read_url") != case["metadata"]["source"] or
+                observed[0].get("mode") != "read_url"):
+            return False
+        identities = [event.get("payload", {}) for event in row.get("events", ())
+                      if event.get("kind") == "model_prompt_identity"]
+        if identities:
+            if len(identities) != 1:
+                return False
+            proof = identities[0]
+            first = proof.get("first")
+            count = proof.get("model_steps")
+            if type(count) is not int or count < 0:
+                return False
+            if first is None:
+                if count != 0:
+                    return False
+            elif (count < 1 or type(first.get("step")) is not int or first["step"] != 0 or
+                  not isinstance(first.get("sha256"), str) or
+                  not _SHA256_HEX.fullmatch(first["sha256"]) or
+                  type(first.get("utf8_bytes")) is not int or first["utf8_bytes"] < 1 or
+                  type(first.get("chars")) is not int or first["chars"] < 1):
+                return False
+            result = row.get("result")
+            if result is not None:
+                evidence = result["placement_evidence"]
+                if (evidence.get("first_model_prompt_identity") != first or
+                        evidence.get("model_prompt_step_count") != count):
+                    return False
+        return True
+    except (KeyError, TypeError, ValueError):
+        return False
 
 
 def _evaluate_case(case: Mapping[str, Any], result: Mapping[str, Any]) -> dict[str, Any]:
@@ -241,7 +308,8 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
         errors.append("raw manifest is not a batch-one complete Agent profile")
     if manifest.get("conditions") != summary.get("conditions"):
         errors.append("profile conditions differ from raw manifest")
-    if manifest.get("conditions", {}).get("suite_id") != SUITE_ID:
+    suite_id = manifest.get("conditions", {}).get("suite_id")
+    if suite_id not in {SUITE_ID, STRUCTURED_READ_URL_SUITE_ID}:
         errors.append("profile uses a different evaluator suite")
     if manifest.get("run_id") != summary.get("run_id"):
         errors.append("run ID differs from raw manifest")
@@ -253,6 +321,19 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
         errors.append("route set differs from raw manifest")
     config = manifest["config"]
     requests = [row for row in rows if row.get("record_type") == "request"]
+    structured_origin = None
+    if suite_id == STRUCTURED_READ_URL_SUITE_ID:
+        try:
+            source = requests[0]["case"]["metadata"]["source"]
+            parsed = urlparse(source)
+            port = parsed.port
+            if (parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or
+                    parsed.username is not None or parsed.password is not None or
+                    port is None or parsed.netloc != f"127.0.0.1:{port}"):
+                raise ValueError("invalid structured fixture origin")
+            structured_origin = f"http://127.0.0.1:{port}"
+        except (IndexError, KeyError, TypeError, ValueError):
+            errors.append("structured suite has no exact loopback fixture origin")
     prepare = [row for row in rows if row.get("record_type") == "route_prepare"]
     if len(prepare) != 1:
         errors.append("cold route preparation row is missing or duplicated")
@@ -269,6 +350,10 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
         cold_start_s = prepared.get("cold_start_s")
     trace_verified = bool(requests)
     for row in requests:
+        if (suite_id == STRUCTURED_READ_URL_SUITE_ID and
+                (structured_origin is None or
+                 not _structured_request_valid(row, structured_origin))):
+            errors.append("structured Read URL request differs from fixed input contract")
         if (row.get("run_id") != summary.get("run_id") or
             row.get("route_id") != route["route_id"] or
             row.get("batch_size") != 1 or row.get("concurrency") != 1):
@@ -368,10 +453,15 @@ def verify_fixed_suite_cases(audit: EvidenceAudit) -> None:
     """
     rows = [json.loads(line) for line in audit.raw_jsonl.read_text(encoding="utf-8").splitlines()]
     manifest = rows[0]
+    suite_id = manifest.get("conditions", {}).get("suite_id")
+    if suite_id not in {SUITE_ID, STRUCTURED_READ_URL_SUITE_ID}:
+        raise ValueError("fixed suite has an unknown submission mode")
     requests = [row for row in rows if row.get("record_type") == "request"]
     if not requests:
         raise ValueError("fixed suite has no request records")
     task_class = requests[0].get("case", {}).get("task_class")
+    if suite_id == STRUCTURED_READ_URL_SUITE_ID and task_class != "browser_text":
+        raise ValueError("fixed structured suite must contain browser_text only")
     origin = "http://127.0.0.1:1"
     if task_class in {"browser_text", "browser_vision"}:
         urls = [str(row.get("case", {}).get("metadata", {}).get("source", ""))
@@ -430,6 +520,14 @@ def verify_fixed_suite_cases(audit: EvidenceAudit) -> None:
         if (len(observed) != 1 or
             observed[0].get("payload", {}).get("text") != case["prompt"]):
             raise ValueError("fixed suite model received a prompt different from the evaluated case")
+        payload = observed[0]["payload"]
+        if suite_id == STRUCTURED_READ_URL_SUITE_ID:
+            if (payload.get("mode") != "read_url" or
+                    payload.get("read_url") != case["metadata"]["source"] or
+                    not _structured_request_valid(row, origin)):
+                raise ValueError("fixed structured suite used another URL or input contract")
+        elif payload.get("mode") == "read_url" or payload.get("read_url") is not None:
+            raise ValueError("fixed ordinary suite contains a structured URL observation")
         if task_class == "windows_settings":
             readings = [event.get("payload", {}).get("payload", {})
                         for event in row.get("events", ())
@@ -704,6 +802,8 @@ def load_reviewed_qualification(
     if audit.measured_successes != audit.measured_attempts:
         raise ValueError("fixed-suite qualification requires every measured request to succeed")
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if summary.get("conditions", {}).get("suite_id") == STRUCTURED_READ_URL_SUITE_ID:
+        raise ValueError("structured Read URL profiles are not eligible for route promotion")
     # An editable checkout can change without changing the installed wheel
     # version or hardware fingerprint. Old profiles without a digest are not
     # eligible for a native default.

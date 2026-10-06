@@ -15,8 +15,16 @@ import math
 import re
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from benchmarks.edge_agent.evidence import audit_summary
+from benchmarks.edge_agent.native_profile import (
+    MODEL_PROMPT_IDENTITY_CAPTURE, ORDINARY_SUBMISSION_MODE, STRUCTURED_READ_URL_MODE,
+    STRUCTURED_READ_URL_SUITE_ID, SUITE_ID, _input_contract,
+    _structured_input,
+)
+from benchmarks.edge_agent.paired_suite import build_paired_cases
+from benchmarks.edge_agent.profile import AgentCase
 
 
 _LENGTHS = ("short", "medium", "long")
@@ -30,6 +38,7 @@ _SAFE_LABEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9 .,+()_=-]{0,159}\Z")
 _SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,119}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _RUN_ID = re.compile(r"native_[0-9a-f]{32}\Z")
+_LOOPBACK_ORIGIN = re.compile(r"http://127\.0\.0\.1:[1-9][0-9]{0,4}\Z")
 _FAILURE_TYPES = {
     "AttributeError": "backend_attribute_error",
     "FileExistsError": "fixture_memory_path_exists",
@@ -135,13 +144,116 @@ def _audit_codes(errors: tuple[str, ...]) -> list[str]:
     return sorted(codes)
 
 
+def _submission_mode(index: dict[str, Any]) -> str:
+    """Validate the mode-specific fixed suite without exposing its URL."""
+    suite = index["conditions"]["suite_id"]
+    mode = index.get("submission_mode")
+    if suite == SUITE_ID:
+        if mode not in (None, ORDINARY_SUBMISSION_MODE):
+            raise ValueError("ordinary suite has a different submission mode")
+        return ORDINARY_SUBMISSION_MODE
+    if suite != STRUCTURED_READ_URL_SUITE_ID or mode != STRUCTURED_READ_URL_MODE:
+        raise ValueError("unknown Agent suite or submission mode")
+    capture = index.get("model_prompt_identity_capture")
+    if capture not in (None, MODEL_PROMPT_IDENTITY_CAPTURE):
+        raise ValueError("structured suite has an unknown model prompt identity capture")
+    if ((index.get("protocol") == "full_20x3_and_30m" or
+         any(row.get("protocol_compliant") is True for row in index.get("results", ()))) and
+            capture != MODEL_PROMPT_IDENTITY_CAPTURE):
+        raise ValueError("full structured suite lacks backend model prompt identity capture")
+    origin = index.get("fixture_origin")
+    try:
+        port = urlparse(origin).port if isinstance(origin, str) else None
+    except ValueError as exc:
+        raise ValueError("structured suite requires an exact loopback fixture origin") from exc
+    if (not isinstance(origin, str) or not _LOOPBACK_ORIGIN.fullmatch(origin)
+            or port is None or port > 65535):
+        raise ValueError("structured suite requires an exact loopback fixture origin")
+    if not index.get("results") or any(
+        row.get("task_class") != "browser_text" or
+        row.get("submission_mode") != STRUCTURED_READ_URL_MODE
+        for row in index["results"]
+    ):
+        raise ValueError("structured suite contains another task or mode")
+    cases = build_paired_cases(origin, 10)["browser_text"]
+    expected_contracts = {
+        "browser_text": {
+            length: [_input_contract(case, structured_read_url=True,
+                                     fixture_origin=origin) for case in examples]
+            for length, examples in cases.items()
+        },
+    }
+    expected_prompts = {
+        "browser_text": {
+            length: [case.metadata["prompt_sha256"] for case in examples]
+            for length, examples in cases.items()
+        },
+    }
+    if (index.get("case_input_contracts") != expected_contracts or
+            index.get("case_prompt_sha256") != expected_prompts):
+        raise ValueError("structured suite input contracts differ from fixed fixtures")
+    return STRUCTURED_READ_URL_MODE
+
+
+def _structured_raw_verified(raw_path: Path, origin: str,
+                             *, require_model_prompt_identity: bool) -> bool:
+    """Bind every recorded request to its fixed input and actual model input."""
+    requests = 0
+    with raw_path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            row = json.loads(line)
+            if row.get("record_type") != "request":
+                continue
+            requests += 1
+            try:
+                case = AgentCase(**row["case"])
+                _structured_input(case, origin)
+                contract = _input_contract(
+                    case, structured_read_url=True, fixture_origin=origin)
+                if row["fixture_setup"]["input_contract"] != contract:
+                    return False
+                identities = [event["payload"] for event in row["events"]
+                              if event.get("kind") == "model_prompt_identity"]
+                if len(identities) != 1:
+                    if not require_model_prompt_identity and not identities:
+                        continue
+                    return False
+                identity = identities[0]
+                first = identity["first"]
+                steps = identity["model_steps"]
+                if not isinstance(steps, int) or isinstance(steps, bool) or steps < 0:
+                    return False
+                result = row.get("result")
+                if result is not None:
+                    evidence = result["placement_evidence"]
+                    if (evidence.get("first_model_prompt_identity") != first or
+                            evidence.get("model_prompt_step_count") != steps):
+                        return False
+                if result is not None and result.get("complete_agent_trace") and first is None:
+                    return False
+                if first is None:
+                    if steps != 0 or any(event.get("kind") == "agent_event" and
+                                         event.get("payload", {}).get("kind") == "model_metrics"
+                                         for event in row["events"]):
+                        return False
+                elif (steps < 1 or first.get("step") != 0 or
+                      not _SHA256.fullmatch(first.get("sha256", "")) or
+                      type(first.get("utf8_bytes")) is not int or
+                      first["utf8_bytes"] < 1 or
+                      type(first.get("chars")) is not int or first["chars"] < 1):
+                    return False
+            except (KeyError, TypeError, ValueError):
+                return False
+    return requests > 0
+
+
 def _public_conditions(index: dict[str, Any]) -> dict[str, Any]:
     conditions = index["conditions"]
     hardware = index["hardware"]
     if (conditions["os_version"] != hardware["os"] or
             conditions["power_condition"] != hardware["power_condition"]):
         raise ValueError("index hardware and profile conditions disagree")
-    if conditions["suite_id"] != "edge-agent-fixed-local-fixtures-v1":
+    if conditions["suite_id"] not in {SUITE_ID, STRUCTURED_READ_URL_SUITE_ID}:
         raise ValueError("index does not use the fixed local Agent suite")
     runtime = conditions["runtime_versions"]
     versions = {}
@@ -484,6 +596,7 @@ def summarize_index(path: Path) -> dict[str, Any]:
     if (index["scope"] != "whole_agent_batch1_paired_local_fixture" or
             index["protocol"] not in {"smoke_incomplete", "full_20x3_and_30m"}):
         raise ValueError("index has an unknown Agent profile scope or protocol")
+    submission_mode = _submission_mode(index)
     public: dict[str, Any] = {
         "run_id": path.parent.name,
         "index_sha256": _sha256(path),
@@ -491,6 +604,10 @@ def summarize_index(path: Path) -> dict[str, Any]:
         "lineage_manifest_sha256": _sha_label(index["lineage_sha256"], "lineage hash"),
         "scope": index["scope"],
         "protocol": index["protocol"],
+        "submission_mode": submission_mode,
+        "model_prompt_identity_capture": (
+            index.get("model_prompt_identity_capture")
+            if submission_mode == STRUCTURED_READ_URL_MODE else None),
         "conditions": _public_conditions(index),
         "routes": _public_routes(index),
         "results": [],
@@ -506,6 +623,7 @@ def summarize_index(path: Path) -> dict[str, Any]:
             "route_id": route_id,
             "status": status,
             "release_qualified": False,
+            "submission_mode": submission_mode,
         }
         if path.parent.name in _PRE_CURRENT_CODE_RUNS:
             result["current_release_code_status"] = (
@@ -537,6 +655,13 @@ def summarize_index(path: Path) -> dict[str, Any]:
             consistent = _index_matches_summary(
                 index, row, summary, audit.raw_sha256, audit.protocol_compliant)
             codes = _audit_codes(audit.errors)
+            if submission_mode == STRUCTURED_READ_URL_MODE and not _structured_raw_verified(
+                audit.raw_jsonl, index["fixture_origin"],
+                require_model_prompt_identity=(
+                    index.get("model_prompt_identity_capture") == MODEL_PROMPT_IDENTITY_CAPTURE),
+            ):
+                consistent = False
+                codes.append("structured_input_contract_mismatch")
             if not consistent:
                 codes.append("index_summary_mismatch")
             result.update({
@@ -609,8 +734,17 @@ def main() -> None:
     indexes = [path.resolve(strict=True) for path in args.index]
     if len(indexes) != len(set(indexes)):
         parser.error("duplicate index")
+    runs = [summarize_index(path) for path in indexes]
+    modes = {run["submission_mode"] for run in runs}
+    if len(modes) != 1:
+        parser.error("ordinary and structured Read URL profiles require separate reports")
+    structured = STRUCTURED_READ_URL_MODE in modes
+    if structured and any((args.navigation_retest, args.load_refusal,
+                           args.completed_qwen_smoke, args.loader_log)):
+        parser.error("structured Read URL reports cannot include legacy supplemental evidence")
     report = {
-        "schema": "omni-agent-public-aggregate-v2",
+        "schema": ("omni-agent-structured-read-url-public-aggregate-v1" if structured
+                   else "omni-agent-public-aggregate-v2"),
         "raw_evidence_location": "private on the profiling host; SHA-256 bound below",
         "latency_statistic": "nearest-rank within each recorded input length",
         "qualification_minimums": {
@@ -620,7 +754,7 @@ def main() -> None:
             "active_endurance_seconds": 1800,
             "independent_gate_review_required": True,
         },
-        "runs": [summarize_index(path) for path in indexes],
+        "runs": runs,
     }
     if args.navigation_retest:
         report["supplemental_smokes"] = [
