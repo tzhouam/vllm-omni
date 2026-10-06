@@ -278,8 +278,18 @@ def run_probe(
                 plan.get("requested_device") != route.placement or
                 dict(plan.get("reserved_bytes", {})) != dict(demands)
             ):
-                raise AssertionError("loaded Omni placement or stage ledger differs from declared route")
-            write({"record_type": "loaded_plan", "plan": dict(plan)})
+                raise AssertionError("loaded Omni request or stage ledger differs from declared route")
+            observed = plan.get("observed_model_placement")
+            selection_only = (
+                route.placement.startswith("Vulkan_Host+") and observed is None and
+                plan.get("placement_evidence_level") == "override_selection_only"
+            )
+            if observed != route.placement and not selection_only:
+                raise AssertionError("loaded Omni model placement lacks independent evidence")
+            write({"record_type": "loaded_plan", "plan": dict(plan),
+                   "model_placement_verified": observed == route.placement,
+                   "placement_scope": "startup_log" if observed == route.placement
+                   else "override_selection_only; final storage and compute unknown"})
             loaded_host_claim = coordinator.snapshot()
             verify_resident_claim(loaded_host_claim, route_id, demands)
             write({"record_type": "host_ledger_after_load", "snapshot": loaded_host_claim})

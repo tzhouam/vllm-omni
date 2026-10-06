@@ -38,7 +38,7 @@ class Route:
 
     def __post_init__(self) -> None:
         if not all((self.route_id, self.artifact_id, self.model, self.backend, self.placement)):
-            raise ValueError("route identity and actual placement are required")
+            raise ValueError("route identity and declared placement are required")
         if not self.modalities or not self.memory_demands or any(type(value) is not int or value < 0 for value in self.memory_demands.values()):
             raise ValueError("modalities and nonnegative memory demands are required")
 

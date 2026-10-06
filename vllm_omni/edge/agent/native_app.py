@@ -26,7 +26,116 @@ from vllm_omni.edge.agent.router import Qualification, Route
 from vllm_omni.edge.agent.tools import WindowsToolBoundary
 
 
-def _hardware_snapshot() -> dict[str, Any]:
+def _dxgi_adapter_inventory() -> list[dict[str, Any]]:
+    """Read physical video-memory topology from native DXGI, fail closed.
+
+    A route's ``integrated_gpu`` JSON flag is only a declaration. DXGI adapter
+    identity and D3D12's UMA bit provide an independent admission check.
+    Devices with ambiguous or unavailable topology remain unadmitted.
+    """
+    if sys.platform != "win32":
+        return []
+    try:
+        import ctypes
+
+        class GUID(ctypes.Structure):
+            _fields_ = [("data1", ctypes.c_uint32), ("data2", ctypes.c_uint16),
+                        ("data3", ctypes.c_uint16), ("data4", ctypes.c_ubyte * 8)]
+
+        class LUID(ctypes.Structure):
+            _fields_ = [("low", ctypes.c_uint32), ("high", ctypes.c_int32)]
+
+        class AdapterDesc1(ctypes.Structure):
+            _fields_ = [("description", ctypes.c_wchar * 128),
+                        ("vendor_id", ctypes.c_uint32),
+                        ("device_id", ctypes.c_uint32),
+                        ("subsystem_id", ctypes.c_uint32),
+                        ("revision", ctypes.c_uint32),
+                        ("dedicated_video_memory_bytes", ctypes.c_size_t),
+                        ("dedicated_system_memory_bytes", ctypes.c_size_t),
+                        ("shared_system_memory_bytes", ctypes.c_size_t),
+                        ("luid", LUID), ("flags", ctypes.c_uint32)]
+
+        class Architecture1(ctypes.Structure):
+            _fields_ = [("node_index", ctypes.c_uint32),
+                        ("tile_based_renderer", ctypes.c_int32),
+                        ("uma", ctypes.c_int32),
+                        ("cache_coherent_uma", ctypes.c_int32),
+                        ("isolated_mmu", ctypes.c_int32)]
+
+        iid = GUID(0x770aae78, 0xf26f, 0x4dba,
+                   (ctypes.c_ubyte * 8)(0xa8, 0x29, 0x25, 0x3c,
+                                         0x83, 0xd1, 0xb3, 0x87))
+        factory = ctypes.c_void_p()
+        create = ctypes.WinDLL("dxgi").CreateDXGIFactory1
+        create.argtypes = [ctypes.POINTER(GUID), ctypes.POINTER(ctypes.c_void_p)]
+        create.restype = ctypes.c_long
+        if create(ctypes.byref(iid), ctypes.byref(factory)) != 0 or not factory.value:
+            return []
+
+        def com_method(pointer: ctypes.c_void_p, index: int, result: Any, *args: Any) -> Any:
+            table = ctypes.cast(pointer, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
+            return ctypes.WINFUNCTYPE(result, ctypes.c_void_p, *args)(table[index])
+
+        adapters: list[dict[str, Any]] = []
+        create_d3d12 = ctypes.WinDLL("d3d12").D3D12CreateDevice
+        create_d3d12.argtypes = [ctypes.c_void_p, ctypes.c_uint32,
+                                 ctypes.POINTER(GUID), ctypes.POINTER(ctypes.c_void_p)]
+        create_d3d12.restype = ctypes.c_long
+        device_iid = GUID(0x189819f1, 0x1db6, 0x4b57,
+                          (ctypes.c_ubyte * 8)(0xbe, 0x54, 0x18, 0x21,
+                                                0x33, 0x9b, 0x85, 0xf7))
+        try:
+            enum = com_method(factory, 12, ctypes.c_long, ctypes.c_uint32,
+                              ctypes.POINTER(ctypes.c_void_p))
+            for index in range(64):
+                pointer = ctypes.c_void_p()
+                result = enum(factory, index, ctypes.byref(pointer))
+                if result & 0xffffffff == 0x887a0002:  # DXGI_ERROR_NOT_FOUND
+                    break
+                if result != 0 or not pointer.value:
+                    return []
+                try:
+                    description = AdapterDesc1()
+                    get_desc = com_method(pointer, 10, ctypes.c_long,
+                                          ctypes.POINTER(AdapterDesc1))
+                    if get_desc(pointer, ctypes.byref(description)) != 0:
+                        return []
+                    if not description.flags & 2:  # DXGI_ADAPTER_FLAG_SOFTWARE
+                        device = ctypes.c_void_p()
+                        uma: bool | None = None
+                        if create_d3d12(pointer, 0xb000, ctypes.byref(device_iid),
+                                        ctypes.byref(device)) == 0 and device.value:
+                            try:
+                                features = Architecture1()
+                                check = com_method(device, 13, ctypes.c_long,
+                                                   ctypes.c_uint32, ctypes.c_void_p,
+                                                   ctypes.c_uint32)
+                                if check(device, 16, ctypes.byref(features),
+                                         ctypes.sizeof(features)) == 0:
+                                    uma = features.uma == 1
+                            finally:
+                                com_method(device, 2, ctypes.c_ulong)(device)
+                        adapters.append({
+                            "description": description.description.rstrip("\x00"),
+                            "vendor_id": int(description.vendor_id),
+                            "device_id": int(description.device_id),
+                            "dedicated_video_memory_bytes": int(description.dedicated_video_memory_bytes),
+                            "shared_system_memory_bytes": int(description.shared_system_memory_bytes),
+                            "uma": uma,
+                        })
+                finally:
+                    com_method(pointer, 2, ctypes.c_ulong)(pointer)
+            else:
+                return []  # truncated inventory cannot establish uniqueness
+        finally:
+            com_method(factory, 2, ctypes.c_ulong)(factory)
+        return adapters
+    except Exception:
+        return []
+
+
+def _hardware_snapshot(*, include_topology: bool = True) -> dict[str, Any]:
     import psutil
 
     vm = psutil.virtual_memory()
@@ -60,6 +169,7 @@ def _hardware_snapshot() -> dict[str, Any]:
         "vram_available_bytes": vram_available,
         "gpu_name": gpu_name,
         "gpu_driver": driver,
+        "dxgi_adapters": _dxgi_adapter_inventory() if include_topology else [],
         "power_condition": (
             "AC" if battery is not None and battery.power_plugged else
             "battery" if battery is not None else "unknown"
@@ -71,6 +181,10 @@ def _fingerprint(hardware: dict[str, Any]) -> str:
     from vllm_omni.edge.agent.runtime_identity import loaded_runtime_sha256
 
     stable = {key: hardware[key] for key in ("os", "machine", "cpu", "gpu_name", "gpu_driver")}
+    stable["dxgi_adapters"] = sorted(
+        hardware.get("dxgi_adapters", []), key=lambda row:
+        (row["vendor_id"], row["device_id"], row["description"]),
+    )
     stable["loaded_agent_runtime_sha256"] = loaded_runtime_sha256()
     return hashlib.sha256(json.dumps(stable, sort_keys=True).encode()).hexdigest()
 
@@ -89,14 +203,22 @@ def _gpu_pool_refusal(entry: dict[str, Any], hardware: dict[str, Any]) -> str | 
             "reported by this controller; choose an explicit shared-RAM "
             "iGPU route or provide a matching NVIDIA device"
         )
-    if gpu_pool == "host_ram" and (
-        entry.get("integrated_gpu") is not True or
-        entry.get("expected_device_name") == hardware["gpu_name"]
-    ):
-        return (
-            "shared-RAM Vulkan route requires an explicitly identified "
-            "integrated GPU distinct from NVML GPU 0"
-        )
+    if gpu_pool == "host_ram":
+        expected = entry.get("expected_dxgi_adapter_name",
+                             entry.get("expected_device_name"))
+        matches = [adapter for adapter in hardware.get("dxgi_adapters", [])
+                   if adapter.get("description") == expected]
+        if (entry.get("integrated_gpu") is not True or
+            not expected or expected == hardware["gpu_name"] or
+            len(matches) != 1 or
+            matches[0].get("uma") is not True or
+            type(matches[0].get("shared_system_memory_bytes")) is not int or
+            matches[0]["shared_system_memory_bytes"] <= 0):
+            return (
+                "shared-RAM Vulkan route requires one independently detected "
+                "DXGI/D3D12 integrated GPU adapter with UMA and positive shared "
+                "RAM, distinct from NVML GPU 0"
+            )
     return None
 
 
@@ -205,7 +327,7 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
         stage_backends[route.route_id] = backend
 
     def live_free() -> dict[str, int | None]:
-        live = _hardware_snapshot()
+        live = _hardware_snapshot(include_topology=False)
         return {"host_ram": live["host_ram_available_bytes"],
                 "vram": live["vram_available_bytes"]}
 

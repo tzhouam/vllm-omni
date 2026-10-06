@@ -667,6 +667,10 @@ class LlamaCppTextStageClient(StageClientBase):
                 "server_sha256": self._expected_binary_sha,
                 "model_alias": self._model_alias,
                 "requested_device": self._placement,
+                # The loader report independently verifies ordinary CPU/GPU
+                # layer placement. Vulkan_Host only proves override selection:
+                # final expert storage and compute may differ after fallback.
+                "observed_model_placement": None if self._host_mapped else self._placement,
                 "expected_device_name": expected_device_name,
                 "layer_assignments": len(assignments),
                 "offloaded_layers": offloaded[-1] if offloaded else None,

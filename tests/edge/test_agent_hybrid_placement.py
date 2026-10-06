@@ -86,18 +86,29 @@ def test_integrated_gpu_and_cpu_use_one_physical_ram_pool() -> None:
 
 
 def test_native_vram_ceiling_requires_exact_measured_gpu() -> None:
-    no_nvidia = {"gpu_name": None}
+    adapter = {"description": "AMD Radeon 890M", "vendor_id": 0x1002,
+               "device_id": 0x150e, "dedicated_video_memory_bytes": 337 << 20,
+               "shared_system_memory_bytes": 16 << 30, "uma": True}
+    no_nvidia = {"gpu_name": None, "dxgi_adapters": [adapter]}
     igpu = {"placement": "cpu+Vulkan0", "gpu_memory_pool": "host_ram",
             "integrated_gpu": True, "expected_device_name": "AMD Radeon 890M"}
     assert _gpu_pool_refusal(igpu, no_nvidia) is None
+    assert _gpu_pool_refusal({**igpu, "expected_dxgi_adapter_name": "AMD Radeon 890M"},
+                             no_nvidia) is None
     assert "NVML GPU 0" in _gpu_pool_refusal(
         {**igpu, "gpu_memory_pool": "vram"}, no_nvidia)
-    mixed = {"gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU"}
+    mixed = {"gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+             "dxgi_adapters": [adapter]}
     assert _gpu_pool_refusal(igpu, mixed) is None
     assert "NVML GPU 0" in _gpu_pool_refusal(
         {**igpu, "gpu_memory_pool": "vram"}, mixed)
     assert "integrated GPU" in _gpu_pool_refusal(
         {**igpu, "expected_device_name": mixed["gpu_name"]}, mixed)
+    assert "DXGI" in _gpu_pool_refusal(igpu, {"gpu_name": None, "dxgi_adapters": []})
+    assert "DXGI" in _gpu_pool_refusal(
+        igpu, {"gpu_name": None, "dxgi_adapters": [
+            {**adapter, "uma": False},
+        ]})
 
 
 def test_hybrid_layer_split_verifies_cpu_and_gpu_buffers() -> None:

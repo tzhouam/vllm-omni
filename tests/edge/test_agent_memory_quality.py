@@ -23,7 +23,8 @@ class _MemoryBackend:
     def __init__(self, cases, *, answer_mode="retrieve") -> None:
         self.cases = cases
         self.answer_mode = answer_mode
-        self.execution_plan = {"requested_device": "cpu"}
+        self.execution_plan = {"requested_device": "cpu",
+                               "observed_model_placement": "cpu"}
         self.prompts = []
 
     def start(self) -> None:

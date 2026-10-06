@@ -5,8 +5,9 @@ Each StageRuntime retains its own stage ledger.  That ledger cannot see a
 second, separately constructed runtime, so the Windows Agent also owns one
 outer reservation.  Only one complete model route is resident at a time:
 route changes happen at turn boundaries, after the old worker has drained.
-Live free-memory readings are used for *new* loads; they are not charged again
-for a model that is already resident and already holds a reservation.
+Live free-memory readings are used for new loads and resident reuse. A resident
+model is not charged twice, but reuse fails closed if available memory drops
+below the post-load baseline (which may mean external use or lazy allocations).
 """
 
 from __future__ import annotations
@@ -55,6 +56,7 @@ class HostMemoryCoordinator:
         self._lock = threading.RLock()
         self._owner: str | None = None
         self._reservation: Reservation | None = None
+        self._resident_free_floor: dict[str, int] | None = None
 
     def wrappers(self) -> dict[str, ManagedRouteBackend]:
         return {route_id: ManagedRouteBackend(self, route_id)
@@ -62,7 +64,9 @@ class HostMemoryCoordinator:
 
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
-            return {"resident_route": self._owner, "ledger": self._ledger.snapshot()}
+            return {"resident_route": self._owner,
+                    "resident_free_floor": dict(self._resident_free_floor or {}),
+                    "ledger": self._ledger.snapshot()}
 
     def _live_free(self, demands: Mapping[str, int]) -> dict[str, int]:
         readings = self._free_bytes()
@@ -92,6 +96,19 @@ class HostMemoryCoordinator:
             raise ResourceUnavailable("host memory reservation release failed")
         self._owner = None
         self._reservation = None
+        self._resident_free_floor = None
+
+    def _check_resident_free(self, route: Route) -> None:
+        floor = self._resident_free_floor
+        if floor is None or set(floor) != set(route.memory_demands):
+            raise ResourceUnavailable("resident route has no complete post-load memory baseline")
+        live = self._live_free(route.memory_demands)
+        for pool, minimum in floor.items():
+            if live[pool] < minimum:
+                raise ResourceUnavailable(
+                    f"{pool}: resident route live free {live[pool]} bytes fell below "
+                    f"post-load baseline {minimum} bytes; unload and re-admit explicitly"
+                )
 
     def _quarantine_owner(self, route_id: str) -> None:
         with self._lock:
@@ -114,9 +131,12 @@ class HostMemoryCoordinator:
                     # Omni.  Reconcile it only after close confirms drain.
                     self._release_owner()
                 if self._owner == route.route_id:
+                    self._check_resident_free(route)
+                    plan = self._backends[route.route_id].execution_plan
                     return Admission(
                         True, "already resident under the host memory reservation",
-                        route.placement,
+                        plan.get("observed_model_placement") if isinstance(plan, Mapping)
+                        else None,
                     )
                 live = self._live_free(route.memory_demands)
                 old_claim = (self._reservation.demands if self._reservation is not None else {})
@@ -149,6 +169,7 @@ class HostMemoryCoordinator:
             route = self._routes[route_id]
             backend = self._backends[route_id]
             if self._owner == route_id and backend.resident:
+                self._check_resident_free(route)
                 return
             if self._owner is not None:
                 self._release_owner()
@@ -168,8 +189,16 @@ class HostMemoryCoordinator:
                     raise RuntimeError("Omni route did not finish a healthy stage load")
                 if plan.get("requested_device") != route.placement:
                     raise RuntimeError("Omni route loaded on a different device")
+                observed = plan.get("observed_model_placement")
+                if observed != route.placement and not (
+                    route.placement.startswith("Vulkan_Host+") and
+                    observed is None and
+                    plan.get("placement_evidence_level") == "override_selection_only"
+                ):
+                    raise RuntimeError("Omni route has no verified model placement")
                 if dict(plan.get("reserved_bytes", {})) != dict(route.memory_demands):
                     raise RuntimeError("Omni stage and host memory claims differ")
+                self._resident_free_floor = self._live_free(route.memory_demands)
             except BaseException:
                 # A failed load may have spawned a worker.  Never release the
                 # host claim merely because the Python start call raised.

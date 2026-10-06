@@ -117,7 +117,8 @@ def test_model_cannot_capture_desktop_for_web_image_task(tmp_path) -> None:
 class _Backend:
     def __init__(self, replies: list[str]) -> None:
         self.replies = replies
-        self.execution_plan = {"requested_device": "cpu"}
+        self.execution_plan = {"requested_device": "cpu",
+                               "observed_model_placement": "cpu"}
         self.prompts: list[str] = []
 
     def start(self) -> None:
@@ -185,6 +186,46 @@ def test_bootstrap_is_explicit_and_observations_persist_encrypted(tmp_path) -> N
     finally:
         controller.close()
     assert b"ready" not in (tmp_path / "memory.sqlite").read_bytes()
+
+
+def test_requested_device_alone_cannot_be_reported_as_actual_placement(tmp_path) -> None:
+    backend = _Backend(['{"final":"ready"}'])
+    backend.execution_plan = {"requested_device": "cpu"}
+    controller = _controller(tmp_path, backend, WindowsToolBoundary(browser=_Browser()))
+    events = []
+    controller.add_listener(events.append)
+    try:
+        with pytest.raises(RuntimeError, match="loaded route placement"):
+            controller.submit("Say ready").result(timeout=10)
+        assert not any(event["kind"] == "route" for event in events)
+    finally:
+        controller.close()
+
+
+def test_experimental_host_mapped_route_reports_unverified_placement(tmp_path) -> None:
+    backend = _Backend(['{"final":"ready"}'])
+    backend.execution_plan = {
+        "requested_device": "Vulkan_Host+Vulkan0",
+        "observed_model_placement": None,
+        "placement_evidence_level": "override_selection_only",
+        "hybrid_placement_evidence": {"placement_evidence_level": "override_selection_only"},
+    }
+    controller = _controller(tmp_path, backend, WindowsToolBoundary(browser=_Browser()))
+    controller.routes = [Route(
+        "bootstrap", "artifact", "bootstrap", "external.llamacpp.text.v1",
+        frozenset({"text"}), "Vulkan_Host+Vulkan0", {"host_ram": 1},
+    )]
+    events = []
+    controller.add_listener(events.append)
+    try:
+        assert controller.submit("Say ready").result(timeout=10) == "ready"
+        route = next(event["payload"] for event in events if event["kind"] == "route")
+        assert route["experimental"] is True
+        assert route["requested_placement"] == "Vulkan_Host+Vulkan0"
+        assert route["actual_placement"] is None
+        assert route["placement_evidence_level"] == "override_selection_only"
+    finally:
+        controller.close()
 
 
 def test_deleting_a_source_observation_cascades_to_agent_outputs(tmp_path) -> None:

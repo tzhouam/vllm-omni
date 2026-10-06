@@ -147,6 +147,7 @@ def test_native_probe_isolated_config_and_complete_turn_are_recorded_privately(
             time.sleep(.02)
             self.execution_plan = {
                 "requested_device": "cpu+Vulkan0",
+                "observed_model_placement": "cpu+Vulkan0",
                 "reserved_bytes": {"host_ram": 20, "vram": 10},
             }
 
@@ -239,6 +240,8 @@ def test_native_probe_isolated_config_and_complete_turn_are_recorded_privately(
     }
     assert rows[-1]["result"] == "one_complete_agent_turn_measured"
     assert rows[-1]["signed_qualification_gate"] is False
+    assert next(row for row in rows if row["record_type"] == "loaded_plan")[
+        "model_placement_verified"] is True
     assert rows[0]["profile_binding_requested"] is profile_bound
     assert rows[0]["profile_binding"] == (binding if profile_bound else None)
     assert controller.closed

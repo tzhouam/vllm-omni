@@ -372,26 +372,39 @@ class AgentController:
                         raise
             execution_plan = getattr(backend, "execution_plan", None)
             if isinstance(execution_plan, Mapping):
-                actual_placement = execution_plan.get("requested_device")
+                requested_placement = execution_plan.get("requested_device")
+                actual_placement = execution_plan.get("observed_model_placement")
                 hybrid_evidence = execution_plan.get("hybrid_placement_evidence")
             else:
                 reporter = getattr(backend, "report_placement", None)
                 actual_placement = reporter() if callable(reporter) else None
+                requested_placement = route.placement
                 hybrid_evidence = None
-            if actual_placement != route.placement:
+            unknown_host_mapped = (
+                decision.experimental and route.placement.startswith("Vulkan_Host+")
+                and actual_placement is None
+                and isinstance(execution_plan, Mapping)
+                and execution_plan.get("placement_evidence_level") == "override_selection_only"
+            )
+            if requested_placement != route.placement or (
+                actual_placement != route.placement and not unknown_host_mapped
+            ):
                 raise RuntimeError(
                     f"loaded route placement {actual_placement!r} differs from declared {route.placement!r}"
                 )
             self._emit("route", {
                 "route_id": route.route_id, "model": route.model,
                 "artifact_id": route.artifact_id, "backend": route.backend,
+                "requested_placement": requested_placement,
                 "actual_placement": actual_placement,
                 "experimental": decision.experimental,
                 "qualified_p95_s": decision.qualification.whole_answer_p95_s if decision.qualification else None,
                 "selection_refusals": dict(decision.refusals),
                 "placement_evidence_level": (
                     hybrid_evidence.get("placement_evidence_level")
-                    if isinstance(hybrid_evidence, Mapping) else None
+                    if isinstance(hybrid_evidence, Mapping) else
+                    execution_plan.get("placement_evidence_level")
+                    if isinstance(execution_plan, Mapping) else None
                 ),
             })
             # A controller session is deliberately new after every app launch.

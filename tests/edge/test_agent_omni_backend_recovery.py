@@ -33,7 +33,7 @@ def test_failed_request_unloads_dead_worker_and_next_turn_restarts(monkeypatch) 
             return {"owners": self.owners, "quarantined": []}
 
     class Client:
-        execution_plan = {"requested_device": "cpu"}
+        execution_plan = {"requested_device": "cpu", "observed_model_placement": "cpu"}
 
         def __init__(self):
             self.healthy = True
@@ -103,7 +103,7 @@ def test_quarantined_worker_refuses_restart(monkeypatch) -> None:
             return {"owners": ["(0, 0)"], "quarantined": ["(0, 0)"]}
 
     class Client:
-        execution_plan = {"requested_device": "cpu"}
+        execution_plan = {"requested_device": "cpu", "observed_model_placement": "cpu"}
 
         def check_health(self):
             raise RuntimeError("worker exited")

@@ -39,6 +39,7 @@ class _Stage:
         self.host.free -= self.actual_bytes
         self.execution_plan = {
             "requested_device": self.route.placement,
+            "observed_model_placement": self.route.placement,
             "reserved_bytes": dict(self.route.memory_demands),
         }
 
@@ -82,6 +83,24 @@ def test_repeat_turn_reuses_resident_claim_without_double_charging_live_free() -
     assert wrapped.close()
     assert host.free == 7
     assert coordinator.snapshot()["ledger"]["owners"] == []
+
+
+def test_resident_reuse_refuses_external_free_memory_drop() -> None:
+    host = _Host(10)
+    route = _route("model", 6)
+    coordinator, stages = _coordinator(host, route)
+    wrapped = coordinator.wrappers()[route.route_id]
+    wrapped.start()
+    assert coordinator.snapshot()["resident_free_floor"] == {"host_ram": 4}
+    host.free -= 1  # a different process consumes memory after model load
+    decision = coordinator.admit(route)
+    assert not decision.admitted
+    assert "post-load baseline" in decision.reason
+    with pytest.raises(ResourceUnavailable, match="post-load baseline"):
+        wrapped.start()
+    assert stages[route.route_id].loads == 1
+    assert coordinator.snapshot()["ledger"]["owners"] == [route.route_id]
+    wrapped.close()
 
 
 def test_cancel_release_drains_both_stage_and_host_claims() -> None:
@@ -240,6 +259,7 @@ def test_gpu_route_claims_host_ram_and_vram_and_switch_releases_both() -> None:
                 free[pool] -= amount
             self.resident = True
             self.execution_plan = {"requested_device": self.route.placement,
+                                   "observed_model_placement": self.route.placement,
                                    "reserved_bytes": dict(self.route.memory_demands)}
 
         def close(self):

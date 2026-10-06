@@ -220,6 +220,13 @@ class OmniLlamaBackend:
             plan = pool.stage_client.execution_plan
             if plan.get("requested_device") != cfg.placement:
                 raise RuntimeError("backend did not verify the requested placement")
+            observed = plan.get("observed_model_placement")
+            if observed != cfg.placement and not (
+                cfg.placement.startswith("Vulkan_Host+") and
+                observed is None and
+                plan.get("placement_evidence_level") == "override_selection_only"
+            ):
+                raise RuntimeError("backend did not verify model load placement")
         except BaseException:
             # Retain a failed loader until its internal ledger proves that
             # every claim drained. The app's outer ledger must not release a
