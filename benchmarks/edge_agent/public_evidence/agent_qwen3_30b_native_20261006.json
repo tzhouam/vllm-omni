@@ -1,0 +1,59 @@
+{
+  "schema": "edge-agent-qwen3-30b-native-observations-v1",
+  "reviewed_date": "2026-10-06",
+  "scope": "two native Windows loader configurations and one complete trivial text Agent request; batch size 1, one active request",
+  "qualification_status": "experimental_observations_only; no default route or performance qualification",
+  "hardware": {
+    "os": "Windows 11 build 26200",
+    "cpu": "AMD Ryzen AI 9 HX 370",
+    "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "power_condition": "AC"
+  },
+  "artifact": {
+    "repository": "Qwen/Qwen3-30B-A3B-GGUF",
+    "artifact_revision": "e4d4bafdfb96a411a163846265362aceb0b9c63a",
+    "filename": "Qwen3-30B-A3B-Q4_K_M.gguf",
+    "precision": "official Q4_K_M GGUF",
+    "size_bytes": 18556685824,
+    "sha256": "0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5",
+    "base_checkpoint_lineage_verified": false,
+    "tested_modalities": ["text"]
+  },
+  "observations": [
+    {
+      "route_id": "qwen3-30b-a3b-q4-k-m-windows-cpu-experts40",
+      "requested_placement": "CPU experts + Vulkan0",
+      "result": "strict_placement_refused_before_agent_request",
+      "reason": "120 expert tensor overrides were reported as Vulkan_Host, not verified CPU",
+      "private_record_sha256": "67bc7a9a42831f395aeec3a52b5525ba15060cb640c26f5083aa7ee13523071c",
+      "telemetry_samples": 222,
+      "complete_agent_requests": 0,
+      "release_qualified": false
+    },
+    {
+      "route_id": "qwen3-30b-a3b-q4-k-m-windows-host-mapped-experts40",
+      "reported_placement": "Vulkan_Host+Vulkan0",
+      "result": "one_complete_trivial_text_agent_request",
+      "complete_agent_requests": 1,
+      "final_answer": "ready",
+      "ordered_events_verified": true,
+      "private_record_sha256": "aa34a9253dc86bb924b997c91760108138b66f71f09bd0ee5b4dc973b138cbae",
+      "telemetry_samples": 266,
+      "telemetry_interval_seconds": 0.1,
+      "sampled_global_incremental_peak_bytes": {
+        "host_ram": 14672949248,
+        "vram": 4604002304
+      },
+      "configured_admission_claim_bytes": {
+        "host_ram": 24000000000,
+        "vram": 12000000000
+      },
+      "actual_expert_storage_verified": false,
+      "actual_expert_compute_verified": false,
+      "protocol_compliant": false,
+      "release_qualified": false
+    }
+  ],
+  "limits": "The strict CPU configuration failed at startup and produced no model request. The host-mapped result covers one trivial text request only: no paired model comparison, three-length 20-request protocol, 30-minute endurance, vision, independent placement proof, or signed qualification gates. Sampled whole-system memory increments are lower bounds on instantaneous peaks and do not isolate the model's footprint; the configured admission claims are conservative budgets, not measured placement."
+}

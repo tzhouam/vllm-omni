@@ -1,7 +1,7 @@
 # Bounded GGUF architecture diagnostic
 
-`probe_gguf_architecture.py` checks the official Qwen3-30B-A3B Q4_K_M
-candidate **before** downloading its 18,556,685,824-byte GGUF. Its manifest
+`probe_gguf_architecture.py` checked the official Qwen3-30B-A3B Q4_K_M
+candidate before its 18,556,685,824-byte GGUF was downloaded. Its manifest
 pins [the artifact commit](https://huggingface.co/Qwen/Qwen3-30B-A3B-GGUF/tree/e4d4bafdfb96a411a163846265362aceb0b9c63a)
 and the published file size and LFS SHA-256. The probe requests only byte range
 `0..N-1` from that commit, requires a matching HTTP 206 response, reads no more
@@ -50,5 +50,15 @@ the installed Windows llama DLL (SHA-256
 `69869a1932be0c3bd6002e679926f58c2768bfd7297091cabb919603df69e80c`).
 The private diagnostic record is bound by SHA-256
 `05ba66d3f92a4a645de18303603813c15a108b013f513769598f9becfed153fd`.
-This is a header and binary-marker observation only; full load and inference
-remain unverified.
+This range probe alone was a header and binary-marker observation, not a load
+test. The complete official Q4_K_M GGUF was subsequently downloaded and
+SHA-256 verified against the pinned artifact commit. On the same Windows
+laptop, a strict CPU-experts40 configuration refused startup before any Agent
+request because 120 expert overrides were reported as `Vulkan_Host`, not
+verified `CPU`. A separate experimental `Vulkan_Host+Vulkan0` route completed
+one batch-one text Agent request with the exact trivial answer `ready` and
+ordered events. Its actual expert storage and compute remain unverified. The
+[sanitized native observations](../public_evidence/agent_qwen3_30b_native_20261006.json)
+bind both private records by SHA-256 and state the sampled memory limits.
+Neither route has a three-length latency profile, endurance run, independent
+placement proof, or default-route qualification.

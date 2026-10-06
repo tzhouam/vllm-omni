@@ -15,6 +15,15 @@ supports that exact candidate and its quantization; a passing result permits
 measurement only. No catalog entry becomes a default route automatically.
 The three capacity-only entries always refuse whole-weight downloads here.
 
+The official Qwen3-30B-A3B Q4_K_M GGUF has since been fully downloaded and
+SHA-256 verified at its pinned artifact commit. A strict CPU-expert placement
+refused startup because the backend reported `Vulkan_Host` expert overrides;
+a distinct experimental host-mapped route completed one trivial batch-one text
+Agent request. The [public Qwen observations](public_evidence/agent_qwen3_30b_native_20261006.json)
+bind both outcomes to private raw records. That one request does not meet the
+20-per-length and 30-minute protocol, establish expert compute location, or
+qualify a default route.
+
 The [GSQ-RCO unpruned Q2_0](https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF)
 and [pruned Coder IQ1_M](https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-Coder-GGUF)
 are distinct artifacts. Both require their two GGUF shards, and vision also
