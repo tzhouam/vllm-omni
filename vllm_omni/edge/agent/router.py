@@ -77,6 +77,8 @@ class Route:
             raise ValueError("route identity and declared placement are required")
         if not self.modalities or not self.memory_demands or any(type(value) is not int or value < 0 for value in self.memory_demands.values()):
             raise ValueError("modalities and nonnegative memory demands are required")
+        if self.memory_demands.get("host_ram", 0) <= 0:
+            raise ValueError("complete Agent route must reserve positive host RAM")
 
 
 @dataclass(frozen=True)

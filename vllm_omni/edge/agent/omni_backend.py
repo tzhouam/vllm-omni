@@ -75,10 +75,14 @@ class OmniLlamaConfig:
             raise ValueError("llama.cpp stage placement must be cpu, VulkanN, cpu+VulkanN, or Vulkan_Host+VulkanN")
         if self.gpu_memory_pool not in {"host_ram", "vram"}:
             raise ValueError("gpu_memory_pool must be host_ram or vram")
+        if self.demands.get("host_ram", 0) <= 0:
+            raise ValueError("llama.cpp stage must reserve positive host RAM")
+        if self.placement == "cpu" and "vram" in self.demands:
+            raise ValueError("CPU-only stage cannot reserve a GPU VRAM pool")
         if self.placement != "cpu" and (
-            "host_ram" not in self.demands or self.gpu_memory_pool not in self.demands
+            self.demands.get(self.gpu_memory_pool, 0) <= 0
         ):
-            raise ValueError("GPU route must reserve its physical GPU memory pool and host RAM")
+            raise ValueError("GPU route must reserve a positive physical GPU memory pool")
         if self.placement != "cpu" and self.gpu_memory_pool == "host_ram" and "vram" in self.demands:
             raise ValueError("shared-memory iGPU route cannot reserve a separate VRAM pool")
         if self.gpu_layers is not None and (type(self.gpu_layers) is not int or self.gpu_layers < 1):
