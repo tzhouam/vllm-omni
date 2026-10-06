@@ -1,7 +1,7 @@
 # Qwen3-30B partial-layer experimental route
 
 The [native configuration](../configs/windows_laptop_qwen3_30b_a3b_q4_k_m_layer12.experimental.json)
-is a **proposed, unrun** text-only alternative to the Qwen3-30B CPU-expert
+is a **proposed, not yet loaded** text-only alternative to the Qwen3-30B CPU-expert
 and `Vulkan_Host` routes. Its separate
 [lineage record](../configs/windows_laptop_qwen3_30b_a3b_q4_k_m_layer12.lineage.experimental.json)
 keeps the exact base checkpoint revision unverified. The official Q4_K_M GGUF
@@ -33,8 +33,12 @@ The target remains native Windows 11 build 26200, Ryzen AI 9 HX 370,
 RTX 5090 Laptop GPU, NVIDIA driver 610.71, AC power, batch size 1 and one
 active request.
 
-After the Gemma profiler exits and its worker/ledger release is confirmed,
-first recheck live physical-pool availability. If admitted, load this exact
+The first [native admission attempt](../public_evidence/agent_qwen3_30b_layer12_capacity_refusal_20261006.json)
+on 2026-10-06 refused **before model load or request**: the live Windows
+controller ceiling was 23,213,023,232 B host RAM against this configuration's
+24,000,000,000 B declaration. The private raw JSONL is bound by SHA-256 in
+that receipt. VRAM was sufficient; no claim about layer placement or speed
+follows. Recheck live physical-pool availability. If admitted, load this exact
 config and preserve the startup log. Require `observed_model_placement` to
 equal `cpu+Vulkan0`, an unambiguous 12-layer GPU offload with CPU-assigned
 remaining layers, separate model-buffer sizes below their ceilings, a bound

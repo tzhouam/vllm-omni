@@ -26,10 +26,11 @@ qualify a default route.
 
 A separate [12-layer CPU+Vulkan proposal](experiments/QWEN3_30B_LAYER12.md)
 uses the same pinned Qwen3-30B artifact without requesting CPU-expert or
-host-mapped-expert overrides. Its memory ceilings are declarations, and its
-12-layer split has **not** been loaded, measured, or shown to outperform an
-unsplit route. It remains an experimental config pending live admission,
-startup placement, and complete-request checks.
+host-mapped-expert overrides. Its first [native admission attempt](public_evidence/agent_qwen3_30b_layer12_capacity_refusal_20261006.json)
+refused before loading: 23,213,023,232 B host RAM was available against its
+24,000,000,000 B declared reservation. This is a result for that live
+configuration, not a model-support conclusion. The split remains unmeasured,
+without startup placement or a complete request.
 
 The [GSQ-RCO unpruned Q2_0](https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF)
 and [pruned Coder IQ1_M](https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-Coder-GGUF)
@@ -106,6 +107,11 @@ positive claim on the GPU's **declared physical pool** for GPU placements:
 discrete GPU VRAM or shared host RAM for an integrated GPU. A CPU-only stage
 cannot claim unrelated VRAM. This prevents an absent or zero pool declaration
 from passing admission; it does not measure loading or request memory peaks.
+The native controller also rereads AC/battery state before route selection and
+after a potentially long cold load. A change during loading releases the loaded
+backend and refuses before generation; a changed state at the next turn cannot
+reuse the old power-bound qualification or silently use its experimental
+bootstrap.
 
 The fixed task set pairs Chinese and English at short, medium, and long input
 lengths. `browser_text` covers a local text page on CPU or another text route;

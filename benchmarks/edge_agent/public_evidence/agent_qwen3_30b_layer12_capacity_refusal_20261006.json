@@ -1,0 +1,53 @@
+{
+  "capacity": {
+    "available_host_ram_bytes_at_admission": 23213023232,
+    "available_vram_bytes_at_admission": 19338297344,
+    "declared_host_ram_bytes": 24000000000,
+    "declared_vram_bytes": 12000000000
+  },
+  "evidence_depth": "pre-load admission refusal; no backend execution or Agent request",
+  "lineage": {
+    "artifact_revision": "e4d4bafdfb96a411a163846265362aceb0b9c63a",
+    "checkpoint_revision": "unverified-source-checkpoint-commit",
+    "license": "apache-2.0",
+    "lineage_verified": false,
+    "precision": "official Qwen3-30B-A3B Q4_K_M GGUF"
+  },
+  "evidence_hashes": {
+    "lineage_manifest_sha256": "e6df6cb0402288e254c14b9dd51048caee1965bb3b1e3b57afb3c8acd2a85a78",
+    "private_probe_config_sha256": "785d4aa76c0c3048229410c91102eb67862e296c81d21f3b0bcc3bb2b2289ca4",
+    "private_raw_jsonl_sha256": "20b002b993389177aa549cea04ba26d99b41fe25f9e543221b928ceedb8a4123",
+    "source_config_sha256": "602d3fc3402473a6d311f36656120467eef9a71de3efd323a71e785a9479195a"
+  },
+  "outcome": {
+    "admitted": false,
+    "agent_request_submitted": false,
+    "artifact_file_reverified_this_run": false,
+    "model_loaded": false,
+    "model_unsupported": false,
+    "reason": "host_ram: declared demand 24000000000 bytes exceeds the native controller ceiling 23213023232 bytes",
+    "result_scope": "this configuration at this live capacity only",
+    "route_qualified": false
+  },
+  "raw_evidence_location": "private on profiling host; SHA-256 bound above",
+  "route": {
+    "batch_size": 1,
+    "concurrency": 1,
+    "context_tokens": 4096,
+    "gpu_layers": 12,
+    "model": "Qwen3-30B-A3B Q4_K_M",
+    "declared_model_sha256": "0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5",
+    "requested_placement": "cpu+Vulkan0",
+    "route_id": "qwen3-30b-a3b-q4-k-m-windows-layer12",
+    "declared_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+  },
+  "run_id": "qwen3-30b-layer12-probe-20261006",
+  "schema": "omni-agent-admission-refusal-v1",
+  "target": {
+    "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+    "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "os": "Windows-11-10.0.26200-SP0",
+    "power_condition": "AC"
+  }
+}
