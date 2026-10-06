@@ -1,0 +1,37 @@
+{
+  "qualification_suite_id": "edge-agent-fixed-local-fixtures-v1",
+  "experimental_bootstrap_route_id": "qwen3-30b-a3b-q4-k-m-windows-host-mapped-experts40",
+  "limits": {
+    "max_model_steps": 4,
+    "max_answer_tokens": 128
+  },
+  "routes": [
+    {
+      "route_id": "qwen3-30b-a3b-q4-k-m-windows-host-mapped-experts40",
+      "artifact_id": "0d003f6662faee78",
+      "model": "Qwen3-30B-A3B Q4_K_M",
+      "model_file": "C:\\Users\\zhout\\w2\\models\\edge_agent\\qwen3_30b_a3b_q4_k_m\\Qwen3-30B-A3B-Q4_K_M.gguf",
+      "model_sha256": "0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5",
+      "server_bin": "C:\\Users\\zhout\\w2\\llama-vulkan-b11124\\bin\\llama-server.exe",
+      "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+      "log_file": "C:\\Users\\zhout\\AppData\\Local\\OmniEdgeAgent\\qwen3-30b-a3b-host-mapped-experts40-server.log",
+      "placement": "Vulkan_Host+Vulkan0",
+      "expected_device_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "requires_nvidia": true,
+      "gpu_layers": null,
+      "cpu_moe_layers": 0,
+      "host_mapped_expert_layers": 40,
+      "cpu_weight_budget_bytes": 16000000000,
+      "gpu_weight_budget_bytes": 8000000000,
+      "memory_demands": {"host_ram": 24000000000, "vram": 12000000000},
+      "memory_overhead_bytes": 8000000000,
+      "vram_overhead_bytes": 4000000000,
+      "modalities": ["text"],
+      "context_tokens": 4096,
+      "max_new_tokens": 128,
+      "max_io_bytes": 1048576,
+      "request_timeout_s": 600,
+      "start_timeout_s": 300
+    }
+  ]
+}
