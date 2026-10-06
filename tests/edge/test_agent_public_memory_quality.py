@@ -38,11 +38,11 @@ def test_public_memory_quality_contains_only_reviewed_aggregate_fields() -> None
     assert aggregate["batch_size"] == aggregate["concurrency"] == 1
     assert aggregate["requests_per_run"] == 16
     assert "unsigned" in aggregate["qualification_status"]
-    assert [run["passed"] for run in aggregate["runs"]] == [3, 4]
+    assert [run["passed"] for run in aggregate["runs"]] == [3, 4, 4]
     assert {run["cases"] for run in aggregate["runs"]} == {4}
-    assert len({run["run_id"] for run in aggregate["runs"]}) == 2
-    for run in aggregate["runs"]:
-        assert set(run) == RUN_KEYS
+    assert len({run["run_id"] for run in aggregate["runs"]}) == 3
+    for index, run in enumerate(aggregate["runs"]):
+        assert set(run) == (RUN_KEYS | {"profile_binding"} if index == 2 else RUN_KEYS)
         assert re.fullmatch(r"memory_quality_[0-9a-f]{32}", run["run_id"])
         assert run["passed"] == sum(case["passed"] for case in run["per_case"])
         assert {case["case_id"] for case in run["per_case"]} == {
@@ -53,6 +53,15 @@ def test_public_memory_quality_contains_only_reviewed_aggregate_fields() -> None
             assert case["passed"] == (not case["failed_checks"])
         for key in ("loaded_runtime_sha256", "raw_sha256", "index_sha256"):
             assert re.fullmatch(r"[0-9a-f]{64}", run[key])
+        if index == 2:
+            binding = run["profile_binding"]
+            assert set(binding) == {
+                "schema", "profile_run_id", "profile_index_sha256", "profile_raw_sha256",
+            }
+            assert binding["schema"] == "omni-agent-profile-binding-v1"
+            assert re.fullmatch(r"native_[0-9a-f]{32}", binding["profile_run_id"])
+            for key in ("profile_index_sha256", "profile_raw_sha256"):
+                assert re.fullmatch(r"[0-9a-f]{64}", binding[key])
     for key in (
         "model_sha256", "projector_sha256", "server_sha256",
         "native_config_sha256", "lineage_sha256",
