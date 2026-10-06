@@ -140,14 +140,28 @@ browser-write Agent task or general web safety. The context is discarded when
 the Agent closes, so browser cookies and tabs do not persist between app
 sessions. Browser process-level traffic is outside page routing; the fixed
 local fixture is not evidence of general open-web safety.
-`screen_capture` observes the visible foreground window, crops to its
-physical screen rectangle before model resizing, and records that rectangle
-and original/output dimensions. It is available only when the trusted task
-explicitly requests desktop capture; a request to inspect a browser image grants
-only `browser_screenshot`. The desktop fixture uses a unique Edge title, then
-verifies that exact window is foreground before the timed request and at the
-actual capture. If Windows denies focus, setup fails with a visibility blocker
-instead of scoring a blank or obscured capture as model quality. A
+
+`screen_capture` is a **sensitive desktop read** requiring a fresh UI approval
+for each image. The tool policy looks for a desktop-capture request in the
+trusted task and masks URL/path tokens such as `/screen_capture`; browser
+images grant only `browser_screenshot`. Pattern matching may still misread a
+negation or question as capture intent, so it never authorizes the read by
+itself. On native Windows the approval binds the currently visible foreground
+window's handle (HWND), process ID, title, and physical bounding box. The UI
+shows that scope, restores focus after the dialog, and checks the same target
+before capture. The backend crops **screen pixels within those bounds** before
+resizing, rechecks the bound target after capture, and records source/output
+dimensions; it refuses a changed or unverifiable window. The reported
+`capture_scope` is `visible_screen_pixels_within_foreground_window_bounds`.
+An injected screen backend without target identification and bound capture is
+refused before approval or pixels. The rectangle may
+cover the whole screen or include overlays and background visible through
+transparency. The Agent window itself
+may be foreground when the request is proposed, and there is no robust target
+picker yet. The earlier desktop fixture uses a unique Edge title and verifies
+foreground focus, but has not passed a full visual protocol with this approval
+flow. If Windows denies focus, setup is a visibility blocker, not a model-quality
+failure. A
 separate, local-NTFS encrypted SQLite database is reset and seeded before each
 timed request, with setup evidence in the raw record. This avoids memory
 leakage across repeats or candidate routes. The code case checks static code

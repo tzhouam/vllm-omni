@@ -153,6 +153,23 @@ read result does not qualify a default route or open-web browsing, browser
 writes, desktop vision, or other task classes. Independent signed memory,
 cancellation, placement, lineage, and bilingual quality gates remain open.
 
+Every `screen_capture` now needs one-shot sensitive-read approval, even when
+the trusted-task intent matcher admits the tool. URL and path tokens are masked
+before intent checks; negated or interrogative wording can still be mistaken
+for a request, so the matcher alone never grants pixel access. On native
+Windows the challenge binds the visible foreground window's HWND, process ID,
+title, and physical bounds. The desktop UI restores focus after review and
+the backend rechecks that target before and after grabbing screen pixels in
+those bounds. The exact `capture_scope` is
+`visible_screen_pixels_within_foreground_window_bounds`; an injected backend
+that cannot identify and bind the target is refused before approval or pixels.
+Overlays and background visible through transparent regions can
+be included; this is not off-screen window rendering. The Agent UI itself may
+be the selected foreground target. A reliable target picker and a full visual
+Agent task with reviewed capture approvals and reference output are still
+needed; prior visual smokes cannot qualify this current path or any default
+route.
+
 The production managed browser refuses `browser_click` and `browser_fill`
 before target inspection, approval, or page action. DOM form submission and
 tool-initiated JavaScript write actions remain disabled; page scripts still run
