@@ -12,9 +12,9 @@ import ctypes
 import asyncio
 import base64
 import binascii
-import contextlib
 import hashlib
 import hmac
+import ipaddress
 import io
 import json
 import os
@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping, Protocol
 from types import MappingProxyType
-from urllib.parse import unquote, urljoin, urlparse
+from urllib.parse import unquote, urljoin, urlparse, urlsplit, urlunsplit
 
 import psutil
 
@@ -61,6 +61,9 @@ _SETTINGS_PAGE_HEADINGS = {
 _PAGE_HEADING_IDS = frozenset({"pagetitle", "pageheader", "settingspagetitle"})
 _APPROVAL_TTL_SECONDS = 300.0
 _MAX_POST_BODY_BYTES = 64 * 1024
+_MAX_POST_URL_BYTES = 2048
+_MAX_POST_RESPONSE_EXCERPT_BYTES = 4096
+_POST_TOTAL_TIMEOUT_SECONDS = 30.0
 _POST_CONTENT_TYPES = frozenset({
     "application/json", "application/x-www-form-urlencoded",
     "text/plain; charset=utf-8", "application/octet-stream",
@@ -193,12 +196,48 @@ def _http_url(url: str) -> str:
 
 
 def _post_url(url: str) -> str:
+    # Playwright's HTTP client uses the WHATWG URL parser, which removes dot
+    # segments (including %2e variants) before sending. Admit only a narrow
+    # spelling that is already canonical; approval must display the network
+    # target, not a different URL that the client later normalizes.
+    if not isinstance(url, str) or not url.isascii():
+        raise ValueError("browser POST requires an exact ASCII URL")
+    if len(url.encode("ascii")) > _MAX_POST_URL_BYTES:
+        raise ValueError("browser POST URL exceeds 2048 bytes")
     target = _http_url(url)
-    parsed = urlparse(target)
-    if (not target.isascii() or any(char.isspace() for char in target)
-            or parsed.fragment or "#" in target):
-        raise ValueError("browser POST requires an exact ASCII URL without whitespace or fragment")
-    _origin(target)  # Also reject malformed ports before requesting approval.
+    parsed = urlsplit(target)
+    if (parsed.scheme not in {"http", "https"} or parsed.fragment or "#" in target
+            or any(char.isspace() for char in target) or "%" in target):
+        raise ValueError("browser POST URL has ambiguous encoding or fragment")
+    host = parsed.hostname
+    if host is None or not re.fullmatch(r"[a-z0-9.-]+", host) or host.endswith("."):
+        raise ValueError("browser POST host is not canonical")
+    if re.fullmatch(r"[0-9.]+", host):
+        try:
+            if str(ipaddress.IPv4Address(host)) != host:
+                raise ValueError("browser POST host is not canonical")
+        except ipaddress.AddressValueError as exc:
+            raise ValueError("browser POST host is not canonical") from exc
+    elif not all(re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", label)
+                 for label in host.split(".")):
+        raise ValueError("browser POST host is not canonical")
+    port = parsed.port  # Raises on malformed or out-of-range ports.
+    if port == 0:
+        raise ValueError("browser POST port zero is not a destination")
+    if port in {80 if parsed.scheme == "http" else 443}:
+        raise ValueError("browser POST default port must be omitted")
+    canonical_authority = host if port is None else f"{host}:{port}"
+    if parsed.netloc != canonical_authority:
+        raise ValueError("browser POST authority is not canonical")
+    path = parsed.path
+    if (not path.startswith("/") or "//" in path
+            or any(segment in {".", ".."} for segment in path.split("/"))
+            or not re.fullmatch(r"/[A-Za-z0-9._~/-]*", path)):
+        raise ValueError("browser POST path is not canonical")
+    if not re.fullmatch(r"[A-Za-z0-9._~=&+/-]*", parsed.query):
+        raise ValueError("browser POST query is not canonical")
+    if urlunsplit((parsed.scheme, parsed.netloc, path, parsed.query, "")) != target:
+        raise ValueError("browser POST URL is not canonical")
     return target
 
 
@@ -216,12 +255,87 @@ def _post_body(body_b64: str) -> bytes:
     return body
 
 
+def _post_cookie_header(cookies: list[dict[str, Any]]) -> str:
+    # Chromium has already selected only cookies applicable to the target.
+    # Refuse values that cannot be represented in one unambiguous HTTP header.
+    pairs: list[str] = []
+    for cookie in cookies:
+        name, value = cookie.get("name"), cookie.get("value")
+        if (not isinstance(name, str) or not isinstance(value, str)
+                or not re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", name)
+                or not re.fullmatch(r"[\x21\x23-\x2b\x2d-\x3a\x3c-\x5b\x5d-\x7e]*", value)):
+            raise ValueError("browser POST cookie cannot be sent exactly")
+        pairs.append(f"{name}={value}")
+    return "; ".join(pairs)
+
+
+async def _streamed_post(target: str, body: bytes, content_type: str,
+                         cookie_header: str) -> Mapping[str, Any]:
+    """Make one HTTP request and retain at most a bounded raw response excerpt."""
+    try:
+        import httpx
+    except ImportError as exc:
+        raise RuntimeError("browser POST requires httpx") from exc
+
+    headers = {"Content-Type": content_type, "Accept-Encoding": "identity"}
+    if cookie_header:
+        headers["Cookie"] = cookie_header
+    # A fresh transport neither inherits proxy/certificate environment variables
+    # nor shares a cookie jar with the managed browser page. asyncio.timeout is
+    # the wall-clock deadline; httpx's own timeout is only per network operation.
+    async with asyncio.timeout(_POST_TOTAL_TIMEOUT_SECONDS):
+        transport = httpx.AsyncHTTPTransport(
+            retries=0, trust_env=False, http2=False,
+        )
+        async with httpx.AsyncClient(
+            transport=transport, trust_env=False, follow_redirects=False,
+            timeout=httpx.Timeout(5.0), http2=False,
+        ) as client:
+            request = client.build_request("POST", target, content=body, headers=headers)
+            if str(request.url) != target or request.content != body:
+                raise ValueError("browser POST client would rewrite the approved URL or body")
+            response = await client.send(request, stream=True, follow_redirects=False)
+            try:
+                if str(response.url) != target:
+                    raise RuntimeError("browser POST response target changed unexpectedly")
+                excerpt = bytearray()
+                complete = True
+                async for chunk in response.aiter_raw(
+                    chunk_size=_MAX_POST_RESPONSE_EXCERPT_BYTES + 1,
+                ):
+                    remaining = _MAX_POST_RESPONSE_EXCERPT_BYTES - len(excerpt)
+                    if len(chunk) > remaining:
+                        excerpt.extend(chunk[:remaining])
+                        complete = False
+                        break
+                    excerpt.extend(chunk)
+                status = int(response.status_code)
+                return {
+                    "url": target,
+                    "status": status,
+                    "redirect_followed": False,
+                    "redirect_blocked": 300 <= status < 400,
+                    "body_excerpt": bytes(excerpt).decode("utf-8", errors="replace"),
+                    "body_excerpt_raw": True,
+                    "body_excerpt_note": (
+                        "Raw response bytes, possibly compressed, decoded as UTF-8 "
+                        "with replacement; body_size is unknown when truncated"
+                    ),
+                    "content_encoding": response.headers.get("content-encoding", "identity"),
+                    "body_truncated": not complete,
+                    "body_size": len(excerpt) if complete else None,
+                }
+            finally:
+                await response.aclose()
+
+
 def _origin(url: str) -> tuple[str, str, int]:
     parsed = urlparse(_http_url(url))
     if parsed.hostname is None:
         raise ValueError("browser URL has no host")
     return (parsed.scheme.lower(), parsed.hostname.lower(),
-            parsed.port or (443 if parsed.scheme.lower() == "https" else 80))
+            parsed.port if parsed.port is not None else
+            (443 if parsed.scheme.lower() == "https" else 80))
 
 
 def _network_target(url: str) -> tuple[str, str, int, str, str, str]:
@@ -359,7 +473,7 @@ class ManagedEdgeBrowser:
     def current_url(self) -> str:
         return self._call(lambda: str(self._ensure_page().url))
 
-    def _post_snapshot(self, url: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    def _post_snapshot(self, url: str) -> tuple[dict[str, Any], str]:
         page = self._ensure_page()
         target = _post_url(url)
         page_url = str(page.url)
@@ -368,8 +482,9 @@ class ManagedEdgeBrowser:
         # Only cookies applicable to the exact destination enter the request.
         # HMAC avoids disclosing even short cookie values through the UI hash.
         cookies = json.loads(json.dumps(self._context.cookies(target), allow_nan=False))
+        cookie_header = _post_cookie_header(cookies)
         canonical = json.dumps(
-            sorted(cookies, key=lambda item: json.dumps(item, sort_keys=True)),
+            {"cookies_in_wire_order": cookies, "cookie_header": cookie_header},
             sort_keys=True, separators=(",", ":"), allow_nan=False,
         ).encode("utf-8")
         fingerprint = hmac.new(
@@ -379,7 +494,7 @@ class ManagedEdgeBrowser:
             "current_url": page_url,
             "cookie_fingerprint": fingerprint,
             "cookie_count": len(cookies),
-        }, cookies)
+        }, cookie_header)
 
     def post_context(self, url: str) -> Mapping[str, Any]:
         return self._call(lambda: self._post_snapshot(url)[0])
@@ -396,55 +511,32 @@ class ManagedEdgeBrowser:
             raise ValueError("browser POST body must be bytes under 64 KiB")
         if content_type not in _POST_CONTENT_TYPES:
             raise ValueError("browser POST Content-Type is not allowlisted")
-        context, cookies = self._post_snapshot(target)
+        context, cookie_header = self._post_snapshot(target)
         if (context["current_url"] != page_url or
                 not hmac.compare_digest(context["cookie_fingerprint"], cookie_fingerprint)):
             raise RuntimeError("browser page or cookie context changed after POST approval")
-        # Use an isolated APIRequestContext so a Set-Cookie response cannot
-        # silently change the managed page's cookie jar. The snapshot is the
-        # only cookie state this one request can send.
-        api_context = self._playwright.request.new_context(
-            storage_state={"cookies": cookies, "origins": []},
-            ignore_https_errors=False, max_redirects=0,
-        )
-        try:
+        # The snapshot is the only cookie state this one request can send.
+        # Playwright's APIRequestContext buffers whole responses in memory,
+        # including unbounded chunked bodies. Use an isolated streaming HTTP
+        # client and close it after a bounded raw excerpt instead. Playwright's
+        # sync driver runs an event loop on this browser worker thread, so the
+        # async transport must run in its own short-lived thread.
+        with ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-edge-post") as worker:
+            future = worker.submit(
+                lambda: asyncio.run(_streamed_post(target, body, content_type, cookie_header)),
+            )
             try:
-                response = api_context.post(
-                    target, data=body, headers={"Content-Type": content_type},
-                    timeout=30_000, max_redirects=0, max_retries=0,
-                    fail_on_status_code=False, ignore_https_errors=False,
-                )
+                # Never abandon an in-flight write. Even if the transport's
+                # deadline fails to interrupt an OS call, the owning turn must
+                # retain its gate until this worker has finished.
+                return future.result()
             except Exception as exc:
-                # Once a POST is dispatched, a timeout cannot tell us whether
-                # the server committed it. Never retry under this approval.
+                # Once the attempt begins, timeout or disconnection cannot
+                # reveal whether the server committed it. Never retry under
+                # this approval.
                 raise RuntimeError(
                     "browser POST outcome unknown; it may have reached the server; do not retry automatically"
                 ) from exc
-            try:
-                status = int(response.status)
-                response_url = str(response.url)
-                if _network_target(response_url) != _network_target(target):
-                    raise RuntimeError("browser POST response target changed unexpectedly")
-                raw = response.body()
-                return {
-                    "url": target,
-                    "status": status,
-                    "redirect_followed": False,
-                    "redirect_blocked": 300 <= status < 400,
-                    "body_excerpt": raw[:4096].decode("utf-8", errors="replace"),
-                    "body_truncated": len(raw) > 4096,
-                    "body_size": len(raw),
-                }
-            except Exception as exc:
-                raise RuntimeError(
-                    "browser POST was sent but response is uncertain; do not retry automatically"
-                ) from exc
-            finally:
-                with contextlib.suppress(Exception):
-                    response.dispose()
-        finally:
-            with contextlib.suppress(Exception):
-                api_context.dispose()
 
     def bring_to_front(self) -> Mapping[str, Any]:
         """Select the managed tab for a trusted desktop fixture setup."""

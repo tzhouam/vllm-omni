@@ -121,6 +121,7 @@ def test_post_ui_requires_full_review_and_explicit_accept(monkeypatch) -> None:
         assert body.hex(" ") in review
         assert challenge["target"]["url"] in review
         assert challenge["target"]["body_sha256"] in review
+        assert preview.lineWrapMode() == desktop.QPlainTextEdit.LineWrapMode.WidgetWidth
         seen.append(review)
         return decisions.pop(0)
 
@@ -143,6 +144,59 @@ def test_post_ui_requires_full_review_and_explicit_accept(monkeypatch) -> None:
         assert controller.approved == ["exact-post"]
         assert window.approvals.count() == 0
         assert len(seen) == 2
+    finally:
+        controller.callback = None
+        window.setAttribute(desktop.Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        window.close()
+        app.processEvents()
+
+
+def test_post_review_wraps_full_near_limit_url_and_removes_expired_item(monkeypatch) -> None:
+    if desktop.QApplication is None:
+        pytest.skip("PySide6 is not installed")
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = desktop.QApplication.instance() or desktop.QApplication([])
+    challenge = _challenge(b"hello")
+    url = "https://example.test/api/submit?x=" + "a" * 1900 + "TAIL"
+    challenge["arguments"]["url"] = url
+    challenge["target"]["url"] = url
+
+    class Controller:
+        def add_listener(self, callback):
+            self.callback = callback
+
+        def approve(self, challenge_id):
+            raise TimeoutError("approval challenge expired")
+
+    controller = Controller()
+    window = desktop.AgentWindow(controller)
+    window._active = True
+    seen: list[str] = []
+
+    def inspect_dialog(dialog):
+        preview = dialog.findChild(desktop.QPlainTextEdit, "browser_post_exact_review")
+        assert preview is not None
+        assert preview.lineWrapMode() == desktop.QPlainTextEdit.LineWrapMode.WidgetWidth
+        seen.append(preview.toPlainText())
+        assert url in seen[-1]
+        assert seen[-1].find("TAIL") > seen[-1].find("Target URL:")
+        return desktop.QDialog.DialogCode.Accepted
+
+    monkeypatch.setattr(desktop.QDialog, "exec", inspect_dialog)
+    try:
+        window._accept_event({
+            "request_id": "request-1", "epoch": 1, "seq": 1,
+            "kind": "approval_required", "payload": challenge,
+        })
+        assert window.approvals.count() == 1
+        window._approve_selected()
+        deadline = time.monotonic() + 3
+        while window.approvals.count() and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.01)
+        assert len(seen) == 1
+        assert window.approvals.count() == 0
+        assert "TimeoutError" in window.status_label.text()
     finally:
         controller.callback = None
         window.setAttribute(desktop.Qt.WidgetAttribute.WA_DeleteOnClose, True)

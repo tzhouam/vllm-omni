@@ -6,10 +6,14 @@ import asyncio
 import base64
 import hashlib
 import json
+import os
+import sys
 import threading
 import time
 from concurrent.futures import CancelledError
 from dataclasses import dataclass
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 
@@ -19,7 +23,7 @@ from vllm_omni.edge.agent.omni_backend import BackendChunk
 from vllm_omni.edge.agent.router import (
     Admission, Qualification, Route, classify_task, select_route,
 )
-from vllm_omni.edge.agent.tools import WindowsToolBoundary
+from vllm_omni.edge.agent.tools import ManagedEdgeBrowser, WindowsToolBoundary
 
 
 def _profile(route_id: str, *, successes: int, seconds: float) -> Qualification:
@@ -499,6 +503,119 @@ def test_browser_post_rejection_or_cancellation_sends_nothing(tmp_path, ending: 
         assert not boundary._pending
     finally:
         controller.close()
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="requires native Windows Edge")
+@pytest.mark.parametrize("settlement", ["response", "timeout"])
+def test_native_post_cancel_drains_dispatched_transport_before_next_turn(
+    tmp_path, monkeypatch, settlement: str,
+) -> None:
+    pytest.importorskip("playwright.sync_api")
+    edge_paths = [
+        Path(os.environ.get("PROGRAMFILES(X86)", "")) / "Microsoft/Edge/Application/msedge.exe",
+        Path(os.environ.get("PROGRAMFILES", "")) / "Microsoft/Edge/Application/msedge.exe",
+    ]
+    if not any(path.is_file() for path in edge_paths):
+        pytest.skip("Microsoft Edge is not installed")
+
+    post_entered = threading.Event()
+    release_response = threading.Event()
+    sent: list[bytes] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            body = b"<html><body>POST fixture</body></html>"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_POST(self) -> None:
+            sent.append(self.rfile.read(int(self.headers["Content-Length"])))
+            post_entered.set()
+            if not release_response.wait(10):
+                return
+            self.send_response(200)
+            self.send_header("Content-Length", "2")
+            self.end_headers()
+            try:
+                self.wfile.write(b"ok")
+            except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
+                pass
+
+        def log_message(self, *_: object) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    controller = None
+    try:
+        if settlement == "timeout":
+            import vllm_omni.edge.agent.tools as browser_tools
+            monkeypatch.setattr(browser_tools, "_POST_TOTAL_TIMEOUT_SECONDS", 2.0)
+        root = f"http://127.0.0.1:{server.server_port}"
+        browser = ManagedEdgeBrowser(tmp_path / "profile", headless=True)
+        browser.open(root + "/page")
+        body = b'{"message":"one write"}'
+        reply = json.dumps({"tool": "browser_post", "args": {
+            "url": root + "/submit",
+            "body_b64": base64.b64encode(body).decode("ascii"),
+            "content_type": "application/json",
+        }})
+        controller = _controller(
+            tmp_path, _Backend([reply, '{"final":"recovered"}']),
+            WindowsToolBoundary(browser=browser),
+        )
+        challenge_ready = threading.Event()
+        events = []
+
+        def listener(event):
+            events.append(event)
+            if event["kind"] == "approval_required":
+                challenge_ready.set()
+
+        controller.add_listener(listener)
+        turn = controller.submit(f"Use the browser to POST JSON to {root}/submit")
+        assert challenge_ready.wait(5)
+        challenge_id = next(event["payload"]["challenge_id"] for event in events
+                            if event["kind"] == "approval_required")
+        controller.approve(challenge_id)
+        assert post_entered.wait(5)
+        controller.cancel()
+        assert not controller._turn_done.wait(.05)
+        with pytest.raises(RuntimeError, match="already active"):
+            controller.submit("Say ready")
+        assert sent == [body]
+        assert not any(event["kind"] == "tool_result" for event in events)
+        if settlement == "response":
+            release_response.set()
+        assert controller._turn_done.wait(10)
+        with pytest.raises(CancelledError):
+            turn.result()
+        if settlement == "response":
+            tool_results = [event for event in events if event["kind"] == "tool_result"]
+            assert len(tool_results) == 1
+            assert tool_results[0]["payload"]["operation"] == "browser_post"
+            assert tool_results[0]["payload"]["completed_during_cancel"] is True
+        else:
+            errors = [event for event in events if event["kind"] == "tool_error"]
+            assert len(errors) == 1
+            assert errors[0]["payload"]["operation"] == "browser_post"
+            assert errors[0]["payload"]["completed_during_cancel"] is True
+            assert "outcome unknown" in errors[0]["payload"]["message"]
+            release_response.set()
+        assert events[-1]["kind"] == "cancelled"
+        assert controller.submit("Say ready").result(timeout=10) == "recovered"
+        assert sent == [body]
+    finally:
+        release_response.set()
+        if controller is not None:
+            controller.close()
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
 
 
 def test_direct_concurrent_turn_cannot_change_active_request_or_memory(tmp_path) -> None:

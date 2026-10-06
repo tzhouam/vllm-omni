@@ -332,7 +332,7 @@ else:
                                    message: str) -> None:
             # A stale challenge is no longer actionable. Other failures leave
             # the item available for retry without ending the active request.
-            if kind == "ValueError":
+            if kind in {"ValueError", "TimeoutError"}:
                 self._remove_approval(challenge_id)
             self.approve_button.setEnabled(True)
             self.reject_button.setEnabled(True)
@@ -354,7 +354,9 @@ else:
             preview = QPlainTextEdit(dialog)
             preview.setObjectName("browser_post_exact_review")
             preview.setReadOnly(True)
-            preview.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
+            # The URL can be close to the 2048-byte admission limit. Wrap the
+            # complete review so its query tail cannot disappear off-screen.
+            preview.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
             preview.setPlainText(review)
             layout.addWidget(preview)
             buttons = QDialogButtonBox(
