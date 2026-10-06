@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping, Protocol
 from types import MappingProxyType
-from urllib.parse import unquote, urljoin, urlparse, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urljoin, urlparse, urlsplit, urlunsplit
 
 import psutil
 
@@ -345,7 +345,16 @@ def _network_target(url: str) -> tuple[str, str, int, str, str, str]:
     """Compare the actual HTTP request with an exact authorized navigation."""
     parsed = urlparse(_http_url(url))
     scheme, host, port = _origin(url)
-    return (scheme, host, port, parsed.path or "/", parsed.params, parsed.query)
+    # Chromium percent-encodes raw Unicode in a path/query before Playwright
+    # exposes request.url. Encode only non-ASCII code points on both sides;
+    # decoding or normalizing ASCII escapes would collapse distinct network
+    # targets such as /%2F and // or change an approved query byte sequence.
+    def browser_unicode(value: str) -> str:
+        return "".join(char if ord(char) < 128 else quote(char, safe="")
+                       for char in value)
+
+    return (scheme, host, port, browser_unicode(parsed.path or "/"),
+            browser_unicode(parsed.params), browser_unicode(parsed.query))
 
 
 def _explicit_task_urls(task: str) -> frozenset[str]:

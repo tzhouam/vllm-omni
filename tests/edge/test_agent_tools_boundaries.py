@@ -10,6 +10,7 @@ from collections import Counter
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from types import SimpleNamespace
+from urllib.parse import unquote, urlsplit
 
 import pytest
 
@@ -20,6 +21,7 @@ from vllm_omni.edge.agent.tools import (
     WindowsSettings,
     WindowsToolBoundary,
     _explicit_task_urls,
+    _network_target,
 )
 from benchmarks.edge_agent.paired_suite import FixtureSite
 
@@ -38,6 +40,17 @@ def test_trusted_url_ends_at_ordinary_prose_punctuation(task: str, expected: str
 def test_ambiguous_unquoted_han_suffix_cannot_grant_auto_navigation() -> None:
     assert _explicit_task_urls("访问https://example.test/report请总结") == frozenset()
     assert _explicit_task_urls("Read https://example.test/report,section") == frozenset()
+
+
+def test_browser_unicode_encoding_keeps_distinct_network_targets_distinct() -> None:
+    raw = "https://example.test/报告?ids=1,2;lang=中文"
+    encoded = ("https://example.test/%E6%8A%A5%E5%91%8A"
+               "?ids=1,2;lang=%E4%B8%AD%E6%96%87")
+    assert _network_target(raw) == _network_target(encoded)
+    assert _network_target("https://example.test/a%2Fb") != _network_target(
+        "https://example.test/a/b")
+    assert _network_target("https://example.test/report?ids=1%2C2") != _network_target(
+        "https://example.test/report?ids=1,2")
 
 
 class _WindowChild:
@@ -339,6 +352,64 @@ def test_native_edge_reads_text_and_inline_visual_fixture() -> None:
             assert screenshot["size_bytes"] > 1_000
         finally:
             browser.close()
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="requires native Windows Edge")
+def test_native_edge_exact_read_url_handles_unicode_path_and_query_punctuation() -> None:
+    pytest.importorskip("playwright.sync_api")
+    edge_paths = [
+        Path(os.environ.get("PROGRAMFILES(X86)", "")) / "Microsoft/Edge/Application/msedge.exe",
+        Path(os.environ.get("PROGRAMFILES", "")) / "Microsoft/Edge/Application/msedge.exe",
+    ]
+    if not any(path.is_file() for path in edge_paths):
+        pytest.skip("Microsoft Edge is not installed")
+    seen: list[str] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            seen.append(self.path)
+            body = b"<html><title>Exact target</title><body>Observed page</body></html>"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *_: object) -> None:
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with tempfile.TemporaryDirectory(prefix="omni-edge-exact-url-") as profile:
+            browser = ManagedEdgeBrowser(Path(profile), headless=True)
+            boundary = WindowsToolBoundary(browser=browser)
+            try:
+                origin = f"http://127.0.0.1:{server.server_port}"
+                for number, url in enumerate((
+                    origin + "/报告?ids=1,2;lang=中文",
+                    origin + "/report?ids=1,2;edition=3",
+                )):
+                    request_id = f"exact-{number}"
+                    boundary.register_explicit_url(request_id, url)
+                    opened = boundary.execute(ToolAction(
+                        "browser_open", {"url": url}, request_id=request_id,
+                    ))
+                    read = boundary.execute(ToolAction(
+                        "browser_read", request_id=request_id,
+                    ))
+                    assert unquote(urlsplit(opened.source).path) == urlsplit(url).path
+                    assert "Observed page" in read.data["text"]
+                    boundary.finish_request(request_id)
+                assert any("%E6%8A%A5%E5%91%8A" in path for path in seen)
+                assert any("ids=1,2;edition=3" in path for path in seen)
+            finally:
+                browser.close()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="requires native Windows Edge")
