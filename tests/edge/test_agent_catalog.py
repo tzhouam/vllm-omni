@@ -136,7 +136,11 @@ def test_mutable_artifact_and_generic_format_evidence_do_not_allow_download():
     result = preflight_artifact(candidate, _snapshot(), _runtime("Q4_K_M"))
     assert not result.download_eligible
     assert any("exact candidate architecture" in reason for reason in result.reasons)
-    assert any("not pinned" in reason for reason in result.reasons)
+    assert not any("not pinned" in reason for reason in result.reasons)
+    assert candidate.size_bytes_estimate == 18_556_685_824
+    assert candidate.declared_plan_size_gb_decimal == 18.6
+    assert candidate.checkpoint_revision is None
+    assert candidate.artifact_revision == "e4d4bafdfb96a411a163846265362aceb0b9c63a"
     mutable = replace(candidate, artifact_revision="main")
     result = preflight_artifact(
         mutable, _snapshot(), _runtime("Q4_K_M", candidate=mutable.key)

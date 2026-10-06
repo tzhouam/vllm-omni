@@ -170,7 +170,10 @@ _ENTRIES = (
     _candidate(
         "qwen3-30b-a3b-q4-k-m", "Qwen3-30B-A3B",
         "Qwen/Qwen3-30B-A3B-GGUF", "Qwen/Qwen3-30B-A3B-GGUF",
-        "Q4_K_M", 18.6, ("text",), ("general", "tools"),
+        "Q4_K_M", 18.556685824, ("text",), ("general", "tools"),
+        declared_plan_size_gb_decimal=18.6,
+        artifact_revision="e4d4bafdfb96a411a163846265362aceb0b9c63a",
+        size_basis="pinned official Hugging Face LFS size, decimal GB; not runtime peak",
     ),
     _candidate(
         "qwen3-32b-q4-k-m", "Qwen3-32B",

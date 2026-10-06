@@ -289,7 +289,15 @@ class ArtifactDownloader:
     def preflight(self, artifacts: Iterable[Artifact]) -> dict[str, int]:
         """Verify existing files/chunks and check remaining on-disk capacity."""
         items = list(artifacts)
-        self.destination.mkdir(parents=True, exist_ok=True)
+        # Keep --check genuinely read-only, including when --dest does not
+        # exist yet.  download_one creates each parent only after admission.
+        disk_root = self.destination.resolve()
+        while not disk_root.exists():
+            if disk_root == disk_root.parent:
+                raise DownloadError("cannot resolve destination filesystem")
+            disk_root = disk_root.parent
+        if not disk_root.is_dir():
+            raise DownloadError(f"destination filesystem root is not a directory: {disk_root}")
         remaining = 0
         already_verified = 0
         for artifact in items:
@@ -307,7 +315,7 @@ class ArtifactDownloader:
                     already_verified += end - start + 1
                 else:
                     remaining += end - start + 1
-        free = shutil.disk_usage(self.destination).free
+        free = shutil.disk_usage(disk_root).free
         required = remaining + self.free_reserve_bytes if remaining else 0
         if free < required:
             raise DownloadError(
@@ -479,6 +487,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--chunk-mib", type=int, default=16)
     parser.add_argument("--reserve-gib", type=float, default=2.0)
+    parser.add_argument("--candidate", help="exact reviewed edge Agent catalog key")
+    parser.add_argument("--runtime-index", type=Path,
+                        help="native whole-Agent index proving exact runtime load and inference")
+    parser.add_argument("--research-download", type=Path, metavar="ARCHITECTURE_PROBE",
+                        help="quarantined first-weight tier using a pinned weak GGUF diagnostic")
     parser.add_argument("--check", action="store_true",
                         help="verify existing bytes and disk capacity without downloading")
     parser.add_argument("--reset-partial", action="store_true",
@@ -486,18 +499,50 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.check and args.reset_partial:
         parser.error("--check and --reset-partial cannot be combined")
+    if args.runtime_index and args.research_download:
+        parser.error("--runtime-index and --research-download cannot be combined")
     try:
         artifacts = load_manifest(args.manifest)
+        binding = None
+        if args.candidate:
+            from benchmarks.edge_agent.download_gate import bind_reviewed_manifest
+            binding = bind_reviewed_manifest(args.candidate, args.manifest, artifacts)
+        if not args.check and not args.reset_partial and binding is None:
+            raise DownloadError("network download requires --candidate bound to a reviewed manifest")
+        # Local --check and --reset-partial stay offline and require no runtime
+        # proof.  For network mode, admission runs before token lookup or any
+        # ArtifactDownloader construction/transport.
+        gate = None
+        if not args.check and not args.reset_partial:
+            from benchmarks.edge_agent.download_gate import gate_download, live_capacity_snapshot
+            snapshot = live_capacity_snapshot(args.dest)
+            gate = gate_download(binding, snapshot, runtime_index=args.runtime_index,
+                                 research_probe=args.research_download)
         downloader = ArtifactDownloader(
             args.dest, workers=args.workers, chunk_bytes=args.chunk_mib * 1024 * 1024,
             free_reserve_bytes=int(args.reserve_gib * 1024 ** 3),
-            token=os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN"))
+            token=(os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN"))
+            if gate is not None else None)
         if args.reset_partial:
             for artifact in artifacts:
                 downloader.reset_partial(artifact)
         capacity = downloader.preflight(artifacts)
+        if gate is not None:
+            catalog_status = gate["tier"]
+            catalog_reasons: list[str] = []
+        elif binding is not None:
+            catalog_status = "reviewed_binding_only_download_not_eligible"
+            catalog_reasons = ["offline check did not verify live capacity or exact runtime execution"]
+        else:
+            catalog_status = "unbound_offline_transport_check_only"
+            catalog_reasons = ["no reviewed candidate binding or runtime preflight was requested"]
         print(json.dumps({"manifest": str(args.manifest), "destination": str(args.dest),
-                          "capacity": capacity, "artifacts": [artifact.filename for artifact in artifacts]},
+                          "capacity": capacity, "catalog_gate": gate,
+                          "catalog_status": catalog_status,
+                          "catalog_download_eligible": gate is not None,
+                          "catalog_reasons": catalog_reasons,
+                          "candidate_binding_sha256": binding.manifest_sha256 if binding else None,
+                          "artifacts": [artifact.filename for artifact in artifacts]},
                          indent=2))
         if args.check:
             return 0
@@ -514,7 +559,7 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps({"path": str(result.path), "bytes": result.size,
                               "sha256": result.sha256, "cached": result.cached}))
         return 0
-    except (DownloadError, ValueError, OSError, json.JSONDecodeError) as exc:
+    except (DownloadError, ValueError, OSError, TypeError, AttributeError, KeyError) as exc:
         print(f"download refused: {exc}", file=sys.stderr)
         return 2
 
