@@ -25,7 +25,7 @@ from vllm_omni.edge.agent.router import (
 )
 from vllm_omni.edge.agent.tools import (
     ApprovalRequired, ToolAction, ToolRequestCancelled, WindowsToolBoundary,
-    _explicit_task_urls,
+    _exact_user_url,
 )
 from vllm_omni.engine.resource_ledger import GraphRequestGate
 
@@ -113,9 +113,10 @@ def _safe_observation(value: Mapping[str, Any], limit: int) -> tuple[str, str | 
 
 
 def _validate_structured_read_url(url: str, instruction: str) -> None:
-    if (not isinstance(url, str) or not url or
-            _explicit_task_urls(url) != frozenset({url})):
-        raise ValueError("a single absolute URL is required for Read URL")
+    try:
+        _exact_user_url(url)
+    except ValueError as exc:
+        raise ValueError("a single absolute URL is required for Read URL") from exc
     if not isinstance(instruction, str) or not instruction.strip():
         raise ValueError("a nonempty instruction is required for Read URL")
 
@@ -426,7 +427,10 @@ class AgentController:
                 _validate_structured_read_url(read_url, prompt)
             # The structured URL field, not arbitrary instruction/model text,
             # is the only URL registered for this explicit fast path.
-            self.tools.register_user_task(request_id, read_url if read_url is not None else prompt)
+            if read_url is not None:
+                self.tools.register_explicit_url(request_id, read_url)
+            else:
+                self.tools.register_user_task(request_id, prompt)
             current_observation_id = self._emit(
                 "user_observation", (
                     {"text": prompt, "read_url": read_url, "mode": "read_url"}

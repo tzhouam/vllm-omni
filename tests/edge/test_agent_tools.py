@@ -205,6 +205,55 @@ def test_browser_open_requires_exact_current_user_url_and_does_not_reuse_it() ->
                                     request_id="request-2"))
 
 
+@pytest.mark.parametrize("url", [
+    "https://example.test/report?ids=1,2",
+    "https://example.test/report;edition=2",
+    "https://example.test/报告?语言=中文",
+    "https://example.test/report.",
+])
+def test_dedicated_exact_url_accepts_url_punctuation_and_unicode(url: str) -> None:
+    browser = FakeBrowser()
+    boundary = WindowsToolBoundary(browser=browser)
+    boundary.register_explicit_url("request-1", url)
+    assert boundary.execute(ToolAction("browser_open", {"url": url},
+                                       request_id="request-1")).source == url
+    with pytest.raises(ApprovalRequired) as required:
+        boundary.execute(ToolAction("browser_open", {"url": url + "changed"},
+                                    request_id="request-1"))
+    assert required.value.challenge.target == {"url": url + "changed"}
+    boundary.reject(required.value.challenge.challenge_id)
+    boundary.finish_request("request-1")
+
+
+@pytest.mark.parametrize("url", [
+    "https://example.test/one https://example.test/two",
+    " https://example.test/one",
+    "https://example.test/one\n",
+    "javascript:alert(1)",
+    "https://user:password@example.test/",
+])
+def test_dedicated_exact_url_rejects_invalid_or_multiple_urls(url: str) -> None:
+    boundary = WindowsToolBoundary(browser=FakeBrowser())
+    with pytest.raises(ValueError):
+        boundary.register_explicit_url("request-1", url)
+    # Invalid input must not occupy or grant authority for the request.
+    boundary.register_explicit_url("request-1", "https://example.test/valid")
+    assert boundary.execute(ToolAction(
+        "browser_open", {"url": "https://example.test/valid"},
+        request_id="request-1",
+    )).source == "https://example.test/valid"
+
+
+def test_dedicated_url_cannot_replace_existing_trusted_task() -> None:
+    boundary = WindowsToolBoundary(browser=FakeBrowser())
+    boundary.register_user_task("request-1", "Read https://example.test/first")
+    with pytest.raises(ValueError, match="already registered"):
+        boundary.register_explicit_url("request-1", "https://example.test/second")
+    with pytest.raises(ApprovalRequired):
+        boundary.execute(ToolAction("browser_open", {"url": "https://example.test/second"},
+                                    request_id="request-1"))
+
+
 def test_browser_follow_requires_observed_anchor_and_cross_origin_approval() -> None:
     browser = FakeBrowser()
     boundary = WindowsToolBoundary(browser=browser)

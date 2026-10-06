@@ -1061,6 +1061,26 @@ def test_structured_read_url_observes_page_before_first_model_step(tmp_path) -> 
         controller.close()
 
 
+@pytest.mark.parametrize("url", [
+    "https://example.com/report?ids=1,2",
+    "https://example.com/report;edition=2",
+    "https://example.com/报告?语言=中文",
+])
+def test_structured_read_url_accepts_one_exact_url_with_punctuation(tmp_path, url) -> None:
+    backend = _Backend(["Example Domain"])
+    browser = _Browser()
+    controller = _controller(tmp_path, backend, WindowsToolBoundary(browser=browser))
+    try:
+        assert controller.submit_read_url(url, "Answer with the page title").result(
+            timeout=10,
+        ) == "Example Domain"
+        assert browser.opened == [url]
+        assert len(backend.prompts) == 1
+        assert json.loads(backend.prompts[0])["observations"][0]["source"] == url
+    finally:
+        controller.close()
+
+
 @pytest.mark.parametrize("url,instruction", [
     ("https://example.com https://other.example", "Read it"),
     ("https://example.com,https://other.example", "Read it"),

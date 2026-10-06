@@ -370,6 +370,27 @@ def _explicit_task_urls(task: str) -> frozenset[str]:
     return frozenset(urls)
 
 
+def _exact_user_url(url: str) -> str:
+    """Validate a URL supplied in a dedicated field, without parsing prose."""
+    if not isinstance(url, str):
+        raise ValueError("an exact HTTP(S) URL is required")
+    _http_url(url)
+    if any(char.isspace() for char in url):
+        raise ValueError("an exact HTTP(S) URL cannot contain whitespace")
+    parsed = urlsplit(url)
+    # Commas and semicolons are legitimate in a path/query, but never in an
+    # authority. Refuse pasted `host,https://other` rather than trusting the
+    # apparent prefix; also reject malformed port spellings before admission.
+    if (parsed.hostname is None or any(char in parsed.netloc for char in ",;!")
+            or parsed.netloc.endswith(":")):
+        raise ValueError("an exact HTTP(S) URL has an invalid authority")
+    try:
+        parsed.port
+    except ValueError as exc:
+        raise ValueError("an exact HTTP(S) URL has an invalid port") from exc
+    return url
+
+
 def _high_impact_text(*values: Any) -> bool:
     # Decode URLs and split path/slug separators so /delete-account and
     # ?action=reset are checked like visible control labels. Split camelCase
@@ -1040,6 +1061,21 @@ class WindowsToolBoundary:
             if request_id in self._task_urls:
                 raise ValueError("user task is already registered for this request")
             self._task_urls[request_id] = urls
+
+    def register_explicit_url(self, request_id: str, url: str) -> None:
+        """Trust only one exact URL from the dedicated Read URL input field.
+
+        Unlike ``register_user_task``, this does not interpret prose, so a
+        legitimate comma, semicolon, or Unicode path remains part of the URL.
+        All other destinations and high-impact GETs still require approval.
+        """
+        if not request_id:
+            raise ValueError("a request ID is required")
+        exact_url = _exact_user_url(url)
+        with self._lock:
+            if request_id in self._task_urls:
+                raise ValueError("user task is already registered for this request")
+            self._task_urls[request_id] = frozenset({exact_url})
 
     def cancel_request(self, request_id: str) -> None:
         """Revoke queued actions and unused approvals for one request."""
