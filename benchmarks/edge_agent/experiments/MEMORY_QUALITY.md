@@ -75,7 +75,7 @@ and remain diagnostic; their records are not rewritten or promoted
 retroactively. A third, manually reviewed
 [sanitized aggregate entry](../public_evidence/agent_memory_quality_20261006.json)
 records `memory_quality_442380f3ffa6407c95481631f45af084`, bound to
-the later current-source Gemma fixed-memory profile and loaded runtime. Its
+the later recorded-source Gemma fixed-memory profile and loaded runtime. Its
 four English/Chinese source-and-distractor, exact-answer, and cascading
 deletion cases passed **4/4** with the same batch-one, single-request
 condition. The profile and probe raw SHA-256 digests are published in the

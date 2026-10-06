@@ -245,7 +245,7 @@ the [rolling status](STATUS.md) gives the index/summary hashes and p50/p95.
 Its source/runtime digests matched at measurement time, but subsequent browser
 boundary changes make it historical for final-code release matching. The
 earlier three full profiles, including `native_37aad46efd4f4893a497a7bfaa83599d`,
-are also historical. A separate [current-source fixed-memory profile](public_evidence/agent_native_memory_current_20261006.json)
+are also historical. A separate [recorded-source fixed-memory profile](public_evidence/agent_native_memory_current_20261006.json)
 `native_17a071233dec43b892cade1e8ebbe512` passed **60/60 measured**
 requests (20 per length) and **564/564 sequential endurance** requests over
 1,803.75 seconds of active Agent work. Raw trace, case, and batch-one protocol
@@ -257,7 +257,10 @@ records **4/4** narrow cross-session source, exact-answer, and deletion
 checks. The [bound admission and cancellation diagnostics](public_evidence/agent_native_memory_diagnostics_20261006.json)
 record one complete turn, two preallocation budget refusals, released ledgers,
 and an exact recovered answer on a new worker generation. These observations
-remain unsigned and do not qualify a default route.
+remain unsigned and do not qualify a default route. A subsequent catalog
+metadata change alters imported-source identity, so strict current-head
+qualification requires a new matching profile even though this recorded-source
+task result remains valid.
 
 The post-hardening browser-text-only smoke
 `native_f97dc44f38024b2d82794e73b1b745de` passed 6/6 with a valid raw
@@ -269,12 +272,21 @@ requests** over 1,808.30 active seconds. Raw trace, fixed-suite case, and
 batch-one protocol audits pass; the imported-source/runtime digests matched
 the reviewed code at measurement time. Subsequent `browser_post` changes make
 this full read-only profile historical for current-source release matching.
-Whole-Agent answer p95 was **9.46,
-11.97, and 14.44 seconds** for short, medium, and long cases, so medium and
-long missed the 10-second normal-answer target. The [rolling status](STATUS.md)
-reports TTFT, hashes, cold load, and sampled telemetry. This fixed-page read
-observation does not qualify open-web behavior, browser writes, vision, or a
-default route. An earlier browser-vision smoke passed 12/12, but a later desktop capture run
+Whole-Agent answer p95 was **9.46, 11.97, and 14.44 seconds** for short,
+medium, and long cases, so medium and long missed the 10-second normal-answer
+target. A newer [recorded-source full browser-text profile](public_evidence/agent_native_browser_text_current_20261006.json)
+`native_054cd07c271e4e698d4f5bc4f275dbaa` passed **60/60 measured**
+fixed local-page reads and **160/160 sequential endurance** requests over
+1,810.67 active seconds. Raw trace, fixed-suite case, and batch-one protocol
+audits passed. Complete-answer p95 was **11.72, 11.19, and 13.58 seconds**
+for short, medium, and long inputs: **all three missed** the 10-second target.
+The loaded Agent runtime SHA-256 was
+`c15b43d95183c4cb55fb5352d112891187751f0eb203704c524d4659a80816e9`;
+subsequent catalog metadata changes require a new matching profile for strict
+current-head release review. The [rolling status](STATUS.md) reports TTFT,
+hashes, cold load, and sampled telemetry. These fixed-page reads do not qualify
+open-web behavior, browser writes, vision, or a default route. An earlier
+browser-vision smoke passed 12/12, but a later desktop capture run
 without foreground verification reconstructed only 6/12 and cannot isolate
 model quality from visibility. A later visual attempt completed one
 warmup and one measured browser screenshot, then stopped before the next

@@ -118,7 +118,7 @@ protocol and fixed-suite case audits. Its imported source and runtime digests
 matched at measurement time. Subsequent browser click/fill boundary and
 approved-POST changes altered the imported Omni source, so this and the
 earlier three completed runs are historical for final-code qualification.
-The newer [current-source fixed-memory profile](public_evidence/agent_native_memory_current_20261006.json)
+The newer [recorded-source fixed-memory profile](public_evidence/agent_native_memory_current_20261006.json)
 `native_17a071233dec43b892cade1e8ebbe512` passed **60/60 measured**
 requests, 20 per length, and **564/564 sequential endurance** requests over
 1,803.75 active seconds. Raw trace, fixed-suite case, and batch-one protocol
@@ -127,7 +127,9 @@ audits passed without errors. Its loaded Agent runtime digest is
 Whole-answer p95 was 2.58, 2.80, and 4.10 s for short, medium, and long
 fixed-memory inputs. The large difference from prior memory timings has no
 established cause or controlled paired comparison and must not be called a
-route speedup.
+route speedup. A subsequent catalog metadata change alters imported Omni
+source identity. The profile remains valid for its recorded source, while a
+strict current-head release match requires a repeat.
 
 A separate [profile-bound bilingual quality probe](public_evidence/agent_memory_quality_20261006.json)
 passed **4/4** source/distractor, exact-answer, and deletion cases. Bound
@@ -137,10 +139,11 @@ released ledgers, and an exact recovered answer after cancellation. Their
 raw hashes and profile binding are public; full traces remain private. These
 diagnostics have **not** been independently reviewed and signed as the five
 required release gates, and the four-case suite cannot establish open-domain
-memory quality. No route is a qualified default. The separate
-later browser-text protocol below covers only its fixed local-page read task
-and predates the approved HTTP POST path; it is also historical for
-current-code release matching. Other classes require their own full profiles.
+memory quality. No route is a qualified default. The earlier browser-text
+protocol below predates the approved HTTP POST path. The newer recorded-source
+read-only protocol also remains scoped to its fixed local page; a catalog
+metadata change after measurement prevents strict current-head matching.
+Other classes require their own full profiles.
 
 The separate Gemma artifact probe matches the pinned official GGUF and visual
 projector bytes to their published LFS identities, commit and license metadata.
@@ -169,6 +172,21 @@ and long missed the 10-second normal-answer target. This narrow fixed-page
 read result does not qualify a default route or open-web browsing, browser
 writes, desktop vision, or other task classes. Independent signed memory,
 cancellation, placement, lineage, and bilingual quality gates remain open.
+
+The newer [recorded-source browser-text profile](public_evidence/agent_native_browser_text_current_20261006.json)
+`native_054cd07c271e4e698d4f5bc4f275dbaa` passed **60/60 measured**
+fixed local-page reads (20 per length after separate warmups) and **160/160
+sequential endurance** requests over 1,810.67 active seconds. Independent
+raw trace, fixed-suite case, and batch-one protocol audits passed without
+errors. Its loaded Agent runtime SHA-256 was
+`c15b43d95183c4cb55fb5352d112891187751f0eb203704c524d4659a80816e9`.
+Complete-answer p95 was **11.72, 11.19, and 13.58 s** for short, medium,
+and long inputs, so all three miss the 10 s normal-answer target. The source
+and runtime matched at measurement; a later catalog metadata change means
+strict current-head release matching requires a new run. This narrow
+read-only result does not qualify approved HTTP POST, open-web browsing,
+desktop vision, other task classes, or a default route. Signed gates remain
+open.
 
 Every `screen_capture` now needs one-shot sensitive-read approval, even when
 the trusted-task intent matcher admits the tool. URL and path tokens are masked
