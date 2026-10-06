@@ -11,7 +11,10 @@ from __future__ import annotations
 import ctypes
 import asyncio
 import base64
+import binascii
+import contextlib
 import hashlib
+import hmac
 import io
 import json
 import os
@@ -40,7 +43,7 @@ _READ_OPERATIONS = frozenset({
     "settings_read",
     "settings_inspect",
 })
-_WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "settings_set"})
+_WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "browser_post", "settings_set"})
 _ALL_OPERATIONS = _READ_OPERATIONS | _WRITE_OPERATIONS
 SUPPORTED_OPERATIONS = tuple(sorted(_ALL_OPERATIONS))
 _SETTINGS_PAGES = {
@@ -57,6 +60,11 @@ _SETTINGS_PAGE_HEADINGS = {
 }
 _PAGE_HEADING_IDS = frozenset({"pagetitle", "pageheader", "settingspagetitle"})
 _APPROVAL_TTL_SECONDS = 300.0
+_MAX_POST_BODY_BYTES = 64 * 1024
+_POST_CONTENT_TYPES = frozenset({
+    "application/json", "application/x-www-form-urlencoded",
+    "text/plain; charset=utf-8", "application/octet-stream",
+})
 _MANAGED_BROWSER_WRITE_BLOCK_REASON = (
     "Managed Edge browser clicks and fills are disabled until native interactions "
     "can be isolated and verified"
@@ -152,6 +160,9 @@ class BrowserBackend(Protocol):
     def fill(self, selector: str, value: str) -> Mapping[str, Any]: ...
     def current_url(self) -> str: ...
     def describe_target(self, selector: str) -> Mapping[str, Any]: ...
+    def post_context(self, url: str) -> Mapping[str, Any]: ...
+    def post_exact(self, url: str, body: bytes, content_type: str,
+                   cookie_fingerprint: str, page_url: str) -> Mapping[str, Any]: ...
 
 
 class SettingsBackend(Protocol):
@@ -179,6 +190,30 @@ def _http_url(url: str) -> str:
     if parsed.username is not None or parsed.password is not None:
         raise ValueError("credentials in browser URL are not allowed")
     return url
+
+
+def _post_url(url: str) -> str:
+    target = _http_url(url)
+    parsed = urlparse(target)
+    if (not target.isascii() or any(char.isspace() for char in target)
+            or parsed.fragment or "#" in target):
+        raise ValueError("browser POST requires an exact ASCII URL without whitespace or fragment")
+    _origin(target)  # Also reject malformed ports before requesting approval.
+    return target
+
+
+def _post_body(body_b64: str) -> bytes:
+    if not isinstance(body_b64, str):
+        raise ValueError("browser POST body must be canonical base64")
+    if len(body_b64) > ((_MAX_POST_BODY_BYTES + 2) // 3) * 4:
+        raise ValueError("browser POST body exceeds the 64 KiB limit")
+    try:
+        body = base64.b64decode(body_b64, validate=True)
+    except (ValueError, binascii.Error) as exc:
+        raise ValueError("browser POST body must be canonical base64") from exc
+    if len(body) > _MAX_POST_BODY_BYTES or base64.b64encode(body).decode("ascii") != body_b64:
+        raise ValueError("browser POST body must be canonical base64 under 64 KiB")
+    return body
 
 
 def _origin(url: str) -> tuple[str, str, int]:
@@ -254,6 +289,7 @@ class ManagedEdgeBrowser:
         self._navigation_target_used = False
         self._blocked_navigation: str | None = None
         self._blocked_request_count = 0
+        self._cookie_fingerprint_key = secrets.token_bytes(32)
         self._worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-edge-browser")
 
     def _call(self, function: Any, *args: Any) -> Any:
@@ -322,6 +358,93 @@ class ManagedEdgeBrowser:
 
     def current_url(self) -> str:
         return self._call(lambda: str(self._ensure_page().url))
+
+    def _post_snapshot(self, url: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+        page = self._ensure_page()
+        target = _post_url(url)
+        page_url = str(page.url)
+        if _origin(page_url) != _origin(target):
+            raise PermissionError("browser POST must target the current page origin")
+        # Only cookies applicable to the exact destination enter the request.
+        # HMAC avoids disclosing even short cookie values through the UI hash.
+        cookies = json.loads(json.dumps(self._context.cookies(target), allow_nan=False))
+        canonical = json.dumps(
+            sorted(cookies, key=lambda item: json.dumps(item, sort_keys=True)),
+            sort_keys=True, separators=(",", ":"), allow_nan=False,
+        ).encode("utf-8")
+        fingerprint = hmac.new(
+            self._cookie_fingerprint_key, canonical, hashlib.sha256,
+        ).hexdigest()
+        return ({
+            "current_url": page_url,
+            "cookie_fingerprint": fingerprint,
+            "cookie_count": len(cookies),
+        }, cookies)
+
+    def post_context(self, url: str) -> Mapping[str, Any]:
+        return self._call(lambda: self._post_snapshot(url)[0])
+
+    def post_exact(self, url: str, body: bytes, content_type: str,
+                   cookie_fingerprint: str, page_url: str) -> Mapping[str, Any]:
+        return self._call(self._post_exact, url, body, content_type,
+                          cookie_fingerprint, page_url)
+
+    def _post_exact(self, url: str, body: bytes, content_type: str,
+                    cookie_fingerprint: str, page_url: str) -> Mapping[str, Any]:
+        target = _post_url(url)
+        if type(body) is not bytes or len(body) > _MAX_POST_BODY_BYTES:
+            raise ValueError("browser POST body must be bytes under 64 KiB")
+        if content_type not in _POST_CONTENT_TYPES:
+            raise ValueError("browser POST Content-Type is not allowlisted")
+        context, cookies = self._post_snapshot(target)
+        if (context["current_url"] != page_url or
+                not hmac.compare_digest(context["cookie_fingerprint"], cookie_fingerprint)):
+            raise RuntimeError("browser page or cookie context changed after POST approval")
+        # Use an isolated APIRequestContext so a Set-Cookie response cannot
+        # silently change the managed page's cookie jar. The snapshot is the
+        # only cookie state this one request can send.
+        api_context = self._playwright.request.new_context(
+            storage_state={"cookies": cookies, "origins": []},
+            ignore_https_errors=False, max_redirects=0,
+        )
+        try:
+            try:
+                response = api_context.post(
+                    target, data=body, headers={"Content-Type": content_type},
+                    timeout=30_000, max_redirects=0, max_retries=0,
+                    fail_on_status_code=False, ignore_https_errors=False,
+                )
+            except Exception as exc:
+                # Once a POST is dispatched, a timeout cannot tell us whether
+                # the server committed it. Never retry under this approval.
+                raise RuntimeError(
+                    "browser POST outcome unknown; it may have reached the server; do not retry automatically"
+                ) from exc
+            try:
+                status = int(response.status)
+                response_url = str(response.url)
+                if _network_target(response_url) != _network_target(target):
+                    raise RuntimeError("browser POST response target changed unexpectedly")
+                raw = response.body()
+                return {
+                    "url": target,
+                    "status": status,
+                    "redirect_followed": False,
+                    "redirect_blocked": 300 <= status < 400,
+                    "body_excerpt": raw[:4096].decode("utf-8", errors="replace"),
+                    "body_truncated": len(raw) > 4096,
+                    "body_size": len(raw),
+                }
+            except Exception as exc:
+                raise RuntimeError(
+                    "browser POST was sent but response is uncertain; do not retry automatically"
+                ) from exc
+            finally:
+                with contextlib.suppress(Exception):
+                    response.dispose()
+        finally:
+            with contextlib.suppress(Exception):
+                api_context.dispose()
 
     def bring_to_front(self) -> Mapping[str, Any]:
         """Select the managed tab for a trusted desktop fixture setup."""
@@ -882,6 +1005,10 @@ class WindowsToolBoundary:
             current, _ = self._navigation_context(action)
             if current != pending.context:
                 raise RuntimeError("browser target changed after approval was requested")
+        elif action.operation == "browser_post":
+            current = self._post_context(action)
+            if current != pending.context:
+                raise RuntimeError("browser POST target or cookie context changed after approval was requested")
         elif action.operation in {"browser_click", "browser_fill"}:
             current = dict(self.browser.describe_target(str(action.arguments["selector"])))
             if current != pending.context:
@@ -917,6 +1044,8 @@ class WindowsToolBoundary:
         if context is None:
             if action.operation in {"browser_click", "browser_fill", "browser_follow"}:
                 context = dict(self.browser.describe_target(str(action.arguments["selector"])))
+            elif action.operation == "browser_post":
+                context = self._post_context(action)
             elif action.operation == "browser_open":
                 context = {"url": str(action.arguments["url"])}
             elif action.operation == "settings_set":
@@ -928,7 +1057,7 @@ class WindowsToolBoundary:
         # after the current DOM target has been checked against it again.
         context = MappingProxyType(json.loads(json.dumps(dict(context), ensure_ascii=False, allow_nan=False)))
         risk = "system_change" if action.operation == "settings_set" else "external_action"
-        if action.operation in {"browser_open", "browser_follow"}:
+        if action.operation in {"browser_open", "browser_follow", "browser_post"}:
             risk = "high_impact_external_action"
         if action.operation == "browser_click":
             if _high_impact_text(*(context.get(key) for key in
@@ -939,6 +1068,7 @@ class WindowsToolBoundary:
             "browser_follow": "Follow a link that may send, delete, or change external data",
             "browser_click": "Click a browser control; this may send, buy, delete, or change external data",
             "browser_fill": "Fill a browser control; this may save data on an external site",
+            "browser_post": "Send this exact HTTP POST body to the approved same-origin URL once",
             "settings_set": "Change an allowlisted Windows setting",
         }[action.operation]
         challenge = ApprovalChallenge(
@@ -958,6 +1088,25 @@ class WindowsToolBoundary:
             )
         return challenge
 
+    def _post_context(self, action: ToolAction) -> dict[str, Any]:
+        url = _post_url(str(action.arguments["url"]))
+        body = _post_body(action.arguments["body_b64"])
+        snapshot = getattr(self.browser, "post_context", None)
+        if not callable(snapshot):
+            raise PermissionError("browser backend has no isolated POST capability")
+        observed = dict(snapshot(url))
+        if (not isinstance(observed.get("cookie_fingerprint"), str)
+                or not isinstance(observed.get("current_url"), str)):
+            raise RuntimeError("browser POST cookie context could not be verified")
+        return {
+            "url": url, "current_url": observed["current_url"],
+            "content_type": action.arguments["content_type"],
+            "body_sha256": hashlib.sha256(body).hexdigest(),
+            "body_size": len(body),
+            "cookie_fingerprint": observed["cookie_fingerprint"],
+            "cookie_count": observed.get("cookie_count"),
+        }
+
     @staticmethod
     def _validate(action: ToolAction) -> None:
         arguments = action.arguments
@@ -969,6 +1118,7 @@ class WindowsToolBoundary:
             "screen_capture": set(),
             "browser_click": {"selector"},
             "browser_fill": {"selector", "value"},
+            "browser_post": {"url", "body_b64", "content_type"},
             "settings_open": {"page"},
             "settings_read": {"setting"},
             "settings_inspect": {"page"},
@@ -981,6 +1131,12 @@ class WindowsToolBoundary:
                 raise ValueError(f"{key} must be a nonempty string")
         if action.operation == "browser_open":
             _http_url(str(arguments["url"]))
+        if action.operation == "browser_post":
+            _post_url(str(arguments["url"]))
+            _post_body(arguments["body_b64"])
+            if (not isinstance(arguments["content_type"], str)
+                    or arguments["content_type"] not in _POST_CONTENT_TYPES):
+                raise ValueError("browser POST Content-Type is not allowlisted")
         if action.operation.startswith("settings_"):
             if "page" in arguments and arguments["page"] not in _SETTINGS_PAGES:
                 raise ValueError("settings page is not allowlisted")
@@ -1025,6 +1181,22 @@ class WindowsToolBoundary:
         elif op == "browser_fill":
             data = self.browser.fill(str(args["selector"]), str(args["value"]))
             source = str(data.get("url", self.browser.current_url()))
+        elif op == "browser_post":
+            if navigation_context is None:
+                raise AssertionError("browser POST requires frozen approval context")
+            sender = getattr(self.browser, "post_exact", None)
+            if not callable(sender):
+                raise PermissionError("browser backend has no isolated POST capability")
+            body = _post_body(args["body_b64"])
+            if hashlib.sha256(body).hexdigest() != navigation_context["body_sha256"]:
+                raise RuntimeError("browser POST body changed after approval")
+            data = sender(
+                str(navigation_context["url"]), body,
+                str(navigation_context["content_type"]),
+                str(navigation_context["cookie_fingerprint"]),
+                str(navigation_context["current_url"]),
+            )
+            source = str(navigation_context["url"])
         elif op == "settings_open":
             data = self.settings.open(str(args["page"]))
             source = str(data.get("uri", args["page"]))
