@@ -7,5 +7,6 @@
 !agent_native_memory_diagnostics_20261006.json
 !agent_qwen3_30b_native_20261006.json
 !agent_qwen3_6_visual_20261006.json
+!agent_gemma4_lineage_review_20261006.json
 !qwen3_6_budget_v2_loader.log
 !qwen3_6_host_mapped_loader.log

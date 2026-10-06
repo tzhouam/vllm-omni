@@ -1,0 +1,45 @@
+{
+  "schema": "edge-agent-artifact-lineage-documentary-review-v1",
+  "reviewed_date": "2026-10-06",
+  "status": "unsigned_documentary_evidence_only",
+  "scope": "Google-published Gemma 4 31B instruction-tuned QAT Q4_0 GGUF model and F16 visual projector at one pinned repository revision",
+  "qualification_status": "not_a_signed_checkpoint_lineage_gate; no route promotion",
+  "source": {
+    "repository": "https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf",
+    "revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+    "pinned_model_card": "https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf/raw/59dde24573e7e61570dba08b18a2e1fe246955ed/README.md",
+    "publisher_declared_base_model": "google/gemma-4-31B-it-qat-q4_0-unquantized",
+    "publisher_declared_quantization": "QAT Q4_0 GGUF",
+    "publisher_declared_license": "apache-2.0",
+    "publisher_license_text": "https://ai.google.dev/gemma/apache_2"
+  },
+  "artifacts": [
+    {
+      "role": "model",
+      "filename": "gemma-4-31B_q4_0-it.gguf",
+      "pinned_file_page": "https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf/blob/59dde24573e7e61570dba08b18a2e1fe246955ed/gemma-4-31B_q4_0-it.gguf",
+      "publisher_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+      "publisher_size_bytes": 17651001568,
+      "private_probe_observed_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+      "private_probe_observed_size_bytes": 17651001568
+    },
+    {
+      "role": "projector",
+      "filename": "gemma-4-31B-it-mmproj.gguf",
+      "pinned_file_page": "https://huggingface.co/google/gemma-4-31B-it-qat-q4_0-gguf/blob/59dde24573e7e61570dba08b18a2e1fe246955ed/gemma-4-31B-it-mmproj.gguf",
+      "publisher_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+      "publisher_size_bytes": 1200726368,
+      "private_probe_observed_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+      "private_probe_observed_size_bytes": 1200726368
+    }
+  ],
+  "private_probe": {
+    "file_sha256": "b6603363544234db19e19ef7996dfda9dfd9cc0d1ae0472a153a62986cd2e52f",
+    "record_sha256": "140ed2ac7ef990b76d338b1206993a3734874fa2c1d113a1268ae765a53cea39",
+    "record_type": "checkpoint_lineage_probe_v1",
+    "local_artifact_hashes_recomputed_by_this_review": false
+  },
+  "review_finding": "At the pinned revision, Google's model card declares the QAT base and Apache 2.0 license, and the published model and projector hashes match the hashes recorded by the existing private local probe.",
+  "derivation_independently_verified": false,
+  "limits": "The publisher's base-model and QAT derivation statements are documented claims, not an independent conversion or training audit. This record does not establish output quality, BF16 equivalence, runtime placement, or current-source route qualification. A reviewer must bind any later signed gate receipt to the exact full-profile identity and independently inspect the private probe."
+}
