@@ -1,0 +1,12 @@
+{
+  "routes": {
+    "qwen3-30b-a3b-q4-k-m-windows-cpu-experts40": {
+      "model_sha256": "0d003f6662faee786ed5da3e31b29c978de5ae5d275c8794c606a7f3c01aa8f5",
+      "checkpoint_revision": "unverified-source-checkpoint-commit",
+      "artifact_revision": "e4d4bafdfb96a411a163846265362aceb0b9c63a",
+      "precision": "official Qwen3-30B-A3B Q4_K_M GGUF",
+      "license": "apache-2.0",
+      "lineage_verified": false
+    }
+  }
+}
