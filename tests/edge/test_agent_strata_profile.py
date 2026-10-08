@@ -594,9 +594,11 @@ def test_native_bridge_preparation_and_result_preserve_null_and_full_plan(fixtur
     assert prep.actual_placement is None
     assert prep.details["execution_plan"] == fixture.plan
     assert prep.details["loaded_plan_sha256"] == evidence_sha256(fixture.plan)
-    # The fixture records one real generate invocation identity without
-    # claiming to execute a neural model during this bridge unit test.
-    bridge._prompt_backend.identities = lambda: [{"step": 0, "sha256": "a" * 64, "utf8_bytes": 1, "chars": 1}]
+    # Supply one synthetic invocation identity for the bridge snapshot API;
+    # this fixture does not dispatch a model request.
+    bridge._prompt_backend.snapshot_and_reset = lambda: (
+        [{"step": 0, "sha256": "a" * 64, "utf8_bytes": 1, "chars": 1}], None,
+    )
     case = build_paired_cases("http://127.0.0.1:1234", 10)["code_tools"]["short"][0]
     result = asyncio.run(bridge.run(fixture.route, case, lambda *_: None))
     assert result.actual_placement is None and result.complete_agent_trace

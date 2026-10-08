@@ -23,6 +23,11 @@ from urllib.parse import urlparse
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
+from vllm_omni.edge.agent.consumer_trace import (
+    consumer_trace_requested,
+    validate_consumer_trace,
+    validated_consumer_final,
+)
 from vllm_omni.edge.agent.fixed_suite import canonical_fixed_cases
 from vllm_omni.edge.agent.placement import (
     STRATA_BACKEND,
@@ -163,10 +168,146 @@ def _evaluate_case(case: Mapping[str, Any], result: Mapping[str, Any]) -> dict[s
     }
 
 
+def _consumer_task_binding(row: Mapping[str, Any], *, structured_origin: str | None) -> dict[str, Any]:
+    """Bind permissions to the case and its independent trusted input field."""
+    case = row["case"]
+    text = case["prompt"]
+    if not isinstance(text, str) or not text:
+        raise ValueError("consumer task needs exact nonempty user text")
+    encoded = text.encode("utf-8")
+    read_url = None
+    if structured_origin is not None:
+        if not _structured_request_valid(row, structured_origin):
+            raise ValueError("consumer Read URL differs from its fixed input contract")
+        read_url = case["metadata"]["source"]
+    else:
+        expected = {
+            "submission_mode": "model_selected_tools_v1",
+            "case_id": case["case_id"],
+            "instruction_sha256": hashlib.sha256(encoded).hexdigest(),
+            "instruction_utf8_bytes": len(encoded),
+            "explicit_read_url": None,
+        }
+        expected["contract_sha256"] = hashlib.sha256(json.dumps(
+            expected, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        if row["fixture_setup"]["input_contract"] != expected:
+            raise ValueError("consumer ordinary task differs from its fixed input contract")
+    observations = [event.get("payload", {}).get("payload") for event in row.get("events", ())
+                    if event.get("kind") == "agent_event"
+                    and event.get("payload", {}).get("kind") == "user_observation"]
+    expected_observation = ({"text": text, "read_url": read_url, "mode": "read_url"}
+                            if read_url is not None else {"text": text})
+    if observations != [expected_observation]:
+        raise ValueError("consumer user observation differs from the trusted case")
+    return {"text": text, "read_url": read_url, "mode": "read_url" if read_url is not None else "ordinary"}
+
+
+def _consumer_capture_valid(row: Mapping[str, Any], evidence: Mapping[str, Any]) -> None:
+    """Cross-check backend-boundary metadata with the separately written event."""
+    captured = [event.get("payload") for event in row.get("events", ())
+                if event.get("kind") == "model_prompt_identity"]
+    if len(captured) != 1 or not isinstance(captured[0], Mapping):
+        raise ValueError("consumer needs one independent model-input capture")
+    capture = captured[0]
+    steps = evidence.get("model_step_identities")
+    policy = evidence.get("model_step_identity_policy")
+    if (set(capture) != {"first", "model_steps", "steps", "policy"}
+            or not isinstance(steps, list) or not steps or not isinstance(policy, Mapping)
+            or capture.get("steps") != steps or capture.get("policy") != policy
+            or type(capture.get("model_steps")) is not int or capture["model_steps"] != len(steps)
+            or type(evidence.get("model_prompt_step_count")) is not int
+            or evidence.get("model_prompt_step_count") != len(steps)):
+        raise ValueError("consumer model-input event and placement metadata differ")
+    first = {key: steps[0][key] for key in ("step", "sha256", "utf8_bytes", "chars")}
+    expected = {"first": first, "model_steps": len(steps), "steps": steps, "policy": policy}
+    # JSON comparison also rejects bool/int substitutions that Python equality permits.
+    if json.dumps(capture, sort_keys=True, allow_nan=False) != json.dumps(expected, sort_keys=True, allow_nan=False):
+        raise ValueError("consumer capture types differ from the complete step list")
+    if (json.dumps(evidence.get("first_model_prompt_identity"), sort_keys=True, allow_nan=False)
+            != json.dumps(first, sort_keys=True, allow_nan=False)):
+        raise ValueError("consumer first-input aliases differ from the complete step list")
+
+
+def _consumer_visible_time(row: Mapping[str, Any], route: Mapping[str, Any],
+                           agent_events: list[Mapping[str, Any]]) -> float | None:
+    """Reconstruct time to validated final visibility, independently of hidden SSE."""
+    elapsed = row.get("answer_latency_s")
+    if type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0:
+        raise ValueError("consumer full-answer latency is invalid")
+    records = row.get("events", ())
+    previous = 0.0
+    for record in records:
+        offset = record.get("offset_s")
+        if (type(offset) not in (int, float) or not math.isfinite(offset)
+                or offset < previous or offset > elapsed):
+            raise ValueError("consumer event offsets are invalid or reordered")
+        previous = offset
+    if any(record.get("kind") in {"assistant_text_delta", "visible_token"} for record in records):
+        raise ValueError("consumer emitted text before complete validation")
+    finals = [event for event in agent_events if event.get("kind") == "final"]
+    visible = [(index, record) for index, record in enumerate(records)
+               if record.get("kind") == "assistant_final"]
+    if len(finals) > 1 or len(visible) > 1:
+        raise ValueError("consumer final visibility is duplicated")
+    expected = validated_consumer_final(finals[0], route, agent_events) if finals else None
+    if expected is None:
+        if visible:
+            raise ValueError("consumer final visibility lacks a validated terminal")
+        offset, kind = None, None
+    else:
+        if len(visible) != 1 or visible[0][1].get("payload") != expected:
+            raise ValueError("consumer final visibility differs from its owned proof")
+        final_records = [index for index, record in enumerate(records)
+                         if record.get("kind") == "agent_event" and record.get("payload") == finals[0]]
+        if len(final_records) != 1 or visible[0][0] <= final_records[0]:
+            raise ValueError("consumer visibility precedes the owned Agent final")
+        offset, kind = visible[0][1]["offset_s"], "assistant_final"
+    scope = "validated_final_full_response_not_hidden_model_delta_or_Qt_render"
+    if (row.get("first_visible_event_kind") != kind
+            or row.get("first_visible_output_scope") != scope
+            or row.get("ttft_scope") != "time_to_validated_final_visibility"):
+        raise ValueError("consumer visibility timing has another scope")
+    return offset
+
+
+def _consumer_state_order(evidence: Mapping[str, Any],
+                          previous: dict[tuple[int, str], tuple[int, int | None]]) -> None:
+    """Keep single-worker state order across independently captured requests."""
+    observed = evidence["execution_plan"].get("observation_runtime") is not None
+    for terminal in evidence["terminal_model_metrics"]:
+        metrics = terminal["metrics"]
+        stage = metrics["stage_event"]
+        stage_id, generation, epoch = (stage.get(key) for key in ("stage_id", "worker_generation", "epoch"))
+        if (type(stage_id) is not int or stage_id < 0 or not isinstance(generation, str)
+                or not generation or type(epoch) is not int or epoch < 1):
+            raise ValueError("consumer native state identity is invalid")
+        native_seq = None
+        if observed:
+            io = metrics["backend_metrics"]["runtime_telemetry"]["native_io_observation"]
+            native_seq = io.get("native_request_seq")
+            if (type(native_seq) is not int or native_seq < 1 or io.get("epoch") != epoch
+                    or io.get("generation") != generation):
+                raise ValueError("consumer native I/O state differs from its terminal")
+        key = (stage_id, generation)
+        old_epoch, old_seq = previous.get(key, (0, None))
+        if epoch <= old_epoch or (old_seq is not None and (native_seq is None or native_seq <= old_seq)):
+            raise ValueError("consumer native state is replayed or reversed across requests")
+        previous[key] = epoch, native_seq
+
+
 def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
-                    route: Mapping[str, Any], placement_evidence: Mapping[str, Any] | None = None) -> bool:
-    if route.get("model_output_contract") is not None:
-        return False  # explicit consumer requires its own reviewed Agent suite; legacy evidence cannot promote it
+                    route: Mapping[str, Any], placement_evidence: Mapping[str, Any] | None = None,
+                    *, trusted_task_binding: Mapping[str, Any] | None = None) -> bool:
+    try:
+        if consumer_trace_requested(route):
+            if trusted_task_binding is None:
+                return False
+            validate_consumer_trace(events, answer, route, placement_evidence,
+                                    trusted_task_binding=trusted_task_binding)
+            return True
+    except (KeyError, TypeError, ValueError, RuntimeError, AttributeError, StopIteration):
+        return False
     if not events or [event.get("seq") for event in events] != list(range(1, len(events) + 1)):
         return False
     if len({event.get("request_id") for event in events}) != 1 or len({event.get("epoch") for event in events}) != 1:
@@ -339,6 +480,12 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
     if len(route_rows) != 1:
         raise ValueError("native fixed-suite audit expects exactly one route")
     route = route_rows[0]
+    try:
+        consumer_requested = consumer_trace_requested(route)
+    except (KeyError, TypeError, ValueError, RuntimeError, AttributeError):
+        # An orphan or conflicting consumer marker must never use legacy checks.
+        consumer_requested = True
+        errors.append("route has an invalid explicit consumer identity")
     if set(summary.get("routes", {})) != {route["route_id"]}:
         errors.append("route set differs from raw manifest")
     config = manifest["config"]
@@ -370,6 +517,9 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
         cold_start_s = prepared.get("cold_start_s")
     trace_verified = bool(requests)
     strata_states: set[tuple[str, int]] = set()
+    consumer_states: dict[tuple[int, str], tuple[int, int | None]] = {}
+    consumer_requests: set[str] = set()
+    consumer_epochs: dict[str, int] = {}
     for row in requests:
         if (suite_id == STRUCTURED_READ_URL_SUITE_ID and
                 (structured_origin is None or
@@ -389,6 +539,26 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
                 errors.append(f"{case['case_id']}: evaluation differs from raw answer and tool decisions")
         agent_events = [event.get("payload") for event in row.get("events", [])
                         if event.get("kind") == "agent_event"]
+        trusted_task_binding = None
+        consumer_metadata_valid = not consumer_requested
+        if consumer_requested:
+            try:
+                if suite_id == STRUCTURED_READ_URL_SUITE_ID and structured_origin is None:
+                    raise ValueError("consumer structured input has no trusted fixture origin")
+                trusted_task_binding = _consumer_task_binding(row, structured_origin=structured_origin)
+                _consumer_capture_valid(row, result_data["placement_evidence"])
+                first = agent_events[0]
+                outer, session, epoch = (first.get(key) for key in ("request_id", "session_id", "epoch"))
+                if (not isinstance(outer, str) or not outer or outer in consumer_requests
+                        or not isinstance(session, str) or not session or type(epoch) is not int
+                        or epoch <= consumer_epochs.get(session, 0)):
+                    raise ValueError("consumer outer request identity is reused or reversed")
+                consumer_requests.add(outer)
+                consumer_epochs[session] = epoch
+                _consumer_state_order(result_data["placement_evidence"], consumer_states)
+                consumer_metadata_valid = True
+            except (KeyError, IndexError, TypeError, ValueError, RuntimeError, AttributeError):
+                errors.append(f"{case['case_id']}: consumer input, capture, or cross-request state is invalid")
         if result_data is not None and agent_events:
             decisions = [
                 {"kind": event["kind"], "payload": event.get("payload", {})}
@@ -420,22 +590,34 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
                     if state in strata_states:
                         errors.append(f"{case['case_id']}: Strata native state is reused across requests")
                     strata_states.add(state)
-        if result_data is None or not agent_events or not _trace_complete(
+        if result_data is None or not agent_events or not consumer_metadata_valid or not _trace_complete(
             agent_events, result_data["final_answer"], route, result_data.get("placement_evidence"),
+            trusted_task_binding=trusted_task_binding,
         ):
             trace_verified = False
             # Errors/refusals legitimately have no complete trace, but cannot
             # contribute a passing request.
             if row.get("e2e_complete"):
                 errors.append(f"{case['case_id']}: claimed complete Agent trace is not reconstructible")
-        first_visible = next((event["offset_s"] for event in row.get("events", [])
-                              if event.get("kind") == "assistant_text_delta"), None)
-        if first_visible != row.get("ttft_s"):
-            errors.append(f"{case['case_id']}: TTFT differs from first visible delta")
-        if row.get("answer_latency_s", -1) < 0 or (
-            first_visible is not None and first_visible > row["answer_latency_s"]
-        ):
-            errors.append(f"{case['case_id']}: invalid full-answer latency")
+        if consumer_requested:
+            try:
+                first_visible = _consumer_visible_time(row, route, agent_events)
+                ttft = row.get("ttft_s")
+                if (ttft is not None and (type(ttft) not in (int, float) or not math.isfinite(ttft))) \
+                        or first_visible != ttft:
+                    raise ValueError("TTFT differs from validated final visibility")
+            except (KeyError, IndexError, TypeError, ValueError, RuntimeError, AttributeError):
+                trace_verified = False
+                errors.append(f"{case['case_id']}: consumer final visibility or timing is invalid")
+        else:
+            first_visible = next((event["offset_s"] for event in row.get("events", [])
+                                  if event.get("kind") == "assistant_text_delta"), None)
+            if first_visible != row.get("ttft_s"):
+                errors.append(f"{case['case_id']}: TTFT differs from first visible delta")
+            if row.get("answer_latency_s", -1) < 0 or (
+                first_visible is not None and first_visible > row["answer_latency_s"]
+            ):
+                errors.append(f"{case['case_id']}: invalid full-answer latency")
         telem = row.get("telemetry", {})
         if telem.get("summary") != _telemetry_summary(telem.get("raw_samples", [])):
             errors.append(f"{case['case_id']}: telemetry summary differs from raw samples")

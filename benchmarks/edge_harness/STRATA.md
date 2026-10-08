@@ -322,6 +322,37 @@ as `raw_model_ttft_s`; user-visible output waits for validated final content.
 The original strict-JSON engine benchmark retains its original outcome. This
 new route requires its own functional and performance evidence before promotion.
 
+The native Agent profiler and offline reviewer share
+`vllm_omni.edge.agent.consumer_trace` for explicit text consumers. The validator
+binds the trusted submitted task, consumer/parser identity, every backend-input
+hash, owned terminal, ordered tool/result pair and final-answer proof. Structured
+Read URL navigation is recorded separately from model-proposed navigation.
+Primary actions reuse the existing tool argument validator. This initial
+qualification schema covers chains without approval: browser opens must pass
+the existing exact trusted-URL and low-impact checks. Writes, screen capture,
+and browser-follow chains without recorded DOM authorization remain unproven;
+the Controller retains its existing approval behavior.
+Observed runtimes additionally require complete request-owned native I/O records;
+epochs and native request sequences must advance within each worker generation.
+Partial consumer markers never fall through to legacy trace validation.
+
+The profiler captures a bounded `model_step_identities` list and policy, with
+matching outer `model_prompt_identity` events. Each record contains step, exact
+model request ID, SHA-256, UTF-8 byte count and character count, without retaining
+prompt text. The actual controller step limit determines the budget: six steps
+reserve 192 KiB for two metadata copies within the existing 2 MiB consumer
+workspace. Oversized policies fail before loading; exhausted capture limits fail
+before model dispatch. Cancellation clears active capture before delegating and
+transfers failed-turn metadata to one bounded retired snapshot. Snapshot/reset
+clear that snapshot; close clears both lists before delegating resource release.
+This is a metadata budget, not a whole-profiler or process memory hard cap.
+
+Trace completeness is separate from task quality and release qualification.
+Consumer visibility timing ends at the validated complete final answer, excluding
+hidden raw deltas and Qt rendering. Historical traces missing per-step capture
+remain incomplete. Fresh native runs, the fixed batch-one protocol and the
+existing independent release gates are still required.
+
 ## Measure full requests
 
 Run one process and one active request at a time. Do not run different cache

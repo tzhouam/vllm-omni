@@ -1,5 +1,12 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: [shared consumer trace implementation and root regression](agent_consumer_trace_unit_validation.json)
+bind 27 source/test files. **357 tests and 166 subtests passed; 6 skipped.**
+The profiler and reviewer now share all-step input, trusted task/URL, tool-schema, terminal, final-visibility and state-order checks.
+The bounded metadata policy is separate from whole-profiler memory. Approval/DOM-dependent chains remain unproven by this initial trace subset.
+The first integrated attempt's stale synthetic snapshot fixture and its repair are retained. No new neural run, latency qualification or default follows;
+fresh source-bound native profiling and the batch-one performance protocol are next.
+
 2026-10-09: the [ordinary-submit EN/ZH model-tool run](native_ista_q2_agent_model_tool_functional.json) passed [publication and independent closed reviews](native_ista_q2_agent_model_tool_functional_review.json).
 Two model opens→two real automatic reads→two model finals completed in **23.97 / 28.11 s**, excluding **166.13 s** verification/startup.
 Four raw JSON calls, exact observations in the next model input, 14 closed files, 1,562 captured sources, retired recorded generations and empty ledger were checked.
@@ -9,7 +16,7 @@ The unchanged strict engine JSON failure remains recorded; later profiler change
 2026-10-09: the [visibility fix](agent_output_visibility_unit_validation.json) matches the full 15-field StageEvent to the exact seven-field proof projection by value/type, refusing errors or unreleased resources.
 Root completed **114 WSL tests plus 32 subtests**; offline replay of the same five closed actual traces changed recognized visible finals from **0/5 to 5/5**.
 No new neural run, performance result or default eligibility follows.
-Both explicit-consumer full-trace qualification gates remain closed; parser source, raw replies and the strict engine JSON failure are unchanged.
+At that visibility record's publication both full-trace gates remained closed; later shared checks appear above. Parser source, raw replies and the strict engine JSON failure are unchanged.
 
 2026-10-09: the [current explicit-output Q2 Agent run](native_ista_q2_agent_output_functional.json)
 passed [independent closed-evidence review](native_ista_q2_agent_output_functional_review.json).

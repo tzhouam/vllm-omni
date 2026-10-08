@@ -40,6 +40,12 @@ from benchmarks.edge_agent.profile import (
     ProfileRoute,
     run_profile,
 )
+from vllm_omni.edge.agent.consumer_trace import (
+    consumer_trace_requested,
+    model_step_capture_policy,
+    validate_consumer_trace,
+    validated_consumer_final,
+)
 from vllm_omni.edge.agent.placement import (
     STRATA_BACKEND,
     evidence_sha256,
@@ -312,9 +318,14 @@ def _trace_complete(
     answer: str | None,
     route: ProfileRoute,
     placement_evidence: Mapping[str, Any] | None = None,
+    *,
+    trusted_task_binding: Mapping[str, Any] | None = None,
 ) -> bool:
-    if route.backend_identity.get("model_output_consumer_identity") is not None:
-        return False  # consumer trace qualification requires its separately reviewed full suite
+    route_map = asdict(route)
+    try:
+        consumer_requested = consumer_trace_requested(route_map)
+    except (KeyError, TypeError, ValueError, RuntimeError, AttributeError):
+        return False
     if not events or [event.get("seq") for event in events] != list(range(1, len(events) + 1)):
         return False
     if len({event.get("request_id") for event in events}) != 1 or len({event.get("epoch") for event in events}) != 1:
@@ -337,9 +348,22 @@ def _trace_complete(
         return False
     if route.backend == "external.strata.multimodal.v1":
         return False  # text trace and nullable placement cannot qualify an image chain
-    if route.backend == STRATA_BACKEND:
+    if consumer_requested:
+        if route.backend != STRATA_BACKEND:
+            return False
         try:
-            validate_strata_request_evidence(placement_evidence, asdict(route), events=events)
+            validate_consumer_trace(
+                events,
+                answer,
+                route_map,
+                placement_evidence,
+                trusted_task_binding=trusted_task_binding,
+            )
+        except (KeyError, TypeError, ValueError, RuntimeError, AttributeError, StopIteration):
+            return False
+    elif route.backend == STRATA_BACKEND:
+        try:
+            validate_strata_request_evidence(placement_evidence, route_map, events=events)
         except (KeyError, TypeError, ValueError, RuntimeError, AttributeError, StopIteration):
             return False
     elif identity.get("actual_placement") != route.expected_placement:
@@ -372,8 +396,9 @@ class WindowsTelemetry:
 
     def power_condition(self) -> str:
         battery = self._psutil.sensors_battery()
-        return ("AC" if battery is not None and battery.power_plugged else
-                "battery" if battery is not None else "unknown")
+        return (
+            "AC" if battery is not None and battery.power_plugged else "battery" if battery is not None else "unknown"
+        )
 
     def bind_native_process(self, identity: Mapping[str, Any] | None) -> None:
         """Observe the backend-owned native generation; never scan by name/PID."""
@@ -411,7 +436,8 @@ class WindowsTelemetry:
             from vllm_omni.edge.windows_gpu_memory import unknown_observation
 
             sample["native_process_gpu_memory"] = (
-                self._native_gpu_observer.sample() if self._native_gpu_observer is not None
+                self._native_gpu_observer.sample()
+                if self._native_gpu_observer is not None
                 else unknown_observation("backend-owned native process identity unavailable during startup")
             )
         return sample
@@ -423,12 +449,34 @@ class WindowsTelemetry:
 
 
 class _PromptIdentityBackend:
-    """Observe exact model input at the backend boundary without retaining text."""
+    """Borrow model input and retain bounded per-turn metadata, never its text.
 
-    def __init__(self, backend: Any) -> None:
+    The policy bounds stored identity records. It does not describe whole
+    profiler memory, the borrowed prompt or the backend's request buffers.
+    """
+
+    def __init__(self, backend: Any, *, capture_policy: Mapping[str, Any] | None = None) -> None:
         self._backend = backend
         self._identities: list[dict[str, Any]] = []
+        self._retired_identities: list[dict[str, Any]] = []
         self._lock = threading.Lock()
+        self._capture_policy = dict(capture_policy) if capture_policy is not None else None
+        if self._capture_policy is not None:
+            policy = self._capture_policy
+            if (
+                set(policy)
+                != {"schema", "max_model_steps", "max_record_bytes", "transient_copies", "declared_metadata_bytes"}
+                or policy["schema"] != "omni-agent-model-step-identities-v1"
+                or type(policy["max_model_steps"]) is not int
+                or policy["max_model_steps"] < 1
+                or type(policy["max_record_bytes"]) is not int
+                or policy["max_record_bytes"] != 16384
+                or type(policy["transient_copies"]) is not int
+                or policy["transient_copies"] != 2
+                or type(policy["declared_metadata_bytes"]) is not int
+                or policy["declared_metadata_bytes"] != 32768 * policy["max_model_steps"]
+            ):
+                raise ValueError("invalid bounded model identity capture policy")
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._backend, name)
@@ -436,22 +484,70 @@ class _PromptIdentityBackend:
     def reset(self) -> None:
         with self._lock:
             self._identities.clear()
+            self._retired_identities.clear()
 
     def identities(self) -> list[dict[str, Any]]:
         with self._lock:
             return [dict(item) for item in self._identities]
 
+    def snapshot_and_reset(self) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+        """Transfer this turn's records before any later turn or resource release."""
+        with self._lock:
+            identities = self._identities or self._retired_identities
+            self._identities, self._retired_identities = [], []
+            policy = dict(self._capture_policy) if self._capture_policy is not None else None
+            return identities, policy
+
+    async def cancel(self, request_id: str) -> None:
+        if self._capture_policy is not None:
+            with self._lock:
+                if self._identities:
+                    self._retired_identities, self._identities = self._identities, []
+        await self._backend.cancel(request_id)
+
+    def close(self) -> Any:
+        if self._capture_policy is not None:
+            self.reset()
+        return self._backend.close()
+
+    def _check_record_capacity(self, request_id: str) -> None:
+        """Check before encoding the borrowed prompt or dispatching the model."""
+        policy = self._capture_policy
+        if policy is None:
+            return
+        if self._retired_identities:
+            raise ValueError("cancelled model identity capture must be reset before dispatch")
+        if len(self._identities) >= policy["max_model_steps"]:
+            raise ValueError("model identity capture step budget exhausted")
+        # This matches the shared trace validator. Even escaped control
+        # characters leave room for every other field within a 16 KiB record.
+        if (
+            type(request_id) is not str
+            or not request_id
+            or len(request_id) > 256
+            or any(0xD800 <= ord(char) <= 0xDFFF for char in request_id)
+        ):
+            raise ValueError("model request identity exceeds capture record budget")
+
     async def generate(
         self, prompt: str, *, request_id: str, max_tokens: int, image_data_url: str | None = None
     ) -> Any:
-        encoded = prompt.encode("utf-8")
         with self._lock:
+            self._check_record_capacity(request_id)
+            encoded = prompt.encode("utf-8")
             identity = {
                 "step": len(self._identities),
                 "sha256": hashlib.sha256(encoded).hexdigest(),
                 "utf8_bytes": len(encoded),
                 "chars": len(prompt),
             }
+            del encoded  # No encoded prompt survives backend dispatch or a yield.
+            if self._capture_policy is not None:
+                identity["model_request_id"] = request_id
+                record = json.dumps(identity, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                if len(record) > self._capture_policy["max_record_bytes"]:
+                    raise ValueError("model identity exceeds capture record budget")
+                del record
             self._identities.append(identity)
         chunks = self._backend.generate(
             prompt,
@@ -473,116 +569,32 @@ def _validated_consumer_final(
     route: ProfileRoute | None,
     events: list[Mapping[str, Any]],
 ) -> Mapping[str, Any] | None:
-    """Ground visibility in an existing final and its exact consumer/terminal.
-
-    This is a timing boundary only. Full consumer trace qualification remains
-    disabled until its separate suite is reviewed. Hidden SSE is never visible.
-    """
-    if route is None or event.get("kind") != "final":
+    """Keep the visibility boundary shared with offline trace validation."""
+    if route is None:
         return None
-    consumer = route.backend_identity.get("model_output_consumer_identity")
-    payload = event.get("payload", {})
-    if (
-        not isinstance(consumer, Mapping)
-        or not isinstance(payload, Mapping)
-        or not isinstance(payload.get("answer"), str)
-        or not payload["answer"]
-        or payload.get("streamed") is not False
-        or type(payload.get("model_step")) is not int
-    ):
-        return None
-    step = payload["model_step"]
-    request_id = event.get("request_id")
-    if not isinstance(request_id, str) or not request_id or step < 0:
-        return None
-    owned = [
-        item for item in events if item.get("request_id") == request_id and item.get("epoch") == event.get("epoch")
-    ]
-    routes = [item.get("payload", {}) for item in owned if item.get("kind") == "route"]
-    proofs = [
-        item.get("payload", {})
-        for item in owned
-        if item.get("kind") == "model_output_contract" and item.get("payload", {}).get("step") == step
-    ]
-    terminals = [
-        item.get("payload", {}).get("metrics", {})
-        for item in owned
-        if item.get("kind") == "model_metrics" and item.get("payload", {}).get("step") == step
-    ]
-    if len(routes) != 1 or len(proofs) != 1 or len(terminals) != 1:
-        return None
-    identity, proof, metrics = routes[0], proofs[0], terminals[0]
-    stage = proof.get("stage_event", {})
-    terminal_stage = metrics.get("stage_event", {})
-    stage_identity_fields = {"request_id", "worker_generation", "stage_id", "epoch", "seq", "kind", "terminal"}
-    if (
-        identity.get("artifact_id") != route.artifact_id
-        or identity.get("backend") != route.backend
-        or identity.get("model_output_consumer_identity") != consumer
-        or proof.get("consumer_identity_sha256") != consumer.get("identity_sha256")
-        or proof.get("contract_sha256") != evidence_sha256(consumer.get("contract"))
-        or proof.get("schema") != "omni-agent-output-interpretation-v1"
-        or proof.get("mode") != consumer.get("contract", {}).get("mode")
-        or proof.get("canonical_output_sha256") != evidence_sha256({"final": payload["answer"]})
-        or not isinstance(proof.get("raw_output_sha256"), str)
-        or len(proof["raw_output_sha256"]) != 64
-        or any(char not in "0123456789abcdef" for char in proof["raw_output_sha256"])
-        or proof.get("model_request_id") != request_id + f"-step-{step}"
-        or not isinstance(stage, Mapping)
-        or set(stage) != stage_identity_fields
-        or stage.get("request_id") != proof["model_request_id"]
-        or not isinstance(stage.get("worker_generation"), str)
-        or not stage["worker_generation"]
-        or type(stage.get("stage_id")) is not int
-        or stage["stage_id"] < 0
-        or type(stage.get("epoch")) is not int
-        or stage["epoch"] < 1
-        or type(stage.get("seq")) is not int
-        or stage["seq"] < 1
-        or stage.get("terminal") is not True
-        or stage.get("kind") != "text"
-        or not isinstance(terminal_stage, Mapping)
-        or any(
-            type(terminal_stage.get(key)) is not type(stage[key]) or terminal_stage[key] != stage[key]
-            for key in stage_identity_fields
-        )
-        or "error" not in terminal_stage
-        or terminal_stage["error"] is not None
-        or "state" not in terminal_stage
-        or terminal_stage["state"] is not None
-        or terminal_stage.get("buffers") != []
-        or terminal_stage.get("release_token") != ""
-        or metrics.get("finish_reason") != "stop"
-        or metrics.get("raw_model_output_sha256") != proof.get("raw_output_sha256")
-        or proof.get("constrained_decoding") is not False
-        or proof.get("extraction_used") is not False
-        or type(proof.get("retry_count")) is not int
-        or proof["retry_count"] != 0
-    ):
-        return None
-    return {
-        "text": payload["answer"],
-        "visibility": "validated_final_full_response",
-        "model_request_id": proof["model_request_id"],
-        "consumer_identity_sha256": consumer["identity_sha256"],
-        "raw_output_sha256": proof["raw_output_sha256"],
-        "scope": "Agent final event after validated terminal; not hidden SSE or Qt-render timing",
-    }
+    return validated_consumer_final(event, asdict(route), events)
 
 
 class NativeProfileBridge:
     """Keep one resident Omni route while every Agent request runs serially."""
 
-    def __init__(self, *, native_config: Mapping[str, Any], config_root: Path,
-                 private_root: Path, fixture_origin: str, telemetry: WindowsTelemetry,
-                 structured_read_url: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        native_config: Mapping[str, Any],
+        config_root: Path,
+        private_root: Path,
+        fixture_origin: str,
+        telemetry: WindowsTelemetry,
+        structured_read_url: bool = False,
+    ) -> None:
         self.native_config = native_config
         self.config_root = config_root
         self.private_root = private_root
         self.fixture_origin = fixture_origin
         self.telemetry = telemetry
         self.structured_read_url = structured_read_url
-        self.suite_id = (STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID)
+        self.suite_id = STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID
         self.controller: Any = None
         self.route: ProfileRoute | None = None
         self._memory_path: Path | None = None
@@ -603,10 +615,13 @@ class NativeProfileBridge:
             events = list(self._events)
         if emitter is not None:
             emitter("agent_event", sanitized)
-        consumer = self.route.backend_identity.get("model_output_consumer_identity") if self.route is not None else None
-        if event.get("kind") == "text_delta" and emitter is not None and consumer is None:
+        try:
+            consumer = self.route is not None and consumer_trace_requested(asdict(self.route))
+        except (KeyError, TypeError, ValueError, RuntimeError, AttributeError):
+            consumer = True  # An invalid partial consumer must never expose raw chunks.
+        if event.get("kind") == "text_delta" and emitter is not None and not consumer:
             emitter("assistant_text_delta", event.get("payload", {}).get("text", ""))
-        elif emitter is not None and consumer is not None:
+        elif emitter is not None and consumer:
             visible = _validated_consumer_final(event, self.route, events)
             if visible is not None:
                 emitter("assistant_final", visible)
@@ -651,6 +666,12 @@ class NativeProfileBridge:
         )
         controller.add_listener(self._listen)
         self.controller, self.route = controller, route
+        capture_policy = None
+        if consumer_trace_requested(asdict(route)):
+            capture_policy = model_step_capture_policy(
+                route.backend_identity["model_output_consumer_identity"]["contract"],
+                controller.limits.max_model_steps,
+            )
         native_route = next((item for item in controller.routes
                              if item.route_id == route.route_id), None)
         if native_route is None:
@@ -688,7 +709,7 @@ class NativeProfileBridge:
             if callable(bind_gpu):
                 bind_gpu(plan.get("gpu_observer_identity"))
                 samples.append(self.telemetry.sample())
-        self._prompt_backend = _PromptIdentityBackend(backend)
+        self._prompt_backend = _PromptIdentityBackend(backend, capture_policy=capture_policy)
         controller.backends[route.route_id] = self._prompt_backend
         return Preparation(
             cold_start_confirmed=True, artifact_id=route.artifact_id,
@@ -767,6 +788,14 @@ class NativeProfileBridge:
     async def run(self, route: ProfileRoute, case: AgentCase, emit: Any) -> AgentRunResult:
         if self.controller is None or self.route != route:
             raise RuntimeError("route has not been prepared")
+        url, instruction = (
+            _structured_input(case, self.fixture_origin) if self.structured_read_url else (None, case.prompt)
+        )
+        trusted_task_binding = {
+            "text": instruction,
+            "read_url": url,
+            "mode": "read_url" if self.structured_read_url else "ordinary",
+        }
         with self._lock:
             self._events = []
             self._emitter = emit
@@ -774,19 +803,25 @@ class NativeProfileBridge:
             self._prompt_backend.reset()
         try:
             if self.structured_read_url:
-                url, instruction = _structured_input(case, self.fixture_origin)
-                answer = await asyncio.wrap_future(
-                    self.controller.submit_read_url(url, instruction))
+                answer = await asyncio.wrap_future(self.controller.submit_read_url(url, instruction))
             else:
                 answer = await asyncio.wrap_future(self.controller.submit(case.prompt))
         finally:
-            model_prompt_identities = (self._prompt_backend.identities()
-                                       if self._prompt_backend is not None else [])
+            model_prompt_identities, capture_policy = (
+                self._prompt_backend.snapshot_and_reset() if self._prompt_backend is not None else ([], None)
+            )
+            first_identity = (
+                {key: model_prompt_identities[0][key] for key in ("step", "sha256", "utf8_bytes", "chars")}
+                if model_prompt_identities
+                else None
+            )
+            prompt_evidence = {"first": first_identity, "model_steps": len(model_prompt_identities)}
+            if capture_policy is not None:
+                prompt_evidence.update(
+                    steps=[dict(row) for row in model_prompt_identities], policy=dict(capture_policy)
+                )
             try:
-                emit("model_prompt_identity", {
-                    "first": model_prompt_identities[0] if model_prompt_identities else None,
-                    "model_steps": len(model_prompt_identities),
-                })
+                emit("model_prompt_identity", prompt_evidence)
             finally:
                 with self._lock:
                     events = list(self._events or [])
@@ -798,23 +833,35 @@ class NativeProfileBridge:
         terminal = [event.get("payload", {}) for event in events if event.get("kind") == "model_metrics"]
         decisions = [
             {"kind": event["kind"], "payload": event.get("payload", {})}
-            for event in events if event.get("kind") in
-            {"tool_proposed", "approval_required", "tool_result"}
+            for event in events
+            if event.get("kind") in {"tool_proposed", "approval_required", "tool_result"}
         ]
         placement_evidence = {
             "execution_plan": dict(plan) if isinstance(plan, Mapping) else {},
             "loaded_plan_sha256": evidence_sha256(dict(plan)) if isinstance(plan, Mapping) else None,
             "terminal_model_metrics": terminal,
-            "first_model_prompt_identity": model_prompt_identities[0] if model_prompt_identities else None,
+            "first_model_prompt_identity": first_identity,
             "model_prompt_step_count": len(model_prompt_identities),
             "placement_verification_scope": (
                 "loaded_configuration_and_per_request_routed_decode_experts"
-                if route.backend == STRATA_BACKEND else "reported_whole_model_placement"),
+                if route.backend == STRATA_BACKEND
+                else "reported_whole_model_placement"
+            ),
             "independent_log_review_pending": True,
         }
+        if capture_policy is not None:
+            placement_evidence.update(
+                model_step_identities=model_prompt_identities, model_step_identity_policy=capture_policy
+            )
         return AgentRunResult(
             final_answer=answer,
-            complete_agent_trace=_trace_complete(events, answer, route, placement_evidence),
+            complete_agent_trace=_trace_complete(
+                events,
+                answer,
+                route,
+                placement_evidence,
+                trusted_task_binding=trusted_task_binding,
+            ),
             model_id=str(identity.get("model", "")),
             artifact_id=str(identity.get("artifact_id", "")),
             actual_placement=identity.get("actual_placement"),
@@ -825,6 +872,11 @@ class NativeProfileBridge:
         )
 
     def close(self) -> None:
+        if self._prompt_backend is not None:
+            self._prompt_backend.reset()
+        with self._lock:
+            self._events = None
+            self._emitter = None
         if self.controller is not None:
             self.controller.close()
             self.controller = None
@@ -932,6 +984,15 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
         "private_encrypted_memory_root": str(private_root),
         "results": [],
     }
+    consumer_routes = [route.route_id for route in routes if consumer_trace_requested(asdict(route))]
+    if consumer_routes:
+        manifest["model_step_identity_capture"] = {
+            "schema": "omni-agent-model-step-identities-v1",
+            "route_ids": consumer_routes,
+            "scope": "bounded per-turn metadata; each request binds the actual controller limit and policy",
+            "prompt_preimages_retained": False,
+            "whole_profiler_memory_bound": False,
+        }
     sampler = WindowsTelemetry(conditions.power_condition)
     try:
         with FixtureSite() as fixtures:

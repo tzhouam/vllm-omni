@@ -1,5 +1,12 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: [shared explicit-consumer trace validation](../edge_harness/results/strata_20261008/agent_consumer_trace_unit_validation.json)
+is integrated into native profiling and offline review. Root regression: **357 passed, 6 skipped, 166 subtests passed**.
+Checks bind every model-input hash, trusted task/URL authorization, exact tool schema, owned terminal, final visibility and cross-request state order.
+Bounded six-step metadata reserves 192 KiB inside the existing 2 MiB workspace. This initial text subset does not qualify approval/DOM workflows.
+These are unit/integration results; fresh native profiling on this source, three lengths × 20 requests and a separate 30-minute run remain pending.
+Historical neural receipts keep their source identities; the strict engine JSON failure and lack of default eligibility remain recorded.
+
 2026-10-09: [two ordinary-submit model-tool tasks](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional.json) passed [closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional_review.json).
 Each EN/ZH task used a model-proposed browser_open, real automatic browser_read and a second model call returning the reference heading.
 Whole tasks took **23.97 / 28.11 s**, excluding **166.13 s** verification/startup. All 14 closed files, 1,562 captured sources and four actual model calls were checked.
@@ -9,7 +16,7 @@ Full-trace profiling, general quality, percentiles, sustained/default eligibilit
 2026-10-09: the [visibility fix](../edge_harness/results/strata_20261008/agent_output_visibility_unit_validation.json) compares the full 15-field StageEvent with the exact seven-field proof projection by value/type, rejecting errors or unreleased resources.
 Root completed **114 WSL tests plus 32 subtests**; offline replay of the same five closed actual traces recognized **5/5 visible finals**, versus **0/5** before.
 There was no new neural run, performance measurement or default qualification.
-Both explicit-consumer full-trace gates in `native_profile` and `qualification` remain closed.
+At that visibility record's publication, both explicit-consumer full-trace gates remained closed; the later shared checks are described above.
 Parser source, raw replies and the failed strict JSON benchmark are unchanged.
 
 2026-10-09: the current explicit-output Q2 consumer completed its own
