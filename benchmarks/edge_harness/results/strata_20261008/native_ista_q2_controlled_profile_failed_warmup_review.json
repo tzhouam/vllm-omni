@@ -1,0 +1,47 @@
+{
+  "schema": "omni-strata-controlled-failed-warmup-publication-review-v1",
+  "status": "metadata_checked_against_independently_closed_failure_audit_pending_parent_publication",
+  "public_evidence": "native_ista_q2_controlled_profile_failed_warmup.json",
+  "public_evidence_sha256": "622cc71ee0d0abb2bb911ae6c80905e148fd1153d61f4b2bb1bc23d211d2a646",
+  "private_failure_audit_sha256": "7443e745b43acfcf500aca6423e52578dc1521d0de7f50da04082e046ddf4ba2",
+  "checker_sha256": "f78f032a33a9acd5965a9f9fbf1be71b3ffb39d4a5c39af4fa0aea8d3313b478",
+  "closed_raw_inventory_count": 6,
+  "request_count": 3,
+  "warmups_accepted": 2,
+  "warmups_strictly_rejected": 1,
+  "measured_count": 0,
+  "sustained_count": 0,
+  "raw_output_or_reference_mutated": false,
+  "null_percentiles_verified": true,
+  "content_free_scope_checked": true,
+  "adversarial_metadata_checks": [
+    {
+      "case": "promoted_measurement",
+      "refused": true
+    },
+    {
+      "case": "fabricated_p95",
+      "refused": true
+    },
+    {
+      "case": "accepted_fenced_reply",
+      "refused": true
+    },
+    {
+      "case": "changed_model",
+      "refused": true
+    },
+    {
+      "case": "default_qualified",
+      "refused": true
+    },
+    {
+      "case": "private_output",
+      "refused": true
+    }
+  ],
+  "scope": "Publication metadata review of accepted closed failure evidence and exact registered launch; no new neural execution or runtime/model payload hash.",
+  "performance_qualified": false,
+  "default_qualified": false,
+  "release_qualified": false
+}

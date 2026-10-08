@@ -1,0 +1,257 @@
+{
+  "schema": "omni-strata-controlled-profile-failed-warmup-public-evidence-v1",
+  "status": "independently_verified_closed_attempt_failed_strict_output_format",
+  "scope": "Attempted fixed bilingual engine JSON suite stopped during short warmup3; two accepted warmups, one rejected full-reply format, zero measured or sustained requests. No Agent/browser/image task or performance/default qualification.",
+  "hardware": {
+    "platform": "Windows native",
+    "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "transferable_to_other_hardware": false
+  },
+  "model": {
+    "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+    "revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+    "declared_quantization": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL"
+  },
+  "execution": {
+    "backend": "external.strata.text.v1",
+    "batch_size": 1,
+    "concurrency": 1,
+    "context_tokens": 4096,
+    "kv_type": "fp16",
+    "mtp_enabled": false,
+    "cpu_expert_cache_budget_bytes": 8589934592,
+    "gpu_expert_cache_component_budget_bytes": 8053063680,
+    "total_gpu_declared_budget_bytes": 17179869184,
+    "verified_loaded_configuration": "cpu+cuda:0",
+    "whole_model_actual_placement": null,
+    "budget_scope": "Admitted component controls; aggregate RAM/VRAM/cache hard caps remain unverified."
+  },
+  "protocol": {
+    "intended_warmups": 15,
+    "intended_measured_per_band": 20,
+    "intended_measured_total": 60,
+    "intended_separate_sustained_minimum_s": 1800,
+    "actual_warmups_attempted": 3,
+    "actual_warmups_accepted": 2,
+    "actual_warmups_rejected": 1,
+    "actual_measured_requests": 0,
+    "actual_sustained_requests": 0,
+    "timing_protocol_complete": false,
+    "groups": {
+      "short": {
+        "measured_n": 0,
+        "full_response_p50_s": null,
+        "full_response_p95_s": null,
+        "first_output_p50_s": null,
+        "first_output_p95_s": null
+      },
+      "medium": {
+        "measured_n": 0,
+        "full_response_p50_s": null,
+        "full_response_p95_s": null,
+        "first_output_p50_s": null,
+        "first_output_p95_s": null
+      },
+      "long": {
+        "measured_n": 0,
+        "full_response_p50_s": null,
+        "full_response_p95_s": null,
+        "first_output_p50_s": null,
+        "first_output_p95_s": null
+      }
+    }
+  },
+  "failure": {
+    "warmup_sequence": 3,
+    "category": "strict_full_reply_JSON_format",
+    "native_request_completed": true,
+    "natural_stop": true,
+    "full_reply_strict_json_valid": false,
+    "markdown_fence_detected": true,
+    "diagnostic_inner_reference_equal": true,
+    "diagnostic_scope": "Inner JSON equality explains the format failure only; original output/reference/gates remain unchanged and the reply is rejected.",
+    "native_io_identity_gate_passed": true,
+    "original_success_auditor_refused": true,
+    "filtered_summary_note": "Producer summary is computed from accepted rows; its failed_attempts=0 does not mean zero rejected warmups. The full raw attempt records one strict rejection."
+  },
+  "requests": [
+    {
+      "case_id": "english_plan-short",
+      "request_id": "strata-7a350ac701504ab5882261ee5de361ef",
+      "phase": "warmup",
+      "length_band": "short",
+      "epoch": 1,
+      "native_request_seq": 1,
+      "input_sha256": "6904a6fdf8c871d958f527b424aeae0d0da265589b3b7aacfe0f5955bf000742",
+      "output_sha256": "e2c4c282e78680986df496d99c8cecaabda2daa5159227f3125d92cfa27be228",
+      "input_tokens": 241,
+      "output_tokens": 34,
+      "full_response_s": 11.5220413999632,
+      "first_output_s": 6.0492577000986785,
+      "finish_reason": "stop",
+      "controlled_gate_passed": true,
+      "native_io_identity_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "cpu_expert_entries": 8080,
+        "gpu_expert_entries": 8240
+      },
+      "original_reference_canonical_sha256": "5936838ba01167787ad2b228e7b79d4623a6c895013f1f4876024dee4476d3ab",
+      "json_diagnosis": {
+        "complete_reply_strict_json_valid": true,
+        "complete_reply_reference_equal": true,
+        "complete_reply_parse_exception_type": null,
+        "complete_reply_parsed_canonical_sha256": "5936838ba01167787ad2b228e7b79d4623a6c895013f1f4876024dee4476d3ab",
+        "markdown_fence_detected": false,
+        "diagnostic_inner_json_valid": false,
+        "diagnostic_inner_reference_equal": false,
+        "diagnostic_inner_canonical_sha256": null,
+        "inner_parse_scope": "diagnosis_only_never_used_to_accept_or_rewrite_reply"
+      }
+    },
+    {
+      "case_id": "chinese_inventory-short",
+      "request_id": "strata-cc971269d2ab4818bc79fca8a9003d50",
+      "phase": "warmup",
+      "length_band": "short",
+      "epoch": 2,
+      "native_request_seq": 2,
+      "input_sha256": "8f9d85b2f09660097e6d81c4c7e3b372eef8b0a073818952ced46a557dc5dd44",
+      "output_sha256": "ffd749175775afebd0dd3c6e7363f1a13bfc76af8ce16251c0c2f4b5387a6379",
+      "input_tokens": 245,
+      "output_tokens": 15,
+      "full_response_s": 8.58583080000244,
+      "first_output_s": 6.406706399982795,
+      "finish_reason": "stop",
+      "controlled_gate_passed": true,
+      "native_io_identity_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "cpu_expert_entries": 3069,
+        "gpu_expert_entries": 4131
+      },
+      "original_reference_canonical_sha256": "ba0decf10323e3fdf5fdcf15a6c0805066a54c5fc7cb3ef6c6f28f4a34f26b98",
+      "json_diagnosis": {
+        "complete_reply_strict_json_valid": true,
+        "complete_reply_reference_equal": true,
+        "complete_reply_parse_exception_type": null,
+        "complete_reply_parsed_canonical_sha256": "ba0decf10323e3fdf5fdcf15a6c0805066a54c5fc7cb3ef6c6f28f4a34f26b98",
+        "markdown_fence_detected": false,
+        "diagnostic_inner_json_valid": false,
+        "diagnostic_inner_reference_equal": false,
+        "diagnostic_inner_canonical_sha256": null,
+        "inner_parse_scope": "diagnosis_only_never_used_to_accept_or_rewrite_reply"
+      }
+    },
+    {
+      "case_id": "tool_json_plan-short",
+      "request_id": "strata-da277552136f4416a97031113d292e3c",
+      "phase": "warmup",
+      "length_band": "short",
+      "epoch": 3,
+      "native_request_seq": 3,
+      "input_sha256": "22390f7b5dc8029500c853bbf8bbcfd22c0a7ef5885fb5243ca98e5b8bc9a3c0",
+      "output_sha256": "5b48f0a9a6b2cb0e273aebc6137c677b10e5957cb257647d86520de733ee22b9",
+      "input_tokens": 242,
+      "output_tokens": 39,
+      "full_response_s": 10.987661899998784,
+      "first_output_s": 5.989933000179008,
+      "finish_reason": "stop",
+      "controlled_gate_passed": false,
+      "native_io_identity_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "cpu_expert_entries": 6690,
+        "gpu_expert_entries": 12030
+      },
+      "original_reference_canonical_sha256": "b86dcb712d8d5547b94c303afb55f18c628c22b3952e749c818c81f1ab30e0a9",
+      "json_diagnosis": {
+        "complete_reply_strict_json_valid": false,
+        "complete_reply_reference_equal": false,
+        "complete_reply_parse_exception_type": "JSONDecodeError",
+        "complete_reply_parsed_canonical_sha256": null,
+        "markdown_fence_detected": true,
+        "diagnostic_inner_json_valid": true,
+        "diagnostic_inner_reference_equal": true,
+        "diagnostic_inner_canonical_sha256": "b86dcb712d8d5547b94c303afb55f18c628c22b3952e749c818c81f1ab30e0a9",
+        "inner_parse_scope": "diagnosis_only_never_used_to_accept_or_rewrite_reply"
+      }
+    }
+  ],
+  "startup": {
+    "fresh_process_stage_start_s": 132.61313680000603,
+    "scope": "Fresh native stage initialization including backend verification/service startup; not guaranteed cold SSD."
+  },
+  "latency_scope": "These three values are warmup samples only. Direct submit-to-consumed-terminal and first nonempty API chunk; no p50/p95 claim and no native phase sum.",
+  "closure": {
+    "source_stable": true,
+    "resource_drain_verified": true,
+    "sampler_stopped": true,
+    "output_writers_quiesced": true,
+    "exact_external_owner_generations_retired": 2,
+    "native_owner_generation_retired": true,
+    "supervisor_pid_absent": true,
+    "closed_raw_files_verified": 6
+  },
+  "power_condition": {
+    "ac_line_status": 1,
+    "battery_saver": 0,
+    "active_power_scheme_guid": "27fa6203-3987-4dcc-918d-748559d549ec",
+    "before_after_and_request_boundary_tuple_matched": true,
+    "continuous_stability_verified": false,
+    "raw_powercfg_stdout_preserved": false
+  },
+  "identities": {
+    "independent_failed_attempt_audit_sha256": "7443e745b43acfcf500aca6423e52578dc1521d0de7f50da04082e046ddf4ba2",
+    "failure_auditor_sha256": "16fa04238b4c4db1d56e48b392336eb7474d5235d4ea83885830570b0c946960",
+    "preserved_success_auditor_sha256": "58dac5781b5a2c2d52d54879c08e374c884f0d5e42efb0c8540a0942f88cce3d",
+    "runner_sha256": "16d721f7d9caeb277fa50b8c76914ef36d87d667191b9524612990a8225ec057",
+    "report_sha256": "555381aca3a1320a45bef40d83038e3b152e2c306c3d7f394582c0bf38e56ac5",
+    "root_terminal_sha256": "71707db77973d107980ba45940fba2f6119207b3e481ef66b1ee80f57e865e2b",
+    "owner_record_sha256": "310a65b5d98469135e947395f8d2f1a2ac1578a07c1a0586f36d0d135aaa9bd1",
+    "plan_manifest_sha256": "275e1e615fe8f91679db22948025626df0f9a489677ee268669e96e4b8186b66",
+    "plan_identity_sha256": "84de2060f342311d03a20274fcd53e8adf0c0cf182a47266311815d1693a502d",
+    "launch_sha256": "0dbf869915de84673f2c2d4b51fa274abf3c02cd938ae57e1af776a6fa0d206a",
+    "prerequisite_current_text_lifecycle_sha256": "237a2322513953ef860c2780ea90e69a4ded27d1197042694ec7b79021fd762d",
+    "runtime_manifest_sha256": "6d96d30df73ca8116673cded7ba050847bebdd3c816bbc55b0d406d5c5f52a9c",
+    "artifact_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+    "prepared_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900",
+    "observation_runtime_identity_sha256": "d8ba68c12305c7f0c3b3c5f19bc6ba6b800e3715b1c826ea18be1ca682eb9017",
+    "route_controls_sha256": "ea3fc792344461b7a12dc6513e8de29609d4135de3403ade106364802789f2f7",
+    "power_before_sha256": "b69c4ede4e9d637a55d3de6af7fe0cf6a3572cc78329e7e5eb8bdb8a67fd3b51",
+    "power_after_sha256": "6cb6e06d147d1787a3abed2e326dc67f4f2b37d605dde3009cfe77279eb92a78"
+  },
+  "closed_raw_inventory": {
+    "close.json": {
+      "size_bytes": 1766,
+      "sha256": "035af00eb8cb03573db1ad55f93a117af3edcc6c331d6f38c738e47a08637536"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 21388,
+      "sha256": "7523c41683e74343bccdf5d31ddae925a16ca82a3d4ccab75618f2554f5f7d0f"
+    },
+    "requests/warmup-chinese_inventory-short-000000-strata-cc971269d2ab4818bc79fca8a9003d50.json": {
+      "size_bytes": 51383,
+      "sha256": "1c3f52e08e25c1ee7bbf745c71c0017809dd439f372f867355a790a72d7efed9"
+    },
+    "requests/warmup-english_plan-short-000000-strata-7a350ac701504ab5882261ee5de361ef.json": {
+      "size_bytes": 73414,
+      "sha256": "fa20749a46bce50b03b37c58abe721f2a05d70f6d63476b864c81f5d4a036a8f"
+    },
+    "requests/warmup-tool_json_plan-short-000000-strata-da277552136f4416a97031113d292e3c.json": {
+      "size_bytes": 76815,
+      "sha256": "5d2c9467050c33f11e38e48b96fac4a29d53a4cf0f7de71be3c852bea21ace8c"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 415686,
+      "sha256": "cae02598805f33bd8757ca90b3aaadb90ce442be20c4bd88aaae2338541edb63"
+    }
+  },
+  "prior_current_source_functional_evidence": "native_ista_q2_current_text_lifecycle.json",
+  "physical_model_attributed_ssd_read_bytes": null,
+  "aggregate_memory_hard_cap_verified": false,
+  "performance_qualified": false,
+  "default_qualified": false,
+  "release_qualified": false,
+  "public_privacy_scope": "Content-free IDs, hashes, narrow counters, timings and failure/closure metadata; no prompts, answers, pixels, DOM, memory values, localhost endpoints or private raw paths."
+}

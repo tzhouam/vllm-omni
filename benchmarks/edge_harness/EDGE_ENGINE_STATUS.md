@@ -1,5 +1,15 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
+2026-10-09：当前源码的 [Q2 受控性能运行](results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup.json)
+在第三条短输入预热被严格质量门槛停止，已通过[独立失败证据复核](results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup_review.json)。
+共尝试 **3 条预热，2 条通过，1 条拒绝；正式测量为 0**，没有 p50/p95 或 30 分钟结果。
+第三条完整输出带 Markdown 代码围栏，不能作为严格 JSON；围栏内对象与原参考相同只用于诊断，
+不剥离围栏、不修改参考，也不将该请求计为通过。请求顺序、token、原生 I/O、已观测专家计算和流绑定检查通过；
+6 份闭合原始文件、源码稳定、采样/写入停止、进程退出及空账本已核验。
+此次结果限定为该输入、产物、运行时和执行顺序下的格式失败，尚不能归因为量化或状态错误。
+下一步先区分输出格式能力与执行顺序影响，再用新的完整运行执行三档各 20 次和独立 30 分钟验证；
+不会续接这轮失败样本生成性能结论。现有文本、图像和 Agent 窄范围功能通过记录仍保留各自资格边界。
+
 2026-10-09：同一 GGUF 的 [llama.cpp 配置与容量准入对照](results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight.json)
 已实际调用 OmniLlamaConfig 和 StageRuntime，并通过[独立闭合复核](results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight_review.json)。
 Q2/IQ3/Q4 各自的 CPU、全 GPU、整层 CPU 卸载和专家 CPU 卸载，共 **12 组声明计划全部被容量门槛拒绝**，

@@ -1,5 +1,20 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: the [current-source Q2 controlled engine attempt](../edge_harness/results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup.json)
+stopped at its third short-input warmup and passed an
+[independent failed-attempt review](../edge_harness/results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup_review.json).
+There were **3 attempted warmups, 2 accepted, 1 strict-format rejection and
+0 measured requests**. The complete third reply was Markdown-fenced JSON;
+the inner object matched the original reference, but that diagnostic does not
+make the complete reply valid strict JSON. No fence stripping, reference change,
+acceptance relaxation or continuation of this failed sample set is used.
+All six closed raw files, native request/stream bindings and clean source,
+sampler/writer/process/ledger closure were checked. The failure does not yet
+identify quantization or state as its cause. This was a fixed engine suite,
+not an actual Agent task or a replacement for the functional records below.
+No p50/p95, sustained result or default eligibility follows. Diagnose format
+and request-order behavior before a new complete qualification attempt.
+
 2026-10-09: [same-GGUF llama.cpp admission checks](../edge_harness/results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight.json)
 now have [independently audited actual results](../edge_harness/results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight_review.json).
 All 12 Q2/IQ3/Q4 CPU, whole-GPU, block-CPU and expert-CPU declared plans were

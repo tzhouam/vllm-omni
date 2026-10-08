@@ -1,5 +1,19 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [current-source Q2 controlled attempt](native_ista_q2_controlled_profile_failed_warmup.json)
+has an [independently reviewed failed outcome](native_ista_q2_controlled_profile_failed_warmup_review.json):
+**3 attempted warmups, 2 accepted, 1 strict-format rejection, 0 measured requests**.
+The complete third reply contains Markdown-fenced JSON. Its inner object equals
+the original reference diagnostically, while the unchanged strict full-reply
+gate rejects it. No extraction, reference change, gate relaxation or resumed
+sample set is used. All six closed raw files, native request/stream bindings,
+source stability and sampler/writer/process/ledger closure were verified.
+The result is scoped to this input, artifact, runtime and order; it establishes
+neither a quantization cause nor a state-corruption cause. Percentiles remain
+null, the separate sustained phase did not run, and no performance/default
+qualification follows. This fixed engine suite contains no actual Agent or
+vision task. Diagnose format and order behavior before a new complete run.
+
 2026-10-09: the [same-GGUF llama.cpp capacity preflight](native_llamacpp_same_gguf_capacity_preflight.json)
 passed [independent closed-metadata review](native_llamacpp_same_gguf_capacity_preflight_review.json).
 OmniLlamaConfig and StageRuntime actually refused all **12 declared plans**:
