@@ -1,10 +1,26 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [current explicit-output Q2 Agent run](native_ista_q2_agent_output_functional.json)
+passed [independent closed-evidence review](native_ista_q2_agent_output_functional_review.json).
+Five specified functional tasks passed in **7.19 / 7.65 / 11.59 / 20.15 / 16.57 s**;
+verification/startup was separately **196.48 / 190.78 s**. An actual first-hidden-delta
+cancellation and fresh-controller recall passed. Its **10.00 s** cancellation-task
+span includes submit/prefill through drain, not trigger-to-drain latency.
+All 23 raw files, exact consumer/parser/native bindings, DPAPI source provenance,
+stopped writers/sampler, four retired recorded process generations and empty
+leases were checked. The unchanged checkpoint/precision/engine controls gained
+an independently admitted 2 MiB consumer workspace and a distinct consumer identity.
+All actual model responses were raw JSON finals; fence/model-tool branches remain
+unit evidence. Four browser operations were trusted structured Read URL preprocessing.
+An actual model-proposed tool chain is next. No p50/p95, sustained/default,
+aggregate-memory hard-cap or physical SSD claim is made; the strict JSON benchmark
+failure and explicit-consumer profile qualification gate remain unchanged.
+
 2026-10-09: the [explicit Agent output-consumer implementation](agent_output_contract_unit_validation.json)
 is applied and unit tested. The record binds 14 code/test files and two disjoint
 WSL regression groups (220 passed/2 skipped and 110 passed). These are contract
-checks with no model execution. Actual new-consumer Agent behavior, cancellation,
-fresh recovery and qualification remain pending. The existing strict raw-JSON
+checks with no model execution. Actual new-consumer behavior was pending at that
+record's publication; the separate functional evidence above grants no default qualification. The existing strict raw-JSON
 failure is preserved; explicit fence interpretation has a separate route identity.
 
 2026-10-09: the [fresh solo diagnostic](native_ista_q2_exact_format_diagnostic.json)

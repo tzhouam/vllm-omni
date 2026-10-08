@@ -1,0 +1,39 @@
+{
+  "schema": "omni-public-agent-output-functional-review-v1",
+  "status": "accepted_closed_evidence_and_publication",
+  "proposal_sha256": "c94ebb4b6c58ef0d5257ca5586f6b0beb4108b0bdf1eb10667cc302139c99d8b",
+  "author_metadata_adapter_sha256": "8b2230fe8d8426f071720e5b9d32acc835375995dc6d6b411718a61bcbaa929b",
+  "author_finalizer_sha256": "612d1fc9dd2f9bd3bd7bf4a4d7745c435c1f66191de9ab141c8291dd4886faab",
+  "author_projection_is_independent_review": false,
+  "independent_consumer_review_sha256": "30b000edee06a86bf31453a4f1681d287b393534c67968101f8339b666a550d5",
+  "independent_foundation_audit_sha256": "cce94cd73b2e312f73152446c924fc3c9514b157e550b843320fbc67077e1b0a",
+  "root_exact_owner_closure_sha256": "37d22d549b28c8d4163da3c1d435716839a05ed595c5cf89505b9a2ecb5e7ec8",
+  "root_publication_review": {
+    "status": "accepted",
+    "checked_utc": "2026-10-08T19:43:41.251259+00:00",
+    "exact_proposal_sha256": "c94ebb4b6c58ef0d5257ca5586f6b0beb4108b0bdf1eb10667cc302139c99d8b",
+    "source": "root exact-byte projection inspection and selected-field checks from closed raw; independent raw/source/counter/parser audits separately bound",
+    "checks": [
+      "all 23 raw file size/hash records equal closed receipt",
+      "five input/raw/final hashes recomputed; whole-task and adapter timing fields match raw",
+      "actual captured hardware and software match raw receipt",
+      "consumer identity and workspace derivation match actual receipt",
+      "independent audits and exact owner closure hashes checked",
+      "actual raw-final versus model-tool/fence scope preserved",
+      "no private prompts/cards/answers exported",
+      "no percentile/default/aggregate-memory/physical-SSD qualification"
+    ],
+    "retained_exec_session_id": 12085,
+    "retained_exec_exit_code": 0,
+    "stdout_scope": "root tool observation, no byte-exact stdout archive",
+    "source_identity_scope": "closed run and independent audit timestamps; later source changes require fresh qualification"
+  },
+  "receipt_sha256": "576d53e4870002044f0c6dfb0bfc5e756aa00f6a82a7b6d3e4790b679f5a5231",
+  "closed_raw_files": 23,
+  "functional_samples": 5,
+  "actual_cancellations": 1,
+  "private_content_exported": false,
+  "performance_qualified": false,
+  "default_qualified": false,
+  "author_projection_sha256": "3637d6f68942f4c0b1926929ee66ed4e524cd396ec1bb4853b87ea1494279222"
+}

@@ -1,5 +1,25 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: the current explicit-output Q2 consumer completed its own
+[five-task Agent and cancellation/recovery run](../edge_harness/results/strata_20261008/native_ista_q2_agent_output_functional.json),
+with [closed-evidence review](../edge_harness/results/strata_20261008/native_ista_q2_agent_output_functional_review.json).
+Short answer, DPAPI seed, fresh-controller recall and EN/ZH browser tasks took
+**7.19 / 7.65 / 11.59 / 20.15 / 16.57 s**, excluding two independent
+verification/startup spans of **196.48 / 190.78 s**. The first internally observed
+raw delta triggered actual cancellation; its **10.00 s** submit-to-drain span
+includes prefill before that trigger and is not isolated cancellation latency.
+All 23 closed raw files, exact parser proofs, native sequence/generation bindings,
+DPAPI provenance, stopped writers/sampler, retired recorded processes and empty
+leases were checked. The 2 MiB consumer workspace was freshly admitted without
+changing the checkpoint, precision or original engine controls.
+All five actual model envelopes were raw JSON finals: fence interpretation and
+model-proposed tools remain unit-tested. Four real browser operations came from
+trusted structured Read URL preprocessing. Next, an ordinary Agent request must
+exercise an actual model-proposed tool, browser observation and final answer.
+This record grants no p50/p95, broad task quality, 30-minute stability, aggregate
+memory hard cap, physical SSD or default eligibility. The strict engine JSON
+failure remains unchanged; explicit-consumer profiling qualification is still closed.
+
 2026-10-09: the explicit model-output consumer is now integrated with the existing
 Controller, complete-model adapter and single managed lease. The
 [source-bound unit record](../edge_harness/results/strata_20261008/agent_output_contract_unit_validation.json)
@@ -9,9 +29,9 @@ and exact single-json-fence modes withhold actions until a validated owned stop;
 raw/canonical hashes, permissions, ACK/cancel, iterator drain and quarantine are
 covered. A new route adds 2 MiB declared workspace and binds the actual consumer
 source; live admission and its own evidence remain required. Hidden model first
-delta and validated-final visibility have separate timing scopes. Actual five-task
-Agent plus cancellation/fresh recovery is being prepared; no new neural result or
-default qualification is claimed. The original strict-JSON failure remains failed.
+delta and validated-final visibility have separate timing scopes. At this unit
+record's publication, actual execution was pending; the separately reviewed
+functional run above adds no default qualification. The original strict-JSON failure remains failed.
 
 2026-10-09: an [independent fresh-process solo replay](../edge_harness/results/strata_20261008/native_ista_q2_exact_format_diagnostic.json)
 passed [closed comparison review](../edge_harness/results/strata_20261008/native_ista_q2_exact_format_diagnostic_review.json).
@@ -683,6 +703,12 @@ An [unsigned Gemma documentary lineage receipt](public_evidence/agent_gemma4_lin
 No route is release-qualified or installed as a default. The Spark bootstrap is visibly experimental. The 10-second normal and 60-second upgraded answer goals remain targets, not measured conclusions.
 
 ## Remaining qualification
+
+For the current explicit-output Strata Q2 route, first run an actual model-proposed
+read-only tool chain through ordinary `submit`, then review one shared full-trace
+validator for profiling and qualification import. Both explicit-consumer trace
+gates remain closed. The five final-envelope functional samples above cannot
+qualify model tool planning or replace a fresh three-band/30-minute protocol.
 
 Improve the ordinary model-selected browser-text route's complete-answer latency and repeat its protocol against the final imported source identity. The structured explicit Read URL route meets the warm 10 s target only on the fixed loopback fixture; its distinct user input and model prompt do not establish a general speedup. The earlier recorded-source fixed-memory and ordinary browser-text protocols are complete for their narrow fixtures, but strict current-head matching, open-domain memory, and independent signed gates remain open. Both new loopback runs matched the reviewed source at measurement; later Omni edits require repetition for final-code qualification. Extend full profiling to visual, setting, code, broader memory quality, and paired candidate routes, with batch size 1 and one active request. A separate live approved `browser_post` Agent task needs its own exact-action and server-result checks; the read-only fixture cannot qualify it. For each model/task class, perform separate warmups, **at least 20 measured complete requests per short, medium, and long input**, followed by **30 minutes of active sequential Agent work** under one stable power condition. Review exact answer quality, required tool actions, ordered traces, cold load, RAM/VRAM sampled peaks and load peaks, placement logs, cancellation and recovery, and quantization or pruning loss. The sampled RAM/VRAM/GPU power telemetry is a lower bound on instantaneous peaks; NVIDIA device power is not whole-system power. The fixed code case measures static reasoning only, and fixture success is not open-world quality.
 
