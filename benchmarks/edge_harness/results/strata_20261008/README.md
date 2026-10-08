@@ -1,5 +1,17 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+The [IQ3 five-task Agent run](native_ista_iq3_agent_functional.json)
+passed [independent review](native_ista_iq3_agent_functional_review.json).
+Own short answer, DPAPI seed/reopened recall and EN/ZH browser tasks took
+**6.60 / 8.51 / 14.26 / 18.31 / 22.06 s**, excluding startup. Full verification/
+startup took **212.22 / 210.67 s**. All 22 closed raw files, five model/native
+streams, memory provenance, actual browser grounding, complete dependency
+preimage and clean controller/ledger/process closure were verified. Actual
+input/output shapes were 161/2, 269/3, 513/14, 982/8 and 1241/9 tokens. No Q4/Q2
+outputs or qualifications are inherited. This adds no Qt run, broad quality,
+p95, power, physical-SSD, aggregate-memory or default qualification. The saved
+text source precedes the new image-stage integration and is not image evidence.
+
 The [ISTA IQ3 native lifecycle](native_ista_iq3_observed_lifecycle.json)
 passed [independent review](native_ista_iq3_observed_lifecycle_review.json).
 Own complete English/Chinese/JSON samples took **4.28 / 8.33 / 6.40 s**; cancellation
@@ -10,7 +22,7 @@ five empty ledgers, stopped sampler and six retired process identities were
 verified. Actual token shapes were 20/2, 30/3, 27/7 and recovery 20/2. Batch=1,
 concurrency=1, 4K/FP16 KV, MTP/prefetch off; the 8 GiB expert RAM cache is still
 SSD-backed. Power is limited to exact snapshots, with API-success flags missing
-from the after record. IQ3 Agent is separately running; no image, p95, sustained,
+from the after record. IQ3 Agent separately passed its own audit; no image, p95, sustained,
 physical-SSD, aggregate-memory, Agent or default qualification follows here.
 
 The [Q2 five-task Agent run](native_ista_q2_agent_functional.json)
@@ -23,7 +35,7 @@ new state/IDs were checked. Only approved task inputs match Q4. Resource ledgers
 threads and recorded process identities closed; exact browser child PID inventory
 was not saved. This adds no Q2 Qt UI, broad Agent quality, p95, power-condition,
 default, release, total-memory-cap or physical-SSD qualification. IQ3 engine
-requests and cancellation/recovery passed independently above; its Agent is separately running.
+requests and cancellation/recovery and its separate Agent passed independently above.
 
 The [ISTA Q2 native lifecycle](native_ista_q2_observed_lifecycle.json)
 passed [independent review](native_ista_q2_observed_lifecycle_review.json).
@@ -111,7 +123,7 @@ prepared files. Each uses an 8 GiB expert RAM cache, 4K context, FP16 KV,
 MTP/prefetch off and passed its live-capacity preparation preflight. These
 are SSD-backed cache experiments, not fully RAM-resident models. This preparation
 record contains no neural requests; subsequent Q2 lifecycle evidence appears
-above. IQ3 engine requests now passed independently above; its Agent and projector execution remain pending. Startup admission
+above. IQ3 engine and separate Agent requests passed independently above; projector execution remains pending. Startup admission
 is rechecked rather than inheriting the preparation snapshot.
 
 The separate [native I/O patch/build](../../runtime_patches/README.md) completed

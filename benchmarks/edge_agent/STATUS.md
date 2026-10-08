@@ -1,5 +1,18 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+The [IQ3 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional.json)
+passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional_review.json).
+Short answer, DPAPI seed, fresh-controller recall and EN/ZH loopback browser
+reads took **6.60 / 8.51 / 14.26 / 18.31 / 22.06 s**, excluding startup. The two
+verification/startup spans were **212.22 / 210.67 s**. All 22 closed raw files,
+model/native streams, memory provenance, actual browser observations, full
+Agent dependency preimage and controller/ledger/process closure were verified.
+Only approved inputs match Q4/Q2; this run has independent DB/state/outputs.
+Five controlled tasks add no p95, general quality, power-condition, aggregate
+memory, physical-SSD or default qualification. These results bind the text
+sources before image integration; the new CPU-image stage requires its own
+regression and neural evidence.
+
 The [ISTA IQ3 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle_review.json).
 Its own English/Chinese/JSON requests took **4.28 / 8.33 / 6.40 s**, cancellation
@@ -8,7 +21,7 @@ drained in **2.26 s**, and fresh-worker recovery took **4.30 s**. Starts of
 raw files, native request/I/O/module bindings, five drained ledgers, stopped
 sampler and six retired process identities were checked. Batch/concurrency are
 1/1, with 4K context, FP16 KV, MTP/prefetch off and an 8 GiB SSD-backed expert
-RAM cache. IQ3's separate memory/browser Agent run is in progress; this engine
+RAM cache. IQ3's separate memory/browser Agent run passed its own audit; this engine
 record adds no Agent, image, p95, sustained, total-memory or default qualification.
 
 The [Q2 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional.json)
@@ -75,7 +88,7 @@ and [both text-route packs](../edge_harness/results/strata_20261008/ista_prepara
 are complete, with full hashes and preparation admission checks. The preparation
 record itself contains no neural requests; subsequent Q2 engine evidence is
 recorded above, its Agent five-task run passed independently, and IQ3 has
-passed its own complete-text/cancellation/recovery audit; its independent Agent run is in progress. The isolated native I/O build
+passed its own complete-text/cancellation/recovery and five-task Agent audits. The isolated native I/O build
 also passed compilation, static runtime verification and Windows/WSL
 integration tests. Its [independent Q4 engine run](../edge_harness/results/strata_20261008/native_q4_observed_io.json)
 now passed three text requests, cancellation and fresh-worker recovery with

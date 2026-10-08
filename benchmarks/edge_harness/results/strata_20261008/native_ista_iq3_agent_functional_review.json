@@ -1,0 +1,15 @@
+{
+  "schema": "omni-private-iq3-agent-public-proposal-review-v1",
+  "reviewed_unix": 1791474981.9723976,
+  "status": "proposed_for_parent_review",
+  "proposal_sha256": "054b62e36945d217f58b08a2dbfd39b6c74cf74f2d9c76b76a90eb93ceceb5a5",
+  "independent_audit_sha256": "4a7236b05438c8662a91febeffd1839c0c767d22509056b60a9b8d0f17293f1f",
+  "auditor_sha256": "c1c1e1ece14e87e79034d0962f483d89838931a0cd399dedeeaec76b4cc3ffd2",
+  "receipt_sha256": "603fc6df8bab168511c5aea9771135c860ad138ed5699f36d43f4d586f7b84c6",
+  "actual_owner_schema_regression_tests_passed": 72,
+  "safe_field_scan_findings": 0,
+  "content_not_serialized": true,
+  "private_path_prompt_answer_tool_nonce_screen_credential_excluded": true,
+  "raw_or_production_mutated": false,
+  "qualification_created": false
+}
