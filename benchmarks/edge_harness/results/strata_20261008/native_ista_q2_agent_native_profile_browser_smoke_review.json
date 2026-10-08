@@ -1,0 +1,36 @@
+{
+  "auditor_source_sha256": {
+    "backend": "7c598ce17a8fdee8a22fa874a7b9d25736cb32a3d64930bc3b895af5e10d29e4",
+    "profile": "b902a992f2ad80ab4646d32a47a2b484a6e303d5dbe728450b70194ff5a8fa3f",
+    "root": "5bc3492f9ba3c8aa03e3e6dd8176ceb0734004e9d94102f662bc9ccf54e2b5aa"
+  },
+  "backend_audit_sha256": "4784fd6d019e4305eecfe9d768633afa7ce32a0fbfcbb193d6a8042f800ec232",
+  "checks": [
+    "Pinned receipt and all three accepted independent audits",
+    "Exact audited case/call/prompt/raw hash mapping and native sequence",
+    "Metadata-only explicit allowlist; no private text or absolute paths",
+    "All request timing boundaries retained separately",
+    "Retained native handle closure distinguished from external PID birth queries",
+    "Power endpoints only; no continuous scheme, isolation or sustained qualification",
+    "No historical quality inheritance, automatic promotion or full-protocol claim"
+  ],
+  "default_route_qualified": false,
+  "endurance_requests": 0,
+  "lineage_verified": false,
+  "measured_requests": 6,
+  "private_preimages_published": false,
+  "profile_audit_sha256": "78d2054628de724a8a8116075ff55790a26faaf1a53fed9149bf893ffd6b6d86",
+  "projector_sha256": "5f7ae9f62d37f7e84ceef0fa0556a1b07f3e1cd93d8bd894163949537e7cd0aa",
+  "protocol_compliant": false,
+  "public_evidence_sha256": "193bd07ef74a2acda22430c10eb535253fa58e1e7b3d694d5fecc4068e22d960",
+  "receipt_sha256": "b5c9b6f30b78bf4108c394ce27cf0b1198dbc3e2b553710d5e299429e59d15cf",
+  "release_qualified": false,
+  "reviewed_model_calls": 18,
+  "reviewed_raw_files": 89,
+  "reviewed_source_files": 1563,
+  "root_closed_audit_sha256": "09dc537b7436a62ee9ac5f3c777a5529310c951c6febf9bc1c2853582b0750d5",
+  "schema": "omni-public-native-agent-profile-browser-smoke-publication-review-v1",
+  "status": "accepted_independent_closed_metadata_projection",
+  "three_tier_memory_qualified": false,
+  "warmup_requests": 3
+}

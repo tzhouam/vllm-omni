@@ -1,5 +1,16 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [actual Q2 native Agent browser smoke](native_ista_q2_agent_native_profile_browser_smoke.json)
+passed [independent closed publication review](native_ista_q2_agent_native_profile_browser_smoke_review.json).
+Nine bilingual local-page tasks passed: 3 warmups, 6 measured, no endurance; batch=1/concurrency=1.
+All 18 model calls bind model-proposed navigation, actual automatic page observations, exact follow-up inputs and final answers.
+Six instrumented whole-task samples were **18.264–27.355 s**, with separate **125.469 s** integrity checking/controller preparation.
+All 89 raw files, 1,563 current sources, raw/parser/consumer bindings, native sequence and final resource closure were verified.
+All raw replies were JSON; browser closure is limited to recorded references, threads and driver, without enumerating all descendants.
+Validated-final visibility is separate from hidden model SSE timing. Power scheme checks cover endpoints only.
+Full 20×3 and 30-minute performance, broad quality, lineage, all-operator placement, aggregate memory,
+physical SSD attribution and default/release qualification remain open. The older strict-JSON failure is unchanged.
+
 2026-10-09: the [actual Q2 native Agent basic smoke](native_ista_q2_agent_native_profile_basic_smoke.json)
 passed [independent closed publication review](native_ista_q2_agent_native_profile_basic_smoke_review.json).
 Nine bilingual arithmetic requests passed (3 warmups, 6 measured, no endurance), batch=1/concurrency=1.

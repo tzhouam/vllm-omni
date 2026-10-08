@@ -1,5 +1,19 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: the same frozen Q2 route passed an actual
+[NativeProfileBridge browser smoke](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke.json)
+and [independent closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke_review.json).
+All **9/9** bilingual read-only browser tasks passed (3 warmups, 6 measured), batch=1/concurrency=1.
+Each task used a model-proposed open, a real automatic page read and a second model call; all 18 actual calls
+and exact follow-up inputs rebuilt from both preceding tool observations were verified.
+Short/medium/long whole-task samples were **18.264–18.575 / 18.846–20.364 / 25.877–27.355 s**,
+excluding **125.469 s** integrity checking/controller preparation. Timings include private streamed capture I/O;
+first visible output is validated final, not hidden model SSE or Qt rendering.
+All 89 closed files, 1,563 sources, raw parser proofs, ordered state, native retirement and empty leases were checked.
+All 18 replies were raw JSON. Browser closure covers recorded references, threads and driver, not every Edge descendant.
+This qualifies only the fixed local-page smoke. Full 20×3 measurements, 30-minute sequential operation,
+broad task quality, physical SSD attribution, total memory hard caps and default/release eligibility remain pending.
+
 2026-10-09: the current ISTA Q2 Qwen3.8-Flash-Next route passed an actual
 [NativeProfileBridge basic smoke](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke.json)
 and [independent closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke_review.json).
@@ -9,7 +23,7 @@ integrity checking and controller preparation took a separate **161.369 s**. Req
 All 53 closed files, 1,563 sources, exact input/raw-output replays, consumer traces, native retirement and empty leases were checked.
 Visible first output is validated final, separately recorded from hidden model SSE timing. This covers basic arithmetic only;
 browser tasks, endurance, full performance protocol, lineage, aggregate memory, physical SSD and default/release qualification remain open.
-Next is a fresh browser-text smoke using the same frozen runtime and actual model-proposed tools.
+The separately audited browser-text smoke above follows this basic run using the same frozen runtime.
 
 2026-10-09: native profiling now waits for the actual startup thread after sampler failure or cancellation,
 including repeated cancellation, before resource close. [Controlled-thread tests](../../tests/edge/test_agent_profile_loader_drain.py)

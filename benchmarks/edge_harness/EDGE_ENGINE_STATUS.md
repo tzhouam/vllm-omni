@@ -1,5 +1,18 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
+2026-10-09：同一冻结 Q2 路线的真实
+[NativeProfileBridge 浏览器 smoke](results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke.json)
+通过[独立闭合复核](results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke_review.json)。
+batch=1、单活跃请求，3 条预热＋6 条测量，共 **9/9** 中英文只读浏览器任务通过。
+18 次实际模型调用完成模型提出 browser_open→真实自动 browser_read→观察进入第二次输入→最终答案；
+全部 9 条后续输入均按实际工具结果重建核对。短／中／长各两条完整任务为
+**18.264–18.575／18.846–20.364／25.877–27.355 秒**，另计 **125.469 秒**校验及控制器准备。
+89 份闭合文件、1,563 份源码、逐步解析与状态序号、原生进程退出和空账本已核验；
+实际 18 条回复均为原始 JSON。请求耗时含私有流式取证 I/O，可见首输出为校验后的 final。
+浏览器关闭证据限于记录的引用、线程和 driver，不包含全部 Edge 后代进程枚举。
+此轮是固定本地页面任务 smoke；三档各 20 次、30 分钟顺序运行、广泛任务质量、
+物理 SSD 归属、总内存硬上限和默认/发布资格仍待完成。
+
 2026-10-09：Qwen3.8-Flash-Next 的 ISTA Q2 显式 Agent 路线已通过真实
 [NativeProfileBridge 基本任务 smoke](results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke.json)
 及[独立闭合复核](results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke_review.json)。
@@ -9,7 +22,7 @@ batch=1、单活跃请求，3 条预热＋6 条测量，共 9 个中英文基础
 53 份闭合文件、1,563 份源码、全部输入/原始回复/消费轨迹、原生进程退出和空账本均已独立核验。
 可见首输出是校验后的 final，内部模型首 SSE 单独记录。仅验证加载配置及 routed decode 的 CPU/GPU 专家计数；
 整模型算子放置、物理 SSD 字节和总内存硬上限仍未知。WDDM local/nonlocal 分别记录，不能相加。
-本轮没有浏览器任务或耐久阶段，不创建完整性能、来源谱系、默认或发布资格；下一项是浏览器 smoke。
+本轮基本任务没有浏览器或耐久阶段，不创建完整性能、来源谱系、默认或发布资格；独立浏览器 smoke 见上。
 
 2026-10-09：原生 Agent profiler 的加载失败/取消路径现在等待实际加载线程终止，
 再进入资源关闭，避免采样失败或重复取消使清理与加载竞争。
