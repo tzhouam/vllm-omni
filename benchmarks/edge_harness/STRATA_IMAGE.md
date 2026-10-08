@@ -102,7 +102,17 @@ selected loaded modules, final getters, source identities and shared ledger
 were independently checked. Language I/O excludes encoder/loading; WDDM local
 and nonlocal peaks remain separate, and power has only pre/post snapshots. This
 record grants no Agent, broad image quality, percentile performance, sustained
-stability, aggregate hard-cap or default/release qualification. The Agent bridge requires explicit experimental selection and strict
+stability, aggregate hard-cap or default/release qualification.
+
+A separate [actual Q2 browser-image Agent task](results/strata_20261008/native_ista_q2_agent_image_functional.json)
+also passed independent stopped-run review. It uses the existing controller,
+managed read-only browser and image backend, with one planner call followed by
+one actual screenshot-model call. The saved browser JPEG independently
+reproduces the submitted 1280×720 PNG; native ENC→SVE→GENI binds its embedding
+to the final answer. The single whole-task sample is **48.07 s**, excluding
+**207.65 s** of engine verification/loading. All 17 closed files and resource
+retirement were verified. It adds one specific Agent functional outcome,
+without percentile, complete-suite, stability or default qualification. The Agent bridge requires explicit experimental selection and strict
 image proof; formal profile/default promotion remains refused pending a reviewed
 image task suite. Text, image, performance, total-memory and physical-SSD claims
 remain separate in the [rolling status](EDGE_ENGINE_STATUS.md).

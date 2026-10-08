@@ -1,0 +1,215 @@
+{
+  "schema": "omni-strata-agent-image-functional-public-evidence-v2",
+  "status": "independently_accepted_narrow_functional_task",
+  "scope": "One actual read-only browser screenshot Agent task, with the actual controller, managed browser, memory store and Omni image backend; not the full Agent suite or default-route qualification.",
+  "hardware": {
+    "platform": "Windows native",
+    "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "hardware_scope": "Exact loaded native GPU identity and fresh admission were checked by the hash-bound runner; results are not transferred to desktop RTX 5090 or mobile devices."
+  },
+  "model": {
+    "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+    "revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+    "declared_quantization": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL",
+    "precision_scope": "Exact declared metadata for both manifest-bound weight shards; not an independent inspection of every tensor's quantization.",
+    "weight_shards": [
+      {
+        "size_bytes": 37623740192,
+        "sha256": "69820c02ec7d0b45ef2ebb19d6620299db749fe2aded7f39f93c6b88b199b720"
+      },
+      {
+        "size_bytes": 28800138432,
+        "sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113"
+      }
+    ]
+  },
+  "execution": {
+    "backend": "external.strata.multimodal.v1",
+    "batch_size": 1,
+    "concurrency": 1,
+    "outer_agent_tasks": 1,
+    "inner_model_requests": 2,
+    "image_model_requests": 1,
+    "text_planner_requests": 1,
+    "encoder_primary_backend": "CPU",
+    "language_loaded_execution_configuration": "cpu+cuda:0",
+    "whole_model_actual_placement": null,
+    "mtp_enabled": false,
+    "kv_type": "fp16",
+    "route_scope": "Explicit experimental opt-in; no text or image default qualification inherited."
+  },
+  "dataflow": {
+    "chain": "actual managed-browser JPEG -> controller PNG -> Omni Agent image stage -> owned CPU ENC -> saved SVE -> owned Strata GENI -> final Agent answer",
+    "submitted_png": {
+      "width": 1280,
+      "height": 720,
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b",
+      "finite_f32": true
+    },
+    "independent_jpeg_to_png_reproduction_passed": true,
+    "pixel_decoder_pillow_version": "12.3.0",
+    "reference_isolated_from_prompt_dom_and_recalled_memory": true,
+    "outer_inner_request_epoch_native_sequence_bindings_verified": true,
+    "owned_encode_output_and_generative_input_hashes_verified": true,
+    "terminal_getters_unchanged_after_close": true
+  },
+  "quality": {
+    "passed": true,
+    "sample_count": 1,
+    "scope": "One fixed screenshot heading task checked against a separate exact reference; no comprehensive visual or Agent task-quality claim."
+  },
+  "timing": {
+    "whole_agent_task_s_excludes_load": 48.072067300090566,
+    "cold_start_and_verification_s": 207.6480382999871,
+    "sample_count": 1,
+    "p50_s": null,
+    "p95_s": null,
+    "scope": "Single functional observations; complete Agent task includes both model calls and browser/tool work. Cold startup includes artifact verification and framework/model initialization. Neither is a controlled performance qualification."
+  },
+  "closure": {
+    "raw_file_count": 17,
+    "raw_bytes": 13612318,
+    "all_raw_hashes_verified_before_and_after_audit": true,
+    "source_and_dependency_identity_stable": true,
+    "native_encoder_retired": true,
+    "native_language_retired": true,
+    "browser_controller_fixture_writers_stopped": true,
+    "telemetry_sampling_thread_stopped": true,
+    "shared_ledger_empty_and_unquarantined": true,
+    "memory_scope": "13 ciphertext event rows match the actual outer sequence and declare user-DPAPI; no decryption or confidentiality proof by the independent reviewer.",
+    "retirement_scope": "Both native roles were verified by retained exact process handles in the byte-bound runner; the coordinator separately confirmed its external launcher and runner retired."
+  },
+  "identities": {
+    "independent_audit_sha256": "42c81472d13de3e01fae1dd670f26f7a779afbeb4b3be727db77f466cd4c1b6d",
+    "reviewer_sha256": "4efdfc2e0a0263bfbac61b61e2d72919eb9fda7172101fc6de7de3bfd40de433",
+    "agent_receipt_sha256": "e9d8245091dfee04d643f04f536da1f2309c76acef2f57ae4a8a8d772080e32e",
+    "agent_runner_sha256": "8f77bfe93e38046f8b6ee8eff37c1950e2e13699e848e9be3be073c0ce888548",
+    "source_preimage_sha256": "33fade33dfa1f0e870958b3170e14b561be4027a5ad6953532c5c1fd7536e5cc",
+    "loaded_python_runtime_sha256": "73e7bbdd54a1ae07d198127f9a93d3c74c2512c175af800f19aec02cf4bbf855",
+    "launch_sha256": "641dfab17e8cd7e7ae1c9c4bd0ada189b5a1724829df0c11420b3e728f7b1965",
+    "reference_sha256": "ae90056198d16d861d4cc9139e4df68684533c74a38b55606f2ed267af19f3ed",
+    "prior_engine_lifecycle_receipt_sha256": "0e1d8d0948adfe55f6677bf7a27f8728cf5a6cc39980713cd95d052e0608a22a",
+    "prior_engine_independent_audit_sha256": "a0878e97e62fdac426bb5a6d4068c3d35cd19b68f54b01d383fa05bf378725d7",
+    "root_terminal_receipt_sha256": "bcba1e4dfd6b993886c3cddfffebd5e229f687079112cb206e1c6461c8081f07",
+    "root_external_owner_record_sha256": "a5e86810e0b1efb670c490d67360c98d0cbbd31ecc64f6f36480b0affed6a8d2",
+    "power_before_sha256": "0ac71c68127dbe7a61387f249ced48736e07f9bf48d8514bbdcdace1d528d316",
+    "power_after_sha256": "5de2ff5c3d1de0a7c8eed2558495f22914ed0c230714dc8cee49dbdbe4e89db4"
+  },
+  "continuous_power_condition_verified": false,
+  "physical_ssd_model_attributed_read_bytes": null,
+  "aggregate_ram_vram_hard_caps_verified": false,
+  "three_tier_memory_qualified": false,
+  "full_agent_suite_qualified": false,
+  "default_route_qualified": false,
+  "release_qualified": false,
+  "remaining_gates": [
+    "Current-source text lifecycle and controlled batch-1 three-band performance protocol",
+    "Independent 30-minute sequential sustained run",
+    "Broader Agent visual/tool/memory tasks and task-quality comparison",
+    "Aggregate RAM/VRAM peak and file-cache accounting",
+    "Model-attributed physical storage-stack I/O"
+  ],
+  "prior_engine_public_evidence": "native_cpu_image_lifecycle.json",
+  "outer_request_id": "75b25a2a4629413495ae7505c91857eb",
+  "inner_requests": [
+    {
+      "request_id": "75b25a2a4629413495ae7505c91857eb-step-0",
+      "step": 0,
+      "epoch": 1,
+      "native_language_request_seq": 1,
+      "input_png_sha256": null,
+      "text_prompt_input_sha256": null,
+      "text_output_sha256": null,
+      "text_digest_scope": "Not independently derived by the accepted audit; unknown rather than inferred from model deltas.",
+      "natural_stop": true
+    },
+    {
+      "request_id": "75b25a2a4629413495ae7505c91857eb-step-1",
+      "step": 1,
+      "epoch": 2,
+      "native_language_request_seq": 2,
+      "input_png_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "text_prompt_input_sha256": null,
+      "text_output_sha256": null,
+      "text_digest_scope": "Not independently derived by the accepted audit; unknown rather than inferred from model deltas.",
+      "natural_stop": true
+    }
+  ],
+  "final_agent_answer_sha256": "99b62dc699b0f24b879bfae290fb59f1ff5394f06ccd0a47077e7507233c4f0e",
+  "final_answer_digest_scope": "SHA-256 of exact saved Agent answer UTF-8 from the accepted receipt; no answer text is published.",
+  "raw_files": {
+    "all-raw.json": {
+      "size_bytes": 266965,
+      "sha256": "cbc11a77b1e2b5c438f10c313077dda963ea4c23a632cae704c01c4fb3f7bc08"
+    },
+    "browser-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "browser-screenshot.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "config.json": {
+      "size_bytes": 809256,
+      "sha256": "b9070a935d8af78e183af7fa02555c253f23fab2fc88eb88157243e385a484b9"
+    },
+    "controller-image.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "effective-launch.json": {
+      "size_bytes": 740067,
+      "sha256": "641dfab17e8cd7e7ae1c9c4bd0ada189b5a1724829df0c11420b3e728f7b1965"
+    },
+    "events.jsonl": {
+      "size_bytes": 126528,
+      "sha256": "84ca10439305cfe473c11281a0163461ece3b01135ef04ef54d863a2349a07b0"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "233fd0185060618580f1abd305fcbbde5ba58f57b3327773285ac0dce09e725c"
+    },
+    "hardware.json": {
+      "size_bytes": 933,
+      "sha256": "088a453253d0bfe51d23a6b493cb5284da975a5d0e2af813141ec5729314d30e"
+    },
+    "image-2.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 27211,
+      "sha256": "b03ce42c731fde008d68702ea0917617f989446756f84814dec909dc931be397"
+    },
+    "memory.sqlite": {
+      "size_bytes": 389120,
+      "sha256": "bb1aefe131ccb55c8ff45b81849d5a94126eb6c0602ebcc13afbd10ef652aaa6"
+    },
+    "model-image-2.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "private-case.json": {
+      "size_bytes": 353,
+      "sha256": "a43f9d0b6f4dee36ad0a7c6a5a5d0492499bfc1fe0a974a8099885cc7c95790d"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 390,
+      "sha256": "86952316a26be6ad13a5af9f3fa8b9c7b8ace261c52f0775164b0eeab9636e53"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 1371592,
+      "sha256": "92d789da34b8d3ff3a4199966b8a374f444c060e93f7d83dab1a09f13498014e"
+    }
+  }
+}

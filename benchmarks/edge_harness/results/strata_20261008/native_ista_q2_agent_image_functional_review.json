@@ -1,0 +1,24 @@
+{
+  "schema": "omni-strata-agent-image-functional-public-review-v1",
+  "status": "independent_closed_audit_and_root_publication_review_passed",
+  "checker_sha256": "e9262309c46d20bd4b19504943a9570545e10a83d9798437e07c4250cf5af390",
+  "proposal_sha256": "3e9acc18d071667bf0b0fa52e46cfff8fde88420dbc44277a814ecc9b8e135f3",
+  "preserved_v1_sha256": "360b0ce9341f1a2ab4c2191d88ebc95fd0a263c77289b0225dba89ee867e2c93",
+  "accepted_audit_sha256": "42c81472d13de3e01fae1dd670f26f7a779afbeb4b3be727db77f466cd4c1b6d",
+  "accepted_receipt_sha256": "e9d8245091dfee04d643f04f536da1f2309c76acef2f57ae4a8a8d772080e32e",
+  "raw_inventory_members": 17,
+  "inner_requests": 2,
+  "missing_text_digests_remain_unknown": true,
+  "final_agent_answer_utf8_digest_derived_from_accepted_receipt": true,
+  "no_prompt_answer_pixels_dom_memory_or_private_paths_published": true,
+  "release_qualified": false,
+  "root_review_completed_unix": 1791479948.5501852,
+  "original_proposal_review_sha256": "df7f1253c0b0cc08bc1d6387232195d8e9129e975e69593fcbb49d9cc922573e",
+  "root_checks": {
+    "raw_inventory_matches_all17_closed_members": true,
+    "answer_hash_matches_without_public_text": true,
+    "timing_and_counts_match_accepted_audit": true,
+    "broader_qualification_flags_false": true,
+    "public_path_and_inline_payload_scan_passed": true
+  }
+}

@@ -1,4 +1,4 @@
-# Native Windows Omni edge Agent — rolling status (2026-10-08)
+# Native Windows Omni edge Agent — rolling status (2026-10-09)
 
 2026-10-09: the experimental [CPU-image Strata bridge](../edge_harness/STRATA_IMAGE.md)
 is integrated with the existing controller, managed engine lease and native UI.
@@ -11,10 +11,18 @@ repository Ruff passes. The new route registration and
 now passed independent stopped-run review: three specified screenshot requests,
 observed encoder-phase cancellation and fresh-generation recovery. All 27
 closed raw files and both native roles were checked. That record contains no
-Agent, browser or Qt execution. The separately gated actual Agent browser-image
-run is in progress; JPEG→PNG forwarding, inner model-step binding and its final
-answer remain pending closure and independent audit. Historical text evidence
-confers no image capability or default qualification.
+Agent, browser or Qt execution. The separate
+[actual Q2 browser-image Agent task](../edge_harness/results/strata_20261008/native_ista_q2_agent_image_functional.json)
+now passed [independent closed-run and publication review](../edge_harness/results/strata_20261008/native_ista_q2_agent_image_functional_review.json).
+The real controller planned navigation, opened a read-only page and captured
+its browser JPEG; the actual 1280×720 controller PNG passed CPU ENC→SVE→Strata
+GENI and the isolated heading reference. One outer task/two model requests took
+**48.07 s**, excluding a separate **207.65 s** engine-verification/load span.
+All 17 raw files, independently reproduced pixels, request/epoch/native sequence
+bindings, final getters and controller/browser/native-role/ledger/sampler
+closure were verified. This is one fixed image task; full Agent quality,
+p50/p95, sustained stability and default qualification remain open. Historical
+text evidence confers no image capability or default qualification.
 
 The [IQ3 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional_review.json).
@@ -27,7 +35,8 @@ Only approved inputs match Q4/Q2; this run has independent DB/state/outputs.
 Five controlled tasks add no p95, general quality, power-condition, aggregate
 memory, physical-SSD or default qualification. These results bind the text
 sources before image integration. The separate Q2 engine-image evidence is
-linked above; the actual Agent-image closure and audit are still pending.
+linked above, along with the separately audited Q2 Agent-image task. Neither
+extends the IQ3 text record to images.
 
 The [ISTA IQ3 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle_review.json).
@@ -62,7 +71,7 @@ verified. The subsequent Q2 Agent five-task run passed its own independent
 review above; Q4 Agent results are not inherited. No p95, sustained, image, model-
 attributed physical SSD or aggregate-memory qualification follows.
 
-The [current-source native Qt Agent rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_qt_agent.json)
+The [pre-image-integration native Qt Agent rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_qt_agent.json)
 passed one actual Q4 request through the existing offscreen Qt event loop,
 Omni stage, ordered stream and terminal controls, followed by clean controller,
 ledger and process shutdown. The [independent review](../edge_harness/results/strata_20261008/native_q4_observed_final_qt_agent_review.json)
@@ -91,7 +100,7 @@ batch-1, concurrency-1 engine protocol is prepared and tokenizer-checked;
 60 measured requests and a separate 30-minute run have not started. This
 fixed engine suite does not replace complete Agent task qualification.
 
-The current local working-tree [Strata engine lifecycle rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_io.json)
+The pre-image text-source [Strata engine lifecycle rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_io.json)
 passed three full text requests, cancellation/drain and fresh-worker recovery;
 its [independent review](../edge_harness/results/strata_20261008/native_q4_observed_final_io_review.json)
 binds the final LF integration bytes and corrected lifecycle owner. This adds
@@ -108,7 +117,7 @@ passed its own complete-text/cancellation/recovery and five-task Agent audits. T
 also passed compilation, static runtime verification and Windows/WSL
 integration tests. Its [independent Q4 engine run](../edge_harness/results/strata_20261008/native_q4_observed_io.json)
 now passed three text requests, cancellation and fresh-worker recovery with
-bound I/O records. That earlier engine record contains no Agent run; the subsequent current-source
+bound I/O records. That earlier engine record contains no Agent run; the subsequent then-current text-source
 Q4/Q2 Agent checks are recorded above and add no default-route qualification.
 
 The latest [actual Windows Qt Agent request](../edge_harness/results/strata_20261008/native_q4_qt_agent.json)
@@ -238,7 +247,7 @@ failure or a new performance result. The first attempt recorded an opaque
 numeric admission facts. The 2026-10-06 full profiles remain evidence for
 their measured source, with final-source release matching still pending.
 
-Two current-source Spark CPU short runs also failed task checks. The
+Two then-current-source Spark CPU short runs also failed task checks. The
 [structured Read URL smoke](public_evidence/agent_spark_cpu_structured_read_url_smoke_20261008.json)
 recomputed 0/6 measured successes: the model proposed `browser_read` with
 invalid arguments for its zero-argument schema, and failed requests left
