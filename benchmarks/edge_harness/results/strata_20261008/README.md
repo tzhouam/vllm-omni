@@ -1,5 +1,13 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: [Q2 publisher metadata](ista_q2_publisher_lineage_audit.json)
+passed [independent metadata review](ista_q2_publisher_lineage_audit_review.json).
+Both shard sizes and LFS hashes at the fixed quantized revision match the closed run manifest.
+Archived primary document identities are retained; the API response hash is a saved observation containing mutable service fields.
+The base checkpoint revision and complete quantization/calibration receipt remain unknown.
+The card's Apache YAML and inherited base weight terms are recorded separately, without establishing legal clearance.
+This read-only check adds no neural run, numerical equivalence, performance result or lineage/default/release qualification.
+
 2026-10-09: the [actual Q2 native Agent browser smoke](native_ista_q2_agent_native_profile_browser_smoke.json)
 passed [independent closed publication review](native_ista_q2_agent_native_profile_browser_smoke_review.json).
 Nine bilingual local-page tasks passed: 3 warmups, 6 measured, no endurance; batch=1/concurrency=1.

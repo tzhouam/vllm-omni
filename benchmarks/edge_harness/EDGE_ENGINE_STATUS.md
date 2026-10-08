@@ -382,7 +382,12 @@ Windows 工具仍由 Agent 的权限边界执行，模型后端没有工具执�
 
 上述大小均为十进制字节总量，不是 RAM 峰值。RAM 路线仍有 SSD 支持的 PLE；
 它的名字不意味着整个 GGUF 常驻 RAM。Q4 的首分片只有 10,946,624 B，单独下载它不算取得模型。
-第三方量化卡与上游 checkpoint 的许可证差异保留为待核实项。
+[发布者来源核对](results/strata_20261008/ista_q2_publisher_lineage_audit.json)及
+[独立复核](results/strata_20261008/ista_q2_publisher_lineage_audit_review.json)
+确认固定 `ed59f920` 版本的两个 Q2 分片 LFS 大小/哈希与已闭合运行清单一致。
+量化卡的 YAML 标注 Apache，但正文明确权重继承基础模型条款；保存的官方基础许可证仅为观察，
+不能将其当前 revision 代替未知的量化父 checkpoint。精确父 revision、完整构建/校准记录、
+同产物数值对照和适用条款复核仍待完成；本次只读元数据核对不改变旧清单、运行身份或资格标记。
 
 本日较早的[本机准入记录](results/strata_20261008/local_readiness.json)捕获的可用物理 RAM 为
 12,294,774,784 B，Windows commit 为 2,320,498,688 B，显存为 6,738,694,144 B。

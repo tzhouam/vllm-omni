@@ -25,6 +25,12 @@ Visible first output is validated final, separately recorded from hidden model S
 browser tasks, endurance, full performance protocol, lineage, aggregate memory, physical SSD and default/release qualification remain open.
 The separately audited browser-text smoke above follows this basic run using the same frozen runtime.
 
+2026-10-09: [publisher metadata verification](../edge_harness/results/strata_20261008/ista_q2_publisher_lineage_audit.json)
+and [independent review](../edge_harness/results/strata_20261008/ista_q2_publisher_lineage_audit_review.json)
+match both fixed Q2 shard LFS identities to the closed run manifest. Exact base-parent and quantization/calibration
+provenance remain missing; observed current base metadata is not substituted as the parent.
+Historical route identities and false lineage/default/release flags remain unchanged. This is metadata evidence, with no new model run.
+
 2026-10-09: native profiling now waits for the actual startup thread after sampler failure or cancellation,
 including repeated cancellation, before resource close. [Controlled-thread tests](../../tests/edge/test_agent_profile_loader_drain.py)
 and related integration regression passed **119 tests and 32 subtests** without neural execution.

@@ -1,0 +1,28 @@
+{
+  "checks": [
+    "Exact pinned ed59 API revision and both LFS sizes/SHA match closed browser manifest",
+    "Archived primary bytes and receipt hashes match proposal",
+    "API hash is an observation containing mutable service fields",
+    "Base parent stays unknown; observed official head is not substituted",
+    "Apache YAML and inherited base weight terms remain separate assertions; no legal clearance",
+    "All lineage/performance/release/default/calibration/build flags stay false",
+    "No private payload/native path/endpoint/credential marker; public primary URLs intentionally retained"
+  ],
+  "closed_browser_evidence_sha256": "193bd07ef74a2acda22430c10eb535253fa58e1e7b3d694d5fecc4068e22d960",
+  "default_route_qualified": false,
+  "findings": [],
+  "independent_note_sha256": "95a10a35ca4a371bb739a36a00df97a53fbad65f3c73d023704f90f4debdd811",
+  "independent_private_review_sha256": "cdfd38ac22b4d7c789c81e6b80dae0cfcbf13b079c263d41d1a2c5568041802e",
+  "lineage_verified": false,
+  "performance_qualified": false,
+  "private_preimages_published": false,
+  "public_evidence_sha256": "336000901d3f00c8a57e495822d97bb770e6f0227d125837c53da9c184747213",
+  "qualification_created": false,
+  "release_qualified": false,
+  "review_setup_observation": "Initial overly broad drive-letter regex matched a public HTTPS URL; corrected with a token-boundary check. This was a review setup false positive; proposal bytes unchanged.",
+  "root_source_receipt_sha256": "81418d383e6bab4ae3d1f02b31cea19b6fd9bed2fe2f2f49fce004c35c2bc92d",
+  "schema": "omni-public-ista-q2-publisher-lineage-metadata-review-v1",
+  "scope": "Read-only small archived primary documents and closed public metadata; no tensor/model reads, live full-profile reads, engine imports, tests or production/proposal edits.",
+  "status": "accepted_metadata_projection_no_qualification",
+  "verified_small_document_count": 7
+}

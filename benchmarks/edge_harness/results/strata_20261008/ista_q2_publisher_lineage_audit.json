@@ -1,0 +1,82 @@
+{
+  "api_observation_scope": "The saved API response includes mutable service fields. Its pinned revision, file sizes and publisher LFS digests were matched independently.",
+  "artifact_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+  "audited_date": "2026-10-09",
+  "base_checkpoint_revision": null,
+  "calibration_revision_verified": false,
+  "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+  "closed_browser_evidence_sha256": "193bd07ef74a2acda22430c10eb535253fa58e1e7b3d694d5fecc4068e22d960",
+  "default_route_qualified": false,
+  "future_metadata_changes_only": [
+    "Pin candidate artifact and projector URLs to the verified quantized artifact revision.",
+    "Keep the separate base checkpoint revision unknown.",
+    "Preserve mixed precision and publisher-declared provenance scope.",
+    "Any manifest-content correction receives a new identity; historical indexes and false lineage flags remain unchanged."
+  ],
+  "license_observation": {
+    "distribution_or_use_clearance_established": false,
+    "model_card_weight_terms": "inherits_base_model_terms",
+    "model_card_yaml": "apache-2.0",
+    "observed_base_head_is_quantization_parent": null,
+    "observed_base_license_identity": "Qwen Community License 1.0",
+    "observed_base_license_sha256": "a0dc422560841fd68e06d974907f8b4c709bca44a67daad2b528437bdf676c08",
+    "observed_official_base_revision": "de4b8e4d43b917e7706784d8bb445c9af86a3540",
+    "scope": "Preserve the metadata assertions and unknown parent; this observation makes no project-specific legal determination."
+  },
+  "lineage_verified": false,
+  "performance_qualified": false,
+  "precision": "Mixed GSQ-RCO Q2_0 transformer allocation; IQ4_NL n-gram table.",
+  "prepared_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900",
+  "primary_observations": {
+    "base-license.txt": {
+      "bytes": 3235,
+      "fetched_unix": 1791496450.9031844,
+      "sha256": "a0dc422560841fd68e06d974907f8b4c709bca44a67daad2b528437bdf676c08",
+      "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/de4b8e4d43b917e7706784d8bb445c9af86a3540/LICENSE"
+    },
+    "model-card.md": {
+      "bytes": 15693,
+      "fetched_unix": 1791496450.1766825,
+      "sha256": "71496aac3c9126085519dbe3aa82e46eb9f5749ee122b089a66182a94b0db6a3",
+      "url": "https://huggingface.co/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF/resolve/ed59f92082b1e93c0e96d60a8b11aab089b52f09/README.md"
+    },
+    "publisher-api.json": {
+      "bytes": 16008,
+      "fetched_unix": 1791496449.4789162,
+      "sha256": "c39c0161b8d0ca51e9b80bf37e7413768d74d04d5dc1220ff32ab4f31ba06cac",
+      "url": "https://huggingface.co/api/models/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF/revision/ed59f92082b1e93c0e96d60a8b11aab089b52f09?blobs=true"
+    }
+  },
+  "private_independent_note_sha256": "95a10a35ca4a371bb739a36a00df97a53fbad65f3c73d023704f90f4debdd811",
+  "private_preimages_published": false,
+  "publisher_claims_scope": "Publisher methods and benchmark descriptions are not independent local quality or parent-lineage validation.",
+  "publisher_file_identity_matches_closed_manifest": true,
+  "publisher_lfs_files": [
+    {
+      "relative_name": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00001-of-00002.gguf",
+      "role": "weights",
+      "sha256": "69820c02ec7d0b45ef2ebb19d6620299db749fe2aded7f39f93c6b88b199b720",
+      "size_bytes": 37623740192
+    },
+    {
+      "relative_name": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00002-of-00002.gguf",
+      "role": "weights",
+      "sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113",
+      "size_bytes": 28800138432
+    }
+  ],
+  "qualification_created": false,
+  "quantization_build_receipt_verified": false,
+  "quantized_artifact_revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+  "release_qualified": false,
+  "remaining_evidence": [
+    "Publisher attestation or reproducible build binding the exact parent revision and source hashes.",
+    "Quantizer, search and converter revisions, configuration and calibration provenance.",
+    "Independent same-GGUF numerical and intended-task comparisons.",
+    "Applicable license and actual dependency-bundle review."
+  ],
+  "root_source_receipt_sha256": "81418d383e6bab4ae3d1f02b31cea19b6fd9bed2fe2f2f49fce004c35c2bc92d",
+  "schema": "omni-public-ista-q2-publisher-lineage-metadata-audit-v1",
+  "scope": "Read-only small primary documents and closed run metadata; no tensor reads, local weight rehash, new model execution or performance measurement.",
+  "status": "publisher_file_identity_matched_substantive_lineage_pending"
+}
