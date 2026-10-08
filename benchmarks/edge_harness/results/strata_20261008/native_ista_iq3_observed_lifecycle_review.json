@@ -1,0 +1,18 @@
+{
+  "schema": "omni-private-iq3-public-proposal-review-v2",
+  "status": "proposed_for_parent_review",
+  "reviewed_unix": 1791474384.8552036,
+  "proposal_sha256": "4f81d6a5b2ba61d967988bd2762b1ec5d4c7eb0d8c584c9efc74b62c53804d3a",
+  "prior_proposal_sha256": "d88652b8c94ab9808511b80b1e70910e8e4ef582366b45fbf40c5b06e4038a06",
+  "independent_audit_sha256": "1cffe0691f854cf598ac54bfbaa83b181ac4249330260c8a578641d641a32187",
+  "receipt_sha256": "31452e8c7def849b7f8cbacb944b0fdc854666ba502d7f25ce27a2d2ec2b23c2",
+  "change_scope": "Metadata additions only: exact per-request usage/native DONE prompt/generated counters, fixed runtime revision/native EXE and allowlisted preparation-time hardware snapshot. Original numeric outcomes and qualification scopes unchanged.",
+  "safe_field_scan_violations": 0,
+  "original_v2_preserved": true,
+  "raw_files_rechecked_against_closed_audit": true,
+  "hardware_snapshot_is_preparation_time_not_fresh_sensor": true,
+  "raw_or_production_mutated": false,
+  "neural_execution_performed": false,
+  "qualification_created": false,
+  "privacy_scope": "No raw prompt/answer/tool payload, private native path, nonce, encoded screen or credential; content hashes and allowlisted numeric/identity metadata only"
+}

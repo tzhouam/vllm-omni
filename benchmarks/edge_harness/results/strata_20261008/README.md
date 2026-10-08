@@ -1,5 +1,18 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+The [ISTA IQ3 native lifecycle](native_ista_iq3_observed_lifecycle.json)
+passed [independent review](native_ista_iq3_observed_lifecycle_review.json).
+Own complete English/Chinese/JSON samples took **4.28 / 8.33 / 6.40 s**; cancellation
+after two deltas drained in **2.26 s**, and fresh-worker recovery took **4.30 s**.
+Starts of **226.72 / 206.82 s** include hashing/framework/model initialization.
+All 16 closed raw files, exact controls, request/native I/O/module identities,
+five empty ledgers, stopped sampler and six retired process identities were
+verified. Actual token shapes were 20/2, 30/3, 27/7 and recovery 20/2. Batch=1,
+concurrency=1, 4K/FP16 KV, MTP/prefetch off; the 8 GiB expert RAM cache is still
+SSD-backed. Power is limited to exact snapshots, with API-success flags missing
+from the after record. IQ3 Agent is separately running; no image, p95, sustained,
+physical-SSD, aggregate-memory, Agent or default qualification follows here.
+
 The [Q2 five-task Agent run](native_ista_q2_agent_functional.json)
 passed [independent review](native_ista_q2_agent_functional_review.json): short
 answer, DPAPI seed/reopened recall and actual EN/ZH loopback reads. Task samples
@@ -9,8 +22,8 @@ calls/native I/O, memory provenance, browser grounding, dependency preimage and
 new state/IDs were checked. Only approved task inputs match Q4. Resource ledgers,
 threads and recorded process identities closed; exact browser child PID inventory
 was not saved. This adds no Q2 Qt UI, broad Agent quality, p95, power-condition,
-default, release, total-memory-cap or physical-SSD qualification. IQ3 observed
-runtime registration is complete; its neural requests remain pending.
+default, release, total-memory-cap or physical-SSD qualification. IQ3 engine
+requests and cancellation/recovery passed independently above; its Agent is separately running.
 
 The [ISTA Q2 native lifecycle](native_ista_q2_observed_lifecycle.json)
 passed [independent review](native_ista_q2_observed_lifecycle_review.json).
@@ -98,7 +111,7 @@ prepared files. Each uses an 8 GiB expert RAM cache, 4K context, FP16 KV,
 MTP/prefetch off and passed its live-capacity preparation preflight. These
 are SSD-backed cache experiments, not fully RAM-resident models. This preparation
 record contains no neural requests; subsequent Q2 lifecycle evidence appears
-above. IQ3 requests and projector execution remain pending. Startup admission
+above. IQ3 engine requests now passed independently above; its Agent and projector execution remain pending. Startup admission
 is rechecked rather than inheriting the preparation snapshot.
 
 The separate [native I/O patch/build](../../runtime_patches/README.md) completed

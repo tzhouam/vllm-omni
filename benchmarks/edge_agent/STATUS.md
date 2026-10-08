@@ -1,5 +1,16 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+The [ISTA IQ3 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle.json)
+passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle_review.json).
+Its own English/Chinese/JSON requests took **4.28 / 8.33 / 6.40 s**, cancellation
+drained in **2.26 s**, and fresh-worker recovery took **4.30 s**. Starts of
+**226.72 / 206.82 s** include full verification and initialization. All 16 closed
+raw files, native request/I/O/module bindings, five drained ledgers, stopped
+sampler and six retired process identities were checked. Batch/concurrency are
+1/1, with 4K context, FP16 KV, MTP/prefetch off and an 8 GiB SSD-backed expert
+RAM cache. IQ3's separate memory/browser Agent run is in progress; this engine
+record adds no Agent, image, p95, sustained, total-memory or default qualification.
+
 The [Q2 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional_review.json).
 Short answer, encrypted memory seed, fresh-controller recall, and actual EN/ZH
@@ -64,7 +75,7 @@ and [both text-route packs](../edge_harness/results/strata_20261008/ista_prepara
 are complete, with full hashes and preparation admission checks. The preparation
 record itself contains no neural requests; subsequent Q2 engine evidence is
 recorded above, its Agent five-task run passed independently, and IQ3 has
-registered the observed runtime but has not executed a request. The isolated native I/O build
+passed its own complete-text/cancellation/recovery audit; its independent Agent run is in progress. The isolated native I/O build
 also passed compilation, static runtime verification and Windows/WSL
 integration tests. Its [independent Q4 engine run](../edge_harness/results/strata_20261008/native_q4_observed_io.json)
 now passed three text requests, cancellation and fresh-worker recovery with
