@@ -1,5 +1,11 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: [two ordinary-submit model-tool tasks](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional.json) passed [closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional_review.json).
+Each EN/ZH task used a model-proposed browser_open, real automatic browser_read and a second model call returning the reference heading.
+Whole tasks took **23.97 / 28.11 s**, excluding **166.13 s** verification/startup. All 14 closed files, 1,562 captured sources and four actual model calls were checked.
+Four raw JSON responses included no fence normalization. This adds scoped model planning to the earlier trusted Read URL evidence.
+Full-trace profiling, general quality, percentiles, sustained/default eligibility, aggregate memory bounds and physical SSD attribution remain unqualified; later source changes require fresh evidence.
+
 2026-10-09: the [visibility fix](../edge_harness/results/strata_20261008/agent_output_visibility_unit_validation.json) compares the full 15-field StageEvent with the exact seven-field proof projection by value/type, rejecting errors or unreleased resources.
 Root completed **114 WSL tests plus 32 subtests**; offline replay of the same five closed actual traces recognized **5/5 visible finals**, versus **0/5** before.
 There was no new neural run, performance measurement or default qualification.

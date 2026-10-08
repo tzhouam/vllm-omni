@@ -1,0 +1,30 @@
+{
+  "schema": "omni-public-agent-model-tool-functional-publication-review-v1",
+  "status": "accepted_closed_evidence_and_publication",
+  "checked_unix": 1791490564.2875764,
+  "public_evidence_sha256": "1bf5e4c40154bcabe9c45eb75eba0e9b4b5fed1dea4f37c42bd9c2ee85aec5a9",
+  "receipt_sha256": "14e4e01cce593da9cb89590213ba3cc66bfca06ff108c9ede57c93204ebbb3ab",
+  "root_terminal_sha256": "c10e90d1ae02ba7126864c76bc27cfd39f4323d4d42ebb951063f3ed52718f19",
+  "independent_causal_audit_sha256": "ea1a23f3afff35a45efaecaca259ee1c783f8a69a3a808e205fbcd6007efccc6",
+  "independent_systems_audit_sha256": "0290d50eff54092021caa4db5b8186eefd07548c6702ce83b06f48a00b6f207f",
+  "raw_files_verified": 14,
+  "requests_verified": 2,
+  "model_calls_verified": 4,
+  "actual_model_opens": 2,
+  "actual_automatic_reads": 2,
+  "actual_model_finals": 2,
+  "actual_fence_normalizations": 0,
+  "source_scope": "Exact1562current-source hashes independently checked at systems-audit time; later profiler implementation changes require their own frozen run and qualification. This is historical evidence for recorded bytes, not a clean-tree/current-default assertion.",
+  "review_checks": [
+    "root read compact primary and both accepted audits",
+    "root recomputed all14closed raw hashes/sizes",
+    "root independently recomputed4actual prompt/raw hashes and matched consumer proofs",
+    "root matched2final reference/input/causal hashes and exact measured timing boundaries",
+    "root captured exact outer/native generations and endpoint power snapshots"
+  ],
+  "performance_qualified": false,
+  "default_qualified": false,
+  "physical_ssd_model_read_bytes": null,
+  "aggregate_memory_hard_cap_verified": false,
+  "private_preimages_published": false
+}

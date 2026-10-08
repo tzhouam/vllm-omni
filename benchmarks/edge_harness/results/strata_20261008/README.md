@@ -1,5 +1,11 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [ordinary-submit EN/ZH model-tool run](native_ista_q2_agent_model_tool_functional.json) passed [publication and independent closed reviews](native_ista_q2_agent_model_tool_functional_review.json).
+Two model opens→two real automatic reads→two model finals completed in **23.97 / 28.11 s**, excluding **166.13 s** verification/startup.
+Four raw JSON calls, exact observations in the next model input, 14 closed files, 1,562 captured sources, retired recorded generations and empty ledger were checked.
+This is two local heading tasks; fence behavior, broad quality, p50/p95, sustained/default, aggregate-memory and physical SSD qualification remain unproven.
+The unchanged strict engine JSON failure remains recorded; later profiler changes need their own frozen-source validation.
+
 2026-10-09: the [visibility fix](agent_output_visibility_unit_validation.json) matches the full 15-field StageEvent to the exact seven-field proof projection by value/type, refusing errors or unreleased resources.
 Root completed **114 WSL tests plus 32 subtests**; offline replay of the same five closed actual traces changed recognized visible finals from **0/5 to 5/5**.
 No new neural run, performance result or default eligibility follows.

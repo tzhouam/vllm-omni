@@ -1,0 +1,394 @@
+{
+  "schema": "omni-public-native-strata-agent-model-tool-functional-v1",
+  "status": "two_scoped_model_proposed_browser_chains_passed",
+  "batch_size": 1,
+  "concurrency": 1,
+  "receipt_sha256": "14e4e01cce593da9cb89590213ba3cc66bfca06ff108c9ede57c93204ebbb3ab",
+  "root_terminal_sha256": "c10e90d1ae02ba7126864c76bc27cfd39f4323d4d42ebb951063f3ed52718f19",
+  "external_owner_record_sha256": "566a3fd16c8f83bcdaab87c823c94b9acb6139fc71beb6985416e6aa77b9aebe",
+  "producer_sha256": "35e878f927f938b4366b8ed32017b13109b5274c5a92ef2f9044933130d11b8e",
+  "publication_adapter_sha256": "227f67cbc95ed584cdd7e96cac2db1e9c02c7b069f95aa9598f1420caa0396e6",
+  "independent_causal_audit_sha256": "ea1a23f3afff35a45efaecaca259ee1c783f8a69a3a808e205fbcd6007efccc6",
+  "independent_systems_audit_sha256": "0290d50eff54092021caa4db5b8186eefd07548c6702ce83b06f48a00b6f207f",
+  "hardware": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+    "host_ram_total_bytes": 67773509632,
+    "host_ram_available_bytes": 22408556544,
+    "vram_available_bytes": 20117622784,
+    "vram_total_bytes": 25651314688,
+    "windows_commit_available_bytes": 70072172544,
+    "gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "dxgi_adapters": [
+      {
+        "description": "NVIDIA GeForce RTX 5090 Laptop GPU",
+        "vendor_id": 4318,
+        "device_id": 11288,
+        "dedicated_video_memory_bytes": 25309478912,
+        "shared_system_memory_bytes": 50593640448,
+        "uma": false
+      },
+      {
+        "description": "AMD Radeon(TM) 890M Graphics",
+        "vendor_id": 4098,
+        "device_id": 5390,
+        "dedicated_video_memory_bytes": 353640448,
+        "shared_system_memory_bytes": 50593640448,
+        "uma": true
+      }
+    ],
+    "power_condition": "AC",
+    "raw_snapshot_sha256": "84f2f84e239289062c2fc3759fea4b619cdfa0db8625923c3f58d8d3e58c57fd",
+    "scope": "literal captured CPU/OS and separate NVML/DXGI capacities; shared memory is not additive"
+  },
+  "software": {
+    "python": "3.12.10",
+    "dependencies": {
+      "cryptography": "50.0.1",
+      "numpy": "2.3.5",
+      "nvidia-ml-py": "13.610.43",
+      "pillow": "12.3.0",
+      "playwright": "1.63.0",
+      "psutil": "7.2.2",
+      "pynvml": "not-installed",
+      "pyside6": "6.11.2",
+      "torch": "2.13.0+cu130",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+    },
+    "loaded_runtime_identity_sha256": "6d42c10cace548825ae0f98723d723a917d711becac9c5d9c90d08cde9e7a53b"
+  },
+  "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+  "checkpoint_revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+  "precision": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL",
+  "precision_scope": "declared per-artifact metadata",
+  "route_id": "ista-q2-explicit-fence-agent-v1",
+  "backend": "external.strata.text.v1",
+  "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "native_executable_sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b",
+  "artifact_id": "strata-agent:1c7e90e4980d18c586e42c58f826a6ef8c7bf6eb74392d4b39b6fd76d75bad44",
+  "consumer_identity": {
+    "schema": "omni-agent-output-consumer-v1",
+    "base_artifact_id": "strata:1e9284686595e18b0a5a929c2fd70999761b88fa6926c2ce2a7be1f7457b4d51",
+    "contract": {
+      "mode": "strict_outer_json_fence_agent_v1",
+      "max_response_bytes": 65536,
+      "max_depth": 16,
+      "max_nodes": 2048,
+      "max_directive_bytes": 8192,
+      "workspace_budget_bytes": 2097152,
+      "schema": "omni-agent-output-contract-v1"
+    },
+    "adapter_source_sha256": "62ceca17d3343b68b24b96c600a7c099e411eeea05abf7ef570a2a2c4778b5c3",
+    "identity_sha256": "1c7e90e4980d18c586e42c58f826a6ef8c7bf6eb74392d4b39b6fd76d75bad44"
+  },
+  "source_artifact_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+  "prepared_artifact_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900",
+  "runtime_manifest_sha256": "6d96d30df73ca8116673cded7ba050847bebdd3c816bbc55b0d406d5c5f52a9c",
+  "observation_runtime_identity_sha256": "d8ba68c12305c7f0c3b3c5f19bc6ba6b800e3715b1c826ea18be1ca682eb9017",
+  "route_controls_sha256": "ea3fc792344461b7a12dc6513e8de29609d4135de3403ade106364802789f2f7",
+  "context_tokens": 4096,
+  "kv_type": "fp16",
+  "mtp_enabled": false,
+  "prefetch_requested": {
+    "ple": false,
+    "routing": false,
+    "io": false
+  },
+  "expert_ram_budget_bytes": 8589934592,
+  "gpu_budget_bytes": 17179869184,
+  "gpu_expert_cache_control": {
+    "schema": "omni-strata-explicit-cache-v2",
+    "layout_sha256": "015e53d3ae36324f172be4942bcf129539b343e2eb4fcd4f25ca5eff180bfa41",
+    "layout_version": 3,
+    "layers": 48,
+    "max_blob_bytes": 1382400,
+    "alignment_bytes": 256,
+    "aligned_max_blob_bytes": 1382400,
+    "budget_bytes": 8053063680,
+    "requested_slots": 5825,
+    "allocation_upper_bytes": 8052480000,
+    "source_contract": [
+      "kernels/cpu/expert_layout.cpp:311-415",
+      "core/expert_cache.cpp:469-585"
+    ]
+  },
+  "actual_lease_demands_bytes": {
+    "host_ram": 15035531264,
+    "vram": 17179869184,
+    "windows_commit": 42951770112,
+    "ssd": 72870440857
+  },
+  "consumer_workspace_bytes": 2097152,
+  "loaded_plan_sha256": "be5df237f986304ad164b8c6a86c5d1ba197ea1cd48927dfa5bae92351f5edfa",
+  "loaded_plan_file_sha256": "8cb55c2b7089b68f9b9b2a76063e16cb1abb2e3c3e2b4f983186deae53706bd8",
+  "captured_source_count": 1562,
+  "captured_source_inventory_sha256": "2687a365efb57c2c5500d4e70f852c912400bd04ae1030267a27926cd3b9600b",
+  "parent_receipt_lineage_sha256": "576d53e4870002044f0c6dfb0bfc5e756aa00f6a82a7b6d3e4790b679f5a5231",
+  "parent_outcome_inherited": false,
+  "cold_process_verification_and_startup_wall_s": 166.1252273998689,
+  "requests": [
+    {
+      "case_id": "model_tool_heading_en",
+      "quality_passed": true,
+      "whole_request_wall_s_excludes_cold_load": 23.97323520015925,
+      "input_identity": {
+        "case_id": "model_tool_heading_en",
+        "source_url_sha256": "495f6394d3ace6c446c9d5d87bc9f3ed851d639cdf213024e18e803aa465cd6f",
+        "task_utf8_sha256": "139f266a049932221e3c9d216bc91662e2e981d4d9f8f238d9c134c7abbc96c2",
+        "reference_utf8_sha256": "5bbf76f75c6e215cf9aa0e7db68911432033b9393b199f393d0008f370658f65",
+        "served_html_utf8_sha256": "dff5094b897fea76820287f5e07da241337009d1c75bf0debeb16af9c472f771"
+      },
+      "final_answer_sha256": "5bbf76f75c6e215cf9aa0e7db68911432033b9393b199f393d0008f370658f65",
+      "model_calls": [
+        {
+          "step": 0,
+          "request_id": "648b299079054a88aecda87fd4b86b72-step-0",
+          "stage_epoch": 1,
+          "stage_terminal_seq": 32,
+          "native_request_seq": 1,
+          "input_sha256": "2a1212cb2cd6d5d86e1d7c87d33a9995dbf39dc7655f68cdb2154adc2a31bca0",
+          "raw_output_sha256": "b8bf92d96e5812eb5592fd69e403fb48af402d9671e9426836a48e7117a7d3c7",
+          "canonical_output_sha256": "1b0eb6ea97d398b501e1aa68284f572314fb42facea1d2df5a9898cc5e0181e5",
+          "directive_sha256": "935a8bc9e312620a2541a956cf41c101e4a7790c0b274d70cf250d6d6d666e5f",
+          "contract_sha256": "d1f2ea6bfe2159ed31a6f6201393c71fcfecb2891be811e0d994791a135f8f83",
+          "normalization": "none",
+          "command": "tool",
+          "internally_captured_delta_count": 31,
+          "raw_model_ttft_s_hidden_from_user": 7.115198599873111,
+          "whole_model_wall_s": 11.40098199993372,
+          "owned_native_io_sha256": "4439f8dcef5ff203d6b50da76d26e3f9fa90f9511fb251caf040463f49361d9f"
+        },
+        {
+          "step": 1,
+          "request_id": "648b299079054a88aecda87fd4b86b72-step-1",
+          "stage_epoch": 2,
+          "stage_terminal_seq": 8,
+          "native_request_seq": 2,
+          "input_sha256": "4a626ac827a1d41759731d823705b8da23a3672f363bfb7e99627331c4577443",
+          "raw_output_sha256": "2f1c8c32ef66a62f390f541303585f3f1750dd666e1a3a0fedefc024dcbc4792",
+          "canonical_output_sha256": "2f1c8c32ef66a62f390f541303585f3f1750dd666e1a3a0fedefc024dcbc4792",
+          "directive_sha256": "935a8bc9e312620a2541a956cf41c101e4a7790c0b274d70cf250d6d6d666e5f",
+          "contract_sha256": "d1f2ea6bfe2159ed31a6f6201393c71fcfecb2891be811e0d994791a135f8f83",
+          "normalization": "none",
+          "command": "final",
+          "internally_captured_delta_count": 7,
+          "raw_model_ttft_s_hidden_from_user": 7.7150497999973595,
+          "whole_model_wall_s": 8.547006500186399,
+          "owned_native_io_sha256": "c23e83c186728b6194abada0aa561221b02a159a31fb6dcc63ff0b67e7210f1c"
+        }
+      ],
+      "causal_chain": {
+        "passed": true,
+        "submission_api": "AgentController.submit",
+        "model_emitted_tool_count": 1,
+        "automatic_read_count": 1,
+        "tool_execution_count": 2,
+        "observation_to_model_input_bindings": [
+          {
+            "model_request_id": "648b299079054a88aecda87fd4b86b72-step-0",
+            "proposal_seq": 5,
+            "result_seq": 6,
+            "source_sha256": "495f6394d3ace6c446c9d5d87bc9f3ed851d639cdf213024e18e803aa465cd6f",
+            "actual_result_data_sha256": "82c3c0cdf146251af8893b66d43b31b2677f3f34028e4c76b2df058923278e9a",
+            "next_model_input_sha256": "4a626ac827a1d41759731d823705b8da23a3672f363bfb7e99627331c4577443",
+            "automatic_after_navigation": null
+          },
+          {
+            "model_request_id": "648b299079054a88aecda87fd4b86b72-step-0",
+            "proposal_seq": 7,
+            "result_seq": 8,
+            "source_sha256": "495f6394d3ace6c446c9d5d87bc9f3ed851d639cdf213024e18e803aa465cd6f",
+            "actual_result_data_sha256": "2170c3d9aba6062b740c9075785908663651919b43bb1834bc1485b1cf544101",
+            "next_model_input_sha256": "4a626ac827a1d41759731d823705b8da23a3672f363bfb7e99627331c4577443",
+            "automatic_after_navigation": "browser_open"
+          }
+        ],
+        "quality_scope": "exact two local page headings only",
+        "forced_model_tool_output": false,
+        "qualification_created": false
+      },
+      "visible_unvalidated_model_delta_count": 0
+    },
+    {
+      "case_id": "model_tool_heading_zh",
+      "quality_passed": true,
+      "whole_request_wall_s_excludes_cold_load": 28.10831639985554,
+      "input_identity": {
+        "case_id": "model_tool_heading_zh",
+        "source_url_sha256": "aba91382b0aa5b469fac73ab851193f21f52b5806ddf0b48d90c0c0993b1bab2",
+        "task_utf8_sha256": "9ed0d86bb6175dab67881667f622cfdfe343c2f1e30562d57bf0ca0a9f5b1ee7",
+        "reference_utf8_sha256": "a4e381315fda3caf171a50e284cc0f7df366696fa17193a73d1bdf0987a591e6",
+        "served_html_utf8_sha256": "2fc91f34efa139dbed5f7366af2f673e6bf78ab8a74fce9c165dda9919e38937"
+      },
+      "final_answer_sha256": "a4e381315fda3caf171a50e284cc0f7df366696fa17193a73d1bdf0987a591e6",
+      "model_calls": [
+        {
+          "step": 0,
+          "request_id": "177851fd61204a9194ff2d33d24de978-step-0",
+          "stage_epoch": 3,
+          "stage_terminal_seq": 33,
+          "native_request_seq": 3,
+          "input_sha256": "6931dc582acad96c89b684d77abfddc086e5e4db9a85b2357de15eb739b7aa40",
+          "raw_output_sha256": "04a1483b734ddfd55544b1a0458216c565faa91bd777f340b3be6065d94eae5e",
+          "canonical_output_sha256": "48a8fbb7fdab267cdff28d4dfa02ab26faca34696bb9b76758c89d8385622a59",
+          "directive_sha256": "935a8bc9e312620a2541a956cf41c101e4a7790c0b274d70cf250d6d6d666e5f",
+          "contract_sha256": "d1f2ea6bfe2159ed31a6f6201393c71fcfecb2891be811e0d994791a135f8f83",
+          "normalization": "none",
+          "command": "tool",
+          "internally_captured_delta_count": 32,
+          "raw_model_ttft_s_hidden_from_user": 9.436908400151879,
+          "whole_model_wall_s": 12.50030680000782,
+          "owned_native_io_sha256": "4cfb4e1d5528a9a129106c0c0a12727f6f8645a0c166cd3c32885eeb41ae737c"
+        },
+        {
+          "step": 1,
+          "request_id": "177851fd61204a9194ff2d33d24de978-step-1",
+          "stage_epoch": 4,
+          "stage_terminal_seq": 8,
+          "native_request_seq": 4,
+          "input_sha256": "c5f476c670fd5a56a10d1fbb4fd9e9d8e847b2b76a5ce557aaa76a7b4c02d6bc",
+          "raw_output_sha256": "6674289d81bf36c260b2c1762171ac16a0bf88720e62ba88e4f3bb09f6de3941",
+          "canonical_output_sha256": "6674289d81bf36c260b2c1762171ac16a0bf88720e62ba88e4f3bb09f6de3941",
+          "directive_sha256": "935a8bc9e312620a2541a956cf41c101e4a7790c0b274d70cf250d6d6d666e5f",
+          "contract_sha256": "d1f2ea6bfe2159ed31a6f6201393c71fcfecb2891be811e0d994791a135f8f83",
+          "normalization": "none",
+          "command": "final",
+          "internally_captured_delta_count": 7,
+          "raw_model_ttft_s_hidden_from_user": 14.345972799928859,
+          "whole_model_wall_s": 15.063019199995324,
+          "owned_native_io_sha256": "b8b946c7606486960c4558a53c547b93f1a8a4f591cf4ad5896bd8805a0ebc43"
+        }
+      ],
+      "causal_chain": {
+        "passed": true,
+        "submission_api": "AgentController.submit",
+        "model_emitted_tool_count": 1,
+        "automatic_read_count": 1,
+        "tool_execution_count": 2,
+        "observation_to_model_input_bindings": [
+          {
+            "model_request_id": "177851fd61204a9194ff2d33d24de978-step-0",
+            "proposal_seq": 5,
+            "result_seq": 6,
+            "source_sha256": "aba91382b0aa5b469fac73ab851193f21f52b5806ddf0b48d90c0c0993b1bab2",
+            "actual_result_data_sha256": "b4c75f33a5eac4a1721e94283f4763e917103791da61e0463dba8b62be8db19d",
+            "next_model_input_sha256": "c5f476c670fd5a56a10d1fbb4fd9e9d8e847b2b76a5ce557aaa76a7b4c02d6bc",
+            "automatic_after_navigation": null
+          },
+          {
+            "model_request_id": "177851fd61204a9194ff2d33d24de978-step-0",
+            "proposal_seq": 7,
+            "result_seq": 8,
+            "source_sha256": "aba91382b0aa5b469fac73ab851193f21f52b5806ddf0b48d90c0c0993b1bab2",
+            "actual_result_data_sha256": "1b0f5fcc712ff8d1b0484c5a578ca182cc4ee23d37b808a14543d69da143afed",
+            "next_model_input_sha256": "c5f476c670fd5a56a10d1fbb4fd9e9d8e847b2b76a5ce557aaa76a7b4c02d6bc",
+            "automatic_after_navigation": "browser_open"
+          }
+        ],
+        "quality_scope": "exact two local page headings only",
+        "forced_model_tool_output": false,
+        "qualification_created": false
+      },
+      "visible_unvalidated_model_delta_count": 0
+    }
+  ],
+  "normalization_counts": {
+    "none": 4
+  },
+  "actual_model_browser_open_commands": 2,
+  "automatic_browser_read_operations": 2,
+  "actual_model_browser_read_commands": 0,
+  "actual_fence_normalizations": 0,
+  "browser_chain_scope": "ordinary submit; model-proposed open, real automatic read, next model final; not structured ReadURL preprocessing",
+  "raw_files": {
+    "config.json": {
+      "size_bytes": 808364,
+      "sha256": "4ab9815418dcc3082366620aa481f574b913e4100bdf203b58fbde67ff1fea6b"
+    },
+    "effective-launch.json": {
+      "size_bytes": 733969,
+      "sha256": "0dbf869915de84673f2c2d4b51fa274abf3c02cd938ae57e1af776a6fa0d206a"
+    },
+    "fixture-served-requests.json": {
+      "size_bytes": 404,
+      "sha256": "304fc1fe0781c94940b01c799ad55b010478ece42f49b17e4362a820dd15a85f"
+    },
+    "memory.sqlite": {
+      "size_bytes": 557056,
+      "sha256": "d10c0819355f9ae3176f67257622806a8ad1d8f537317efc56b2c14bff0d6b6f"
+    },
+    "model_tool_heading_en-raw.json": {
+      "size_bytes": 260225,
+      "sha256": "ff9fae23e4a11e608a3108c78e69fed2da028c526996c25f08358b5c5a90365f"
+    },
+    "model_tool_heading_zh-raw.json": {
+      "size_bytes": 269038,
+      "sha256": "90c0257a016eb8de6a88a0486c9ec18a6102fd9808de82b3a878ed3951fa0c05"
+    },
+    "private-fixture-inputs.json": {
+      "size_bytes": 1022,
+      "sha256": "4c05e9c179de2fd7284e7460091ef68a0bc53fa00eaa31fb955aa70664a35c89"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 2286,
+      "sha256": "00771321d30460ba66155295917cd2acf083785afe836b3a8567065f474dbfd4"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 1207854,
+      "sha256": "09d3ba14be5d966784fbda487e4a5839e4dc6cafd92100da4817cfdf707db346"
+    },
+    "tool-controller-all-raw.json": {
+      "size_bytes": 363679,
+      "sha256": "7da41e0c46aab54adf0d47ba9779ff6b06a67a0b03606d0fa34ab28d7ce6b7a6"
+    },
+    "tool-controller-close.json": {
+      "size_bytes": 2256,
+      "sha256": "2e60d8d17ba13dc9f3a5616d39bf51f6b8f952f337c48bf3bbd77accd9d05ee7"
+    },
+    "tool-controller-events.jsonl": {
+      "size_bytes": 87275,
+      "sha256": "4c12f82972a8164e7cf6209c0d87f4218d376753b73612b7bf05d45df159e870"
+    },
+    "tool-controller-hardware.json": {
+      "size_bytes": 933,
+      "sha256": "84f2f84e239289062c2fc3759fea4b619cdfa0db8625923c3f58d8d3e58c57fd"
+    },
+    "tool-controller-loaded-plan.json": {
+      "size_bytes": 19500,
+      "sha256": "8cb55c2b7089b68f9b9b2a76063e16cb1abb2e3c3e2b4f983186deae53706bd8"
+    }
+  },
+  "raw_file_count": 14,
+  "power": {
+    "before_sha256": "f157d380195b040b128a7728f9503295856bec222a66fe3dd5ac2d6d02b4a33c",
+    "after_sha256": "39924c2488f390c761945255c5a5d13f027b81aefc0405386a67e0affdd54e5b",
+    "ac_line_status": 1,
+    "battery_saver": 0,
+    "active_power_scheme_guid": "27fa6203-3987-4dcc-918d-748559d549ec",
+    "scope": "matching endpoints only"
+  },
+  "closure": {
+    "recorded_external_generations_retired": 2,
+    "recorded_native_generations_retired": 1,
+    "empty_ledger": true,
+    "writers_sampler_fixture_stopped": true,
+    "browser_descendant_pid_inventory_verified": false
+  },
+  "p50_s": null,
+  "p95_s": null,
+  "performance_qualified": false,
+  "default_qualified": false,
+  "release_qualified": false,
+  "general_task_quality_qualified": false,
+  "qt_executed": false,
+  "cancellation_exercised_this_run": false,
+  "physical_ssd_model_read_bytes": null,
+  "aggregate_memory_hard_cap_verified": false,
+  "full_model_actual_placement": null,
+  "strict_engine_benchmark_failure_changed": false,
+  "explicit_consumer_full_trace_gates_opened": false,
+  "scope": "two local heading tasks and four sequential model calls; single functional samples only; no general browser/Agent or performance/default qualification"
+}
