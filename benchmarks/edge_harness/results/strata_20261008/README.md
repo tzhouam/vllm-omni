@@ -1,11 +1,21 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [actual Q2 native Agent basic smoke](native_ista_q2_agent_native_profile_basic_smoke.json)
+passed [independent closed publication review](native_ista_q2_agent_native_profile_basic_smoke_review.json).
+Nine bilingual arithmetic requests passed (3 warmups, 6 measured, no endurance), batch=1/concurrency=1.
+Six instrumented complete-answer samples were **7.586–9.161 s**; integrity checking/controller preparation was separately **161.369 s**.
+All 53 raw files and 1,563 current sources, exact prompt/raw/parser/consumer bindings, native sequence and resource closure were verified.
+Native/supervisor retained-handle retirement is separate from external runner birth-bound PID checks; power scheme is verified at endpoints only.
+Validated-final visibility and hidden model SSE timing are separate. Loaded CPU/CUDA configuration and routed decode counters are scoped evidence;
+all-operator placement, aggregate memory caps, physical SSD attribution, browser quality, full performance and default/release qualification remain open.
+This is the first actual basic smoke for the integrated shared trace checks below; it does not change the older strict-JSON failure.
+
 2026-10-09: [shared consumer trace implementation and root regression](agent_consumer_trace_unit_validation.json)
 bind 27 source/test files. **357 tests and 166 subtests passed; 6 skipped.**
 The profiler and reviewer now share all-step input, trusted task/URL, tool-schema, terminal, final-visibility and state-order checks.
 The bounded metadata policy is separate from whole-profiler memory. Approval/DOM-dependent chains remain unproven by this initial trace subset.
 The first integrated attempt's stale synthetic snapshot fixture and its repair are retained. No new neural run, latency qualification or default follows;
-fresh source-bound native profiling and the batch-one performance protocol are next.
+Fresh native profiling was pending at that unit record's publication; the later basic smoke above still leaves the full batch-one performance protocol open.
 
 2026-10-09: the [ordinary-submit EN/ZH model-tool run](native_ista_q2_agent_model_tool_functional.json) passed [publication and independent closed reviews](native_ista_q2_agent_model_tool_functional_review.json).
 Two model opens→two real automatic reads→two model finals completed in **23.97 / 28.11 s**, excluding **166.13 s** verification/startup.

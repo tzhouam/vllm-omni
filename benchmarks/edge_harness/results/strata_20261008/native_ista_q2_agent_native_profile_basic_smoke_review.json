@@ -1,0 +1,36 @@
+{
+  "auditor_source_sha256": {
+    "backend": "77c88b2b25841fe022514d47c7a419da04f8fff33768c01e0f04b7473f87480c",
+    "profile": "884599e9ce5fc51b3314520ad2ba624664155cade897b6e2b37c84307fba0daf",
+    "root": "c17517a4e9da911fe91dcbcaafccccffe80a9ebfc4eb800474b34680ba9495f8"
+  },
+  "backend_audit_sha256": "16c83a857b6f2361db37c232d21c0e9a29abaec8f80f7a444238477e4f3a2497",
+  "checks": [
+    "Pinned receipt and all three accepted independent audits",
+    "Exact audited case/call/prompt/raw hash mapping and native sequence",
+    "Metadata-only explicit allowlist; no private text or absolute paths",
+    "All request timing boundaries retained separately",
+    "Retained native handle closure distinguished from external PID birth queries",
+    "Power endpoints only; no continuous scheme, isolation or sustained qualification",
+    "No historical quality inheritance, automatic promotion or full-protocol claim"
+  ],
+  "default_route_qualified": false,
+  "endurance_requests": 0,
+  "lineage_verified": false,
+  "measured_requests": 6,
+  "private_preimages_published": false,
+  "profile_audit_sha256": "c4dc339e7d32552c4062d38373ba6477601e010a72c098a60e387582ac482a90",
+  "projector_sha256": "38c885befe9144d068d4f781c333d8a3c7013b5ee81d744441013574498c6397",
+  "protocol_compliant": false,
+  "public_evidence_sha256": "674f6e80037094aaca53fc8188676e7df1af2f69005fc221e76081b9ba09f7b3",
+  "receipt_sha256": "fcc9321532daa30bfe323badf313e542c155489fe17857bb621d9ceb7a0c79d5",
+  "release_qualified": false,
+  "reviewed_model_calls": 9,
+  "reviewed_raw_files": 53,
+  "reviewed_source_files": 1563,
+  "root_closed_audit_sha256": "60b2632861380aae3a12738ec3a513aedb81ced55dff7d7a623e5cd518cc9c29",
+  "schema": "omni-public-native-agent-profile-basic-smoke-publication-review-v1",
+  "status": "accepted_independent_closed_metadata_projection",
+  "three_tier_memory_qualified": false,
+  "warmup_requests": 3
+}

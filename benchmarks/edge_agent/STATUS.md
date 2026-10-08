@@ -1,15 +1,26 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: the current ISTA Q2 Qwen3.8-Flash-Next route passed an actual
+[NativeProfileBridge basic smoke](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke.json)
+and [independent closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke_review.json).
+All nine bilingual arithmetic requests passed: three warmups and six measurements, batch=1/concurrency=1.
+Short/medium/long measured whole answers were **7.586–7.687 / 7.892–8.228 / 8.676–9.161 s**;
+integrity checking and controller preparation took a separate **161.369 s**. Request timings include private streamed capture I/O.
+All 53 closed files, 1,563 sources, exact input/raw-output replays, consumer traces, native retirement and empty leases were checked.
+Visible first output is validated final, separately recorded from hidden model SSE timing. This covers basic arithmetic only;
+browser tasks, endurance, full performance protocol, lineage, aggregate memory, physical SSD and default/release qualification remain open.
+Next is a fresh browser-text smoke using the same frozen runtime and actual model-proposed tools.
+
 2026-10-09: native profiling now waits for the actual startup thread after sampler failure or cancellation,
 including repeated cancellation, before resource close. [Controlled-thread tests](../../tests/edge/test_agent_profile_loader_drain.py)
 and related integration regression passed **119 tests and 32 subtests** without neural execution.
-Fresh actual Agent smoke on this source is being prepared; this fix grants no performance or default eligibility.
+The separate actual basic smoke above follows this fix; the fix itself grants no performance or default eligibility.
 
 2026-10-09: [shared explicit-consumer trace validation](../edge_harness/results/strata_20261008/agent_consumer_trace_unit_validation.json)
 is integrated into native profiling and offline review. Root regression: **357 passed, 6 skipped, 166 subtests passed**.
 Checks bind every model-input hash, trusted task/URL authorization, exact tool schema, owned terminal, final visibility and cross-request state order.
 Bounded six-step metadata reserves 192 KiB inside the existing 2 MiB workspace. This initial text subset does not qualify approval/DOM workflows.
-These are unit/integration results; fresh native profiling on this source, three lengths × 20 requests and a separate 30-minute run remain pending.
+These are unit/integration results; native profiling was pending at publication. The later basic smoke above leaves the full 20×3 and 30-minute protocol pending.
 Historical neural receipts keep their source identities; the strict engine JSON failure and lack of default eligibility remain recorded.
 
 2026-10-09: [two ordinary-submit model-tool tasks](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional.json) passed [closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional_review.json).
