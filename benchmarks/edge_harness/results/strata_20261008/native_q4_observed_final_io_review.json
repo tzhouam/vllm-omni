@@ -1,0 +1,37 @@
+{
+  "schema": "omni-strata-native-observed-q4-functional-review-v2",
+  "status": "passed",
+  "aggregate": "native_q4_observed_final_io.json",
+  "aggregate_sha256": "f7bdccaf97f613d0bb2b0b2bca9c71b476b6e47611a7656e4eb6b137f839c784",
+  "private_independent_audit_sha256": "69f61b3060f4407aaaa70f2eac9167bdffb64d5e3a5f1da4be3d239a39da91ab",
+  "private_auditor_script_sha256": "88c66c5589bf4a3d3ec577878f7ae6300ccda2911434a7d22e69e53e3e02cdc5",
+  "reviewed_scope": [
+    "Exact 16-file stopped raw closure and receipt binding.",
+    "Initial/recovery runtime, source, controls, selected modules and process lifetimes.",
+    "Three complete text references and one fresh-worker recovery with native I/O.",
+    "Incomplete cancelled interval, drained native owners and five empty-ledger snapshots.",
+    "Stable current working-tree source bytes and corrected v2 private runner.",
+    "Stopped telemetry row counts and commutative per-generation WDDM sampled peaks.",
+    "Pre/post power snapshots only; no continuous AC or whole-device power proof.",
+    "Public aggregate numeric/identity/module/closure correspondence and safe-field privacy scan."
+  ],
+  "runtime_identity_sha256": "3fb435514ebe482fb9527c8310c9bb8de8fe1ed56e97c8e5c6fc2258a8df740d",
+  "route_controls_sha256": "7dbe0c423ce929d8228af7c3135e1b375586d9d009377f30204d40aae6c040e8",
+  "launch_file_sha256": "63267892b4c90892e4fadd35c7f0adbabe0309650f5deb0a6e59e7c6f5cc2ac5",
+  "telemetry_order": {
+    "sample_timestamps_monotonic": false,
+    "timestamp_reversal_count": 1,
+    "max_timestamp_reversal_s": 0.06888985633850098,
+    "chronological_time_integrated_analysis_verified": false,
+    "scope": "Native QPC intervals and sampled per-generation peaks remain independently validated; edge/periodic writer interleaving is an inference."
+  },
+  "limits": [
+    "Narrow working-tree functional proof, not a clean-commit release identity.",
+    "One request per case; no p50/p95, paired-backend or endurance result.",
+    "No Agent result, physical SSD attribution, aggregate memory hard cap, vision or default-route qualification.",
+    "No actual post-cancel immutable-plan snapshot; the byte-bound runner asserts getter equality for completed calls."
+  ],
+  "physical_ssd_read_bytes": null,
+  "three_tier_memory_qualified": false,
+  "qualification_created": false
+}

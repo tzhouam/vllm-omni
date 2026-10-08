@@ -1,6 +1,21 @@
 # Strata / shared-lease evidence — 2026-10-08
 
-The separate [observed-runtime Q4 run](native_q4_observed_io.json) now passed
+The [current-source Q4 lifecycle rerun](native_q4_observed_final_io.json)
+and [independent review](native_q4_observed_final_io_review.json) now pass.
+Three complete short references took 10.88 / 17.61 / 16.46 s; cancellation
+after two chunks drained in 3.08 s, then a fresh worker completed recovery
+in 10.65 s. Actual plans, modules, I/O, source stability, five drained ledger
+snapshots, process absence and 16 immutable raw files were independently
+checked. Stage starts of 288.63 / 281.60 s include full hashes, not pure load.
+This uses final LF integration bytes and the corrected v2 guard; it remains
+a working-tree identity including preserved unrelated edits, not a clean
+release commit. Telemetry contains one 68.89 ms edge/periodic timestamp
+reversal; native QPC intervals and sampled per-generation peaks are valid,
+while chronological integration is unverified. Pre/post power snapshots
+are separate from continuous power proof. No same-route Agent, p95,
+endurance, physical SSD or aggregate-memory qualification is claimed.
+
+The earlier [observed-runtime Q4 run](native_q4_observed_io.json) now passed
 three actual text requests and a fresh-worker recovery request. English,
 Chinese arithmetic and JSON checks completed in 10.78 / 17.62 / 16.43 s,
 with three ordered, process/request-bound I/O snapshots each. Text-stream

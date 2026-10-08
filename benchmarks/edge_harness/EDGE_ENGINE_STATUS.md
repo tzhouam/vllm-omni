@@ -1,6 +1,21 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-08）
 
-新原生 I/O 版本的[真实 Q4 请求及取消/恢复](results/strata_20261008/native_q4_observed_io.json)
+当前接入源码的[Q4 完整文本、取消与恢复复跑](results/strata_20261008/native_q4_observed_final_io.json)
+已完成并通过[独立复核](results/strata_20261008/native_q4_observed_final_io_review.json)。
+三条完整请求耗时 **10.88 / 17.61 / 16.46 秒**；两个 chunk 后取消，
+**3.08 秒**确认排空，新 worker 恢复请求 **10.65 秒**通过。
+完整加载计划、原生进程/模块、逐请求 I/O 和 16 个原始文件均已绑定；
+五个账本快照为空，采样停止，进程退出，源码前后相同。
+初次/恢复启动 **288.63 / 281.60 秒**包含全量哈希与服务初始化。
+本轮使用最终 LF 接入文件及修正的 v2 生命周期脚本，原始旧版本证据保留。
+工作树仍包含保留的其他修改，不能称为干净提交的发布资格。
+3,378 行采样有一次 68.89 ms 的 edge/periodic 时间戳逆序；
+逐代次采样峰值与原生 QPC 区间已单独核对，不能按文件顺序做时间积分。
+电源仅有前后快照；物理 SSD、加载峰值、总内存硬上限及性能资格仍未证明。
+该路线的 Qt Agent 复跑正在准备执行；跨会话记忆和中英文受控网页任务已准备，
+仍需实际执行。Q2/IQ3、同产物对照及完整性能协议的待办不变。
+
+此前原生 I/O 版本的[真实 Q4 请求及取消/恢复](results/strata_20261008/native_q4_observed_io.json)
 已通过：英文、中文算术、JSON 三条完整请求分别为 **10.78 / 17.62 / 16.43 秒**，
 每条取得有序、绑定进程和请求身份的 prefill/decode/整段原生读取记录。
 两个文本 chunk 后取消，**2.72 秒**确认排空；新 worker 用同一控制配置完成
@@ -173,7 +188,7 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 - [新 I/O 运行时真实 Q4](results/strata_20261008/native_q4_observed_io.json)：四条实际完成请求（含恢复）、逐阶段读取、实际 DLL、取消不完整记录、源码稳定性和原始文件哈希。
 - [新 I/O 运行复核](results/strata_20261008/native_q4_observed_io_review.json)：12 项独立检查、原始审计哈希和后续格式化的身份边界。
 - [ISTA 完整产物校验](results/strata_20261008/ista_artifact_inventory.json)及[文本路线准备复核](results/strata_20261008/ista_preparation.json)：下载、逐文件 SHA、pack、转换清单、启动与绑定身份；不包含模型执行。
-- [原生 I/O 补丁与隔离构建](runtime_patches/README.md)：构建配置、二进制身份及观测边界；新运行时神经验证待完成。
+- [原生 I/O 补丁与隔离构建](runtime_patches/README.md)：构建配置、二进制身份及观测边界；独立神经验证及当前源码生命周期复跑已完成。
 - [实际取消/恢复](results/strata_20261008/native_q4_cancel_recovery.json)：两条文本 chunk 后取消、精确账本排空、新 worker 恢复、实际加载计划/控制哈希及边界。
 - [显式缓存 Agent 复跑](results/strata_20261008/native_q4_bounded_cache_agent.json)：新源代码身份、重建的缓存控制、原生 INFO、跨会话记忆/短回答及观测边界。
 - [此前本机 Q4 完整请求](results/strata_20261008/native_q4_reproduction.json)：全部产物身份、三条短文本请求、旧自动缓存、加载/计算证据和先前失败。
