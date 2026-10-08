@@ -1,0 +1,25 @@
+{
+  "schema": "omni-private-independent-capacity-preflight-audit-v1",
+  "status": "accepted_scoped_actual_admission_evidence",
+  "auditor_sha256": "2cac8ea201c4530c8795c871586fa120de5ea4384ccdc837fcafc24eaa342956",
+  "receipt_sha256": "287faeb046c90e4d35f8d81447370e93585457e2385a4ec5f922a3bcd5b70030",
+  "public_proposal_sha256": "c045ac5d9ccaee3d41ea980534e547df39e5a6333e8a36f6ca9babdec487f06b",
+  "checked_unix": 1791482001.0888054,
+  "checks": {
+    "closed_raw_hashes": true,
+    "all_12_candidates": true,
+    "independent_budget_reconstruction": true,
+    "actual_admission_outcome_consistency": true,
+    "all_ledgers_empty": true,
+    "frozen_source_and_parent_stable": true,
+    "privacy_allowlist": true
+  },
+  "scope": "closed metadata audit; no engine imports, model reads, process starts or neural execution",
+  "external_wrapper_retirement_scope": "root terminal confirmation; post-exit lookup found no matching wrapper, no exact owner identity claimed",
+  "current_native_model_inventory": {
+    "status": "point_in_time_no_known_native_model_name",
+    "count": 0,
+    "checked_unix": 1791482000.787218
+  },
+  "qualification_created": false
+}

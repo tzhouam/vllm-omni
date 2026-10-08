@@ -1,5 +1,19 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [same-GGUF llama.cpp capacity preflight](native_llamacpp_same_gguf_capacity_preflight.json)
+passed [independent closed-metadata review](native_llamacpp_same_gguf_capacity_preflight_review.json).
+OmniLlamaConfig and StageRuntime actually refused all **12 declared plans**:
+CPU, whole GPU, block CPU and expert CPU configurations for each Q2/IQ3/Q4
+artifact. Every ledger was empty afterward. Ceilings are the unchanged registered
+budgets intersected with fresh available RAM/VRAM/Windows commit; all shards,
+including PLE, remain charged. Hybrid options use an optimistic complete-weight
+envelope, with actual tensor assignment unverified. No backend/model was started;
+these are scoped budget refusals, not runtime incompatibility or universal model/
+hardware-capacity verdicts. No paired whole-request speedup, controlled SSD layer,
+quality or default qualification follows. Root observed an empty transfer-config
+path fall back to defaults; the tool output was not saved as byte-exact stdout
+and its file/hash remain null. No model or transfer ran.
+
 2026-10-09: [CPU encoder build provenance](native_cpu_vision_build.json) is now
 recorded separately from neural evidence. The experimental image stage and
 Agent bridge are integrated; regression passed 359 tests/3 skips, followed by

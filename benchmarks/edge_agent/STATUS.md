@@ -1,5 +1,16 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: [same-GGUF llama.cpp admission checks](../edge_harness/results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight.json)
+now have [independently audited actual results](../edge_harness/results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight_review.json).
+All 12 Q2/IQ3/Q4 CPU, whole-GPU, block-CPU and expert-CPU declared plans were
+refused by Omni's current capacity gates, with clean ledger release. Their
+ceilings intersect inherited budgets with fresh available memory; complete
+shards remain charged and hybrid placement is an optimistic byte envelope.
+No model or Agent task ran. Runtime compatibility, actual CPU/GPU execution,
+paired latency, controlled SSD behavior and default eligibility remain unverified;
+these refusals do not create or remove a qualified Agent route. The recorded
+default-transfer-config warning is root-observed tool output only, not a model failure.
+
 2026-10-09: the experimental [CPU-image Strata bridge](../edge_harness/STRATA_IMAGE.md)
 is integrated with the existing controller, managed engine lease and native UI.
 It validates actual image input, encoder/SVE/language ownership and increasing

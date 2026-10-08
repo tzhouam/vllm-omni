@@ -1,5 +1,13 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
+2026-10-09：同一 GGUF 的 [llama.cpp 配置与容量准入对照](results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight.json)
+已实际调用 OmniLlamaConfig 和 StageRuntime，并通过[独立闭合复核](results/strata_20261008/native_llamacpp_same_gguf_capacity_preflight_review.json)。
+Q2/IQ3/Q4 各自的 CPU、全 GPU、整层 CPU 卸载和专家 CPU 卸载，共 **12 组声明计划全部被容量门槛拒绝**，
+全部账本释放。上限取原登记预算与新采样可用 RAM/VRAM/Windows commit 的交集；完整分片含 PLE 均计入，
+混合路线仅采用乐观的完整权重字节分配，尚未验证实际张量放置。没有启动后端或模型，不能据此断言运行时
+不兼容、模型不支持或硬件永远装不下；同产物整请求基线、配对加速、受控 SSD 层及默认资格仍未建立。
+空传输配置路径触发默认配置的告警仅记录为 root 工具输出观察，无原始 stdout 文件/哈希；没有发生模型或传输执行。
+
 2026-10-09：实验性 [CPU 图像阶段与 Agent 桥接](STRATA_IMAGE.md)已接入
 Omni 现有工厂、共享账本和取消路径。新增严格图像身份、ENC→SVE→GENI
 绑定、独立编码器进程观测和图像资格隔离；[CPU 编码器构建](results/strata_20261008/native_cpu_vision_build.json)
