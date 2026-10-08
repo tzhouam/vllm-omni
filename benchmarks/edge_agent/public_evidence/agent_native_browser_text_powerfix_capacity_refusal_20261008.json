@@ -1,0 +1,78 @@
+{
+  "latency_statistic": "nearest-rank within each recorded input length",
+  "qualification_minimums": {
+    "active_endurance_seconds": 1800,
+    "batch_size": 1,
+    "concurrency": 1,
+    "independent_gate_review_required": true,
+    "measured_requests_per_length": 20
+  },
+  "raw_evidence_location": "private on the profiling host; SHA-256 bound below",
+  "runs": [
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "70544108d6eaba4a256f7e70702884eaf075e422980017dfc79f43ac40c57094",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 20827705344,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20316168192
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "49b685117e5b0c1bcafac7bc07391ad72c9d7427dced20e250c7eb784d02f3de",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "c0c48dffbf8aab43f9ed0a5cecc8571fdb7f3575170f9fd0e65f760896eb682c",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1+explicit-read-url-v1"
+      },
+      "index_sha256": "f6d5d7e89b55eab65e9887fcbce2a5360fd711b756846cc1913bc7aedc457c82",
+      "lineage_manifest_sha256": "ccbed9a2a1dea6d0a7107147b8b895d7929ba5a2eea6fd0b7c26b4f22cc998b2",
+      "model_prompt_identity_capture": "backend_generate_sha256_v1",
+      "protocol": "full_20x3_and_30m",
+      "results": [
+        {
+          "admission": {
+            "agent_request_attempted": false,
+            "declared_demand_bytes": 22000000000,
+            "model_load_attempted": false,
+            "native_controller_ceiling_bytes": 20758487040,
+            "physical_pool": "host_ram"
+          },
+          "failure_code": "preload_physical_pool_capacity_refusal",
+          "release_qualified": false,
+          "route_id": "gemma4-31b-qat-q4-windows-hybrid40",
+          "status": "failed_or_blocked",
+          "submission_mode": "explicit_read_url_v1",
+          "task_class": "browser_text"
+        }
+      ],
+      "routes": {
+        "gemma4-31b-qat-q4-windows-hybrid40": {
+          "checkpoint_revision": "59dde24573e7e61570dba08b18a2e1fe246955ed",
+          "lineage_verified": true,
+          "mmproj_sha256": "6bd60bdb958548b4093196d38744b0f2290c12503a3fddd7486bffa9c5eb07a4",
+          "model_sha256": "179cfb99212709597eae5929112cfca677e1bbf566178b479ae1da0c4772874b",
+          "precision": "official QAT Q4_0 GGUF + F16 visual projector",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_a14c750ee1134e7c9da6379e2b43c6d6",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "1ea7860fc65ce2d6fd3a04332a772f3d84d76523cfe4a44a9f13e9afaf81e74a",
+      "submission_mode": "explicit_read_url_v1"
+    }
+  ],
+  "schema": "omni-agent-structured-read-url-public-aggregate-v1"
+}

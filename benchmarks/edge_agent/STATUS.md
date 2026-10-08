@@ -14,6 +14,26 @@ The [structured Read URL profile](public_evidence/agent_structured_read_url_full
 
 The structured and later ordinary runs captured identical imported-source and loaded-runtime identities, which matched the code at review. Earlier full memory and older ordinary browser-text runs still support their recorded sources but need repetition for strict final-code matching. Any later Omni edit makes both new loopback profiles historical for that release check until repeated.
 
+The 2026-10-08 [post-power-fix structured rerun attempt](public_evidence/agent_native_browser_text_powerfix_capacity_refusal_20261008.json)
+was refused **before model loading or an Agent request**. The Gemma route
+declared 22,000,000,000 B host RAM, while the native controller's startup
+ceiling was 20,758,487,040 B. This is a live-capacity blocker, not a model
+failure or a new performance result. The first attempt recorded an opaque
+`KeyError` privately; the profiler now preserves the underlying
+`ResourceUnavailable` reason, and the public report exposes only validated
+numeric admission facts. The 2026-10-06 full profiles remain evidence for
+their measured source, with final-source release matching still pending.
+
+Two current-source Spark CPU short runs also failed task checks. The
+[structured Read URL smoke](public_evidence/agent_spark_cpu_structured_read_url_smoke_20261008.json)
+recomputed 0/6 measured successes: the model proposed `browser_read` with
+invalid arguments for its zero-argument schema, and failed requests left
+incomplete Agent traces. The separate
+[basic arithmetic smoke](public_evidence/agent_spark_cpu_basic_smoke_20261008.json)
+had complete raw traces but 0/6 exact answers. Both had three warmups, six
+measured requests, and no endurance run; neither qualifies the route or
+provides a performance comparison.
+
 ## Implemented behavior and evidence depth
 
 | Area | Current behavior | Evidence boundary |

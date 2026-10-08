@@ -29,7 +29,8 @@ from benchmarks.edge_agent.profile import AgentCase
 
 _LENGTHS = ("short", "medium", "long")
 _TASK_CLASSES = frozenset({
-    "browser_text", "browser_vision", "windows_settings", "memory", "code_tools",
+    "basic", "browser_text", "browser_vision", "windows_settings", "memory",
+    "code_tools", "long_reasoning",
 })
 _STATUSES = frozenset({
     "evidence_recorded", "failed_or_blocked", "blocked_missing_vision_projector",
@@ -39,6 +40,12 @@ _SAFE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,119}\Z")
 _SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _RUN_ID = re.compile(r"native_[0-9a-f]{32}\Z")
 _LOOPBACK_ORIGIN = re.compile(r"http://127\.0\.0\.1:[1-9][0-9]{0,4}\Z")
+_PRELOAD_CAPACITY_REFUSAL = re.compile(
+    r"ResourceUnavailable: profile route (?P<route>[A-Za-z0-9_.-]+) "
+    r"refused before model load: (?P<pool>host_ram|vram): declared demand "
+    r"(?P<demand>[0-9]+) bytes exceeds the native controller ceiling "
+    r"(?P<ceiling>[0-9]+) bytes\Z"
+)
 _FAILURE_TYPES = {
     "AttributeError": "backend_attribute_error",
     "FileExistsError": "fixture_memory_path_exists",
@@ -49,6 +56,8 @@ _FAILURE_TYPES = {
 _EXACT_FAILURES = {
     "RuntimeError: Edge fixture window could not be verified in foreground":
         "fixture_foreground_unverified",
+    "ValueError: browser_read requires exactly: []":
+        "browser_read_tool_arguments_invalid",
 }
 _PRE_FIX_MEMORY_RUNS = frozenset({
     "native_1d0455bb82a74515b70cf0e07805e63c",
@@ -130,6 +139,25 @@ def _failure_code(error: Any) -> str:
     if error in _EXACT_FAILURES:
         return _EXACT_FAILURES[error]
     return _FAILURE_TYPES.get(error.partition(":")[0], "unclassified_failure")
+
+
+def _preload_capacity_refusal(error: Any, route_id: str) -> dict[str, Any] | None:
+    """Publish only validated numeric admission facts, never raw exception text."""
+    if not isinstance(error, str):
+        return None
+    match = _PRELOAD_CAPACITY_REFUSAL.fullmatch(error)
+    if match is None or match["route"] != route_id:
+        return None
+    demand, ceiling = int(match["demand"]), int(match["ceiling"])
+    if demand <= ceiling:
+        return None
+    return {
+        "physical_pool": match["pool"],
+        "declared_demand_bytes": demand,
+        "native_controller_ceiling_bytes": ceiling,
+        "model_load_attempted": False,
+        "agent_request_attempted": False,
+    }
 
 
 def _audit_codes(errors: tuple[str, ...]) -> list[str]:
@@ -641,9 +669,15 @@ def summarize_index(path: Path) -> dict[str, Any]:
             else:
                 result["memory_evidence_scope"] = "unreviewed_memory_fixture"
         if status != "evidence_recorded":
-            result["failure_code"] = (_failure_code(row.get("error"))
-                                      if status == "failed_or_blocked"
-                                      else "missing_vision_projector")
+            capacity = (_preload_capacity_refusal(row.get("error"), route_id)
+                        if status == "failed_or_blocked" else None)
+            result["failure_code"] = (
+                "preload_physical_pool_capacity_refusal" if capacity is not None else
+                _failure_code(row.get("error")) if status == "failed_or_blocked"
+                else "missing_vision_projector"
+            )
+            if capacity is not None:
+                result["admission"] = capacity
             public["results"].append(result)
             continue
         try:

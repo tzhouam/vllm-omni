@@ -11,5 +11,8 @@
 !agent_structured_read_url_full_20261006.json
 !agent_native_browser_text_same_source_20261006.json
 !agent_qwen3_30b_layer12_capacity_refusal_20261006.json
+!agent_native_browser_text_powerfix_capacity_refusal_20261008.json
+!agent_spark_cpu_structured_read_url_smoke_20261008.json
+!agent_spark_cpu_basic_smoke_20261008.json
 !qwen3_6_budget_v2_loader.log
 !qwen3_6_host_mapped_loader.log

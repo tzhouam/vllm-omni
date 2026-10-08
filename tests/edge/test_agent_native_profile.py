@@ -29,6 +29,7 @@ from vllm_omni.edge.agent.controller import _RECALL_KINDS
 from vllm_omni.edge.agent.memory import AesGcmCipher, EncryptedMemoryStore
 from vllm_omni.edge.agent.qualification import _evaluate_case as audit_evaluate_case
 from vllm_omni.edge.agent.router import classify_task
+from vllm_omni.engine.resource_ledger import ResourceUnavailable
 
 
 def _route():
@@ -149,6 +150,39 @@ def test_structured_read_url_bridge_calls_separate_controller_api(tmp_path):
         assert result.final_answer == "answer"
         assert calls == [(case.metadata["source"], case.prompt)]
         assert bridge.suite_id == native_profile.STRUCTURED_READ_URL_SUITE_ID
+
+
+def test_bridge_preserves_native_memory_refusal_before_backend_lookup(monkeypatch, tmp_path):
+    import vllm_omni.edge.agent.native_app as native_app
+
+    native_route = SimpleNamespace(route_id="r")
+    closed = []
+    controller = SimpleNamespace(
+        routes=[native_route], backends={},
+        admit=lambda route: (SimpleNamespace(
+            admitted=False,
+            reason="host_ram: declared demand 22000000000 bytes exceeds native controller ceiling 20647059456 bytes",
+        ) if route is native_route else pytest.fail("wrong route was admitted")),
+        tools=SimpleNamespace(close=lambda: None),
+        add_listener=lambda _listener: None,
+        close=lambda: closed.append(True),
+    )
+    monkeypatch.setattr(native_app, "build_controller", lambda _path: (controller, {}))
+    monkeypatch.setattr(native_profile, "_FixtureForegroundScreen", lambda: object())
+    monkeypatch.setattr(native_profile, "ManagedEdgeBrowser", lambda **_kwargs: object())
+    monkeypatch.setattr(native_profile, "ReadOnlyFixtureTools", lambda *_args, **_kwargs: object())
+    bridge = NativeProfileBridge(
+        native_config={"routes": [{"route_id": "r"}]},
+        config_root=tmp_path / "configs", private_root=tmp_path / "private",
+        fixture_origin="http://127.0.0.1:1234",
+        telemetry=SimpleNamespace(sample=lambda: pytest.fail("model load was attempted")),
+    )
+    try:
+        with pytest.raises(ResourceUnavailable, match="host_ram: declared demand 22000000000"):
+            asyncio.run(bridge.prepare(_route()))
+    finally:
+        bridge.close()
+    assert closed == [True]
 
 
 def test_prompt_identity_backend_preserves_cancel_and_close():

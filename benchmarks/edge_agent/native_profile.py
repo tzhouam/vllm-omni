@@ -34,6 +34,7 @@ from benchmarks.edge_agent.profile import (
 )
 from vllm_omni.edge.agent.qualification import SUITE_ID, STRUCTURED_READ_URL_SUITE_ID
 from vllm_omni.edge.agent.tools import ManagedEdgeBrowser, WindowsScreen
+from vllm_omni.engine.resource_ledger import ResourceUnavailable
 
 
 ORDINARY_SUBMISSION_MODE = "model_selected_tools_v1"
@@ -447,7 +448,18 @@ class NativeProfileBridge:
         )
         controller.add_listener(self._listen)
         self.controller, self.route = controller, route
-        backend = controller.backends[route.route_id]
+        native_route = next((item for item in controller.routes
+                             if item.route_id == route.route_id), None)
+        if native_route is None:
+            raise RuntimeError(f"profile route {route.route_id} is absent from the native controller")
+        admission = controller.admit(native_route)
+        if not admission.admitted:
+            raise ResourceUnavailable(
+                f"profile route {route.route_id} refused before model load: {admission.reason}"
+            )
+        backend = controller.backends.get(route.route_id)
+        if backend is None:
+            raise RuntimeError(f"profile route {route.route_id} has no admitted native backend")
         if backend.execution_plan is not None:
             raise RuntimeError("cold-start route was already resident")
         samples: list[dict[str, Any]] = []

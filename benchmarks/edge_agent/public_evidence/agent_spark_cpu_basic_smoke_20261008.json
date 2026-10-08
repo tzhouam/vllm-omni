@@ -1,0 +1,167 @@
+{
+  "latency_statistic": "nearest-rank within each recorded input length",
+  "qualification_minimums": {
+    "active_endurance_seconds": 1800,
+    "batch_size": 1,
+    "concurrency": 1,
+    "independent_gate_review_required": true,
+    "measured_requests_per_length": 20
+  },
+  "raw_evidence_location": "private on the profiling host; SHA-256 bound below",
+  "runs": [
+    {
+      "conditions": {
+        "batch_size": 1,
+        "concurrency": 1,
+        "driver_versions": {
+          "nvidia": "610.71"
+        },
+        "environment_fingerprint": "70544108d6eaba4a256f7e70702884eaf075e422980017dfc79f43ac40c57094",
+        "hardware": {
+          "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+          "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+          "host_ram_available_bytes_at_start": 22335987712,
+          "host_ram_total_bytes": 67773509632,
+          "vram_available_bytes_at_start": 20256444416
+        },
+        "os_version": "Windows-11-10.0.26200-SP0",
+        "power_condition": "AC",
+        "runtime_versions": {
+          "agent_runtime_identity_sha256": "49b685117e5b0c1bcafac7bc07391ad72c9d7427dced20e250c7eb784d02f3de",
+          "llama_server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52",
+          "python": "3.12.10",
+          "vllm_installed_distribution": "0.29.0+cu134",
+          "vllm_omni_imported_source_sha256": "c0c48dffbf8aab43f9ed0a5cecc8571fdb7f3575170f9fd0e65f760896eb682c",
+          "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "vllm_omni_loaded_source_version": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+        },
+        "suite_id": "edge-agent-fixed-local-fixtures-v1"
+      },
+      "index_sha256": "c3811506698256bca4cd2f1ee5fb2b7d1294845838570d3eba74ef60bbfb6752",
+      "lineage_manifest_sha256": "20be73cdf5438a6d0eab1349129c3b41a985122d4a619661e2d4507df3ff1709",
+      "model_prompt_identity_capture": null,
+      "protocol": "smoke_incomplete",
+      "results": [
+        {
+          "actual_placement_matches": true,
+          "audit_error_codes": [],
+          "backend": "external.llamacpp.text.v1",
+          "cold_start_s": 4.8304636,
+          "correctness_pass": false,
+          "e2e_trace_pass": true,
+          "endurance_requests": 0,
+          "endurance_wall_seconds": 3.600027412176132e-06,
+          "input_shapes": {
+            "long": {
+              "prompt_chars_min_max": [
+                561,
+                1683
+              ],
+              "prompt_utf8_bytes_min_max": [
+                1673,
+                1683
+              ]
+            },
+            "medium": {
+              "prompt_chars_min_max": [
+                213,
+                651
+              ],
+              "prompt_utf8_bytes_min_max": [
+                629,
+                651
+              ]
+            },
+            "short": {
+              "prompt_chars_min_max": [
+                39,
+                135
+              ],
+              "prompt_utf8_bytes_min_max": [
+                107,
+                135
+              ]
+            }
+          },
+          "lengths": {
+            "long": {
+              "answer_p50_s": 1.3083927,
+              "answer_p95_s": 1.8489228,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 1.2694394,
+              "ttft_p95_s": 1.371673,
+              "warmup_requests": 1
+            },
+            "medium": {
+              "answer_p50_s": 0.8606117,
+              "answer_p95_s": 1.3287576,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 0.8245063,
+              "ttft_p95_s": 0.8451398,
+              "warmup_requests": 1
+            },
+            "short": {
+              "answer_p50_s": 0.6934861,
+              "answer_p95_s": 0.742111,
+              "first_token_samples": 2,
+              "measured_requests": 2,
+              "ttft_p50_s": 0.6421187,
+              "ttft_p95_s": 0.6953284,
+              "warmup_requests": 1
+            }
+          },
+          "measured_attempts": 6,
+          "measured_successes": 0,
+          "placement": "cpu",
+          "placement_evidence_present": true,
+          "protocol_compliant": false,
+          "raw_internally_valid": true,
+          "raw_recomputed_measured_attempts": 6,
+          "raw_recomputed_measured_successes": 0,
+          "raw_sha256": "ac938575bbe66f9554f4981240c181e5a1a2f62b3db300c1ca2c52d13dacda52",
+          "release_qualified": false,
+          "route_id": "spark-1.7b-q4-windows-cpu",
+          "stability_pass": false,
+          "status": "evidence_recorded",
+          "submission_mode": "model_selected_tools_v1",
+          "summary_sha256": "cc69fbd6ae7080290a1f92b239e1c87b682bff6a6ef03c39d9260fe13ddef9ca",
+          "sustained_seconds": 0.0,
+          "task_class": "basic",
+          "telemetry": {
+            "peak_is_sampled_lower_bound": true,
+            "peaks": {
+              "gpu_power_w_peak": 28.038,
+              "gpu_temp_c_peak": 60.0,
+              "ram_used_bytes_peak": 47588728832.0,
+              "system_power_w_peak": null,
+              "vram_used_bytes_peak": 5394739200.0
+            },
+            "sample_count": 36,
+            "scope": "measured_and_endurance_requests_only_excludes_cold_load"
+          },
+          "telemetry_interval_seconds": 0.2,
+          "telemetry_present": true,
+          "tool_safety_pass": true,
+          "trace_verified": true
+        }
+      ],
+      "routes": {
+        "spark-1.7b-q4-windows-cpu": {
+          "checkpoint_revision": null,
+          "lineage_verified": false,
+          "mmproj_sha256": null,
+          "model_sha256": "902bde2522394954ac17821b3e5fd0df02defbc6944f122253f2580acf0503f4",
+          "precision": "Q4_K_M",
+          "server_sha256": "9ffc5919acb4cb43c7be5f3053b59014cce70a87d3a801fcad49c4f459984f52"
+        }
+      },
+      "run_id": "native_c5e5c92a995a454da59b9f5316d6974c",
+      "scope": "whole_agent_batch1_paired_local_fixture",
+      "source_config_sha256": "d459ca5e0f225e25065420bf6705441624336194a768629e8d6990e6ae90b0b4",
+      "submission_mode": "model_selected_tools_v1"
+    }
+  ],
+  "schema": "omni-agent-public-aggregate-v2"
+}

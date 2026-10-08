@@ -369,6 +369,25 @@ order differ.
 This result is limited to the
 fixed loopback fixture and is **not** a signed qualification or default route.
 
+A 2026-10-08 repeat after the live-power fix did **not** reach model loading:
+the [public refusal record](public_evidence/agent_native_browser_text_powerfix_capacity_refusal_20261008.json)
+binds a 22,000,000,000 B host-RAM declaration to a 20,758,487,040 B native
+controller ceiling at admission. No Agent request or new latency measurement
+occurred. The profiler now preserves this exact pre-load physical-pool
+refusal in its private index and exports only validated numeric capacity facts;
+the preceding failed attempt's opaque `KeyError` remains in private raw
+evidence. A new complete protocol requires sufficient live RAM and a fresh
+run on the final source.
+
+Two current-source Spark CPU short runs also remain unqualified. The
+[structured Read URL smoke](public_evidence/agent_spark_cpu_structured_read_url_smoke_20261008.json)
+recomputed 0/6 measured successes: the model supplied invalid arguments to
+the zero-argument `browser_read` tool, and failed requests lacked complete
+Agent traces. The separate
+[basic arithmetic smoke](public_evidence/agent_spark_cpu_basic_smoke_20261008.json)
+had complete raw traces but 0/6 exact answers. Both used three warmups and six
+measured requests, with no endurance run; neither meets the full protocol.
+
 An earlier browser-vision smoke passed 12/12, but a later desktop capture run
 without foreground verification reconstructed only 6/12 and cannot isolate
 model quality from visibility. A later visual attempt completed one

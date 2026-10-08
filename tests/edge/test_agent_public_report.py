@@ -168,6 +168,39 @@ def test_failed_index_exports_only_known_fields(tmp_path: Path) -> None:
     assert runtime["vllm_omni_imported_source_sha256"] is None
     assert runtime["agent_runtime_identity_sha256"] is None
 
+    index["results"][0]["error"] = (
+        "ResourceUnavailable: profile route public-route refused before model load: "
+        "host_ram: declared demand 22000000000 bytes exceeds the native "
+        "controller ceiling 20758487040 bytes"
+    )
+    index_path.write_text(json.dumps(index), encoding="utf-8")
+    public = summarize_index(index_path)
+    refusal = public["results"][0]
+    assert refusal["failure_code"] == "preload_physical_pool_capacity_refusal"
+    assert refusal["admission"] == {
+        "physical_pool": "host_ram", "declared_demand_bytes": 22000000000,
+        "native_controller_ceiling_bytes": 20758487040,
+        "model_load_attempted": False, "agent_request_attempted": False,
+    }
+    index["results"][0]["error"] += f" at {_SECRET}"
+    index_path.write_text(json.dumps(index), encoding="utf-8")
+    public = summarize_index(index_path)
+    assert public["results"][0]["failure_code"] == "unclassified_failure"
+    assert "admission" not in public["results"][0]
+    assert _SECRET not in json.dumps(public)
+    index["results"][0]["error"] = (
+        "ResourceUnavailable: profile route public-route refused before model load: "
+        "host_ram: declared demand 100 bytes exceeds the native controller "
+        "ceiling 200 bytes"
+    )
+    index_path.write_text(json.dumps(index), encoding="utf-8")
+    public = summarize_index(index_path)
+    assert public["results"][0]["failure_code"] == "unclassified_failure"
+    assert "admission" not in public["results"][0]
+    index["results"][0]["task_class"] = "basic"
+    index_path.write_text(json.dumps(index), encoding="utf-8")
+    assert summarize_index(index_path)["results"][0]["task_class"] == "basic"
+
 
 def test_new_profile_distinguishes_loaded_source_from_distribution(
     tmp_path: Path,
@@ -222,6 +255,9 @@ def test_foreground_fixture_failure_has_narrow_public_code() -> None:
     assert _failure_code(
         f"RuntimeError: Edge fixture window failed at {_SECRET}"
     ) == "unclassified_failure"
+    assert _failure_code("ValueError: browser_read requires exactly: []") == (
+        "browser_read_tool_arguments_invalid"
+    )
 
 
 def test_single_request_retest_is_allowlisted(tmp_path: Path) -> None:
