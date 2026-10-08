@@ -50,7 +50,10 @@ def agent_entry_from_launch(launch: Mapping[str, Any], *, expected_device_name: 
     if not isinstance(expected_device_name, str) or not expected_device_name.strip():
         raise ValueError("the exact native GPU 0 device name is required")
     backend = copy.deepcopy(dict(launch["backend"]))
-    if backend.get("name") != BACKEND or backend.get("runtime_revision") != RUNTIME_REVISION:
+    from vllm_omni.edge.agent.strata_image_evidence import IMAGE_BACKEND, image_capability_from_config
+
+    selected_backend = backend.get("name")
+    if selected_backend not in {BACKEND, IMAGE_BACKEND} or backend.get("runtime_revision") != RUNTIME_REVISION:
         raise ValueError("Agent route requires the pinned Strata complete-model backend")
     if type(backend.get("gpu_index")) is not int or backend["gpu_index"] != 0:
         raise ValueError("native Agent currently binds only the measured physical GPU 0")
@@ -60,6 +63,10 @@ def agent_entry_from_launch(launch: Mapping[str, Any], *, expected_device_name: 
     for forbidden in ("args", "config_file", "mcp_servers", "before_load", "vision"):
         if backend.get(forbidden) is not None:
             raise ValueError(f"Strata Agent entry refuses {forbidden}")
+
+    if selected_backend == BACKEND and backend.get("image_route") is not None:
+        raise ValueError("text Strata route cannot carry an image capability")
+    capability = image_capability_from_config(backend) if selected_backend == IMAGE_BACKEND else None
 
     source = ArtifactManifest.from_dict(backend["artifact_manifest"])
     runtime = ArtifactManifest.from_dict(backend["runtime_manifest"])
@@ -89,7 +96,7 @@ def agent_entry_from_launch(launch: Mapping[str, Any], *, expected_device_name: 
 
     plan = WeightTierPlan.from_dict(backend["weight_tier_plan"])
     if (
-        plan.backend != BACKEND
+        plan.backend != selected_backend
         or plan.backend_revision != RUNTIME_REVISION
         or plan.artifact_manifest_sha256 != source.manifest_sha256
         or backend.get("route_id") != plan.route_id
@@ -146,12 +153,12 @@ def agent_entry_from_launch(launch: Mapping[str, Any], *, expected_device_name: 
     # pool spelling differs. Live ceilings will be freshly measured by Agent.
     backend["gpu_pool"] = "vram"
     normalized_demands = {("vram" if pool == gpu_pool else pool): amount for pool, amount in demands.items()}
-    return {
+    entry = {
         "route_id": plan.route_id,
         "artifact_id": "strata:" + _digest(backend),
         "model": source.checkpoint,
-        "backend": BACKEND,
-        "modalities": ["text"],
+        "backend": selected_backend,
+        "modalities": ["text", "image"] if capability else ["text"],
         "placement": "cpu+cuda:0",
         "requires_nvidia": True,
         "expected_device_name": expected_device_name,
@@ -166,6 +173,16 @@ def agent_entry_from_launch(launch: Mapping[str, Any], *, expected_device_name: 
         "experimental_status": "unqualified; verified loaded configuration and Agent admission still required",
         "source_launch_sha256": _digest(launch),
     }
+    if capability is not None:
+        entry.update(
+            image_capability=capability,
+            mmproj_file=capability["projector_file"],
+            mmproj_sha256=capability["projector_sha256"],
+            max_image_bytes=capability["max_image_bytes"],
+            max_image_pixels=capability["max_image_pixels"],
+            image_token_reserve=capability["max_image_tokens"],
+        )
+    return entry
 
 
 def agent_config_from_launch(

@@ -1,5 +1,15 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-08）
 
+2026-10-09：实验性 [CPU 图像阶段与 Agent 桥接](STRATA_IMAGE.md)已接入
+Omni 现有工厂、共享账本和取消路径。新增严格图像身份、ENC→SVE→GENI
+绑定、独立编码器进程观测和图像资格隔离；[CPU 编码器构建](results/strata_20261008/native_cpu_vision_build.json)
+与静态来源校验已完成。集成回归 359 通过/3 跳过；六处格式修正经独立
+AST 复核后，图像专项 166 通过/1 跳过，仓库 Ruff 通过。
+这仍不证明实际图像推理。新的 CPU 运行时文本登记已成功；首个图像登记
+因私有描述符将投影角色写成 `mmproj` 而正确拒绝，改为契约要求的
+`vision_projector` 后已用原闭合文本中间产物完成[新图像路线登记](results/strata_20261008/native_cpu_image_registration.json)，保留失败记录。
+未启动图像神经请求，未获得图像、性能或默认资格。
+
 最新的 [IQ3 Agent 五任务](results/strata_20261008/native_ista_iq3_agent_functional.json)
 已通过[独立复核](results/strata_20261008/native_ista_iq3_agent_functional_review.json)：
 短回答、DPAPI 记忆写入、新控制器召回、中英文 loopback 浏览器读取全部通过。

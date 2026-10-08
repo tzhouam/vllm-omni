@@ -1,0 +1,59 @@
+{
+  "schema": "omni-strata-cpu-vision-build-summary-v1",
+  "status": "compiled_and_statically_verified_not_neurally_qualified",
+  "observed_date": "2026-10-08",
+  "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "base_tree": "332979d72ea7c5fae7f00bec6f2c79234292bc3b",
+  "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+  "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
+  "configure_exit_code": 0,
+  "build_exit_code": 0,
+  "cpu_encoder": {
+    "size_bytes": 4967424,
+    "sha256": "708857886ddaa7164d3a7d118c84cec093bd512c984f0fc429aef8efa2dfbd6e"
+  },
+  "unchanged_language_engine": {
+    "size_bytes": 58833408,
+    "sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b"
+  },
+  "runtime_bundle": {
+    "files": 2361,
+    "size_bytes": 655798014,
+    "typed_manifest_sha256": "6d96d30df73ca8116673cded7ba050847bebdd3c816bbc55b0d406d5c5f52a9c",
+    "raw_manifest_sha256": "27ed5af62198500b12a5c4a3473e4f2b17d21b78b5213610d05d4528792452a7"
+  },
+  "compile_input_proof": {
+    "strata_tracked_files": 2262,
+    "dependency_tracked_files": 3608,
+    "compiled_commands": 124,
+    "generated_unity_sources": 10
+  },
+  "pe_dependency_closure_sha256": "a59131d80d8d9c538d733362ccc6af85db28e852dd98f0e8a868337c9ea66360",
+  "dynamic_loads_proven_by_build": false,
+  "patches": {
+    "strata_vision_backend_v1.patch": "77ec1e3c80f19c56c64f5143417268ea36f2e993441542c83a6a489a75e0c8c5",
+    "strata_vision_clip_v1.patch": "95e84404980a62488c57101e5b21e6d0b0564bd184dfbb6aec747882be3dcc74"
+  },
+  "private_raw_refs": {
+    "build_receipt": {
+      "sha256": "0d167088775cc46b094fae5b323ac65967ead49115343329327d62a3bf96f821",
+      "scope": "configure/build succeeded; first postbuild validator rejected generated Unity source paths"
+    },
+    "corrected_finalization_receipt": {
+      "sha256": "0bc5e4145f3868df2a2dfe0239bdb96366e527cf494c24005b4a4550de66e210",
+      "scope": "retains earlier failure; verifies tracked inputs and actual generated Unity includes without rebuilding"
+    },
+    "deployed_encoder_build_descriptor": {
+      "sha256": "66ffdecf4e28255c096a6d9a5a8c1580239c83b935cd9a52298875d08f52df26"
+    }
+  },
+  "neural_execution": false,
+  "image_quality_qualified": false,
+  "default_route_qualified": false,
+  "limitations": [
+    "CPU-only encoder build; CUDA image encoding and implicit fallback refuse",
+    "Recorded build provenance is not an independent rebuild",
+    "PE import closure is static; actual owned encoder modules require separate live audit",
+    "No complete image request, latency, memory peak, physical SSD or default qualification is provided by this record"
+  ]
+}

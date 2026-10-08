@@ -21,6 +21,10 @@ def create_graph_client(metadata, config, ledger, reservation):
         from .strata import StrataTextStageClient
 
         return StrataTextStageClient(metadata, backend, ledger, reservation)
+    if name == "external.strata.multimodal.v1":
+        from .strata_multimodal import StrataMultimodalStageClient
+
+        return StrataMultimodalStageClient(metadata, backend, ledger, reservation)
     if name == "external.crisp.tts.v1":
         from .crisp_tts import CrispTTSStageClient
 

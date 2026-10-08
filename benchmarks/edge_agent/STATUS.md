@@ -1,5 +1,15 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+2026-10-09: the experimental [CPU-image Strata bridge](../edge_harness/STRATA_IMAGE.md)
+is integrated with the existing controller, managed engine lease and native UI.
+It validates actual image input, encoder/SVE/language ownership and increasing
+epochs; text evidence cannot grant image capability or default qualification.
+The combined regression passed 359 tests, with 3 skips. After independently
+reviewed style-only corrections, 166 image-focused checks passed, with 1 skip;
+repository Ruff passes. Actual image/Agent neural requests remain pending fresh
+route registration and closed engine-image lifecycle evidence. These checks do
+not extend the historical text results below to images or new source bytes.
+
 The [IQ3 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional_review.json).
 Short answer, DPAPI seed, fresh-controller recall and EN/ZH loopback browser

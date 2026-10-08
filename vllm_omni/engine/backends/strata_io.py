@@ -357,7 +357,16 @@ def verify_observation_runtime(descriptor, runtime_root, verified_files, native_
     return identity | {"identity_sha256": hashlib.sha256(_canonical(identity).encode()).hexdigest()}
 
 
-def audit_selected_loaded_modules(native_identity, runtime_root, runtime_identity):
+def audit_selected_loaded_modules(
+    native_identity,
+    runtime_root,
+    runtime_identity,
+    *,
+    native_file="engine/strata.exe",
+    include_cuda_driver=True,
+    role=None,
+    non_system_pe_closure=None,
+):
     """Read the exact owned process's selected native/CUDA modules after load.
 
     This is a selected-module snapshot, not every OS module or a future promise.
@@ -366,11 +375,21 @@ def audit_selected_loaded_modules(native_identity, runtime_root, runtime_identit
     report = {
         "schema": "omni-strata-selected-module-audit-v1",
         "status": "unverified",
-        "scope": "selected_engine_cublas_and_system32_driver_at_load",
+        "scope": "selected_engine_cublas_and_system32_driver_at_load"
+        if role is None
+        else "selected_owned_role_executable_declared_DLLs_and_optional_system32_driver_at_load",
         "modules": [],
         "all_os_modules_covered": False,
         "reasons": [],
     }
+    if role is not None:
+        report["role"] = role
+    if non_system_pe_closure is not None:
+        report["scope"] = (
+            "selected_owned_role_and_all_observed_non_System32_modules_reconciled_to_recursive_PE_closure_at_load"
+        )
+        report["observed_non_system_module_closure_verified"] = False
+        report["all_future_dynamic_loads_covered"] = False
     if os.name != "nt":
         report["reasons"] = ["Windows module observation unavailable"]
         return report
@@ -426,9 +445,19 @@ def audit_selected_loaded_modules(native_identity, runtime_root, runtime_identit
             ) or needed.value > ctypes.sizeof(modules):
                 raise ValueError("owned native module enumeration incomplete")
             root = Path(runtime_root).resolve(strict=True)
+            relative = Path(native_file)
+            executable = (root / relative).resolve(strict=True)
+            if (
+                relative.is_absolute()
+                or ".." in relative.parts
+                or not executable.is_relative_to(root)
+                or type(include_cuda_driver) is not bool
+                or role not in (None, "encoder")
+            ):
+                raise ValueError("invalid selected native role/executable binding")
             expected = {
-                "strata.exe": {
-                    "path": root / "engine/strata.exe",
+                executable.name.lower(): {
+                    "path": executable,
                     "sha256": runtime_identity["native_executable_sha256"],
                 },
                 **{
@@ -436,12 +465,39 @@ def audit_selected_loaded_modules(native_identity, runtime_root, runtime_identit
                     for item in runtime_identity["native_dependency_files"]
                 },
             }
+            required_names = set(expected)
+            if non_system_pe_closure is not None:
+                closure = non_system_pe_closure
+                preimage = dict(closure)
+                identity_sha = preimage.pop("identity_sha256", None)
+                if (
+                    role != "encoder"
+                    or closure.get("schema") != "omni-strata-pe-closure-v1"
+                    or identity_sha != hashlib.sha256(_canonical(preimage).encode()).hexdigest()
+                    or closure.get("all_dynamic_loads_covered") is not False
+                    or closure.get("system_dependencies_pinned") is not False
+                    or not isinstance(closure.get("files"), list)
+                    or {Path(item["path"]).name.lower() for item in closure["files"]} != set(expected)
+                ):
+                    raise ValueError("owned encoder PE closure identity is invalid")
+                required_names = set(closure["required_at_load"])
+                if executable.name.lower() not in required_names or not required_names <= set(expected):
+                    raise ValueError("owned encoder PE load-time closure is invalid")
+                for item in closure["files"]:
+                    bound = expected[Path(item["path"]).name.lower()]
+                    if (root / item["path"]).resolve(strict=True) != bound["path"].resolve(strict=True) or (
+                        item["sha256"] != bound["sha256"]
+                    ):
+                        raise ValueError("owned encoder PE file identity differs")
             system = ctypes.create_unicode_buffer(32768)
             count = kernel.GetSystemDirectoryW(system, len(system))
             if not count or count >= len(system):
                 raise ValueError("Windows System32 identity unavailable")
-            expected["nvcuda.dll"] = {"path": Path(system.value) / "nvcuda.dll", "sha256": None}
+            if include_cuda_driver:
+                expected["nvcuda.dll"] = {"path": Path(system.value) / "nvcuda.dll", "sha256": None}
+                required_names.add("nvcuda.dll")
             found = {}
+            observed_system32 = []
             for module in modules[: needed.value // ctypes.sizeof(wintypes.HMODULE)]:
                 path_buffer = ctypes.create_unicode_buffer(32768)
                 count = psapi.GetModuleFileNameExW(handle, module, path_buffer, len(path_buffer))
@@ -450,6 +506,12 @@ def audit_selected_loaded_modules(native_identity, runtime_root, runtime_identit
                 path = Path(path_buffer.value).resolve(strict=True)
                 name = path.name.lower()
                 if name not in expected:
+                    if non_system_pe_closure is not None:
+                        if not path.is_relative_to(Path(system.value).resolve(strict=True)):
+                            raise ValueError("observed non-System32 module is absent from the bound PE closure")
+                        observed_system32.append(
+                            {"name": name, "path": str(path), "identity_scope": "observed_OS_path_not_pinned_bytes"}
+                        )
                     continue
                 if name in found or path != expected[name]["path"].resolve(strict=True):
                     raise ValueError("selected native module path mismatch or duplicate")
@@ -466,9 +528,14 @@ def audit_selected_loaded_modules(native_identity, runtime_root, runtime_identit
                     else "verified_runtime_manifest",
                 }
             verify_process()
-            if set(found) != set(expected):
+            if not required_names <= set(found):
                 raise ValueError("selected native CUDA modules are missing")
             report["modules"] = [found[name] for name in sorted(found)]
+            if non_system_pe_closure is not None:
+                report["observed_non_system_module_closure_verified"] = True
+                report["pe_closure_identity_sha256"] = non_system_pe_closure["identity_sha256"]
+                report["observed_System32_modules"] = sorted(observed_system32, key=lambda item: item["name"])
+                report["declared_delay_dependencies_not_loaded"] = sorted(set(expected) - set(found))
             report["status"] = "verified"
         finally:
             kernel.CloseHandle(handle)

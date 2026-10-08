@@ -1,0 +1,118 @@
+{
+  "schema": "omni-strata-cpu-image-registration-summary-v1",
+  "observed_date": "2026-10-09",
+  "status": "registered_experimental_image_not_executed",
+  "scope": "full source/pack/runtime/projector verification and fresh read-only admission; no neural execution or lease",
+  "route_id": "qwen38-ista-q2-cpuvision-cudalanguage-v3",
+  "backend": "external.strata.multimodal.v1",
+  "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+  "revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+  "artifact_files": [
+    {
+      "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00001-of-00002.gguf",
+      "size_bytes": 37623740192,
+      "sha256": "69820c02ec7d0b45ef2ebb19d6620299db749fe2aded7f39f93c6b88b199b720",
+      "role": "weights",
+      "quantization": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL",
+      "layout": "GGUF"
+    },
+    {
+      "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00002-of-00002.gguf",
+      "size_bytes": 28800138432,
+      "sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113",
+      "role": "weights",
+      "quantization": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL",
+      "layout": "GGUF"
+    }
+  ],
+  "source_code_sha256": {
+    "image_registrar": "ca2882a89399b251af13bf4ebc8a93c83cabddd5e40c63a52b10c9000b7ca92b",
+    "runtime_registrar": "d39a266c3c04597862809d920b9370e6768803804008e2ae3363b171d3684bd5",
+    "strata_backend": "8d80e7e7dc43f0f6c0f3b3198e0a295ab2c235996b619fd2ddfab4c99da7d015",
+    "native_io_adapter": "60ca72b35b7f2722c4157c1619fa72363855d925f2f5b98e362d4ea512ad686e",
+    "vision_adapter": "63b6f4edfe337b67acd0c075bb98f1f4ce6ed61f9c0391ffb83b6983751348a7",
+    "image_stage_backend": "629779ab47379d48046e2d0d70c08f6b9b0c9fd2632fc7a9243d3220d152da92"
+  },
+  "image_bounds": {
+    "embedding_width": 2560,
+    "max_image_bytes": 4194304,
+    "max_image_pixels": 4194304,
+    "max_image_tokens": 1536,
+    "encoder_threads": 8,
+    "encoder_device": "cpu",
+    "allow_cpu_fallback": false,
+    "vision_host_bytes": 3221225472,
+    "vision_gpu_bytes": 0,
+    "vision_scratch_bytes": 67108864
+  },
+  "transport_max_io_bytes": 8388608,
+  "budget": {
+    "gpu_weights_bytes": 6442450944,
+    "gpu_expert_cache_bytes": 8053063680,
+    "cpu_resident_weights_bytes": 268435456,
+    "cpu_mapped_weights_bytes": 1610612736,
+    "cpu_expert_cache_bytes": 8589934592,
+    "pinned_bytes": 805306368,
+    "host_kv_bytes": 0,
+    "gpu_kv_bytes": 536870912,
+    "host_workspace_bytes": 4898947072,
+    "gpu_workspace_bytes": 1073741824,
+    "host_transfer_bytes": 8388608,
+    "gpu_transfer_bytes": 268435456,
+    "host_headroom_bytes": 2147483648,
+    "gpu_headroom_bytes": 805306368,
+    "host_loading_peak_bytes": 18329108480,
+    "gpu_loading_peak_bytes": 17179869184,
+    "windows_commit_peak_bytes": 46245347328,
+    "ssd_artifact_bytes": 69483016569,
+    "ssd_temporary_bytes": 4362076160
+  },
+  "resource_budget": {
+    "capacities": {
+      "host_ram": 23993122816,
+      "vram:0": 25651314688,
+      "ssd": 807693308059,
+      "windows_commit": 71065690112
+    },
+    "demands": {
+      "host_ram": 18329108480,
+      "vram:0": 17179869184,
+      "windows_commit": 46245347328,
+      "ssd": 73845092729
+    }
+  },
+  "fresh_admission_snapshot_admitted": true,
+  "neural_execution": false,
+  "image_quality_qualified": false,
+  "default_route_qualified": false,
+  "three_tier_memory_qualified": false,
+  "physical_ssd_read_bytes": null,
+  "parent_binding_rewritten": false,
+  "source_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+  "prepared_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900",
+  "runtime_manifest_sha256": "6d96d30df73ca8116673cded7ba050847bebdd3c816bbc55b0d406d5c5f52a9c",
+  "projector_manifest_sha256": "44e609008048dc7566c1dc976f43a2fce7654059ca6ba7612f3d9825255e5d0c",
+  "observation_runtime_identity_sha256": "d8ba68c12305c7f0c3b3c5f19bc6ba6b800e3715b1c826ea18be1ca682eb9017",
+  "image_identity_sha256": "c55bca5fff8e0dc0c448ca7a7ad624d6e5336c6d29a6f3b9acca74d773167c8b",
+  "private_raw_refs": {
+    "image_launch": {
+      "sha256": "641dfab17e8cd7e7ae1c9c4bd0ada189b5a1724829df0c11420b3e728f7b1965"
+    },
+    "image_registration": {
+      "sha256": "2e25f0339dae5134db763f9e3fdbcd65689ae6c8ea1784b99a608c56f5a11a02"
+    },
+    "registration_final": {
+      "sha256": "dfc14360027937f3e17992d380dc3a1161f9606245c4857b353d35a57c621af3"
+    },
+    "registration_owner": {
+      "sha256": "b3fe8e5dcad20b995f41a0059d790a4b62eeee00c3a39bccd68ecb1af9e669b7"
+    },
+    "registration_wrapper": {
+      "sha256": "602d6f9e6a3e7a7c59ec8c0e782d977867618cef6a15b362bc909d85a9492715"
+    },
+    "prior_wrong_projector_role_failure": {
+      "sha256": "40326acb7acad038def54ac042b0a3b16b7058ccbad281d08deb312f09c1857b"
+    }
+  },
+  "prior_failure_scope": "metadata refusal before model loading; wrong projector role is not model incompatibility"
+}

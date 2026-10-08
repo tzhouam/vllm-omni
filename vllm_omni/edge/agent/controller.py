@@ -357,9 +357,21 @@ class AgentController:
 
                 raw = base64.b64decode(jpeg_b64, validate=True)
                 with Image.open(BytesIO(raw)) as image:
+                    if route.backend == "external.strata.multimodal.v1":
+                        loaded_image = self.backends[route.route_id].execution_plan["image_route"]
+                        capability = {
+                            **loaded_image["bounds_and_declared_budgets"],
+                            "transport": "data:image/png;base64",
+                        }
+                        if image.width * image.height > capability["max_image_pixels"]:
+                            raise ValueError("captured image exceeds admitted image pixels; resizing is not implicit")
                     converted = BytesIO()
                     image.save(converted, format="PNG")
                 image_data_url = "data:image/png;base64," + base64.b64encode(converted.getvalue()).decode("ascii")
+                if route.backend == "external.strata.multimodal.v1":
+                    from vllm_omni.edge.agent.strata_image_evidence import image_input_identity
+
+                    image_input_identity(image_data_url, capability)
             if observed_result is result and action.operation in {"browser_open", "browser_follow"}:
                 # Navigation is read-only. Complete its observation before
                 # model planning so the page is not reopened for its text.
@@ -566,6 +578,23 @@ class AgentController:
             )
             verified_configuration = None
             configuration_evidence = None
+            image_configuration = None
+            encoder_selection = None
+            if route.backend == "external.strata.multimodal.v1":
+                from vllm_omni.engine.backends.strata_multimodal import validate_strata_multimodal_load_plan
+
+                try:
+                    if not decision.experimental or route.modalities != frozenset({"text", "image"}):
+                        raise RuntimeError("image Strata is explicitly experimental and has no qualified default")
+                    validate_strata_multimodal_load_plan(execution_plan, route.placement)
+                except Exception:
+                    await self._release_loaded_backend(backend, reason="invalid Strata image execution configuration")
+                    raise
+                verified_configuration = execution_plan["verified_execution_configuration"]
+                configuration_evidence = execution_plan["execution_configuration_evidence"]
+                image_configuration = execution_plan["image_route"]
+                encoder_selection = execution_plan["encoder_backend_selection_at_load"]
+                actual_placement = None
             if route.backend == "external.strata.text.v1":
                 from vllm_omni.engine.backends.strata import validate_strata_load_plan
 
@@ -592,6 +621,8 @@ class AgentController:
                 "actual_placement": actual_placement,
                 "verified_execution_configuration": verified_configuration,
                 "execution_configuration_evidence": configuration_evidence,
+                "image_configuration": image_configuration,
+                "encoder_backend_selection": encoder_selection,
                 "experimental": decision.experimental,
                 "qualified_p95_s": decision.qualification.whole_answer_p95_s if decision.qualification else None,
                 "selection_refusals": dict(decision.refusals),

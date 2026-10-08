@@ -1,0 +1,21 @@
+{
+  "schema": "omni-strata-vision-prototype-lineage-v1",
+  "status": "private_source_only_not_built_or_run",
+  "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+  "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
+  "files": [
+    {
+      "role": "vision",
+      "base_sha256": "3ff6a05b7305862529d68f039f95fd9e3e44cca89a66b29b3aa6c09b3a10fb89",
+      "patched_sha256": "455bd8edb1a60e12960542e55116c0f98022cfc70ac604fe14dff59b23300787",
+      "patch_sha256": "77ec1e3c80f19c56c64f5143417268ea36f2e993441542c83a6a489a75e0c8c5"
+    },
+    {
+      "role": "clip",
+      "base_sha256": "13f10801842caed2e77018da8546a31e4fd248a82a56761039957cfe6e43fd2d",
+      "patched_sha256": "09015eb469da190858ec6cd50cd442ca5d9eb59c1ff8ab9e7c240c8b98cea163",
+      "patch_sha256": "95e84404980a62488c57101e5b21e6d0b0564bd184dfbb6aec747882be3dcc74"
+    }
+  ]
+}

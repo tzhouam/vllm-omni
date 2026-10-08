@@ -228,14 +228,23 @@ class LocalPlanManager:
                 if plan.get("requested_device") != route.placement:
                     raise RuntimeError("Omni route loaded on a different device")
                 observed = plan.get("observed_model_placement")
-                if getattr(route, "backend", None) == "external.strata.text.v1":
+                if getattr(route, "backend", None) in {
+                    "external.strata.text.v1", "external.strata.multimodal.v1"
+                }:
                     # Explicit experimental Strata execution verifies the
                     # loaded GPU/CPU-pool configuration. It does not convert
                     # that capability into observed per-request computation
                     # or whole-Agent route qualification.
-                    from vllm_omni.engine.backends.strata import validate_strata_load_plan
+                    if route.backend == "external.strata.text.v1":
+                        from vllm_omni.engine.backends.strata import validate_strata_load_plan
 
-                    validate_strata_load_plan(dict(plan), route.placement)
+                        validate_strata_load_plan(dict(plan), route.placement)
+                    else:
+                        from vllm_omni.engine.backends.strata_multimodal import (
+                            validate_strata_multimodal_load_plan,
+                        )
+
+                        validate_strata_multimodal_load_plan(dict(plan), route.placement)
                 elif observed != route.placement and not (
                     route.placement.startswith("Vulkan_Host+")
                     and observed is None

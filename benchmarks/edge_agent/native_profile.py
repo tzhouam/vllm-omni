@@ -224,6 +224,8 @@ def load_profile_routes(config: Mapping[str, Any],
         item = metadata.get(route_id)
         if not isinstance(item, dict):
             raise ValueError(f"{route_id}: lineage metadata missing")
+        if entry.get("backend") == "external.strata.multimodal.v1":
+            raise ValueError("Strata image functional receipts require a dedicated reviewed image profile adapter")
         if entry.get("backend") == STRATA_BACKEND:
             binding = strata_route_binding(entry)
             if (item.get("artifact_manifest_sha256") != binding["artifact_manifest_sha256"] or
@@ -308,6 +310,8 @@ def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
         identity.get("artifact_id") != route.artifact_id or
         identity.get("backend") != route.backend):
         return False
+    if route.backend == "external.strata.multimodal.v1":
+        return False  # text trace and nullable placement cannot qualify an image chain
     if route.backend == STRATA_BACKEND:
         try:
             validate_strata_request_evidence(placement_evidence, asdict(route), events=events)

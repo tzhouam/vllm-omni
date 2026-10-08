@@ -1,5 +1,13 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: [CPU encoder build provenance](native_cpu_vision_build.json) is now
+recorded separately from neural evidence. The experimental image stage and
+Agent bridge are integrated; regression passed 359 tests/3 skips, followed by
+166 image-focused tests/1 skip after reviewed style-only edits. See the
+[interface and registration guide](../../STRATA_IMAGE.md). Actual image requests,
+encoder-phase cancellation, recovery and Agent image tasks remain unverified;
+no text result below grants image, performance or default qualification.
+
 The [IQ3 five-task Agent run](native_ista_iq3_agent_functional.json)
 passed [independent review](native_ista_iq3_agent_functional_review.json).
 Own short answer, DPAPI seed/reopened recall and EN/ZH browser tasks took

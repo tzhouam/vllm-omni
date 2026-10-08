@@ -182,6 +182,8 @@ def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
         identity.get("artifact_id") != route["artifact_id"] or
         identity.get("backend") != route["backend"]):
         return False
+    if route["backend"] == "external.strata.multimodal.v1":
+        return False  # requires a dedicated reviewed image task/profile suite
     if route["backend"] == STRATA_BACKEND:
         try:
             validate_strata_request_evidence(placement_evidence, route, events=events)
@@ -881,6 +883,8 @@ def load_reviewed_qualification(
     stored_profile = summary["routes"][audit.route_id]
     profile_route = stored_profile["route"]
     identity = _identity(profile_route, summary["conditions"], audit.raw_sha256)
+    if identity.get("backend") == "external.strata.multimodal.v1":
+        raise ValueError("experimental Strata image routes have no reviewed qualification/promotion adapter")
     if bundle.get("identity") != identity:
         raise ValueError("review identity differs from audited profile")
 

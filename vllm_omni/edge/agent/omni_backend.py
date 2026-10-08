@@ -339,6 +339,7 @@ class OmniCompleteModelBackend:
                 raise RuntimeError("Omni stage did not return a terminal event")
             if stage_event.get("request_id") != request_id:
                 raise RuntimeError("Omni terminal event belongs to another request")
+            extra = self._validate_terminal_output(output, image_data_url=image_data_url)
             yield BackendChunk(
                 text="",
                 terminal=True,
@@ -348,6 +349,7 @@ class OmniCompleteModelBackend:
                     "backend_metrics": output.metrics,
                     "stage_event": stage_event,
                     "ttft_note": "first visible SSE delta after Omni submission",
+                    **extra,
                 },
             )
         except BaseException:
@@ -366,6 +368,9 @@ class OmniCompleteModelBackend:
                     # Abort terminates the llama-server. A cached StageRuntime
                     # must never be reused after its client has closed.
                     self.close()
+
+    def _validate_terminal_output(self, output: Any, *, image_data_url: str | None) -> dict[str, Any]:
+        return {}
 
     async def cancel(self, request_id: str) -> None:
         if self._pool is not None and self._active == request_id:
@@ -544,6 +549,8 @@ class OmniStrataConfig:
             raise ValueError("native Agent Strata route must bind the measured GPU 0 pool")
         if self.mmproj_file is not None:
             raise ValueError("this Strata adapter has no qualified image stage")
+        if self.backend_config.get("image_route") is not None:
+            raise ValueError("text Strata adapter cannot carry an image route")
         if self.backend_config.get("name") != "external.strata.text.v1":
             raise ValueError("Strata route must select its complete-model StageClient")
         if any(
@@ -593,6 +600,57 @@ class OmniStrataBackend(OmniCompleteModelBackend):
             "start_timeout_s": cfg.start_timeout_s,
             "gpu_pool": "vram",
         }
+
+
+@dataclass(frozen=True)
+class OmniStrataImageConfig(OmniStrataConfig):
+    """Explicit CPU image capability; never re-label a text config."""
+
+    image_capability: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        from vllm_omni.edge.agent.strata_image_evidence import IMAGE_BACKEND, image_capability_from_config
+
+        if self.backend_config.get("name") != IMAGE_BACKEND:
+            raise ValueError("image config requires the distinct image stage")
+        # Reuse the text config's physical-pool and token validation, using a
+        # detached text-only view. This never reaches StageRuntime or loading.
+        text_view = dict(self.backend_config)
+        text_view.pop("image_route", None)
+        text_view["name"] = "external.strata.text.v1"
+        OmniStrataConfig(self.route_id, text_view, self.placement, self.capacities, self.demands,
+                        self.context_tokens, self.max_new_tokens, self.max_io_bytes,
+                        self.request_timeout_s, self.start_timeout_s)
+        capability = image_capability_from_config(self.backend_config)
+        if self.image_capability != capability or self.mmproj_file != capability["projector_file"]:
+            raise ValueError("Agent projector capability differs from its bound image stage")
+
+
+class OmniStrataImageBackend(OmniStrataBackend):
+    """Same Omni lease, streaming and cancellation, with a strict image gate."""
+
+    def __init__(self, config: OmniStrataImageConfig) -> None:
+        if not isinstance(config, OmniStrataImageConfig):
+            raise TypeError("image backend requires an explicit image configuration")
+        super().__init__(config)
+        self._image_seen_states: set[tuple[Any, ...]] = set()
+
+    def _validate_loaded_plan(self, plan: dict[str, Any]) -> None:
+        from vllm_omni.edge.agent.strata_image_evidence import validate_image_load_plan_for_config
+
+        validate_image_load_plan_for_config(plan, self.config.backend_config, self.config.placement)
+        if plan.get("reserved_bytes") != dict(self.config.demands):
+            raise RuntimeError("image stage does not hold the Agent's exact shared resource lease")
+
+    def _validate_terminal_output(self, output: Any, *, image_data_url: str | None) -> dict[str, Any]:
+        from vllm_omni.edge.agent.strata_image_evidence import image_input_identity, validate_image_terminal
+
+        identity = (image_input_identity(image_data_url, self.config.image_capability)
+                    if image_data_url is not None else None)
+        proof = validate_image_terminal(self.execution_plan, output.metrics, output.custom_output["stage_event"],
+                                        request_id=output.request_id, input_identity=identity,
+                                        seen_states=self._image_seen_states)
+        return {"image_chain_evidence": proof}
 
 
 class OmniVllmTextBackend:

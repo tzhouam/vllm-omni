@@ -475,9 +475,10 @@ def _sanitize_diagnostic(line: str, *, observer_nonce: str | None = None) -> str
 
 
 class _DiagnosticLog:
-    def __init__(self, pipe, path: Path | None, *, observer_nonce: str | None = None):
+    def __init__(self, pipe, path: Path | None, *, observer_nonce: str | None = None, frame_callback=None):
         self.pipe, self.path = pipe, path
         self.observer_nonce = observer_nonce
+        self.frame_callback = frame_callback
         self.native_identity = None
         self.native_identity_conflict = False
         self.records: list[str] = []
@@ -507,6 +508,8 @@ class _DiagnosticLog:
                     skipping = not complete
                     continue
                 decoded = row.decode("utf-8", "replace")
+                if self.frame_callback is not None:
+                    self.frame_callback(decoded)
                 safe = _sanitize_diagnostic(decoded, observer_nonce=self.observer_nonce)
                 with self._changed:
                     if self.io_observer is not None:
@@ -814,12 +817,26 @@ def validate_strata_load_plan(plan: Any, requested: str) -> None:
     This permits an explicitly selected experimental route to load. It neither
     qualifies its task quality/latency nor selects it as an automatic default.
     """
+    _validate_strata_loaded_config(plan, requested, expected_backend=BACKEND_NAME)
+
+
+def _validate_strata_loaded_config(plan: Any, requested: str, *, expected_backend: str) -> None:
+    """Shared native-language load proof; public entrypoints fix their own name."""
     try:
+        if expected_backend not in {BACKEND_NAME, "external.strata.multimodal.v1"}:
+            raise ValueError("unsupported internal Strata backend identity")
         if not isinstance(plan, dict) or not re.fullmatch(r"cpu\+cuda:[0-9]+", requested):
             raise ValueError("invalid Strata requested route")
+        if expected_backend == BACKEND_NAME and (
+            plan.get("image_route") is not None
+            or plan.get("owned_encoder_at_load") is not None
+            or "image" in plan.get("declared_modalities", [])
+            or plan.get("route_controls", {}).get("image_route") is not None
+        ):
+            raise ValueError("text load gate refuses image capabilities")
         report = plan["execution_configuration_evidence"]
         if (
-            plan.get("backend") != BACKEND_NAME
+            plan.get("backend") != expected_backend
             or plan.get("runtime_revision") != PINNED_STRATA_REVISION
             or plan.get("requested_device") != requested
             or plan.get("verified_execution_configuration") != requested
@@ -1003,6 +1020,9 @@ def _safe_telemetry(status: Any) -> dict:
 class StrataTextStageClient(StageClientBase):
     """One complete request at a time, with bounded streaming and terminal ACK."""
 
+    _backend_name = BACKEND_NAME
+    _supports_images = False
+
     def __init__(self, metadata, config: dict, ledger, reservation) -> None:
         for name, value in vars(metadata).items():
             setattr(self, name, value)
@@ -1055,7 +1075,7 @@ class StrataTextStageClient(StageClientBase):
             WeightTierPlan,
         )
 
-        if config.get("name", BACKEND_NAME) != BACKEND_NAME:
+        if config.get("name", self._backend_name) != self._backend_name:
             raise ValueError("unexpected Strata backend name")
         if config.get("runtime_revision") != PINNED_STRATA_REVISION:
             raise ValueError("Strata runtime revision is not the validated protocol revision")
@@ -1238,6 +1258,9 @@ class StrataTextStageClient(StageClientBase):
             if profile_path not in runtime_files:
                 raise ValueError("Strata expert profile is not pinned")
             args += ["--expert-profile", str(profile_path)]
+        self._prepare_extension(
+            config, runtime, runtime_manifest, runtime_files, artifacts, native, tier_plan, host_overhead, gpu_budget
+        )
         self._temporary = tempfile.TemporaryDirectory(prefix="omni-strata-")
         self._token = uuid.uuid4().hex + uuid.uuid4().hex
         with socket.socket() as sock:
@@ -1265,10 +1288,11 @@ class StrataTextStageClient(StageClientBase):
             "idle_unload_s": 0,
             "mcp_servers": {},
         }
+        self._configure_extension(server_cfg)
         config_path = Path(self._temporary.name) / "server.json"
         config_path.write_text(json.dumps(server_cfg), encoding="utf-8")
         bootstrap_path = Path(self._temporary.name) / "bootstrap.py"
-        bootstrap_path.write_text(_BOOTSTRAP, encoding="utf-8")
+        bootstrap_path.write_text(self._bootstrap_source(), encoding="utf-8")
         env = os.environ.copy()
         for name in tuple(env):
             if name.startswith(("STRATA_", "PYTHON", "OMNI_STRATA_")):
@@ -1294,7 +1318,7 @@ class StrataTextStageClient(StageClientBase):
         if tier_plan is not None:
             if (
                 tier_plan.artifact_manifest_sha256 != artifacts.manifest_sha256
-                or tier_plan.backend != BACKEND_NAME
+                or tier_plan.backend != self._backend_name
                 or tier_plan.backend_revision != PINNED_STRATA_REVISION
             ):
                 raise ValueError("Strata tier plan is bound to a different artifact or runtime")
@@ -1308,7 +1332,7 @@ class StrataTextStageClient(StageClientBase):
                     cpu_expert_offload=True,
                     bounded_ssd_expert_cache=True,
                     lookup_tables_on_demand=True,
-                    vision=False,
+                    vision=self._supports_images,
                     mtp=True,
                 )
             )
@@ -1346,6 +1370,7 @@ class StrataTextStageClient(StageClientBase):
             env["OMNI_STRATA_IO_ADAPTER"] = str(adapter_path)
             env["OMNI_STRATA_IO_ADAPTER_SHA256"] = self._observation_runtime["io_adapter_sha256"]
             env["OMNI_STRATA_IO_GENERATION"] = self._generation
+        self._extension_environment(env)
         self._proc = subprocess.Popen(
             [
                 str(python),
@@ -1373,7 +1398,7 @@ class StrataTextStageClient(StageClientBase):
             creationflags=flags,
             start_new_session=os.name != "nt",
         )
-        self._diagnostics = _DiagnosticLog(
+        self._diagnostics = self._new_diagnostics(
             self._proc.stdout,
             Path(config["log_file"]) if config.get("log_file") else None,
             observer_nonce=observer_nonce,
@@ -1395,7 +1420,7 @@ class StrataTextStageClient(StageClientBase):
         props = _json_request(self._base_url + "/props", None, token=self._token, timeout=5)
         if (
             health.get("service") != "strata"
-            or health.get("images") is not False
+            or health.get("images") is not self._supports_images
             or props.get("total_slots") != 1
             or props.get("model_alias") != self._model_alias
             or props.get("default_generation_settings", {}).get("n_ctx") != self._context_tokens
@@ -1482,13 +1507,13 @@ class StrataTextStageClient(StageClientBase):
         self._physical_gpu = gpu
         verified_configuration = self._load_configuration["status"] == "verified"
         self.execution_plan = {
-            "backend": BACKEND_NAME,
+            "backend": self._backend_name,
             "stage_id": self.stage_id,
             "worker_generation": self._generation,
             "runtime_revision": PINNED_STRATA_REVISION,
             "python_environment": python_environment,
             "fresh_memory_admission": memory_snapshot,
-            "supervisor_bootstrap_sha256": hashlib.sha256(_BOOTSTRAP.encode()).hexdigest(),
+            "supervisor_bootstrap_sha256": hashlib.sha256(self._bootstrap_source().encode()).hexdigest(),
             "observation_runtime": self._observation_runtime,
             "selected_native_module_audit_at_load": self._native_module_audit,
             "runtime_manifest_sha256": runtime_manifest.manifest_sha256,
@@ -1556,6 +1581,48 @@ class StrataTextStageClient(StageClientBase):
         # Resident snapshot only. Observers must recheck the exact PID creation
         # time while sampling; this does not cover the earlier loading peak.
         self.execution_plan["gpu_observer_identity"] = self.gpu_observer_identity()
+        self._finish_extension_plan()
+
+    # Small optional complete-model hooks; the text route retains its exact
+    # bootstrap bytes, controls and request serialization.
+    def _prepare_extension(
+        self, config, runtime, runtime_manifest, runtime_files, artifacts, native, tier_plan, host_overhead, gpu_budget
+    ):
+        if config.get("image_route") is not None:
+            raise ValueError("text stage refuses image route capabilities")
+
+    def _configure_extension(self, server_cfg):
+        pass
+
+    def _bootstrap_source(self):
+        return _BOOTSTRAP
+
+    def _extension_environment(self, env):
+        pass
+
+    def _new_diagnostics(self, *args, **kwargs):
+        return _DiagnosticLog(*args, **kwargs)
+
+    def _finish_extension_plan(self):
+        pass
+
+    def _prompt_fields(self):
+        return {"text", "max_tokens", "temperature", "stream_agent"}
+
+    def _prepare_extension_prompt(self, prompt):
+        pass
+
+    def _http_content(self, text):
+        return text
+
+    def _extension_telemetry(self, request, telemetry):
+        pass
+
+    def _check_extension_health(self):
+        pass
+
+    def _extension_drained(self):
+        return True
 
     def gpu_observer_identity(self) -> dict | None:
         """Owned native process + verified GPU identity for read-only metrics.
@@ -1674,7 +1741,7 @@ class StrataTextStageClient(StageClientBase):
                 raise RuntimeError("Strata native worker exited; explicit route reload required")
             if not isinstance(prompt, dict) or not isinstance(prompt.get("text"), str) or not prompt["text"]:
                 raise ValueError("Strata requires nonempty model-adapter text")
-            if set(prompt) - {"text", "max_tokens", "temperature", "stream_agent"}:
+            if set(prompt) - self._prompt_fields():
                 raise ValueError("Strata text stage refuses unsupported prompt fields")
             text = prompt["text"]
             if len(text.encode()) > self._max_io_bytes:
@@ -1687,6 +1754,7 @@ class StrataTextStageClient(StageClientBase):
             streaming = prompt.get("stream_agent", False)
             if type(streaming) is not bool:
                 raise ValueError("stream_agent must be boolean")
+            self._prepare_extension_prompt(prompt)
             self._epoch += 1
             request = StageRequest(request_id, self.stage_id, self._epoch, self._generation)
             self._active = request_id
@@ -1749,7 +1817,7 @@ class StrataTextStageClient(StageClientBase):
                 self._base_url + "/v1/chat/completions",
                 {
                     "model": self._model_alias,
-                    "messages": [{"role": "user", "content": text}],
+                    "messages": [{"role": "user", "content": self._http_content(text)}],
                     "max_tokens": maximum,
                     "temperature": 0,
                     "n": 1,
@@ -1806,6 +1874,7 @@ class StrataTextStageClient(StageClientBase):
             )
             telemetry["native_compute"] = native_compute
             telemetry["native_io_observation"] = io_report
+            self._extension_telemetry(request, telemetry)
             output = OmniRequestOutput(
                 request_id=request.request_id,
                 prompt=text,
@@ -1998,12 +2067,14 @@ class StrataTextStageClient(StageClientBase):
                 drained = False
             if self._diagnostics is not None:
                 drained = self._diagnostics.join() and drained
+            drained = self._extension_drained() and drained
             if drained and self._temporary is not None:
                 self._temporary.cleanup()
                 self._temporary = None
             return drained
 
     def check_health(self) -> None:
+        self._check_extension_health()
         if (
             self._closed
             or self._proc is None

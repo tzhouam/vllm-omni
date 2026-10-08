@@ -93,6 +93,17 @@ def _placement_text(payload: Mapping[str, Any]) -> str:
         and payload.get("verified_execution_configuration") == "cpu+cuda:0"
     ):
         return "Loaded: CPU + GPU 0. Complete compute placement is not verified."
+    image = payload.get("image_configuration")
+    encoder = payload.get("encoder_backend_selection")
+    if (observed is None and payload.get("backend") == "external.strata.multimodal.v1"
+            and isinstance(image, Mapping) and image.get("encoder_device") == "cpu"
+            and image.get("release_qualified") is False and isinstance(encoder, Mapping)
+            and encoder.get("primary_backend") == "CPU" and encoder.get("device_type") == "CPU"
+            and encoder.get("gpu_requested") is False
+            and isinstance(evidence, Mapping) and evidence.get("status") == "verified"
+            and payload.get("verified_execution_configuration") == "cpu+cuda:0"):
+        return ("Experimental: image encoder selected CPU; language loaded CPU + GPU 0. "
+                "Complete compute placement is not verified.")
     placement = "Placement: " + (str(observed) if observed is not None else "not verified")
     if payload.get("placement_evidence_level") == "override_selection_only":
         placement += " — expert override selected; final storage/compute unverified"

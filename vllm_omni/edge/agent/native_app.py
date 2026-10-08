@@ -21,7 +21,14 @@ from typing import Any
 from vllm_omni.edge.agent.admission import HostMemoryCoordinator
 from vllm_omni.edge.agent.controller import AgentController, AgentLimits
 from vllm_omni.edge.agent.memory import EncryptedMemoryStore
-from vllm_omni.edge.agent.omni_backend import OmniLlamaBackend, OmniLlamaConfig, OmniStrataBackend, OmniStrataConfig
+from vllm_omni.edge.agent.omni_backend import (
+    OmniLlamaBackend,
+    OmniLlamaConfig,
+    OmniStrataBackend,
+    OmniStrataConfig,
+    OmniStrataImageBackend,
+    OmniStrataImageConfig,
+)
 from vllm_omni.edge.agent.router import Qualification, Route
 from vllm_omni.edge.agent.tools import WindowsToolBoundary
 
@@ -420,15 +427,24 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
             )
             continue
         # The engine manager lends the exact same lease to StageRuntime.
-        if route.backend == "external.strata.text.v1":
+        if route.backend in {"external.strata.text.v1", "external.strata.multimodal.v1"}:
             backend_config = dict(entry["backend_config"])
             total = hardware.get("vram_total_bytes")
             if type(total) is not int or total <= 0 or backend_config.get("gpu_total_bytes", total) != total:
                 capacity_refusals[route.route_id] = "Strata GPU total does not match the measured native GPU 0"
                 continue
             backend_config["gpu_total_bytes"] = total
-            stage_backends[route.route_id] = OmniStrataBackend(
-                OmniStrataConfig(
+            image = route.backend == "external.strata.multimodal.v1"
+            if route.modalities != frozenset({"text", "image"} if image else {"text"}):
+                raise ValueError("Strata modalities differ from its explicit backend capability")
+            if image and data.get("experimental_bootstrap_route_id") != route.route_id:
+                raise ValueError("image Strata requires explicit experimental bootstrap opt-in")
+            extra = ({"mmproj_file": entry.get("mmproj_file"), "image_capability": entry.get("image_capability")}
+                     if image else {})
+            backend_type = OmniStrataImageBackend if image else OmniStrataBackend
+            config_type = OmniStrataImageConfig if image else OmniStrataConfig
+            stage_backends[route.route_id] = backend_type(
+                config_type(
                     route_id=route.route_id,
                     backend_config=backend_config,
                     placement=route.placement,
@@ -439,6 +455,7 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
                     max_io_bytes=entry.get("max_io_bytes", 1 << 20),
                     request_timeout_s=entry.get("request_timeout_s", 900),
                     start_timeout_s=entry.get("start_timeout_s", 900),
+                    **extra,
                 )
             )
             continue

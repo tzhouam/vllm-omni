@@ -1,0 +1,21 @@
+--- a/tools/mtmd/clip.cpp
++++ b/tools/mtmd/clip.cpp
+@@ -206,6 +206,18 @@
+             backend = backend_cpu;
+             LOG_INF("%s: CLIP using CPU backend\n", __func__);
+         }
++
++        // Content-free primary backend selection for Strata's owned vision
++        // observer. This is deliberately not per-operator execution evidence.
++        const auto observed_dev = ggml_backend_get_device(backend);
++        const char * type_name = "UNKNOWN";
++        if (observed_dev) {
++            const auto observed_type = ggml_backend_dev_type(observed_dev);
++            type_name = observed_type == GGML_BACKEND_DEVICE_TYPE_CPU ? "CPU" :
++                        observed_type == GGML_BACKEND_DEVICE_TYPE_GPU ? "GPU" :
++                        observed_type == GGML_BACKEND_DEVICE_TYPE_IGPU ? "IGPU" : "UNKNOWN";
++        }
++        LOG_INF("OMNI_CLIP_BACKEND_V1 %s %s %d\n", ggml_backend_name(backend), type_name, ctx_params.use_gpu ? 1 : 0);
+ 
+         if (ctx_params.image_min_tokens > 0) {
+             model.hparams.custom_image_min_tokens = ctx_params.image_min_tokens;

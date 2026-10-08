@@ -1,0 +1,43 @@
+--- a/tools/vision/strata_vision.cpp
++++ b/tools/vision/strata_vision.cpp
+@@ -36,7 +36,27 @@
+ 
+ namespace {
+ 
++// Selection evidence only. The scheduler still has CPU fallback and this is
++// not a claim that every encoder operator ran on the selected primary backend.
++std::string observed_backend, observed_device_type;
++bool observed_gpu_requested = false, observation_invalid = false;
++
+ void quiet_log(ggml_log_level level, const char* text, void*) {
++    const std::string marker = "OMNI_CLIP_BACKEND_V1 ";
++    if (text && std::strncmp(text, marker.c_str(), marker.size()) == 0) {
++        std::istringstream input(std::string(text + marker.size()));
++        std::string backend, device_type, trailing;
++        int requested = -1;
++        if (!(input >> backend >> device_type >> requested) || (input >> trailing) || backend.size() > 64 ||
++            backend.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.:-") != std::string::npos ||
++            (device_type != "CPU" && device_type != "GPU" && device_type != "IGPU") || (requested != 0 && requested != 1) ||
++            (!observed_backend.empty() && (observed_backend != backend || observed_device_type != device_type || observed_gpu_requested != (requested != 0)))) {
++            observation_invalid = true;
++        } else {
++            observed_backend = backend; observed_device_type = device_type; observed_gpu_requested = requested != 0;
++        }
++        return;
++    }
+     if (level >= GGML_LOG_LEVEL_WARN) std::fputs(text, stderr);
+ }
+ 
+@@ -180,6 +200,12 @@
+         mtmd_input_chunks_free(chunks);
+         if (bm) mtmd_bitmap_free(bm);
+     }
++    if (observation_invalid || observed_backend.empty() || observed_gpu_requested != gpu) {
++        std::printf("ERR encoder backend observation unavailable\n"); std::fflush(stdout); return 1;
++    }
++    std::printf("OMNI_VISION_V1 {\"schema\":\"strata-vision-backend-v1\",\"primary_backend\":\"%s\","
++                "\"device_type\":\"%s\",\"gpu_requested\":%s,\"cpu_fallback_available\":true}\n",
++                observed_backend.c_str(), observed_device_type.c_str(), gpu ? "true" : "false");
+     std::printf("READY %d\n", n_embd);
+     std::fflush(stdout);
+ 

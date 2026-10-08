@@ -9,6 +9,9 @@
 *.md text eol=lf
 *.txt text eol=lf
 *.json text eol=lf
+# Preserve reviewed native patch bytes and their provenance hashes exactly.
+benchmarks/edge_harness/runtime_patches/strata_vision_backend_v1.patch -text -eol -whitespace
+benchmarks/edge_harness/runtime_patches/strata_vision_clip_v1.patch -text -eol -whitespace
 # Preserve PowerShell-captured raw evidence bytes (including CRLF) exactly.
 benchmarks/edge_harness/results/e2e_expansion_20261002/evidence/*/power_snapshot_during.json binary -eol
 *.toml text eol=lf

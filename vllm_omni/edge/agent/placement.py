@@ -406,6 +406,9 @@ def result_placement_matches(result: Mapping[str, Any], route: Mapping[str, Any]
         or result.get("backend") != route["backend"]
     ):
         return False
+    if route["backend"] == "external.strata.multimodal.v1":
+        # Image functional receipts do not inherit text-suite qualification.
+        return False
     if route["backend"] != STRATA_BACKEND:
         return result.get("actual_placement") == route["expected_placement"]
     try:
@@ -419,6 +422,8 @@ def result_placement_matches(result: Mapping[str, Any], route: Mapping[str, Any]
 
 def preparation_placement_matches(preparation: Mapping[str, Any], route: Mapping[str, Any]) -> bool:
     if not preparation.get("cold_start_confirmed") or preparation.get("artifact_id") != route["artifact_id"]:
+        return False
+    if route["backend"] == "external.strata.multimodal.v1":
         return False
     if route["backend"] != STRATA_BACKEND:
         return preparation.get("actual_placement") == route["expected_placement"]
