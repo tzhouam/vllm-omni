@@ -87,9 +87,22 @@ image encoder work, and logical/direct-transfer bytes are not physical SSD I/O.
 ## Qualification boundary
 
 The [CPU build record](results/strata_20261008/native_cpu_vision_build.json)
-proves compilation and static provenance only. Real image/reference checks,
-encoder-phase cancellation and fresh recovery require closed neural-run
-evidence. The Agent bridge requires explicit experimental selection and strict
+proves compilation and static provenance only. The subsequent
+[native Windows image lifecycle](results/strata_20261008/native_cpu_image_lifecycle.json)
+passed independent stopped-run review with the ISTA GSQ-RCO Q2_0 checkpoint and
+BF16 projector. At batch=1/concurrency=1, 4K context and MTP off on the RTX 5090
+Laptop, two initial real-application screenshot tasks and one fresh-generation
+recovery request completed in **28.09 / 28.49 / 27.06 s**. These are individual
+full-chain samples, excluding separate verification/startup spans of **202.28 /
+191.75 s**, which include full hashing and initialization. Each completed encode
+of the 1040×760 PNG produced 792 image tokens with matching persisted SVE bytes.
+Observed encoder-phase cancellation drained in **2.31 s** and retired both exact
+roles before recovery. All 27 closed files, native sequence/QPC/counter bindings,
+selected loaded modules, final getters, source identities and shared ledger
+were independently checked. Language I/O excludes encoder/loading; WDDM local
+and nonlocal peaks remain separate, and power has only pre/post snapshots. This
+record grants no Agent, broad image quality, percentile performance, sustained
+stability, aggregate hard-cap or default/release qualification. The Agent bridge requires explicit experimental selection and strict
 image proof; formal profile/default promotion remains refused pending a reviewed
 image task suite. Text, image, performance, total-memory and physical-SSD claims
 remain separate in the [rolling status](EDGE_ENGINE_STATUS.md).

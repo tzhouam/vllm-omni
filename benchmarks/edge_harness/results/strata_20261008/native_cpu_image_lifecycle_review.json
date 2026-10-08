@@ -1,0 +1,44 @@
+{
+  "schema": "omni-strata-cpu-image-lifecycle-public-review-v1",
+  "status": "independent_closed_run_and_root_publication_review_passed",
+  "proposal_sha256": "b6f17003cbc95fb8ee4ad6caded42804bdf37a966914e73fe237ec36ef13a160",
+  "independent_audit_sha256": "a0878e97e62fdac426bb5a6d4068c3d35cd19b68f54b01d383fa05bf378725d7",
+  "exporter_sha256": "5c043a5c5850434cbaf35eae966dd1e475c8e902823e515e9669b383c5c8669a",
+  "raw_files_verified": 27,
+  "actual_completed_image_requests": 3,
+  "encoder_only_cancel_and_fresh_recovery_passed": true,
+  "exact_numeric_and_identity_sources": "independently accepted stopped audit plus same closed receipt/effective launch/plans, no new model execution",
+  "privacy_checks": {
+    "recursive_allowlist_scan": true,
+    "private_prompts_and_answers_absent": true,
+    "private_paths_and_inline_images_absent": true,
+    "screenshot_and_SVE_bytes_withheld": true,
+    "request_identifiers_hashed": true,
+    "private_source_tree_paths_canonical_hash_only": true
+  },
+  "limits_retained": {
+    "three_individual_samples_not_percentiles": true,
+    "hardware_snapshot_preparation_time": true,
+    "power_snapshot_only": true,
+    "source_digest_local_tree_not_clean_commit": true,
+    "physical_model_SSD_unknown": true,
+    "WDDM_local_and_nonlocal_separate": true,
+    "no_whole_operator_placement": true,
+    "no_independent_rebuild": true,
+    "no_Agent_or_browser_or_Qt_claim": true,
+    "all_default_release_performance_memory_qualifications_false": true
+  },
+  "root_review_and_copy_required": false,
+  "repo_or_raw_mutated": false,
+  "neural_execution": false,
+  "root_review_completed_unix": 1791478517.3245366,
+  "original_proposal_review_sha256": "6f694383f1a24ac9f644ea3da7fb8b03b97bd04857d9529d8f74dfcd85c4e02e",
+  "root_checks": {
+    "public_samples_match_independent_actual_audit": true,
+    "all_27_raw_members_match_closed_receipt": true,
+    "ledger_and_startup_match": true,
+    "selected_loaded_modules_match": true,
+    "broader_qualification_flags_false": true,
+    "public_private_path_scan_passed": true
+  }
+}

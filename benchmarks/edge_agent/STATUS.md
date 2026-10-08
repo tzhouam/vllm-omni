@@ -6,9 +6,15 @@ It validates actual image input, encoder/SVE/language ownership and increasing
 epochs; text evidence cannot grant image capability or default qualification.
 The combined regression passed 359 tests, with 3 skips. After independently
 reviewed style-only corrections, 166 image-focused checks passed, with 1 skip;
-repository Ruff passes. Actual image/Agent neural requests remain pending fresh
-route registration and closed engine-image lifecycle evidence. These checks do
-not extend the historical text results below to images or new source bytes.
+repository Ruff passes. The new route registration and
+[actual CPU-image engine lifecycle](../edge_harness/results/strata_20261008/native_cpu_image_lifecycle.json)
+now passed independent stopped-run review: three specified screenshot requests,
+observed encoder-phase cancellation and fresh-generation recovery. All 27
+closed raw files and both native roles were checked. That record contains no
+Agent, browser or Qt execution. The separately gated actual Agent browser-image
+run is in progress; JPEG→PNG forwarding, inner model-step binding and its final
+answer remain pending closure and independent audit. Historical text evidence
+confers no image capability or default qualification.
 
 The [IQ3 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional_review.json).
@@ -20,8 +26,8 @@ Agent dependency preimage and controller/ledger/process closure were verified.
 Only approved inputs match Q4/Q2; this run has independent DB/state/outputs.
 Five controlled tasks add no p95, general quality, power-condition, aggregate
 memory, physical-SSD or default qualification. These results bind the text
-sources before image integration; the new CPU-image stage requires its own
-regression and neural evidence.
+sources before image integration. The separate Q2 engine-image evidence is
+linked above; the actual Agent-image closure and audit are still pending.
 
 The [ISTA IQ3 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_observed_lifecycle_review.json).
