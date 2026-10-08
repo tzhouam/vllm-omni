@@ -1,0 +1,12 @@
+{
+  "schema": "omni-private-current-text-public-proposal-review-v1",
+  "status": "passed_content_free_closed_evidence_checks",
+  "proposal_sha256": "819f2aaf37b345f108d5469c66ab6822a24004336cfbe23db2820696b3d5bb4e",
+  "checker_sha256": "2e657ae1790b8b7ab0c6fab33dc853f9579eecbe81235d4de7de25357893d21c",
+  "audit_sha256": "ba35a5490568c08427ef4eb548584c561ad7cd7fd60a8fc8a1b1868f186874f4",
+  "receipt_sha256": "237a2322513953ef860c2780ea90e69a4ded27d1197042694ec7b79021fd762d",
+  "raw_files": 16,
+  "complete_requests": 4,
+  "no_prompt_output_or_private_paths_published": true,
+  "p50_p95_or_qualification_created": false
+}

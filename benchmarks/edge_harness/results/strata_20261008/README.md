@@ -4,9 +4,34 @@
 recorded separately from neural evidence. The experimental image stage and
 Agent bridge are integrated; regression passed 359 tests/3 skips, followed by
 166 image-focused tests/1 skip after reviewed style-only edits. See the
-[interface and registration guide](../../STRATA_IMAGE.md). Actual image requests,
-encoder-phase cancellation, recovery and Agent image tasks remain unverified;
-no text result below grants image, performance or default qualification.
+[interface and registration guide](../../STRATA_IMAGE.md). The separately audited
+[CPU-image engine lifecycle](native_cpu_image_lifecycle.json) and
+[browser-image Agent task](native_ista_q2_agent_image_functional.json) now pass;
+neither inherits a text result or grants broad quality, performance or default
+qualification. See the [engine review](native_cpu_image_lifecycle_review.json)
+and [Agent review](native_ista_q2_agent_image_functional_review.json).
+
+The [current registered-source Q2 text lifecycle](native_ista_q2_current_text_lifecycle.json)
+passed [closed-evidence/publication checks](native_ista_q2_current_text_lifecycle_review.json),
+with an independently reviewed metadata adapter. Three short references took
+**2.37 / 4.86 / 3.32 s**; cancellation after two deltas drained in **1.53 s**,
+then a fresh worker on the same ledger completed recovery in **2.44 s**.
+Initial/recovery verification and startup took **210.05 / 197.64 s**, including
+full hashes and initialization, rather than pure model loading. All 16 closed
+raw files, current registration/runtime/control identities, selected critical
+source bytes, request/epoch/native sequences, owned I/O and process retirement
+were checked, together with 2,151 telemetry rows. This is Windows native,
+RTX 5090 Laptop, batch/concurrency 1/1, 4K context, FP16 KV, MTP off, and an
+8 GiB SSD-backed expert RAM cache. Loaded CPU+CUDA configuration and routed
+decode expert counts do not establish all-operator placement; OS completed
+transfers do not establish model-attributed physical SSD traffic. WDDM nonlocal
+uses host RAM and cannot be added to RSS. Four short functional references
+establish the current-source prerequisite only: three bands ×20 measurements,
+a separate 30-minute phase, Agent/default and aggregate-memory qualification
+remain pending. The earlier text-source results below retain their own identities.
+Private v4 pre-success protocol gating is preparation only. The superseded v3
+plan ran no neural requests and produced no performance result. Preserved
+metadata-adapter refusals are audit/preparation failures, not neural/model failures.
 
 The [IQ3 five-task Agent run](native_ista_iq3_agent_functional.json)
 passed [independent review](native_ista_iq3_agent_functional_review.json).
@@ -33,7 +58,7 @@ SSD-backed. Power is limited to exact snapshots, with API-success flags missing
 from the after record. IQ3 Agent separately passed its own audit; no image, p95, sustained,
 physical-SSD, aggregate-memory, Agent or default qualification follows here.
 
-The [Q2 five-task Agent run](native_ista_q2_agent_functional.json)
+The [pre-image-integration Q2 five-task Agent run](native_ista_q2_agent_functional.json)
 passed [independent review](native_ista_q2_agent_functional_review.json): short
 answer, DPAPI seed/reopened recall and actual EN/ZH loopback reads. Task samples
 excluding startup were 4.19 / 5.53 / 9.44 / 11.79 / 15.80 s; two full-verification/
@@ -45,7 +70,7 @@ was not saved. This adds no Q2 Qt UI, broad Agent quality, p95, power-condition,
 default, release, total-memory-cap or physical-SSD qualification. IQ3 engine
 requests and cancellation/recovery and its separate Agent passed independently above.
 
-The [ISTA Q2 native lifecycle](native_ista_q2_observed_lifecycle.json)
+The [pre-image-integration ISTA Q2 native lifecycle](native_ista_q2_observed_lifecycle.json)
 passed [independent review](native_ista_q2_observed_lifecycle_review.json).
 Its English, Chinese arithmetic and JSON requests took 2.52 / 4.99 / 3.61 s;
 cancellation after two deltas drained in 2.31 s and fresh-worker recovery
@@ -60,7 +85,7 @@ closed 757-row PDH interval observes device-wide disk and system-wide cache
 accounting only; model-attributed physical SSD bytes remain unknown. No image,
 p95, sustained-operation, total-memory-cap, default or release qualification.
 
-The [current-source native Qt Agent request](native_q4_observed_final_qt_agent.json)
+The [pre-image-integration native Qt Agent request](native_q4_observed_final_qt_agent.json)
 and [independent review](native_q4_observed_final_qt_agent_review.json) now pass.
 The real Q4 model returned one exact answer through the existing offscreen
 Qt Agent and Omni ordered stream; terminal controls, ledger drain and native
@@ -68,7 +93,7 @@ process retirement passed. Model-call wall time was 15.51 s, with first
 visible SSE at 15.03 s after Omni submission, not Qt-render TTFT. The 294.34 s
 submit-to-terminal span includes preparation, full hashing and startup.
 All 12 raw files, the actual outer/inner request mapping, native I/O, selected
-modules and current source bytes are bound. Full Agent dependency preimage
+modules and that run's source bytes are bound. Full Agent dependency preimage
 was not captured and remains an explicit limitation. This is one functional
 sample, with no default, performance, physical SSD or aggregate-memory
 qualification. The separate [five-task memory/browser run](native_q4_observed_final_agent_functional.json)
@@ -86,7 +111,7 @@ not broad memory/tool/Windows or latency qualification. The prior Qt dependency
 preimage gap remains unchanged. The tokenizer-checked batch-1 performance protocol
 is prepared; 60 measured requests and the separate 30-minute run are pending.
 
-The [current-source Q4 lifecycle rerun](native_q4_observed_final_io.json)
+The [pre-image-integration Q4 lifecycle rerun](native_q4_observed_final_io.json)
 and [independent review](native_q4_observed_final_io_review.json) now pass.
 Three complete short references took 10.88 / 17.61 / 16.46 s; cancellation
 after two chunks drained in 3.08 s, then a fresh worker completed recovery
@@ -131,7 +156,9 @@ prepared files. Each uses an 8 GiB expert RAM cache, 4K context, FP16 KV,
 MTP/prefetch off and passed its live-capacity preparation preflight. These
 are SSD-backed cache experiments, not fully RAM-resident models. This preparation
 record contains no neural requests; subsequent Q2 lifecycle evidence appears
-above. IQ3 engine and separate Agent requests passed independently above; projector execution remains pending. Startup admission
+above. IQ3 engine and separate Agent requests passed independently above;
+the separate Q2 CPU-image engine and browser-image Agent evidence are linked
+above. IQ3/Q4 image execution remains pending. Startup admission
 is rechecked rather than inheriting the preparation snapshot.
 
 The separate [native I/O patch/build](../../runtime_patches/README.md) completed
@@ -228,7 +255,9 @@ exceed these resources. At that earlier snapshot, complete Q4/ISTA weight sets w
 sparse file logical sizes were not completion evidence. The later Q4 run
 verified all four source files and its prepared pack before execution. Q2/IQ3
 weight verification and text preparation are now complete in the separate
-records above; their complete requests remain pending.
+records above; their separately audited complete text requests are linked above.
+Current-source Q2 functional evidence has its own registration/runtime identity;
+it does not promote historical text or Agent results to current-source qualification.
 
 Reproduction commands, model pins, budget declarations and the full batch-1
 protocol are in [STRATA.md](../../STRATA.md). Current milestones and the

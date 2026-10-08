@@ -24,6 +24,23 @@ closure were verified. This is one fixed image task; full Agent quality,
 p50/p95, sustained stability and default qualification remain open. Historical
 text evidence confers no image capability or default qualification.
 
+The [current registered-source Q2 text lifecycle](../edge_harness/results/strata_20261008/native_ista_q2_current_text_lifecycle.json)
+also passed [closed-evidence/publication checks](../edge_harness/results/strata_20261008/native_ista_q2_current_text_lifecycle_review.json),
+with independent source review of the metadata adapter. Three short engine
+references took **2.37 / 4.86 / 3.32 s**; cancellation after two deltas drained
+in **1.53 s**, and a fresh worker completed recovery in **2.44 s** on the same
+ledger. Initial/recovery verification and startup took **210.05 / 197.64 s**,
+including hashes and initialization. All 16 closed raw files, current
+registration/runtime/control identities, selected critical source bytes,
+request/native I/O bindings, retired processes and 2,151 telemetry rows were
+checked. This is engine functional evidence at batch/concurrency 1/1, not a
+new Agent task result or latency qualification. It enables the next controlled
+engine protocol; three bands ×20 measurements and a separate 30-minute phase
+remain pending. The historical five-task Agent results below retain their
+pre-image-integration source identities and grant no current default route.
+The private v4 pre-success protocol gate is preparation only; the superseded
+v3 plan ran no neural requests and contributes no performance result.
+
 The [IQ3 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_iq3_agent_functional_review.json).
 Short answer, DPAPI seed, fresh-controller recall and EN/ZH loopback browser
@@ -49,7 +66,7 @@ sampler and six retired process identities were checked. Batch/concurrency are
 RAM cache. IQ3's separate memory/browser Agent run passed its own audit; this engine
 record adds no Agent, image, p95, sustained, total-memory or default qualification.
 
-The [Q2 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional.json)
+The [pre-image-integration Q2 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional.json)
 passed [independent review](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional_review.json).
 Short answer, encrypted memory seed, fresh-controller recall, and actual EN/ZH
 loopback browser open/read took **4.19 / 5.53 / 9.44 / 11.79 / 15.80 s** excluding
@@ -61,7 +78,7 @@ quality checks are new Q2 evidence. Ledger/thread/process closure passed;
 exact browser child PID inventory remains absent. This adds no Q2 Qt UI run,
 general tool/memory quality, p95, power-condition, default or release qualification.
 
-The [ISTA Q2 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_q2_observed_lifecycle.json)
+The [pre-image-integration ISTA Q2 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_q2_observed_lifecycle.json)
 now passed [independent review](../edge_harness/results/strata_20261008/native_ista_q2_observed_lifecycle_review.json):
 three complete references took **2.52 / 4.99 / 3.61 s**, cancellation drained in
 **2.31 s**, and fresh-worker recovery took **2.48 s**. Starts of **206.89 / 183.89 s**

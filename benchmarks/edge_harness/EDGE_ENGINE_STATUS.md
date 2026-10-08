@@ -27,8 +27,22 @@ Strata 语言生成。两个真实应用截图任务及新 worker 恢复请求�
 两次模型请求，完整任务 **48.07 秒**，排除单独的引擎校验/加载 **207.65 秒**。
 17 份闭合原始文件、独立像素转换、请求/epoch/原生序号、最终 getter、浏览器引用/driver 关闭、原生角色退出、
 采样停止及空账本均已检查；未枚举全部浏览器后代 PID。仅一个固定图像任务，不构成全面 Agent
-质量、p50/p95、长期稳定性或默认资格。当前源码 Q2 文本生命周期也已完成
-生产者检查；独立复核后才进入三档性能协议。
+质量、p50/p95、长期稳定性或默认资格。
+
+当前注册源码的 [Q2 文本生命周期](results/strata_20261008/native_ista_q2_current_text_lifecycle.json)
+已通过[闭合证据审计及发布检查](results/strata_20261008/native_ista_q2_current_text_lifecycle_review.json)，
+元数据适配器也通过独立源码复核。三条短参考请求分别为 **2.37 / 4.86 / 3.32 秒**；
+两个增量后取消，**1.53 秒**确认排空，同一账本下的新 worker 恢复请求为 **2.44 秒**。
+初次/恢复的全量校验及启动为 **210.05 / 197.64 秒**，不等于纯模型加载。
+16 份闭合原始文件、当前登记/运行时/控制身份、关键源码、请求/epoch/原生序号、
+逐请求 I/O、进程退出及 2,151 条采样记录已核验。条件为 Windows 原生、
+RTX 5090 Laptop、4K/FP16 KV、batch=1/单活跃请求、8 GiB SSD 支持的专家 RAM 缓存，
+MTP 关闭。加载 CPU+CUDA 配置及 routed decode 专家计数不扩大为全算子放置证明；
+操作系统直接传输不等于模型物理 SSD 流量，WDDM nonlocal 不与 RSS 相加。
+此记录只完成当前源码的文本功能前提；三档各 20 次及独立 30 分钟实验仍待执行，
+不授予 Agent、p50/p95、默认路线或总内存硬上限资格。
+性能协议的私有 v4 成功前严格校验仍属准备工作；已被取代的 v3 计划未运行神经请求，
+两者都不是性能结果。元数据审计中保留的两次适配器拒绝也不属于模型执行失败。
 
 最新的 [IQ3 Agent 五任务](results/strata_20261008/native_ista_iq3_agent_functional.json)
 已通过[独立复核](results/strata_20261008/native_ista_iq3_agent_functional_review.json)：
@@ -52,7 +66,7 @@ batch=1/单活跃请求、8 GiB SSD 支持的专家 RAM 缓存，MTP/预取关�
 这不是 p95、图像、30 分钟稳定性、总内存硬上限或默认资格。
 IQ3 的记忆/浏览器 Agent 已独立通过上述复核，不继承 Q2/Q4 的输出或资格。
 
-最新的 [Q2 Agent 五任务](results/strata_20261008/native_ista_q2_agent_functional.json)
+图像接入前文本源码的 [Q2 Agent 五任务](results/strata_20261008/native_ista_q2_agent_functional.json)
 已通过[独立复核](results/strata_20261008/native_ista_q2_agent_functional_review.json)：
 短回答、DPAPI 记忆写入、新控制器召回、英文与中文 loopback 浏览器读取，
 完整任务单次耗时为 **4.19 / 5.53 / 9.44 / 11.79 / 15.80 秒**，排除启动。
@@ -63,7 +77,7 @@ IQ3 的记忆/浏览器 Agent 已独立通过上述复核，不继承 Q2/Q4 的�
 本轮线程/引用/driver 返回码及已记录的原生身份。没有 Q2 Qt 界面实跑、
 通用工具/记忆质量、p95、默认路线或发布资格。IQ3 引擎及五项 Agent 功能已分别独立通过上述复核。
 
-最新的 [ISTA Q2 完整文本与取消/恢复](results/strata_20261008/native_ista_q2_observed_lifecycle.json)
+图像接入前文本源码的 [ISTA Q2 完整文本与取消/恢复](results/strata_20261008/native_ista_q2_observed_lifecycle.json)
 已通过[独立复核](results/strata_20261008/native_ista_q2_observed_lifecycle_review.json)。
 Q2 自身的英文、中文算术、JSON 完整请求分别 **2.52 / 4.99 / 3.61 秒**；
 两个 chunk 后取消，**2.31 秒**确认排空，新 worker 恢复请求 **2.48 秒**通过。
@@ -250,11 +264,11 @@ flowchart TB
 | --- | --- | --- |
 | 产物身份 | 全部分片、辅助文件、大小、SHA-256、checkpoint/revision、许可证及量化/剪枝/蒸馏/转换谱系；源 GGUF、兼容 pack、运行时分别绑定 | 拒绝缺片、错误角色、路径越界、哈希变化；本地生成哈希不冒充发布者证明 |
 | 共享准入 | 引擎层 `LocalPlanManager` 和 `ResourceLedger`；Agent 与 StageRuntime 传递同一个精确租约 | RAM、VRAM、commit、WSL、SSD 分项预算；未排空的资源隔离并阻止重新加载 |
-| Strata stage | 固定运行时、受监督进程、单活跃请求、有界 SSE、ACK、状态序号、超时、取消、进程树排空 | 本机 Q4 三条短文本请求通过；加载 CPU+CUDA 配置及路由 decode 专家的两类执行分别验证，其他算子与物理 SSD 指标保持 unknown |
+| Strata stage | 固定运行时、受监督进程、单活跃请求、有界 SSE、ACK、状态序号、超时、取消、进程树排空 | 当前源码 Q2 文本四条完成请求及取消/恢复通过；Q4/IQ3 文本证据保留各自历史源码身份；加载 CPU+CUDA 配置和路由 decode 专家分别验证，其他算子与物理 SSD 保持 unknown |
 | 三层内存声明 | 分开表示 GPU 常驻、CPU 常驻/映射、专家缓存、PLE、KV、工作区、传输、加载峰值和 SSD 文件；按原生进程代次与 GPU 身份采样 WDDM local/nonlocal | 已取得驻留阶段样本；未覆盖加载峰值或证明硬上限，nonlocal 不与主机 RSS 相加；当前 `three_tier_memory_qualified=false` |
 | 静态卸载 | 保留 llama.cpp GPU 层数及 `--n-cpu-moe`；增加多分片完整验证和总权重计账 | 尚未完成与 Strata 同产物、同输入的整请求配对实验 |
 | 准备与 profiling | 固定目标、兼容打包记录、24/32/40 GiB 缓存变体、可恢复请求证据、三档输入、取消/恢复和连续运行 | 逻辑读量与物理 SSD I/O 分开；系统磁盘计数不能冒充模型物理读取 |
-| Agent | 复用现有循环、记忆和批准边界；共享引擎租约；显式实验路线核验加载配置及产物身份 | 最终 Q4 的 Qt 请求及 Q4/Q2 各五项跨会话记忆/中英文浏览器功能通过；没有新增默认合格路线 |
+| Agent | 复用现有循环、记忆和批准边界；共享引擎租约；显式实验路线核验加载配置及产物身份 | 图像接入前 Q4 的 Qt 请求及 Q4/Q2/IQ3 各五项记忆/浏览器功能通过；当前 Q2 单个浏览器截图任务另有独立证据；没有默认合格路线 |
 | Android | C++17 精简控制层与 Python 共享 v2 契约；Gemma E2B/E4B、Qwen27B 候选清单 | 只通过主机契约测试；JNI、实际模型适配器、NDK 和手机运行未完成 |
 
 实现不提供独立的专家调度器或 kernel。专家选择、缓存和读取仍由 Strata 或选定的阶段后端拥有。
@@ -264,7 +278,7 @@ Windows 工具仍由 Agent 的权限边界执行，模型后端没有工具执�
 
 | 路线 | 固定产物 | 当前状态 | 下一道验收 |
 | --- | --- | --- | --- |
-| Strata RAM Q2 | ISTA Q2_0，66,423,878,624 B，不含 projector | 图像接入前文本/取消恢复及五项记忆/中英文浏览器 Agent 通过独立复核；当前独立图像三请求、编码取消/恢复及单个浏览器截图 Agent 通过；8 GiB RAM 专家缓存，SSD 支持 | 扩大图像/Agent 任务质量、同 GGUF llama.cpp 对照及完整性能协议；未获默认资格 |
+| Strata RAM Q2 | ISTA Q2_0，66,423,878,624 B，不含 projector | 当前注册源码的四条完成文本请求、取消/恢复，独立图像三请求/编码取消恢复及单个浏览器截图 Agent 通过；图像接入前五项记忆/浏览器 Agent 证据单独保留；8 GiB RAM 专家缓存，SSD 支持 | 当前源码受控三档性能及独立 30 分钟；扩大图像/Agent 任务质量、同 GGUF llama.cpp 对照；未获默认资格 |
 | Strata RAM IQ3 | ISTA IQ3_XXS，75,839,998,528 B，不含 projector | 完整文本/取消恢复和五项记忆/中英文浏览器 Agent 功能分别通过独立复核；8 GiB RAM 专家缓存仍由 SSD 支持 | 图像、同产物对照、p95/稳定性和总内存资格待验证 |
 | Strata SSD Q4 | Unsloth UD-Q4_K_XL，111,334,654,784 B，四分片 | 图像接入前文本源码的文本/取消恢复、Qt 与五项记忆/浏览器 Agent 功能通过独立复核；逐请求原生 I/O 已绑定；三层总内存未合格 | 真实图像；其他 I/O/传输取消与重复恢复；同产物对照、物理 I/O、总体内存峰值及完整性能协议 |
 | DeepSeek V4.1 | 七分片 Q2_K，264,515,279,456 B | 固定元数据与专用运行时版本；未下载或执行 | 专用 CPU mmap 基线、显式运行选项、受控缓存，Windows 单独验证 |
@@ -282,6 +296,7 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 
 ## 原始证据与复现
 
+- [当前源码 Q2 文本生命周期](results/strata_20261008/native_ista_q2_current_text_lifecycle.json)及[闭合证据发布检查](results/strata_20261008/native_ista_q2_current_text_lifecycle_review.json)：四条短完成请求、真实取消/新 worker 恢复、当前登记/控制与关键源码、16 份闭合文件；只完成正式性能实验的功能前提，不继承历史 Agent 或性能资格。
 - [Q2 五任务 Agent](results/strata_20261008/native_ista_q2_agent_functional.json)及[独立复核](results/strata_20261008/native_ista_q2_agent_functional_review.json)：新数据库/会话的记忆来源、实际 EN/ZH 浏览器与五次模型调用；22 个闭合文件、依赖身份及释放边界，不含通用 Agent 或性能资格。
 - [Q2 完整文本与取消/恢复](results/strata_20261008/native_ista_q2_observed_lifecycle.json)及[独立复核](results/strata_20261008/native_ista_q2_observed_lifecycle_review.json)：Q2 自身四条完成请求、实际控制/模块/I/O、闭合原始证据和独立设备级 PDH 观测边界；不含 Agent 或性能资格。
 - [新 I/O 运行时真实 Q4](results/strata_20261008/native_q4_observed_io.json)：四条实际完成请求（含恢复）、逐阶段读取、实际 DLL、取消不完整记录、源码稳定性和原始文件哈希。
@@ -306,7 +321,7 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 ## 后续推进顺序
 
 1. Q4 全部分片、短文本、显式缓存 Agent 和一轮真实模型取消/恢复已完成窄范围检查；实际加载计划已在独立取消实验保存。接着覆盖其他 I/O/传输取消阶段与重复恢复，保留旧自动缓存和失败记录。
-2. Q2 的短文本/取消恢复、五项 Agent 功能及独立图像三请求/编码取消恢复已通过各自复核；实际 Agent 浏览器截图链已通过独立复核；当前源码文本生命周期已完成，待独立复核后启动正式性能协议。IQ3 的完整文本/取消恢复与五项 Agent 功能也已分别独立通过。每次启动按实际可用 RAM/commit/VRAM 重新准入。
+2. 当前源码 Q2 文本生命周期及元数据适配器复核已通过；冻结准确源码、产物、输入和电源条件后执行 batch=1/单活跃请求的三档各 20 次及独立 30 分钟协议。图像三请求/编码取消恢复和单个浏览器截图 Agent 独立通过；图像接入前 Q2/IQ3 五项 Agent 与 IQ3 文本证据保留各自源码身份。每次启动按实际可用 RAM/commit/VRAM 重新准入。
 3. 同 GGUF 与 llama.cpp 静态卸载配对；先关闭 MTP，再独立比较 MTP、预取和 24/32/40 GiB 缓存。
 4. 原生逻辑读取和操作系统直接传输已取得逐请求证据；继续补齐可归属的物理 SSD I/O、更多实际计算位置和文件缓存峰值观测，未核实前不宣称受控三层内存资格。
 5. 扩大真实图像、中文、代码、工具、记忆、多轮及更多阶段/重复取消恢复质量；三档各 20 次、独立冷启动和连续 30 分钟。
