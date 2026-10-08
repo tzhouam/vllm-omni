@@ -11,8 +11,19 @@ All 12 raw files, the actual outer/inner request mapping, native I/O, selected
 modules and current source bytes are bound. Full Agent dependency preimage
 was not captured and remains an explicit limitation. This is one functional
 sample, with no default, performance, physical SSD or aggregate-memory
-qualification. The separate five-task memory/browser run has started but has
-no completed result yet. The tokenizer-checked batch-1 performance protocol
+qualification. The separate [five-task memory/browser run](native_q4_observed_final_agent_functional.json)
+now passed [independent review](native_q4_observed_final_agent_functional_review.json):
+short answer, encrypted seed, cross-controller DPAPI recall and actual EN/ZH
+loopback browser reads. Full task samples excluding startup were 15.21 /
+18.80 / 30.98 / 32.54 / 39.57 s; cold process/hash/start boundaries were
+285.06 / 281.44 s. All 21 raw files, both generations, five native streams,
+authenticated memory provenance, browser grounding and full loaded dependency
+preimage passed checks. Controllers, sampler and fixture stopped with empty
+ledgers and retired process identities. Exact browser child PID inventory
+was not saved; browser closure is scoped to the runner's thread/reference/
+driver-returncode checks. These are five controlled functional samples,
+not broad memory/tool/Windows or latency qualification. The prior Qt dependency
+preimage gap remains unchanged. The tokenizer-checked batch-1 performance protocol
 is prepared; 60 measured requests and the separate 30-minute run are pending.
 
 The [current-source Q4 lifecycle rerun](native_q4_observed_final_io.json)

@@ -12,10 +12,19 @@ p95, default-route, memory-quality, tool or release qualification. The saved
 full Agent dependency digest lacks its reconstructable preimage; this remains
 an explicit evidence limitation.
 
-A separate five-task actual run is now started: READY, DPAPI memory seed,
-cross-controller recall, and English/Chinese loopback browser reads through
-the existing tool boundary. No completed task result is recorded yet. Its
-runner captures the full loaded Agent runtime-identity preimage. The fixed
+A separate [five-task actual Agent run](../edge_harness/results/strata_20261008/native_q4_observed_final_agent_functional.json)
+and [independent review](../edge_harness/results/strata_20261008/native_q4_observed_final_agent_functional_review.json)
+now pass: READY, DPAPI memory seed, recall after a fresh-controller reopen,
+and actual English/Chinese loopback browser open/read through the tool
+boundary. Full task samples excluding startup were **15.21 / 18.80 / 30.98 /
+32.54 / 39.57 s**. Both controllers closed and drained, the sampler stopped,
+and six recorded process identities retired. All 21 raw files, five actual
+model/native streams, memory provenance, browser grounding and captured full
+loaded Agent dependency preimage were checked. This run closes that identity
+gap for itself; the earlier Qt evidence remains unchanged. Browser shutdown
+uses exact-runner thread/reference/driver-returncode observations, without a
+saved exact browser child PID inventory. Five controlled read-only tasks do
+not establish general tool safety, Windows operation or memory quality. The fixed
 batch-1, concurrency-1 engine protocol is prepared and tokenizer-checked;
 60 measured requests and a separate 30-minute run have not started. This
 fixed engine suite does not replace complete Agent task qualification.
@@ -25,7 +34,7 @@ passed three full text requests, cancellation/drain and fresh-worker recovery;
 its [independent review](../edge_harness/results/strata_20261008/native_q4_observed_final_io_review.json)
 binds the final LF integration bytes and corrected lifecycle owner. This adds
 engine functional evidence only; the subsequent same-route Qt request and
-live functional-suite status are recorded above. No performance or
+completed functional-suite result are recorded above. No performance or
 default-route qualification follows.
 
 Engine preparation has advanced independently: [ISTA Q2/IQ3 acquisition](../edge_harness/results/strata_20261008/ista_artifact_inventory.json)
