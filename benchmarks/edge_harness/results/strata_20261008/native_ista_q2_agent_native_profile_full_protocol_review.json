@@ -1,0 +1,43 @@
+{
+  "auditor_source_sha256": {
+    "backend": "dcbf8f61a635567531939a82955b486f70d7ad039090da6d2538b1a42a267ee7",
+    "profile": "d98fd4a95a8575e9bf6e93e1798a48216bc3ec1d232753d806c7663be859a45c",
+    "root": "a0ee562e2d7a7128f800d81ed9169525d0ebf2de56a5c8bbc5beb6b2515a2965"
+  },
+  "backend_audit_sha256": "69759cddb3404d77e78be6f9038a4df28d2ad3c92412cfdbc77c7e6282bbd9f8",
+  "checks": [
+    "Exact terminal receipt and root/profile/backend audit pins, with distinct audit-integrity and protocol dispositions",
+    "Both selected classes and every saved attempt retained; missing class is explicit and never a successful subset",
+    "Full canonical case/length/phase/repetition schedule and call identities preserved",
+    "Known fixed auditor failure markers map to allowlisted reason codes; uncontrolled messages stay digest-only; model-call status is one of three pinned source statuses",
+    "Only valid measured samples enter nearest-rank statistics; failed population and counts remain adjacent",
+    "Separate per-class startup, whole-answer wall time, validated visibility and hidden SSE timing scopes",
+    "Explicit allowlist and recursive payload/path/endpoint scan; no private prompt, response, URL, database or raw configuration",
+    "Power endpoint observations only; no continuous isolation, memory-cap, physical SSD, lineage or default qualification"
+  ],
+  "default_route_qualified": false,
+  "lineage_verified": false,
+  "performance_qualified": false,
+  "previous_source_draft_sha256": "615840f0c9dfbdd8a0c01646ad84fed5ae7d177b9c658fc9667e51b8112a0b5a",
+  "private_preimages_published": false,
+  "profile_audit_sha256": "0b900865ae27a0f6a50302e2f0b908b692e9271f413d314da9cacd1bfcca5569",
+  "projector_sha256": "a0b2513ba0f9eb6c77b87d374c8e8e874501e1bdd4189174834bccb0a64b7d48",
+  "public_evidence_sha256": "4b00eb2ce1d7083579e3c00f9d8936b9df284cbfcf292f92c2952bd334b7f7de",
+  "receipt_sha256": "150084ef61fdb75100e39cd0e6a2fbad87843ce5f159b132eb94a292e8a5c898",
+  "release_qualified": false,
+  "reused_browser_projector_sha256": "5f7ae9f62d37f7e84ceef0fa0556a1b07f3e1cd93d8bd894163949537e7cd0aa",
+  "root_closed_audit_sha256": "9406d48bc7c92e5a237c0e9b8906ec2e944cf84fd6d3f14cfcc4e7a63e67ea64",
+  "schema": "omni-public-native-agent-full-profile-publication-review-v2",
+  "specified_protocol_completed": true,
+  "status": "root_publication_review_accepted_specified_protocol_only",
+  "author_projection_review_sha256": "3fbe489733fc847ccfa0006897a82af34a70492030d17c06526f5b401bd479ff",
+  "independent_publication_review_sha256": "9a2224e28ead4b3f8bc419a951655eee86165fcbefbb06f37397373297a86a17",
+  "root_publication_review": {
+    "accepted": true,
+    "primary_evidence_unchanged": true,
+    "all_442_requests_594_calls_and_six_measured_populations_checked": true,
+    "privacy_and_scope_review_accepted": true,
+    "qualification_promoted": false,
+    "actual_neural_rerun_by_metadata_review": false
+  }
+}

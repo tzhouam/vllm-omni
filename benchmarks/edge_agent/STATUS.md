@@ -1,5 +1,31 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: the frozen explicit-output Q2 route completed the actual
+[two-class full protocol](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_full_protocol.json)
+and [independent closed/statistical review](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_full_protocol_review.json).
+All **442/442** complete tasks passed: 12 warmups, 120 measured and 310 endurance requests,
+using 594 actual model calls, batch=1/concurrency=1. Each task class independently used two warmups
+and 20 measured requests per input length, followed by over 1,800 seconds of active sequential Agent work.
+Browser requests include model-proposed navigation, real page observations and a second model answer.
+
+| Task class | Short answer p50 / p95 | Medium p50 / p95 | Long p50 / p95 | Endurance |
+| --- | ---: | ---: | ---: | ---: |
+| Basic | 7.244 / 7.480 s | 8.053 / 8.356 s | 8.880 / 9.450 s | 224 requests / 1,803.592 active seconds |
+| Browser text | 17.591 / 18.221 s | 18.786 / 19.814 s | 26.722 / 27.303 s | 86 requests / 1,802.007 active seconds |
+
+Conditions: native Windows 11, RTX 5090 Laptop/driver 610.71, 23.9 GiB VRAM and 63.1 GiB physical RAM;
+ISTA GSQ-RCO Q2_0, Strata d5ea7133 with I/O-v1, 4K/FP16 KV, 8 GiB expert RAM cache,
+16 GiB GPU budget, MTP/prefetch off. Separate integrity checking/controller preparation took 127.518/123.765 s;
+these are not pure model-load times. Complete-answer timing includes synchronous private evidence I/O.
+Visible output is the validated final; internal first SSE and UI rendering are separate scopes.
+All 2,399 closed files, 1,563 frozen sources, raw quality/parser/tool/consumer traces, two fresh native generations
+and empty final leases were verified. Public evidence preserves measured samples and input/output hashes without content.
+The basic fixture meets the 10 s p95 goal; browser text misses it. Power-scheme checks cover endpoints only.
+This completes the narrow fixed bilingual basic/browser protocol, not open-web quality, visual/settings/code tasks,
+other quantizations or mobile execution. Lineage, all-operator placement, physical SSD attribution, memory hard caps
+and default/release eligibility remain open. Next: actual execution-observer integration, paired cache/backend
+experiments and broader task qualification. Historical failures below retain their original scope.
+
 2026-10-09: the same frozen Q2 route passed an actual
 [NativeProfileBridge browser smoke](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke.json)
 and [independent closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke_review.json).
@@ -759,11 +785,12 @@ No route is release-qualified or installed as a default. The Spark bootstrap is 
 
 ## Remaining qualification
 
-For the current explicit-output Strata Q2 route, first run an actual model-proposed
-read-only tool chain through ordinary `submit`, then review one shared full-trace
-validator for profiling and qualification import. Both explicit-consumer trace
-gates remain closed. The five final-envelope functional samples above cannot
-qualify model tool planning or replace a fresh three-band/30-minute protocol.
+The current explicit-output Strata Q2 route has completed the actual model-proposed
+read-only tool chain through ordinary `submit`, shared consumer-trace validation,
+and the two-class three-band/30-minute protocol reported above. These results cover
+the frozen basic and local-page fixtures only. Broader task quality, checkpoint
+lineage, complete placement/memory claims and independent release/default gates
+remain open; the earlier five-envelope samples retain their narrower scope.
 
 Improve the ordinary model-selected browser-text route's complete-answer latency and repeat its protocol against the final imported source identity. The structured explicit Read URL route meets the warm 10 s target only on the fixed loopback fixture; its distinct user input and model prompt do not establish a general speedup. The earlier recorded-source fixed-memory and ordinary browser-text protocols are complete for their narrow fixtures, but strict current-head matching, open-domain memory, and independent signed gates remain open. Both new loopback runs matched the reviewed source at measurement; later Omni edits require repetition for final-code qualification. Extend full profiling to visual, setting, code, broader memory quality, and paired candidate routes, with batch size 1 and one active request. A separate live approved `browser_post` Agent task needs its own exact-action and server-result checks; the read-only fixture cannot qualify it. For each model/task class, perform separate warmups, **at least 20 measured complete requests per short, medium, and long input**, followed by **30 minutes of active sequential Agent work** under one stable power condition. Review exact answer quality, required tool actions, ordered traces, cold load, RAM/VRAM sampled peaks and load peaks, placement logs, cancellation and recovery, and quantization or pruning loss. The sampled RAM/VRAM/GPU power telemetry is a lower bound on instantaneous peaks; NVIDIA device power is not whole-system power. The fixed code case measures static reasoning only, and fixture success is not open-world quality.
 

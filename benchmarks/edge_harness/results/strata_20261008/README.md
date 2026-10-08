@@ -1,5 +1,19 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [Q2 two-class full protocol](native_ista_q2_agent_native_profile_full_protocol.json)
+passed [closed publication review](native_ista_q2_agent_native_profile_full_protocol_review.json).
+All 442 complete Agent tasks and 594 model calls were inspected: 12 warmups, 120 measured and 310 endurance,
+with no failed attempts or orphan captures. Basic and browser-text each completed 20 measurements per length
+and more than 1,800 active sequential seconds. Complete-answer p95 short/medium/long was
+**7.480/8.356/9.450 s** for basic and **18.221/19.814/27.303 s** for browser text.
+Separate checking/controller preparation took 127.518/123.765 s; request timings include private streamed capture I/O.
+Windows 11/RTX 5090 Laptop/driver 610.71, pinned ISTA Q2, 4K FP16 KV, 8 GiB expert RAM cache, 16 GiB GPU budget,
+MTP/prefetch off, batch=1/concurrency=1. All 2,399 closed files and 1,563 frozen sources, ordered traces,
+two fresh native generations, final empty leases and endpoint power conditions were verified.
+Public JSON contains raw measured timings and hashes, not prompt/answer/page contents.
+This supersedes pending two-class protocol statements in older records only for this exact frozen route and fixed suite.
+Physical SSD traffic, aggregate memory hard caps, all-operator placement, lineage and default/release qualification remain open.
+
 2026-10-09: [Q2 publisher metadata](ista_q2_publisher_lineage_audit.json)
 passed [independent metadata review](ista_q2_publisher_lineage_audit_review.json).
 Both shard sizes and LFS hashes at the fixed quantized revision match the closed run manifest.
