@@ -364,7 +364,7 @@ flowchart TB
 | 三层内存声明 | 分开表示 GPU 常驻、CPU 常驻/映射、专家缓存、PLE、KV、工作区、传输、加载峰值和 SSD 文件；按原生进程代次与 GPU 身份采样 WDDM local/nonlocal | 已取得驻留阶段样本；未覆盖加载峰值或证明硬上限，nonlocal 不与主机 RSS 相加；当前 `three_tier_memory_qualified=false` |
 | 静态卸载 | 保留 llama.cpp GPU 层数及 `--n-cpu-moe`；增加多分片完整验证和总权重计账 | 尚未完成与 Strata 同产物、同输入的整请求配对实验 |
 | 准备与 profiling | 固定目标、兼容打包记录、24/32/40 GiB 缓存变体、可恢复请求证据、三档输入、取消/恢复和连续运行 | 逻辑读量与物理 SSD I/O 分开；系统磁盘计数不能冒充模型物理读取 |
-| Agent | 复用现有循环、记忆和批准边界；共享引擎租约；显式实验路线核验加载配置及产物身份 | Q2 显式消费者五任务、取消/恢复及两条中英文模型提出工具链通过指定源码复核；围栏实际运行与完整资格待验证。历史 Q4 Qt 与 Q4/Q2/IQ3 五任务、独立 Q2 浏览器截图各保留自身身份；没有默认合格路线 |
+| Agent | 复用现有循环、记忆和批准边界；共享引擎租约；显式实验路线核验加载配置及产物身份 | 当前冻结 Q2 路线的 NativeProfileBridge 基础 9/9、浏览器 9/9 smoke 已独立复核，浏览器 18 次实际模型调用的工具观察和后续输入全部绑定；完整协议仍待完成。历史记忆、取消/恢复、Qt 和图像记录各保留自身源码身份；没有默认合格路线 |
 | Android | C++17 精简控制层与 Python 共享 v2 契约；Gemma E2B/E4B、Qwen27B 候选清单 | 只通过主机契约测试；JNI、实际模型适配器、NDK 和手机运行未完成 |
 
 实现不提供独立的专家调度器或 kernel。专家选择、缓存和读取仍由 Strata 或选定的阶段后端拥有。
@@ -374,7 +374,7 @@ Windows 工具仍由 Agent 的权限边界执行，模型后端没有工具执�
 
 | 路线 | 固定产物 | 当前状态 | 下一道验收 |
 | --- | --- | --- | --- |
-| Strata RAM Q2 | ISTA Q2_0，66,423,878,624 B，不含 projector | 显式消费者五项 Agent、取消/恢复及两条模型提出 browser_open→自动 read→最终答案通过指定源码复核；共享 trace 校验已通过单元/集成回归，待新源码原生复测。此前图像保留各自证据；8 GiB RAM 专家缓存仍由 SSD 支持 | 当前完整 trace 原生复测、三档各 20 次及独立 30 分钟；扩大质量及同 GGUF 对照；未获默认资格 |
+| Strata RAM Q2 | ISTA Q2_0，66,423,878,624 B，不含 projector | 当前冻结源码的共享 trace 校验已完成实际基础 9/9 和浏览器 9/9 smoke，并独立复核全部原始输出及后续输入；此前记忆、取消和图像保留各自证据；8 GiB RAM 专家缓存仍由 SSD 支持 | 已启动基础和浏览器各自三档各 20 次及 30 分钟顺序运行，结果待闭合复核；扩大质量及同 GGUF 对照；未获默认资格 |
 | Strata RAM IQ3 | ISTA IQ3_XXS，75,839,998,528 B，不含 projector | 完整文本/取消恢复和五项记忆/中英文浏览器 Agent 功能分别通过独立复核；8 GiB RAM 专家缓存仍由 SSD 支持 | 图像、同产物对照、p95/稳定性和总内存资格待验证 |
 | Strata SSD Q4 | Unsloth UD-Q4_K_XL，111,334,654,784 B，四分片 | 图像接入前文本源码的文本/取消恢复、Qt 与五项记忆/浏览器 Agent 功能通过独立复核；逐请求原生 I/O 已绑定；三层总内存未合格 | 真实图像；其他 I/O/传输取消与重复恢复；同产物对照、物理 I/O、总体内存峰值及完整性能协议 |
 | DeepSeek V4.1 | 七分片 Q2_K，264,515,279,456 B | 固定元数据与专用运行时版本；未下载或执行 | 专用 CPU mmap 基线、显式运行选项、受控缓存，Windows 单独验证 |
@@ -392,6 +392,8 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 
 ## 原始证据与复现
 
+- [当前 Q2 基础 smoke](results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke.json)及[闭合复核](results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke_review.json)：9 条基础请求、53 份闭合文件；不含浏览器或耐久资格。
+- [当前 Q2 浏览器 smoke](results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke.json)及[闭合复核](results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke_review.json)：9 条真实浏览器任务、18 次模型调用、89 份闭合文件；逐步工具观察与后续输入核对通过，不含完整性能或默认资格。
 - [当前显式消费者 Q2 Agent](results/strata_20261008/native_ista_q2_agent_output_functional.json)及[闭合证据复核](results/strata_20261008/native_ista_q2_agent_output_functional_review.json)：五个 JSON 最终答案、受控浏览器预处理、真实输出中取消与新控制器召回；23 份闭合文件。实际模型工具/围栏分支、性能与默认资格仍待验证。
 - [当前源码 Q2 文本生命周期](results/strata_20261008/native_ista_q2_current_text_lifecycle.json)及[闭合证据发布检查](results/strata_20261008/native_ista_q2_current_text_lifecycle_review.json)：四条短完成请求、真实取消/新 worker 恢复、当前登记/控制与关键源码、16 份闭合文件；只完成正式性能实验的功能前提，不继承历史 Agent 或性能资格。
 - [Q2 五任务 Agent](results/strata_20261008/native_ista_q2_agent_functional.json)及[独立复核](results/strata_20261008/native_ista_q2_agent_functional_review.json)：新数据库/会话的记忆来源、实际 EN/ZH 浏览器与五次模型调用；22 个闭合文件、依赖身份及释放边界，不含通用 Agent 或性能资格。
@@ -418,7 +420,7 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 ## 后续推进顺序
 
 1. Q4 全部分片、短文本、显式缓存 Agent 和一轮真实模型取消/恢复已完成窄范围检查；实际加载计划已在独立取消实验保存。接着覆盖其他 I/O/传输取消阶段与重复恢复，保留旧自动缓存和失败记录。
-2. Q2 显式消费者五项 Agent、取消及新控制器召回已通过。中英文模型提出工具→观察→最终答案已完成指定源码实跑；共享消费者 trace 校验器已实现并完成 357 项/166 子测试回归。接着重新冻结本路线的源码、产物、输入和电源条件，先做新源码原生完整 trace 复测，再执行 batch=1/单活跃请求的三档各 20 次及独立 30 分钟协议。旧严格 JSON 基准仍为第三条预热失败、正式测量 0；独立图像和历史 Q2/IQ3 证据保留自身身份。每次启动按实际可用 RAM/commit/VRAM 重新准入。
+2. 当前 Q2 路线已冻结源码、产物、输入和电源条件，NativeProfileBridge 基础 9/9 与浏览器 9/9 smoke 均通过独立闭合复核。完整 batch=1/单活跃请求协议已启动：两类任务分别三档各 20 次正式测量，并分别至少 30 分钟活跃顺序运行；每类使用独立新加载，结果尚待完成及复核。旧严格 JSON 基准仍为第三条预热失败、正式测量 0；独立图像、记忆、取消和历史 Q2/IQ3 证据保留自身身份。每次启动按实际可用 RAM/commit/VRAM 重新准入。
 3. 同 GGUF 与 llama.cpp 静态卸载配对；先关闭 MTP，再独立比较 MTP、预取和 24/32/40 GiB 缓存。
 4. 原生逻辑读取和操作系统直接传输已取得逐请求证据；继续补齐可归属的物理 SSD I/O、更多实际计算位置和文件缓存峰值观测，未核实前不宣称受控三层内存资格。
 5. 扩大真实图像、中文、代码、工具、记忆、多轮及更多阶段/重复取消恢复质量；三档各 20 次、独立冷启动和连续 30 分钟。
@@ -426,4 +428,4 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 7. 在桌面正确性基线后接 DeepSeek 专用运行时；Android 先实际后端适配，再做真机验收。
    AI Hub 功能回放与手机常驻资格继续分开，设备本地内存、热稳定性和延迟仍需设备 shell。
 
-正常回答 p95 10 秒、升级回答 60 秒是验收目标。当前三条短文本样本不能计算合格 p95，也不能代替完整 Agent 回答测量。
+正常回答 p95 10 秒、升级回答 60 秒是验收目标。已复核 smoke 每档只有两条正式样本，不能建立合格 p95 或长期稳定性；正在执行的完整协议需保留全部尝试并闭合复核。
