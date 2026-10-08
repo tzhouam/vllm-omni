@@ -1,5 +1,18 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: an [independent fresh-process solo replay](../edge_harness/results/strata_20261008/native_ista_q2_exact_format_diagnostic.json)
+passed [closed comparison review](../edge_harness/results/strata_20261008/native_ista_q2_exact_format_diagnostic_review.json).
+Its first request has the same input/control and byte-identical complete reply
+as the previous third warmup. Both naturally stopped with valid native I/O,
+but both still fail the unchanged strict JSON gate because of Markdown fences.
+Five new and six original closed raw files were verified; no additional ordered
+model run or formal measurement was added. This does not establish quantization
+causality or exclude every state issue. An explicit Agent output-contract and
+iterator cancellation/release patch is in private integration testing, not yet
+merged or exercised with the model. Raw backend replies and the original failed
+benchmark remain unchanged. IQ3 current-source registration/admission is complete;
+its new model lifecycle has not run and inherits no historical qualification.
+
 2026-10-09: the [current-source Q2 controlled engine attempt](../edge_harness/results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup.json)
 stopped at its third short-input warmup and passed an
 [independent failed-attempt review](../edge_harness/results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup_review.json).

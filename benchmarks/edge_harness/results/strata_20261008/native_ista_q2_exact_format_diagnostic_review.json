@@ -1,0 +1,47 @@
+{
+  "schema": "omni-strata-exact-format-diagnostic-publication-review-v1",
+  "status": "metadata_checked_against_independently_closed_comparison_pending_parent_publication",
+  "public_evidence": "native_ista_q2_exact_format_diagnostic.json",
+  "public_evidence_sha256": "9f41ba0cef5a423fba3ab02745eb18ea7f282e2e653f98b1189caa653c92060d",
+  "private_comparison_audit_sha256": "71a6b6bfcff298a7b3069c8f407f40d5ed44437f1507cd0b4493f2a28ce385ea",
+  "checker_sha256": "ac919f3351f7bf404e029d12e38dc142b3262a45733d03f5ebe2d98e53db88af",
+  "requests_compared": 2,
+  "solo_closed_raw_files": 5,
+  "original_ordered_closed_raw_files": 6,
+  "full_reply_byte_equality_verified": true,
+  "unchanged_strict_format_rejection_verified": true,
+  "new_original_order_model_run_executed": false,
+  "adversarial_metadata_checks": [
+    {
+      "case": "changed_reply",
+      "refused": true
+    },
+    {
+      "case": "new_order_run",
+      "refused": true
+    },
+    {
+      "case": "quantization_cause",
+      "refused": true
+    },
+    {
+      "case": "measured",
+      "refused": true
+    },
+    {
+      "case": "percentile",
+      "refused": true
+    },
+    {
+      "case": "private_output",
+      "refused": true
+    }
+  ],
+  "content_free_scope_checked": true,
+  "measured_requests": 0,
+  "sustained_requests": 0,
+  "performance_qualified": false,
+  "default_qualified": false,
+  "quantization_causality_established": false,
+  "scope": "Content-free metadata review of accepted closed solo/original comparison; no new neural execution or payload hashing."
+}

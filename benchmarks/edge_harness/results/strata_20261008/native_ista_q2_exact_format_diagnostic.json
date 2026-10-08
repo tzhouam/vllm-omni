@@ -1,0 +1,177 @@
+{
+  "schema": "omni-strata-exact-format-diagnostic-public-evidence-v1",
+  "status": "independently_verified_identical_solo_and_prior_ordered_strict_format_failure",
+  "scope": "One fresh solo request compared with the third warmup of the previous stopped ordered attempt. Exact input/reference/control and full UTF-8 reply bytes match; both complete replies violate the unchanged strict JSON format. Inner JSON equality remains diagnostic only.",
+  "hardware": {
+    "platform": "Windows native",
+    "gpu": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "transferable_to_other_hardware": false
+  },
+  "model": {
+    "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+    "revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+    "declared_quantization": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL"
+  },
+  "batch_size": 1,
+  "concurrency": 1,
+  "requests": [
+    {
+      "role": "solo_fresh",
+      "request_id": "strata-f5d7bb542cd64aee9457b6189d6166ba",
+      "epoch": 1,
+      "native_request_seq": 1,
+      "worker_generation": "f02558d231bc4e1abfbcd1b28d4ae982",
+      "input_sha256": "22390f7b5dc8029500c853bbf8bbcfd22c0a7ef5885fb5243ca98e5b8bc9a3c0",
+      "output_sha256": "5b48f0a9a6b2cb0e273aebc6137c677b10e5957cb257647d86520de733ee22b9",
+      "input_tokens": 242,
+      "output_tokens": 39,
+      "finish_reason": "stop",
+      "strict_gate_passed": false,
+      "native_io_identity_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "cpu_expert_entries": 9493,
+        "gpu_expert_entries": 9227
+      },
+      "json_diagnosis": {
+        "complete_reply_strict_json_valid": false,
+        "complete_reply_reference_equal": false,
+        "complete_reply_parse_exception_type": "JSONDecodeError",
+        "complete_reply_parsed_canonical_sha256": null,
+        "markdown_fence_detected": true,
+        "diagnostic_inner_json_valid": true,
+        "diagnostic_inner_reference_equal": true,
+        "diagnostic_inner_canonical_sha256": "b86dcb712d8d5547b94c303afb55f18c628c22b3952e749c818c81f1ab30e0a9",
+        "inner_parse_scope": "diagnosis_only_never_used_to_accept_or_rewrite_reply"
+      }
+    },
+    {
+      "role": "original_ordered_third",
+      "request_id": "strata-da277552136f4416a97031113d292e3c",
+      "epoch": 3,
+      "native_request_seq": 3,
+      "worker_generation": "4a8ed906923745b9b9ae9950cfc4fc4e",
+      "input_sha256": "22390f7b5dc8029500c853bbf8bbcfd22c0a7ef5885fb5243ca98e5b8bc9a3c0",
+      "output_sha256": "5b48f0a9a6b2cb0e273aebc6137c677b10e5957cb257647d86520de733ee22b9",
+      "input_tokens": 242,
+      "output_tokens": 39,
+      "finish_reason": "stop",
+      "strict_gate_passed": false,
+      "native_io_identity_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "cpu_expert_entries": 6690,
+        "gpu_expert_entries": 12030
+      },
+      "json_diagnosis": {
+        "complete_reply_strict_json_valid": false,
+        "complete_reply_reference_equal": false,
+        "complete_reply_parse_exception_type": "JSONDecodeError",
+        "complete_reply_parsed_canonical_sha256": null,
+        "markdown_fence_detected": true,
+        "diagnostic_inner_json_valid": true,
+        "diagnostic_inner_reference_equal": true,
+        "diagnostic_inner_canonical_sha256": "b86dcb712d8d5547b94c303afb55f18c628c22b3952e749c818c81f1ab30e0a9",
+        "inner_parse_scope": "diagnosis_only_never_used_to_accept_or_rewrite_reply"
+      }
+    }
+  ],
+  "comparison": {
+    "exact_input_values_and_hash_equal": true,
+    "full_output_utf8_bytes_and_hash_equal": true,
+    "input_sha256": "22390f7b5dc8029500c853bbf8bbcfd22c0a7ef5885fb5243ca98e5b8bc9a3c0",
+    "output_sha256": "5b48f0a9a6b2cb0e273aebc6137c677b10e5957cb257647d86520de733ee22b9",
+    "original_reference_sha256": "b86dcb712d8d5547b94c303afb55f18c628c22b3952e749c818c81f1ab30e0a9"
+  },
+  "ordered_comparison": {
+    "public_original_evidence": "native_ista_q2_controlled_profile_failed_warmup.json",
+    "source": "previous independently audited third warmup in aborted v5 attempt",
+    "new_original_order_model_run_executed": false
+  },
+  "closure": {
+    "solo_raw_files_verified": 5,
+    "original_raw_files_verified": 6,
+    "solo_exact_external_owner_generations_retired": 2,
+    "native_generations_retired": 2,
+    "source_stable": true,
+    "resource_drain_verified": true,
+    "samplers_and_writers_stopped": true
+  },
+  "identities": {
+    "auditor_sha256": "a479fd7b56833030b6f38d3b388056bbaf00834086cc6af10a8c51cdb2af0410",
+    "failure_helper_sha256": "16fa04238b4c4db1d56e48b392336eb7474d5235d4ea83885830570b0c946960",
+    "original_failure_audit_sha256": "7443e745b43acfcf500aca6423e52578dc1521d0de7f50da04082e046ddf4ba2",
+    "solo_runner_sha256": "1f4d21fac0b27ee1b477d549b42c76a9b8b0ac557063f593b6e3bc14313ab2c5",
+    "solo_report_sha256": "c0a8dfadf2287949146c80cbad593d69509e29a3d63ff7569291336d66280c23",
+    "solo_root_terminal_sha256": "beaa9e422d2707d4b4f5870f0de275d59fcfdaa9816e132bb69dae186567dec8",
+    "solo_owner_record_sha256": "e400f52f73f6a69300bb053e903479d3f930e3e9c97801e62793a29f966440d9",
+    "owner_helper_sha256": "2930d9f0e1901ead55612dc527d84353069947c46edef947a7d7f07ec13d7eb0",
+    "closure_helper_sha256": "67f4b7ef092f0166a93a9ebfeab02b46de5856dacd92d8933cfe287dceffd0f2",
+    "frozen_v5_sha256": "16d721f7d9caeb277fa50b8c76914ef36d87d667191b9524612990a8225ec057",
+    "plan_manifest_sha256": "275e1e615fe8f91679db22948025626df0f9a489677ee268669e96e4b8186b66",
+    "plan_identity_sha256": "84de2060f342311d03a20274fcd53e8adf0c0cf182a47266311815d1693a502d",
+    "launch_sha256": "0dbf869915de84673f2c2d4b51fa274abf3c02cd938ae57e1af776a6fa0d206a",
+    "route_controls_sha256": "ea3fc792344461b7a12dc6513e8de29609d4135de3403ade106364802789f2f7",
+    "independent_comparison_audit_sha256": "71a6b6bfcff298a7b3069c8f407f40d5ed44437f1507cd0b4493f2a28ce385ea"
+  },
+  "solo_closed_raw_inventory": {
+    "close.json": {
+      "size_bytes": 1765,
+      "sha256": "d0e768301a83a985208d8a3d1ef000ecad16f18d7c5248898c3b9f06c04adc73"
+    },
+    "diagnostic-source-bindings.json": {
+      "size_bytes": 1062,
+      "sha256": "524719193be4639b5c91cd0f33278b2d4a9464533e1982fd487aaf50cc08aac7"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 21388,
+      "sha256": "13aaec8268bc2736b52a4c395df6104fe27b81a4db792cfaf4f44116f3ac6b46"
+    },
+    "requests/warmup-tool_json_plan-short-000000-strata-f5d7bb542cd64aee9457b6189d6166ba.json": {
+      "size_bytes": 76539,
+      "sha256": "4d94191cdeeda693d1ed6ae2364a971936cbdeb9d51dd3d0289c55b75ea58db4"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 302107,
+      "sha256": "ff600b4f361ff5e4abfca010403acfe6934ffcd52b5df85bdb23e720c74ee564"
+    }
+  },
+  "original_ordered_closed_raw_inventory": {
+    "close.json": {
+      "size_bytes": 1766,
+      "sha256": "035af00eb8cb03573db1ad55f93a117af3edcc6c331d6f38c738e47a08637536"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 21388,
+      "sha256": "7523c41683e74343bccdf5d31ddae925a16ca82a3d4ccab75618f2554f5f7d0f"
+    },
+    "requests/warmup-chinese_inventory-short-000000-strata-cc971269d2ab4818bc79fca8a9003d50.json": {
+      "size_bytes": 51383,
+      "sha256": "1c3f52e08e25c1ee7bbf745c71c0017809dd439f372f867355a790a72d7efed9"
+    },
+    "requests/warmup-english_plan-short-000000-strata-7a350ac701504ab5882261ee5de361ef.json": {
+      "size_bytes": 73414,
+      "sha256": "fa20749a46bce50b03b37c58abe721f2a05d70f6d63476b864c81f5d4a036a8f"
+    },
+    "requests/warmup-tool_json_plan-short-000000-strata-da277552136f4416a97031113d292e3c.json": {
+      "size_bytes": 76815,
+      "sha256": "5d2c9467050c33f11e38e48b96fac4a29d53a4cf0f7de71be3c852bea21ace8c"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 415686,
+      "sha256": "cae02598805f33bd8757ca90b3aaadb90ce442be20c4bd88aaae2338541edb63"
+    }
+  },
+  "measured_requests": 0,
+  "sustained_requests": 0,
+  "full_response_p50_s": null,
+  "full_response_p95_s": null,
+  "physical_model_attributed_ssd_bytes": null,
+  "aggregate_memory_hard_cap_verified": false,
+  "performance_qualified": false,
+  "default_qualified": false,
+  "release_qualified": false,
+  "quantization_causality_established": false,
+  "general_session_contamination_conclusion": false,
+  "privacy_scope": "Only content-free IDs, hashes, token counts, narrowly scoped counters and validation/closure metadata; no task text, answer, pixels, DOM, memory values, localhost endpoints or private raw paths."
+}

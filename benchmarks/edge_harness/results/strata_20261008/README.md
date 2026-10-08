@@ -1,5 +1,15 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [fresh solo diagnostic](native_ista_q2_exact_format_diagnostic.json)
+passed [closed comparison review](native_ista_q2_exact_format_diagnostic_review.json).
+Fresh native sequence 1/epoch 1 and the previous ordered sequence 3/epoch 3
+have identical input/control and complete UTF-8 reply bytes. Both naturally
+stopped with valid native I/O and both fail strict JSON due to Markdown fences;
+inner-object equality is diagnostic only. Five solo and six original raw files
+were verified. No new ordered model run was performed, formal measurements and
+sustained requests remain zero, and percentiles remain null. No quantization
+causality, general state-contamination conclusion or default eligibility follows.
+
 2026-10-09: the [current-source Q2 controlled attempt](native_ista_q2_controlled_profile_failed_warmup.json)
 has an [independently reviewed failed outcome](native_ista_q2_controlled_profile_failed_warmup_review.json):
 **3 attempted warmups, 2 accepted, 1 strict-format rejection, 0 measured requests**.

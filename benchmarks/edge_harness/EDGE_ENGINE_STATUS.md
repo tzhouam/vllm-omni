@@ -1,5 +1,15 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
+2026-10-09：同一失败任务已在[独立新进程单独复测](results/strata_20261008/native_ista_q2_exact_format_diagnostic.json)，
+并通过[闭合比较复核](results/strata_20261008/native_ista_q2_exact_format_diagnostic_review.json)。
+新进程第一条请求与上一轮第三条预热使用相同输入和控制，完整回复逐字节相同；
+两次均自然结束、原生 I/O 检查通过，仍因 Markdown 围栏违反严格 JSON 格式而被拒绝。
+新运行 5 份及原运行 6 份闭合原始文件均已核验。没有追加新的原顺序模型运行，
+正式测量仍为 0；该对照不确定量化因果，也不排除所有状态问题。
+Agent 的显式输出契约与取消释放修补正在私有集成测试，尚未合入或实跑；
+原始后端输出和严格基准失败保持不变。IQ3 已完成当前源码的重新登记及容量准入，
+尚未执行新的模型生命周期，不继承旧源码的资格。
+
 2026-10-09：当前源码的 [Q2 受控性能运行](results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup.json)
 在第三条短输入预热被严格质量门槛停止，已通过[独立失败证据复核](results/strata_20261008/native_ista_q2_controlled_profile_failed_warmup_review.json)。
 共尝试 **3 条预热，2 条通过，1 条拒绝；正式测量为 0**，没有 p50/p95 或 30 分钟结果。
