@@ -575,6 +575,21 @@ def _validated_consumer_final(
     return validated_consumer_final(event, asdict(route), events)
 
 
+async def _observe_startup_terminal(task: asyncio.Task[Any]) -> Any:
+    """Drain the owned loader despite repeated cancellation of its caller.
+
+    Cancelling an asyncio.to_thread wrapper does not stop its native thread.
+    Every await therefore shields this task; no cancellation is sent to it.
+    This helper is used only after the original preparation failure is saved.
+    """
+    while True:
+        try:
+            return await asyncio.shield(task)
+        except asyncio.CancelledError:
+            if task.done():
+                return task.result()
+
+
 class NativeProfileBridge:
     """Keep one resident Omni route while every Agent request runs serially."""
 
@@ -694,10 +709,20 @@ class NativeProfileBridge:
             bind_gpu(None)
         samples: list[dict[str, Any]] = []
         task = asyncio.create_task(asyncio.to_thread(backend.start))
-        while not task.done():
-            samples.append(self.telemetry.sample())
-            await asyncio.sleep(.1)
-        await task
+        try:
+            while not task.done():
+                samples.append(self.telemetry.sample())
+                await asyncio.sleep(.1)
+            await asyncio.shield(task)
+        except BaseException as failure:
+            # A power/sampler failure or caller cancellation must not unwind
+            # into controller.close() while backend.start() is still loading.
+            try:
+                await _observe_startup_terminal(task)
+            except BaseException as startup_failure:
+                if startup_failure is not failure:
+                    raise failure from startup_failure
+            raise
         samples.append(self.telemetry.sample())
         plan = backend.execution_plan
         if not isinstance(plan, Mapping):

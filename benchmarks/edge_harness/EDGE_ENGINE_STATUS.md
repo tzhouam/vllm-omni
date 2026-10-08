@@ -1,5 +1,10 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
+2026-10-09：原生 Agent profiler 的加载失败/取消路径现在等待实际加载线程终止，
+再进入资源关闭，避免采样失败或重复取消使清理与加载竞争。
+[受控线程测试](../../tests/edge/test_agent_profile_loader_drain.py)及相关集成回归
+**119 通过、32 个子测试通过**；这是无模型执行的修补验证，当前源码的实际 Agent smoke 正在准备。
+
 2026-10-09：[共享消费者轨迹校验](results/strata_20261008/agent_consumer_trace_unit_validation.json)
 已接入原生 Agent profiler 和离线 reviewer；root 集成回归 **357 通过、6 跳过、166 个子测试通过**。
 逐步输入哈希、可信任务和 URL 授权、工具参数、终止证明、输出可见时间及跨请求状态顺序统一核验；

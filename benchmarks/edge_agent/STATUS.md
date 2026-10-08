@@ -1,5 +1,10 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: native profiling now waits for the actual startup thread after sampler failure or cancellation,
+including repeated cancellation, before resource close. [Controlled-thread tests](../../tests/edge/test_agent_profile_loader_drain.py)
+and related integration regression passed **119 tests and 32 subtests** without neural execution.
+Fresh actual Agent smoke on this source is being prepared; this fix grants no performance or default eligibility.
+
 2026-10-09: [shared explicit-consumer trace validation](../edge_harness/results/strata_20261008/agent_consumer_trace_unit_validation.json)
 is integrated into native profiling and offline review. Root regression: **357 passed, 6 skipped, 166 subtests passed**.
 Checks bind every model-input hash, trusted task/URL authorization, exact tool schema, owned terminal, final visibility and cross-request state order.
