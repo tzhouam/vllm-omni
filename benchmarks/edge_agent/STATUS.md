@@ -1,5 +1,15 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+The [ISTA Q2 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_q2_observed_lifecycle.json)
+now passed [independent review](../edge_harness/results/strata_20261008/native_ista_q2_observed_lifecycle_review.json):
+three complete references took **2.52 / 4.99 / 3.61 s**, cancellation drained in
+**2.31 s**, and fresh-worker recovery took **2.48 s**. Starts of **206.89 / 183.89 s**
+include full hashing and initialization. All 16 closed raw files, request-bound
+native I/O, selected modules, new-generation controls and drained ledgers were
+verified. The Q2 five-task Agent run has started and awaits its own terminal
+checks; Q4 Agent results are not inherited. No p95, sustained, image, model-
+attributed physical SSD or aggregate-memory qualification follows.
+
 The [current-source native Qt Agent rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_qt_agent.json)
 passed one actual Q4 request through the existing offscreen Qt event loop,
 Omni stage, ordered stream and terminal controls, followed by clean controller,
@@ -39,8 +49,9 @@ default-route qualification follows.
 
 Engine preparation has advanced independently: [ISTA Q2/IQ3 acquisition](../edge_harness/results/strata_20261008/ista_artifact_inventory.json)
 and [both text-route packs](../edge_harness/results/strata_20261008/ista_preparation.json)
-are complete, with full hashes and preparation admission checks. Neither
-route has executed a model or Agent request. The isolated native I/O build
+are complete, with full hashes and preparation admission checks. The preparation
+record itself contains no neural requests; subsequent Q2 engine evidence is
+recorded above, its Agent run is pending, and IQ3 has not executed a request. The isolated native I/O build
 also passed compilation, static runtime verification and Windows/WSL
 integration tests. Its [independent Q4 engine run](../edge_harness/results/strata_20261008/native_q4_observed_io.json)
 now passed three text requests, cancellation and fresh-worker recovery with

@@ -1,0 +1,15 @@
+{
+  "schema": "omni-private-q2-public-proposal-review-v1",
+  "reviewed_unix": 1791471912.5840273,
+  "proposal_sha256": "befb4c9fc1a14b589d5a486889a695a4f1ee9df9473e8cc43beaafb164734257",
+  "status": "proposed_for_parent_review",
+  "safe_field_scan_violations": [],
+  "raw_or_production_mutated": false,
+  "independent_audit_sha256": "df98f5357816eb429515ba43d289888dfd15c9e95f88c972b93712dd9998e30b",
+  "receipt_sha256": "79bb2d305e65b24207a526dfd0d0ecb6d9820073d3c49f0c2db008ca9c270a1a",
+  "raw_closed_files_rechecked": true,
+  "native_generations_absent": true,
+  "separate_pdh_generation_absent": true,
+  "privacy_scope": "No raw prompt/answer/tool payload, native path, nonce, encoded screen or credential; content hashes and allowlisted numeric facts only",
+  "qualification_created": false
+}

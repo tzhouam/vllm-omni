@@ -1,5 +1,19 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+The [ISTA Q2 native lifecycle](native_ista_q2_observed_lifecycle.json)
+passed [independent review](native_ista_q2_observed_lifecycle_review.json).
+Its English, Chinese arithmetic and JSON requests took 2.52 / 4.99 / 3.61 s;
+cancellation after two deltas drained in 2.31 s and fresh-worker recovery
+completed in 2.48 s. Initial/recovery starts of 206.89 / 183.89 s include full
+hashing and initialization. All 16 closed raw files, native request/epoch/I/O
+bindings, selected modules, five empty ledgers and six retired process identities
+were checked. Both 8 GiB RAM expert caches remain SSD-backed. The Q2 Agent
+five-task run has started; it cannot inherit Q4 outcomes. Telemetry has one
+89.77 ms timestamp reversal, with no chronological integration. A separately
+closed 757-row PDH interval observes device-wide disk and system-wide cache
+accounting only; model-attributed physical SSD bytes remain unknown. No image,
+p95, sustained-operation, total-memory-cap, default or release qualification.
+
 The [current-source native Qt Agent request](native_q4_observed_final_qt_agent.json)
 and [independent review](native_q4_observed_final_qt_agent_review.json) now pass.
 The real Q4 model returned one exact answer through the existing offscreen
@@ -69,9 +83,10 @@ files independently SHA-verified. The [preparation review](ista_preparation.json
 binds both text packs, launch configurations, conversion records and all 18
 prepared files. Each uses an 8 GiB expert RAM cache, 4K context, FP16 KV,
 MTP/prefetch off and passed its live-capacity preparation preflight. These
-are SSD-backed cache experiments, not fully RAM-resident models. No Q2/IQ3
-neural request or projector execution is recorded yet; launch admission is
-rechecked rather than inheriting the preparation snapshot.
+are SSD-backed cache experiments, not fully RAM-resident models. This preparation
+record contains no neural requests; subsequent Q2 lifecycle evidence appears
+above. IQ3 requests and projector execution remain pending. Startup admission
+is rechecked rather than inheriting the preparation snapshot.
 
 The separate [native I/O patch/build](../../runtime_patches/README.md) completed
 an isolated Windows CUDA 13.4 build and full bundle static verification;
