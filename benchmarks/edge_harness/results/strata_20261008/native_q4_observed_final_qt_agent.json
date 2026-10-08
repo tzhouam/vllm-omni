@@ -1,0 +1,654 @@
+{
+  "schema": "omni-strata-native-observed-q4-qt-functional-v1",
+  "observed_date": "2026-10-08",
+  "status": "one_native_offscreen_qt_agent_request_passed",
+  "scope": "One actual neural request through the existing native offscreen Qt Agent, with complete native I/O and stream-to-final identity checks. No browser/tool/Windows interaction, visual-model, memory-quality, controlled performance or release qualification.",
+  "batch_size": 1,
+  "concurrency": 1,
+  "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+  "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+  "identity": {
+    "private_independent_audit_sha256": "5aa4dd15d63fabf12d1c5765e872d28e9bf963ed35ee4f7f0deb2a16f0c1c1be",
+    "private_independent_auditor_script_sha256": "dea3c4b6499a2863bce5901b2a7ed276621088044bf81973670b84b4d7f66d73",
+    "independent_native_helper_sha256": "88c66c5589bf4a3d3ec577878f7ae6300ccda2911434a7d22e69e53e3e02cdc5",
+    "private_raw_receipt_sha256": "e6229b40a80ea06b4c52feeb0a88cab09b31489feffd8a42bb971644e0df7da2",
+    "private_owner_record_sha256": "0ebdc5e60c627e77c4e8c4cad5e33c118aac949197cc3521c6ed8d18d262ac04",
+    "private_runner_sha256": "d3775c9c9eb4e7389c38a05f46fa395bf1fb564506f6168df1bce33dbec77975",
+    "launch_file_sha256": "63267892b4c90892e4fadd35c7f0adbabe0309650f5deb0a6e59e7c6f5cc2ac5",
+    "successful_lifecycle_receipt_sha256": "2c9044903974ab8ad1ec34e75f1d3443070ea29c9919cda74f5480b9f6d7c488",
+    "successful_lifecycle_independent_audit_sha256": "69f61b3060f4407aaaa70f2eac9167bdffb64d5e3a5f1da4be3d239a39da91ab",
+    "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+    "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+    "runtime_manifest_sha256": "2f0c41fce151ed7fcfdd735e1aa29c6b355245e6d45d20aedb6e01b896744c00",
+    "loaded_plan_file_sha256": "2c937b9a33923973f9cb2c5116e12f26c558cfe5381afc42b7b8327ac03584da",
+    "loaded_plan_canonical_sha256": "7fa427159bd731eaf5e7b7743dbfdadde3db43a24341768722545539f7dffbd7",
+    "route_controls_sha256": "7dbe0c423ce929d8228af7c3135e1b375586d9d009377f30204d40aae6c040e8",
+    "source_before_after_equal": true,
+    "recorded_repo_source_manifest_sha256": "ee69413b0153736c876971c3bf78ce4f4c03099faaf9c578ef30930686d8dcac",
+    "selected_source_files": {
+      "vllm_omni/engine/backends/strata.py": "b32263ffc79b67147f39862323d2913a04a7564a82f9f704916f97e89b1e323f",
+      "vllm_omni/engine/backends/strata_io.py": "efdcef837e18392ff439c63c6ae0f86d60873e9309078025e0a4bc5b9886ba5c",
+      "vllm_omni/engine/local_plan.py": "89ee2fdf6396329f126a1b472503c64517e3c5764946bb76b71275ab3f336824",
+      "vllm_omni/engine/stage_runtime.py": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+      "vllm_omni/edge/agent/controller.py": "a55dad1ad5f1ca9be7cbe4eb4cf2615f639d6ad47c257f4fd4b1197e19e8a6ec",
+      "vllm_omni/edge/agent/omni_backend.py": "a839a632e98a27eef383f5d2ccf13b34e52470f856099ee6a7b8e28d0c40957b",
+      "vllm_omni/edge/agent/strata_route.py": "2c04ce28d8f66bc0ab95771515df9783bec48c2bce4caca67561f3358c390014",
+      "vllm_omni/edge/agent/placement.py": "a8dc291072ecc166333954a85f0ebf9b63f22bac1817a01d639af4c5cc5b31be",
+      "vllm_omni/edge/agent/desktop.py": "9eaa62bb88ca48223c945a1a2a5789e671f81926c4b385eafd32a7aac8698a4d",
+      "vllm_omni/edge/windows_gpu_memory.py": "857307b9e7ec043f9c0e632c1104da3e005e6b9e7f2b9efb6579c0415212a213",
+      "benchmarks/edge_harness/strata_profile.py": "9f1b2daac826f2949f9d8d49edde3ef7b9e86d166cf999f8781e5634b927cfc5",
+      "benchmarks/edge_agent/native_profile.py": "30a10c9f973e39261bea883c7ee2b9dd976ead0faf6d8c6d5bfb99e37ce2ec1a"
+    },
+    "source_scope": "before/after exact recorded local working-tree equality; selected current source bytes checked; preserved unrelated dirty files prevent clean-commit assertion"
+  },
+  "observation_runtime": {
+    "schema": "omni-strata-observed-runtime-v1",
+    "identity_sha256": "3fb435514ebe482fb9527c8310c9bb8de8fe1ed56e97c8e5c6fc2258a8df740d",
+    "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+    "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
+    "native_executable_sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b",
+    "patch_sha256": "31b98e5e02e21a6289d0713097036334a59aef2d15ad9e951ded80f59f4bfdcc",
+    "patch_source_hashes": {
+      "include/strata/core/expert_source.hpp": {
+        "base_sha256": "32f9bc3e7e72c2713d9323dd7353ad70e6b58604daa4e4c18a7e20e1c9929f1f",
+        "patched_sha256": "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081"
+      },
+      "include/strata/kernels/ngram.hpp": {
+        "base_sha256": "edc6d36eaf6062e8c377577de787ed9e5576ede19e04c5964dc7e6b83b8d01ac",
+        "patched_sha256": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4"
+      },
+      "include/strata/ngram/ple_reader.hpp": {
+        "base_sha256": "d19b99a681a533f47144293bb170913c1496b5e0c344aed097ad1418375f7498",
+        "patched_sha256": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c"
+      },
+      "src/core/expert_source.cpp": {
+        "base_sha256": "2f0e14294ba463fd4fbcfb58829865c5f33712bcc72c6856ebbe2ff595b6e208",
+        "patched_sha256": "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0"
+      },
+      "src/kernels/ngram.cpp": {
+        "base_sha256": "e609caf1bb0812f366d96a5304c0f98e2864c1c0d22a0bef7b35d818e09debd5",
+        "patched_sha256": "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb"
+      },
+      "src/ngram/ple_reader.cpp": {
+        "base_sha256": "ddec6dbcc8afd8186c724403d5aaa54b70b9fbd551fea733ce422974131ede9e",
+        "patched_sha256": "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c"
+      },
+      "src/program/generate.cpp": {
+        "base_sha256": "f4eda3a268133016a74b80d61dca99d6e4ce0df99dae4862fd3f6c1026a11d56",
+        "patched_sha256": "d6cec7139469ded5e949025e145cbbd1328212d9e151f10d1f118b522cd15cb8"
+      }
+    },
+    "build_receipt_sha256": "47047533c9c35dcb5c11189fefc76ccd5f4dd22e08cc43662ca83847d14f108d",
+    "dependency_provenance_sha256": "c61f172b9cd688d57c1b327a4b64a4bd99a53ca62364666cf016f78675856bd1",
+    "runtime_dependencies_sha256": "fd4c9277352c5b247490077212ef97ea6f06658eb62ca32b0f11b5373b249d21",
+    "supervisor_bootstrap_sha256": "ad1e4b4a7b530bebc63bc991b4f0f0874bd452e690085bb77b149859c53df30e",
+    "io_adapter_sha256": "efdcef837e18392ff439c63c6ae0f86d60873e9309078025e0a4bc5b9886ba5c",
+    "native_io_schema": "strata-omni-io-v1",
+    "measurement_identity_changed": true,
+    "three_tier_memory_qualified": false,
+    "native_dll_search_policy": "isolated_engine_and_system32"
+  },
+  "hardware": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+    "host_ram_total_bytes": 67773509632,
+    "gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "vram_total_bytes": 25651314688
+  },
+  "power_condition": {
+    "recorded_hardware_snapshot": "AC",
+    "continuous_power_condition_verified": false,
+    "whole_device_power_measured": false
+  },
+  "configuration": {
+    "expert_ram_budget_bytes": 8589934592,
+    "host_overhead_bytes": 6442450944,
+    "gpu_budget_bytes": 17179869184,
+    "context_tokens": 4096,
+    "max_new_tokens": 512,
+    "kv_type": "fp16",
+    "max_io_bytes": 1048576,
+    "batch_size": 1,
+    "mtp_enabled": false,
+    "ple_prefetch_requested": false,
+    "routing_prefetch_requested": false,
+    "io_prefetch_requested": false,
+    "gpu_expert_cache_control": {
+      "schema": "omni-strata-explicit-cache-v2",
+      "layout_sha256": "5ed2c4a55910616db1efe16f0c989e9bec80cc8b9e95bf1c42f886aadfffd2d6",
+      "layout_version": 4,
+      "layers": 48,
+      "max_blob_bytes": 3993600,
+      "alignment_bytes": 256,
+      "aligned_max_blob_bytes": 3993600,
+      "budget_bytes": 8053063680,
+      "requested_slots": 2016,
+      "allocation_upper_bytes": 8051097600,
+      "source_contract": [
+        "kernels/cpu/expert_layout.cpp:311-415",
+        "core/expert_cache.cpp:469-585"
+      ]
+    },
+    "expert_cache_component_bounds": {
+      "evidence": "native_control_bound_with_floor_MiB_INFO_consistency",
+      "gpu_expert_cache": {
+        "observed_slots": 2572,
+        "observed_mib_floor": 7676,
+        "allocation_lower_bytes": 8048869376,
+        "allocation_upper_bytes": 8049917951,
+        "declared_budget_bytes": 8053063680,
+        "profile_sized": true
+      },
+      "ram_expert_cache": {
+        "observed_mib_floor": 8191,
+        "allocation_lower_bytes": 8588886016,
+        "allocation_upper_bytes": 8589934591,
+        "declared_budget_bytes": 8589934592,
+        "source_contract": "core/expert_source.cpp:2101-2147; program/generate.cpp:7892"
+      },
+      "aggregate_gpu_hard_cap_verified": false,
+      "total_process_peak_verified": false,
+      "aggregate_gpu_declared_components_upper_bytes": 17176723455,
+      "aggregate_gpu_budget_bytes": 17179869184
+    },
+    "verified_execution_configuration": "cpu+cuda:0",
+    "observed_model_placement": null
+  },
+  "actual_request_mapping": {
+    "outer_agent_request_id_sha256": "ad96fee8625b7e221eabab14342804ffccbf7ead204e0c9c81088c854e5b17bf",
+    "traced_model_request_id_sha256": "0d2f0c0aca1958aa1c5dec5de5413bb632010903a8255bc8e114f7d5f07a0612",
+    "native_generation_sha256": "6fd57d1f867d48dc5bfbd9857b786fcfdba2744b0bf64bf409de85aa18d25524",
+    "native_process_generation_identity_sha256": "1ddeadbe9969e5c479434695483612c7b74dab9afb1ad887f7c7d188293876a5",
+    "model_step": 0,
+    "traced_model_id_is_outer_id_plus_step_0": true,
+    "ordered_outer_agent_sequences": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "ordered_native_stage_sequences": [
+      1,
+      2
+    ],
+    "outer_agent_epoch": 1,
+    "native_epoch": 1,
+    "native_request_seq": 1,
+    "terminal_and_saved_getter_same_owned_request": true,
+    "independently_checked": true,
+    "scope": "Actual saved outer events, traced generate call, streamed and terminal stage events, and complete native report. Request and generation nonces are published only as hashes."
+  },
+  "native_io_observation": {
+    "schema": "omni-strata-request-io-observation-v1",
+    "status": "complete",
+    "epoch": 1,
+    "native_request_seq": 1,
+    "runtime_identity_sha256": "3fb435514ebe482fb9527c8310c9bb8de8fe1ed56e97c8e5c6fc2258a8df740d",
+    "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+    "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+    "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+    "loading_covered": false,
+    "physical_ssd_read_bytes": null,
+    "three_tier_memory_qualified": false,
+    "raw_snapshots": [
+      {
+        "expert": {
+          "direct_completed": 14408,
+          "direct_completed_aligned_bytes": 17180090368,
+          "direct_completion_errors": 0,
+          "direct_counters_available": true,
+          "direct_short_reads": 0,
+          "direct_submit_errors": 0,
+          "direct_submitted": 14408,
+          "file_blobs": 0,
+          "file_thread_us": 13315048,
+          "logical_blob_bytes": 8052940800,
+          "logical_file_bytes": 8052940800,
+          "mapped_fallback_blobs": 0,
+          "ram_blobs": 0,
+          "source_active": true,
+          "unbuffered_active": true
+        },
+        "phase": "request_start",
+        "physical_ssd_read_bytes": null,
+        "ple": {
+          "all_completed_aligned_bytes": 0,
+          "all_completed_reads": 0,
+          "cache_hits": 0,
+          "collect_wait_us": 0.0,
+          "completion_errors": 0,
+          "dedup_rows": 0,
+          "demand_completed_bytes": 0,
+          "demand_reads_issued": 0,
+          "direct_active": true,
+          "keepalive_bytes": 0,
+          "keepalive_reads": 0,
+          "logical_table_bytes": 0,
+          "read_latency_sum_us": 0.0,
+          "rows_requested": 0,
+          "short_reads": 0,
+          "submit_errors": 0,
+          "submit_us": 0.0
+        },
+        "qpc": 19227350383827,
+        "qpc_hz": 10000000,
+        "request_seq": 1,
+        "schema": "strata-omni-io-v1",
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+      },
+      {
+        "expert": {
+          "direct_completed": 35636,
+          "direct_completed_aligned_bytes": 39446880256,
+          "direct_completion_errors": 0,
+          "direct_counters_available": true,
+          "direct_short_reads": 0,
+          "direct_submit_errors": 0,
+          "direct_submitted": 35636,
+          "file_blobs": 84,
+          "file_thread_us": 374461569,
+          "logical_blob_bytes": 8052940800,
+          "logical_file_bytes": 30232780800,
+          "mapped_fallback_blobs": 0,
+          "ram_blobs": 2020,
+          "source_active": true,
+          "unbuffered_active": true
+        },
+        "phase": "prefill_end_decode_start",
+        "physical_ssd_read_bytes": null,
+        "ple": {
+          "all_completed_aligned_bytes": 10956800,
+          "all_completed_reads": 2614,
+          "cache_hits": 0,
+          "collect_wait_us": 677461.8,
+          "completion_errors": 0,
+          "dedup_rows": 65,
+          "demand_completed_bytes": 10469376,
+          "demand_reads_issued": 2495,
+          "direct_active": true,
+          "keepalive_bytes": 487424,
+          "keepalive_reads": 119,
+          "logical_table_bytes": 230400,
+          "read_latency_sum_us": 159232134.199,
+          "rows_requested": 2560,
+          "short_reads": 0,
+          "submit_errors": 0,
+          "submit_us": 14472.701
+        },
+        "qpc": 19227486955915,
+        "qpc_hz": 10000000,
+        "request_seq": 1,
+        "schema": "strata-omni-io-v1",
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+      },
+      {
+        "expert": {
+          "direct_completed": 37069,
+          "direct_completed_aligned_bytes": 40983220224,
+          "direct_completion_errors": 0,
+          "direct_counters_available": true,
+          "direct_short_reads": 0,
+          "direct_submit_errors": 0,
+          "direct_submitted": 37069,
+          "file_blobs": 593,
+          "file_thread_us": 375919222,
+          "logical_blob_bytes": 9574195200,
+          "logical_file_bytes": 31754035200,
+          "mapped_fallback_blobs": 0,
+          "ram_blobs": 2230,
+          "source_active": true,
+          "unbuffered_active": true
+        },
+        "phase": "request_end",
+        "physical_ssd_read_bytes": null,
+        "ple": {
+          "all_completed_aligned_bytes": 11141120,
+          "all_completed_reads": 2659,
+          "cache_hits": 0,
+          "collect_wait_us": 677464.2,
+          "completion_errors": 0,
+          "dedup_rows": 65,
+          "demand_completed_bytes": 10600448,
+          "demand_reads_issued": 2527,
+          "direct_active": true,
+          "keepalive_bytes": 540672,
+          "keepalive_reads": 132,
+          "logical_table_bytes": 233280,
+          "read_latency_sum_us": 159284240.299,
+          "rows_requested": 2592,
+          "short_reads": 0,
+          "submit_errors": 0,
+          "submit_us": 14535.401
+        },
+        "qpc": 19227502859813,
+        "qpc_hz": 10000000,
+        "request_seq": 1,
+        "schema": "strata-omni-io-v1",
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+      }
+    ],
+    "intervals": {
+      "prefill": {
+        "expert": {
+          "direct_short_reads": 0,
+          "file_blobs": 84,
+          "file_thread_us": 361146521,
+          "direct_completed_aligned_bytes": 22266789888,
+          "direct_submitted": 21228,
+          "logical_blob_bytes": 0,
+          "ram_blobs": 2020,
+          "direct_submit_errors": 0,
+          "mapped_fallback_blobs": 0,
+          "logical_file_bytes": 22179840000,
+          "direct_completion_errors": 0,
+          "direct_completed": 21228
+        },
+        "ple": {
+          "demand_reads_issued": 2495,
+          "logical_table_bytes": 230400,
+          "dedup_rows": 65,
+          "completion_errors": 0,
+          "read_latency_sum_us": 159232134.199,
+          "collect_wait_us": 677461.8,
+          "short_reads": 0,
+          "submit_us": 14472.701,
+          "keepalive_bytes": 487424,
+          "submit_errors": 0,
+          "keepalive_reads": 119,
+          "cache_hits": 0,
+          "demand_completed_bytes": 10469376,
+          "rows_requested": 2560,
+          "all_completed_reads": 2614,
+          "all_completed_aligned_bytes": 10956800
+        },
+        "boundary_wall_s": 13.6572088
+      },
+      "decode": {
+        "expert": {
+          "direct_short_reads": 0,
+          "file_blobs": 509,
+          "file_thread_us": 1457653,
+          "direct_completed_aligned_bytes": 1536339968,
+          "direct_submitted": 1433,
+          "logical_blob_bytes": 1521254400,
+          "ram_blobs": 210,
+          "direct_submit_errors": 0,
+          "mapped_fallback_blobs": 0,
+          "logical_file_bytes": 1521254400,
+          "direct_completion_errors": 0,
+          "direct_completed": 1433
+        },
+        "ple": {
+          "demand_reads_issued": 32,
+          "logical_table_bytes": 2880,
+          "dedup_rows": 0,
+          "completion_errors": 0,
+          "read_latency_sum_us": 52106.09999999404,
+          "collect_wait_us": 2.3999999999068677,
+          "short_reads": 0,
+          "submit_us": 62.70000000000073,
+          "keepalive_bytes": 53248,
+          "submit_errors": 0,
+          "keepalive_reads": 13,
+          "cache_hits": 0,
+          "demand_completed_bytes": 131072,
+          "rows_requested": 32,
+          "all_completed_reads": 45,
+          "all_completed_aligned_bytes": 184320
+        },
+        "boundary_wall_s": 1.5903898
+      },
+      "whole_native_interval": {
+        "expert": {
+          "direct_short_reads": 0,
+          "file_blobs": 593,
+          "file_thread_us": 362604174,
+          "direct_completed_aligned_bytes": 23803129856,
+          "direct_submitted": 22661,
+          "logical_blob_bytes": 1521254400,
+          "ram_blobs": 2230,
+          "direct_submit_errors": 0,
+          "mapped_fallback_blobs": 0,
+          "logical_file_bytes": 23701094400,
+          "direct_completion_errors": 0,
+          "direct_completed": 22661
+        },
+        "ple": {
+          "demand_reads_issued": 2527,
+          "logical_table_bytes": 233280,
+          "dedup_rows": 65,
+          "completion_errors": 0,
+          "read_latency_sum_us": 159284240.299,
+          "collect_wait_us": 677464.2,
+          "short_reads": 0,
+          "submit_us": 14535.401,
+          "keepalive_bytes": 540672,
+          "submit_errors": 0,
+          "keepalive_reads": 132,
+          "cache_hits": 0,
+          "demand_completed_bytes": 10600448,
+          "rows_requested": 2592,
+          "all_completed_reads": 2659,
+          "all_completed_aligned_bytes": 11141120
+        },
+        "boundary_wall_s": 15.2475986
+      }
+    },
+    "native_terminal": "stop",
+    "reasons": [],
+    "io_modes": {
+      "expert": "windows_unbuffered_completions_observed",
+      "ple": "direct_completions_observed",
+      "strict_direct_path_verified": false,
+      "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+    }
+  },
+  "native_decode_compute": {
+    "scope": "routed_decode_experts_only",
+    "cpu_expert_entries": 674,
+    "gpu_expert_entries": 286,
+    "units": [
+      "cpu",
+      "cuda:0"
+    ],
+    "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes",
+    "all_operators_covered": false
+  },
+  "selected_native_modules_at_load": {
+    "status": "verified",
+    "scope": "selected_engine_cublas_and_system32_driver_at_load",
+    "all_os_modules_covered": false,
+    "native_process_generation_identity_sha256": "1ddeadbe9969e5c479434695483612c7b74dab9afb1ad887f7c7d188293876a5",
+    "modules": [
+      {
+        "name": "cublas64_13.dll",
+        "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+        "size_bytes": 54942320,
+        "identity_source": "verified_runtime_manifest"
+      },
+      {
+        "name": "cublaslt64_13.dll",
+        "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+        "size_bytes": 492752496,
+        "identity_source": "verified_runtime_manifest"
+      },
+      {
+        "name": "nvcuda.dll",
+        "sha256": "f45bbcc7ef1a3e5c479c080ebd02681e83e4881ee0e0ef133e714b43f1644d57",
+        "size_bytes": 4714688,
+        "identity_source": "machine_System32_driver"
+      },
+      {
+        "name": "strata.exe",
+        "sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b",
+        "size_bytes": 58833408,
+        "identity_source": "verified_runtime_manifest"
+      }
+    ]
+  },
+  "timings": {
+    "ui_submit_preparation_to_terminal_event_wall_s": 294.3440348999575,
+    "ui_submit_preparation_to_post_render_wall_s": 294.52452660002746,
+    "route_event_to_final_event_s": 15.723357915878296,
+    "user_observation_to_route_event_s": 278.6045742034912,
+    "whole_model_wall_s": 15.514321200083941,
+    "first_visible_sse_after_omni_submission_s": 15.034497700165957,
+    "model_generate_trace_wall_s": 15.663086175918579,
+    "limits": "single smoke sample; UI overall includes route preparation/loading; SSE latency is not Qt rendering TTFT; no p50/p95"
+  },
+  "ui_checks": {
+    "reference_answer_matches": true,
+    "single_prompt_and_visible_answer": true,
+    "send_enabled": true,
+    "cancel_disabled": true,
+    "experimental_and_whole_placement_unknown_displayed": true,
+    "captured_window_pixels_independently_viewed": true,
+    "capture_width": 1040,
+    "capture_height": 760,
+    "private_screenshot_sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+    "private_transcript_sha256": "13c90e75c189c3274da4f9480e5d3fccc8550fc8c43532fdfcfc23f58b217869",
+    "scope": "Actual offscreen Qt control state, transcript multiplicity and captured window. Screenshot/transcript remain private; no Qt pixel-render TTFT was measured."
+  },
+  "resources": {
+    "live_capacities_bytes": {
+      "host_ram": 24055640064,
+      "vram": 20018720768,
+      "windows_commit": 70496292864,
+      "ssd": 852307972236
+    },
+    "before_request_reserved_bytes": {
+      "host_ram": 0,
+      "vram": 0,
+      "windows_commit": 0,
+      "ssd": 0
+    },
+    "resident_reserved_bytes": {
+      "host_ram": 15033434112,
+      "vram": 17179869184,
+      "windows_commit": 42949672960,
+      "ssd": 117774337451
+    },
+    "resident_owner_count": 1,
+    "resident_quarantined_owner_count": 0,
+    "final_ledger": {
+      "capacities": {
+        "host_ram": 24055640064,
+        "vram": 20018720768,
+        "windows_commit": 70496292864,
+        "ssd": 852307972236
+      },
+      "reserved": {
+        "host_ram": 0,
+        "vram": 0,
+        "windows_commit": 0,
+        "ssd": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "controller_close_succeeded": true,
+    "resource_drain_verified": true,
+    "recorded_process_generations_authoritatively_absent": true,
+    "recorded_process_generation_count": 4,
+    "scope": "Admission/reservation and release evidence; declared lease bytes are not measured allocation peaks or aggregate hard caps."
+  },
+  "telemetry": {
+    "periodic_samples": 1504,
+    "edge_samples": 1,
+    "rows": 1505,
+    "observed_process_samples": 73,
+    "unknown_process_samples": 1432,
+    "sampled_local_peak_bytes": 14438891520,
+    "sampled_nonlocal_peak_bytes": 10437525504,
+    "sample_timestamps_monotonic": true,
+    "timestamp_reversal_count": 0,
+    "max_timestamp_reversal_s": 0,
+    "chronological_time_integrated_analysis_verified": false,
+    "limits": "separate sampled WDDM local/nonlocal; nonlocal overlaps host RAM; loading/transients/aggregate caps/whole-device power unverified"
+  },
+  "runtime_fingerprints": {
+    "loaded_runtime_sha256": "d680877c69e9cdf972730685cdcd070085d2f48779f20fe07101ebae7c0135bb",
+    "environment_fingerprint": "9b980b61b29d00246fc1e2f0c6e7ddaaf5b886964d98fa702f6f81057df35f3c",
+    "environment_fingerprint_recomputed": true,
+    "backend_python_environment_matches_launch": true,
+    "full_loaded_runtime_identity_preimage_captured": false,
+    "limits": "full Agent dependency/version/source-root preimage was not serialized; opaque digest cannot be independently reconstructed from saved evidence"
+  },
+  "getter_scope": "saved terminal and last-native-io copies agree; byte-bound runner checked live getter equality before retirement; retired getter is not invoked by this audit",
+  "plan_immutability_scope": "saved load plan matches placement evidence and byte-bound runner checked live plan equality after request; no second post-request loaded-plan snapshot",
+  "measurement_conditions": {
+    "cache": "existing caches; preflight and backend rehash bytes; cold disk not established",
+    "disk_isolation": "prelaunch owned downloader/build guard; unrelated system I/O is not excluded",
+    "timing": "single functional sample; no p50/p95 or isolated performance claim"
+  },
+  "private_raw_files": {
+    "actual-loaded-plan.json": {
+      "size_bytes": 234119,
+      "sha256": "2c937b9a33923973f9cb2c5116e12f26c558cfe5381afc42b7b8327ac03584da"
+    },
+    "backend-model-calls.json": {
+      "size_bytes": 271,
+      "sha256": "e386df5576916accda4f2723752041bda17c2c06dbb049b2989423a99a8f85c4"
+    },
+    "config.json": {
+      "size_bytes": 1046964,
+      "sha256": "6f301f4f4a7edd45fd42964694db04c1f1555454289f60bcd01b273fef92184b"
+    },
+    "effective-launch.json": {
+      "size_bytes": 952848,
+      "sha256": "63267892b4c90892e4fadd35c7f0adbabe0309650f5deb0a6e59e7c6f5cc2ac5"
+    },
+    "events.jsonl": {
+      "size_bytes": 12519,
+      "sha256": "8599cbf09b8dca0403debb4553ffa264110f04d3826d76a5c6d1d3b5bd131050"
+    },
+    "hardware.json": {
+      "size_bytes": 933,
+      "sha256": "c3725095c2530031a1244ca6ccad6b6434aefc894e88f2f46c0820cfb0cd6b34"
+    },
+    "last-native-io-observation.json": {
+      "size_bytes": 8793,
+      "sha256": "2d927283a3b3cdcbaff6751044822d1f57eee4e56088406004d7045c7b013cc6"
+    },
+    "memory.sqlite": {
+      "size_bytes": 167936,
+      "sha256": "d76f506c598817e2f584f93e23aead5277ecbf36158de895f9791b4c91e58362"
+    },
+    "placement-evidence.json": {
+      "size_bytes": 262986,
+      "sha256": "e6860f825354c5fbea5c178532e9ece81e1b58d264446cfff54d25c5acf46789"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 1468673,
+      "sha256": "8bfd2a5a979d7905830340413d79149d152b8404e3718f4f661fd429df03a6d4"
+    },
+    "transcript.txt": {
+      "size_bytes": 434,
+      "sha256": "13c90e75c189c3274da4f9480e5d3fccc8550fc8c43532fdfcfc23f58b217869"
+    },
+    "window.png": {
+      "size_bytes": 59775,
+      "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e"
+    }
+  },
+  "physical_ssd_read_bytes": null,
+  "three_tier_memory_qualified": false,
+  "default_route_qualified": false,
+  "controlled_performance_qualified": false,
+  "release_qualified": false,
+  "qualification_created": false,
+  "limitations": [
+    "One functional smoke sample; model-call and SSE durations exclude route loading while the UI submit-to-terminal duration includes preparation and loading.",
+    "First visible SSE latency is not Qt pixel-render TTFT; no p50/p95, paired baseline, sustained run, tool or task-suite qualification.",
+    "Full loaded Agent dependency/version/source-root preimage was not serialized. The recorded opaque runtime digest flows into a recomputed environment fingerprint but cannot be independently reconstructed from saved evidence.",
+    "WDDM local and nonlocal values are separate sampled process accounting; nonlocal overlaps host RAM. Loading, transients, aggregate memory caps and model-attributed physical SSD bytes remain unverified.",
+    "The window capture was actually viewed; only its hash is public. This run establishes offscreen Qt behavior, not interactive Windows desktop operation.",
+    "The raw plan and last-I/O files agree with terminal evidence; live equality was checked by the exact byte-bound runner, and retired objects are not re-invoked by the independent audit.",
+    "Selected modules were checked at load, not every OS module or continuous dependency behavior.",
+    "No timestamp reversal occurred in this Qt telemetry file; chronological/time-integrated analysis is still not verified."
+  ]
+}

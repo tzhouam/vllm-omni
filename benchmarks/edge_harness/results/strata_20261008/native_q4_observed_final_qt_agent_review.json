@@ -1,0 +1,35 @@
+{
+  "schema": "omni-strata-native-observed-q4-qt-functional-review-v1",
+  "status": "passed",
+  "aggregate": "native_q4_observed_final_qt_agent.json",
+  "aggregate_sha256": "32c665b586434657b1d72f49fb21aba6583fd493d198de539bd43345aace9886",
+  "private_independent_audit_sha256": "5aa4dd15d63fabf12d1c5765e872d28e9bf963ed35ee4f7f0deb2a16f0c1c1be",
+  "private_auditor_script_sha256": "dea3c4b6499a2863bce5901b2a7ed276621088044bf81973670b84b4d7f66d73",
+  "private_raw_receipt_sha256": "e6229b40a80ea06b4c52feeb0a88cab09b31489feffd8a42bb971644e0df7da2",
+  "private_runner_sha256": "d3775c9c9eb4e7389c38a05f46fa395bf1fb564506f6168df1bce33dbec77975",
+  "runtime_identity_sha256": "3fb435514ebe482fb9527c8310c9bb8de8fe1ed56e97c8e5c6fc2258a8df740d",
+  "route_controls_sha256": "7dbe0c423ce929d8228af7c3135e1b375586d9d009377f30204d40aae6c040e8",
+  "launch_file_sha256": "63267892b4c90892e4fadd35c7f0adbabe0309650f5deb0a6e59e7c6f5cc2ac5",
+  "reviewed_scope": [
+    "Exact 12-file stopped raw closure and receipt binding.",
+    "Current integration source, native runtime, controls and selected loaded module identities.",
+    "Actual outer Agent to inner model request mapping and ordered native events.",
+    "Complete native QPC I/O intervals and scoped routed-decode CPU/GPU counters.",
+    "Actual offscreen Qt transcript/control checks and separately viewed saved window pixels.",
+    "Controller close, empty shared ledger and authoritative native process retirement.",
+    "Exact timing boundaries, WDDM sampled peaks and explicit unknown physical SSD attribution.",
+    "Public numeric/identity/closure correspondence independently rechecked; safe-field privacy scan."
+  ],
+  "limits": [
+    "One short actual offscreen Qt request; no general browser, Windows tools, visual-model, memory task-suite or p95 qualification.",
+    "UI submit-to-terminal includes preparation, full hashing and startup; first visible SSE is not Qt render TTFT.",
+    "Full loaded Agent dependency identity preimage absent; opaque digest alone cannot reconstruct it.",
+    "Sampled WDDM values do not prove loading/transient peaks or aggregate memory caps; nonlocal overlaps host RAM.",
+    "Current working-tree source identity includes preserved unrelated edits and is not a clean-commit release identity."
+  ],
+  "physical_ssd_read_bytes": null,
+  "default_route_qualified": false,
+  "controlled_performance_qualified": false,
+  "release_qualified": false,
+  "qualification_created": false
+}

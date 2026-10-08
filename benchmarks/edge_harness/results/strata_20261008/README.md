@@ -1,5 +1,20 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+The [current-source native Qt Agent request](native_q4_observed_final_qt_agent.json)
+and [independent review](native_q4_observed_final_qt_agent_review.json) now pass.
+The real Q4 model returned one exact answer through the existing offscreen
+Qt Agent and Omni ordered stream; terminal controls, ledger drain and native
+process retirement passed. Model-call wall time was 15.51 s, with first
+visible SSE at 15.03 s after Omni submission, not Qt-render TTFT. The 294.34 s
+submit-to-terminal span includes preparation, full hashing and startup.
+All 12 raw files, the actual outer/inner request mapping, native I/O, selected
+modules and current source bytes are bound. Full Agent dependency preimage
+was not captured and remains an explicit limitation. This is one functional
+sample, with no default, performance, physical SSD or aggregate-memory
+qualification. The separate five-task memory/browser run has started but has
+no completed result yet. The tokenizer-checked batch-1 performance protocol
+is prepared; 60 measured requests and the separate 30-minute run are pending.
+
 The [current-source Q4 lifecycle rerun](native_q4_observed_final_io.json)
 and [independent review](native_q4_observed_final_io_review.json) now pass.
 Three complete short references took 10.88 / 17.61 / 16.46 s; cancellation
@@ -12,8 +27,9 @@ a working-tree identity including preserved unrelated edits, not a clean
 release commit. Telemetry contains one 68.89 ms edge/periodic timestamp
 reversal; native QPC intervals and sampled per-generation peaks are valid,
 while chronological integration is unverified. Pre/post power snapshots
-are separate from continuous power proof. No same-route Agent, p95,
-endurance, physical SSD or aggregate-memory qualification is claimed.
+are separate from continuous power proof. This engine-only record adds no
+Agent, p95, endurance, physical SSD or aggregate-memory qualification; the
+subsequent same-route Qt request is recorded separately above.
 
 The earlier [observed-runtime Q4 run](native_q4_observed_io.json) now passed
 three actual text requests and a fresh-worker recovery request. English,

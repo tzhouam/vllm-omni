@@ -1,13 +1,32 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+The [current-source native Qt Agent rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_qt_agent.json)
+passed one actual Q4 request through the existing offscreen Qt event loop,
+Omni stage, ordered stream and terminal controls, followed by clean controller,
+ledger and process shutdown. The [independent review](../edge_harness/results/strata_20261008/native_q4_observed_final_qt_agent_review.json)
+binds all 12 raw files, source/runtime/control identities and actual request
+mapping. Model-call wall time was **15.51 s**; first visible SSE after Omni
+submission was **15.03 s**, not Qt-render TTFT. The **294.34 s** submit-to-final
+boundary includes preparation, full hashing and startup. One sample adds no
+p95, default-route, memory-quality, tool or release qualification. The saved
+full Agent dependency digest lacks its reconstructable preimage; this remains
+an explicit evidence limitation.
+
+A separate five-task actual run is now started: READY, DPAPI memory seed,
+cross-controller recall, and English/Chinese loopback browser reads through
+the existing tool boundary. No completed task result is recorded yet. Its
+runner captures the full loaded Agent runtime-identity preimage. The fixed
+batch-1, concurrency-1 engine protocol is prepared and tokenizer-checked;
+60 measured requests and a separate 30-minute run have not started. This
+fixed engine suite does not replace complete Agent task qualification.
+
 The current local working-tree [Strata engine lifecycle rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_io.json)
 passed three full text requests, cancellation/drain and fresh-worker recovery;
 its [independent review](../edge_harness/results/strata_20261008/native_q4_observed_final_io_review.json)
 binds the final LF integration bytes and corrected lifecycle owner. This adds
-engine functional evidence only. The actual same-route Qt Agent rerun is
-in preparation; a separate five-task READY/cross-controller DPAPI memory/
-English-Chinese loopback browser runner is prepared but not executed.
-No new Agent, performance or default-route qualification follows.
+engine functional evidence only; the subsequent same-route Qt request and
+live functional-suite status are recorded above. No performance or
+default-route qualification follows.
 
 Engine preparation has advanced independently: [ISTA Q2/IQ3 acquisition](../edge_harness/results/strata_20261008/ista_artifact_inventory.json)
 and [both text-route packs](../edge_harness/results/strata_20261008/ista_preparation.json)
