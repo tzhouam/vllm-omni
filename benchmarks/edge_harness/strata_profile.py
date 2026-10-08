@@ -343,9 +343,10 @@ class Driver(Protocol):
 class OmniStageDriver:
     """Use the production StageRuntime, resource ledger and credited stream."""
 
-    def __init__(self, launch: dict[str, Any], *, resource_ledger: Any) -> None:
+    def __init__(self, launch: dict[str, Any], *, resource_ledger: Any, telemetry: Any = None) -> None:
         self.launch = launch
         self.resource_ledger = resource_ledger
+        self.telemetry = telemetry
         self.runtime = None
         self.pool = None
         self.client = None
@@ -398,11 +399,20 @@ class OmniStageDriver:
         await asyncio.to_thread(self.runtime.initialize)
         self.pool = self.runtime.stage_pools[0]
         self.client = self.pool.stage_client
+        if self.telemetry is not None:
+            self.telemetry.bind_process_identity_provider(
+                getattr(self.client, "gpu_observer_identity", lambda: {"status": "unknown"})
+            )
         return {
             "execution_plan": getattr(self.client, "execution_plan", None),
             "ledger": self.runtime.resource_ledger.snapshot(),
             "loaded_client_module": type(self.client).__module__,
         }
+
+    def gpu_memory_snapshot(self, edge: str, request_id: str) -> dict[str, Any]:
+        if self.telemetry is None:
+            return {"status": "unknown", "reason": "no process GPU observer attached"}
+        return self.telemetry.sample_process_gpu(edge=edge, request_id=request_id)
 
     async def stream(self, request_id: str, prompt: dict[str, Any]) -> AsyncIterator[dict[str, Any]]:
         state = SimpleNamespace(sampling_params_list=[None])
@@ -475,8 +485,12 @@ class OmniStageDriver:
 
     async def close(self) -> dict[str, Any]:
         if self.runtime is not None:
+            gpu = self.gpu_memory_snapshot("before_route_shutdown", "")
             await asyncio.to_thread(self.runtime.shutdown)
-            return {"ledger_after_shutdown": self.runtime.resource_ledger.snapshot()}
+            return {
+                "ledger_after_shutdown": self.runtime.resource_ledger.snapshot(),
+                "process_gpu_before_shutdown": gpu,
+            }
         return {"ledger_after_shutdown": None}
 
 
@@ -503,6 +517,51 @@ class Telemetry:
         self.thread = None
         self.samples = 0
         self.errors: dict[str, str] = {}
+        self.lock = threading.RLock()
+        self.process_identity_provider = None
+        self.process_observer = None
+        self.process_observer_key = None
+        from vllm_omni.edge.windows_gpu_memory import ProcessGpuPeakTracker
+
+        self.process_gpu_peaks = ProcessGpuPeakTracker()
+
+    def bind_process_identity_provider(self, provider: Callable[[], dict[str, Any]]) -> None:
+        with self.lock:
+            self.process_identity_provider = provider
+
+    def _write(self, row: dict[str, Any]) -> None:
+        with self.lock:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with self.path.open("a", encoding="utf-8") as output:
+                output.write(json.dumps(row, allow_nan=False) + "\n")
+
+    def sample_process_gpu(self, *, edge: str | None = None, request_id: str | None = None) -> dict[str, Any]:
+        from vllm_omni.edge.windows_gpu_memory import WindowsProcessGpuObserver, identity_key, unknown_observation
+
+        with self.lock:
+            try:
+                if self.process_identity_provider is None:
+                    raise ValueError("native owner identity is not yet available; loading peak is not observed")
+                identity = self.process_identity_provider()
+                key = identity_key(identity)
+                if key != self.process_observer_key:
+                    self.process_observer = WindowsProcessGpuObserver(identity)
+                    self.process_observer_key = key
+                result = self.process_observer.sample()
+                self.process_gpu_peaks.add(result)
+            except Exception as exc:
+                result = unknown_observation(f"{type(exc).__name__}: {exc}")
+            if edge is not None:
+                self._write(
+                    {
+                        "unix": time.time(),
+                        "kind": "request_edge",
+                        "edge": edge,
+                        "request_id": request_id,
+                        "process_gpu": result,
+                    }
+                )
+            return result
 
     def start(self) -> None:
         if not self.interval_s:
@@ -526,48 +585,45 @@ class Telemetry:
             except Exception as exc:
                 self.errors["gpu"] = f"{type(exc).__name__}: {exc}"
             try:
-                with self.path.open("a", encoding="utf-8") as output:
-                    while not self.stop_event.is_set():
-                        row: dict[str, Any] = {"unix": time.time(), "host": None, "gpus": []}
-                        if psutil:
-                            try:
-                                memory = psutil.virtual_memory()
-                                tree = [psutil.Process()] + psutil.Process().children(recursive=True)
-                                rss = sum(process.memory_info().rss for process in tree if process.is_running())
-                                disk = psutil.disk_io_counters()
-                                row["host"] = {
-                                    "total_ram_bytes": memory.total,
-                                    "available_ram_bytes": memory.available,
-                                    "used_ram_bytes": memory.total - memory.available,
-                                    "process_tree_rss_sum_bytes": rss,
-                                    "system_disk_read_bytes": disk.read_bytes if disk else None,
-                                    "swap_used_bytes": psutil.swap_memory().used,
-                                }
-                            except Exception as exc:
-                                self.errors["host_sample"] = f"{type(exc).__name__}: {exc}"
-                        for handle in handles:
-                            gpu: dict[str, Any] = {}
-                            getters = {
-                                "uuid": lambda: nvml.nvmlDeviceGetUUID(handle),
-                                "name": lambda: nvml.nvmlDeviceGetName(handle),
-                                "used_vram_bytes": lambda: nvml.nvmlDeviceGetMemoryInfo(handle).used,
-                                "total_vram_bytes": lambda: nvml.nvmlDeviceGetMemoryInfo(handle).total,
-                                "power_mw": lambda: nvml.nvmlDeviceGetPowerUsage(handle),
-                                "temperature_c": lambda: nvml.nvmlDeviceGetTemperature(
-                                    handle, nvml.NVML_TEMPERATURE_GPU
-                                ),
+                while not self.stop_event.is_set():
+                    row: dict[str, Any] = {"unix": time.time(), "host": None, "gpus": []}
+                    if psutil:
+                        try:
+                            memory = psutil.virtual_memory()
+                            tree = [psutil.Process()] + psutil.Process().children(recursive=True)
+                            rss = sum(process.memory_info().rss for process in tree if process.is_running())
+                            disk = psutil.disk_io_counters()
+                            row["host"] = {
+                                "total_ram_bytes": memory.total,
+                                "available_ram_bytes": memory.available,
+                                "used_ram_bytes": memory.total - memory.available,
+                                "process_tree_rss_sum_bytes": rss,
+                                "system_disk_read_bytes": disk.read_bytes if disk else None,
+                                "swap_used_bytes": psutil.swap_memory().used,
                             }
-                            for key, getter in getters.items():
-                                try:
-                                    value = getter()
-                                    gpu[key] = value.decode() if isinstance(value, bytes) else value
-                                except Exception:
-                                    gpu[key] = None
-                            row["gpus"].append(gpu)
-                        output.write(json.dumps(row) + "\n")
-                        output.flush()
-                        self.samples += 1
-                        self.stop_event.wait(self.interval_s)
+                        except Exception as exc:
+                            self.errors["host_sample"] = f"{type(exc).__name__}: {exc}"
+                    for handle in handles:
+                        gpu: dict[str, Any] = {}
+                        getters = {
+                            "uuid": lambda: nvml.nvmlDeviceGetUUID(handle),
+                            "name": lambda: nvml.nvmlDeviceGetName(handle),
+                            "used_vram_bytes": lambda: nvml.nvmlDeviceGetMemoryInfo(handle).used,
+                            "total_vram_bytes": lambda: nvml.nvmlDeviceGetMemoryInfo(handle).total,
+                            "power_mw": lambda: nvml.nvmlDeviceGetPowerUsage(handle),
+                            "temperature_c": lambda: nvml.nvmlDeviceGetTemperature(handle, nvml.NVML_TEMPERATURE_GPU),
+                        }
+                        for key, getter in getters.items():
+                            try:
+                                value = getter()
+                                gpu[key] = value.decode() if isinstance(value, bytes) else value
+                            except Exception:
+                                gpu[key] = None
+                        row["gpus"].append(gpu)
+                    row["process_gpu"] = self.sample_process_gpu()
+                    self._write(row)
+                    self.samples += 1
+                    self.stop_event.wait(self.interval_s)
             finally:
                 if nvml:
                     nvml.nvmlShutdown()
@@ -584,7 +640,9 @@ class Telemetry:
             "samples_this_attempt": self.samples,
             "errors": self.errors,
             "interval_s": self.interval_s,
-            "scope": "whole host and each whole visible GPU",
+            "sampling_thread_stopped": self.thread is None or not self.thread.is_alive(),
+            "scope": "whole host/visible GPUs plus separately identified owned native WDDM process",
+            "process_gpu_generations": self.process_gpu_peaks.snapshot(),
             "limitations": [
                 "sampled peaks may miss transients",
                 "tree RSS can count shared pages twice",
@@ -592,6 +650,8 @@ class Telemetry:
                 "system disk reads do not establish model-attributable physical SSD bytes",
                 "GPU power is not whole-device power",
                 "WSL RAM is not an extra RAM pool",
+                "process sampling starts after owner identity is available; loading peak and hard cap are unverified",
+                "WDDM nonlocal GPU memory shares host RAM and must not be added to host RSS",
             ],
         }
 
@@ -680,6 +740,10 @@ async def collect_request(
     reference: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     request_id = "strata-" + uuid.uuid4().hex
+    snapshot = getattr(driver, "gpu_memory_snapshot", None)
+    gpu_before = (
+        snapshot("before_request", request_id) if snapshot else {"status": "unknown", "reason": "observer unavailable"}
+    )
     started = time.perf_counter()
     row: dict[str, Any] = {
         "schema": SCHEMA,
@@ -706,6 +770,7 @@ async def collect_request(
         "finish_reason": None,
         "io": dict(UNKNOWN_IO),
         "metrics": {},
+        "process_gpu_memory_before": gpu_before,
     }
     terminal = None
     previous_sequence = 0
@@ -777,6 +842,9 @@ async def collect_request(
             row["cancel_cleanup_error"] = f"{type(cleanup_error).__name__}: {cleanup_error}"
     finally:
         await iterator.aclose()
+    row["process_gpu_memory_after"] = (
+        snapshot("after_request", request_id) if snapshot else {"status": "unknown", "reason": "observer unavailable"}
+    )
     row["output_sha256"] = hashlib.sha256(row["output_text"].encode()).hexdigest()
     row["reasoning_sha256"] = hashlib.sha256(row["reasoning_content"].encode()).hexdigest()
     row["quality"] = check_quality(row["output_text"], case.get("quality"), reference, row["output_token_ids"])
@@ -931,7 +999,7 @@ async def run_profile(
         from vllm_omni.engine.resource_ledger import ResourceLedger
 
         shared_ledger = ResourceLedger(launch["resource_budget"]["capacities"])
-    factory = driver_factory or (lambda: OmniStageDriver(launch, resource_ledger=shared_ledger))
+    factory = driver_factory or (lambda: OmniStageDriver(launch, resource_ledger=shared_ledger, telemetry=telemetry))
     driver: Driver | None = None
     run_instance_id = uuid.uuid4().hex
 

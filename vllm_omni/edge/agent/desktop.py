@@ -13,9 +13,11 @@ import binascii
 import ctypes
 import hashlib
 import json
+import math
 import sys
 import threading
-from typing import Any, Callable, Mapping, Protocol
+from collections.abc import Callable, Mapping
+from typing import Any, Protocol
 from urllib.parse import parse_qsl
 
 from vllm_omni.edge.agent.tools import _SCREEN_CAPTURE_SCOPE, _foreground_window_target
@@ -75,6 +77,54 @@ def _display_payload(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [_display_payload(item) for item in value]
     return value
+
+
+def _placement_text(payload: Mapping[str, Any]) -> str:
+    """Present a loaded configuration separately from observed computation."""
+    observed = payload.get("actual_placement")
+    evidence = payload.get("execution_configuration_evidence")
+    if (
+        observed is None
+        and payload.get("backend") == "external.strata.text.v1"
+        and payload.get("placement_evidence_level") == "native_loaded_configuration"
+        and isinstance(evidence, Mapping)
+        and evidence.get("status") == "verified"
+        and evidence.get("scope") == "loaded_backend_execution_configuration_not_per_request_compute"
+        and payload.get("verified_execution_configuration") == "cpu+cuda:0"
+    ):
+        return "Loaded: CPU + GPU 0. Complete compute placement is not verified."
+    placement = "Placement: " + (str(observed) if observed is not None else "not verified")
+    if payload.get("placement_evidence_level") == "override_selection_only":
+        placement += " — expert override selected; final storage/compute unverified"
+    return placement
+
+
+def _model_metric_summary(payload: Mapping[str, Any]) -> str:
+    """Show decision-useful timings without dumping internal stage records."""
+    metrics = payload.get("metrics")
+    metrics = metrics if isinstance(metrics, Mapping) else {}
+    parts = []
+    for label, value in (("Model response", metrics.get("whole_model_wall_s")),
+                         ("First visible text", payload.get("ttft_s"))):
+        if type(value) in (int, float) and math.isfinite(value) and value >= 0:
+            parts.append(f"{label}: {value:.2f}s")
+    backend = metrics.get("backend_metrics")
+    backend = backend if isinstance(backend, Mapping) else {}
+    telemetry = backend.get("runtime_telemetry")
+    telemetry = telemetry if isinstance(telemetry, Mapping) else {}
+    native = telemetry.get("native_compute")
+    if isinstance(native, Mapping) and native.get("scope") == "routed_decode_experts_only":
+        observed_units = native.get("units")
+        observed_units = observed_units if isinstance(observed_units, (list, tuple)) else ()
+        units = []
+        for key, unit, label in (("cpu_expert_entries", "cpu", "CPU"),
+                                 ("gpu_expert_entries", "cuda:0", "GPU 0")):
+            count = native.get(key)
+            if type(count) is int and count > 0 and unit in observed_units:
+                units.append(label)
+        if units:
+            parts.append("Decode experts executed on " + " + ".join(units) + "; other operators not verified")
+    return "; ".join(parts) if parts else "Model request finished; timing unavailable"
 
 
 def _browser_post_review(challenge: Mapping[str, Any]) -> str:
@@ -227,6 +277,7 @@ else:
             self._pending: dict[tuple[str, int], dict[int, Any]] = {}
             self._max_epoch: dict[str, int] = {}
             self._active = False
+            self._answer_stream_key: tuple[str, int] | None = None
 
             root = QWidget(self)
             self.setCentralWidget(root)
@@ -545,30 +596,37 @@ else:
             payload = _field(event, "payload", _field(event, "data", {}))
             if not isinstance(payload, Mapping):
                 payload = {"value": payload}
-            if kind in {"text_delta", "token", "assistant_delta"}:
+            if kind == "user_observation":
+                if not self._active:
+                    self.transcript.appendPlainText("You: " + str(payload.get("text", "")))
+            elif kind in {"text_delta", "token", "assistant_delta"}:
+                stream_key = (_field(event, "request_id"), _field(event, "epoch"))
+                if stream_key != self._answer_stream_key:
+                    self.transcript.appendPlainText("Assistant: ")
+                    self._answer_stream_key = stream_key
                 self._append_inline(str(payload.get("text", payload.get("value", ""))))
             elif kind in {"final", "answer"}:
                 text = payload.get("text", payload.get("answer", ""))
-                self._append_inline("\n" if payload.get("streamed") else f"{text}\n")
+                if payload.get("streamed"):
+                    self._append_inline("\n")
+                else:
+                    self.transcript.appendPlainText(f"Assistant: {text}\n")
             elif kind == "route":
-                label = (f"Route: {payload.get('model', 'unreported')} "
-                         f"({payload.get('route_id', 'unreported')})")
+                label = f"Route: {payload.get('model', 'unreported')}"
                 if payload.get("experimental"):
                     label += " — EXPERIMENTAL; no qualified default or p95 yet"
                 elif isinstance(payload.get("qualified_p95_s"), (int, float)):
                     label += f" — measured full-answer p95 {payload['qualified_p95_s']:.2f}s"
                 self.route_label.setText(label)
-                placement = "Placement: " + json.dumps(
-                    payload.get("actual_placement", "unreported"), ensure_ascii=False
-                )
-                if payload.get("placement_evidence_level") == "override_selection_only":
-                    placement += " — expert override selected; final storage/compute unverified"
-                self.placement_label.setText(placement)
-                self.transcript.appendPlainText("[route] " + json.dumps(dict(payload), ensure_ascii=False))
+                self.route_label.setToolTip(f"Route ID: {payload.get('route_id', 'unreported')}")
+                self.placement_label.setText(_placement_text(payload))
+                self.transcript.appendPlainText("[route] " + label.removeprefix("Route: "))
                 if payload.get("selection_refusals"):
                     self.transcript.appendPlainText(
                         "[other routes] " + json.dumps(payload["selection_refusals"], ensure_ascii=False)
                     )
+            elif kind == "model_metrics":
+                self.transcript.appendPlainText("[model] " + _model_metric_summary(payload))
             elif kind == "approval_required":
                 challenge = payload.get("challenge", payload)
                 if hasattr(challenge, "to_dict"):
@@ -649,7 +707,10 @@ else:
                 self.read_url_button.setEnabled(True)
                 self.cancel_button.setEnabled(False)
                 self.clear_memory_button.setEnabled(True)
-                self.status_label.setText(kind)
+                self.status_label.setText({
+                    "final": "Ready", "answer": "Ready", "cancelled": "Cancelled",
+                    "refusal": "Request refused", "error": "Request failed",
+                }.get(kind, kind))
 
         def _report_callback_error(self, message: str) -> None:
             self.transcript.appendPlainText(f"[controller error] {message}")

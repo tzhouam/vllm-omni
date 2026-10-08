@@ -8,23 +8,32 @@ lineage. It deliberately does not produce a router Qualification file.
 
 from __future__ import annotations
 
-import hashlib
 import base64
+import hashlib
 import json
 import math
 import re
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path, PureWindowsPath
 from statistics import mean
-from typing import Any, Mapping, Sequence
+from typing import Any
 from urllib.parse import urlparse
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from vllm_omni.edge.agent.router import FIXED_SUITE_ID, Qualification
 from vllm_omni.edge.agent.fixed_suite import canonical_fixed_cases
-
+from vllm_omni.edge.agent.placement import (
+    STRATA_BACKEND,
+    native_gpu_sample_summary,
+    preparation_placement_matches,
+    result_placement_matches,
+    strata_route_binding,
+    validate_strata_profile_plan,
+    validate_strata_request_evidence,
+)
+from vllm_omni.edge.agent.router import FIXED_SUITE_ID, Qualification
 
 SUITE_ID = FIXED_SUITE_ID
 STRUCTURED_READ_URL_SUITE_ID = SUITE_ID + "+explicit-read-url-v1"
@@ -155,7 +164,7 @@ def _evaluate_case(case: Mapping[str, Any], result: Mapping[str, Any]) -> dict[s
 
 
 def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
-                    route: Mapping[str, Any]) -> bool:
+                    route: Mapping[str, Any], placement_evidence: Mapping[str, Any] | None = None) -> bool:
     if not events or [event.get("seq") for event in events] != list(range(1, len(events) + 1)):
         return False
     if len({event.get("request_id") for event in events}) != 1 or len({event.get("epoch") for event in events}) != 1:
@@ -171,8 +180,14 @@ def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
     if (identity.get("route_id") != route["route_id"] or
         identity.get("model") != route["model_id"] or
         identity.get("artifact_id") != route["artifact_id"] or
-        identity.get("backend") != route["backend"] or
-        identity.get("actual_placement") != route["expected_placement"]):
+        identity.get("backend") != route["backend"]):
+        return False
+    if route["backend"] == STRATA_BACKEND:
+        try:
+            validate_strata_request_evidence(placement_evidence, route, events=events)
+        except (KeyError, TypeError, ValueError, RuntimeError, AttributeError, StopIteration):
+            return False
+    elif identity.get("actual_placement") != route["expected_placement"]:
         return False
     return events[-1].get("payload", {}).get("answer") == answer
 
@@ -188,6 +203,8 @@ def _telemetry_summary(samples: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
             if name.endswith("power_w"):
                 result[name + "_mean"] = mean(values)
     result["peak_is_sampled_lower_bound"] = True
+    if any("native_process_gpu_memory" in sample for sample in samples):
+        result["native_process_gpu_memory"] = native_gpu_sample_summary(samples)
     return result
 
 
@@ -304,7 +321,8 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
     if not rows or rows[0].get("record_type") != "manifest":
         raise ValueError("raw profile manifest is missing")
     manifest = rows[0]
-    if manifest.get("scope") != "complete_agent_request" or manifest.get("batch_size") != 1 or manifest.get("concurrency") != 1:
+    if (manifest.get("scope") != "complete_agent_request" or
+            manifest.get("batch_size") != 1 or manifest.get("concurrency") != 1):
         errors.append("raw manifest is not a batch-one complete Agent profile")
     if manifest.get("conditions") != summary.get("conditions"):
         errors.append("profile conditions differ from raw manifest")
@@ -343,12 +361,11 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
         if prepared.get("route_id") != route["route_id"]:
             errors.append("cold preparation has another route ID")
         prep = prepared.get("preparation", {})
-        if not (prep.get("cold_start_confirmed") and
-                prep.get("artifact_id") == route["artifact_id"] and
-                prep.get("actual_placement") == route["expected_placement"]):
+        if not preparation_placement_matches(prep, route):
             errors.append("cold preparation does not match the route")
         cold_start_s = prepared.get("cold_start_s")
     trace_verified = bool(requests)
+    strata_states: set[tuple[str, int]] = set()
     for row in requests:
         if (suite_id == STRUCTURED_READ_URL_SUITE_ID and
                 (structured_origin is None or
@@ -383,15 +400,25 @@ def audit_summary(summary_path: str | Path) -> EvidenceAudit:
             )
             if row.get("e2e_complete") != expected_complete:
                 errors.append(f"{case['case_id']}: E2E flag differs from raw result")
-            expected_placement = bool(
-                result_data.get("model_id") == route["model_id"]
-                and result_data.get("artifact_id") == route["artifact_id"]
-                and result_data.get("actual_placement") == route["expected_placement"]
-                and result_data.get("backend") == route["backend"]
-            )
+            expected_placement = result_placement_matches(result_data, route)
             if row.get("placement_matches") != expected_placement:
                 errors.append(f"{case['case_id']}: placement flag differs from raw result")
-        if result_data is None or not agent_events or not _trace_complete(agent_events, result_data["final_answer"], route):
+            if route["backend"] == STRATA_BACKEND and len(prepare) == 1:
+                if (result_data.get("placement_evidence", {}).get("loaded_plan_sha256") !=
+                        prepare[0].get("preparation", {}).get("details", {}).get("loaded_plan_sha256")):
+                    errors.append(f"{case['case_id']}: Strata request uses another loaded plan")
+                for terminal in result_data.get("placement_evidence", {}).get("terminal_model_metrics", []):
+                    stage = terminal.get("metrics", {}).get("stage_event", {})
+                    state = (stage.get("worker_generation"), stage.get("epoch"))
+                    if not isinstance(state[0], str) or type(state[1]) is not int:
+                        errors.append(f"{case['case_id']}: Strata terminal state is invalid")
+                        continue
+                    if state in strata_states:
+                        errors.append(f"{case['case_id']}: Strata native state is reused across requests")
+                    strata_states.add(state)
+        if result_data is None or not agent_events or not _trace_complete(
+            agent_events, result_data["final_answer"], route, result_data.get("placement_evidence"),
+        ):
             trace_verified = False
             # Errors/refusals legitimately have no complete trace, but cannot
             # contribute a passing request.
@@ -710,6 +737,25 @@ def _verify_gate_observations(name: str, observations: Mapping[str, Any],
                    for request_id, rows in by_request.items()):
             raise ValueError("cancel gate lacks a later recovered epoch")
     elif name == "runtime_placement":
+        if identity.get("backend") == STRATA_BACKEND:
+            if (native_route is None or native_route.get("backend") != STRATA_BACKEND or
+                    observations.get("reported_placement") is not None or
+                    observations.get("artifact_sha256") != identity["artifact_sha256"] or
+                    observations.get("scope") != "loaded_configuration_and_per_request_routed_decode_experts"):
+                raise ValueError("Strata runtime gate needs exact scoped configuration/decode evidence")
+            route = {
+                "route_id": identity["route_id"], "model_id": native_route["model"],
+                "artifact_id": identity["artifact_id"], "artifact_sha256": identity["artifact_sha256"],
+                "checkpoint_revision": identity["checkpoint_revision"], "backend": STRATA_BACKEND,
+                "expected_placement": identity["placement"], "backend_identity": strata_route_binding(native_route),
+            }
+            plan = json.loads(_bound_file(base, observations["loaded_plan"]).read_text(encoding="utf-8"))
+            request = json.loads(_bound_file(base, observations["request_evidence"]).read_text(encoding="utf-8"))
+            validate_strata_profile_plan(plan, route)
+            if request.get("execution_plan") != plan:
+                raise ValueError("Strata reviewed request belongs to another loaded plan")
+            validate_strata_request_evidence(request, route)
+            return
         if str(identity["placement"]).startswith("Vulkan_Host+"):
             # Startup override selection precedes mmap/pinned-allocation
             # fallback and cannot prove final expert storage or compute.
@@ -777,6 +823,20 @@ def _verify_gate_observations(name: str, observations: Mapping[str, Any],
         raise ValueError(f"unsupported gate: {name}")
 
 
+def _verify_strata_release_observations(evidence: Mapping[str, Any]) -> None:
+    """A scoped functional profile cannot substitute for missing memory/I/O gates."""
+    plan = evidence.get("execution_plan", {})
+    if (plan.get("three_tier_memory_qualified") is not True or
+            plan.get("gpu_aggregate_hard_cap_verified") is not True or
+            type(plan.get("file_cache_peak_bytes")) is not int or plan["file_cache_peak_bytes"] < 0):
+        raise ValueError("Strata aggregate memory/file-cache/physical SSD gates remain unqualified")
+    terminals = evidence.get("terminal_model_metrics", [])
+    physical = [item.get("metrics", {}).get("backend_metrics", {}).get(
+        "runtime_telemetry", {}).get("physical_ssd_read_bytes") for item in terminals]
+    if not physical or any(type(value) is not int or value < 0 for value in physical):
+        raise ValueError("Strata physical SSD observations remain unknown")
+
+
 def load_reviewed_qualification(
     bundle_path: str | Path, *, trusted_keys: Mapping[str, str],
     native_config: Mapping[str, Any],
@@ -808,7 +868,8 @@ def load_reviewed_qualification(
     # version or hardware fingerprint. Old profiles without a digest are not
     # eligible for a native default.
     from vllm_omni.edge.agent.runtime_identity import (
-        imported_omni_source_sha256, loaded_runtime_sha256,
+        imported_omni_source_sha256,
+        loaded_runtime_sha256,
     )
 
     profiled_versions = summary.get("conditions", {}).get("runtime_versions", {})
@@ -838,9 +899,15 @@ def load_reviewed_qualification(
     if len(matching) != 1 or not index.get("artifact_provenance", {}).get(audit.route_id, {}).get("lineage_verified"):
         raise ValueError("indexed profile or checkpoint lineage is unverified")
     provenance = index["artifact_provenance"][audit.route_id]
-    if (provenance.get("model_sha256") != identity["artifact_sha256"] or
-        provenance.get("checkpoint_revision") != identity["checkpoint_revision"] or
-        provenance.get("server_sha256") != summary["conditions"]["runtime_versions"].get("llama_server_sha256")):
+    if identity["backend"] == STRATA_BACKEND:
+        if (provenance.get("artifact_manifest_sha256") != identity["artifact_sha256"] or
+                provenance.get("checkpoint_revision") != identity["checkpoint_revision"] or
+                provenance.get("runtime_manifest_sha256") !=
+                summary["conditions"]["runtime_versions"].get("strata_runtime_manifest_sha256")):
+            raise ValueError("indexed Strata artifact/runtime provenance differs from profile")
+    elif (provenance.get("model_sha256") != identity["artifact_sha256"] or
+          provenance.get("checkpoint_revision") != identity["checkpoint_revision"] or
+          provenance.get("server_sha256") != summary["conditions"]["runtime_versions"].get("llama_server_sha256")):
         raise ValueError("indexed artifact provenance differs from profile")
     source_config_path = Path(index["source_config"]).resolve(strict=True)
     if _sha256_file(source_config_path) != index.get("source_config_sha256"):
@@ -861,16 +928,33 @@ def load_reviewed_qualification(
                           if row["route_id"] == audit.route_id), None)
     if profiled_route is None or current_route is None or profiled_route != current_route:
         raise ValueError("current native route differs from the profiled route")
-    expected_backend = ("external.llamacpp.multimodal.v1" if current_route.get("mmproj_file")
-                        else "external.llamacpp.text.v1")
-    if (current_route["artifact_id"] != identity["artifact_id"] or
+    if identity["backend"] == STRATA_BACKEND:
+        binding = strata_route_binding(current_route)
+        if (profile_route.get("backend_identity") != binding or
+                any(provenance.get(key) != value for key, value in binding.items()) or
+                current_route["artifact_id"] != identity["artifact_id"] or
+                current_route["placement"] != identity["placement"]):
+            raise ValueError("current Strata source/runtime/control identity differs from profile")
+        # Component cache bounds and sampled system VRAM are not aggregate
+        # process peaks; logical file reads are not physical SSD I/O. Current
+        # Strata records explicitly lack these gates and cannot be promoted.
+        raw_rows = [json.loads(line) for line in audit.raw_jsonl.read_text(encoding="utf-8").splitlines()]
+        for row in raw_rows:
+            if row.get("record_type") != "request":
+                continue
+            evidence = (row.get("result") or {}).get("placement_evidence", {})
+            _verify_strata_release_observations(evidence)
+    else:
+        expected_backend = ("external.llamacpp.multimodal.v1" if current_route.get("mmproj_file")
+                            else "external.llamacpp.text.v1")
+        if (current_route["artifact_id"] != identity["artifact_id"] or
         current_route["model_sha256"] != identity["artifact_sha256"] or
         current_route["model"] != stored_profile["route"]["model_id"] or
         current_route["placement"] != identity["placement"] or
         expected_backend != identity["backend"] or
         current_route["server_sha256"] != provenance["server_sha256"] or
         current_route.get("mmproj_sha256") != provenance.get("mmproj_sha256")):
-        raise ValueError("current model/runtime identity differs from profile")
+            raise ValueError("current model/runtime identity differs from profile")
 
     gates = bundle.get("gates")
     if not isinstance(gates, dict) or set(gates) != REQUIRED_GATES:
@@ -897,7 +981,8 @@ def load_reviewed_qualification(
             not isinstance(source.get("observations"), dict) or
             not source["observations"]):
             raise ValueError(f"{gate_name}: raw gate observations are missing or unbound")
-        if gate_name == "reference_quality" and source["observations"].get("task_class") != stored_profile["task_class"]:
+        if (gate_name == "reference_quality" and
+                source["observations"].get("task_class") != stored_profile["task_class"]):
             raise ValueError("quality review covers another task class")
         _verify_gate_observations(gate_name, source["observations"], identity,
                                   source_path.parent, current_route)

@@ -1,5 +1,23 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+The latest [actual Windows Qt Agent request](native_q4_qt_agent.json) passed
+one exact short response through the real Q4 model and offscreen Qt event
+loop, with ordered output, restored terminal controls and clean resource
+shutdown. The complete loaded plan, controls, native counters and raw-file
+hashes passed independent review. Model-call wall time was 15.59 s and
+Omni submission to first visible SSE delta was 14.94 s; neither is Qt-render
+TTFT. The 360.91 s preparation-to-final-poll boundary includes artifact hashes,
+startup and UI polling, not pure model loading. Same-SSD downloads remained
+active; this is one functional request, not p95 or isolated performance.
+
+Its 73 exact-owner/GPU-bound WDDM samples report separate local/nonlocal
+peaks of 14,438,891,520 / 10,437,525,504 B. Nonlocal uses host RAM and must
+not be added to process RSS. These resident samples exclude loading and do
+not establish a hard cap. The earlier refusal of unpinned tokenizer bytecode
+is retained with a quarantine receipt. Post-run UI presentation fixes have a
+separate recorded-event rendering replay; they do not imply a second neural
+execution. No release or default qualification follows.
+
 The newest [actual cancellation/recovery record](native_q4_cancel_recovery.json)
 passed one text-stream lifecycle check: two chunks delivered, cancellation
 and empty shared-ledger drain in 2.59 s, then a fresh worker/generation exact

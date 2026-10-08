@@ -22,6 +22,7 @@ from vllm_omni.engine.backends.strata import (
     PINNED_STRATA_REVISION,
     StrataTextStageClient,
     _check_live_memory,
+    _DiagnosticLog,
     _native_cache_control,
     _native_compute_observation,
     _safe_telemetry,
@@ -30,6 +31,7 @@ from vllm_omni.engine.backends.strata import (
     _verify_cache_bounds,
     _verify_load_configuration,
     _verify_python_environment,
+    _windows_process_creation_filetime,
     validate_strata_load_plan,
 )
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
@@ -479,6 +481,34 @@ def test_modified_secondary_artifact_is_refused(stage_config):
         _stage(stage_config)
 
 
+@pytest.mark.parametrize("relative_path", ["tools/__pycache__/helper.cpython-312.pyc", "serve/foreign_helper.py"])
+def test_unpinned_runtime_code_refuses_before_model_hashing(stage_config, monkeypatch, relative_path):
+    runtime = Path(stage_config["runtime_root"])
+    foreign = runtime / relative_path
+    foreign.parent.mkdir(parents=True, exist_ok=True)
+    foreign.write_bytes(b"unpinned executable dependency")
+    verified_roots = []
+    verify = ArtifactManifest.verify
+
+    def only_runtime_hashing(self, root):
+        verified_roots.append(Path(root))
+        if Path(root) != runtime:
+            pytest.fail("model bytes were hashed before unpinned runtime code was refused")
+        return verify(self, root)
+
+    monkeypatch.setattr(ArtifactManifest, "verify", only_runtime_hashing)
+    ledger = Ledger()
+    with pytest.raises(ValueError, match="unpinned code/dependency"):
+        StrataTextStageClient(
+            SimpleNamespace(stage_id=0),
+            stage_config,
+            ledger,
+            SimpleNamespace(demands={"host_ram": 4 << 20, "vram:0": 2 << 20}),
+        )
+    assert verified_roots == [runtime]
+    assert ledger.releases == [True]
+
+
 def test_mtp_draft_and_gpu_cache_limit_are_part_of_identity(stage_config):
     pack = Path(stage_config["prepared_model_dir"])
     (pack / "draft").mkdir()
@@ -565,6 +595,10 @@ async def test_ordered_stream_ack_isolation_and_explicit_usage(stage_config):
         assert terminal["seq"] == 3 and terminal["terminal"]
         assert "prompt" not in out.metrics["runtime_telemetry"]
         assert out.metrics["runtime_telemetry"]["physical_ssd_read_bytes"] is None
+        assert out.metrics["runtime_telemetry"]["logical_file_read_scope"] == (
+            "decode_only_excludes_prefill_and_loading"
+        )
+        assert out.metrics["placement_report"]["logical_read_scope"] == "decode_only_excludes_prefill_and_loading"
         native_compute = out.metrics["runtime_telemetry"]["native_compute"]
         assert native_compute["cpu_expert_entries"] == 5
         assert native_compute["gpu_expert_entries"] == 5
@@ -669,13 +703,123 @@ def test_sse_refuses_incomplete_tools_and_late_content(monkeypatch, rows, done, 
 
 def test_physical_io_and_compute_cannot_be_inferred_from_logical_counter():
     telemetry = _safe_telemetry(
-        {"file_mb": 42, "actual_io_mode": "direct", "observed_compute_units": ["CPU"], "hit_rate": float("nan")}
+        {
+            "file_mb": 42,
+            "logical_file_read_scope": "whole_request",
+            "actual_io_mode": "direct",
+            "observed_compute_units": ["CPU"],
+            "hit_rate": float("nan"),
+        }
     )
     assert telemetry["file_mb"] == 42
+    assert telemetry["logical_file_read_bytes"] == 42_000_000
+    assert telemetry["logical_file_read_scope"] == "decode_only_excludes_prefill_and_loading"
     assert telemetry["hit_rate"] is None
     assert telemetry["actual_io_mode"] is None
     assert telemetry["physical_ssd_read_bytes"] is None
     assert telemetry["observed_compute_units"] is None
+
+
+def test_native_observer_identity_rejects_spoofed_or_conflicting_frames():
+    nonce = "1" * 32
+    identity = {"pid": 123, "creation_filetime_100ns": 456}
+    line = "strata supervisor: native identity " + nonce + " " + json.dumps(identity)
+    assert _sanitize_diagnostic(line) is None
+    assert _sanitize_diagnostic(line, observer_nonce="2" * 32) is None
+    assert _sanitize_diagnostic(line, observer_nonce=nonce) is not None
+    for value in (True, 0, -1, "123"):
+        malformed = "strata supervisor: native identity " + nonce + " " + json.dumps(identity | {"pid": value})
+        assert _sanitize_diagnostic(malformed, observer_nonce=nonce) is None
+    changed = "strata supervisor: native identity " + nonce + " " + json.dumps(identity | {"pid": 124})
+    pipe = io.BytesIO(("strata supervisor: native process started\n" + line + "\n" + changed + "\n").encode())
+    diagnostics = _DiagnosticLog(pipe, None, observer_nonce=nonce)
+    assert diagnostics.join()
+    assert diagnostics.owned_native_identity() is None
+    assert diagnostics.native_identity_conflict
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows observer identity is FILETIME based")
+def test_gpu_observer_identity_binds_owned_native_generation(monkeypatch):
+    stage = StrataTextStageClient.__new__(StrataTextStageClient)
+    stage._closed = False
+    stage._proc = SimpleNamespace(pid=10, poll=lambda: None)
+    identity = {"pid": 20, "creation_filetime_100ns": 123456}
+    stage._diagnostics = SimpleNamespace(owned_native_identity=lambda: dict(identity))
+    stage._load_configuration = {"status": "verified"}
+    stage._generation = "fixture-generation"
+    stage.execution_plan = {
+        "fresh_memory_admission": {
+            "gpu_uuid": "GPU-fixture",
+            "gpu_pci_bus_id": "00000000:01:00.0",
+            "gpu_name_sha256": "1" * 64,
+        }
+    }
+    monkeypatch.setattr("vllm_omni.engine.backends.strata._windows_process_creation_filetime", lambda _: 123456)
+    observed = stage.gpu_observer_identity()
+    assert observed["pid"] == 20 and observed["pid"] != stage._proc.pid
+    assert observed["worker_generation"] == stage._generation
+    assert observed["gpu"]["pci_bus_id"] == "00000000:01:00.0"
+    identity["creation_filetime_100ns"] += 1
+    assert stage.gpu_observer_identity() is None
+    identity["creation_filetime_100ns"] -= 1
+    identity["pid"] = stage._proc.pid
+    assert stage.gpu_observer_identity() is None
+    identity["pid"] = 20
+    stage._closed = True
+    assert stage.gpu_observer_identity() is None
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows exact process identity")
+def test_windows_process_identity_is_exact_and_rejects_exited_pid():
+    proc = subprocess.Popen([sys.executable, "-I", "-c", "import sys; sys.stdin.read()"], stdin=subprocess.PIPE)
+    try:
+        identity = _windows_process_creation_filetime(proc.pid)
+        assert type(identity) is int and identity > 0
+        assert _windows_process_creation_filetime(proc.pid) == identity
+        proc.communicate(timeout=5)
+        assert _windows_process_creation_filetime(proc.pid) is None
+        assert _windows_process_creation_filetime(True) is None
+        assert _windows_process_creation_filetime(0) is None
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait(timeout=5)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows bootstrap FILETIME observation")
+def test_bootstrap_reports_exact_native_child_identity(tmp_path):
+    # The fixture mocks containment only; it exercises the real Windows
+    # Popen/GetProcessTimes observation without claiming neural execution.
+    serve = tmp_path / "serve"
+    serve.mkdir()
+    (serve / "__init__.py").write_text("")
+    (serve / "winjob.py").write_text("def contain(proc): return True\n")
+    shim, server = tmp_path / "bootstrap.py", tmp_path / "server.py"
+    shim.write_text(_BOOTSTRAP)
+    server.write_text(
+        "import json,subprocess,sys,ctypes\n"
+        "from ctypes import wintypes as w\n"
+        "p=subprocess.Popen([sys.executable,'-I','-c','import sys;sys.stdin.read()'],stdin=subprocess.PIPE)\n"
+        "k=ctypes.WinDLL('kernel32');k.GetProcessTimes.argtypes=(w.HANDLE,)+(ctypes.POINTER(w.FILETIME),)*4\n"
+        "t=[w.FILETIME() for _ in range(4)];assert k.GetProcessTimes(int(p._handle),*(ctypes.byref(x) for x in t))\n"
+        "print(json.dumps({'pid':p.pid,'creation_filetime_100ns':(t[0].dwHighDateTime<<32)|t[0].dwLowDateTime}))\n"
+        "p.communicate(timeout=5)\n"
+    )
+    nonce = "3" * 32
+    env = os.environ | {"OMNI_STRATA_OBSERVER_NONCE": nonce}
+    result = subprocess.run(
+        [sys.executable, "-B", str(shim), sys.executable, str(server)],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=True,
+    )
+    expected = json.loads(result.stdout.strip())
+    row = next(line for line in result.stderr.splitlines() if "native identity " in line)
+    safe = _sanitize_diagnostic(row, observer_nonce=nonce)
+    assert json.loads(safe.split("native identity ", 1)[1]) == expected
+    assert nonce not in safe
 
 
 def test_diagnostics_never_retain_prompt_paths_or_infer_steady_io():

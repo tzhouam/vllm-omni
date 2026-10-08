@@ -345,6 +345,23 @@ an extra active request.
   disk reads include other processes/devices; they are not attributable SSD
   weight reads. Sampled memory peaks can miss transients. GPU board power is
   not whole-device power, and WSL RAM is not an additional RAM pool.
+- On native Windows, a verified backend-owned native PID, exact process
+  creation FILETIME and physical GPU UUID/PCI identity enable separate WDDM
+  process-local and process-nonlocal memory samples. The shared observer
+  resolves NVML UUID/PCI through CUDA's PCI-to-LUID query, then selects the
+  exact WDDM adapter; it never guesses the first adapter or equates device
+  ordinals across APIs. PID reuse, unsupported APIs, missing identity and
+  permission failures remain unknown. Each request saves observations before
+  submission and after terminal consumption, outside its latency boundary.
+  Peaks remain separate for each worker generation. Nonlocal GPU memory
+  shares host RAM, so do not add it to host memory as an independent pool.
+  These are sampled OS accounting values, not a total allocation hard cap.
+  Identity is currently available after the native load completes; a loading
+  peak is therefore unverified. The observed system CUDA driver DLL hash is
+  observer provenance, separate from the pinned model/runtime artifacts.
+- Native `DONE` file-tier counters cover decode only, excluding prefill and
+  loading. Preserve their scope alongside logical bytes; neither these
+  counters nor system disk samples establish whole-request physical SSD I/O.
 - Cancellation drains and unloads this whole-model route. All reloads share
   one resource ledger. A retained or quarantined claim refuses recovery even
   when a new process would appear to have spare capacity. Only a proven drain

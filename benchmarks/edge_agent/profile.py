@@ -18,15 +18,16 @@ import os
 import threading
 import time
 import uuid
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
-from typing import Any, Awaitable, Callable, Mapping, Sequence
-
+from typing import Any
 
 LENGTH_BUCKETS = ("short", "medium", "long")
 VISIBLE_TEXT_EVENTS = frozenset({"assistant_text_delta", "visible_token"})
+_STRATA_BACKEND = "external.strata.text.v1"
 
 
 @dataclass(frozen=True)
@@ -39,9 +40,10 @@ class ProfileRoute:
     precision: str
     backend: str
     expected_placement: str
+    backend_identity: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if not all(asdict(self).values()):
+        if not all(value for key, value in asdict(self).items() if key != "backend_identity"):
             raise ValueError("exact route, artifact, and placement identity required")
 
 
@@ -88,7 +90,7 @@ class AgentRunResult:
     complete_agent_trace: bool
     model_id: str
     artifact_id: str
-    actual_placement: str
+    actual_placement: str | None
     backend: str
     placement_evidence: Mapping[str, Any] = field(default_factory=dict)
     tool_decisions: Sequence[Mapping[str, Any]] = ()
@@ -111,7 +113,7 @@ class Preparation:
 
     cold_start_confirmed: bool
     artifact_id: str
-    actual_placement: str
+    actual_placement: str | None
     details: Mapping[str, Any] = field(default_factory=dict)
 
 
@@ -199,6 +201,7 @@ class RouteProfile:
             "actual_placement_verified": bool(
                 actual_placement_verified and self.actual_placement_matches
                 and self.placement_evidence_present
+                and self.route.backend != _STRATA_BACKEND
             ),
             "batch_size": 1,
             "concurrency": 1,
@@ -254,6 +257,10 @@ def _telemetry_summary(samples: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
                 result[name + "_mean"] = mean(values)
     # Sampled peaks are lower bounds on true instantaneous peaks.
     result["peak_is_sampled_lower_bound"] = True
+    if any("native_process_gpu_memory" in sample for sample in samples):
+        from vllm_omni.edge.agent.placement import native_gpu_sample_summary
+
+        result["native_process_gpu_memory"] = native_gpu_sample_summary(samples)
     return result
 
 
@@ -347,12 +354,17 @@ async def _one_request(
         result is not None and result.trace_scope == "agent_e2e"
         and result.complete_agent_trace and result.final_answer is not None
     )
-    placement_matches = bool(
-        result is not None and result.model_id == route.model_id
-        and result.artifact_id == route.artifact_id
-        and result.actual_placement == route.expected_placement
-        and result.backend == route.backend
-    )
+    # For Strata this checks configuration and scoped decode evidence; it
+    # does not manufacture a whole-model actual placement string.
+    if result is not None and route.backend == _STRATA_BACKEND:
+        from vllm_omni.edge.agent.placement import result_placement_matches
+
+        placement_matches = result_placement_matches(asdict(result), asdict(route))
+    else:
+        placement_matches = bool(
+            result is not None and result.model_id == route.model_id and result.artifact_id == route.artifact_id
+            and result.actual_placement == route.expected_placement and result.backend == route.backend
+        )
     return {
         "record_type": "request",
         "run_id": run_id,
@@ -545,9 +557,14 @@ async def run_profile(
                 prepare_wall_s = (time.perf_counter_ns() - began) / 1e9
                 if not isinstance(prepared, Preparation):
                     raise TypeError("prepare must return Preparation evidence")
-                if (prepared.cold_start_confirmed and
-                    prepared.artifact_id == route.artifact_id and
-                    prepared.actual_placement == route.expected_placement):
+                if route.backend == _STRATA_BACKEND:
+                    from vllm_omni.edge.agent.placement import preparation_placement_matches
+
+                    prepared_matches = preparation_placement_matches(asdict(prepared), asdict(route))
+                else:
+                    prepared_matches = bool(prepared.cold_start_confirmed and prepared.artifact_id == route.artifact_id
+                                            and prepared.actual_placement == route.expected_placement)
+                if prepared_matches:
                     cold_start_s = prepare_wall_s
                 write_line(handle, {
                     "record_type": "route_prepare", "run_id": run_id,

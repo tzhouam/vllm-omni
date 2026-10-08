@@ -318,7 +318,7 @@ def test_actual_factory_reuses_ledger_and_refuses_recovery_after_quarantine(tmp_
     created = []
 
     class QuarantinedDriver(FakeDriver):
-        def __init__(self, launch, *, resource_ledger):
+        def __init__(self, launch, *, resource_ledger, telemetry=None):
             super().__init__()
             self.ledger = resource_ledger
             self.lease = None
@@ -393,6 +393,38 @@ def test_io_normalization_distinguishes_logical_bytes_from_physical_ssd():
     assert result["physical_ssd_read_bytes"] is None
     assert result["io_wait_s"] is None
     assert result["cache_hits"] is None
+
+
+def test_process_gpu_edges_are_outside_request_timing():
+    import time
+
+    class ObservedDriver(FakeDriver):
+        def gpu_memory_snapshot(self, edge, request_id):
+            time.sleep(0.03)
+            return {"status": "unknown", "edge": edge, "request_id": request_id}
+
+    began = time.perf_counter()
+    row = asyncio.run(collect_request(ObservedDriver(), default_suite()["cases"][0], "measured", 0, options()))
+    wall = time.perf_counter() - began
+    assert wall - row["full_response_s"] >= 0.05
+    assert row["process_gpu_memory_before"]["edge"] == "before_request"
+    assert row["process_gpu_memory_after"]["edge"] == "after_request"
+    assert row["process_gpu_memory_before"]["request_id"] == row["request_id"]
+
+
+def test_telemetry_preserves_unknown_process_values_and_request_edges(tmp_path):
+    from benchmarks.edge_harness.strata_profile import Telemetry
+
+    observer = Telemetry(tmp_path / "telemetry.jsonl", 0)
+    row = observer.sample_process_gpu(edge="before_request", request_id="owned-request")
+    assert row["status"] == "unknown"
+    assert row["local_current_usage_bytes"] is None
+    assert row["nonlocal_current_usage_bytes"] is None
+    saved = json.loads(observer.path.read_text(encoding="utf-8"))
+    assert saved["request_id"] == "owned-request"
+    assert saved["process_gpu"] == row
+    report = observer.stop()
+    assert report["process_gpu_generations"] == []
 
 
 def test_shipped_target_configs_are_pinned_complete_and_have_real_sizes():

@@ -1,5 +1,26 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+The latest [actual Windows Qt Agent request](../edge_harness/results/strata_20261008/native_q4_qt_agent.json)
+passed one short exact-response task through the offscreen Qt event loop and
+real Q4 model, including send, ordered streaming, terminal controls and clean
+controller/resource shutdown. Model-call wall time was **15.59 s**; Omni
+submission to first visible SSE delta was **14.94 s**, not Qt-render TTFT.
+The broader **360.91 s** boundary includes submission preparation, artifact
+hashing, startup and final UI polling; it is not pure model loading.
+This single request ran with same-SSD downloads active and adds no p95 or
+default-route qualification. The actual loaded plan, controls, native counters
+and raw-file identities passed independent review.
+
+Exact process/GPU binding produced 73 valid resident WDDM samples: local peak
+14,438,891,520 B and nonlocal peak 10,437,525,504 B. Nonlocal uses host RAM;
+do not add it to RSS. Sampling starts after native owner identity is available
+and does not establish loading peaks or a hard cap. The earlier pre-neural Qt
+attempt refused unpinned tokenizer bytecode; its failure and hash-bound
+quarantine are preserved. Subsequent answer-line, route-tooltip and terminal
+status improvements were checked with a separate replay of the recorded
+events, not another neural request. Formal Strata profiling now validates
+loaded-plan/control and request evidence without weakening release gates.
+
 The Strata integration shares one exact engine resource lease between the
 Agent, LocalPlanManager and Omni StageRuntime. It reuses the existing Agent
 loop, memory and tool approval boundary. Prepared launches can create one

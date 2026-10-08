@@ -1,0 +1,225 @@
+{
+  "schema": "omni-strata-native-qt-observation-v1",
+  "observed_date": "2026-10-08",
+  "scope": "one actual neural Agent request through native Windows offscreen Qt event loop; no external desktop capture/control or broad usability qualification",
+  "batch_size": 1,
+  "concurrency": 1,
+  "hardware": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+    "host_ram_total_bytes": 67773509632,
+    "host_ram_available_bytes": 24256655360,
+    "gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "vram_total_bytes": 25651314688,
+    "vram_available_bytes": 20019310592,
+    "windows_commit_available_bytes": 70604468224,
+    "power_condition": "AC"
+  },
+  "source_identity": {
+    "imported_working_tree_sha256": "5873763eb8b5740b2fab811d577f39c6c42287f2ccf92a8fe47eaf06a535dd25",
+    "loaded_runtime_sha256": "e9569fa2e599679c33a6df825b549b7bbd3318c89ba90f54839ddc13f6ce1467",
+    "runner_source_sha256": "afa1888d31e147abb217e3a11bf3f579175519cee1245db7ae70d2c137849225",
+    "selected_integration_files_sha256": {
+      "vllm_omni/engine/backends/strata.py": "2fcc53c298b0ba47439a828d1316f2a8db4c2e28f60b574b4358ceed46b16b16",
+      "vllm_omni/engine/local_plan.py": "89ee2fdf6396329f126a1b472503c64517e3c5764946bb76b71275ab3f336824",
+      "vllm_omni/engine/stage_runtime.py": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+      "vllm_omni/edge/agent/controller.py": "a55dad1ad5f1ca9be7cbe4eb4cf2615f639d6ad47c257f4fd4b1197e19e8a6ec",
+      "vllm_omni/edge/agent/omni_backend.py": "a839a632e98a27eef383f5d2ccf13b34e52470f856099ee6a7b8e28d0c40957b",
+      "vllm_omni/edge/agent/strata_route.py": "2c04ce28d8f66bc0ab95771515df9783bec48c2bce4caca67561f3358c390014",
+      "vllm_omni/edge/agent/desktop.py": "9c66bf1069b3ee3ed1108fc66a5258dd718698153d13a4ff380287542e02bf38",
+      "vllm_omni/edge/windows_gpu_memory.py": "857307b9e7ec043f9c0e632c1104da3e005e6b9e7f2b9efb6579c0415212a213"
+    },
+    "selected_source_stable_during_run": true,
+    "note": "working-tree digest includes preserved unrelated edits and is not a clean Git commit identity",
+    "ui_note": "After the neural run, answer line breaks/route tooltip/status text changed; the separate recorded-event replay binds that rendering source and does not claim another neural run"
+  },
+  "route_identity": {
+    "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "runtime_manifest_sha256": "9ac0400d05dca037673672a76e378df514ccf88fa52df43f6d1538b88cac9962",
+    "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+    "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+    "route_controls_sha256": "2703784159f96a54b7301024d685d6fc0ae4e969f8d07fada9b4405b908a3e42",
+    "expert_cache_component_bounds": {
+      "evidence": "native_control_bound_with_floor_MiB_INFO_consistency",
+      "gpu_expert_cache": {
+        "observed_slots": 2572,
+        "observed_mib_floor": 7676,
+        "allocation_lower_bytes": 8048869376,
+        "allocation_upper_bytes": 8049917951,
+        "declared_budget_bytes": 8053063680,
+        "profile_sized": true
+      },
+      "ram_expert_cache": {
+        "observed_mib_floor": 8191,
+        "allocation_lower_bytes": 8588886016,
+        "allocation_upper_bytes": 8589934591,
+        "declared_budget_bytes": 8589934592,
+        "source_contract": "core/expert_source.cpp:2101-2147; program/generate.cpp:7892"
+      },
+      "aggregate_gpu_hard_cap_verified": false,
+      "total_process_peak_verified": false,
+      "aggregate_gpu_declared_components_upper_bytes": 17176723455,
+      "aggregate_gpu_budget_bytes": 17179869184
+    }
+  },
+  "actual_loaded_plan_sha256": "b0358d45d22d85d3231c118806090648edf3672c8a9638589efd1c1b77faafb2",
+  "outcome": {
+    "request_count": 1,
+    "exact_answer_passed": true,
+    "ui_checks_passed": true,
+    "single_user_prompt_and_single_streamed_answer": true,
+    "experimental_route_label_shown": true,
+    "whole_model_compute_placement_marked_unverified": true,
+    "send_reenabled_and_cancel_disabled_after_final": true,
+    "controller_close_succeeded": true,
+    "resource_drain_verified": true,
+    "remaining_native_strata_pids": []
+  },
+  "timings": {
+    "ui_submission_preparation_to_post_render_poll_s": 360.91367430007085,
+    "ui_timing_scope": "starts before receipt writing, prompt setup and send-button click; includes per-load artifact verification, startup, neural request, Qt rendering and final poll/quit delay; excludes initial controller construction",
+    "whole_model_wall_s": 15.589233999839053,
+    "omni_submission_to_first_visible_sse_delta_s": 14.936879599932581,
+    "first_visible_scope": "Omni model submission to first visible SSE delta; not UI-send or Qt-render TTFT",
+    "sample_count": 1,
+    "p95_qualified": false
+  },
+  "placement": {
+    "actual_whole_model_placement": null,
+    "verified_loaded_configuration": "cpu+cuda:0",
+    "native_compute": {
+      "scope": "routed_decode_experts_only",
+      "counters": {
+        "generated": 2,
+        "hits": 241,
+        "lookups": 915,
+        "offloaded": 45,
+        "prompt_read": 161,
+        "prompt_tokens": 161
+      },
+      "cpu_expert_entries": 674,
+      "gpu_expert_entries": 286,
+      "units": [
+        "cpu",
+        "cuda:0"
+      ],
+      "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+    },
+    "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+    "physical_ssd_read_bytes": null
+  },
+  "process_gpu_sampling": [
+    {
+      "owner_identity": {
+        "creation_filetime_100ns": 134359350188179173,
+        "pid": 150492,
+        "status": "verified",
+        "worker_generation": "88a83d062cc74b26bc6959aabb882709",
+        "gpu": {
+          "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+          "pci_bus_id": "00000000:64:00.0",
+          "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+        }
+      },
+      "samples": 73,
+      "sampled_local_peak_bytes": 14438891520,
+      "sampled_nonlocal_peak_bytes": 10437525504,
+      "hard_cap_verified": false,
+      "scope": "separate sampled WDDM local/nonlocal accounting; do not add nonlocal to host RAM"
+    }
+  ],
+  "process_gpu_sampling_status": {
+    "status": "observed",
+    "observed_generation_count": 1,
+    "observed_sample_count": 73
+  },
+  "process_gpu_binding_after_load": {
+    "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+    "pci_bus_id": "00000000:64:00.0",
+    "adapter_luid_hex": "4c5d010000000000",
+    "physical_adapter_index": 0,
+    "cuda_driver_version": 13030,
+    "observer_driver_dll": "C:\\Windows\\system32\\nvcuda.dll",
+    "observer_driver_dll_sha256": "f45bbcc7ef1a3e5c479c080ebd02681e83e4881ee0e0ef133e714b43f1644d57",
+    "binding_source": "NVML UUID/PCI to CUDA cuDeviceGetByPCIBusId/cuDeviceGetLuid to WDDM LUID"
+  },
+  "process_gpu_sampling_limits": {
+    "coverage": "resident native process after its exact owner identity is available",
+    "loading_peak_observed": false,
+    "hard_cap_verified": false,
+    "nonlocal_is_additional_ram_pool": false,
+    "sampled_peaks_can_miss_transients": true
+  },
+  "earlier_attempt": {
+    "phase": "failed_task_or_ui_check",
+    "neural_model_executed": false,
+    "failure": "unpinned tokenizer bytecode in fixed runtime; rejected before model process startup",
+    "resource_drain_verified": true,
+    "resolution": "exact bytecode quarantined outside runtime; verification retained; runtime-code preflight moved before model hashing",
+    "private_record_refs": {
+      "receipt.json": {
+        "size_bytes": 6308,
+        "sha256": "721ada65ce0c92d69cc3cc280dc199f2113c823298e6db91a498a130baa0f518"
+      },
+      "events.jsonl": {
+        "size_bytes": 519,
+        "sha256": "aa7fe6758a193fa859d433287b968c7f46a02b50adcfa0d670ad928ec7bc3980"
+      },
+      "transcript.txt": {
+        "size_bytes": 108,
+        "sha256": "312deb957ae73f2414c5b7bdce9d4e6275860017fa67bbd77e5ae194ded0aa2e"
+      },
+      "window.png": {
+        "size_bytes": 6404,
+        "sha256": "9f9a5d3c78e69ab71ab3fe7c47f3fbccf4da42835697af549fd2d19cd996c48b"
+      },
+      "telemetry.jsonl": {
+        "size_bytes": 1751132,
+        "sha256": "493db4bac231d251b3f4ab6acea350d36ba5e42118c74ea416da94f4d37e53da"
+      }
+    }
+  },
+  "private_record_refs": {
+    "receipt.json": {
+      "size_bytes": 17574,
+      "sha256": "d738d839aac9a8466993f457a4e187f40a3fc043ae0b67eef23e2ce0ff86318b"
+    },
+    "events.jsonl": {
+      "size_bytes": 5542,
+      "sha256": "27e0df7ecafbac167fd87c7f20b6dd64ee3a4f11d11bd9212207a1a05e0efec5"
+    },
+    "actual-loaded-plan.json": {
+      "size_bytes": 231493,
+      "sha256": "b0358d45d22d85d3231c118806090648edf3672c8a9638589efd1c1b77faafb2"
+    },
+    "transcript.txt": {
+      "size_bytes": 471,
+      "sha256": "5d2a8baa246090f501dc63c8a6e5be3318b478661d1e67a10dd921aecf980ce5"
+    },
+    "window.png": {
+      "size_bytes": 62688,
+      "sha256": "888a79659066a6d56aae7120951c271ca798e5ada715c132afdd3abbef82b091"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 1983632,
+      "sha256": "9685510e21711ab56619329dca4b5040902e9002238008f5b647cc3ad133705d"
+    }
+  },
+  "conditions": [
+    "ISTA downloads remained active on the same SSD; this is functional evidence, not isolated performance"
+  ],
+  "qualified_default_route": false,
+  "three_tier_memory_qualified": false,
+  "post_run_ui_rendering_replay": {
+    "scope": "UI rendering replay of recorded actual neural events; no new model execution or timing result",
+    "raw_events_sha256": "27e0df7ecafbac167fd87c7f20b6dd64ee3a4f11d11bd9212207a1a05e0efec5",
+    "desktop_source_sha256": "9eaa62bb88ca48223c945a1a2a5789e671f81926c4b385eafd32a7aac8698a4d",
+    "replay_runner_sha256": "8c2fb9385f31025cee4ab2b7111c4919324e3cd3af9d379f732b3c84ee48295d",
+    "screenshot_sha256": "08b2a2bf68b283b5deebf5e081255c9901ad951a2bb76a943d850451f450fc83",
+    "assistant_answer_on_separate_line": true,
+    "prompt_and_streamed_answer_each_once": true,
+    "route_id_moved_to_tooltip": true,
+    "terminal_status": "Ready"
+  }
+}

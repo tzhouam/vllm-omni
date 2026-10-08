@@ -156,6 +156,8 @@ def _probe_memory(gpu_index: int) -> dict:
         "gpu_free_bytes": None,
         "gpu_source": None,
         "gpu_name_sha256": None,
+        "gpu_uuid": None,
+        "gpu_pci_bus_id": None,
         "windows_commit_available_bytes": None,
         "windows_host_available_bytes": None,
         "wsl_ram_available_bytes": None,
@@ -230,6 +232,15 @@ def _probe_memory(gpu_index: int) -> dict:
         name = name.decode("utf-8", "strict") if isinstance(name, bytes) else str(name)
         snapshot.update(gpu_total_bytes=int(info.total), gpu_free_bytes=int(info.free), gpu_source="NVML exact bytes")
         snapshot["gpu_name_sha256"] = hashlib.sha256(name.strip().encode()).hexdigest()
+        # Optional observer identity must not weaken the independent memory
+        # admission probe when an older NVML lacks either identity API.
+        try:
+            gpu_uuid = nvml.nvmlDeviceGetUUID(handle)
+            pci = nvml.nvmlDeviceGetPciInfo(handle).busId
+            snapshot["gpu_uuid"] = gpu_uuid.decode() if isinstance(gpu_uuid, bytes) else str(gpu_uuid)
+            snapshot["gpu_pci_bus_id"] = pci.decode() if isinstance(pci, bytes) else str(pci)
+        except Exception:
+            pass
     except Exception:
         # nvidia-smi exists in native Windows and the WSL NVIDIA integration.
         try:
@@ -333,12 +344,55 @@ def _verify_python_environment(python: Path, expected: dict | None) -> dict | No
     return actual | {"executable_sha256": expected["executable_sha256"]}
 
 
-def _sanitize_diagnostic(line: str) -> str | None:
+def _windows_process_creation_filetime(pid: int) -> int | None:
+    """Exact OS identity; psutil's float creation time can round FILETIME."""
+    if os.name != "nt" or type(pid) is not int or pid <= 0:
+        return None
+    import ctypes
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel.OpenProcess.restype = wintypes.HANDLE
+    kernel.GetProcessTimes.argtypes = (wintypes.HANDLE,) + (ctypes.POINTER(wintypes.FILETIME),) * 4
+    kernel.GetProcessTimes.restype = wintypes.BOOL
+    kernel.GetExitCodeProcess.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
+    kernel.GetExitCodeProcess.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = (wintypes.HANDLE,)
+    handle = kernel.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+    if not handle:
+        return None
+    try:
+        exit_code = wintypes.DWORD()
+        if not kernel.GetExitCodeProcess(handle, ctypes.byref(exit_code)) or exit_code.value != 259:  # STILL_ACTIVE
+            return None
+        creation, exited, system, user = (wintypes.FILETIME() for _ in range(4))
+        if not kernel.GetProcessTimes(handle, *(ctypes.byref(t) for t in (creation, exited, system, user))):
+            return None
+        return (creation.dwHighDateTime << 32) | creation.dwLowDateTime
+    finally:
+        kernel.CloseHandle(handle)
+
+
+def _sanitize_diagnostic(line: str, *, observer_nonce: str | None = None) -> str | None:
     """Content-free codes only; upstream logs can contain uncontrolled paths."""
     # The native child and Python supervisor each use platform text streams;
     # Windows pipe bytes therefore end in CRLF. Normalize line terminators
     # before the same exact content patterns used on POSIX.
     line = line.rstrip("\r\n")
+    match = re.fullmatch(r"strata supervisor: native identity ([0-9a-f]{32}) (\{.{1,256}\})", line)
+    if match:
+        if observer_nonce is None or match[1] != observer_nonce:
+            return None
+        try:
+            identity = json.loads(match[2])
+            if set(identity) != {"pid", "creation_filetime_100ns"} or any(
+                type(value) is not int or value <= 0 for value in identity.values()
+            ):
+                return None
+            return "strata supervisor: native identity " + json.dumps(identity, sort_keys=True)
+        except (ValueError, TypeError):
+            return None
     if line.strip() == "strata supervisor: native contained in Windows kill-on-close job":
         return line.strip()
     if line.strip() == "strata supervisor: native process started":
@@ -419,8 +473,11 @@ def _sanitize_diagnostic(line: str) -> str | None:
 
 
 class _DiagnosticLog:
-    def __init__(self, pipe, path: Path | None):
+    def __init__(self, pipe, path: Path | None, *, observer_nonce: str | None = None):
         self.pipe, self.path = pipe, path
+        self.observer_nonce = observer_nonce
+        self.native_identity = None
+        self.native_identity_conflict = False
         self.records: list[str] = []
         self.file_tier_io_policy = None
         self.native_starts = 0
@@ -444,13 +501,18 @@ class _DiagnosticLog:
                 if skipping or len(row) > 4096 or not complete:
                     skipping = not complete
                     continue
-                safe = _sanitize_diagnostic(row.decode("utf-8", "replace"))
+                safe = _sanitize_diagnostic(row.decode("utf-8", "replace"), observer_nonce=self.observer_nonce)
                 with self._changed:
                     if safe == "strata supervisor: native process started":
                         self.native_starts += 1
                     elif safe is not None and safe.startswith("strata supervisor: native done "):
                         self.native_done_count += 1
                         self.native_done = json.loads(safe.split("native done ", 1)[1])
+                    elif safe is not None and safe.startswith("strata supervisor: native identity "):
+                        identity = json.loads(safe.split("native identity ", 1)[1])
+                        if self.native_identity is not None and self.native_identity != identity:
+                            self.native_identity_conflict = True
+                        self.native_identity = identity
                     elif safe == "strata load_evidence: native_pack":
                         self.load_evidence["native_pack"] = True
                     elif safe is not None and safe.startswith("strata load_evidence: "):
@@ -494,6 +556,12 @@ class _DiagnosticLog:
                 return None
             return None if self.native_done is None else dict(self.native_done)
 
+    def owned_native_identity(self) -> dict | None:
+        with self._changed:
+            if self.native_starts != 1 or self.native_identity_conflict or self.native_identity is None:
+                return None
+            return dict(self.native_identity)
+
 
 # Patch only the child stderr sink, not its weights/execution/protocol. This
 # avoids persisting a raw native log. The shim is included in execution identity.
@@ -501,6 +569,7 @@ _BOOTSTRAP = r"""
 import json, os, runpy, subprocess, sys, threading
 native, server = sys.argv[1:3]
 sys.argv = [server] + sys.argv[3:]
+observer_nonce = os.environ.pop('OMNI_STRATA_OBSERVER_NONCE', '')
 original = subprocess.Popen
 def launch(args, *a, **kw):
     if os.path.realpath(str(args[0])) != os.path.realpath(native):
@@ -515,6 +584,19 @@ def launch(args, *a, **kw):
             raise RuntimeError('Strata native Windows containment failed')
         sys.stderr.write('strata supervisor: native contained in Windows kill-on-close job\n')
         sys.stderr.flush()
+        if observer_nonce:
+            import ctypes
+            from ctypes import wintypes
+            kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+            kernel.GetProcessTimes.argtypes = (wintypes.HANDLE,) + (ctypes.POINTER(wintypes.FILETIME),) * 4
+            kernel.GetProcessTimes.restype = wintypes.BOOL
+            times = [wintypes.FILETIME() for _ in range(4)]
+            if kernel.GetProcessTimes(int(p._handle), *(ctypes.byref(t) for t in times)):
+                created = (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
+                if created > 0:
+                    identity = {'pid': p.pid, 'creation_filetime_100ns': created}
+                    sys.stderr.write('strata supervisor: native identity '+observer_nonce+' '+json.dumps(identity)+'\n')
+                    sys.stderr.flush()
     # Observe counters only; return each exact line unchanged to the upstream
     # parser. Token IDs, prompts and tensor contents are never copied to logs.
     class NativeOutput:
@@ -835,7 +917,10 @@ def _safe_telemetry(status: Any) -> dict:
                 result[name] = value
     result.update(physical_ssd_read_bytes=None, ssd_wait_s=None, actual_io_mode=None, observed_compute_units=None)
     result["logical_file_read_bytes"] = round(result["file_mb"] * 1_000_000) if result["file_mb"] is not None else None
-    # file_mb is the native logical file-tier counter, not physical drive I/O.
+    # The pinned native DONE baseline is captured after prefill (generate.cpp:
+    # 9792-9793). Its rounded decimal-MB counter excludes prefill and loading;
+    # it cannot establish either whole-request reads or physical drive I/O.
+    result["logical_file_read_scope"] = "decode_only_excludes_prefill_and_loading"
     return result
 
 
@@ -908,20 +993,8 @@ class StrataTextStageClient(StageClientBase):
         artifacts = ArtifactManifest.from_dict(config["artifact_manifest"])
         prepared = ArtifactManifest.from_dict(config["prepared_pack_manifest"])
         runtime_files = set(runtime_manifest.verify(runtime))
-        source_files = set(artifacts.verify(artifact_root))
-        pack_files = set(prepared.verify(pack))
         if runtime_manifest.revision != PINNED_STRATA_REVISION:
             raise ValueError("runtime file manifest has a different revision")
-        conversion = config.get("conversion_manifest")
-        if (
-            not isinstance(conversion, dict)
-            or conversion.get("complete") is not True
-            or conversion.get("source_manifest_sha256") != artifacts.manifest_sha256
-            or conversion.get("prepared_manifest_sha256") != prepared.manifest_sha256
-            or conversion.get("tool_revision") != PINNED_STRATA_REVISION
-            or not isinstance(conversion.get("conversions"), list)
-        ):
-            raise ValueError("prepared pack needs a complete, source-bound conversion manifest")
         script = _contained(runtime, config.get("server_script", "serve/server.py"))
         engine = _contained(
             runtime, config.get("engine_file", "engine/strata.exe" if os.name == "nt" else "engine/strata")
@@ -936,6 +1009,21 @@ class StrataTextStageClient(StageClientBase):
                     if path.is_file() and path.suffix.lower() in {".py", ".pyc", ".dll", ".so", ".exe"}:
                         if path.resolve() not in runtime_files:
                             raise ValueError("Strata runtime has an unpinned code/dependency file")
+        # Reject invalid executable/import roots before reading a potentially
+        # hundred-GiB model. Full source and converted-pack verification is
+        # still mandatory before any native process can start.
+        source_files = set(artifacts.verify(artifact_root))
+        pack_files = set(prepared.verify(pack))
+        conversion = config.get("conversion_manifest")
+        if (
+            not isinstance(conversion, dict)
+            or conversion.get("complete") is not True
+            or conversion.get("source_manifest_sha256") != artifacts.manifest_sha256
+            or conversion.get("prepared_manifest_sha256") != prepared.manifest_sha256
+            or conversion.get("tool_revision") != PINNED_STRATA_REVISION
+            or not isinstance(conversion.get("conversions"), list)
+        ):
+            raise ValueError("prepared pack needs a complete, source-bound conversion manifest")
         for path in pack.rglob("*"):
             if path.is_file() and path.resolve() not in pack_files:
                 raise ValueError("prepared model directory contains an unpinned file")
@@ -1156,6 +1244,8 @@ class StrataTextStageClient(StageClientBase):
         memory_snapshot = _probe_memory(gpu)
         _check_live_memory(memory_snapshot, dict(self._reservation.demands), gpu_pool, gpu_total)
         flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+        observer_nonce = uuid.uuid4().hex
+        env["OMNI_STRATA_OBSERVER_NONCE"] = observer_nonce
         self._proc = subprocess.Popen(
             [
                 str(python),
@@ -1184,7 +1274,9 @@ class StrataTextStageClient(StageClientBase):
             start_new_session=os.name != "nt",
         )
         self._diagnostics = _DiagnosticLog(
-            self._proc.stdout, Path(config["log_file"]) if config.get("log_file") else None
+            self._proc.stdout,
+            Path(config["log_file"]) if config.get("log_file") else None,
+            observer_nonce=observer_nonce,
         )
         deadline = time.monotonic() + start_timeout
         while True:
@@ -1345,6 +1437,43 @@ class StrataTextStageClient(StageClientBase):
                 "ple_table_files": "ssd_direct_reads" if ple_io == "direct" else "ssd_with_ram_file_pages",
             },
             "placement_report": PlacementReport().to_dict(),
+        }
+        # Resident snapshot only. Observers must recheck the exact PID creation
+        # time while sampling; this does not cover the earlier loading peak.
+        self.execution_plan["gpu_observer_identity"] = self.gpu_observer_identity()
+
+    def gpu_observer_identity(self) -> dict | None:
+        """Owned native process + verified GPU identity for read-only metrics.
+
+        No process-name scan or supervisor PID is a substitute for the native
+        Popen identity observed by the bootstrap. This proves identity only.
+        """
+        if (
+            os.name != "nt"
+            or self._closed
+            or self._proc is None
+            or self._proc.poll() is not None
+            or self._diagnostics is None
+            or self._load_configuration.get("status") != "verified"
+        ):
+            return None
+        identity = self._diagnostics.owned_native_identity()
+        memory = self.execution_plan["fresh_memory_admission"]
+        if (
+            identity is None
+            or identity["pid"] == self._proc.pid
+            or _windows_process_creation_filetime(identity["pid"]) != identity["creation_filetime_100ns"]
+            or not all(memory.get(key) for key in ("gpu_uuid", "gpu_pci_bus_id", "gpu_name_sha256"))
+        ):
+            return None
+        return identity | {
+            "status": "verified",
+            "worker_generation": self._generation,
+            "gpu": {
+                "uuid": memory["gpu_uuid"],
+                "pci_bus_id": memory["gpu_pci_bus_id"],
+                "name_sha256": memory["gpu_name_sha256"],
+            },
         }
 
     def _snapshot_children(self) -> None:
@@ -1528,7 +1657,8 @@ class StrataTextStageClient(StageClientBase):
                         else (),
                         logical_read_bytes=telemetry["logical_file_read_bytes"],
                         expert_cache_hit_ratio=telemetry["hit_rate"],
-                    ).to_dict(),
+                    ).to_dict()
+                    | {"logical_read_scope": telemetry["logical_file_read_scope"]},
                 },
             )
         except asyncio.CancelledError:

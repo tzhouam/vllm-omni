@@ -18,24 +18,38 @@ import os
 import platform
 import sys
 import threading
-import time
 import uuid
+from collections.abc import Mapping
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urlparse
 
 from benchmarks.edge_agent.paired_suite import (
-    FixtureSite, ReadOnlyFixtureTools, build_paired_cases, evaluate_case,
+    FixtureSite,
+    ReadOnlyFixtureTools,
+    build_paired_cases,
+    evaluate_case,
 )
 from benchmarks.edge_agent.profile import (
-    AgentCase, AgentRunResult, Preparation, ProfileConditions, ProfileConfig,
-    ProfileRoute, run_profile,
+    AgentCase,
+    AgentRunResult,
+    Preparation,
+    ProfileConditions,
+    ProfileConfig,
+    ProfileRoute,
+    run_profile,
 )
-from vllm_omni.edge.agent.qualification import SUITE_ID, STRUCTURED_READ_URL_SUITE_ID
+from vllm_omni.edge.agent.placement import (
+    STRATA_BACKEND,
+    evidence_sha256,
+    strata_route_binding,
+    validate_strata_profile_plan,
+    validate_strata_request_evidence,
+)
+from vllm_omni.edge.agent.qualification import STRUCTURED_READ_URL_SUITE_ID, SUITE_ID
 from vllm_omni.edge.agent.tools import ManagedEdgeBrowser, WindowsScreen
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
-
 
 ORDINARY_SUBMISSION_MODE = "model_selected_tools_v1"
 STRUCTURED_READ_URL_MODE = "explicit_read_url_v1"
@@ -210,6 +224,23 @@ def load_profile_routes(config: Mapping[str, Any],
         item = metadata.get(route_id)
         if not isinstance(item, dict):
             raise ValueError(f"{route_id}: lineage metadata missing")
+        if entry.get("backend") == STRATA_BACKEND:
+            binding = strata_route_binding(entry)
+            if (item.get("artifact_manifest_sha256") != binding["artifact_manifest_sha256"] or
+                    item.get("checkpoint_revision") != binding["checkpoint_revision"] or
+                    not isinstance(item.get("precision"), str) or not item["precision"]):
+                raise ValueError(f"{route_id}: Strata all-shard lineage identity differs or is missing")
+            profiles.append(ProfileRoute(
+                route_id=route_id, model_id=str(entry["model"]), artifact_id=str(entry["artifact_id"]),
+                checkpoint_revision=binding["checkpoint_revision"],
+                artifact_sha256=binding["artifact_manifest_sha256"], precision=item["precision"],
+                backend=STRATA_BACKEND, expected_placement=str(entry["placement"]), backend_identity=binding,
+            ))
+            provenance[route_id] = {
+                **binding, "lineage_verified": item.get("lineage_verified") is True,
+                "precision": item["precision"], "artifact_hash_scope": "complete_source_manifest_all_shards",
+            }
+            continue
         model_sha = str(entry["model_sha256"])
         if item.get("model_sha256") != model_sha:
             raise ValueError(f"{route_id}: model hash differs from native config")
@@ -258,7 +289,7 @@ def _redact_image(value: Any) -> Any:
 
 
 def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
-                    route: ProfileRoute) -> bool:
+                    route: ProfileRoute, placement_evidence: Mapping[str, Any] | None = None) -> bool:
     if not events or [event.get("seq") for event in events] != list(range(1, len(events) + 1)):
         return False
     if len({event.get("request_id") for event in events}) != 1 or len({event.get("epoch") for event in events}) != 1:
@@ -275,8 +306,14 @@ def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
     if (identity.get("route_id") != route.route_id or
         identity.get("model") != route.model_id or
         identity.get("artifact_id") != route.artifact_id or
-        identity.get("backend") != route.backend or
-        identity.get("actual_placement") != route.expected_placement):
+        identity.get("backend") != route.backend):
+        return False
+    if route.backend == STRATA_BACKEND:
+        try:
+            validate_strata_request_evidence(placement_evidence, asdict(route), events=events)
+        except (KeyError, TypeError, ValueError, RuntimeError, AttributeError, StopIteration):
+            return False
+    elif identity.get("actual_placement") != route.expected_placement:
         return False
     return events[-1].get("payload", {}).get("answer") == answer
 
@@ -291,6 +328,8 @@ class WindowsTelemetry:
         self.expected_power = expected_power
         self._nvml = None
         self._gpu = None
+        self._native_gpu_observer = None
+        self._native_gpu_enabled = False
         try:
             import pynvml
 
@@ -306,6 +345,17 @@ class WindowsTelemetry:
         battery = self._psutil.sensors_battery()
         return ("AC" if battery is not None and battery.power_plugged else
                 "battery" if battery is not None else "unknown")
+
+    def bind_native_process(self, identity: Mapping[str, Any] | None) -> None:
+        """Observe the backend-owned native generation; never scan by name/PID."""
+        from vllm_omni.edge.windows_gpu_memory import WindowsProcessGpuObserver
+
+        self._native_gpu_enabled = True
+        self._native_gpu_observer = WindowsProcessGpuObserver(dict(identity)) if identity is not None else None
+
+    def clear_native_process(self) -> None:
+        self._native_gpu_enabled = False
+        self._native_gpu_observer = None
 
     def sample(self) -> dict[str, Any]:
         observed_power = self.power_condition()
@@ -328,6 +378,13 @@ class WindowsTelemetry:
                 sample["gpu_temp_c"] = float(nvml.nvmlDeviceGetTemperature(self._gpu, nvml.NVML_TEMPERATURE_GPU))
             except Exception:
                 pass
+        if self._native_gpu_enabled:
+            from vllm_omni.edge.windows_gpu_memory import unknown_observation
+
+            sample["native_process_gpu_memory"] = (
+                self._native_gpu_observer.sample() if self._native_gpu_observer is not None
+                else unknown_observation("backend-owned native process identity unavailable during startup")
+            )
         return sample
 
     def close(self) -> None:
@@ -462,6 +519,12 @@ class NativeProfileBridge:
             raise RuntimeError(f"profile route {route.route_id} has no admitted native backend")
         if backend.execution_plan is not None:
             raise RuntimeError("cold-start route was already resident")
+        clear_gpu = getattr(self.telemetry, "clear_native_process", None)
+        if callable(clear_gpu):
+            clear_gpu()
+        bind_gpu = getattr(self.telemetry, "bind_native_process", None)
+        if route.backend == STRATA_BACKEND and callable(bind_gpu):
+            bind_gpu(None)
         samples: list[dict[str, Any]] = []
         task = asyncio.create_task(asyncio.to_thread(backend.start))
         while not task.done():
@@ -474,19 +537,31 @@ class NativeProfileBridge:
             raise RuntimeError("Omni worker did not become resident after cold load")
         if plan.get("requested_device") != route.expected_placement:
             raise RuntimeError("Omni worker placement differs from the paired route")
+        if route.backend == STRATA_BACKEND:
+            validate_strata_profile_plan(plan, asdict(route))
+            if callable(bind_gpu):
+                bind_gpu(plan.get("gpu_observer_identity"))
+                samples.append(self.telemetry.sample())
         self._prompt_backend = _PromptIdentityBackend(backend)
         controller.backends[route.route_id] = self._prompt_backend
         return Preparation(
             cold_start_confirmed=True, artifact_id=route.artifact_id,
-            actual_placement=route.expected_placement,
+            actual_placement=(None if route.backend == STRATA_BACKEND else route.expected_placement),
             details={
                 "new_controller_and_worker": True,
                 "memory_path": str(self._memory_path),
                 "execution_plan": _redact_image(dict(plan)),
+                "loaded_plan_sha256": evidence_sha256(dict(plan)),
+                "placement_verification_scope": (
+                    "loaded_configuration_and_per_request_routed_decode_experts"
+                    if route.backend == STRATA_BACKEND else "reported_whole_model_placement"),
                 "ram_used_bytes_sampled_peak": max(s["ram_used_bytes"] for s in samples),
                 "vram_used_bytes_sampled_peak": max((s.get("vram_used_bytes", 0) for s in samples), default=0),
                 "sample_count": len(samples),
                 "sampled_peaks_are_lower_bounds": True,
+                "native_gpu_startup_peak_covered": False,
+                "native_process_gpu_load_samples": [s["native_process_gpu_memory"] for s in samples
+                                                   if "native_process_gpu_memory" in s],
                 "placement_independently_verified": False,
                 "hardware_at_load": hardware,
             },
@@ -580,21 +655,25 @@ class NativeProfileBridge:
             for event in events if event.get("kind") in
             {"tool_proposed", "approval_required", "tool_result"}
         ]
+        placement_evidence = {
+            "execution_plan": dict(plan) if isinstance(plan, Mapping) else {},
+            "loaded_plan_sha256": evidence_sha256(dict(plan)) if isinstance(plan, Mapping) else None,
+            "terminal_model_metrics": terminal,
+            "first_model_prompt_identity": model_prompt_identities[0] if model_prompt_identities else None,
+            "model_prompt_step_count": len(model_prompt_identities),
+            "placement_verification_scope": (
+                "loaded_configuration_and_per_request_routed_decode_experts"
+                if route.backend == STRATA_BACKEND else "reported_whole_model_placement"),
+            "independent_log_review_pending": True,
+        }
         return AgentRunResult(
             final_answer=answer,
-            complete_agent_trace=_trace_complete(events, answer, route),
+            complete_agent_trace=_trace_complete(events, answer, route, placement_evidence),
             model_id=str(identity.get("model", "")),
             artifact_id=str(identity.get("artifact_id", "")),
-            actual_placement=str(identity.get("actual_placement", "")),
+            actual_placement=identity.get("actual_placement"),
             backend=str(identity.get("backend", "")),
-            placement_evidence={
-                "execution_plan": dict(plan) if isinstance(plan, Mapping) else {},
-                "terminal_model_metrics": terminal,
-                "first_model_prompt_identity": (
-                    model_prompt_identities[0] if model_prompt_identities else None),
-                "model_prompt_step_count": len(model_prompt_identities),
-                "independent_log_review_pending": True,
-            },
+            placement_evidence=placement_evidence,
             tool_decisions=decisions,
             trace_scope="agent_e2e" if events else "missing_trace",
         )
@@ -609,11 +688,12 @@ class NativeProfileBridge:
 
 def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
                 *, structured_read_url: bool = False) -> ProfileConditions:
+    import vllm_omni
     from vllm_omni.edge.agent.native_app import _fingerprint
     from vllm_omni.edge.agent.runtime_identity import (
-        imported_omni_source_sha256, loaded_runtime_sha256,
+        imported_omni_source_sha256,
+        loaded_runtime_sha256,
     )
-    import vllm_omni
 
     def installed_version(name: str) -> str:
         try:
@@ -625,6 +705,7 @@ def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
     notes = (
         "Fixed loopback fixtures; sampled RAM/VRAM/NVIDIA device power/heat. "
         "NVML GPU power is for the device as a whole, not model-only; system power unavailable. "
+        "Verified native WDDM process local/nonlocal samples stay separate; startup peak coverage is unavailable. "
         "Code case checks only static output, with no code execution tool. "
         f"Submission mode: {mode}."
     )
@@ -644,7 +725,10 @@ def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
             "vllm_omni_imported_source_sha256": imported_omni_source_sha256(),
             "agent_runtime_identity_sha256": loaded_runtime_sha256(),
             "llama_server_sha256": ",".join(sorted(
-                str(entry["server_sha256"]) for entry in native_config["routes"])),
+                str(entry["server_sha256"]) for entry in native_config["routes"] if "server_sha256" in entry)),
+            "strata_runtime_manifest_sha256": ",".join(sorted(
+                strata_route_binding(entry)["runtime_manifest_sha256"]
+                for entry in native_config["routes"] if entry.get("backend") == STRATA_BACKEND)),
             "vllm_omni_source": str(Path(__file__).resolve().parents[2]),
         },
         power_condition=str(hardware["power_condition"]),
