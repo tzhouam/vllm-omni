@@ -1,0 +1,100 @@
+{
+  "schema": "omni-mobile-candidates-v1",
+  "candidates": [
+    {
+      "candidate_id": "gemma4-e2b-litert",
+      "runtime_family": "litert-lm",
+      "artifact_manifest": {
+        "schema": "omni-weight-artifacts-v1",
+        "checkpoint": "litert-community/gemma-4-E2B-it-litert-lm",
+        "revision": "b3ca0d2f076785a8f4b2219ddbd2bdb99954eae1",
+        "license": "apache-2.0",
+        "hash_origin": "declared",
+        "files": [
+          {
+            "path": "gemma-4-E2B-it.litertlm",
+            "size_bytes": 2588147712,
+            "sha256": "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
+            "role": "weights"
+          }
+        ],
+        "lineage": []
+      },
+      "candidate_compute_units": [
+        "cpu",
+        "gpu"
+      ],
+      "candidate_modalities": [
+        "text",
+        "image",
+        "audio"
+      ],
+      "runtime_revision": null
+    },
+    {
+      "candidate_id": "gemma4-e4b-litert",
+      "runtime_family": "litert-lm",
+      "artifact_manifest": {
+        "schema": "omni-weight-artifacts-v1",
+        "checkpoint": "litert-community/gemma-4-E4B-it-litert-lm",
+        "revision": "2eee7ac325f20eb8c9ac1d0e972f7c84663062da",
+        "license": "apache-2.0",
+        "hash_origin": "declared",
+        "files": [
+          {
+            "path": "gemma-4-E4B-it.litertlm",
+            "size_bytes": 3659530240,
+            "sha256": "0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0",
+            "role": "weights"
+          }
+        ],
+        "lineage": []
+      },
+      "candidate_compute_units": [
+        "cpu",
+        "gpu"
+      ],
+      "candidate_modalities": [
+        "text",
+        "image",
+        "audio"
+      ],
+      "runtime_revision": null
+    },
+    {
+      "candidate_id": "qwen38-27b-ud-iq1-s",
+      "runtime_family": "llama.cpp",
+      "artifact_manifest": {
+        "schema": "omni-weight-artifacts-v1",
+        "checkpoint": "unsloth/Qwen3.8-27B-GGUF",
+        "revision": "4ca720788d1e01f1bff70c033e0d0028fd02e502",
+        "license": "apache-2.0",
+        "hash_origin": "declared",
+        "files": [
+          {
+            "path": "Qwen3.8-27B-UD-IQ1_S.gguf",
+            "size_bytes": 6192222208,
+            "sha256": "3895b6eaa91e705c06ad1938d16c22e86f073c6a67df86260a1da79be3d1f887",
+            "role": "weights"
+          },
+          {
+            "path": "mmproj-F16.gguf",
+            "size_bytes": 927607488,
+            "sha256": "cbb841a9ee0636b2ec172f5bb8df2ea8dfeb01e90fe7c6126581d662a0b4e43e",
+            "role": "mmproj"
+          }
+        ],
+        "lineage": []
+      },
+      "candidate_compute_units": [
+        "cpu",
+        "gpu"
+      ],
+      "candidate_modalities": [
+        "text",
+        "image"
+      ],
+      "runtime_revision": null
+    }
+  ]
+}

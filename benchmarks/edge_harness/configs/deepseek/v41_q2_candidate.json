@@ -1,0 +1,82 @@
+{
+  "schema": "omni-deepseek-candidate-v1",
+  "candidate_id": "deepseek-v41-flash-q2-k",
+  "artifact_manifest": {
+    "schema": "omni-weight-artifacts-v1",
+    "checkpoint": "vcruz305/DeepSeek-V4.1-Flash-GGUF",
+    "revision": "c4a085541cb53f67ee5e57b63d255e80cef286e7",
+    "license": "mit",
+    "hash_origin": "declared",
+    "files": [
+      {
+        "path": "DeepSeek-V4.1-Flash-Q2_K-00001-of-00007.gguf",
+        "size_bytes": 43072989056,
+        "sha256": "0bcee934bd4e8350c54410681d9300b0321a300fcb1df1437a20703394d08ee0",
+        "role": "weights"
+      },
+      {
+        "path": "DeepSeek-V4.1-Flash-Q2_K-00002-of-00007.gguf",
+        "size_bytes": 44805480352,
+        "sha256": "124ffa15b6b7ec9630715ad18752a4c3f371749647837b8c9d5f7eb52c4f73c0",
+        "role": "weights"
+      },
+      {
+        "path": "DeepSeek-V4.1-Flash-Q2_K-00003-of-00007.gguf",
+        "size_bytes": 14935107904,
+        "sha256": "4dd35b0b086cc0fb19d3a72afd8aed331317950e2257f37b9672702edc3f2453",
+        "role": "weights"
+      },
+      {
+        "path": "DeepSeek-V4.1-Flash-Q2_K-00004-of-00007.gguf",
+        "size_bytes": 44217904672,
+        "sha256": "d24832f4c2f42340d5d4bf4d9b3277c861e0a0a9ccd25e94bda5581c5351f960",
+        "role": "weights"
+      },
+      {
+        "path": "DeepSeek-V4.1-Flash-Q2_K-00005-of-00007.gguf",
+        "size_bytes": 44804598176,
+        "sha256": "34714c3880bde310207e3d12fa488d8d676f338ff635157fded8ec73e133efad",
+        "role": "weights"
+      },
+      {
+        "path": "DeepSeek-V4.1-Flash-Q2_K-00006-of-00007.gguf",
+        "size_bytes": 44803713696,
+        "sha256": "08dc941d26687cb51f736a4f1c3a2c4843fb1d79573164c645106711081f5faf",
+        "role": "weights"
+      },
+      {
+        "path": "DeepSeek-V4.1-Flash-Q2_K-00007-of-00007.gguf",
+        "size_bytes": 27875485600,
+        "sha256": "550bbdb94a69142abfa4b2f2db86ffe3dd6d4ca45eafbb6728f4fe40506fa6b9",
+        "role": "weights"
+      }
+    ],
+    "lineage": []
+  },
+  "runtime": {
+    "repository": "https://github.com/vcruz305/llama.cpp",
+    "revision": "5210c7c5ed61dddaee6ed476623abf4b63093d16",
+    "source_branch_at_audit": "runtime/deepseek41"
+  },
+  "recipe": {
+    "repository": "https://github.com/vcruz305/DeepSeek-V4.1-Flash-GGUF-DGX-Spark-recipe",
+    "revision": "c3c548489771b964bc8b4c507509441276fd2bf9"
+  },
+  "status": "not_executed",
+  "local_baseline": {
+    "target": "cpu_mmap",
+    "batch_size": 1,
+    "concurrency": 1,
+    "context_tokens": 2048,
+    "mtp": false,
+    "vision": false
+  },
+  "unresolved": [
+    "Seven weight shards are not present in this workspace.",
+    "Pinned deepseek41 runtime is not built locally.",
+    "Runtime recipe leaves two-level candidate mask unimplemented; full task quality requires independent verification.",
+    "CPU mmap demand paging is not a controlled SSD expert cache.",
+    "Windows native build, placement and bounded-cache IO/cancellation need separate validation."
+  ],
+  "license_note": "License is the quantizer model-card assertion. Reconcile upstream DeepSeek checkpoint terms before redistribution."
+}

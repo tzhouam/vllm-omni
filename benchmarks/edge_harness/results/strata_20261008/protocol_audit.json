@@ -1,0 +1,187 @@
+{
+  "evidence": "mock_protocol_only",
+  "model_execution": false,
+  "gpu_execution": false,
+  "qualification": false,
+  "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "source_server_sha256": "1a20af8fdd6818ceabe1385bc19c94d0879bbfc9047948d8c779fba0781e24c2",
+  "python": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+  "tests": [
+    {
+      "name": "upstream_sse_parser",
+      "passed": true,
+      "result": {
+        "content": "Hello protocol audit.",
+        "reasoning_content": "",
+        "finish_reason": "stop",
+        "usage": {
+          "prompt_tokens": 47,
+          "completion_tokens": 22,
+          "total_tokens": 69,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "timings": null
+      },
+      "deltas": [
+        {
+          "channel": "content",
+          "text": "H"
+        },
+        {
+          "channel": "content",
+          "text": "e"
+        },
+        {
+          "channel": "content",
+          "text": "l"
+        },
+        {
+          "channel": "content",
+          "text": "l"
+        },
+        {
+          "channel": "content",
+          "text": "o"
+        },
+        {
+          "channel": "content",
+          "text": " "
+        },
+        {
+          "channel": "content",
+          "text": "p"
+        },
+        {
+          "channel": "content",
+          "text": "r"
+        },
+        {
+          "channel": "content",
+          "text": "o"
+        },
+        {
+          "channel": "content",
+          "text": "t"
+        },
+        {
+          "channel": "content",
+          "text": "o"
+        },
+        {
+          "channel": "content",
+          "text": "c"
+        },
+        {
+          "channel": "content",
+          "text": "o"
+        },
+        {
+          "channel": "content",
+          "text": "l"
+        },
+        {
+          "channel": "content",
+          "text": " "
+        },
+        {
+          "channel": "content",
+          "text": "a"
+        },
+        {
+          "channel": "content",
+          "text": "u"
+        },
+        {
+          "channel": "content",
+          "text": "d"
+        },
+        {
+          "channel": "content",
+          "text": "i"
+        },
+        {
+          "channel": "content",
+          "text": "t"
+        },
+        {
+          "channel": "content",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "name": "single_slot_health_props",
+      "passed": true
+    },
+    {
+      "name": "api_authentication",
+      "passed": true,
+      "http_status": 401
+    },
+    {
+      "name": "completed_request_metrics_association",
+      "passed": true,
+      "requests": 1
+    },
+    {
+      "name": "context_refusal_no_truncation",
+      "passed": true,
+      "http_status": 400
+    }
+  ],
+  "supervisor_bootstrap_sha256": "b1dbca0afa61e64382b9a8250f482f81c89c767bb0d96860f85d24639169b0bc",
+  "native_memory_probe_only": {
+    "host_ram_available_bytes": 7572418560,
+    "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+    "gpu_total_bytes": 25651314688,
+    "gpu_free_bytes": 582283264,
+    "gpu_source": "NVML exact bytes",
+    "windows_commit_available_bytes": 597442560,
+    "windows_host_available_bytes": 7572418560,
+    "wsl_ram_available_bytes": null,
+    "is_wsl": false,
+    "windows_host_verification": "measured",
+    "captured_unix_s": 1791437963.3549879
+  },
+  "health": {
+    "status": "ok",
+    "max_context": 32768,
+    "model": "protocol-fixture",
+    "images": false,
+    "api_key": true,
+    "loaded": true,
+    "service": "strata"
+  },
+  "props": {
+    "total_slots": 1,
+    "model_alias": "protocol-fixture",
+    "default_generation_settings": {
+      "n_ctx": 32768,
+      "params": {
+        "n_predict": -1
+      }
+    },
+    "modalities": {
+      "vision": false
+    },
+    "build_info": null
+  },
+  "safe_completed_request_metrics": {
+    "hit_rate": null,
+    "pcie_share": null,
+    "ram_blobs": null,
+    "file_blobs": null,
+    "file_mb": null,
+    "drafts_offered": null,
+    "drafts_accepted": null,
+    "physical_ssd_read_bytes": null,
+    "ssd_wait_s": null,
+    "actual_io_mode": null,
+    "observed_compute_units": null,
+    "logical_file_read_bytes": null
+  },
+  "status": "passed",
+  "server_exit_code": 1
+}

@@ -25,12 +25,13 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
-from omni_stage_contracts import StageEvent, StageRequest
 from vllm.outputs import CompletionOutput
 
+from omni_stage_contracts import StageEvent, StageRequest
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 from vllm_omni.engine.stage_client import StageClientBase
 from vllm_omni.outputs import OmniRequestOutput
@@ -49,25 +50,19 @@ _LOG_LINE_LIMIT = 4096
 _SANITIZED_LOG_LIMIT = 8 << 20
 _SAFE_DEVICE = r"(?:CPU|Vulkan_Host|Vulkan\d{1,3})"
 _LOG_DEVICE = re.compile(r"using device (Vulkan\d{1,3}) \([^\r\n]*\)")
-_LOG_LAYER = re.compile(
-    rf"load_tensors: layer\s+(\d{{1,4}}) assigned to device ({_SAFE_DEVICE})(?:[,\s]|$)"
-)
+_LOG_LAYER = re.compile(rf"load_tensors: layer\s+(\d{{1,4}}) assigned to device ({_SAFE_DEVICE})(?:[,\s]|$)")
 _LOG_OFFLOAD = re.compile(r"load_tensors: offloaded (\d{1,4})/(\d{1,4}) layers to GPU")
 _LOG_BUFFER = re.compile(
     r"load_tensors:\s+(CPU(?:_[A-Za-z0-9_]{1,24})?|Vulkan_Host|Vulkan\d{1,3}) "
     r"model buffer size\s*=\s*(\d{1,9}(?:\.\d{1,2})?) MiB"
 )
-_LOG_CAPACITY_BUFFER = re.compile(
-    rf"({_SAFE_DEVICE}) (KV|compute) buffer size\s*=\s*(\d{{1,9}}(?:\.\d{{1,2}})?) MiB"
-)
+_LOG_CAPACITY_BUFFER = re.compile(rf"({_SAFE_DEVICE}) (KV|compute) buffer size\s*=\s*(\d{{1,9}}(?:\.\d{{1,2}})?) MiB")
 _LOG_EXPERT = re.compile(
     rf"tensor blk\.(\d{{1,4}})\.(ffn_(?:up|down|gate|gate_up)_(?:ch)?exps)\.weight "
     rf"\([^)]*\) buffer type overridden to ({_SAFE_DEVICE})(?:\s|$)"
 )
 _LOG_CLIP = re.compile(rf"clip_ctx: CLIP using ({_SAFE_DEVICE}) backend")
-_LOG_MODEL_LOADED = re.compile(
-    r"\d{1,4}(?:\.\d{1,4}){3}\s+I\s+srv\s+llama_server:\s+model loaded"
-)
+_LOG_MODEL_LOADED = re.compile(r"\d{1,4}(?:\.\d{1,4}){3}\s+I\s+srv\s+llama_server:\s+model loaded")
 _LOG_LISTENING = re.compile(r"\bllama_server: listening on http://127\.0\.0\.1:(\d{1,5})(?:\s|$)")
 _LOG_ERROR_SEVERITY = re.compile(r"^(?:\d+\.){3}\d+\s+[EW]\s+")
 _LOG_ERROR_SOURCE = re.compile(r"^(?:ggml\w*|llama\w*|load_tensors|error|fatal|failed)\s*:", re.I)
@@ -101,10 +96,8 @@ def _sanitize_llama_log_line(line: str, *, expected_device_name: str | None) -> 
         return f"llama.cpp capacity: {match[1]} {match[2]} buffer size = {match[3]} MiB"
     match = _LOG_EXPERT.search(line)
     if match:
-        return (f"tensor blk.{match[1]}.{match[2]}.weight (redacted) "
-                f"buffer type overridden to {match[3]}")
-    if ("buffer type overridden to" in line and
-            re.search(r"tensor blk\.\d{1,4}\.ffn_[A-Za-z0-9_]{1,48}exps", line)):
+        return f"tensor blk.{match[1]}.{match[2]}.weight (redacted) buffer type overridden to {match[3]}"
+    if "buffer type overridden to" in line and re.search(r"tensor blk\.\d{1,4}\.ffn_[A-Za-z0-9_]{1,48}exps", line):
         # An unexpected expert override must remain visible to the verifier
         # without copying untrusted tensor metadata into the persistent log.
         return "llama.cpp diagnostic: unexpected_expert_override"
@@ -143,8 +136,7 @@ def _sanitize_llama_log_line(line: str, *, expected_device_name: str | None) -> 
 class _FilteredLlamaLog:
     """Drain server stdout without retaining raw content in memory or on disk."""
 
-    def __init__(self, pipe, path: Path, *, expected_device_name: str | None,
-                 port: int) -> None:
+    def __init__(self, pipe, path: Path, *, expected_device_name: str | None, port: int) -> None:
         self._pipe = pipe
         self._file = path.open("w", encoding="utf-8", buffering=1)
         self._expected_device_name = expected_device_name
@@ -174,7 +166,8 @@ class _FilteredLlamaLog:
                     continue
                 line = raw.decode("utf-8", errors="replace")
                 safe = _sanitize_llama_log_line(
-                    line, expected_device_name=self._expected_device_name,
+                    line,
+                    expected_device_name=self._expected_device_name,
                 )
                 if self._ready and safe is not None and not safe.startswith("llama.cpp diagnostic:"):
                     # Placement is immutable after startup. A later prompt may
@@ -254,9 +247,14 @@ class _FilteredLlamaLog:
 
 
 def _hybrid_placement_evidence(
-    log_text: str, *, gpu_device: str, expected_device_name: str,
-    gpu_layers: int | None, cpu_moe_layers: int,
-    cpu_weight_budget_bytes: int, gpu_weight_budget_bytes: int,
+    log_text: str,
+    *,
+    gpu_device: str,
+    expected_device_name: str,
+    gpu_layers: int | None,
+    cpu_moe_layers: int,
+    cpu_weight_budget_bytes: int,
+    gpu_weight_budget_bytes: int,
     host_mapped_expert_layers: int = 0,
 ) -> dict[str, Any]:
     """Verify logged buffer bounds and the requested override selection.
@@ -279,19 +277,19 @@ def _hybrid_placement_evidence(
         raise RuntimeError("REFUSE_DEVICE_PLACEMENT: hybrid route did not use the requested GPU")
     assignments = _LAYER_ASSIGNMENT.findall(log_text)
     numbered_assignments = re.findall(
-        r"load_tensors: layer\s+(\d+) assigned to device ([^,\s]+)", log_text,
+        r"load_tensors: layer\s+(\d+) assigned to device ([^,\s]+)",
+        log_text,
     )
-    if not assignments or gpu_device not in assignments or any(
-        device not in {"CPU", gpu_device} for device in assignments
+    if (
+        not assignments
+        or gpu_device not in assignments
+        or any(device not in {"CPU", gpu_device} for device in assignments)
     ):
         raise RuntimeError("REFUSE_DEVICE_PLACEMENT: hybrid layer assignments are missing or unexpected")
     if gpu_layers is None:
-        if (offloaded_count != total_layers or
-                max(cpu_moe_layers, host_mapped_expert_layers) < 1):
+        if offloaded_count != total_layers or max(cpu_moe_layers, host_mapped_expert_layers) < 1:
             raise RuntimeError("REFUSE_DEVICE_PLACEMENT: expert route did not offload all layers")
-    elif offloaded_count != gpu_layers or (
-        cpu_moe_layers == 0 and "CPU" not in assignments
-    ):
+    elif offloaded_count != gpu_layers or (cpu_moe_layers == 0 and "CPU" not in assignments):
         raise RuntimeError("REFUSE_DEVICE_PLACEMENT: actual GPU/CPU layer count differs from split")
 
     buffers = _MODEL_BUFFER_SIZE.findall(log_text)
@@ -299,17 +297,15 @@ def _hybrid_placement_evidence(
         raise RuntimeError("REFUSE_DEVICE_PLACEMENT: hybrid model buffer sizes are absent")
     by_pool = {"host_ram": 0, "vram": 0}
     for name, size_mib in buffers:
-        pool = ("host_ram" if name.startswith("CPU") or name == "Vulkan_Host"
-                else "vram" if name == gpu_device else None)
+        pool = "host_ram" if name.startswith("CPU") or name == "Vulkan_Host" else "vram" if name == gpu_device else None
         if pool is None:
             raise RuntimeError(f"REFUSE_DEVICE_PLACEMENT: unexpected model buffer device {name}")
         # The printed value is rounded to two decimals. Using the upper edge
         # avoids accepting a weight buffer that may exceed its budget.
-        by_pool[pool] += math.ceil((float(size_mib) + .01) * (1 << 20))
+        by_pool[pool] += math.ceil((float(size_mib) + 0.01) * (1 << 20))
     if not by_pool["host_ram"] or not by_pool["vram"]:
         raise RuntimeError("REFUSE_DEVICE_PLACEMENT: hybrid route lacks CPU or GPU weights")
-    if (by_pool["host_ram"] > cpu_weight_budget_bytes or
-            by_pool["vram"] > gpu_weight_budget_bytes):
+    if by_pool["host_ram"] > cpu_weight_budget_bytes or by_pool["vram"] > gpu_weight_budget_bytes:
         raise ResourceUnavailable("actual hybrid model buffers exceed the declared per-pool weight budgets")
 
     expert_overrides = _EXPERT_BUFFER_OVERRIDE.findall(log_text)
@@ -319,24 +315,22 @@ def _hybrid_placement_evidence(
             for layer in range(cpu_moe_layers)
             for tensor in ("up", "down", "gate")
         }
-        if (len(expert_overrides) != len(expected_overrides) or
-                set(expert_overrides) != expected_overrides):
-            raise RuntimeError(
-                "REFUSE_DEVICE_PLACEMENT: exact CPU-expert tensor overrides were not verified"
-            )
+        if len(expert_overrides) != len(expected_overrides) or set(expert_overrides) != expected_overrides:
+            raise RuntimeError("REFUSE_DEVICE_PLACEMENT: exact CPU-expert tensor overrides were not verified")
     if host_mapped_expert_layers:
         expected_overrides = {
             (str(layer), f"ffn_{tensor}_exps.weight", "Vulkan_Host")
             for layer in range(host_mapped_expert_layers)
             for tensor in ("up", "down", "gate")
         }
-        if (gpu_layers is not None or host_mapped_expert_layers >= total_layers or
-                len(expert_overrides) != len(expected_overrides) or
-                set(expert_overrides) != expected_overrides or
-                len(numbered_assignments) != total_layers or
-                set(numbered_assignments) != {
-                    (str(layer), gpu_device) for layer in range(total_layers)
-                }):
+        if (
+            gpu_layers is not None
+            or host_mapped_expert_layers >= total_layers
+            or len(expert_overrides) != len(expected_overrides)
+            or set(expert_overrides) != expected_overrides
+            or len(numbered_assignments) != total_layers
+            or set(numbered_assignments) != {(str(layer), gpu_device) for layer in range(total_layers)}
+        ):
             raise RuntimeError(
                 "REFUSE_DEVICE_PLACEMENT: exact Vulkan_Host expert overrides and GPU layers were not verified"
             )
@@ -389,7 +383,11 @@ def _json_request(url: str, body: dict | None, *, timeout: float, limit: int) ->
 
 
 def _stream_json_request(
-    url: str, body: dict, *, timeout: float, limit: int,
+    url: str,
+    body: dict,
+    *,
+    timeout: float,
+    limit: int,
     on_delta: Callable[[str], None],
 ) -> dict:
     """Read bounded OpenAI SSE from the already admitted local llama-server.
@@ -400,7 +398,9 @@ def _stream_json_request(
     """
     data = json.dumps({**body, "stream": True}).encode("utf-8")
     request = urllib.request.Request(
-        url, data=data, headers={"Content-Type": "application/json"},
+        url,
+        data=data,
+        headers={"Content-Type": "application/json"},
     )
     pieces: list[str] = []
     used = 0
@@ -432,7 +432,7 @@ def _stream_json_request(
                         raise ValueError("llama.cpp SSE text delta is not a string")
                     pieces.append(part)
                     for start in range(0, len(part), 8192):
-                        on_delta(part[start:start + 8192])
+                        on_delta(part[start : start + 8192])
                 if choice.get("finish_reason") is not None:
                     finish_reason = choice["finish_reason"]
     if not done or finish_reason != "stop":
@@ -487,8 +487,7 @@ class LlamaCppTextStageClient(StageClientBase):
         try:
             if self._memory_pool not in reservation.demands:
                 raise ResourceUnavailable("llama.cpp memory pool absent from stage reservation")
-            if ("host_ram" not in reservation.demands or
-                    self._max_io_bytes > reservation.demands["host_ram"]):
+            if "host_ram" not in reservation.demands or self._max_io_bytes > reservation.demands["host_ram"]:
                 raise ResourceUnavailable("llama.cpp host I/O bound exceeds host RAM reservation")
             self._model = Path(config["model_file"]).resolve(strict=True)
             self._binary = Path(config["server_bin"]).resolve(strict=True)
@@ -510,41 +509,82 @@ class LlamaCppTextStageClient(StageClientBase):
                     raise ValueError("multimodal llama.cpp stage requires image byte and token bounds")
             elif self._max_image_bytes or self._image_token_reserve:
                 raise ValueError("image bounds require a pinned multimodal projector")
+            self._artifact_manifest_sha256 = None
+            manifest_bytes = None
+            bundle = config.get("artifact_manifest")
+            if bundle is not None:
+                from vllm_omni.engine.weight_tiers import ArtifactManifest
+
+                manifest = ArtifactManifest.from_dict(bundle)
+                artifact_root = Path(config["artifact_root"]).resolve(strict=True)
+                verified = manifest.verify(artifact_root)
+                if self._model not in verified or (self._mmproj is not None and self._mmproj not in verified):
+                    raise ValueError("model and projector must belong to the complete artifact manifest")
+                expected = {artifact_root / item.path for item in manifest.files if item.role == "weights"}
+                if self._model not in expected or manifest.weight_size_bytes <= 0:
+                    raise ValueError("selected GGUF must have a positive weights role in the manifest")
+                # Do not allow the chosen shard to reference an unlisted split set.
+                split = re.fullmatch(r"(.+)-([0-9]{5})-of-([0-9]{5})\.gguf", self._model.name)
+                if split and (
+                    int(split[2]) != 1
+                    or any(
+                        self._model.with_name(f"{split[1]}-{i:05d}-of-{int(split[3]):05d}.gguf") not in expected
+                        for i in range(1, int(split[3]) + 1)
+                    )
+                ):
+                    raise ValueError("selected GGUF split set is incomplete in the artifact manifest")
+                manifest_bytes = manifest.weight_size_bytes + sum(
+                    item.size_bytes for item in manifest.files if item.role in {"projector", "vision", "mmproj"}
+                )
+                if self._mmproj is not None and not any(
+                    artifact_root / item.path == self._mmproj and item.role in {"projector", "vision", "mmproj"}
+                    for item in manifest.files
+                ):
+                    raise ValueError("vision projector needs its own declared artifact role")
+                self._artifact_manifest_sha256 = manifest.manifest_sha256
+            elif re.search(r"-[0-9]{5}-of-[0-9]{5}\.gguf$", self._model.name):
+                raise ValueError("multi-shard GGUF requires a complete pinned artifact manifest")
             overhead = int(config["memory_overhead_bytes"])
             artifact_bytes = self._model.stat().st_size + (
                 self._mmproj.stat().st_size if self._mmproj is not None else 0
             )
+            if manifest_bytes is not None:
+                artifact_bytes = manifest_bytes
             if overhead <= 0:
                 raise ValueError("llama.cpp stage requires positive load/KV/workspace headroom")
             if self._hybrid:
                 cpu_budget = self._cpu_weight_budget_bytes
                 gpu_budget = self._gpu_weight_budget_bytes
-                if (self._memory_pool not in {"host_ram", "vram"} or
-                        type(cpu_budget) is not int or cpu_budget <= 0
-                        or type(gpu_budget) is not int or gpu_budget <= 0
-                        or self._vram_overhead_bytes <= 0):
+                if (
+                    self._memory_pool not in {"host_ram", "vram"}
+                    or type(cpu_budget) is not int
+                    or cpu_budget <= 0
+                    or type(gpu_budget) is not int
+                    or gpu_budget <= 0
+                    or self._vram_overhead_bytes <= 0
+                ):
                     raise ValueError("hybrid route requires explicit CPU/GPU budgets and GPU workspace overhead")
                 if cpu_budget + gpu_budget < artifact_bytes:
                     raise ResourceUnavailable("hybrid weight budgets are below the pinned GGUF and projector bytes")
                 if self._memory_pool == "host_ram":
-                    if (cpu_budget + gpu_budget + overhead + self._vram_overhead_bytes >
-                            reservation.demands["host_ram"]):
+                    if cpu_budget + gpu_budget + overhead + self._vram_overhead_bytes > reservation.demands["host_ram"]:
                         raise ResourceUnavailable("shared-memory hybrid weights and workspaces exceed RAM reservation")
-                elif (cpu_budget + overhead > reservation.demands["host_ram"] or
-                      gpu_budget + self._vram_overhead_bytes > reservation.demands["vram"]):
+                elif (
+                    cpu_budget + overhead > reservation.demands["host_ram"]
+                    or gpu_budget + self._vram_overhead_bytes > reservation.demands["vram"]
+                ):
                     raise ResourceUnavailable("hybrid weight, loading and workspace claims exceed reservation")
                 if self._host_mapped:
-                    if (self._gpu_layers is not None or self._cpu_moe_layers or
-                            self._host_mapped_expert_layers <= 0):
+                    if self._gpu_layers is not None or self._cpu_moe_layers or self._host_mapped_expert_layers <= 0:
                         raise ValueError("Vulkan_Host route requires exact host-mapped expert layers only")
-                elif self._host_mapped_expert_layers or (
-                    self._gpu_layers is None and self._cpu_moe_layers <= 0
-                ):
+                elif self._host_mapped_expert_layers or (self._gpu_layers is None and self._cpu_moe_layers <= 0):
                     raise ValueError("CPU hybrid route requires a pinned layer or CPU-expert split only")
             elif self._host_mapped_expert_layers:
                 raise ValueError("host_mapped_expert_layers require Vulkan_Host+VulkanN placement")
             elif artifact_bytes + overhead > reservation.demands[self._memory_pool]:
-                raise ResourceUnavailable("GGUF and projector plus declared KV/workspace/transfer/headroom exceed reservation")
+                raise ResourceUnavailable(
+                    "GGUF and projector plus declared KV/workspace/transfer/headroom exceed reservation"
+                )
             if self._placement != "cpu" and not re.fullmatch(r"Vulkan\d+", self._gpu_device):
                 raise ValueError("llama.cpp device must be cpu or an explicit Vulkan index")
             expected_device_name = config.get("expected_device_name")
@@ -556,15 +596,38 @@ class LlamaCppTextStageClient(StageClientBase):
             if config.get("ggml_vk_visible_devices") is not None:
                 env["GGML_VK_VISIBLE_DEVICES"] = str(config["ggml_vk_visible_devices"])
             command = [
-                str(self._binary), "-m", str(self._model),
-                "-dev", "none" if self._placement == "cpu" else self._gpu_device,
-                "-ngl", ("0" if self._placement == "cpu" else
-                         str(self._gpu_layers) if self._gpu_layers is not None else
-                         "all" if self._hybrid else "99"),
-                "-c", str(self._context_tokens), "-np", "1",
-                "--host", "127.0.0.1", "--port", str(self._port),
-                "--reasoning", "off", "--no-webui", "--fit", "off",
-                "--cache-ram", "0", "-lv", "5" if self._hybrid else "4",
+                str(self._binary),
+                "-m",
+                str(self._model),
+                "-dev",
+                "none" if self._placement == "cpu" else self._gpu_device,
+                "-ngl",
+                (
+                    "0"
+                    if self._placement == "cpu"
+                    else str(self._gpu_layers)
+                    if self._gpu_layers is not None
+                    else "all"
+                    if self._hybrid
+                    else "99"
+                ),
+                "-c",
+                str(self._context_tokens),
+                "-np",
+                "1",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(self._port),
+                "--reasoning",
+                "off",
+                "--no-webui",
+                "--fit",
+                "off",
+                "--cache-ram",
+                "0",
+                "-lv",
+                "5" if self._hybrid else "4",
             ]
             if config.get("disable_repack", False):
                 command.append("--no-repack")
@@ -577,12 +640,16 @@ class LlamaCppTextStageClient(StageClientBase):
                     command.append("--no-mmproj-offload")
             flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
             self._proc = subprocess.Popen(
-                command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                env=env, creationflags=flags,
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                env=env,
+                creationflags=flags,
             )
             assert self._proc.stdout is not None
             self._log_filter = _FilteredLlamaLog(
-                self._proc.stdout, self._log_path,
+                self._proc.stdout,
+                self._log_path,
                 expected_device_name=str(expected_device_name) if expected_device_name else None,
                 port=self._port,
             )
@@ -633,21 +700,25 @@ class LlamaCppTextStageClient(StageClientBase):
                     raise RuntimeError("CPU stage assigned model layers to an accelerator")
             elif self._hybrid:
                 hybrid_evidence = _hybrid_placement_evidence(
-                    log_text, gpu_device=self._gpu_device,
+                    log_text,
+                    gpu_device=self._gpu_device,
                     expected_device_name=str(expected_device_name),
-                    gpu_layers=self._gpu_layers, cpu_moe_layers=self._cpu_moe_layers,
+                    gpu_layers=self._gpu_layers,
+                    cpu_moe_layers=self._cpu_moe_layers,
                     host_mapped_expert_layers=self._host_mapped_expert_layers,
                     cpu_weight_budget_bytes=self._cpu_weight_budget_bytes,
                     gpu_weight_budget_bytes=(
                         self._gpu_weight_budget_bytes - self._mmproj.stat().st_size
-                        if self._mmproj is not None else self._gpu_weight_budget_bytes
+                        if self._mmproj is not None
+                        else self._gpu_weight_budget_bytes
                     ),
                 )
             else:
                 expected_line = f"using device {self._gpu_device} ({expected_device_name})"
                 fully_offloaded = bool(offloaded) and offloaded[-1][0] == offloaded[-1][1]
                 if (
-                    expected_line not in log_text or not fully_offloaded
+                    expected_line not in log_text
+                    or not fully_offloaded
                     or device_buffers != [self._gpu_device]
                     or (assignments and any(name != self._gpu_device for name in assignments))
                 ):
@@ -659,9 +730,12 @@ class LlamaCppTextStageClient(StageClientBase):
             if self._loaded_rss_bytes > reservation.demands["host_ram"]:
                 raise ResourceUnavailable("loaded llama.cpp process RSS exceeds host RAM reservation")
             self.execution_plan = {
-                "backend": "external.llamacpp.multimodal.v1" if self._mmproj is not None else "external.llamacpp.text.v1",
+                "backend": "external.llamacpp.multimodal.v1"
+                if self._mmproj is not None
+                else "external.llamacpp.text.v1",
                 "stage_id": self.stage_id,
                 "worker_generation": self._generation,
+                "artifact_manifest_sha256": self._artifact_manifest_sha256,
                 "model_sha256": self._expected_model_sha,
                 "mmproj_sha256": self._expected_mmproj_sha,
                 "server_sha256": self._expected_binary_sha,
@@ -681,9 +755,7 @@ class LlamaCppTextStageClient(StageClientBase):
                 "cpu_moe_layers_requested": self._cpu_moe_layers,
                 "host_mapped_expert_layers_requested": self._host_mapped_expert_layers,
                 "gpu_layers_requested": self._gpu_layers,
-                "placement_evidence_level": (
-                    "override_selection_only" if self._host_mapped else "startup_log"
-                ),
+                "placement_evidence_level": ("override_selection_only" if self._host_mapped else "startup_log"),
                 "expert_final_storage_verified": False if self._host_mapped else None,
                 "expert_compute_verified": False if self._host_mapped else None,
                 "vision_backends": vision_backends,
@@ -698,8 +770,8 @@ class LlamaCppTextStageClient(StageClientBase):
                     "declared dual-pool admission plus loaded RSS and model-buffer log; "
                     "Vulkan_Host override selection does not prove final expert storage or compute; "
                     "loading/whole-request RAM and VRAM peaks require telemetry"
-                    if self._host_mapped else
-                    "declared dual-pool admission plus loaded RSS and model-buffer log; "
+                    if self._host_mapped
+                    else "declared dual-pool admission plus loaded RSS and model-buffer log; "
                     "loading/whole-request RAM and VRAM peaks require telemetry"
                 ),
                 "disable_repack": bool(config.get("disable_repack", False)),
@@ -738,7 +810,7 @@ class LlamaCppTextStageClient(StageClientBase):
             if len(image_data_url.encode("utf-8")) > self._max_io_bytes:
                 raise ResourceUnavailable("PNG data URL exceeds admitted I/O bound")
             try:
-                image_bytes = base64.b64decode(image_data_url[len(prefix):], validate=True)
+                image_bytes = base64.b64decode(image_data_url[len(prefix) :], validate=True)
                 from PIL import Image
 
                 with Image.open(io.BytesIO(image_bytes)) as image:
@@ -749,7 +821,10 @@ class LlamaCppTextStageClient(StageClientBase):
                 raise ValueError("invalid or oversized PNG image") from exc
             if len(image_bytes) > self._max_image_bytes:
                 raise ResourceUnavailable("PNG image exceeds admitted image byte bound")
-        if len(text.encode("utf-8")) + (len(image_data_url.encode("utf-8")) if image_data_url else 0) > self._max_io_bytes:
+        if (
+            len(text.encode("utf-8")) + (len(image_data_url.encode("utf-8")) if image_data_url else 0)
+            > self._max_io_bytes
+        ):
             raise ResourceUnavailable("llama.cpp prompt exceeds admitted I/O bound")
         max_tokens = int(prompt.get("max_tokens", self._max_new_tokens))
         if not 0 < max_tokens <= self._max_new_tokens:
@@ -771,7 +846,9 @@ class LlamaCppTextStageClient(StageClientBase):
         # before submission rather than relying on server-side truncation.
         image_tokens = self._image_token_reserve if image_data_url is not None else 0
         if len(token_ids) + max_tokens + image_tokens + 64 > self._context_tokens:
-            raise ResourceUnavailable("llama.cpp prompt, image and generation bounds exceed context; refusing truncation")
+            raise ResourceUnavailable(
+                "llama.cpp prompt, image and generation bounds exceed context; refusing truncation"
+            )
         self._epoch += 1
         epoch = self._epoch
         request = StageRequest(request_id, self.stage_id, epoch, self._generation)
@@ -783,11 +860,14 @@ class LlamaCppTextStageClient(StageClientBase):
         self._agent_stream = asyncio.Queue(maxsize=64) if agent_stream else None
         self._task = asyncio.create_task(
             self._run(request, text, max_tokens, image_data_url, self._agent_stream),
-            name=f"llamacpp-{self.stage_id}-{request_id}"
+            name=f"llamacpp-{self.stage_id}-{request_id}",
         )
 
     async def _run(
-        self, request: StageRequest, text: str, max_tokens: int,
+        self,
+        request: StageRequest,
+        text: str,
+        max_tokens: int,
         image_data_url: str | None,
         agent_stream: asyncio.Queue[tuple[str, float] | None] | None,
     ) -> None:
@@ -809,8 +889,11 @@ class LlamaCppTextStageClient(StageClientBase):
             }
             if agent_stream is None:
                 result = await asyncio.to_thread(
-                    _json_request, self._base_url + "/v1/chat/completions", body,
-                    timeout=self._request_timeout_s, limit=self._max_io_bytes,
+                    _json_request,
+                    self._base_url + "/v1/chat/completions",
+                    body,
+                    timeout=self._request_timeout_s,
+                    limit=self._max_io_bytes,
                 )
                 choice = result["choices"][0]
                 content = choice["message"]["content"]
@@ -823,14 +906,17 @@ class LlamaCppTextStageClient(StageClientBase):
                     if self._agent_cancel.is_set():
                         raise RuntimeError("Agent SSE stream was cancelled")
                     ticket = asyncio.run_coroutine_threadsafe(
-                        agent_stream.put((part, time.perf_counter())), loop,
+                        agent_stream.put((part, time.perf_counter())),
+                        loop,
                     )
                     ticket.result(timeout=self._request_timeout_s)
 
                 result = await asyncio.to_thread(
                     _stream_json_request,
-                    self._base_url + "/v1/chat/completions", body,
-                    timeout=self._request_timeout_s, limit=self._max_io_bytes,
+                    self._base_url + "/v1/chat/completions",
+                    body,
+                    timeout=self._request_timeout_s,
+                    limit=self._max_io_bytes,
                     on_delta=on_delta,
                 )
                 content = result["content"]
@@ -840,8 +926,13 @@ class LlamaCppTextStageClient(StageClientBase):
             if not isinstance(content, str) or finish_reason != "stop":
                 raise RuntimeError(f"llama.cpp response incomplete: finish_reason={finish_reason!r}")
             event = StageEvent(
-                request.request_id, self.stage_id, request.epoch, 1, "text",
-                self._generation, terminal=True,
+                request.request_id,
+                self.stage_id,
+                request.epoch,
+                1,
+                "text",
+                self._generation,
+                terminal=True,
             )
             output = OmniRequestOutput(
                 request_id=request.request_id,
@@ -850,8 +941,7 @@ class LlamaCppTextStageClient(StageClientBase):
                 final_output_type="text",
                 outputs=[CompletionOutput(0, content, [], None, None, finish_reason=finish_reason)],
                 _custom_output={"stage_event": dataclasses.asdict(event)},
-                metrics={"llamacpp_wall_s": wall_s, "usage": usage,
-                         "agent_sse": agent_stream is not None},
+                metrics={"llamacpp_wall_s": wall_s, "usage": usage, "agent_sse": agent_stream is not None},
             )
         except asyncio.CancelledError:
             raise
@@ -906,9 +996,7 @@ class LlamaCppTextStageClient(StageClientBase):
             else:
                 self._ledger.release(self._reservation, drained=False)
                 self._task.add_done_callback(
-                    lambda task: self._ledger.release(
-                        self._reservation, drained=drained and not task.cancelled()
-                    )
+                    lambda task: self._ledger.release(self._reservation, drained=drained and not task.cancelled())
                 )
         self._active = None
         self._agent_stream = None

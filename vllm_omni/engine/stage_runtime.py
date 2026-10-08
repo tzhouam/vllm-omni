@@ -10,6 +10,7 @@ import copy
 import os
 import threading
 import time
+import uuid
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
@@ -34,6 +35,7 @@ from vllm_omni.engine.messages import (
     EngineQueueMessage,
     RegisterRemoteReplicaMessage,
 )
+from vllm_omni.engine.resource_ledger import Reservation, ResourceLedger
 from vllm_omni.engine.stage_client import StageClient, StagePoolClient
 from vllm_omni.engine.stage_engine_core_client import StageEngineCoreClientBase
 from vllm_omni.engine.stage_engine_startup import (
@@ -131,6 +133,8 @@ class StageRuntime:
         tokenizer: str | None = None,
         parallel_stage_init: bool = False,
         log_stats: bool = False,
+        resource_ledger: ResourceLedger | None = None,
+        resource_reservations: Mapping[tuple[int, int], Reservation] | None = None,
     ) -> None:
         self._stage_configs = stage_configs
         self._model = model
@@ -155,8 +159,15 @@ class StageRuntime:
         # device groups can initialize concurrently.
         self._replica_launch_lock = threading.Lock()
         self._init_visible_devices_baseline: str | None = None
-        self.resource_ledger = None
+        if resource_reservations is not None and resource_ledger is None:
+            raise ValueError("inherited stage reservations require the shared resource ledger")
+        self.resource_ledger = resource_ledger
+        self._shared_resource_ledger = resource_ledger
+        self._inherited_resource_reservations = (
+            None if resource_reservations is None else dict(resource_reservations)
+        )
         self._resource_reservations = {}
+        self._resource_owner_prefix = f"runtime:{uuid.uuid4().hex}"
         self._resource_started = set()
 
     @staticmethod
@@ -285,8 +296,6 @@ class StageRuntime:
         must do so: an unpriced native allocation cannot share a physical RAM
         or VRAM ceiling with a priced graph allocation.
         """
-        from vllm_omni.engine.resource_ledger import ResourceLedger
-
         replicas = [r for plan in stage_plans for r in plan.replicas]
         if not replicas:
             return
@@ -300,6 +309,8 @@ class StageRuntime:
                 raise ValueError("budgeted native pipelines require one local host controller")
             return
         if not has_graph and not any(budgets):
+            if self._shared_resource_ledger is not None:
+                raise ValueError("every stage sharing a resource ledger must declare resource_budget")
             return
         # One final consumer owns the ingress ticket. Fan-out or multiple final
         # outputs would need reference-counted leases before any early ACK can
@@ -320,9 +331,15 @@ class StageRuntime:
         capacities = dict(budgets[0]["capacities"])
         if any(dict(b["capacities"]) != capacities for b in budgets):
             raise ValueError("all stages must agree on physical memory ceilings")
+        if self._shared_resource_ledger is not None and dict(self._shared_resource_ledger.capacities) != capacities:
+            raise ValueError("stage budgets must match the shared resource ledger ceilings")
         from vllm_omni.engine.stage_admission import check_native_resource_budget
 
-        if any(replica.metadata.stage_type != "graph" for replica in replicas) and "host_ram" in capacities:
+        if (
+            self._shared_resource_ledger is None
+            and any(replica.metadata.stage_type != "graph" for replica in replicas)
+            and "host_ram" in capacities
+        ):
             import psutil
 
             observed_available = int(psutil.virtual_memory().available)
@@ -341,19 +358,30 @@ class StageRuntime:
                     replica.replica_id,
                     floors,
                 )
-        ledger = ResourceLedger(capacities)
+        ledger = self._shared_resource_ledger or ResourceLedger(capacities)
         self.resource_ledger = ledger
         claims = {
-            str((replica.metadata.stage_id, replica.replica_id)): dict(budget["demands"])
+            (replica.metadata.stage_id, replica.replica_id): dict(budget["demands"])
             for replica, budget in zip(replicas, budgets, strict=True)
         }
         if len(claims) != len(replicas):
             raise ValueError("budgeted pipeline has duplicate stage/replica reservation identities")
-        reservations = ledger.reserve_many(claims)
-        self._resource_reservations = {
-            (replica.metadata.stage_id, replica.replica_id): reservations[str((replica.metadata.stage_id, replica.replica_id))]
-            for replica in replicas
-        }
+        inherited = self._inherited_resource_reservations
+        if inherited is not None:
+            if set(inherited) != set(claims):
+                raise ValueError("inherited resource leases must cover exactly the stage replicas")
+            if len({id(token) for token in inherited.values()}) != len(inherited):
+                raise ValueError("each stage replica needs its own exact resource lease")
+            for identity, token in inherited.items():
+                if not ledger.owns(token) or dict(token.demands) != claims[identity]:
+                    raise ValueError("inherited resource lease is stale or its demands differ from the stage budget")
+                if token.owner in ledger.snapshot()["quarantined"]:
+                    raise ValueError("inherited resource lease is quarantined")
+            self._resource_reservations = dict(inherited)
+        else:
+            owners = {identity: f"{self._resource_owner_prefix}:{identity}" for identity in claims}
+            reservations = ledger.reserve_many({owners[identity]: demand for identity, demand in claims.items()})
+            self._resource_reservations = {identity: reservations[owners[identity]] for identity in claims}
 
     def _release_unstarted_resources(self, initialized) -> None:
         if self.resource_ledger is None:
@@ -851,6 +879,10 @@ class StageRuntime:
                 raise ValueError("graph backends support one local device only")
             from vllm_omni.engine.backends import create_graph_client
 
+            # The factory can spawn a worker or allocate device memory before
+            # raising. Only its explicit drain proof can release that lease;
+            # absence of a returned StageClient does not prove no work started.
+            self._resource_started.add((plan.metadata.stage_id, plan.replica_id))
             return create_graph_client(
                 plan.metadata,
                 plan.stage_cfg.engine_args,

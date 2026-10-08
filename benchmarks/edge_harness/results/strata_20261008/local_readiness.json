@@ -1,0 +1,81 @@
+{
+  "schema": "omni-strata-local-readiness-v1",
+  "captured_unix": 1791437730.9026725,
+  "os": "Windows-11-10.0.26200-SP0",
+  "batch_size": 1,
+  "concurrency": 1,
+  "host_ram_total_bytes": 67773509632,
+  "host_ram_available_bytes": 12294774784,
+  "windows_commit_available_bytes": 2320498688,
+  "gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+  "gpu_driver": "610.71",
+  "gpu_total_bytes": 25651314688,
+  "gpu_free_bytes": 6738694144,
+  "ssd_free_bytes": 947477659648,
+  "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "runtime_release_zip_sha256": "766373e74d1e25c9e87d7464b1e0c04857ec9fb4326a4d50c3a9d53ea84b26e4",
+  "runtime_native_executable_sha256": "34cde150b21148e6cf192dbf2242e5544d3456c09ab0010837aaacfda11eca5b",
+  "memory_ledger_source_sha256": "310e5bd7a786dc3f0d22ff692595822351ea5b527938d2d4e8d38cde3d106627",
+  "cache_budget_checks": [
+    {
+      "expert_cache_gib": 24,
+      "scope": "expert cache lower bound only, excludes all model overhead; a refusal also refuses full route",
+      "allocation_attempted": false,
+      "admitted": false,
+      "reason": "host_ram: 0 reserved + 25769803776 requested > 12294774784",
+      "ledger": {
+        "capacities": {
+          "host_ram": 12294774784,
+          "windows_commit": 2320498688
+        },
+        "reserved": {
+          "host_ram": 0,
+          "windows_commit": 0
+        },
+        "owners": [],
+        "quarantined": []
+      }
+    },
+    {
+      "expert_cache_gib": 32,
+      "scope": "expert cache lower bound only, excludes all model overhead; a refusal also refuses full route",
+      "allocation_attempted": false,
+      "admitted": false,
+      "reason": "host_ram: 0 reserved + 34359738368 requested > 12294774784",
+      "ledger": {
+        "capacities": {
+          "host_ram": 12294774784,
+          "windows_commit": 2320498688
+        },
+        "reserved": {
+          "host_ram": 0,
+          "windows_commit": 0
+        },
+        "owners": [],
+        "quarantined": []
+      }
+    },
+    {
+      "expert_cache_gib": 40,
+      "scope": "expert cache lower bound only, excludes all model overhead; a refusal also refuses full route",
+      "allocation_attempted": false,
+      "admitted": false,
+      "reason": "host_ram: 0 reserved + 42949672960 requested > 12294774784",
+      "ledger": {
+        "capacities": {
+          "host_ram": 12294774784,
+          "windows_commit": 2320498688
+        },
+        "reserved": {
+          "host_ram": 0,
+          "windows_commit": 0
+        },
+        "owners": [],
+        "quarantined": []
+      }
+    }
+  ],
+  "model_requests_executed": 0,
+  "weight_download_status": "in progress; no complete Strata model bundle verified",
+  "qualification": false
+}

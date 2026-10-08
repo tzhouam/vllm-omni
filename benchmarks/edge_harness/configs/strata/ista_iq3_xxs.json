@@ -1,0 +1,77 @@
+{
+  "schema": "omni-strata-target-v1",
+  "target_id": "qwen38-flash-next-ista-iq3_xxs-ram",
+  "status": "pinned-candidate-unmeasured",
+  "storage_route": "ram-experts-ssd-ple",
+  "runtime": {
+    "repository": "https://github.com/Niko1221/Strata",
+    "revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "release": "v0.1.40.3"
+  },
+  "artifact_manifest": {
+    "schema": "omni-weight-artifacts-v1",
+    "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+    "revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+    "license": "Apache-2.0 asserted by GGUF card; base Qwen Community License review required",
+    "hash_origin": "declared",
+    "files": [
+      {
+        "path": "IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf",
+        "size_bytes": 47039860096,
+        "sha256": "219ea929900dfa9ef091f3aa473fdba6874b65fcb36526d7d851ac9e95856d15",
+        "role": "weights",
+        "quantization": "GSQ-RCO IQ3_XXS mixed; lookup table IQ4_NL",
+        "layout": "GGUF"
+      },
+      {
+        "path": "IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00002-of-00002.gguf",
+        "size_bytes": 28800138432,
+        "sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113",
+        "role": "weights",
+        "quantization": "GSQ-RCO IQ3_XXS mixed; lookup table IQ4_NL",
+        "layout": "GGUF"
+      },
+      {
+        "path": "mmproj-Qwen3.8-Flash-Next-BF16.gguf",
+        "size_bytes": 907543008,
+        "sha256": "b1a82259702816a5330d7bd7607cd9676b11780e79ff7348c21103ff3ce49bd0",
+        "role": "mmproj",
+        "quantization": "BF16",
+        "layout": "GGUF"
+      }
+    ],
+    "lineage": [
+      {
+        "kind": "ptq",
+        "source_checkpoint": "Qwen/Qwen3.8-Flash-Next",
+        "source_revision": "not independently pinned by this GGUF metadata",
+        "recipe": "GSQ-RCO IQ3_XXS mixed; lookup table IQ4_NL"
+      }
+    ]
+  },
+  "experiment_defaults": {
+    "batch_size": 1,
+    "concurrency": 1,
+    "context_tokens": 4096,
+    "expert_ram_budgets_gib": [
+      24,
+      32,
+      40
+    ],
+    "mtp": false,
+    "prefetch": false
+  },
+  "modality_status": {
+    "text": "pending real complete request",
+    "vision": "projector pinned; backend image path and qualification pending"
+  },
+  "source_metadata": "https://huggingface.co/api/models/ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF/revision/ed59f92082b1e93c0e96d60a8b11aab089b52f09?blobs=true",
+  "hash_source": "upstream Hugging Face LFS SHA256 at pinned revision",
+  "notes": [
+    "File bytes are not runtime memory peaks.",
+    "First GGUF shard alone does not represent all weights.",
+    "PLE lookup table is part of the complete GGUF split set.",
+    "Prepared Strata pack and conversion manifest need independent hashes.",
+    "Runtime MTP requires a separate pinned draft artifact; off for initial correctness."
+  ]
+}

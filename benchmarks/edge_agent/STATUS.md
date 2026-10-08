@@ -1,4 +1,22 @@
-# Native Windows Omni edge Agent — rolling status (2026-10-06)
+# Native Windows Omni edge Agent — rolling status (2026-10-08)
+
+The 2026-10-08 Strata integration moves the host plan manager into the engine
+and shares its exact resource lease with Omni StageRuntime. The existing
+Agent loop, memory store and tool approval boundary remain in use. A new
+complete-model Strata adapter preserves turn-boundary switching, bounded
+streaming, cancellation and release isolation. It refuses unverified actual
+placement; no Strata route has entered automatic selection or become a
+qualified default. See the separate [engine architecture and roadmap](../edge_harness/EDGE_ENGINE_STATUS.md)
+and [raw integration evidence](../edge_harness/results/strata_20261008/README.md).
+
+The native shared-lease lifecycle smoke used Spark CPU, not Strata. It verified
+cancel/drain/reload but failed its exact-answer check, so it adds no task or
+performance qualification. Strata weights remain downloading and current
+native RAM/commit capacity blocks the planned cache budgets. The Agent
+qualification signature/record adapter for Strata remains a later gate after
+model placement and full tasks are measured. These engine changes also change
+the imported source identity; earlier Agent profiles remain historical for
+strict current-release matching.
 
 This Agent extends the accepted [single-device architecture](../../../analysis/architecture_local_engine_20260915.md) through Omni `StageRuntime`, its llama.cpp graph-stage client, `ResourceLedger`, and ordered stage events. The tested laptop is a Ryzen AI 9 HX 370 with 63.1 GiB installed RAM and an RTX 5090 **Laptop** GPU with 23.9 GiB installed VRAM. Windows build 26200, NVIDIA driver 610.71, AC power, binary and artifact hashes, batch size 1, and one active request are recorded in the [public aggregate](public_evidence/agent_native_smokes_20261005.json). Live free memory is lower than installed capacity and is checked before each new load.
 

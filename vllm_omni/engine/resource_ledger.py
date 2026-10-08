@@ -15,6 +15,7 @@ peak. Such claims must be reported as declarative, not verified safe bounds.
 from __future__ import annotations
 
 import threading
+import weakref
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
@@ -37,6 +38,7 @@ class ResourceLedger:
         self.capacities = MappingProxyType(dict(capacities))
         self._active: dict[str, Reservation] = {}
         self._quarantined: set[str] = set()
+        self._released: weakref.WeakValueDictionary[str, Reservation] = weakref.WeakValueDictionary()
         self._lock = threading.RLock()
 
     def reserve(self, owner: str, demands: Mapping[str, int]) -> Reservation:
@@ -70,6 +72,8 @@ class ResourceLedger:
                 for owner, demands in requests.items()
             }
             self._active.update(reservations)
+            for owner in reservations:
+                self._released.pop(owner, None)
             return reservations
 
     def release(self, reservation: Reservation, *, drained: bool) -> bool:
@@ -81,7 +85,22 @@ class ResourceLedger:
                 return False
             del self._active[reservation.owner]
             self._quarantined.discard(reservation.owner)
+            self._released[reservation.owner] = reservation
             return True
+
+    def owns(self, reservation: Reservation) -> bool:
+        """Check the exact live token; equal or stale tokens are not leases."""
+        with self._lock:
+            return self._active.get(reservation.owner) is reservation
+
+    def was_released(self, reservation: Reservation) -> bool:
+        """Confirm an exact stage-drained token, invalidated by owner reuse.
+
+        A manager and its StageRuntime can both observe the same drain. This
+        receipt permits reconciliation without accepting equal or stale tokens.
+        """
+        with self._lock:
+            return self._released.get(reservation.owner) is reservation
 
     def snapshot(self) -> dict:
         with self._lock:

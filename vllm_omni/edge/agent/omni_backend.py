@@ -11,9 +11,9 @@ from __future__ import annotations
 import asyncio
 import re
 import time
-import uuid
+from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Mapping
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -57,6 +57,8 @@ class OmniLlamaConfig:
     gpu_weight_budget_bytes: int | None = None
     vram_overhead_bytes: int = 0
     gpu_memory_pool: str = "vram"
+    artifact_root: str | None = None
+    artifact_manifest: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         if not self.route_id or not self.model_sha256 or not self.server_sha256:
@@ -65,8 +67,7 @@ class OmniLlamaConfig:
             raise ValueError("positive, explicit memory demands are required")
         if any(type(n) is not int or n < 0 for n in self.capacities.values()):
             raise ValueError("explicit nonnegative memory ceilings are required")
-        if any(pool not in self.capacities or demand > self.capacities[pool]
-               for pool, demand in self.demands.items()):
+        if any(pool not in self.capacities or demand > self.capacities[pool] for pool, demand in self.demands.items()):
             raise ValueError("stage demand exceeds a memory-pool ceiling")
         cpu_hybrid = re.fullmatch(r"cpu\+Vulkan\d+", self.placement) is not None
         host_hybrid = re.fullmatch(r"Vulkan_Host\+Vulkan\d+", self.placement) is not None
@@ -79,9 +80,7 @@ class OmniLlamaConfig:
             raise ValueError("llama.cpp stage must reserve positive host RAM")
         if self.placement == "cpu" and "vram" in self.demands:
             raise ValueError("CPU-only stage cannot reserve a GPU VRAM pool")
-        if self.placement != "cpu" and (
-            self.demands.get(self.gpu_memory_pool, 0) <= 0
-        ):
+        if self.placement != "cpu" and (self.demands.get(self.gpu_memory_pool, 0) <= 0):
             raise ValueError("GPU route must reserve a positive physical GPU memory pool")
         if self.placement != "cpu" and self.gpu_memory_pool == "host_ram" and "vram" in self.demands:
             raise ValueError("shared-memory iGPU route cannot reserve a separate VRAM pool")
@@ -94,42 +93,65 @@ class OmniLlamaConfig:
         if hybrid:
             if cpu_hybrid and self.host_mapped_expert_layers:
                 raise ValueError("CPU-expert route cannot claim Vulkan_Host expert layers")
-            if host_hybrid and (self.cpu_moe_layers or self.gpu_layers is not None or
-                                self.host_mapped_expert_layers == 0):
-                raise ValueError("Vulkan_Host route requires an exact host-mapped expert count and no CPU or GPU layer split")
+            if host_hybrid and (
+                self.cpu_moe_layers or self.gpu_layers is not None or self.host_mapped_expert_layers == 0
+            ):
+                raise ValueError(
+                    "Vulkan_Host route requires an exact host-mapped expert count and no CPU or GPU layer split"
+                )
             if cpu_hybrid and self.gpu_layers is None and self.cpu_moe_layers == 0:
                 raise ValueError("hybrid route requires an explicit layer or CPU-expert split")
-            if any(type(value) is not int or value <= 0 for value in (
-                self.cpu_weight_budget_bytes, self.gpu_weight_budget_bytes,
-                self.vram_overhead_bytes, self.memory_overhead_bytes,
-            )):
+            if any(
+                type(value) is not int or value <= 0
+                for value in (
+                    self.cpu_weight_budget_bytes,
+                    self.gpu_weight_budget_bytes,
+                    self.vram_overhead_bytes,
+                    self.memory_overhead_bytes,
+                )
+            ):
                 raise ValueError("hybrid route requires positive CPU/GPU weight and overhead budgets")
             if self.gpu_memory_pool == "host_ram":
-                if self.demands["host_ram"] < (self.cpu_weight_budget_bytes +
-                                               self.gpu_weight_budget_bytes +
-                                               self.memory_overhead_bytes +
-                                               self.vram_overhead_bytes):
+                if self.demands["host_ram"] < (
+                    self.cpu_weight_budget_bytes
+                    + self.gpu_weight_budget_bytes
+                    + self.memory_overhead_bytes
+                    + self.vram_overhead_bytes
+                ):
                     raise ValueError("shared-memory hybrid claim omits combined CPU/iGPU weights or overhead")
             else:
                 if self.demands["host_ram"] < self.cpu_weight_budget_bytes + self.memory_overhead_bytes:
                     raise ValueError("hybrid host RAM claim omits CPU weights or loading overhead")
                 if self.demands["vram"] < self.gpu_weight_budget_bytes + self.vram_overhead_bytes:
                     raise ValueError("hybrid VRAM claim omits GPU weights or workspace overhead")
-        elif (self.gpu_layers is not None or self.cpu_moe_layers or self.host_mapped_expert_layers or
-              self.cpu_weight_budget_bytes is not None or
-              self.gpu_weight_budget_bytes is not None or self.vram_overhead_bytes):
+        elif (
+            self.gpu_layers is not None
+            or self.cpu_moe_layers
+            or self.host_mapped_expert_layers
+            or self.cpu_weight_budget_bytes is not None
+            or self.gpu_weight_budget_bytes is not None
+            or self.vram_overhead_bytes
+        ):
             raise ValueError("split controls are valid only for explicit hybrid routes")
         if self.mmproj_file is None and (self.mmproj_sha256 or self.max_image_bytes or self.image_token_reserve):
             raise ValueError("image bounds require a pinned vision projector")
-        if self.mmproj_file is not None and not all((self.mmproj_sha256, self.max_image_bytes, self.image_token_reserve)):
+        if self.mmproj_file is not None and not all(
+            (self.mmproj_sha256, self.max_image_bytes, self.image_token_reserve)
+        ):
             raise ValueError("multimodal stage needs projector hash and image bounds")
 
 
-class OmniLlamaBackend:
-    """One complete-request llama.cpp model stage under Omni StageRuntime."""
+class OmniCompleteModelBackend:
+    """Agent adapter for a complete model stage with one engine-owned lease.
 
-    def __init__(self, config: OmniLlamaConfig) -> None:
+    This class owns no weights, cache or tools. A concrete adapter supplies
+    only pinned backend configuration; Omni owns event delivery and lifecycle.
+    """
+
+    def __init__(self, config: Any) -> None:
         self.config = config
+        self._shared_ledger: Any = None
+        self._shared_reservation: Any = None
         self._runtime: Any = None
         self._pool: Any = None
         self._active: str | None = None
@@ -138,6 +160,13 @@ class OmniLlamaBackend:
         self._last_turn_request_id: str | None = None
         self.release_evidence: Mapping[str, Any] | None = None
         self.execution_plan: Mapping[str, Any] | None = None
+
+    def bind_resource_lease(self, ledger: Any, reservation: Any) -> None:
+        if self._runtime is not None:
+            raise RuntimeError("cannot rebind a resident route's engine lease")
+        if not ledger.owns(reservation) or dict(reservation.demands) != dict(self.config.demands):
+            raise ValueError("engine lease is stale or differs from the complete route claim")
+        self._shared_ledger, self._shared_reservation = ledger, reservation
 
     @property
     def resident(self) -> bool:
@@ -154,83 +183,81 @@ class OmniLlamaBackend:
             return False
         return True
 
+    def _stage_backend_config(self) -> dict[str, Any]:
+        raise NotImplementedError
+
+    def _validate_loaded_plan(self, plan: Mapping[str, Any]) -> None:
+        cfg = self.config
+        if plan.get("requested_device") != cfg.placement:
+            raise RuntimeError("backend did not verify the requested placement")
+        observed = plan.get("observed_model_placement")
+        if observed != cfg.placement and not (
+            cfg.placement.startswith("Vulkan_Host+")
+            and observed is None
+            and plan.get("placement_evidence_level") == "override_selection_only"
+        ):
+            raise RuntimeError("backend did not verify model load placement")
+
     def start(self) -> None:
         if self._runtime is not None:
             if self.resident:
                 return
             if not self.close():
-                raise RuntimeError(self._recovery_blocked_reason or
-                                   "previous Omni worker has not released its memory reservation")
+                raise RuntimeError(
+                    self._recovery_blocked_reason or "previous Omni worker has not released its memory reservation"
+                )
         # The heavy native-Windows vLLM/Omni import is intentionally deferred.
         from vllm_omni.config.stage_config import (
-            DeployConfig, PipelineConfig, StageDeployConfig, StageExecutionType,
-            StagePipelineConfig, merge_pipeline_deploy,
+            DeployConfig,
+            PipelineConfig,
+            StageDeployConfig,
+            StageExecutionType,
+            StagePipelineConfig,
+            merge_pipeline_deploy,
         )
         from vllm_omni.engine.stage_runtime import StageRuntime
 
         cfg = self.config
-        multimodal = cfg.mmproj_file is not None
-        backend: dict[str, Any] = {
-            "name": "external.llamacpp.multimodal.v1" if multimodal else "external.llamacpp.text.v1",
-            "model_file": cfg.model_file,
-            "model_sha256": cfg.model_sha256,
-            "server_bin": cfg.server_bin,
-            "server_sha256": cfg.server_sha256,
-            "log_file": cfg.log_file,
-            "device": cfg.placement,
-            "memory_pool": "host_ram" if cfg.placement == "cpu" else cfg.gpu_memory_pool,
-            "memory_overhead_bytes": cfg.memory_overhead_bytes,
-            "context_tokens": cfg.context_tokens,
-            "max_new_tokens": cfg.max_new_tokens,
-            "max_io_bytes": cfg.max_io_bytes,
-            "request_timeout_s": cfg.request_timeout_s,
-            "start_timeout_s": cfg.start_timeout_s,
-            "expected_device_name": cfg.expected_device_name,
-            "ggml_vk_visible_devices": cfg.ggml_vk_visible_devices,
-            "disable_repack": cfg.disable_repack,
-            "gpu_layers": cfg.gpu_layers,
-            "cpu_moe_layers": cfg.cpu_moe_layers,
-            "host_mapped_expert_layers": cfg.host_mapped_expert_layers,
-            "cpu_weight_budget_bytes": cfg.cpu_weight_budget_bytes,
-            "gpu_weight_budget_bytes": cfg.gpu_weight_budget_bytes,
-            "vram_overhead_bytes": cfg.vram_overhead_bytes,
-        }
-        if multimodal:
-            backend.update(
-                mmproj_file=cfg.mmproj_file,
-                mmproj_sha256=cfg.mmproj_sha256,
-                max_image_bytes=cfg.max_image_bytes,
-                image_token_reserve=cfg.image_token_reserve,
-            )
+        backend = self._stage_backend_config()
         pipeline = PipelineConfig(
             model_type=f"agent_{cfg.route_id}",
-            stages=(StagePipelineConfig(
-                stage_id=0, model_stage="agent", execution_type=StageExecutionType.GRAPH,
-                final_output=True, final_output_type="text",
-            ),),
+            stages=(
+                StagePipelineConfig(
+                    stage_id=0,
+                    model_stage="agent",
+                    execution_type=StageExecutionType.GRAPH,
+                    final_output=True,
+                    final_output_type="text",
+                ),
+            ),
         )
-        deploy = DeployConfig(async_chunk=False, stages=[StageDeployConfig(
-            stage_id=0, backend=backend,
-            resource_budget={"capacities": dict(cfg.capacities), "demands": dict(cfg.demands)},
-        )])
+        deploy = DeployConfig(
+            async_chunk=False,
+            stages=[
+                StageDeployConfig(
+                    stage_id=0,
+                    backend=backend,
+                    resource_budget={"capacities": dict(cfg.capacities), "demands": dict(cfg.demands)},
+                )
+            ],
+        )
         configs = [stage.to_omegaconf() for stage in merge_pipeline_deploy(pipeline, deploy)]
         runtime = StageRuntime(
-            configs, f"agent-{cfg.route_id}", "", stage_init_timeout=cfg.start_timeout_s,
+            configs,
+            f"agent-{cfg.route_id}",
+            "",
+            stage_init_timeout=cfg.start_timeout_s,
             async_chunk=False,
+            resource_ledger=self._shared_ledger,
+            resource_reservations=(
+                {(0, 0): self._shared_reservation} if self._shared_reservation is not None else None
+            ),
         )
         try:
             runtime.initialize()
             pool = runtime.stage_pools[0]
             plan = pool.stage_client.execution_plan
-            if plan.get("requested_device") != cfg.placement:
-                raise RuntimeError("backend did not verify the requested placement")
-            observed = plan.get("observed_model_placement")
-            if observed != cfg.placement and not (
-                cfg.placement.startswith("Vulkan_Host+") and
-                observed is None and
-                plan.get("placement_evidence_level") == "override_selection_only"
-            ):
-                raise RuntimeError("backend did not verify model load placement")
+            self._validate_loaded_plan(plan)
         except BaseException:
             # Retain a failed loader until its internal ledger proves that
             # every claim drained. The app's outer ledger must not release a
@@ -246,7 +273,11 @@ class OmniLlamaBackend:
         self._recovery_blocked_reason = None
 
     async def generate(
-        self, prompt: str, *, request_id: str, max_tokens: int,
+        self,
+        prompt: str,
+        *,
+        request_id: str,
+        max_tokens: int,
         image_data_url: str | None = None,
     ) -> AsyncIterator[BackendChunk]:
         if self._pool is None:
@@ -272,7 +303,7 @@ class OmniLlamaBackend:
             await self._pool.submit_initial(request_id, state, payload)
             client = self._pool.stage_client
             if not callable(getattr(client, "receive_agent_delta", None)):
-                raise RuntimeError("loaded Omni llama.cpp StageClient lacks credited Agent streaming")
+                raise RuntimeError("loaded complete-model StageClient lacks credited Agent streaming")
             emitted: list[str] = []
             first_delta_s: float | None = None
             deadline = time.monotonic() + self.config.request_timeout_s
@@ -294,7 +325,9 @@ class OmniLlamaBackend:
                     break
                 if time.monotonic() >= deadline:
                     raise TimeoutError("whole Omni Agent model request exceeded its deadline")
-                await asyncio.sleep(.01)
+                await asyncio.sleep(0.01)
+            if output.request_id != request_id:
+                raise RuntimeError("Omni stage returned another request's output")
             if output.error:
                 raise RuntimeError(str(output.error))
             if not output.outputs or not isinstance(output.outputs[0].text, str):
@@ -304,12 +337,18 @@ class OmniLlamaBackend:
             stage_event = output.custom_output.get("stage_event")
             if not stage_event or not stage_event.get("terminal"):
                 raise RuntimeError("Omni stage did not return a terminal event")
+            if stage_event.get("request_id") != request_id:
+                raise RuntimeError("Omni terminal event belongs to another request")
             yield BackendChunk(
-                text="", terminal=True, ttft_s=first_delta_s,
-                metrics={"whole_model_wall_s": time.perf_counter() - started,
-                         "backend_metrics": output.metrics,
-                         "stage_event": stage_event,
-                         "ttft_note": "first visible SSE delta after Omni submission"},
+                text="",
+                terminal=True,
+                ttft_s=first_delta_s,
+                metrics={
+                    "whole_model_wall_s": time.perf_counter() - started,
+                    "backend_metrics": output.metrics,
+                    "stage_event": stage_event,
+                    "ttft_note": "first visible SSE delta after Omni submission",
+                },
             )
         except BaseException:
             failed = True
@@ -358,9 +397,12 @@ class OmniLlamaBackend:
         if not self.close():
             return False
         proof = self.release_evidence
-        return bool(proof and proof.get("request_id") == request_id and
-                    proof.get("worker_exit_confirmed") is True and
-                    proof.get("stage_ledger_empty") is True)
+        return bool(
+            proof
+            and proof.get("request_id") == request_id
+            and proof.get("worker_exit_confirmed") is True
+            and proof.get("stage_ledger_empty") is True
+        )
 
     def close(self) -> bool:
         """Return true only after the old stage's memory claim is drained."""
@@ -393,7 +435,13 @@ class OmniLlamaBackend:
             self._recovery_blocked_reason = f"Omni worker release state could not be verified: {exc}"
             self.execution_plan = None
             return False
-        if snapshot["owners"] or snapshot["quarantined"]:
+        owned = getattr(runtime, "_resource_reservations", {}).values()
+        relevant = {token.owner for token in owned}
+        if not relevant and self._shared_reservation is not None:
+            relevant = {self._shared_reservation.owner}
+        remaining = set(snapshot["owners"]) & relevant if relevant else set(snapshot["owners"])
+        quarantined = set(snapshot["quarantined"]) & relevant if relevant else set(snapshot["quarantined"])
+        if remaining or quarantined:
             self._recovery_blocked_reason = (
                 "Omni worker memory remains reserved or quarantined after shutdown: "
                 f"{snapshot['owners']!r}, {snapshot['quarantined']!r}"
@@ -405,12 +453,15 @@ class OmniLlamaBackend:
             self._recovery_blocked_reason = "Omni worker process remains alive after shutdown"
             self.execution_plan = None
             return False
+        resource_owner = self._shared_reservation.owner if self._shared_reservation is not None else None
+        shared_ledger = ledger is self._shared_ledger
         self._runtime = None
         self._pool = None
+        self._shared_ledger = None
+        self._shared_reservation = None
         self.execution_plan = None
         self._recovery_blocked_reason = None
-        if (self._last_turn_request_id is not None and
-                type(worker_pid) is int and type(worker_exit_code) is int):
+        if self._last_turn_request_id is not None and type(worker_pid) is int and type(worker_exit_code) is int:
             self.release_evidence = {
                 "request_id": self._last_turn_request_id,
                 "release_mode": "worker_shutdown",
@@ -418,8 +469,122 @@ class OmniLlamaBackend:
                 "worker_exit_code": worker_exit_code,
                 "worker_exit_confirmed": True,
                 "stage_ledger_empty": True,
+                "schema": "omni-resource-release-v2",
+                "resource_claim_released": True,
+                "shared_ledger": shared_ledger,
+                "resource_owner": resource_owner,
             }
         return True
+
+
+class OmniLlamaBackend(OmniCompleteModelBackend):
+    """Pinned llama.cpp stage using the shared complete-model lifecycle."""
+
+    def _stage_backend_config(self) -> dict[str, Any]:
+        cfg = self.config
+        multimodal = cfg.mmproj_file is not None
+        backend: dict[str, Any] = {
+            "name": "external.llamacpp.multimodal.v1" if multimodal else "external.llamacpp.text.v1",
+            "model_file": cfg.model_file,
+            "model_sha256": cfg.model_sha256,
+            "server_bin": cfg.server_bin,
+            "server_sha256": cfg.server_sha256,
+            "log_file": cfg.log_file,
+            "device": cfg.placement,
+            "memory_pool": "host_ram" if cfg.placement == "cpu" else cfg.gpu_memory_pool,
+            "memory_overhead_bytes": cfg.memory_overhead_bytes,
+            "context_tokens": cfg.context_tokens,
+            "max_new_tokens": cfg.max_new_tokens,
+            "max_io_bytes": cfg.max_io_bytes,
+            "request_timeout_s": cfg.request_timeout_s,
+            "start_timeout_s": cfg.start_timeout_s,
+            "expected_device_name": cfg.expected_device_name,
+            "ggml_vk_visible_devices": cfg.ggml_vk_visible_devices,
+            "disable_repack": cfg.disable_repack,
+            "gpu_layers": cfg.gpu_layers,
+            "cpu_moe_layers": cfg.cpu_moe_layers,
+            "host_mapped_expert_layers": cfg.host_mapped_expert_layers,
+            "cpu_weight_budget_bytes": cfg.cpu_weight_budget_bytes,
+            "gpu_weight_budget_bytes": cfg.gpu_weight_budget_bytes,
+            "vram_overhead_bytes": cfg.vram_overhead_bytes,
+        }
+        if cfg.artifact_manifest is not None:
+            backend.update(artifact_root=cfg.artifact_root, artifact_manifest=dict(cfg.artifact_manifest))
+        if multimodal:
+            backend.update(
+                mmproj_file=cfg.mmproj_file,
+                mmproj_sha256=cfg.mmproj_sha256,
+                max_image_bytes=cfg.max_image_bytes,
+                image_token_reserve=cfg.image_token_reserve,
+            )
+        return backend
+
+
+@dataclass(frozen=True)
+class OmniStrataConfig:
+    """Strata runtime/pack manifest plus the same whole-stage engine lease."""
+
+    route_id: str
+    backend_config: Mapping[str, Any]
+    placement: str
+    capacities: Mapping[str, int]
+    demands: Mapping[str, int]
+    context_tokens: int = 4096
+    max_new_tokens: int = 128
+    max_io_bytes: int = 1 << 20
+    request_timeout_s: int = 900
+    start_timeout_s: int = 900
+    mmproj_file: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.route_id or not re.fullmatch(r"cpu\+cuda:[0-9]+", self.placement):
+            raise ValueError("Strata route needs an explicit GPU index and route identity")
+        gpu = int(self.placement.rsplit(":", 1)[1])
+        if gpu != 0 or self.backend_config.get("gpu_index", 0) != gpu:
+            raise ValueError("native Agent Strata route must bind the measured GPU 0 pool")
+        if self.mmproj_file is not None:
+            raise ValueError("this Strata adapter has no qualified image stage")
+        if self.backend_config.get("name") != "external.strata.text.v1":
+            raise ValueError("Strata route must select its complete-model StageClient")
+        if any(
+            pool not in self.capacities or type(amount) is not int or amount < 0 or amount > self.capacities[pool]
+            for pool, amount in self.demands.items()
+        ):
+            raise ValueError("Strata demand exceeds a physical-pool ceiling")
+        if self.demands.get("host_ram", 0) <= 0 or self.demands.get("vram", 0) <= 0:
+            raise ValueError("Strata requires explicit host RAM and dedicated VRAM claims")
+        protected = {
+            "context_tokens": self.context_tokens,
+            "max_new_tokens": self.max_new_tokens,
+            "max_io_bytes": self.max_io_bytes,
+            "gpu_pool": "vram",
+        }
+        for key, value in protected.items():
+            if key in self.backend_config and self.backend_config[key] != value:
+                raise ValueError(f"Strata stage and Agent {key} declarations differ")
+
+
+class OmniStrataBackend(OmniCompleteModelBackend):
+    """Reuse Omni's streaming/lifecycle adapter; weights stay inside Strata.
+
+    Agent loading still requires verified placement. A functional experimental
+    harness can exercise the backend before it is eligible for Agent routing.
+    """
+
+    def __init__(self, config: OmniStrataConfig) -> None:
+        super().__init__(config)
+
+    def _stage_backend_config(self) -> dict[str, Any]:
+        cfg = self.config
+        return {
+            **cfg.backend_config,
+            "context_tokens": cfg.context_tokens,
+            "max_new_tokens": cfg.max_new_tokens,
+            "max_io_bytes": cfg.max_io_bytes,
+            "request_timeout_s": cfg.request_timeout_s,
+            "start_timeout_s": cfg.start_timeout_s,
+            "gpu_pool": "vram",
+        }
 
 
 class OmniVllmTextBackend:
@@ -439,7 +604,11 @@ class OmniVllmTextBackend:
         self._session = self._engine.open_session()
 
     async def generate(
-        self, prompt: str, *, request_id: str, max_tokens: int,
+        self,
+        prompt: str,
+        *,
+        request_id: str,
+        max_tokens: int,
         image_data_url: str | None = None,
     ) -> AsyncIterator[BackendChunk]:
         if image_data_url is not None:
@@ -448,7 +617,10 @@ class OmniVllmTextBackend:
             raise RuntimeError("vLLM route has not started")
         self._active = request_id
         _, stream = await self._engine.submit(
-            self._session, prompt, request_id=request_id, max_tokens=max_tokens,
+            self._session,
+            prompt,
+            request_id=request_id,
+            max_tokens=max_tokens,
         )
         try:
             while True:
@@ -461,8 +633,7 @@ class OmniVllmTextBackend:
                     if event.kind == "token":
                         yield BackendChunk(text=event.payload["text"])
                     elif event.kind == "done":
-                        yield BackendChunk(text="", terminal=True,
-                                           metrics=self._engine.records[request_id].to_dict())
+                        yield BackendChunk(text="", terminal=True, metrics=self._engine.records[request_id].to_dict())
                 finally:
                     await stream.acknowledge(event)
         except BaseException:

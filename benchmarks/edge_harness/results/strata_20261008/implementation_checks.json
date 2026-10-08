@@ -1,0 +1,81 @@
+{
+  "schema": "omni-strata-implementation-checks-v1",
+  "captured_unix": 1791438582.512056,
+  "base_commit": "7643d7e16",
+  "scope": "automated implementation/contract checks, not model or release qualification",
+  "qualification": false,
+  "performance_run": false,
+  "environment": {
+    "test_os": "Ubuntu on WSL",
+    "python": "/home/zhout/project/edge_infer/.venvs/omni-cuda/bin/python",
+    "vllm_installed": "0.28.0",
+    "omni_reported": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+    "version_mismatch_warning": true,
+    "native_windows_mock_protocol_receipt": "protocol_audit.json",
+    "native_windows_existing_spark_cpu_smoke_receipt": "shared_lease_native_smoke.json"
+  },
+  "pytest": {
+    "tests": 571,
+    "passed": 554,
+    "skipped": 17,
+    "failures": 0,
+    "errors": 0,
+    "time_s": 42.581,
+    "private_junit_sha256": "cd9278a12dd7c37ed3aa987c957bcec69f5d380dc33baf2d5c6503fb3fe82054",
+    "private_junit_path": "C:\\Users\\zhout\\w2\\strata-omni\\implementation-checks.junit.xml",
+    "args": [
+      "-q",
+      "tests/edge/test_agent_*.py",
+      "tests/edge/test_llamacpp_artifact_bundle.py",
+      "tests/edge/test_weight_tiers.py",
+      "tests/edge/test_mobile_routes.py",
+      "tests/edge/test_native_stage_controller.py",
+      "tests/engine/test_shared_route_lease.py",
+      "tests/engine/test_stage_runtime_launch_concurrency.py",
+      "tests/edge/test_strata_backend.py",
+      "benchmarks/edge_harness/test_strata_profile.py",
+      "benchmarks/edge_harness/test_strata_prepare.py"
+    ]
+  },
+  "lint": {
+    "tool": "ruff",
+    "version": "0.14.3",
+    "result": "passed",
+    "scope": "all changed Python files"
+  },
+  "diff_check": "passed",
+  "source_sha256": {
+    "vllm_omni/edge/agent/admission.py": "d3620245722773e6b500c37ba3b92e2d52163b39211e39fa19bccf834bda66ab",
+    "vllm_omni/edge/agent/native_app.py": "7bde41d94e0ea4fcd3a4a438a1f3634e8017dad6d837d5cf155bf64d6924042f",
+    "vllm_omni/edge/agent/omni_backend.py": "89594598cc87ca23862bd70156c6e6e34e7fe375ae9211334ffa48769bbc425b",
+    "vllm_omni/edge/mobile_routes.py": "78178a6291bff145a4130194651b2b5e65e96dccdd1c7300628feb9d117ec994",
+    "vllm_omni/engine/backends/__init__.py": "ee52b2bd8cd3aa7452826451ce20d2609de046c7f3b457fe52ce2411bd5d8edc",
+    "vllm_omni/engine/backends/llamacpp.py": "55f0344a898ae8fb0dbd8f7fe6df9897e1f59922b6a7b48d35cb969d1dd4c0b2",
+    "vllm_omni/engine/backends/strata.py": "f5371128558ec642469a5ef0540aa53c269e31823829305ecb1af6354d17a8e8",
+    "vllm_omni/engine/local_plan.py": "fa81e427b1037505830fb5d53c237793bc4d027bf5d89a293cb9e267d7332b92",
+    "vllm_omni/engine/resource_ledger.py": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b",
+    "vllm_omni/engine/stage_runtime.py": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+    "vllm_omni/engine/weight_tiers.py": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75",
+    "tests/edge/test_agent_strata.py": "b1992affecebf8da9e3be8939d1514aa1f2f7abae6a82deb04b24f8702b557c5",
+    "tests/edge/test_agent_disk_capacity.py": "5ae259e0f234b5a1ed74ceea84dbcec2259cd241ce0b0b7fcee5aef215ffcfcf",
+    "tests/edge/test_llamacpp_artifact_bundle.py": "681602e3a7f3048011f5f0033093ebafae378ba55848493be9f56f381a66a493",
+    "tests/edge/test_mobile_routes.py": "645757f03da7044fbea03b583aca41a084e271aa73819bd6e817675a5c66ddf2",
+    "tests/edge/test_native_stage_controller.py": "03ed3adb5350624721881d6b22f40b48f0547e0e44a4956ed6fb8850d3186d6a",
+    "tests/edge/test_strata_backend.py": "e6c27c8f035732aecea25517c4e8aae1f56dc29869392738aca10abf4cb4a87a",
+    "tests/edge/test_weight_tiers.py": "04d56815a2b6f214e162515516cbbfffcacee0c2bfc11e7d302e9a21d7da2f5c",
+    "tests/engine/test_shared_route_lease.py": "6bd82de341f904b3cd92c8cae768af218112048be49ac5e9b0756104a8898a0d",
+    "benchmarks/edge_harness/strata_profile.py": "cd7ab1b48d6b2a0c8a816fe5838f43c7894a902a4e8dfb132b20a7aa3e790c1a",
+    "benchmarks/edge_harness/strata_prepare.py": "cff1ffac4a994de09a98c69baf6a8a63f7214be7e62bd2867b65599656789c16",
+    "benchmarks/edge_harness/test_strata_profile.py": "c55581c2c2d8ac59ad119533fb3a10282323edfbcac3327313be7c70ab9f8646",
+    "benchmarks/edge_harness/test_strata_prepare.py": "07e2376ee64a3c6c0f3b666dc0865fa6d47239204261a893dfa7a6e7b5c9c7a8",
+    "packages/omni-stage-controller/CMakeLists.txt": "d57b9d9e46cb8058ce295f9ba35271bd246bae662c2e0888cced812030d2c637",
+    "packages/omni-stage-controller/include/omni_stage_controller.h": "c3e75dd70d3d950a2743c38b6e274f9803f25231e24d9f24258b03405b1177ef"
+  },
+  "limits": [
+    "Skipped platform/optional-runtime tests are not passes.",
+    "Unit fixtures and upstream mock service execute no Strata neural network.",
+    "Host-compiled native controller is not Android NDK/device execution.",
+    "No full Strata or DeepSeek model request, task qualification, attributable physical SSD I/O or thermal result.",
+    "Source identity changes invalidate strict matching to earlier native Agent profiles."
+  ]
+}

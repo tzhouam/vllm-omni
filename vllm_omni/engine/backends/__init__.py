@@ -17,6 +17,10 @@ def create_graph_client(metadata, config, ledger, reservation):
         from .llamacpp import LlamaCppMultimodalStageClient
 
         return LlamaCppMultimodalStageClient(metadata, backend, ledger, reservation)
+    if name == "external.strata.text.v1":
+        from .strata import StrataTextStageClient
+
+        return StrataTextStageClient(metadata, backend, ledger, reservation)
     if name == "external.crisp.tts.v1":
         from .crisp_tts import CrispTTSStageClient
 

@@ -1,0 +1,68 @@
+{
+  "schema": "omni-shared-lease-native-smoke-v1",
+  "scope": "native Windows cancellation, exact shared lease release and fresh worker recovery; not task or performance qualification",
+  "batch_size": 1,
+  "concurrency": 1,
+  "raw_sha256": "64d4cd3f01a1447a87fa44cccbfa654e36013a0bd44c7460b8f97b34e647e41e",
+  "raw_record": "benchmarks/edge_agent/results/spark_shared_lease_cancel_recovery_20261008.jsonl",
+  "result": "cancelled_stream_then_restarted_request_passed",
+  "hardware": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+    "host_ram_total_bytes": 67773509632,
+    "host_ram_available_bytes": 12325101568,
+    "vram_available_bytes": 19611406336,
+    "gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "dxgi_adapters": [
+      {
+        "description": "NVIDIA GeForce RTX 5090 Laptop GPU",
+        "vendor_id": 4318,
+        "device_id": 11288,
+        "dedicated_video_memory_bytes": 25309478912,
+        "shared_system_memory_bytes": 50593640448,
+        "uma": false
+      },
+      {
+        "description": "AMD Radeon(TM) 890M Graphics",
+        "vendor_id": 4098,
+        "device_id": 5390,
+        "dedicated_video_memory_bytes": 353640448,
+        "shared_system_memory_bytes": 50593640448,
+        "uma": true
+      }
+    ],
+    "power_condition": "AC"
+  },
+  "first_worker": {
+    "generation": "0ef5b1af01f2409491e8a21b32776c15",
+    "pid": 148748,
+    "placement": "cpu"
+  },
+  "second_worker": {
+    "generation": "3bb9dccaea11441ba85212fa87b4cb8a",
+    "pid": 146044,
+    "placement": "cpu"
+  },
+  "release_evidence": {
+    "backend_request_state_verified": true,
+    "graph_gate_released": true,
+    "tool_request_finished": true,
+    "request_id": "93f2f9cf196545d0b295085a5aa305b8",
+    "release_mode": "worker_shutdown",
+    "worker_pid_before": 148748,
+    "worker_exit_code": 1,
+    "worker_exit_confirmed": true,
+    "stage_ledger_empty": true,
+    "schema": "omni-resource-release-v2",
+    "resource_claim_released": true,
+    "shared_ledger": true,
+    "resource_owner": "spark-1.7b-q4-windows-cpu",
+    "host_claim_released": true,
+    "host_ledger_empty": true
+  },
+  "exact_answer_pass": false,
+  "recovery_answer_check": "normalized ready token passed; exact output check false",
+  "default_route_qualified": false
+}
