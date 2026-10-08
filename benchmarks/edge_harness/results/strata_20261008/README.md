@@ -1,5 +1,10 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [visibility fix](agent_output_visibility_unit_validation.json) matches the full 15-field StageEvent to the exact seven-field proof projection by value/type, refusing errors or unreleased resources.
+Root completed **114 WSL tests plus 32 subtests**; offline replay of the same five closed actual traces changed recognized visible finals from **0/5 to 5/5**.
+No new neural run, performance result or default eligibility follows.
+Both explicit-consumer full-trace qualification gates remain closed; parser source, raw replies and the strict engine JSON failure are unchanged.
+
 2026-10-09: the [current explicit-output Q2 Agent run](native_ista_q2_agent_output_functional.json)
 passed [independent closed-evidence review](native_ista_q2_agent_output_functional_review.json).
 Five specified functional tasks passed in **7.19 / 7.65 / 11.59 / 20.15 / 16.57 s**;

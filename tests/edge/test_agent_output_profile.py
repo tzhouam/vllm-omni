@@ -111,6 +111,17 @@ def route_and_events():
         kind="text",
         terminal=True,
     )
+    terminal_stage = {
+        **stage,
+        "buffers": [],
+        "error": None,
+        "state": None,
+        "started_monotonic_ns": 0,
+        "emitted_monotonic_ns": 0,
+        "input_watermark": 0,
+        "payload_nbytes": 0,
+        "release_token": "",
+    }
     proof = dict(
         schema="omni-agent-output-interpretation-v1",
         consumer_identity_sha256=consumer["identity_sha256"],
@@ -134,7 +145,11 @@ def route_and_events():
             "model_metrics",
             {
                 "step": 0,
-                "metrics": {"stage_event": stage, "finish_reason": "stop", "raw_model_output_sha256": "f" * 64},
+                "metrics": {
+                    "stage_event": terminal_stage,
+                    "finish_reason": "stop",
+                    "raw_model_output_sha256": "f" * 64,
+                },
             },
         ),
         ("model_output_contract", proof),
@@ -203,6 +218,55 @@ class IdentityTests(unittest.TestCase):
 
 
 class VisibilityTests(unittest.TestCase):
+    def test_full_terminal_event_matches_exact_consumer_identity_projection(self):
+        route, events = route_and_events()
+        proof_stage = events[2]["payload"]["stage_event"]
+        terminal_stage = events[1]["payload"]["metrics"]["stage_event"]
+        self.assertEqual(len(proof_stage), 7)
+        self.assertEqual(len(terminal_stage), 15)
+        self.assertNotEqual(proof_stage, terminal_stage)
+        visible = ns["_validated_consumer_final"](events[-1], route, events)
+        self.assertEqual(visible["text"], "accepted")
+
+    def test_failed_or_unreleased_full_terminal_never_becomes_visible(self):
+        route, original = route_and_events()
+        for field, value in (("error", "failed"), ("state", {"handle": "retained"}),
+                             ("buffers", [{"handle": "retained"}]), ("release_token", "pending")):
+            events = copy.deepcopy(original)
+            events[1]["payload"]["metrics"]["stage_event"][field] = value
+            with self.subTest(field=field):
+                self.assertIsNone(ns["_validated_consumer_final"](events[-1], route, events))
+        for field in ("error", "state", "buffers", "release_token"):
+            events = copy.deepcopy(original)
+            events[1]["payload"]["metrics"]["stage_event"].pop(field)
+            with self.subTest(missing=field):
+                self.assertIsNone(ns["_validated_consumer_final"](events[-1], route, events))
+
+    def test_stage_projection_rejects_extra_or_invalid_identity_fields(self):
+        route, original = route_and_events()
+        events = copy.deepcopy(original)
+        events[2]["payload"]["stage_event"]["error"] = None
+        self.assertIsNone(ns["_validated_consumer_final"](events[-1], route, events))
+        for field, value in (("worker_generation", ""), ("stage_id", -1),
+                             ("epoch", 0), ("epoch", True), ("seq", 0)):
+            events = copy.deepcopy(original)
+            events[2]["payload"]["stage_event"][field] = value
+            events[1]["payload"]["metrics"]["stage_event"][field] = value
+            with self.subTest(field=field, value=value):
+                self.assertIsNone(ns["_validated_consumer_final"](events[-1], route, events))
+        events = copy.deepcopy(original)
+        events[1]["payload"]["metrics"]["stage_event"]["epoch"] += 1
+        self.assertIsNone(ns["_validated_consumer_final"](events[-1], route, events))
+
+    def test_full_terminal_projection_preserves_identity_types(self):
+        route, original = route_and_events()
+        for field, value in (("epoch", True), ("epoch", 1.0), ("seq", 2.0),
+                             ("stage_id", False), ("stage_id", 0.0), ("terminal", 1)):
+            events = copy.deepcopy(original)
+            events[1]["payload"]["metrics"]["stage_event"][field] = value
+            with self.subTest(field=field, value=value):
+                self.assertIsNone(ns["_validated_consumer_final"](events[-1], route, events))
+
     def test_only_bound_final_becomes_visible(self):
         route, events = route_and_events()
         visible = ns["_validated_consumer_final"](events[-1], route, events)

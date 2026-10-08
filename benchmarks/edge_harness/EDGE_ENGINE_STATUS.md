@@ -1,5 +1,10 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
+2026-10-09：[输出可见性修补](results/strata_20261008/agent_output_visibility_unit_validation.json)将完整 StageEvent 的 15 字段与证明的 7 身份字段按值和类型投影核对，拒绝错误或未释放资源。
+root 已完成 WSL **114 项测试及 32 个子测试**；同一批五条闭合真实轨迹离线重放，可见最终答案由 **0/5 变为 5/5**。
+没有新增模型执行、性能测量或默认资格；`native_profile` 与 `qualification` 的显式消费者完整轨迹资格门槛均仍关闭。
+消费者解析源码、原始回复和旧严格 JSON 基准失败保持不变。
+
 2026-10-09：当前显式输出契约的 [Q2 Agent 五任务与取消/恢复实跑](results/strata_20261008/native_ista_q2_agent_output_functional.json)
 已正常结束，并通过[闭合证据复核](results/strata_20261008/native_ista_q2_agent_output_functional_review.json)。
 Windows 原生、RTX 5090 Laptop、4K/FP16 KV、batch=1/单活跃请求，保留 8 GiB 专家 RAM 缓存、

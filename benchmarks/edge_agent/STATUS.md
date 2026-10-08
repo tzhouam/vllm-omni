@@ -1,5 +1,11 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: the [visibility fix](../edge_harness/results/strata_20261008/agent_output_visibility_unit_validation.json) compares the full 15-field StageEvent with the exact seven-field proof projection by value/type, rejecting errors or unreleased resources.
+Root completed **114 WSL tests plus 32 subtests**; offline replay of the same five closed actual traces recognized **5/5 visible finals**, versus **0/5** before.
+There was no new neural run, performance measurement or default qualification.
+Both explicit-consumer full-trace gates in `native_profile` and `qualification` remain closed.
+Parser source, raw replies and the failed strict JSON benchmark are unchanged.
+
 2026-10-09: the current explicit-output Q2 consumer completed its own
 [five-task Agent and cancellation/recovery run](../edge_harness/results/strata_20261008/native_ista_q2_agent_output_functional.json),
 with [closed-evidence review](../edge_harness/results/strata_20261008/native_ista_q2_agent_output_functional_review.json).

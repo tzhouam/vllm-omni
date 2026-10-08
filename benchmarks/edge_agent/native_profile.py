@@ -513,6 +513,8 @@ def _validated_consumer_final(
         return None
     identity, proof, metrics = routes[0], proofs[0], terminals[0]
     stage = proof.get("stage_event", {})
+    terminal_stage = metrics.get("stage_event", {})
+    stage_identity_fields = {"request_id", "worker_generation", "stage_id", "epoch", "seq", "kind", "terminal"}
     if (
         identity.get("artifact_id") != route.artifact_id
         or identity.get("backend") != route.backend
@@ -527,10 +529,29 @@ def _validated_consumer_final(
         or any(char not in "0123456789abcdef" for char in proof["raw_output_sha256"])
         or proof.get("model_request_id") != request_id + f"-step-{step}"
         or not isinstance(stage, Mapping)
+        or set(stage) != stage_identity_fields
         or stage.get("request_id") != proof["model_request_id"]
+        or not isinstance(stage.get("worker_generation"), str)
+        or not stage["worker_generation"]
+        or type(stage.get("stage_id")) is not int
+        or stage["stage_id"] < 0
+        or type(stage.get("epoch")) is not int
+        or stage["epoch"] < 1
+        or type(stage.get("seq")) is not int
+        or stage["seq"] < 1
         or stage.get("terminal") is not True
         or stage.get("kind") != "text"
-        or metrics.get("stage_event") != stage
+        or not isinstance(terminal_stage, Mapping)
+        or any(
+            type(terminal_stage.get(key)) is not type(stage[key]) or terminal_stage[key] != stage[key]
+            for key in stage_identity_fields
+        )
+        or "error" not in terminal_stage
+        or terminal_stage["error"] is not None
+        or "state" not in terminal_stage
+        or terminal_stage["state"] is not None
+        or terminal_stage.get("buffers") != []
+        or terminal_stage.get("release_token") != ""
         or metrics.get("finish_reason") != "stop"
         or metrics.get("raw_model_output_sha256") != proof.get("raw_output_sha256")
         or proof.get("constrained_decoding") is not False

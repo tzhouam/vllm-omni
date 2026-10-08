@@ -1,0 +1,47 @@
+{
+  "schema": "omni-agent-output-visibility-validation-v1",
+  "checked_utc": "2026-10-08T19:50:01.590110+00:00",
+  "source_files": {
+    "benchmarks/edge_agent/native_profile.py": "add93edf86ea0dd23eee37598a53d0a66d7835e4611700cd95d82045bf8536f2",
+    "tests/edge/test_agent_output_profile.py": "af10707663611d5dd5d9c2bbfe63e1af8e0fe9a02f1e1b089a2b8496c9679735"
+  },
+  "model_output_helper_sha256_unchanged": "62ceca17d3343b68b24b96c600a7c099e411eeea05abf7ef570a2a2c4778b5c3",
+  "regression": {
+    "environment": "WSL unit tests; actual native Windows model environment is separate",
+    "retained_exec_session_id": 86663,
+    "exit_code": 0,
+    "passed": 114,
+    "subtests_passed": 32,
+    "elapsed_test_s": 7.69,
+    "scope": "native profile, output profile, general profile, Strata profile, binding and qualification review",
+    "warnings": [
+      "torch.jit.script_method deprecation",
+      "WSL installed vLLM0.28 versus Omni0.29 version warning"
+    ],
+    "stdout_archive": null,
+    "observation_scope": "root retained-tool output, not byte-exact stdout archive"
+  },
+  "closed_actual_trace_replay": {
+    "receipt_sha256": "576d53e4870002044f0c6dfb0bfc5e756aa00f6a82a7b6d3e4790b679f5a5231",
+    "public_evidence_sha256": "c94ebb4b6c58ef0d5257ca5586f6b0beb4108b0bdf1eb10667cc302139c99d8b",
+    "old_native_profile_sha256": "7c9d75351d5830289c3a392e02ec08942941a5bb04677df88c4aedb0c6b7752c",
+    "actual_traces": 5,
+    "old_visible_finals": 0,
+    "new_visible_finals": 5,
+    "method": "exact selected AST function with stdlib namespace and captured routes/events; raw hashes and payloads remain private",
+    "scope": "same closed five-task traces; no new neural run or measured timing"
+  },
+  "fix": "match exact seven proof identity keys to full terminal by value and type; reject errors and outstanding request-state/buffer/release fields",
+  "qualification_trace_gates_unchanged_closed": true,
+  "new_neural_execution": false,
+  "performance_qualification": false,
+  "default_qualification": false,
+  "earlier_windows_test_setup_attempts": {
+    "scope": "agent-reported setup/import rejections, not model runs",
+    "rejections": [
+      "existing duplicate Torch template registration assertion",
+      "installed Torch GBK source decode during fixture import"
+    ],
+    "raw_stdout_archive": null
+  }
+}
