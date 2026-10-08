@@ -1,13 +1,25 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+The [Q2 five-task Agent run](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional.json)
+passed [independent review](../edge_harness/results/strata_20261008/native_ista_q2_agent_functional_review.json).
+Short answer, encrypted memory seed, fresh-controller recall, and actual EN/ZH
+loopback browser open/read took **4.19 / 5.53 / 9.44 / 11.79 / 15.80 s** excluding
+startup. Both controller starts, including full verification, took **195.48 /
+182.28 s**. All 22 closed raw files, five model/native I/O streams, DPAPI memory
+provenance, browser grounding and full dependency preimage were verified.
+Only approved task inputs match Q4; the DB, sessions, requests, outputs and
+quality checks are new Q2 evidence. Ledger/thread/process closure passed;
+exact browser child PID inventory remains absent. This adds no Q2 Qt UI run,
+general tool/memory quality, p95, power-condition, default or release qualification.
+
 The [ISTA Q2 engine lifecycle](../edge_harness/results/strata_20261008/native_ista_q2_observed_lifecycle.json)
 now passed [independent review](../edge_harness/results/strata_20261008/native_ista_q2_observed_lifecycle_review.json):
 three complete references took **2.52 / 4.99 / 3.61 s**, cancellation drained in
 **2.31 s**, and fresh-worker recovery took **2.48 s**. Starts of **206.89 / 183.89 s**
 include full hashing and initialization. All 16 closed raw files, request-bound
 native I/O, selected modules, new-generation controls and drained ledgers were
-verified. The Q2 five-task Agent run has started and awaits its own terminal
-checks; Q4 Agent results are not inherited. No p95, sustained, image, model-
+verified. The subsequent Q2 Agent five-task run passed its own independent
+review above; Q4 Agent results are not inherited. No p95, sustained, image, model-
 attributed physical SSD or aggregate-memory qualification follows.
 
 The [current-source native Qt Agent rerun](../edge_harness/results/strata_20261008/native_q4_observed_final_qt_agent.json)
@@ -51,12 +63,13 @@ Engine preparation has advanced independently: [ISTA Q2/IQ3 acquisition](../edge
 and [both text-route packs](../edge_harness/results/strata_20261008/ista_preparation.json)
 are complete, with full hashes and preparation admission checks. The preparation
 record itself contains no neural requests; subsequent Q2 engine evidence is
-recorded above, its Agent run is pending, and IQ3 has not executed a request. The isolated native I/O build
+recorded above, its Agent five-task run passed independently, and IQ3 has
+registered the observed runtime but has not executed a request. The isolated native I/O build
 also passed compilation, static runtime verification and Windows/WSL
 integration tests. Its [independent Q4 engine run](../edge_harness/results/strata_20261008/native_q4_observed_io.json)
 now passed three text requests, cancellation and fresh-worker recovery with
-bound I/O records. The new runtime's actual Agent rerun remains pending;
-engine functional results add no Agent/default-route qualification.
+bound I/O records. That earlier engine record contains no Agent run; the subsequent current-source
+Q4/Q2 Agent checks are recorded above and add no default-route qualification.
 
 The latest [actual Windows Qt Agent request](../edge_harness/results/strata_20261008/native_q4_qt_agent.json)
 passed one short exact-response task through the offscreen Qt event loop and

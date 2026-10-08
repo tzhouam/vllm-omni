@@ -1,0 +1,18 @@
+{
+  "schema": "omni-private-q2-agent-public-proposal-review-v1",
+  "reviewed_unix": 1791472837.957451,
+  "status": "proposed_for_parent_review",
+  "proposal_sha256": "432757e82ff7084271edb54ad56eaa51f100bb034e26f3455125bdd425f34b9e",
+  "independent_audit_sha256": "af902dc9811efa7f542fdac35142679b5c49644282d2608e3376f5217e53f152",
+  "auditor_sha256": "2f84683d1e8a8c58c33b3673672c72888a6e5ef1d7530cf324b090ec5a65e4b9",
+  "receipt_sha256": "09417e38d23471d9e19fb002488db29be7a93101b240a3502b8722c63dc053e0",
+  "actual_owner_schema_regression_tests_passed": 65,
+  "safe_field_scan_findings": 0,
+  "content_not_serialized": true,
+  "private_path_prompt_answer_tool_nonce_screen_credential_excluded": true,
+  "raw_or_production_mutated": false,
+  "qualification_created": false,
+  "prior_proposal_sha256": "cdf3335305ac07cd76c71ba6e06b062978b8b76acce6d5db13b7b6fe364a7725",
+  "change_scope": "One limitation sentence only: no Agent-specific power-snapshot binding was captured; no lifecycle snapshot inherited",
+  "all_numeric_raw_artifact_runtime_and_audit_bindings_unchanged": true
+}

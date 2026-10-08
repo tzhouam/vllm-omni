@@ -1,5 +1,17 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+The [Q2 five-task Agent run](native_ista_q2_agent_functional.json)
+passed [independent review](native_ista_q2_agent_functional_review.json): short
+answer, DPAPI seed/reopened recall and actual EN/ZH loopback reads. Task samples
+excluding startup were 4.19 / 5.53 / 9.44 / 11.79 / 15.80 s; two full-verification/
+startup boundaries were 195.48 / 182.28 s. All 22 immutable raw files, five model
+calls/native I/O, memory provenance, browser grounding, dependency preimage and
+new state/IDs were checked. Only approved task inputs match Q4. Resource ledgers,
+threads and recorded process identities closed; exact browser child PID inventory
+was not saved. This adds no Q2 Qt UI, broad Agent quality, p95, power-condition,
+default, release, total-memory-cap or physical-SSD qualification. IQ3 observed
+runtime registration is complete; its neural requests remain pending.
+
 The [ISTA Q2 native lifecycle](native_ista_q2_observed_lifecycle.json)
 passed [independent review](native_ista_q2_observed_lifecycle_review.json).
 Its English, Chinese arithmetic and JSON requests took 2.52 / 4.99 / 3.61 s;
@@ -7,8 +19,9 @@ cancellation after two deltas drained in 2.31 s and fresh-worker recovery
 completed in 2.48 s. Initial/recovery starts of 206.89 / 183.89 s include full
 hashing and initialization. All 16 closed raw files, native request/epoch/I/O
 bindings, selected modules, five empty ledgers and six retired process identities
-were checked. Both 8 GiB RAM expert caches remain SSD-backed. The Q2 Agent
-five-task run has started; it cannot inherit Q4 outcomes. Telemetry has one
+were checked. Both 8 GiB RAM expert caches remain SSD-backed. The subsequent
+Q2 Agent five-task result is recorded separately above, with no Q4 outcome
+inheritance. Telemetry has one
 89.77 ms timestamp reversal, with no chronological integration. A separately
 closed 757-row PDH interval observes device-wide disk and system-wide cache
 accounting only; model-attributed physical SSD bytes remain unknown. No image,
