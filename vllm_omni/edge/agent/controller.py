@@ -15,16 +15,24 @@ import json
 import threading
 import time
 import uuid
+from collections.abc import Callable, Mapping
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Protocol
+from typing import Any, Protocol
 
 from vllm_omni.edge.agent.router import (
-    Admission, Qualification, Route, classify_task, desktop_capture_requested,
+    Admission,
+    Qualification,
+    Route,
+    classify_task,
+    desktop_capture_requested,
     select_route,
 )
 from vllm_omni.edge.agent.tools import (
-    ApprovalRequired, ToolAction, ToolRequestCancelled, WindowsToolBoundary,
+    ApprovalRequired,
+    ToolAction,
+    ToolRequestCancelled,
+    WindowsToolBoundary,
     _exact_user_url,
 )
 from vllm_omni.engine.resource_ledger import GraphRequestGate
@@ -206,16 +214,26 @@ class AgentController:
         return condition
 
     @staticmethod
-    async def _release_loaded_backend(backend: ModelBackend) -> None:
+    async def _release_loaded_backend(backend: ModelBackend, *, reason: str = "power condition change") -> None:
         closer = getattr(backend, "close", None)
         if not callable(closer):
-            raise RuntimeError("loaded route has no release operation after power condition change")
-        released = (await closer() if inspect.iscoroutinefunction(closer)
-                    else await asyncio.to_thread(closer))
-        if inspect.isawaitable(released):
-            released = await released
+            raise RuntimeError(f"loaded route has no release operation after {reason}")
+        async def release():
+            result = (await closer() if inspect.iscoroutinefunction(closer)
+                      else await asyncio.to_thread(closer))
+            return await result if inspect.isawaitable(result) else result
+
+        close_task = asyncio.create_task(release())
+        try:
+            released = await asyncio.shield(close_task)
+        except asyncio.CancelledError:
+            # The close thread still owns the exact resource lease. Finish it
+            # before the turn gate permits another route to load or reuse it.
+            with contextlib.suppress(Exception):
+                await close_task
+            raise
         if released is False:
-            raise RuntimeError("loaded route could not be released after power condition change")
+            raise RuntimeError(f"loaded route could not be released after {reason}")
 
     def _emit(self, kind: str, payload: Mapping[str, Any], *, source: str = "agent") -> str:
         self._seq += 1
@@ -334,6 +352,7 @@ class AgentController:
                 # The existing Omni llama.cpp multimodal StageClient accepts
                 # PNG. Refuse if its admitted image bound cannot hold this.
                 from io import BytesIO
+
                 from PIL import Image
 
                 raw = base64.b64decode(jpeg_b64, validate=True)
@@ -491,7 +510,8 @@ class AgentController:
                 self._emit("refusal", {"task_class": task_class, "reasons": dict(decision.refusals),
                                        "power_condition": power_condition,
                                        "initial_power_condition": self.power_condition,
-                                       "message": "No admitted, qualified complete route for this task and current power condition"})
+                                       "message": ("No admitted, qualified complete route for this task "
+                                                   "and current power condition")})
                 return None
             route = decision.route
             backend = self.backends.get(route.route_id)
@@ -544,8 +564,23 @@ class AgentController:
                 and isinstance(execution_plan, Mapping)
                 and execution_plan.get("placement_evidence_level") == "override_selection_only"
             )
+            verified_configuration = None
+            configuration_evidence = None
+            if route.backend == "external.strata.text.v1":
+                from vllm_omni.engine.backends.strata import validate_strata_load_plan
+
+                try:
+                    validate_strata_load_plan(execution_plan, route.placement)
+                except Exception:
+                    await self._release_loaded_backend(backend, reason="invalid Strata execution configuration")
+                    raise
+                verified_configuration = execution_plan["verified_execution_configuration"]
+                configuration_evidence = execution_plan["execution_configuration_evidence"]
+                # A loaded native configuration does not prove which unit
+                # executed every model tensor for this particular request.
+                actual_placement = None
             if requested_placement != route.placement or (
-                actual_placement != route.placement and not unknown_host_mapped
+                actual_placement != route.placement and not unknown_host_mapped and verified_configuration is None
             ):
                 raise RuntimeError(
                     f"loaded route placement {actual_placement!r} differs from declared {route.placement!r}"
@@ -555,6 +590,8 @@ class AgentController:
                 "artifact_id": route.artifact_id, "backend": route.backend,
                 "requested_placement": requested_placement,
                 "actual_placement": actual_placement,
+                "verified_execution_configuration": verified_configuration,
+                "execution_configuration_evidence": configuration_evidence,
                 "experimental": decision.experimental,
                 "qualified_p95_s": decision.qualification.whole_answer_p95_s if decision.qualification else None,
                 "selection_refusals": dict(decision.refusals),

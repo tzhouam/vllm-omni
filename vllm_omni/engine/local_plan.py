@@ -40,8 +40,12 @@ class LocalPlanManager:
     """
 
     def __init__(
-        self, *, routes: Sequence[RouteMemorySpec], backends: Mapping[str, Any],
-        capacities: Mapping[str, int], free_bytes: Callable[[], Mapping[str, int | None]],
+        self,
+        *,
+        routes: Sequence[RouteMemorySpec],
+        backends: Mapping[str, Any],
+        capacities: Mapping[str, int],
+        free_bytes: Callable[[], Mapping[str, int | None]],
         blocked_reasons: Mapping[str, str] | None = None,
         resource_ledger: ResourceLedger | None = None,
     ) -> None:
@@ -60,8 +64,9 @@ class LocalPlanManager:
         self._route_claims = {route.route_id: dict(route.memory_demands) for route in routes}
         self._route_placements = {route.route_id: route.placement for route in routes}
         for route in routes:
-            if not route.memory_demands or any(type(amount) is not int or amount < 0
-                                              for amount in route.memory_demands.values()):
+            if not route.memory_demands or any(
+                type(amount) is not int or amount < 0 for amount in route.memory_demands.values()
+            ):
                 raise ValueError(f"{route.route_id}: nonnegative physical-pool demands are required")
             if route.route_id in self._backends and any(
                 pool not in self._ledger.capacities or amount > self._ledger.capacities[pool]
@@ -75,14 +80,15 @@ class LocalPlanManager:
         self._resident_free_floor: dict[str, int] | None = None
 
     def wrappers(self) -> dict[str, ManagedLocalBackend]:
-        return {route_id: ManagedLocalBackend(self, route_id)
-                for route_id in self._backends}
+        return {route_id: ManagedLocalBackend(self, route_id) for route_id in self._backends}
 
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
-            return {"resident_route": self._owner,
-                    "resident_free_floor": dict(self._resident_free_floor or {}),
-                    "ledger": self._ledger.snapshot()}
+            return {
+                "resident_route": self._owner,
+                "resident_free_floor": dict(self._resident_free_floor or {}),
+                "ledger": self._ledger.snapshot(),
+            }
 
     def _live_free(self, demands: Mapping[str, int]) -> dict[str, int]:
         readings = self._free_bytes()
@@ -109,9 +115,7 @@ class LocalPlanManager:
             raise
         if not drained:
             self._ledger.release(reservation, drained=False)
-            raise ResourceUnavailable(
-                f"{owner}: worker drain unverified; host reservation quarantined"
-            )
+            raise ResourceUnavailable(f"{owner}: worker drain unverified; host reservation quarantined")
         if not self._ledger.release(reservation, drained=True) and not self._ledger.was_released(reservation):
             raise ResourceUnavailable("host memory reservation release failed or was replaced")
         self._owner = None
@@ -140,16 +144,17 @@ class LocalPlanManager:
     def admit(self, route: RouteMemorySpec) -> PlanAdmission:
         with self._lock:
             registered = self._routes.get(route.route_id)
-            if (registered != route or dict(route.memory_demands) != self._route_claims[route.route_id]
-                    or route.placement != self._route_placements[route.route_id]):
+            if (
+                registered != route
+                or dict(route.memory_demands) != self._route_claims[route.route_id]
+                or route.placement != self._route_placements[route.route_id]
+            ):
                 return PlanAdmission(False, "route identity or memory declaration changed")
             if route.route_id in self._blocked_reasons:
                 return PlanAdmission(False, self._blocked_reasons[route.route_id])
             try:
                 quarantined = set(self._ledger.snapshot()["quarantined"])
-                if self._owner is not None and (
-                    self._owner in quarantined or not self._backends[self._owner].resident
-                ):
+                if self._owner is not None and (self._owner in quarantined or not self._backends[self._owner].resident):
                     # A failed/cancelled backend may have been shut down by
                     # Omni.  Reconcile it only after close confirms drain.
                     self._release_owner()
@@ -157,12 +162,12 @@ class LocalPlanManager:
                     self._check_resident_free(route)
                     plan = self._backends[route.route_id].execution_plan
                     return PlanAdmission(
-                        True, "already resident under the host memory reservation",
-                        plan.get("observed_model_placement") if isinstance(plan, Mapping)
-                        else None,
+                        True,
+                        "already resident under the host memory reservation",
+                        plan.get("observed_model_placement") if isinstance(plan, Mapping) else None,
                     )
                 live = self._live_free(route.memory_demands)
-                old_claim = (self._reservation.demands if self._reservation is not None else {})
+                old_claim = self._reservation.demands if self._reservation is not None else {}
                 ledger_reserved = self._ledger.snapshot()["reserved"]
                 for pool, requested in route.memory_demands.items():
                     # Preview a turn-boundary switch without unloading during
@@ -174,13 +179,13 @@ class LocalPlanManager:
                     )
                     if requested > possible:
                         return PlanAdmission(
-                            False, f"{pool}: need {requested} bytes; at most {possible} "
-                            "bytes after current route release",
+                            False,
+                            f"{pool}: need {requested} bytes; at most {possible} bytes after current route release",
                         )
                 reason = (
                     "provisional switch; old worker must drain and live memory will be rechecked"
-                    if self._owner is not None else
-                    "live capacity gate passed; Omni stage load and placement still required"
+                    if self._owner is not None
+                    else "live capacity gate passed; Omni stage load and placement still required"
                 )
                 return PlanAdmission(True, reason)
             except ResourceUnavailable as exc:
@@ -192,8 +197,10 @@ class LocalPlanManager:
                 raise ResourceUnavailable(self._blocked_reasons[route_id])
             route = self._routes[route_id]
             backend = self._backends[route_id]
-            if (dict(route.memory_demands) != self._route_claims[route_id]
-                    or route.placement != self._route_placements[route_id]):
+            if (
+                dict(route.memory_demands) != self._route_claims[route_id]
+                or route.placement != self._route_placements[route_id]
+            ):
                 raise ResourceUnavailable("route identity or memory declaration changed")
             if self._owner == route_id and backend.resident:
                 self._check_resident_free(route)
@@ -204,8 +211,7 @@ class LocalPlanManager:
             for pool, requested in route.memory_demands.items():
                 if requested > live[pool]:
                     raise ResourceUnavailable(
-                        f"{pool}: need {requested} bytes, live free {live[pool]} "
-                        "bytes after route release"
+                        f"{pool}: need {requested} bytes, live free {live[pool]} bytes after route release"
                     )
             reservation = self._ledger.reserve(route_id, route.memory_demands)
             self._owner, self._reservation = route_id, reservation
@@ -222,10 +228,18 @@ class LocalPlanManager:
                 if plan.get("requested_device") != route.placement:
                     raise RuntimeError("Omni route loaded on a different device")
                 observed = plan.get("observed_model_placement")
-                if observed != route.placement and not (
-                    route.placement.startswith("Vulkan_Host+") and
-                    observed is None and
-                    plan.get("placement_evidence_level") == "override_selection_only"
+                if getattr(route, "backend", None) == "external.strata.text.v1":
+                    # Explicit experimental Strata execution verifies the
+                    # loaded GPU/CPU-pool configuration. It does not convert
+                    # that capability into observed per-request computation
+                    # or whole-Agent route qualification.
+                    from vllm_omni.engine.backends.strata import validate_strata_load_plan
+
+                    validate_strata_load_plan(dict(plan), route.placement)
+                elif observed != route.placement and not (
+                    route.placement.startswith("Vulkan_Host+")
+                    and observed is None
+                    and plan.get("placement_evidence_level") == "override_selection_only"
                 ):
                     raise RuntimeError("Omni route has no verified model placement")
                 if dict(plan.get("reserved_bytes", {})) != dict(route.memory_demands):
@@ -234,8 +248,7 @@ class LocalPlanManager:
                 # allocates KV/workspace. The full declared claim covers that
                 # growth. Keep the pre-load free amount outside the claim as a
                 # floor; external use cannot silently consume *that* margin.
-                floor = {pool: max(0, live[pool] - amount)
-                         for pool, amount in route.memory_demands.items()}
+                floor = {pool: max(0, live[pool] - amount) for pool, amount in route.memory_demands.items()}
                 post_load = self._live_free(route.memory_demands)
                 if any(post_load[pool] < minimum for pool, minimum in floor.items()):
                     raise ResourceUnavailable("loaded route exceeded its declared physical-pool claim")
@@ -270,12 +283,18 @@ class ManagedLocalBackend:
         self._coordinator.start(self._route_id)
 
     async def generate(
-        self, prompt: str, *, request_id: str, max_tokens: int,
+        self,
+        prompt: str,
+        *,
+        request_id: str,
+        max_tokens: int,
         image_data_url: str | None = None,
     ) -> AsyncIterator[Any]:
         backend = self._coordinator._backends[self._route_id]
         async for chunk in backend.generate(
-            prompt, request_id=request_id, max_tokens=max_tokens,
+            prompt,
+            request_id=request_id,
+            max_tokens=max_tokens,
             image_data_url=image_data_url,
         ):
             yield chunk
@@ -286,22 +305,24 @@ class ManagedLocalBackend:
     def request_state_released(self, request_id: str) -> bool:
         backend = self._coordinator._backends[self._route_id]
         self.release_evidence = None
-        reporter = getattr(backend,
-                           "request_state_released", None)
+        reporter = getattr(backend, "request_state_released", None)
         try:
             if callable(reporter) and reporter(request_id) is True:
                 # The stage has drained; reconcile its exact physical-pool
                 # lease before announcing release. Other shared owners remain.
                 proof = getattr(backend, "release_evidence", None)
-                if not (isinstance(proof, Mapping) and
-                        proof.get("request_id") == request_id and
-                        proof.get("worker_exit_confirmed") is True and
-                        proof.get("stage_ledger_empty") is True):
+                if not (
+                    isinstance(proof, Mapping)
+                    and proof.get("request_id") == request_id
+                    and proof.get("worker_exit_confirmed") is True
+                    and proof.get("stage_ledger_empty") is True
+                ):
                     self._coordinator._quarantine_owner(self._route_id)
                     return False
                 token = self._coordinator._reservation
                 if proof.get("schema") == "omni-resource-release-v2" and (
-                    token is None or proof.get("resource_owner") != token.owner
+                    token is None
+                    or proof.get("resource_owner") != token.owner
                     or proof.get("resource_claim_released") is not True
                 ):
                     self._coordinator._quarantine_owner(self._route_id)
@@ -310,10 +331,14 @@ class ManagedLocalBackend:
                     snapshot = self._coordinator.snapshot()
                     ledger = snapshot["ledger"]
                     owner = proof.get("resource_owner", self._route_id)
-                    if (snapshot["resident_route"] is None and owner not in ledger["owners"]
-                            and owner not in ledger["quarantined"]):
+                    if (
+                        snapshot["resident_route"] is None
+                        and owner not in ledger["owners"]
+                        and owner not in ledger["quarantined"]
+                    ):
                         self.release_evidence = {
-                            **proof, "schema": "omni-resource-release-v2",
+                            **proof,
+                            "schema": "omni-resource-release-v2",
                             "resource_claim_released": True,
                             "host_claim_released": True,
                             "host_ledger_empty": not ledger["owners"] and not ledger["quarantined"],

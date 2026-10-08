@@ -1,9 +1,45 @@
 # Strata / shared-lease evidence — 2026-10-08
 
-This directory records implementation verification and explicit blockers.
-It contains **no successful Strata model request, no DeepSeek request, and no
-new Agent route qualification**. All request protocols are batch=1 and one
-active request.
+The newest [actual cancellation/recovery record](native_q4_cancel_recovery.json)
+passed one text-stream lifecycle check: two chunks delivered, cancellation
+and empty shared-ledger drain in 2.59 s, then a fresh worker/generation exact
+short response in 11.85 s. Actual initial/recovery plans capture the same
+explicit-cache controls. Full stage starts of 236.50 / 218.04 s include
+rehashing and service startup. This is one functional lifecycle observation,
+not stability or performance qualification, and does not fill missing plan
+capture in earlier Agent records.
+
+The earlier [explicit-cache Agent rerun](native_q4_bounded_cache_agent.json)
+records two successful narrow tasks, including recall across controller
+sessions. It binds new source/environment identities and observed native
+INFO to explicitly labeled reconstructed cache limits. Full loaded-plan and
+control hashes were not captured for this Agent run. Full responses took
+266.39 / 21.51 s; the first includes hashing/loading. No p95, aggregate VRAM
+hard-cap, physical SSD or release qualification follows.
+
+The earlier [native Q4 reproduction](native_q4_reproduction.json) records three
+complete Windows Omni Strata text requests, with exact English, Chinese
+arithmetic and JSON-equality checks all passing. The complete-response samples
+are 9.63 / 17.70 / 16.63 s; there is one sample per case, no p95 or performance
+qualification. Four source shards, runtime, compatibility pack, raw receipts
+and sampled telemetry are bound by hash. Loaded CPU+CUDA configuration and
+routed decode expert execution are verified at their separate scopes;
+physical SSD attribution and hard cache-budget qualification remain pending.
+A separate actual experimental Agent smoke passed 4/4 narrow short-response,
+same-session memory and structured controlled-loopback read tasks, with
+controller close and process exit reviewed; it uses the same historical
+auto-sized cache configuration and adds no default qualification.
+No DeepSeek request or new default-route qualification is recorded.
+All request protocols are batch=1 and one active request.
+
+During these Q4 neural, Agent and cancellation/recovery smokes, ISTA Q2/IQ3
+downloads and WSL
+checksum work were active on the same SSD. Latencies describe functional
+smokes under background disk load, not isolated performance tests.
+
+The records and download/capacity descriptions below retain the earlier
+implementation-readiness snapshot, before this successful Q4 run. Its first
+conversion-manifest validation failure is also retained in the new receipt.
 
 | Record | What was actually tested | What it does not establish |
 | --- | --- | --- |
@@ -27,9 +63,10 @@ reproducible executable build or a complete Python-environment qualification.
 At the readiness snapshot, free RAM was about 11.45 GiB, free Windows commit
 about 2.16 GiB, and free GPU memory about 6.28 GiB. Availability is volatile;
 every actual launch probes it again. The cache-only lower bounds already
-exceed these resources. Complete Q4/ISTA weight sets are still downloading;
-sparse file logical sizes are not completion evidence. All source files must
-pass the pinned size and SHA-256 checks before packing or execution.
+exceed these resources. At that earlier snapshot, complete Q4/ISTA weight sets were still downloading;
+sparse file logical sizes were not completion evidence. The later Q4 run
+verified all four source files and its prepared pack before execution. Q2/IQ3
+weight verification and complete requests remain pending.
 
 Reproduction commands, model pins, budget declarations and the full batch-1
 protocol are in [STRATA.md](../../STRATA.md). Current milestones and the

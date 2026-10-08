@@ -182,6 +182,42 @@ def command_environment() -> dict[str, str]:
     return env
 
 
+def compat_dependency(python: Path, runtime: Path) -> dict[str, Any]:
+    """Resolve the packer's actual vendored converter before reading large weights."""
+    vendor = runtime / "third_party/llama.cpp/gguf-py"
+    if not (vendor / "gguf/__init__.py").is_file():
+        raise FileNotFoundError(
+            "compat-BF16 packing requires vendored llama.cpp gguf-py at "
+            f"{vendor}; an installed gguf distribution does not satisfy tools/_paths.py"
+        )
+    code = (
+        "import json,pathlib,sys;sys.path.insert(0,sys.argv[1]);from _paths import gguf_py;"
+        "path=pathlib.Path(gguf_py()).resolve();expected=pathlib.Path(sys.argv[2]).resolve();"
+        "assert path==expected,'gguf-py resolved outside the bound runtime';sys.path.insert(0,str(path));"
+        "import gguf;from gguf import GGMLQuantizationType as Q,quants;"
+        "assert Q.BF16 is not None and Q.Q8_0 is not None;"
+        "assert callable(quants.dequantize) and callable(quants.quantize);"
+        "module=pathlib.Path(gguf.__file__).resolve();"
+        "assert module.is_relative_to(expected),'gguf import escaped the bound vendor';"
+        "print(json.dumps({'source_path':str(path),'module_file':str(module)}))"
+    )
+    command = [str(python), "-I", "-B", "-X", "utf8", "-c", code, str(runtime / "tools"), str(vendor)]
+    result = subprocess.run(
+        command, capture_output=True, text=True, encoding="utf-8", env=command_environment(), timeout=60
+    )
+    if result.returncode:
+        raise RuntimeError(f"compat-BF16 vendored gguf-py preflight failed: {result.stderr.strip()}")
+    value = json.loads(result.stdout.strip())
+    manifest = inventory(vendor, "ggml-org/llama.cpp/gguf-py", "runtime-bound", "MIT", runtime=True)
+    value.update(
+        probe_sha256=hashlib_sha256_text(code),
+        files_count=len(manifest["files"]),
+        files_sha256=canonical_hash(manifest["files"]),
+        scope="observed converter path and bytes; source revision requires the runtime provenance receipt",
+    )
+    return value
+
+
 def detect_ple(python: Path, runtime: Path, files: list[Path]) -> tuple[Path, dict[str, Any]]:
     code = (
         "import json,sys;sys.path.insert(0,sys.argv[1]);import gguf_reader as G;"
@@ -344,6 +380,7 @@ def prepare(
     if max(preliminary_budget.gpu_steady_bytes, preliminary_budget.gpu_loading_peak_bytes) != gpu_budget_bytes:
         raise ValueError("component GPU peak must equal the declared GPU budget")
     source = source_for_text(target)
+    compat = "unsloth" in source["checkpoint"].lower() and "q4" in target["target_id"].lower()
     binding_path = pack.with_name(pack.name + ".omni-binding.json")
     receipt_path = launch_out.with_suffix(".prepare.json")
     if pack.exists() and (not reuse_bound_pack or not binding_path.is_file()):
@@ -362,6 +399,8 @@ def prepare(
     }
     save_json(receipt_path, receipt)
     try:
+        if compat and pack_runner is None:
+            receipt["compat_dependency"] = compat_dependency(python, runtime)
         verify_manifest(source, artifacts)
         source_paths = [artifacts / item["path"] for item in source["files"]]
         original_stats = {str(path): (path.stat().st_size, path.stat().st_mtime_ns) for path in source_paths}
@@ -390,7 +429,6 @@ def prepare(
             receipt["ple_probe"] = {"selected_shard": str(ple), "source": "explicit; runtime verifies PLE tensor"}
         if ple.resolve() not in {path.resolve() for path in source_paths}:
             raise ValueError("PLE file is not a verified source shard")
-        compat = "unsloth" in source["checkpoint"].lower() and "q4" in target["target_id"].lower()
         command = [
             str(python),
             "-B",

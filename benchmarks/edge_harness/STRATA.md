@@ -112,6 +112,16 @@ hash inventory establishes byte identity only; source/build origin stays
 explicitly unverified unless supporting external provenance is supplied.
 Even an external release receipt is not an independent reproducible build.
 
+For compatibility conversion, preparation first resolves the packer's actual
+`tools/_paths.py` dependency in an isolated native Python process. It requires
+`third_party/llama.cpp/gguf-py`, checks the imported module stays under that
+verified vendor directory, and probes BF16/Q8 conversion functions before
+reading large weights. A separately installed `gguf` wheel does not satisfy
+this dependency. The receipt binds the probe, converter file inventory and
+actual Python binary/dependency versions; a separate runtime provenance
+receipt must establish the converter's source revision. Path/byte identity
+alone does not establish that origin.
+
 Prepare requires a hardware snapshot JSON and an explicit component-budget
 JSON using `WeightTierBudget` field names. Components are declared estimates,
 not observed allocations. The host peak must equal expert cache + host
@@ -129,7 +139,7 @@ snapshot values. These numbers are not a qualified budget for the laptop:
 ```powershell
 python benchmarks/edge_harness/strata_prepare.py `
   --target benchmarks/edge_harness/configs/strata/ista_q2_0.json `
-  --runtime-root C:/Users/zhout/w2/strata-omni/source-pinned `
+  --runtime-root C:/path/to/pinned-strata `
   --python-bin C:/path/to/native/python.exe `
   --engine-file engine/strata.exe `
   --artifact-root C:/path/to/verified/huggingface-layout `
@@ -165,6 +175,58 @@ verify window is reported separately. Do not interpret it as MTP enabled.
 `gpu_total_bytes` must equal the exact observed NVML total, not a rounded
 marketing capacity or the sample GiB value above.
 
+### Explicit expert-cache control
+
+The current adapter derives a positive native `--expert-cache` slot count
+from `WeightTierPlan.budget.gpu_expert_cache_bytes` and the hash-verified
+`native_experts.txt`. It reads every layer's blob size and calculates:
+
+```text
+aligned_blob = ceil(max_blob_bytes / 256) * 256
+slots = floor(gpu_expert_cache_bytes / aligned_blob)
+allocation_upper_bytes = slots * aligned_blob
+```
+
+A budget that cannot admit one slot is refused. Zero is never passed: the
+upstream profiled-cache path treats zero as automatic sizing. Both uniform
+and profile-sized layouts use the same conservative aligned maximum. After
+startup, native `INFO` must agree with the control. Uniform caches require
+the requested slot count and the exact allocation's floor-MiB value.
+Profile-sized allocation may report more smaller slots than the maximum-blob
+control count. It reports an interval from `expert_cache_mib * MiB` through
+`min(control_upper, (expert_cache_mib + 1) * MiB - 1)`. RAM arena bounds use
+the corresponding floor-MiB observation and explicit resident budget.
+These are cache-component bounds, not process peaks. Missing or inconsistent
+native observations refuse the loaded route.
+
+`--vram-reserve-mib` remains a native sizing hint, **not a hard total-VRAM
+allocator limit**. The adapter also checks the controlled expert-cache upper
+bound plus declared fixed GPU components against the shared reservation;
+fixed-component estimates still require measurement. The execution plan
+therefore keeps `gpu_aggregate_hard_cap_verified=false` and does not infer a
+complete memory peak from `INFO` or device-wide telemetry.
+
+The plan records `gpu_expert_cache_control`, `expert_cache_component_bounds`,
+and hashed `route_controls` with schema `omni-strata-explicit-cache-v2`.
+This identity binds layout, source/runtime/pack manifests, cache controls,
+context, precision, MTP, prefetch and I/O settings. Earlier automatic-cache
+measurements remain historical: the first native Q4 runs reported 9616 MiB
+of GPU expert cache against a 7.5 GiB component estimate. They cannot qualify
+the explicit-slot route; see the [historical reproduction evidence](results/strata_20261008/native_q4_reproduction.json).
+The later [explicit-cache Agent receipt](results/strata_20261008/native_q4_bounded_cache_agent.json)
+records native INFO consistent with reconstructed component bounds and a
+single cross-session memory check. Its full execution-plan/control hash was
+not captured, and no aggregate memory or performance qualification follows.
+The October 8 Q4 neural/Agent runs also overlapped ISTA Q2/IQ3 downloads
+and WSL checksums on the same SSD; their timings are functional observations
+under background disk load, not controlled isolated performance results.
+A subsequent [actual cancellation/recovery run](results/strata_20261008/native_q4_cancel_recovery.json)
+saved both loaded plans and matching `route_controls_sha256`, cancelled after
+two text chunks with an empty shared ledger, and completed one fresh-worker
+exact response. This is separate evidence for one lifecycle path; it neither
+retroactively fills the Agent plan capture nor qualifies repeated recovery,
+other cancellation phases, aggregate memory or performance.
+
 Generate the required expert cache variants without changing machine capacity:
 
 ```bash
@@ -178,6 +240,44 @@ variant still needs admission. The total ledger must cover PLE resident pages,
 non-expert weights, KV/recurrent state, MTP, workspace, transfers, load peaks
 and headroom. A rejected 40 GiB request must be reported as rejected; a smaller
 cache is a separately identified experiment.
+
+## Use the existing Agent
+
+`agent_config_from_launch` validates the prepared native Windows launch and
+produces one Agent route without changing artifact bytes or budget amounts.
+It accepts physical GPU 0 only, maps the engine pool name `vram:0` to the
+Agent's `vram`, and requires explicit host/VRAM/SSD/Windows-commit claims.
+WSL claims are not reinterpreted as native Windows capacity. Native startup
+remeasures the exact GPU identity and available resources; the shared lease
+then passes through LocalPlanManager to StageRuntime.
+
+To opt into a visibly experimental route in the existing Agent loop:
+
+```powershell
+python -m vllm_omni.edge.agent.strata_route `
+  --launch C:/path/to/verified-launch.json `
+  --expected-device-name "NVIDIA GeForce RTX 5090 Laptop GPU" `
+  --out C:/path/to/new-agent-config.json --experimental-bootstrap
+python -m vllm_omni.edge.agent.native_app `
+  --config C:/path/to/new-agent-config.json `
+  --once "Return only the word ready" `
+  --record C:/path/to/private/new-agent-events.jsonl
+```
+
+Replace the example device name with the freshly measured GPU 0 name. Omit
+`--once` for the existing native interface. The converter creates no
+qualification bundles or trusted review keys. Without the explicit bootstrap
+flag, an unqualified route remains unavailable for selection. It sets the
+answer bound to `min(512, max_new_tokens)` and rejects arbitrary native args,
+MCP hooks, `before_load`, or an unqualified image configuration.
+
+The Agent accepts a separately verified loaded CPU+CUDA execution
+configuration while retaining `actual_placement=null`; per-request native
+counters establish routed decode expert execution at their narrower scope.
+Tool permissions remain with the Agent. Raw event records can contain user
+observations and must remain private; publish reviewed numeric facts and
+hashes separately. A functional smoke does not create a default-route or
+performance qualification.
 
 ## Measure full requests
 

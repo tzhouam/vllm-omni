@@ -1,22 +1,86 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
-The 2026-10-08 Strata integration moves the host plan manager into the engine
-and shares its exact resource lease with Omni StageRuntime. The existing
-Agent loop, memory store and tool approval boundary remain in use. A new
-complete-model Strata adapter preserves turn-boundary switching, bounded
-streaming, cancellation and release isolation. It refuses unverified actual
-placement; no Strata route has entered automatic selection or become a
-qualified default. See the separate [engine architecture and roadmap](../edge_harness/EDGE_ENGINE_STATUS.md)
-and [raw integration evidence](../edge_harness/results/strata_20261008/README.md).
+The Strata integration shares one exact engine resource lease between the
+Agent, LocalPlanManager and Omni StageRuntime. It reuses the existing Agent
+loop, memory and tool approval boundary. Prepared launches can create one
+explicit experimental route with verified artifact identity and native loaded
+execution configuration. This does not bypass the independent qualification
+or default-selection gates.
 
-The native shared-lease lifecycle smoke used Spark CPU, not Strata. It verified
-cancel/drain/reload but failed its exact-answer check, so it adds no task or
-performance qualification. Strata weights remain downloading and current
-native RAM/commit capacity blocks the planned cache budgets. The Agent
-qualification signature/record adapter for Strata remains a later gate after
-model placement and full tasks are measured. These engine changes also change
-the imported source identity; earlier Agent profiles remain historical for
-strict current-release matching.
+A separate [actual engine cancellation/recovery run](../edge_harness/results/strata_20261008/native_q4_cancel_recovery.json)
+now passed one lifecycle check: cancellation after two text chunks drained in
+2.59 s, leaving the shared ledger empty; a fresh worker/generation on the same
+ledger then completed an exact short response in 11.85 s with `stop`. Both
+actual loaded plans and their identical explicit-cache control hash were
+saved. Initial/reload startup took 236.50 / 218.04 s including rehash and
+startup, not pure model loading. This adds one engine lifecycle observation,
+not Agent stability, performance or default qualification; it does not fill
+missing plan capture in the earlier Agent run below.
+
+The earlier [explicit-cache Agent rerun](../edge_harness/results/strata_20261008/native_q4_bounded_cache_agent.json)
+passed **2/2 narrow tasks**: one stored memory recalled across controller
+sessions, and one short English response. Native INFO reported 7676 MiB GPU
+expert cache and 8191 MiB RAM arena, consistent with the reconstructed
+source-bound component limits. Full-response samples were **266.39 / 21.51 s**;
+the first includes hash verification and loading. Each task has one sample;
+21.51 s is not p95. Its post-load route-event
+to final span was 26.24 s, a separate boundary rather than TTFT or cold load.
+The controller closed and both processes exited. Full loaded-plan/control
+hashes were not captured for this Agent run; reconstructed cache controls
+are labeled separately. Aggregate VRAM/SSD and default-route qualification
+remain pending. The source/environment digests distinguish this execution
+from the unchanged weights/config identity used in the earlier automatic-cache
+run below.
+The aggregate package-source digest identifies the measured local working
+tree, including preserved unrelated edits; it is not a clean-commit identity.
+Selected integration source-file hashes are recorded separately.
+
+The earlier native Windows Q4 engine smoke completed three short requests through
+Omni: English exact-output, Chinese arithmetic and JSON-equality checks all
+passed, with full-response samples of **9.63 / 17.70 / 16.63 s**. All four
+111.3 GB source shards, the runtime binary and compatibility pack are bound by
+hash in the [reviewed reproduction receipt](../edge_harness/results/strata_20261008/native_q4_reproduction.json).
+These are engine requests, not p95 measurements. A separate actual Agent
+smoke then passed **4/4 narrow functional tasks**: short response, memory
+seed/recall in one session, and structured reading of a controlled loopback
+page through the real `browser_open` and `browser_read` tools. The controller
+closed successfully and both native and Agent processes exited. Full Agent
+response samples were **259.31 / 18.95 / 20.99 / 32.03 s**; the first includes
+cold rehash/loading. Its route-event-to-final span was 14.88 s, a different
+boundary that excludes initial loading and is not TTFT. That earlier run does not qualify cross-session recall, general browsing,
+Windows writes, or a default route. The later rerun above adds one narrow
+cross-session recall observation, not broad memory qualification.
+No Strata route is qualified or automatically selected.
+
+The October 8 Q4 neural and Agent smokes ran while ISTA Q2/IQ3 downloads
+and WSL checksum work were active on the same SSD. Their latency samples
+come from functional tests under background disk load, not controlled
+isolated performance measurements or paired backend comparisons.
+
+The earlier automatic-cache run declared 8 GiB CPU expert cache, approximately
+14 GiB + 1 MiB host
+RAM (15,033,434,112 B), 16 GiB VRAM and 40 GiB Windows commit at 4K context
+with FP16 KV and MTP disabled. Native
+loaded configuration verifies CPU+CUDA; request counters establish both units
+only for routed decode experts. Whole-model per-operation placement, physical
+SSD attribution and cache peak enforcement remain unqualified. Cold stage
+startup was 129.48 s including full artifact rehash. The Q2/IQ3 routes and
+representative Agent quality, other cancellation phases/repeated recovery
+and endurance protocols
+remain pending. This smoke used the historical auto-sized GPU cache, whose
+9616 MiB native size differs from its declared component estimate. The separate
+explicit-slot/cross-session rerun above passed its narrow tasks; full control
+identity capture for that Agent run remains absent; the separate engine
+run above adds actual plan capture and one cancellation/recovery check.
+Other phases, repeated stability and broader qualification remain.
+See the separate [engine architecture and roadmap](../edge_harness/EDGE_ENGINE_STATUS.md).
+
+The earlier native shared-lease lifecycle smoke used Spark CPU, not Strata.
+It verified cancel/drain/reload but failed its exact-answer check. Earlier
+RAM/commit refusals and the first Strata conversion-manifest validation
+failure remain historical observations; they do not negate the later Q4
+engine request evidence. These changes alter imported source identity, so
+previous Agent profiles remain historical for strict current-release matching.
 
 This Agent extends the accepted [single-device architecture](../../../analysis/architecture_local_engine_20260915.md) through Omni `StageRuntime`, its llama.cpp graph-stage client, `ResourceLedger`, and ordered stage events. The tested laptop is a Ryzen AI 9 HX 370 with 63.1 GiB installed RAM and an RTX 5090 **Laptop** GPU with 23.9 GiB installed VRAM. Windows build 26200, NVIDIA driver 610.71, AC power, binary and artifact hashes, batch size 1, and one active request are recorded in the [public aggregate](public_evidence/agent_native_smokes_20261005.json). Live free memory is lower than installed capacity and is checked before each new load.
 
@@ -62,7 +126,7 @@ provides a performance comparison.
 | Memory | Windows DPAPI encrypted event store, keyed English/Chinese term, event-kind and exact-content indexes, bounded candidate decryption, v1/v2 database migration, cross-session recall, source provenance, cascading deletion | DPAPI round trip and controller tests pass. Earlier six-of-six fixture outcomes do **not** validate retrieval because those runs seeded an event kind that the retrieval index did not search. The latest Gemma fixed-memory protocol passed 60/60 measured and 564/564 sequential endurance requests with raw trace, protocol, and fixed-suite case audits on the recorded source. A later independent bilingual cross-session run bound to this full profile passed 4/4 source/distractor, exact answer, and deletion cases. Earlier 3/4 and unbound 4/4 quality runs remain historical. Exact repeated questions no longer consume every recall slot in a unit regression; paraphrased echoes can still crowd a finite lexical search. No native long-history measurement or signed quality gate exists yet. |
 | Tools | Managed isolated Edge context with guarded reads/navigation, bounded browser/desktop screenshots, allowlisted Windows Settings read and approved mouse-speed change. Only an exact authorized top-level GET may reach the managed page network path; background HTTP, redirects and WebSockets are blocked. A separate, explicitly approved one-shot `browser_post` HTTP path exists for canonical same-origin requests. Production `browser_click`, `browser_fill`, and DOM form submission remain disabled. Each `screen_capture` now requires one-shot sensitive-read UI approval bound to the native foreground window identity. | The recorded-source full browser-text fixed-page read protocol `native_054cd07c271e4e698d4f5bc4f275dbaa` passed 60/60 measured and 160/160 sequential endurance requests with raw trace, case, and protocol audits; all three answer p95 values missed 10 s. Earlier full run `native_9f12bd06a5074fdd97429953825be09b` predates `browser_post`. An earlier browser-vision smoke passed 12/12 on older code; later desktop foreground verification failed. No desktop model-quality conclusion follows. There is no full visual profile, live browser-write qualification, or live settings write qualification. |
 | Router | Whole-Agent route ranking by paired success rate then complete-answer p95; explicit experimental bootstrap and refusal reasons; live AC/battery recheck at turn boundary and after model load | Unit tests cover changed power with a resident route and during load; no default route has passed all qualification gates. |
-| Placement | Existing Omni llama.cpp stage emits bounded SSE text deltas and checks startup-reported CPU/Vulkan model and buffer placement; host coordinator holds one resident route and one physical-pool reservation | Native Spark CPU and one-layer CPU+Vulkan requests; Gemma offloaded 40/61 layers to Vulkan0 and served requests, with 6588.22 MiB CPU-mapped and 11332.48 MiB Vulkan0 model buffers. Startup reports do not establish per-operation compute location. These are narrow functional observations, not evidence that splitting accelerators improves Agent latency. |
+| Placement | Omni llama.cpp checks startup-reported CPU/Vulkan model and buffer placement. The Strata route separately validates native loaded CPU+CUDA configuration and exposes request decode-expert counters without inventing whole-model placement; one exact shared resource lease covers the resident route | Native Spark CPU and one-layer CPU+Vulkan requests; Gemma offloaded 40/61 layers to Vulkan0 and served requests, with 6588.22 MiB CPU-mapped and 11332.48 MiB Vulkan0 model buffers. Startup reports do not establish per-operation compute location. These are narrow functional observations, not evidence that splitting accelerators improves Agent latency. |
 | Profiling | Paired Chinese/English fixed Agent tasks in three lengths, separate warmups, full-request traces, TTFT/answer latency, telemetry, and a 20-per-length plus 30-minute sequential protocol | Twenty earlier indexed runs are **smoke or setup attempts**, generally two measured requests per length and zero sustained seconds. Four historical Gemma fixed-memory runs and an older browser-text run met the protocol. Separately published recorded-source full runs passed fixed memory (60/60 measured, 564/564 endurance) and fixed-page browser text (60/60 measured, 160/160 endurance). The newer browser-text answer p95 was 11.72/11.19/13.58 s, above the 10 s target. A later catalog metadata change requires repeat for strict current-head matching. These are narrow fixed-task observations, not release qualification. |
 
 Route and stage schemas now reject absent or zero host-RAM claims; discrete

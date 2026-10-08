@@ -10,6 +10,7 @@ import pytest
 
 from benchmarks.edge_harness.strata_prepare import (
     PACK_REQUIRED,
+    compat_dependency,
     inventory,
     manifest_digest,
     prepare,
@@ -196,6 +197,41 @@ def test_q4_compatibility_is_explicit_and_bound(tmp_path):
     receipt = prepare(target, **args, pack_runner=fake_packer)
     assert "--compat-bf16" in receipt["pack_command"]
     assert receipt["conversion_manifest"]["upstream_compatibility_sha256"]
+
+
+def test_real_q4_packing_refuses_missing_vendor_before_hashing_source(tmp_path, monkeypatch):
+    target, args = fixture(tmp_path)
+    target["target_id"] = "unsloth-q4-ssd"
+    target["artifact_manifest"]["checkpoint"] = "unsloth/test"
+
+    def costly_hash(*_args, **_kwargs):
+        pytest.fail("source hashing must follow the converter preflight")
+
+    monkeypatch.setattr("benchmarks.edge_harness.strata_prepare.verify_manifest", costly_hash)
+    with pytest.raises(FileNotFoundError, match="requires vendored llama.cpp gguf-py"):
+        prepare(target, **args)
+    assert not args["out_pack"].exists()
+    assert not args["launch_out"].exists()
+    receipt = json.loads(args["launch_out"].with_suffix(".prepare.json").read_text(encoding="utf-8"))
+    assert receipt["status"] == "failed"
+
+
+def test_compat_dependency_records_the_actual_bound_converter_bytes(tmp_path):
+    runtime = tmp_path / "runtime"
+    tools = runtime / "tools"
+    vendor = runtime / "third_party/llama.cpp/gguf-py"
+    tools.mkdir(parents=True)
+    (vendor / "gguf").mkdir(parents=True)
+    (tools / "_paths.py").write_text(f"def gguf_py(): return {str(vendor)!r}", encoding="utf-8")
+    (vendor / "gguf/__init__.py").write_text(
+        "class GGMLQuantizationType: BF16=1; Q8_0=2\nfrom . import quants\n", encoding="utf-8"
+    )
+    (vendor / "gguf/quants.py").write_text("def dequantize(*args): pass\ndef quantize(*args): pass\n", encoding="utf-8")
+    proof = compat_dependency(Path(sys.executable), runtime)
+    assert Path(proof["source_path"]) == vendor
+    assert proof["files_count"] == 2
+    assert len(proof["files_sha256"]) == 64
+    assert not list(vendor.rglob("*.pyc"))
 
 
 def test_component_budget_mismatch_is_rejected_before_source_packing(tmp_path):

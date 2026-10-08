@@ -31,6 +31,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from omegaconf import OmegaConf
 from vllm.outputs import CompletionOutput
 
 from omni_stage_contracts import StageEvent, StageRequest
@@ -39,9 +40,105 @@ from vllm_omni.engine.stage_client import StageClientBase
 from vllm_omni.outputs import OmniRequestOutput
 
 PINNED_STRATA_REVISION = "d5ea7133741e67743c0e886bb426c0ce8d69cf6c"
+PINNED_STRATA_VERSION = "0.1.40.3"
 BACKEND_NAME = "external.strata.text.v1"
 _MAX_EVENTS = 4096
 _MAX_DELTA_BYTES = 8192
+_CACHE_CONTROL_SCHEMA = "omni-strata-explicit-cache-v2"
+
+
+def _native_cache_control(pack: Path, verified_files: set[Path], budget_bytes: int) -> dict:
+    """Convert a pinned native layout into the upstream positive slot control.
+
+    Native uniform slots use max_blob bytes; profile-sized slots round each
+    blob to 256 bytes. Use the aligned maximum for both, so neither layout can
+    grow past the requested byte bound. Zero has upstream auto semantics with
+    a profile and is never a valid explicit bound for this verifier.
+    """
+    layout = (pack / "native_experts.txt").resolve(strict=True)
+    if layout not in verified_files:
+        raise ValueError("Strata cache bound requires hash-verified native_experts.txt")
+    if layout.stat().st_size > 1 << 20:
+        raise ValueError("Strata native expert layout exceeds the parsing bound")
+    text = layout.read_text(encoding="utf-8")
+    version = re.search(r"^# strata native experts v([1-4]):", text, re.MULTILINE)
+    if version is None:
+        raise ValueError("Strata cache bound requires a supported native expert layout")
+    blobs = []
+    for line in text.splitlines():
+        if not line or line.startswith("#"):
+            continue
+        columns = line.split()
+        if (
+            len(columns) not in {5, 8, 9}
+            or not all(re.fullmatch(r"[0-9]+", value) for value in columns[:5])
+            or int(columns[0]) != len(blobs)
+            or int(columns[4]) <= 0
+        ):
+            raise ValueError("Strata cache bound found a malformed native expert layout")
+        blobs.append(int(columns[4]))
+    if not blobs or len(blobs) > 4096:
+        raise ValueError("Strata cache bound requires a nonempty bounded native expert layout")
+    largest = max(blobs)
+    aligned = (largest + 255) // 256 * 256
+    slots = budget_bytes // aligned
+    if not 0 < slots <= 2**31 - 1:
+        raise ResourceUnavailable("Strata GPU expert cache budget cannot admit positive native cache slots")
+    return {
+        "schema": _CACHE_CONTROL_SCHEMA,
+        "layout_sha256": _sha256(layout),
+        "layout_version": int(version[1]),
+        "layers": len(blobs),
+        "max_blob_bytes": largest,
+        "alignment_bytes": 256,
+        "aligned_max_blob_bytes": aligned,
+        "budget_bytes": budget_bytes,
+        "requested_slots": slots,
+        "allocation_upper_bytes": slots * aligned,
+        "source_contract": ["kernels/cpu/expert_layout.cpp:311-415", "core/expert_cache.cpp:469-585"],
+    }
+
+
+def _verify_cache_bounds(info: dict, control: dict, ram_budget: int, *, profiled: bool) -> dict:
+    """Combine enforced native controls with floor-MiB observations.
+
+    The intervals are INFO's precision, not process peaks or complete memory
+    observations. Native allocation bounds constrain their upper endpoint.
+    """
+    slots, cache_mib, arena_mib = (info.get(key) for key in ("expert_slots", "expert_cache_mib", "arena_mib"))
+    if any(type(value) is not int or value < 0 for value in (slots, cache_mib, arena_mib)) or slots == 0:
+        raise ResourceUnavailable("Strata native INFO cannot verify bounded expert caches")
+    upper = control["allocation_upper_bytes"]
+    if cache_mib * (1 << 20) > upper or arena_mib * (1 << 20) > ram_budget:
+        raise ResourceUnavailable("Strata native INFO expert cache exceeds its declared component bound")
+    if not profiled:
+        exact = control["requested_slots"] * control["max_blob_bytes"]
+        if slots != control["requested_slots"] or cache_mib != exact >> 20:
+            raise ResourceUnavailable("Strata native INFO disagrees with the explicit uniform cache control")
+        lower = upper = exact
+    else:
+        lower = cache_mib * (1 << 20)
+        upper = min(upper, ((cache_mib + 1) << 20) - 1)
+    return {
+        "evidence": "native_control_bound_with_floor_MiB_INFO_consistency",
+        "gpu_expert_cache": {
+            "observed_slots": slots,
+            "observed_mib_floor": cache_mib,
+            "allocation_lower_bytes": lower,
+            "allocation_upper_bytes": upper,
+            "declared_budget_bytes": control["budget_bytes"],
+            "profile_sized": profiled,
+        },
+        "ram_expert_cache": {
+            "observed_mib_floor": arena_mib,
+            "allocation_lower_bytes": arena_mib << 20,
+            "allocation_upper_bytes": min(ram_budget, ((arena_mib + 1) << 20) - 1),
+            "declared_budget_bytes": ram_budget,
+            "source_contract": "core/expert_source.cpp:2101-2147; program/generate.cpp:7892",
+        },
+        "aggregate_gpu_hard_cap_verified": False,
+        "total_process_peak_verified": False,
+    }
 
 
 def _probe_memory(gpu_index: int) -> dict:
@@ -58,6 +155,7 @@ def _probe_memory(gpu_index: int) -> dict:
         "gpu_total_bytes": None,
         "gpu_free_bytes": None,
         "gpu_source": None,
+        "gpu_name_sha256": None,
         "windows_commit_available_bytes": None,
         "windows_host_available_bytes": None,
         "wsl_ram_available_bytes": None,
@@ -126,8 +224,12 @@ def _probe_memory(gpu_index: int) -> dict:
         import pynvml as nvml
 
         nvml.nvmlInit()
-        info = nvml.nvmlDeviceGetMemoryInfo(nvml.nvmlDeviceGetHandleByIndex(gpu_index))
+        handle = nvml.nvmlDeviceGetHandleByIndex(gpu_index)
+        info = nvml.nvmlDeviceGetMemoryInfo(handle)
+        name = nvml.nvmlDeviceGetName(handle)
+        name = name.decode("utf-8", "strict") if isinstance(name, bytes) else str(name)
         snapshot.update(gpu_total_bytes=int(info.total), gpu_free_bytes=int(info.free), gpu_source="NVML exact bytes")
+        snapshot["gpu_name_sha256"] = hashlib.sha256(name.strip().encode()).hexdigest()
     except Exception:
         # nvidia-smi exists in native Windows and the WSL NVIDIA integration.
         try:
@@ -136,7 +238,7 @@ def _probe_memory(gpu_index: int) -> dict:
                     "nvidia-smi",
                     "-i",
                     str(gpu_index),
-                    "--query-gpu=memory.total,memory.free",
+                    "--query-gpu=name,memory.total,memory.free",
                     "--format=csv,noheader,nounits",
                 ],
                 capture_output=True,
@@ -145,13 +247,15 @@ def _probe_memory(gpu_index: int) -> dict:
                 check=True,
                 creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
             )
-            total, free = (int(value.strip()) for value in probe.stdout.strip().split(","))
+            name, total_text, free_text = probe.stdout.strip().rsplit(",", 2)
+            total, free = int(total_text.strip()), int(free_text.strip())
             if total <= 0 or not 0 <= free <= total:
                 raise ValueError("invalid GPU observation")
             snapshot.update(
                 gpu_total_bytes=total << 20,
                 gpu_free_bytes=free << 20,
                 gpu_source="nvidia-smi integer MiB; rounded observation",
+                gpu_name_sha256=hashlib.sha256(name.strip().encode()).hexdigest(),
             )
         except (OSError, ValueError, subprocess.SubprocessError):
             pass
@@ -231,8 +335,57 @@ def _verify_python_environment(python: Path, expected: dict | None) -> dict | No
 
 def _sanitize_diagnostic(line: str) -> str | None:
     """Content-free codes only; upstream logs can contain uncontrolled paths."""
+    # The native child and Python supervisor each use platform text streams;
+    # Windows pipe bytes therefore end in CRLF. Normalize line terminators
+    # before the same exact content patterns used on POSIX.
+    line = line.rstrip("\r\n")
     if line.strip() == "strata supervisor: native contained in Windows kill-on-close job":
         return line.strip()
+    if line.strip() == "strata supervisor: native process started":
+        return line.strip()
+    if line.startswith("strata supervisor: native done "):
+        try:
+            counters = json.loads(line.split("native done ", 1)[1])
+            names = {"generated", "prompt_tokens", "hits", "lookups", "offloaded", "prompt_read"}
+            if (
+                set(counters) != names
+                or any(type(v) is not int or v < 0 for v in counters.values())
+                or counters["hits"] > counters["lookups"]
+            ):
+                return None
+            return "strata supervisor: native done " + json.dumps(counters, sort_keys=True)
+        except (ValueError, TypeError):
+            return None
+    match = re.fullmatch(r"strata generate: GPU ([0-9]+): (.{1,256}), compute capability ([0-9]+)\.([0-9]+)\n?", line)
+    if match and int(match[3]) > 0 and match[2] != "(an unnamed GPU)":
+        return "strata load_evidence: gpu " + json.dumps(
+            {
+                "local_index": int(match[1]),
+                "compute_capability": f"{match[3]}.{match[4]}",
+                "name_sha256": hashlib.sha256(match[2].strip().encode()).hexdigest(),
+            },
+            sort_keys=True,
+        )
+    match = re.fullmatch(
+        r"strata generate: CPU pool tasks/phase: ([0-9]+)(?: \(automatic\)| \(capped by rows\))?"
+        r", participating threads: ([0-9]+)\n?",
+        line,
+    )
+    if match:
+        return "strata load_evidence: cpu_pool " + json.dumps(
+            {"tasks_per_phase": int(match[1]), "participating_threads": int(match[2])}, sort_keys=True
+        )
+    match = re.fullmatch(r"strata generate: ([0-9]+) expert-pool workers( \+ the host thread)?\n?", line)
+    if match:
+        return "strata load_evidence: expert_workers " + json.dumps(
+            {"workers": int(match[1]), "host_thread": bool(match[2])}, sort_keys=True
+        )
+    if re.fullmatch(
+        r"strata generate: native pack: .+ experts \(largest blob [0-9.]+ MB\)"
+        r", token embedding [A-Za-z0-9_]+ in mapped host memory \([0-9.]+ MiB, [0-9.]+ s\)\n?",
+        line,
+    ):
+        return "strata load_evidence: native_pack"
     if line.startswith("ready: http://127.0.0.1:"):
         return "strata status: ready"
     if line.startswith("loading the model ("):
@@ -270,6 +423,11 @@ class _DiagnosticLog:
         self.pipe, self.path = pipe, path
         self.records: list[str] = []
         self.file_tier_io_policy = None
+        self.native_starts = 0
+        self.native_done_count = 0
+        self.native_done = None
+        self.load_evidence: dict[str, Any] = {}
+        self._changed = threading.Condition()
         self.failed = False
         self._thread = threading.Thread(target=self._drain, name="strata-diagnostics", daemon=True)
         self._thread.start()
@@ -287,6 +445,22 @@ class _DiagnosticLog:
                     skipping = not complete
                     continue
                 safe = _sanitize_diagnostic(row.decode("utf-8", "replace"))
+                with self._changed:
+                    if safe == "strata supervisor: native process started":
+                        self.native_starts += 1
+                    elif safe is not None and safe.startswith("strata supervisor: native done "):
+                        self.native_done_count += 1
+                        self.native_done = json.loads(safe.split("native done ", 1)[1])
+                    elif safe == "strata load_evidence: native_pack":
+                        self.load_evidence["native_pack"] = True
+                    elif safe is not None and safe.startswith("strata load_evidence: "):
+                        kind, value = safe.split("strata load_evidence: ", 1)[1].split(" ", 1)
+                        parsed = json.loads(value)
+                        previous = self.load_evidence.get(kind)
+                        if previous is not None and previous != parsed:
+                            self.load_evidence["contradictory"] = True
+                        self.load_evidence[kind] = parsed
+                    self._changed.notify_all()
                 if safe is not None and safe.startswith("strata file_tier_io_policy: "):
                     self.file_tier_io_policy = safe.rsplit(": ", 1)[1]
                 if safe is not None and safe not in self.records and len(self.records) < 64:
@@ -305,11 +479,26 @@ class _DiagnosticLog:
             self.pipe.close()
         return not self.failed and not self._thread.is_alive()
 
+    def wait_load_evidence(self, timeout: float = 5) -> dict:
+        with self._changed:
+            self._changed.wait_for(
+                lambda: all(key in self.load_evidence for key in ("gpu", "cpu_pool", "expert_workers", "native_pack")),
+                timeout=timeout,
+            )
+            return dict(self.load_evidence) | {"native_starts": self.native_starts}
+
+    def completed_native_request(self, expected: int, timeout: float = 5) -> dict | None:
+        with self._changed:
+            self._changed.wait_for(lambda: self.native_done_count >= expected, timeout=timeout)
+            if self.native_starts != 1 or self.native_done_count != expected:
+                return None
+            return None if self.native_done is None else dict(self.native_done)
+
 
 # Patch only the child stderr sink, not its weights/execution/protocol. This
 # avoids persisting a raw native log. The shim is included in execution identity.
 _BOOTSTRAP = r"""
-import os, runpy, subprocess, sys, threading
+import json, os, runpy, subprocess, sys, threading
 native, server = sys.argv[1:3]
 sys.argv = [server] + sys.argv[3:]
 original = subprocess.Popen
@@ -318,6 +507,7 @@ def launch(args, *a, **kw):
         return original(args, *a, **kw)
     kw['stderr'] = subprocess.PIPE
     p = original(args, *a, **kw)
+    sys.stderr.write('strata supervisor: native process started\n'); sys.stderr.flush()
     if os.name == 'nt':
         from serve.winjob import contain
         if not contain(p):
@@ -325,6 +515,32 @@ def launch(args, *a, **kw):
             raise RuntimeError('Strata native Windows containment failed')
         sys.stderr.write('strata supervisor: native contained in Windows kill-on-close job\n')
         sys.stderr.flush()
+    # Observe counters only; return each exact line unchanged to the upstream
+    # parser. Token IDs, prompts and tensor contents are never copied to logs.
+    class NativeOutput:
+        def __init__(self, pipe): self.pipe = pipe
+        def __iter__(self): return self
+        def __next__(self):
+            row = self.readline()
+            if not row: raise StopIteration
+            return row
+        def readline(self, *args):
+            row = self.pipe.readline(*args)
+            text = row.decode('utf-8', 'replace') if isinstance(row, bytes) else row
+            if text.startswith('DONE '):
+                fields = text.split()
+                try:
+                    if len(fields) == 16:
+                        indexes = {'generated':1, 'prompt_tokens':2, 'hits':9, 'lookups':10,
+                                   'prompt_read':14, 'offloaded':15}
+                        counters = {k:int(fields[i]) for k,i in indexes.items()}
+                        if all(v >= 0 for v in counters.values()) and counters['hits'] <= counters['lookups']:
+                            sys.stderr.write('strata supervisor: native done '+json.dumps(counters)+'\n')
+                            sys.stderr.flush()
+                except (ValueError, IndexError): pass
+            return row
+        def __getattr__(self, name): return getattr(self.pipe, name)
+    if p.stdout is not None: p.stdout = NativeOutput(p.stdout)
     def drain():
         skipping = False
         while True:
@@ -343,6 +559,140 @@ def launch(args, *a, **kw):
 subprocess.Popen = launch
 runpy.run_path(server, run_name='__main__')
 """
+
+
+def _verify_load_configuration(
+    evidence: dict, info: Any, memory: dict, *, gpu: int, context: int, kv: str, verify_window: int
+) -> dict:
+    """Verify a loaded execution configuration, never claim per-request work."""
+    reasons = []
+    info = info if isinstance(info, dict) else {}
+    expected = {
+        "engine": PINNED_STRATA_VERSION,
+        "context": context,
+        "kv": kv,
+        "spec": verify_window,
+        "lookup": 0,
+        "conversation_cache_mib": 0,
+        "conversation_cache_slots": 0,
+    }
+    for key, value in expected.items():
+        if info.get(key) != value:
+            reasons.append(f"native INFO {key} does not verify the requested value")
+    observed_gpu = evidence.get("gpu", {})
+    if (
+        observed_gpu.get("local_index") != 0
+        or not memory.get("gpu_name_sha256")
+        or observed_gpu.get("name_sha256") != memory.get("gpu_name_sha256")
+    ):
+        reasons.append("native CUDA identity does not match the measured physical GPU")
+    pool, workers = evidence.get("cpu_pool", {}), evidence.get("expert_workers", {})
+    if (
+        type(workers.get("workers")) is not int
+        or type(pool.get("tasks_per_phase")) is not int
+        or pool.get("tasks_per_phase", 0) <= 0
+        or pool.get("participating_threads", 0) <= 0
+        or pool.get("participating_threads") != workers.get("workers", 0) + int(workers.get("host_thread", False))
+        or info.get("pool_workers") != workers.get("workers")
+    ):
+        reasons.append("native CPU expert dispatch pool is unverified")
+    for key in ("expert_slots", "expert_cache_mib", "arena_mib"):
+        if type(info.get(key)) is not int or info[key] < 0:
+            reasons.append(f"native INFO {key} is unavailable")
+    if evidence.get("native_pack") is not True or evidence.get("native_starts") != 1 or evidence.get("contradictory"):
+        reasons.append("one native pack/process generation was not verified")
+    return {
+        "status": "verified" if not reasons else "unverified",
+        "reasons": reasons,
+        "scope": "loaded_backend_execution_configuration_not_per_request_compute",
+        "physical_gpu_index": gpu,
+        "cuda_device": observed_gpu,
+        "cpu_expert_pool": pool | workers,
+        "native_pack": evidence.get("native_pack") is True,
+        "native_starts": evidence.get("native_starts"),
+        "source_revision": PINNED_STRATA_REVISION,
+        "engine_info": {
+            key: info.get(key) for key in (*expected, "pool_workers", "expert_slots", "expert_cache_mib", "arena_mib")
+        },
+        "cpu_expert_dispatch_capability": "pinned_native_pack_CPU_kernels_for_non_GPU_expert_entries",
+        "source_contract": [
+            "core/expert_source.cpp:3154-3196",
+            "program/generate.cpp:4980",
+            "kernels/cpu/pool.cpp:759",
+        ],
+    }
+
+
+def _native_compute_observation(counters: dict | None, *, verified_native_pack: bool, gpu: int) -> dict:
+    """DONE lookups exclude GPU PCIe entries; misses are native CPU entries.
+
+    This is specific to the pinned native-pack verify path, with one GPU and no
+    remote expert flags. It covers routed decode experts, not all model stages.
+    """
+    if not verified_native_pack or counters is None:
+        return {
+            "scope": "routed_decode_experts_only",
+            "counters": counters,
+            "cpu_expert_entries": None,
+            "gpu_expert_entries": None,
+            "units": None,
+        }
+    cpu_entries = counters["lookups"] - counters["hits"]
+    gpu_entries = counters["hits"] + counters["offloaded"]
+    units = (["cpu"] if cpu_entries else []) + ([f"cuda:{gpu}"] if gpu_entries else [])
+    return {
+        "scope": "routed_decode_experts_only",
+        "counters": counters,
+        "cpu_expert_entries": cpu_entries,
+        "gpu_expert_entries": gpu_entries,
+        "units": units,
+        "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes",
+    }
+
+
+def validate_strata_load_plan(plan: Any, requested: str) -> None:
+    """Agent load gate: verify configuration without inventing compute use.
+
+    This permits an explicitly selected experimental route to load. It neither
+    qualifies its task quality/latency nor selects it as an automatic default.
+    """
+    try:
+        if not isinstance(plan, dict) or not re.fullmatch(r"cpu\+cuda:[0-9]+", requested):
+            raise ValueError("invalid Strata requested route")
+        report = plan["execution_configuration_evidence"]
+        if (
+            plan.get("backend") != BACKEND_NAME
+            or plan.get("runtime_revision") != PINNED_STRATA_REVISION
+            or plan.get("requested_device") != requested
+            or plan.get("verified_execution_configuration") != requested
+            or plan.get("placement_evidence_level") != "native_loaded_configuration"
+            or report.get("status") != "verified"
+            or report.get("scope") != "loaded_backend_execution_configuration_not_per_request_compute"
+            or report.get("source_revision") != PINNED_STRATA_REVISION
+            or report.get("physical_gpu_index") != int(requested.rsplit(":", 1)[1])
+        ):
+            raise ValueError("native loaded execution configuration is not verified")
+        pool = report["cpu_expert_pool"]
+        reconstructed = {
+            "gpu": report["cuda_device"],
+            "cpu_pool": pool,
+            "expert_workers": pool,
+            "native_pack": report["native_pack"],
+            "native_starts": report["native_starts"],
+        }
+        verified = _verify_load_configuration(
+            reconstructed,
+            report["engine_info"],
+            plan["fresh_memory_admission"],
+            gpu=report["physical_gpu_index"],
+            context=plan["context_tokens"],
+            kv=plan["kv_type"],
+            verify_window=plan["native_verify_window"],
+        )
+        if verified["status"] != "verified":
+            raise ValueError("native load proof is incomplete or contradictory")
+    except (KeyError, TypeError, ValueError, AttributeError) as exc:
+        raise RuntimeError("Strata did not verify its loaded backend execution configuration") from exc
 
 
 def _sha256(path: Path) -> str:
@@ -515,6 +865,13 @@ class StrataTextStageClient(StageClientBase):
         self._retirement_lock = threading.Lock()
         self._known_children: dict[int, float] = {}
         try:
+            # StageRuntime passes the backend through StageConfig's OmegaConf
+            # representation. Normalize that transport at this boundary so
+            # strict manifest validators still inspect real dict/list values.
+            if OmegaConf.is_config(config):
+                config = OmegaConf.to_container(config, resolve=True, throw_on_missing=True)
+            if not isinstance(config, dict):
+                raise ValueError("Strata backend configuration must be a mapping")
             self._timeout = float(config.get("request_timeout_s", 300))
             self._max_io_bytes = _positive(config.get("max_io_bytes", 1 << 20), "max_io_bytes")
             self._max_new_tokens = _positive(config.get("max_new_tokens", 128), "max_new_tokens")
@@ -598,6 +955,18 @@ class StrataTextStageClient(StageClientBase):
         host_overhead = _positive(config["host_overhead_bytes"], "host_overhead_bytes")
         gpu_budget = _positive(config["gpu_budget_bytes"], "gpu_budget_bytes")
         gpu_total = _positive(config["gpu_total_bytes"], "gpu_total_bytes")
+        tier_plan = (
+            WeightTierPlan.from_dict(config["weight_tier_plan"]) if config.get("weight_tier_plan") is not None else None
+        )
+        cache_budget = _positive(
+            tier_plan.budget.gpu_expert_cache_bytes if tier_plan is not None else config.get("gpu_expert_cache_bytes"),
+            "gpu_expert_cache_bytes",
+        )
+        if config.get("gpu_expert_cache_bytes", cache_budget) != cache_budget:
+            raise ValueError("Strata explicit GPU cache budget differs from its typed tier plan")
+        if cache_budget > gpu_budget:
+            raise ResourceUnavailable("Strata GPU expert cache budget exceeds aggregate GPU reservation")
+        cache_control = _native_cache_control(pack, pack_files, cache_budget)
         if gpu_budget > gpu_total:
             raise ResourceUnavailable("Strata GPU budget exceeds physical VRAM")
         gpu_pool = config.get("gpu_pool", "vram:0")
@@ -637,6 +1006,8 @@ class StrataTextStageClient(StageClientBase):
         args = [
             "--pack",
             str(pack),
+            "--gpu",
+            str(gpu),
             "--native",
             str(native),
             "--ple-gguf",
@@ -644,7 +1015,7 @@ class StrataTextStageClient(StageClientBase):
             "--ple-io",
             ple_io,
             "--expert-cache",
-            "auto",
+            str(cache_control["requested_slots"]),
             "--prefill",
             "auto",
             "--spec",
@@ -740,9 +1111,7 @@ class StrataTextStageClient(StageClientBase):
             raise ValueError("pinned Strata I/O worker prefetch requires Linux buffered mode")
         if io_mode != "auto":
             env["STRATA_UNBUFFERED_LOAD"] = "1" if io_mode == "direct" else "0"
-        tier_plan = None
-        if config.get("weight_tier_plan") is not None:
-            tier_plan = WeightTierPlan.from_dict(config["weight_tier_plan"])
+        if tier_plan is not None:
             if (
                 tier_plan.artifact_manifest_sha256 != artifacts.manifest_sha256
                 or tier_plan.backend != BACKEND_NAME
@@ -850,6 +1219,63 @@ class StrataTextStageClient(StageClientBase):
             and "strata supervisor: native contained in Windows kill-on-close job" not in self._diagnostics.records
         ):
             raise RuntimeError("Strata did not prove Windows native process containment")
+        native_evidence = self._diagnostics.wait_load_evidence()
+        native_metrics = _json_request(self._base_url + "/metrics", None, token=self._token, timeout=5)
+        native_info = native_metrics.get("engine", {}) if isinstance(native_metrics, dict) else {}
+        for key, expected in {
+            "engine": PINNED_STRATA_VERSION,
+            "context": self._context_tokens,
+            "kv": kv,
+            "spec": native_verify_window,
+            "lookup": 0,
+            "conversation_cache_mib": 0,
+            "conversation_cache_slots": 0,
+        }.items():
+            if key in native_info and native_info[key] != expected:
+                raise RuntimeError(f"Strata native INFO disagrees with the pinned/requested {key}")
+        cache_bounds = _verify_cache_bounds(native_info, cache_control, expert_budget, profiled=bool(profile))
+        if tier_plan is not None:
+            fixed_gpu = tier_plan.budget.gpu_steady_bytes - cache_budget
+            aggregate_estimate = fixed_gpu + cache_bounds["gpu_expert_cache"]["allocation_upper_bytes"]
+            if aggregate_estimate > gpu_budget:
+                raise ResourceUnavailable(
+                    "Strata controlled cache plus declared fixed GPU components exceeds reservation"
+                )
+            cache_bounds["aggregate_gpu_declared_components_upper_bytes"] = aggregate_estimate
+            cache_bounds["aggregate_gpu_budget_bytes"] = gpu_budget
+        route_controls = {
+            "schema": _CACHE_CONTROL_SCHEMA,
+            "runtime_revision": PINNED_STRATA_REVISION,
+            "runtime_manifest_sha256": runtime_manifest.manifest_sha256,
+            "artifact_manifest_sha256": artifacts.manifest_sha256,
+            "prepared_manifest_sha256": prepared.manifest_sha256,
+            "gpu_expert_cache": cache_control,
+            "ram_expert_cache_budget_bytes": expert_budget,
+            "gpu_budget_bytes": gpu_budget,
+            "vram_reserve_mib": reserve,
+            "context_tokens": self._context_tokens,
+            "kv_type": kv,
+            "spec_tokens": spec,
+            "native_verify_window": native_verify_window,
+            "prefetch": {"ple": ple_prefetch, "routing": routing_prefetch, "io": io_prefetch},
+            "io_mode": io_mode,
+            "ple_io": ple_io,
+            "expert_profile_file": profile,
+        }
+        route_controls_sha256 = hashlib.sha256(
+            json.dumps(route_controls, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        self._load_configuration = _verify_load_configuration(
+            native_evidence,
+            native_info,
+            memory_snapshot,
+            gpu=gpu,
+            context=self._context_tokens,
+            kv=kv,
+            verify_window=native_verify_window,
+        )
+        self._physical_gpu = gpu
+        verified_configuration = self._load_configuration["status"] == "verified"
         self.execution_plan = {
             "backend": BACKEND_NAME,
             "stage_id": self.stage_id,
@@ -866,10 +1292,18 @@ class StrataTextStageClient(StageClientBase):
             "requested_device": f"cpu+cuda:{gpu}",
             "observed_model_placement": None,
             "observed_compute_units": None,
+            "verified_execution_configuration": f"cpu+cuda:{gpu}" if verified_configuration else None,
+            "execution_configuration_evidence": self._load_configuration,
             "actual_io_mode": None,
             "expert_ram_budget_bytes": expert_budget,
             "host_overhead_bytes": host_overhead,
             "gpu_budget_bytes": gpu_budget,
+            "gpu_expert_cache_control": cache_control,
+            "expert_cache_component_bounds": cache_bounds,
+            "route_controls": route_controls,
+            "route_controls_sha256": route_controls_sha256,
+            "measurement_identity_note": "explicit cache v2 differs from historical auto-cache routes; remeasure",
+            "gpu_aggregate_hard_cap_verified": False,
             "gpu_total_bytes": gpu_total,
             "vram_reserve_mib": reserve,
             "gpu_pool": gpu_pool,
@@ -898,7 +1332,7 @@ class StrataTextStageClient(StageClientBase):
             "three_tier_memory_qualified": False,
             "prompt_cache_enabled": False,
             "stateful_session": "Strata-owned; prompt/conversation caches disabled",
-            "placement_evidence_level": "unverified",
+            "placement_evidence_level": "native_loaded_configuration" if verified_configuration else "unverified",
             "evidence": "B",
             "qualification": "experimental_backend_loaded",
             "diagnostics": list(self._diagnostics.records),
@@ -963,7 +1397,7 @@ class StrataTextStageClient(StageClientBase):
             self._task.add_done_callback(lambda _: self._apply_pending_ack())
 
     async def _run(self, request, text: str, maximum: int, queue) -> None:
-        from vllm_omni.engine.weight_tiers import PlacementReport
+        from vllm_omni.engine.weight_tiers import ComputePlacement, PlacementReport
 
         started = time.perf_counter()
         times, events = [], []
@@ -1042,6 +1476,10 @@ class StrataTextStageClient(StageClientBase):
             ):
                 raise RuntimeError("Strata metrics do not identify the completed single-slot request")
             status = stats["requests"][0]
+            native_counters = await asyncio.to_thread(
+                self._diagnostics.completed_native_request, self._completed_requests
+            )
+            self.check_health()
             terminal = StageEvent(
                 request.request_id,
                 self.stage_id,
@@ -1054,6 +1492,12 @@ class StrataTextStageClient(StageClientBase):
             telemetry = _safe_telemetry(status)
             telemetry["file_tier_io_policy"] = self._diagnostics.file_tier_io_policy
             telemetry["direct_read_fallback_count"] = None
+            native_compute = _native_compute_observation(
+                native_counters,
+                verified_native_pack=self._load_configuration["status"] == "verified",
+                gpu=self._physical_gpu,
+            )
+            telemetry["native_compute"] = native_compute
             output = OmniRequestOutput(
                 request_id=request.request_id,
                 prompt=text,
@@ -1075,6 +1519,13 @@ class StrataTextStageClient(StageClientBase):
                     "runtime_timings": result["timings"],
                     "runtime_telemetry": telemetry,
                     "placement_report": PlacementReport(
+                        compute=(
+                            ComputePlacement(
+                                "routed_decode_experts", tuple(native_compute["units"]), native_compute["evidence"]
+                            ),
+                        )
+                        if native_compute["units"]
+                        else (),
                         logical_read_bytes=telemetry["logical_file_read_bytes"],
                         expert_cache_hit_ratio=telemetry["hit_rate"],
                     ).to_dict(),
@@ -1240,7 +1691,13 @@ class StrataTextStageClient(StageClientBase):
             return drained
 
     def check_health(self) -> None:
-        if self._closed or self._proc is None or self._proc.poll() is not None:
+        if (
+            self._closed
+            or self._proc is None
+            or self._proc.poll() is not None
+            or self._diagnostics is not None
+            and self._diagnostics.native_starts > 1
+        ):
             from vllm.v1.engine.exceptions import EngineDeadError
 
             raise EngineDeadError()

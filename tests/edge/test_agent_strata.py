@@ -39,7 +39,7 @@ def test_strata_adapter_preserves_identity_and_uses_one_engine_lease():
 
 def test_unverified_strata_placement_cannot_enter_agent_route():
     backend = OmniStrataBackend(config())
-    with pytest.raises(RuntimeError, match="verify model load placement"):
+    with pytest.raises(RuntimeError):
         backend._validate_loaded_plan(
             {
                 "requested_device": "cpu+cuda:0",
@@ -47,7 +47,22 @@ def test_unverified_strata_placement_cannot_enter_agent_route():
                 "placement_evidence_level": "unverified",
             }
         )
-    backend._validate_loaded_plan({"requested_device": "cpu+cuda:0", "observed_model_placement": "cpu+cuda:0"})
+    # A generic model-placement label cannot replace native Strata evidence.
+    with pytest.raises(RuntimeError):
+        backend._validate_loaded_plan({"requested_device": "cpu+cuda:0", "observed_model_placement": "cpu+cuda:0"})
+
+
+def test_strata_agent_uses_backend_specific_load_evidence(monkeypatch):
+    checked = []
+    monkeypatch.setattr(
+        "vllm_omni.engine.backends.strata.validate_strata_load_plan",
+        lambda plan, requested: checked.append((plan, requested)),
+    )
+    backend = OmniStrataBackend(config())
+    plan = {"observed_model_placement": None, "observed_compute_units": None}
+    backend._validate_loaded_plan(plan)
+    assert checked == [(plan, "cpu+cuda:0")]
+    assert plan["observed_compute_units"] is None
 
 
 @pytest.mark.parametrize(

@@ -55,15 +55,18 @@ class _Stage:
 
 
 def _route(name: str, demand: int) -> Route:
-    return Route(name, name + "-artifact", name, "external.llamacpp.text.v1",
-                 frozenset({"text"}), "cpu", {"host_ram": demand})
+    return Route(
+        name, name + "-artifact", name, "external.llamacpp.text.v1", frozenset({"text"}), "cpu", {"host_ram": demand}
+    )
 
 
 def _coordinator(host: _Host, *routes: Route, ceiling: int | None = None):
     stages = {route.route_id: _Stage(route, host) for route in routes}
     coordinator = HostMemoryCoordinator(
-        routes=routes, backends=stages,
-        capacities={"host_ram": ceiling or host.free}, free_bytes=host.snapshot,
+        routes=routes,
+        backends=stages,
+        capacities={"host_ram": ceiling or host.free},
+        free_bytes=host.snapshot,
     )
     return coordinator, stages
 
@@ -125,11 +128,15 @@ def test_cancel_release_drains_both_stage_and_host_claims() -> None:
     route = _route("model", 5)
     coordinator, stages = _coordinator(host, route)
     stage = stages[route.route_id]
+
     def release(request_id):
         stage.release_evidence = {
-            "request_id": request_id, "release_mode": "worker_shutdown",
-            "worker_pid_before": 1234, "worker_exit_code": 0,
-            "worker_exit_confirmed": True, "stage_ledger_empty": True,
+            "request_id": request_id,
+            "release_mode": "worker_shutdown",
+            "worker_pid_before": 1234,
+            "worker_exit_code": 0,
+            "worker_exit_confirmed": True,
+            "stage_ledger_empty": True,
         }
         return bool(request_id) and stage.close()
 
@@ -247,8 +254,10 @@ def test_oversized_candidate_is_refused_without_disabling_smaller_route() -> Non
     small, large = _route("small", 4), _route("large", 12)
     stages = {small.route_id: _Stage(small, host)}
     coordinator = HostMemoryCoordinator(
-        routes=[small, large], backends=stages,
-        capacities={"host_ram": 8}, free_bytes=host.snapshot,
+        routes=[small, large],
+        backends=stages,
+        capacities={"host_ram": 8},
+        free_bytes=host.snapshot,
         blocked_reasons={large.route_id: "host_ram: declared demand exceeds controller ceiling"},
     )
     assert not coordinator.admit(large).admitted
@@ -261,8 +270,15 @@ def test_oversized_candidate_is_refused_without_disabling_smaller_route() -> Non
 
 def test_gpu_route_claims_host_ram_and_vram_and_switch_releases_both() -> None:
     free = {"host_ram": 12, "vram": 8}
-    gpu = Route("gpu", "gpu-artifact", "gpu-model", "external.llamacpp.text.v1",
-                frozenset({"text"}), "Vulkan0", {"host_ram": 4, "vram": 6})
+    gpu = Route(
+        "gpu",
+        "gpu-artifact",
+        "gpu-model",
+        "external.llamacpp.text.v1",
+        frozenset({"text"}),
+        "Vulkan0",
+        {"host_ram": 4, "vram": 6},
+    )
     cpu = _route("cpu", 7)
 
     class DualStage:
@@ -275,9 +291,11 @@ def test_gpu_route_claims_host_ram_and_vram_and_switch_releases_both() -> None:
             for pool, amount in self.route.memory_demands.items():
                 free[pool] -= amount
             self.resident = True
-            self.execution_plan = {"requested_device": self.route.placement,
-                                   "observed_model_placement": self.route.placement,
-                                   "reserved_bytes": dict(self.route.memory_demands)}
+            self.execution_plan = {
+                "requested_device": self.route.placement,
+                "observed_model_placement": self.route.placement,
+                "reserved_bytes": dict(self.route.memory_demands),
+            }
 
         def close(self):
             if self.resident:
@@ -288,8 +306,10 @@ def test_gpu_route_claims_host_ram_and_vram_and_switch_releases_both() -> None:
             return True
 
     coordinator = HostMemoryCoordinator(
-        routes=[gpu, cpu], backends={"gpu": DualStage(gpu), "cpu": DualStage(cpu)},
-        capacities=dict(free), free_bytes=lambda: dict(free),
+        routes=[gpu, cpu],
+        backends={"gpu": DualStage(gpu), "cpu": DualStage(cpu)},
+        capacities=dict(free),
+        free_bytes=lambda: dict(free),
     )
     wrappers = coordinator.wrappers()
     wrappers["gpu"].start()
@@ -299,3 +319,105 @@ def test_gpu_route_claims_host_ram_and_vram_and_switch_releases_both() -> None:
     assert free == {"host_ram": 5, "vram": 8}
     assert coordinator.snapshot()["ledger"]["reserved"] == {"host_ram": 7, "vram": 0}
     wrappers["cpu"].close()
+
+
+def _strata_load_plan(route: Route) -> dict:
+    from vllm_omni.engine.backends.strata import BACKEND_NAME, PINNED_STRATA_REVISION, PINNED_STRATA_VERSION
+
+    return {
+        "backend": BACKEND_NAME,
+        "runtime_revision": PINNED_STRATA_REVISION,
+        "requested_device": route.placement,
+        "observed_model_placement": None,
+        "observed_compute_units": None,
+        "verified_execution_configuration": route.placement,
+        "placement_evidence_level": "native_loaded_configuration",
+        "context_tokens": 4096,
+        "kv_type": "fp16",
+        "native_verify_window": 2,
+        "fresh_memory_admission": {"gpu_name_sha256": "a" * 64},
+        "reserved_bytes": dict(route.memory_demands),
+        "execution_configuration_evidence": {
+            "status": "verified",
+            "scope": "loaded_backend_execution_configuration_not_per_request_compute",
+            "source_revision": PINNED_STRATA_REVISION,
+            "physical_gpu_index": 0,
+            "cuda_device": {"local_index": 0, "name_sha256": "a" * 64, "compute_capability": "12.0"},
+            "cpu_expert_pool": {"tasks_per_phase": 27, "participating_threads": 9, "workers": 8, "host_thread": True},
+            "native_pack": True,
+            "native_starts": 1,
+            "engine_info": {
+                "engine": PINNED_STRATA_VERSION,
+                "context": 4096,
+                "kv": "fp16",
+                "spec": 2,
+                "lookup": 0,
+                "conversation_cache_mib": 0,
+                "conversation_cache_slots": 0,
+                "pool_workers": 8,
+                "expert_slots": 1,
+                "expert_cache_mib": 1,
+                "arena_mib": 1,
+            },
+        },
+    }
+
+
+def _strata_coordinator(*, backend_name="external.strata.text.v1", proof_change=None):
+    route = Route(
+        "strata", "artifact", "model", backend_name, frozenset({"text"}), "cpu+cuda:0", {"host_ram": 4, "vram": 2}
+    )
+    host = _Host(10)
+
+    class Stage(_Stage):
+        def start(self):
+            super().start()
+            self.execution_plan = _strata_load_plan(route)
+            if proof_change:
+                proof_change(self.execution_plan)
+
+    stage = Stage(route, host)
+    manager = HostMemoryCoordinator(
+        routes=[route],
+        backends={route.route_id: stage},
+        capacities={"host_ram": 10, "vram": 10},
+        free_bytes=lambda: host.snapshot() | {"vram": 10},
+    )
+    return manager, stage, host, route
+
+
+def test_explicit_strata_load_uses_strict_configuration_proof_and_keeps_actual_unknown():
+    manager, stage, host, route = _strata_coordinator()
+    manager.start(route.route_id)
+    admission = manager.admit(route)
+    assert admission.admitted and admission.actual_placement is None
+    assert stage.execution_plan["observed_compute_units"] is None
+    assert stage.execution_plan["observed_model_placement"] is None
+    assert manager.snapshot()["ledger"]["reserved"] == dict(route.memory_demands)
+    manager.close(route.route_id)
+    assert host.free == 10 and not manager.snapshot()["ledger"]["owners"]
+
+
+@pytest.mark.parametrize(
+    "proof_change",
+    [
+        lambda plan: plan["execution_configuration_evidence"].update(status="unverified"),
+        lambda plan: plan["fresh_memory_admission"].update(gpu_name_sha256="b" * 64),
+        lambda plan: plan.pop("execution_configuration_evidence"),
+        lambda plan: plan.update(backend="external.llamacpp.text.v1", observed_model_placement="cpu+cuda:0"),
+    ],
+)
+def test_strata_load_proof_failure_drains_before_releasing_claim(proof_change):
+    manager, stage, host, route = _strata_coordinator(proof_change=proof_change)
+    with pytest.raises(RuntimeError, match="loaded backend execution configuration"):
+        manager.start(route.route_id)
+    assert stage.drains == 1
+    assert host.free == 10 and not manager.snapshot()["ledger"]["owners"]
+
+
+def test_other_backends_cannot_bypass_actual_placement_with_strata_proof():
+    manager, stage, host, route = _strata_coordinator(backend_name="external.llamacpp.text.v1")
+    with pytest.raises(RuntimeError, match="no verified model placement"):
+        manager.start(route.route_id)
+    assert stage.drains == 1
+    assert host.free == 10 and not manager.snapshot()["ledger"]["owners"]

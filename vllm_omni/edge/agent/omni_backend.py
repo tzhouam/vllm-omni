@@ -574,6 +574,14 @@ class OmniStrataBackend(OmniCompleteModelBackend):
     def __init__(self, config: OmniStrataConfig) -> None:
         super().__init__(config)
 
+    def _validate_loaded_plan(self, plan: dict[str, Any]) -> None:
+        # A verified native GPU/CPU-pool configuration permits explicit
+        # experimental execution. It is distinct from the per-request neural
+        # counters and never creates a route qualification or default.
+        from vllm_omni.engine.backends.strata import validate_strata_load_plan
+
+        validate_strata_load_plan(plan, self.config.placement)
+
     def _stage_backend_config(self) -> dict[str, Any]:
         cfg = self.config
         return {

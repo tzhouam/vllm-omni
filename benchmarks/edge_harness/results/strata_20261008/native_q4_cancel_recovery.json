@@ -1,0 +1,353 @@
+{
+  "schema": "omni-strata-native-q4-cancel-recovery-v1",
+  "reviewed_date": "2026-10-08",
+  "result": "one_actual_cancellation_and_fresh_worker_recovery_passed",
+  "batch_size": 1,
+  "concurrency": 1,
+  "scope": "one actual native neural stream cancelled after two text chunks, proven resource drain, one fresh worker exact-text recovery on the same ResourceLedger; narrow lifecycle observation, not stability or release qualification",
+  "related_records": [
+    "native_q4_reproduction.json",
+    "native_q4_bounded_cache_agent.json"
+  ],
+  "identities": {
+    "receipt_sha256": "5dd20f36d9a85c5a8af67264276af65a85811e996138535327758fa423a465fc",
+    "original_launch_sha256": "cb2fbfb2cdb6fefdb342c7429fa6075ae8475d03fbf548f2e752f0a06a62c314",
+    "effective_launch_sha256": "6d1f4c9da500b07702f14a1235aa32409492a0d3ed21cba8e155998ed8135956",
+    "launch_overrides": {
+      "backend.start_timeout_s": 600,
+      "backend.request_timeout_s": 600,
+      "stage_init_timeout_s": 600
+    },
+    "runner_sha256": "e53e95dcb9909ce97eb0237543e04db4282d8928da00357274eab32178df0f9a",
+    "recorded_omni_source_files": {
+      "benchmarks/edge_harness/strata_profile.py": "cd7ab1b48d6b2a0c8a816fe5838f43c7894a902a4e8dfb132b20a7aa3e790c1a",
+      "vllm_omni/engine/backends/strata.py": "53a086eb503dd95ccc7576ad179d2c8925b8589db00c66198e496a5c3e9aa638",
+      "vllm_omni/engine/resource_ledger.py": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b",
+      "vllm_omni/engine/stage_runtime.py": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+      "vllm_omni/engine/local_plan.py": "89ee2fdf6396329f126a1b472503c64517e3c5764946bb76b71275ab3f336824",
+      "vllm_omni/engine/weight_tiers.py": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75",
+      "vllm_omni/engine/stage_pool.py": "612b84494504d6903e3bf27a8654913440086d9575e469598ac51bc438df7018"
+    },
+    "python": {
+      "executable_sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14",
+      "sys_version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]"
+    },
+    "installed_distribution_versions": {
+      "numpy": "2.3.5",
+      "jinja2": "3.1.6",
+      "regex": "2026.9.10",
+      "PyYAML": "6.0.3",
+      "psutil": "7.2.2",
+      "Pillow": "12.3.0",
+      "gguf": "0.19.0",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+    },
+    "source_capture_scope": "named loaded integration source files, interpreter identity and installed distribution versions; no assumption that distribution version equals checkout source",
+    "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "runtime_manifest_sha256": "9ac0400d05dca037673672a76e378df514ccf88fa52df43f6d1538b88cac9962",
+    "native_executable_sha256": "34cde150b21148e6cf192dbf2242e5544d3456c09ab0010837aaacfda11eca5b",
+    "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+    "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+    "conversion_manifest_sha256": "8d3b87923fd727ef46057c7bf66213576ecfe1c52b8a912daae6c51a6e2b0954",
+    "source_checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+    "source_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+    "source_shards_total_bytes": 111334654784
+  },
+  "hardware": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "cpu": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD",
+    "host_ram_total_bytes": 67773509632,
+    "gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "vram_total_bytes": 25651314688,
+    "power_condition": "AC"
+  },
+  "startup_admission": {
+    "initial_fresh_available_memory": {
+      "host_ram_available_bytes": 25092567040,
+      "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+      "gpu_total_bytes": 25651314688,
+      "gpu_free_bytes": 20049059840,
+      "gpu_source": "NVML exact bytes",
+      "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+      "windows_commit_available_bytes": 70062247936,
+      "windows_host_available_bytes": 25092567040,
+      "wsl_ram_available_bytes": null,
+      "is_wsl": false,
+      "windows_host_verification": "measured",
+      "captured_unix_s": 1791458124.353327
+    },
+    "recovery_fresh_available_memory": {
+      "host_ram_available_bytes": 24354140160,
+      "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+      "gpu_total_bytes": 25651314688,
+      "gpu_free_bytes": 20034793472,
+      "gpu_source": "NVML exact bytes",
+      "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+      "windows_commit_available_bytes": 69124362240,
+      "windows_host_available_bytes": 24354140160,
+      "wsl_ram_available_bytes": null,
+      "is_wsl": false,
+      "windows_host_verification": "measured",
+      "captured_unix_s": 1791458382.9427135
+    },
+    "same_declared_reservation_bytes": {
+      "host_ram": 15033434112,
+      "vram:0": 17179869184,
+      "windows_commit": 42949672960,
+      "ssd": 117125697676
+    }
+  },
+  "captured_execution_control": {
+    "capture_scope": "actual saved initial and recovery execution plans for this cancellation/recovery run; does not retroactively fill the prior Agent run missing plan",
+    "initial_loaded_plan_sha256": "826052216e31afec95db5ab85be98f581743f68613fb9d56cfdbd82873384951",
+    "recovery_loaded_plan_sha256": "4edc9b55b975f0be7758f020ab9a20b5ab3616f430699a4dae692d9b85a2f2f3",
+    "route_controls_sha256": "2703784159f96a54b7301024d685d6fc0ae4e969f8d07fada9b4405b908a3e42",
+    "same_controls_after_reload": true,
+    "route_controls": {
+      "schema": "omni-strata-explicit-cache-v2",
+      "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+      "runtime_manifest_sha256": "9ac0400d05dca037673672a76e378df514ccf88fa52df43f6d1538b88cac9962",
+      "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+      "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+      "gpu_expert_cache": {
+        "schema": "omni-strata-explicit-cache-v2",
+        "layout_sha256": "5ed2c4a55910616db1efe16f0c989e9bec80cc8b9e95bf1c42f886aadfffd2d6",
+        "layout_version": 4,
+        "layers": 48,
+        "max_blob_bytes": 3993600,
+        "alignment_bytes": 256,
+        "aligned_max_blob_bytes": 3993600,
+        "budget_bytes": 8053063680,
+        "requested_slots": 2016,
+        "allocation_upper_bytes": 8051097600,
+        "source_contract": [
+          "kernels/cpu/expert_layout.cpp:311-415",
+          "core/expert_cache.cpp:469-585"
+        ]
+      },
+      "ram_expert_cache_budget_bytes": 8589934592,
+      "gpu_budget_bytes": 17179869184,
+      "vram_reserve_mib": 8079,
+      "context_tokens": 4096,
+      "kv_type": "fp16",
+      "spec_tokens": 0,
+      "native_verify_window": 2,
+      "prefetch": {
+        "ple": false,
+        "routing": false,
+        "io": false
+      },
+      "io_mode": "auto",
+      "ple_io": "direct",
+      "expert_profile_file": "data/expert-profile.bin"
+    },
+    "gpu_expert_cache_control": {
+      "schema": "omni-strata-explicit-cache-v2",
+      "layout_sha256": "5ed2c4a55910616db1efe16f0c989e9bec80cc8b9e95bf1c42f886aadfffd2d6",
+      "layout_version": 4,
+      "layers": 48,
+      "max_blob_bytes": 3993600,
+      "alignment_bytes": 256,
+      "aligned_max_blob_bytes": 3993600,
+      "budget_bytes": 8053063680,
+      "requested_slots": 2016,
+      "allocation_upper_bytes": 8051097600,
+      "source_contract": [
+        "kernels/cpu/expert_layout.cpp:311-415",
+        "core/expert_cache.cpp:469-585"
+      ]
+    },
+    "expert_cache_component_bounds": {
+      "evidence": "native_control_bound_with_floor_MiB_INFO_consistency",
+      "gpu_expert_cache": {
+        "observed_slots": 2572,
+        "observed_mib_floor": 7676,
+        "allocation_lower_bytes": 8048869376,
+        "allocation_upper_bytes": 8049917951,
+        "declared_budget_bytes": 8053063680,
+        "profile_sized": true
+      },
+      "ram_expert_cache": {
+        "observed_mib_floor": 8191,
+        "allocation_lower_bytes": 8588886016,
+        "allocation_upper_bytes": 8589934591,
+        "declared_budget_bytes": 8589934592,
+        "source_contract": "core/expert_source.cpp:2101-2147; program/generate.cpp:7892"
+      },
+      "aggregate_gpu_hard_cap_verified": false,
+      "total_process_peak_verified": false,
+      "aggregate_gpu_declared_components_upper_bytes": 17176723455,
+      "aggregate_gpu_budget_bytes": 17179869184
+    },
+    "initial_native_info": {
+      "engine": "0.1.40.3",
+      "context": 4096,
+      "kv": "fp16",
+      "spec": 2,
+      "lookup": 0,
+      "conversation_cache_mib": 0,
+      "conversation_cache_slots": 0,
+      "pool_workers": 8,
+      "expert_slots": 2572,
+      "expert_cache_mib": 7676,
+      "arena_mib": 8191
+    },
+    "recovery_native_info": {
+      "engine": "0.1.40.3",
+      "context": 4096,
+      "kv": "fp16",
+      "spec": 2,
+      "lookup": 0,
+      "conversation_cache_mib": 0,
+      "conversation_cache_slots": 0,
+      "pool_workers": 8,
+      "expert_slots": 2572,
+      "expert_cache_mib": 7676,
+      "arena_mib": 8191
+    },
+    "loaded_execution_configuration": "cpu+cuda:0",
+    "observed_model_placement": null,
+    "gpu_aggregate_hard_cap_verified": false,
+    "total_process_peak_verified": false,
+    "three_tier_memory_qualified": false
+  },
+  "cancellation": {
+    "raw_record_sha256": "3d91b4c53b5356ad50d7512dd23dfe038e64bc682411aebf745696cd6cb88909",
+    "input_sha256": "59723c74dede73afe700f36349f8dd0ea6eebbcccb5009421a540cc7415c539d",
+    "status": "cancelled",
+    "observed_phase": "text_delivery_started",
+    "text_chunks_before_cancel": 2,
+    "chunks_are_not_individual_tokens": true,
+    "cancel_wall_s": 2.5876257000491023,
+    "route_reload_required": true,
+    "drained": true,
+    "after_cancel_ledger_sha256": "c5ae799ef334d319cd506b861d3bdb44144fc9ae99308e737d26571a76854adc",
+    "after_cancel_reserved_bytes": {
+      "host_ram": 0,
+      "vram:0": 0,
+      "ssd": 0,
+      "windows_commit": 0
+    },
+    "after_cancel_owners_empty": true,
+    "after_cancel_quarantine_empty": true,
+    "raw_event_record_sha256": "bc569a69c34541ca3e3320c80027411de21c9ad8f5975555085af828508c9434",
+    "raw_event_identity_and_sequence_checked": true
+  },
+  "recovery": {
+    "raw_record_sha256": "a267fbbb569b009ec9e1819f8a5290fcc4e67b3dffc072ffc8afd7292465be31",
+    "status": "completed",
+    "finish_reason": "stop",
+    "exact_output_check_passed": true,
+    "natural_completion_verified": true,
+    "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+    "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+    "reasoning_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "input_tokens": 20,
+    "output_tokens": 2,
+    "full_response_s": 11.850320500088856,
+    "first_visible_output_s": 11.232181099941954,
+    "delivery_timing_scope": "API text chunks; not per-token/kernel latency",
+    "worker_pid_changed": true,
+    "worker_generation_changed": true,
+    "request_identity_changed": true,
+    "shared_resource_ledger_instance": true,
+    "raw_event_record_sha256": "91560439aa23a69f649b2eb4180858615937ec9bb368ba318af4a734dbd18957",
+    "raw_event_identity_and_sequence_checked": true,
+    "native_compute": {
+      "scope": "routed_decode_experts_only",
+      "counters": {
+        "generated": 2,
+        "hits": 216,
+        "lookups": 915,
+        "offloaded": 45,
+        "prompt_read": 20,
+        "prompt_tokens": 20
+      },
+      "cpu_expert_entries": 699,
+      "gpu_expert_entries": 261,
+      "units": [
+        "cpu",
+        "cuda:0"
+      ],
+      "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+    },
+    "logical_file_read_bytes_from_rounded_counter": 1534000000,
+    "logical_counter_resolution_bytes": 100000,
+    "physical_ssd_read_bytes": null,
+    "direct_read_fallback_count": null,
+    "actual_io_mode": null,
+    "file_tier_io_policy_reported": "unbuffered"
+  },
+  "final_cleanup": {
+    "final_close_receipt_sha256": "ccaad80619123ce5c7d2f160b69c245b7b5df2cd96278c7769e37c3faa5440ca",
+    "final_resource_drain_verified": true,
+    "shared_ledger_final_reserved_bytes": {
+      "host_ram": 0,
+      "vram:0": 0,
+      "ssd": 0,
+      "windows_commit": 0
+    },
+    "shared_ledger_final_owners_empty": true,
+    "shared_ledger_final_quarantine_empty": true,
+    "native_worker_and_wrapper_exit_independently_reviewed": true
+  },
+  "measurement": {
+    "cancellation_samples": 1,
+    "recovery_samples": 1,
+    "initial_stage_start_wall_s": 236.49774969997816,
+    "recovery_stage_start_wall_s": 218.0355014000088,
+    "stage_start_scope": "full artifact/runtime/pack rehash and stage startup; not pure model loading or cold physical SSD latency",
+    "p50_s": null,
+    "p95_s": null,
+    "warmups": 0,
+    "endurance_seconds": 0,
+    "performance_protocol_completed": false,
+    "background_disk_workload": {
+      "isolated_performance_test": false,
+      "background_downloads_active": true,
+      "background_wsl_checksum_active": true,
+      "background_artifacts": "ISTA Q2/IQ3 download and checksum work",
+      "storage_relationship": "same SSD as Q4 source weights and prepared pack",
+      "observation_source": "run operator observed concurrent tasks; no per-request background-I/O attribution recorded",
+      "interpretation": "functional smoke under concurrent background disk workload; latency samples cannot serve as controlled isolated or paired backend performance measurements"
+    }
+  },
+  "telemetry": {
+    "raw_record_sha256": "6dd924a5d11083b60e69458508bb02f56058c7375ff2dabf3ba0fce5f58afe4a",
+    "sample_count": 831,
+    "requested_interval_s": 0.5,
+    "scope": "whole run including both full stage startups; sampled process-tree RSS may count shared pages twice; GPU/system counters include unrelated processes; no model-attributed physical SSD reads",
+    "process_tree_rss_sum_peak_bytes": 13678436352,
+    "system_available_ram_min_bytes": 10738905088,
+    "device_wide_vram_used_peak_bytes": 20049338368,
+    "device_wide_power_peak_mw": 78054,
+    "device_wide_temperature_peak_c": 72,
+    "file_cache_peak_bytes": null,
+    "physical_ssd_read_bytes": null
+  },
+  "prior_run_guard": {
+    "previous_bounded_agent_receipt_sha256": "1f8f32bb1fc46e489c1eadf630ca93c09d7bdbfbaf5d2aac110765118f877246",
+    "previous_controller_close_succeeded": true,
+    "prior_process_absence_reviewed": true,
+    "scope": "prior close receipt and process absence; not an imported prior ledger drain receipt"
+  },
+  "qualification": {
+    "default_route_qualified": false,
+    "performance_qualified": false,
+    "three_tier_memory_qualified": false,
+    "aggregate_gpu_hard_cap_verified": false,
+    "physical_ssd_attribution_verified": false,
+    "scope_of_closed_gate": "one model-backed text-stream cancellation, exact shared-ledger drain and fresh-worker exact-output recovery",
+    "remaining_gates": [
+      "cancellation during other I/O/transfer phases and repeated recovery/stability",
+      "aggregate RAM/VRAM peaks, file-cache peaks and physical SSD attribution",
+      "same-artifact whole-request static-offload baseline comparison under isolated disk conditions",
+      "representative quality, real images and long context",
+      "three lengths each twenty measured requests and thirty-minute endurance",
+      "independent Agent safety/quality/default-route review"
+    ]
+  }
+}
