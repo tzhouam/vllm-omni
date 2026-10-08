@@ -221,5 +221,61 @@ def main() -> None:
         output.write("\n")
 
 
+
+def agent_config_with_output_contract_from_launch(
+    launch: Mapping[str, Any], *, expected_device_name: str, output_contract: Mapping[str, Any],
+    route_id: str, experimental_bootstrap: bool = False,
+) -> dict[str, Any]:
+    """Derive a separately identified Agent consumer with one exact shared lease.
+
+    This is metadata derivation only, never qualification or a fresh capacity
+    observation. Agent and StageRuntime must still perform their live checks.
+    Source/runtime/pack/cache/GPU/context/precision controls remain unchanged.
+    """
+    from vllm_omni.edge.agent.model_output import AgentOutputContract, validate_output_contract_entry
+
+    contract = AgentOutputContract.from_dict(dict(output_contract))
+    original = agent_entry_from_launch(launch, expected_device_name=expected_device_name)
+    if not isinstance(route_id, str) or not route_id or route_id == original["route_id"]:
+        raise ValueError("explicit output consumer requires a distinct declared route ID")
+    derived = copy.deepcopy(dict(launch))
+    backend = derived["backend"]
+    plan = WeightTierPlan.from_dict(backend["weight_tier_plan"])
+    contract.admit(max_io_bytes=backend["max_io_bytes"],
+                   workspace_reserved_bytes=contract.workspace_budget_bytes)
+    tier = plan.to_dict()
+    delta = contract.workspace_budget_bytes
+    for key in ("host_workspace_bytes", "host_loading_peak_bytes", "windows_commit_peak_bytes"):
+        tier["budget"][key] += delta
+    tier["route_id"] = route_id
+    backend["route_id"] = route_id
+    backend["host_overhead_bytes"] += delta
+    backend["weight_tier_plan"] = tier
+    new_plan = WeightTierPlan.from_dict(tier)
+    claims = new_plan.budget.resource_demands(gpu_pool=backend["gpu_pool"], include_windows_commit=True)
+    if any(claim > derived["resource_budget"]["capacities"][pool] for pool, claim in claims.items()):
+        raise ValueError("derived Agent workspace exceeds preparation ceilings; fresh admission required")
+    derived["resource_budget"]["demands"] = claims
+    config = agent_config_from_launch(derived, expected_device_name=expected_device_name,
+                                      experimental_bootstrap=experimental_bootstrap)
+    entry = config["routes"][0]
+    identity = contract.consumer_identity(entry["artifact_id"])
+    entry.update(base_artifact_id=entry["artifact_id"],
+                 artifact_id="strata-agent:" + identity["identity_sha256"],
+                 model_output_contract=contract.to_dict(), model_output_consumer_identity=identity,
+                 model_output_workspace_bytes=delta)
+    validate_output_contract_entry(entry)
+    config["output_contract_derivation"] = {
+        "schema": "omni-agent-output-contract-derivation-v1",
+        "parent_launch_sha256": _digest(launch), "derived_engine_launch_sha256": _digest(derived),
+        "parent_route_id": original["route_id"], "route_id": route_id,
+        "workspace_delta_bytes": delta, "workspace_owner": "Agent model-output consumer",
+        "workspace_scope": "declared parser/raw retention workspace within the single shared physical RAM lease",
+        "transport_delta_bytes": 0, "fresh_admission_required": True,
+        "engine_neural_controls_changed": False, "qualified": False,
+    }
+    return config
+
+
 if __name__ == "__main__":
     main()

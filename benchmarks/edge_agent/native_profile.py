@@ -208,8 +208,9 @@ class _FixtureForegroundScreen:
         return {**result, "fixture_foreground_verified": True}
 
 
-def load_profile_routes(config: Mapping[str, Any],
-                        lineage: Mapping[str, Any]) -> tuple[list[ProfileRoute], dict[str, Any]]:
+def load_profile_routes(
+    config: Mapping[str, Any], lineage: Mapping[str, Any]
+) -> tuple[list[ProfileRoute], dict[str, Any]]:
     """Bind profiling identity to native config hashes and explicit lineage."""
     profiles: list[ProfileRoute] = []
     provenance: dict[str, Any] = {}
@@ -221,6 +222,8 @@ def load_profile_routes(config: Mapping[str, Any],
         raise ValueError("lineage manifest must contain routes by route_id")
     for entry in entries:
         route_id = str(entry["route_id"])
+        if entry.get("model_output_contract") is not None and entry.get("backend") != STRATA_BACKEND:
+            raise ValueError("explicit output consumers require the reviewed Strata text profile binding")
         item = metadata.get(route_id)
         if not isinstance(item, dict):
             raise ValueError(f"{route_id}: lineage metadata missing")
@@ -228,19 +231,31 @@ def load_profile_routes(config: Mapping[str, Any],
             raise ValueError("Strata image functional receipts require a dedicated reviewed image profile adapter")
         if entry.get("backend") == STRATA_BACKEND:
             binding = strata_route_binding(entry)
-            if (item.get("artifact_manifest_sha256") != binding["artifact_manifest_sha256"] or
-                    item.get("checkpoint_revision") != binding["checkpoint_revision"] or
-                    not isinstance(item.get("precision"), str) or not item["precision"]):
+            if (
+                item.get("artifact_manifest_sha256") != binding["artifact_manifest_sha256"]
+                or item.get("checkpoint_revision") != binding["checkpoint_revision"]
+                or not isinstance(item.get("precision"), str)
+                or not item["precision"]
+            ):
                 raise ValueError(f"{route_id}: Strata all-shard lineage identity differs or is missing")
-            profiles.append(ProfileRoute(
-                route_id=route_id, model_id=str(entry["model"]), artifact_id=str(entry["artifact_id"]),
-                checkpoint_revision=binding["checkpoint_revision"],
-                artifact_sha256=binding["artifact_manifest_sha256"], precision=item["precision"],
-                backend=STRATA_BACKEND, expected_placement=str(entry["placement"]), backend_identity=binding,
-            ))
+            profiles.append(
+                ProfileRoute(
+                    route_id=route_id,
+                    model_id=str(entry["model"]),
+                    artifact_id=str(entry["artifact_id"]),
+                    checkpoint_revision=binding["checkpoint_revision"],
+                    artifact_sha256=binding["artifact_manifest_sha256"],
+                    precision=item["precision"],
+                    backend=STRATA_BACKEND,
+                    expected_placement=str(entry["placement"]),
+                    backend_identity=binding,
+                )
+            )
             provenance[route_id] = {
-                **binding, "lineage_verified": item.get("lineage_verified") is True,
-                "precision": item["precision"], "artifact_hash_scope": "complete_source_manifest_all_shards",
+                **binding,
+                "lineage_verified": item.get("lineage_verified") is True,
+                "precision": item["precision"],
+                "artifact_hash_scope": "complete_source_manifest_all_shards",
             }
             continue
         model_sha = str(entry["model_sha256"])
@@ -253,11 +268,13 @@ def load_profile_routes(config: Mapping[str, Any],
         if not revision or not precision or len(model_sha) != 64:
             raise ValueError(f"{route_id}: exact revision, precision and SHA-256 required")
         profile = ProfileRoute(
-            route_id=route_id, model_id=str(entry["model"]),
-            artifact_id=str(entry["artifact_id"]), checkpoint_revision=revision,
-            artifact_sha256=model_sha, precision=precision,
-            backend=("external.llamacpp.multimodal.v1" if entry.get("mmproj_file")
-                     else "external.llamacpp.text.v1"),
+            route_id=route_id,
+            model_id=str(entry["model"]),
+            artifact_id=str(entry["artifact_id"]),
+            checkpoint_revision=revision,
+            artifact_sha256=model_sha,
+            precision=precision,
+            backend=("external.llamacpp.multimodal.v1" if entry.get("mmproj_file") else "external.llamacpp.text.v1"),
             expected_placement=str(entry["placement"]),
         )
         profiles.append(profile)
@@ -290,8 +307,14 @@ def _redact_image(value: Any) -> Any:
     return value
 
 
-def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
-                    route: ProfileRoute, placement_evidence: Mapping[str, Any] | None = None) -> bool:
+def _trace_complete(
+    events: list[Mapping[str, Any]],
+    answer: str | None,
+    route: ProfileRoute,
+    placement_evidence: Mapping[str, Any] | None = None,
+) -> bool:
+    if route.backend_identity.get("model_output_consumer_identity") is not None:
+        return False  # consumer trace qualification requires its separately reviewed full suite
     if not events or [event.get("seq") for event in events] != list(range(1, len(events) + 1)):
         return False
     if len({event.get("request_id") for event in events}) != 1 or len({event.get("epoch") for event in events}) != 1:
@@ -305,10 +328,12 @@ def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
         return False
     route_event = next(event for event in events if event["kind"] == "route")
     identity = route_event.get("payload", {})
-    if (identity.get("route_id") != route.route_id or
-        identity.get("model") != route.model_id or
-        identity.get("artifact_id") != route.artifact_id or
-        identity.get("backend") != route.backend):
+    if (
+        identity.get("route_id") != route.route_id
+        or identity.get("model") != route.model_id
+        or identity.get("artifact_id") != route.artifact_id
+        or identity.get("backend") != route.backend
+    ):
         return False
     if route.backend == "external.strata.multimodal.v1":
         return False  # text trace and nullable placement cannot qualify an image chain
@@ -416,8 +441,9 @@ class _PromptIdentityBackend:
         with self._lock:
             return [dict(item) for item in self._identities]
 
-    async def generate(self, prompt: str, *, request_id: str, max_tokens: int,
-                       image_data_url: str | None = None) -> Any:
+    async def generate(
+        self, prompt: str, *, request_id: str, max_tokens: int, image_data_url: str | None = None
+    ) -> Any:
         encoded = prompt.encode("utf-8")
         with self._lock:
             identity = {
@@ -427,11 +453,100 @@ class _PromptIdentityBackend:
                 "chars": len(prompt),
             }
             self._identities.append(identity)
-        async for chunk in self._backend.generate(
-            prompt, request_id=request_id, max_tokens=max_tokens,
+        chunks = self._backend.generate(
+            prompt,
+            request_id=request_id,
+            max_tokens=max_tokens,
             image_data_url=image_data_url,
-        ):
-            yield chunk
+        )
+        try:
+            async for chunk in chunks:
+                yield chunk
+        finally:
+            closer = getattr(chunks, "aclose", None)
+            if callable(closer):
+                await closer()
+
+
+def _validated_consumer_final(
+    event: Mapping[str, Any],
+    route: ProfileRoute | None,
+    events: list[Mapping[str, Any]],
+) -> Mapping[str, Any] | None:
+    """Ground visibility in an existing final and its exact consumer/terminal.
+
+    This is a timing boundary only. Full consumer trace qualification remains
+    disabled until its separate suite is reviewed. Hidden SSE is never visible.
+    """
+    if route is None or event.get("kind") != "final":
+        return None
+    consumer = route.backend_identity.get("model_output_consumer_identity")
+    payload = event.get("payload", {})
+    if (
+        not isinstance(consumer, Mapping)
+        or not isinstance(payload, Mapping)
+        or not isinstance(payload.get("answer"), str)
+        or not payload["answer"]
+        or payload.get("streamed") is not False
+        or type(payload.get("model_step")) is not int
+    ):
+        return None
+    step = payload["model_step"]
+    request_id = event.get("request_id")
+    if not isinstance(request_id, str) or not request_id or step < 0:
+        return None
+    owned = [
+        item for item in events if item.get("request_id") == request_id and item.get("epoch") == event.get("epoch")
+    ]
+    routes = [item.get("payload", {}) for item in owned if item.get("kind") == "route"]
+    proofs = [
+        item.get("payload", {})
+        for item in owned
+        if item.get("kind") == "model_output_contract" and item.get("payload", {}).get("step") == step
+    ]
+    terminals = [
+        item.get("payload", {}).get("metrics", {})
+        for item in owned
+        if item.get("kind") == "model_metrics" and item.get("payload", {}).get("step") == step
+    ]
+    if len(routes) != 1 or len(proofs) != 1 or len(terminals) != 1:
+        return None
+    identity, proof, metrics = routes[0], proofs[0], terminals[0]
+    stage = proof.get("stage_event", {})
+    if (
+        identity.get("artifact_id") != route.artifact_id
+        or identity.get("backend") != route.backend
+        or identity.get("model_output_consumer_identity") != consumer
+        or proof.get("consumer_identity_sha256") != consumer.get("identity_sha256")
+        or proof.get("contract_sha256") != evidence_sha256(consumer.get("contract"))
+        or proof.get("schema") != "omni-agent-output-interpretation-v1"
+        or proof.get("mode") != consumer.get("contract", {}).get("mode")
+        or proof.get("canonical_output_sha256") != evidence_sha256({"final": payload["answer"]})
+        or not isinstance(proof.get("raw_output_sha256"), str)
+        or len(proof["raw_output_sha256"]) != 64
+        or any(char not in "0123456789abcdef" for char in proof["raw_output_sha256"])
+        or proof.get("model_request_id") != request_id + f"-step-{step}"
+        or not isinstance(stage, Mapping)
+        or stage.get("request_id") != proof["model_request_id"]
+        or stage.get("terminal") is not True
+        or stage.get("kind") != "text"
+        or metrics.get("stage_event") != stage
+        or metrics.get("finish_reason") != "stop"
+        or metrics.get("raw_model_output_sha256") != proof.get("raw_output_sha256")
+        or proof.get("constrained_decoding") is not False
+        or proof.get("extraction_used") is not False
+        or type(proof.get("retry_count")) is not int
+        or proof["retry_count"] != 0
+    ):
+        return None
+    return {
+        "text": payload["answer"],
+        "visibility": "validated_final_full_response",
+        "model_request_id": proof["model_request_id"],
+        "consumer_identity_sha256": consumer["identity_sha256"],
+        "raw_output_sha256": proof["raw_output_sha256"],
+        "scope": "Agent final event after validated terminal; not hidden SSE or Qt-render timing",
+    }
 
 
 class NativeProfileBridge:
@@ -464,10 +579,16 @@ class NativeProfileBridge:
                 return
             self._events.append(sanitized)
             emitter = self._emitter
+            events = list(self._events)
         if emitter is not None:
             emitter("agent_event", sanitized)
-        if event.get("kind") == "text_delta" and emitter is not None:
+        consumer = self.route.backend_identity.get("model_output_consumer_identity") if self.route is not None else None
+        if event.get("kind") == "text_delta" and emitter is not None and consumer is None:
             emitter("assistant_text_delta", event.get("payload", {}).get("text", ""))
+        elif emitter is not None and consumer is not None:
+            visible = _validated_consumer_final(event, self.route, events)
+            if visible is not None:
+                emitter("assistant_final", visible)
         if event.get("kind") == "approval_required" and self.controller is not None:
             # The profiler is never a trusted person approving a write.
             self.controller.reject(str(event.get("payload", {}).get("challenge_id", "")))

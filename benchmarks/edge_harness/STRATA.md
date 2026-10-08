@@ -279,6 +279,49 @@ observations and must remain private; publish reviewed numeric facts and
 hashes separately. A functional smoke does not create a default-route or
 performance qualification.
 
+### Explicit Agent output contracts
+
+For a separately identified JSON consumer, derive a new experimental config:
+
+```python
+from vllm_omni.edge.agent.model_output import AgentOutputContract
+from vllm_omni.edge.agent.strata_route import agent_config_with_output_contract_from_launch
+
+config = agent_config_with_output_contract_from_launch(
+    verified_launch,
+    expected_device_name=measured_gpu_name,
+    output_contract=AgentOutputContract("strict_outer_json_fence_agent_v1").to_dict(),
+    route_id="qwen-flash-q2-agent-json-v1",
+    experimental_bootstrap=True,
+)
+```
+
+`strict_raw_agent_json_v1` accepts one complete JSON object.
+`strict_outer_json_fence_agent_v1` also accepts one complete outer lowercase
+`json` code fence. Both require exactly `{"final": "answer"}` or
+`{"tool": "permitted_operation", "args": {}}`; the existing tool boundary
+checks operation arguments and approval. Duplicate keys, nonfinite numbers,
+extra prose, multiple objects, truncated outputs and stale terminals fail.
+Commands become visible only after the owned natural-stop terminal is consumed
+and the complete response validates. This is an output interpretation contract,
+not constrained decoding.
+
+The config adds a declared 2 MiB parser workspace to RAM/loading/commit claims
+within the existing single shared lease. It preserves transport, expert-cache,
+GPU and neural controls; fresh admission still applies. The consumer artifact
+identity binds the derived backend config, versioned limits and imported parser
+source. Historical text routes cannot qualify this new consumer.
+
+`model_output_contract` events retain raw/canonical hashes and an explicit fence
+normalization label. Raw StageClient output remains available for private
+evidence capture through `last_model_output()` until the next request or close;
+capture stream data before cancellation when partial output is needed. Early
+consumer errors close the nested generator and use the existing cancellation,
+drain and quarantine paths. Raw-model first-delta timing is reported separately
+as `raw_model_ttft_s`; user-visible output waits for validated final content.
+The original strict-JSON engine benchmark retains its original outcome. This
+new route requires its own functional and performance evidence before promotion.
+
 ## Measure full requests
 
 Run one process and one active request at a time. Do not run different cache

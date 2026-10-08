@@ -288,6 +288,14 @@ class ManagedLocalBackend:
     def execution_plan(self) -> Mapping[str, Any] | None:
         return self._coordinator._backends[self._route_id].execution_plan
 
+    @property
+    def model_output_contract_identity(self) -> Mapping[str, Any] | None:
+        return getattr(self._coordinator._backends[self._route_id], "model_output_contract_identity", None)
+
+    def last_model_output(self) -> Mapping[str, Any] | None:
+        getter = getattr(self._coordinator._backends[self._route_id], "last_model_output", None)
+        return getter() if callable(getter) else None
+
     def start(self) -> None:
         self._coordinator.start(self._route_id)
 
@@ -300,13 +308,15 @@ class ManagedLocalBackend:
         image_data_url: str | None = None,
     ) -> AsyncIterator[Any]:
         backend = self._coordinator._backends[self._route_id]
-        async for chunk in backend.generate(
-            prompt,
-            request_id=request_id,
-            max_tokens=max_tokens,
-            image_data_url=image_data_url,
-        ):
-            yield chunk
+        chunks = backend.generate(prompt, request_id=request_id, max_tokens=max_tokens,
+                                  image_data_url=image_data_url)
+        try:
+            async for chunk in chunks:
+                yield chunk
+        finally:
+            closer = getattr(chunks, "aclose", None)
+            if callable(closer):
+                await closer()
 
     async def cancel(self, request_id: str) -> None:
         await self._coordinator._backends[self._route_id].cancel(request_id)

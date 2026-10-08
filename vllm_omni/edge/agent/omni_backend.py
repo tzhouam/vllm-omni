@@ -160,6 +160,26 @@ class OmniCompleteModelBackend:
         self._last_turn_request_id: str | None = None
         self.release_evidence: Mapping[str, Any] | None = None
         self.execution_plan: Mapping[str, Any] | None = None
+        self.model_output_contract_identity: Mapping[str, Any] | None = None
+        self._last_model_output: Mapping[str, Any] | None = None
+
+    def bind_output_contract(self, contract: Any, *, base_artifact_id: str) -> None:
+        from vllm_omni.edge.agent.model_output import AgentOutputContract, _hash
+
+        if self._runtime is not None or self._active is not None or not isinstance(contract, AgentOutputContract):
+            raise ValueError("output consumer must be explicitly bound before stage loading")
+        if base_artifact_id != "strata:" + _hash(self.config.backend_config):
+            raise ValueError("output consumer base identity differs from actual backend config")
+        budget = self.config.backend_config["weight_tier_plan"]["budget"]
+        contract.admit(max_io_bytes=self.config.max_io_bytes,
+                       workspace_reserved_bytes=budget["host_workspace_bytes"])
+        self.model_output_contract_identity = contract.consumer_identity(base_artifact_id)
+
+    def last_model_output(self) -> Mapping[str, Any] | None:
+        # Strings are immutable: retain one reference, never another full text copy.
+        if self._last_model_output is None:
+            return None
+        return {**self._last_model_output, "stage_event": dict(self._last_model_output["stage_event"])}
 
     def bind_resource_lease(self, ledger: Any, reservation: Any) -> None:
         if self._runtime is not None:
@@ -288,6 +308,7 @@ class OmniCompleteModelBackend:
             raise ValueError("requested generation exceeds the admitted token bound")
         if image_data_url is not None and self.config.mmproj_file is None:
             raise ValueError("this text route has no vision projector")
+        self._last_model_output = None
         self._active = request_id
         self._last_turn_request_id = request_id.rsplit("-step-", 1)[0]
         self.release_evidence = None
@@ -340,11 +361,24 @@ class OmniCompleteModelBackend:
             if stage_event.get("request_id") != request_id:
                 raise RuntimeError("Omni terminal event belongs to another request")
             extra = self._validate_terminal_output(output, image_data_url=image_data_url)
+            if self.model_output_contract_identity is not None:
+                import hashlib
+                self._last_model_output = {
+                    "request_id": request_id,
+                    "text": output.outputs[0].text,
+                    "raw_output_sha256": hashlib.sha256(output.outputs[0].text.encode()).hexdigest(),
+                    "finish_reason": output.outputs[0].finish_reason,
+                    "stage_event": dict(stage_event),
+                }
             yield BackendChunk(
                 text="",
                 terminal=True,
                 ttft_s=first_delta_s,
                 metrics={
+                    **({"finish_reason": output.outputs[0].finish_reason,
+                        "raw_model_output_sha256": self._last_model_output["raw_output_sha256"],
+                        "raw_model_ttft_s": first_delta_s}
+                       if self.model_output_contract_identity is not None else {}),
                     "whole_model_wall_s": time.perf_counter() - started,
                     "backend_metrics": output.metrics,
                     "stage_event": stage_event,
@@ -411,6 +445,7 @@ class OmniCompleteModelBackend:
 
     def close(self) -> bool:
         """Return true only after the old stage's memory claim is drained."""
+        self._last_model_output = None
         runtime = self._runtime
         if runtime is None:
             self._pool = None

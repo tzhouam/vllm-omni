@@ -68,6 +68,25 @@ def strata_route_binding(entry: Mapping[str, Any]) -> dict[str, Any]:
     from vllm_omni.engine.weight_tiers import ArtifactManifest, WeightTierPlan
 
     config = entry["backend_config"]
+    consumer = None
+    if any(
+        entry.get(key) is not None
+        for key in (
+            "model_output_contract",
+            "base_artifact_id",
+            "model_output_consumer_identity",
+            "model_output_workspace_bytes",
+        )
+    ):
+        from vllm_omni.edge.agent.model_output import validate_output_contract_entry
+
+        contract = validate_output_contract_entry(dict(entry))
+        if contract is None:
+            raise ValueError("Strata consumer metadata lacks an explicit contract")
+        consumer = contract.consumer_identity(entry["base_artifact_id"])
+    expected_artifact_id = (
+        "strata-agent:" + consumer["identity_sha256"] if consumer is not None else "strata:" + evidence_sha256(config)
+    )
     if entry.get("backend") != STRATA_BACKEND or config.get("name") != STRATA_BACKEND:
         raise ValueError("Strata profile has a mismatched backend")
     if config.get("runtime_revision") != STRATA_REVISION:
@@ -78,7 +97,7 @@ def strata_route_binding(entry: Mapping[str, Any]) -> dict[str, Any]:
     tier = WeightTierPlan.from_dict(config["weight_tier_plan"])
     conversion = config["conversion_manifest"]
     if (
-        entry.get("artifact_id") != "strata:" + evidence_sha256(config)
+        entry.get("artifact_id") != expected_artifact_id
         or entry.get("model") != source.checkpoint
         or runtime.revision != STRATA_REVISION
         or tier.artifact_manifest_sha256 != source.manifest_sha256
@@ -193,23 +212,43 @@ def strata_route_binding(entry: Mapping[str, Any]) -> dict[str, Any]:
         "gpu_expert_cache_budget_bytes": tier.budget.gpu_expert_cache_bytes,
         "expected_controls": controls,
         "observation_runtime": observed_binding,
+        **(
+            {"base_engine_artifact_id": entry["base_artifact_id"], "model_output_consumer_identity": consumer}
+            if consumer is not None
+            else {}
+        ),
     }
 
 
 def validate_strata_profile_plan(plan: Mapping[str, Any], route: Mapping[str, Any]) -> None:
     """Validate observed load proof and immutable identities; not a peak gate."""
-    from vllm_omni.engine.backends.strata import _verify_cache_bounds, validate_strata_load_plan
-
     binding = route["backend_identity"]
+    expected_artifact_id = "strata:" + binding["backend_config_sha256"]
+    consumer = binding.get("model_output_consumer_identity")
+    if consumer is not None:
+        from vllm_omni.edge.agent.model_output import AgentOutputContract
+
+        if not isinstance(consumer, Mapping) or not isinstance(consumer.get("contract"), Mapping):
+            raise ValueError("Strata profile consumer identity is malformed")
+        contract = AgentOutputContract.from_dict(dict(consumer["contract"]))
+        if binding.get("base_engine_artifact_id") != expected_artifact_id or dict(
+            consumer
+        ) != contract.consumer_identity(expected_artifact_id):
+            raise ValueError("Strata profile consumer differs from the engine or imported adapter")
+        expected_artifact_id = "strata-agent:" + consumer["identity_sha256"]
+    elif "base_engine_artifact_id" in binding:
+        raise ValueError("Strata profile has a base consumer identity without a contract")
     if (
         route["backend"] != STRATA_BACKEND
         or binding.get("schema") != "omni-strata-profile-binding-v1"
-        or route["artifact_id"] != "strata:" + binding["backend_config_sha256"]
+        or route["artifact_id"] != expected_artifact_id
         or route["artifact_sha256"] != binding["artifact_manifest_sha256"]
         or route["model_id"] != binding["checkpoint"]
         or route["checkpoint_revision"] != binding["checkpoint_revision"]
     ):
         raise ValueError("Strata route source binding differs")
+    from vllm_omni.engine.backends.strata import _verify_cache_bounds, validate_strata_load_plan
+
     validate_strata_load_plan(dict(plan), route["expected_placement"])
     if plan.get("observed_model_placement") is not None or plan.get("observed_compute_units") is not None:
         raise ValueError("Strata load evidence cannot claim whole-model compute placement")

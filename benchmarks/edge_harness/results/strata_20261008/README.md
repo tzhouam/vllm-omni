@@ -1,5 +1,12 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+2026-10-09: the [explicit Agent output-consumer implementation](agent_output_contract_unit_validation.json)
+is applied and unit tested. The record binds 14 code/test files and two disjoint
+WSL regression groups (220 passed/2 skipped and 110 passed). These are contract
+checks with no model execution. Actual new-consumer Agent behavior, cancellation,
+fresh recovery and qualification remain pending. The existing strict raw-JSON
+failure is preserved; explicit fence interpretation has a separate route identity.
+
 2026-10-09: the [fresh solo diagnostic](native_ista_q2_exact_format_diagnostic.json)
 passed [closed comparison review](native_ista_q2_exact_format_diagnostic_review.json).
 Fresh native sequence 1/epoch 1 and the previous ordered sequence 3/epoch 3

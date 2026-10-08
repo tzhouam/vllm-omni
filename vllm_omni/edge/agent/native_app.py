@@ -389,7 +389,10 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
     disk_capacity = _artifact_disk_capacity(data["routes"])
     if disk_capacity is not None:
         capacities["ssd"] = disk_capacity
+    from vllm_omni.edge.agent.model_output import validate_output_contract_entry
+
     for entry in data["routes"]:
+        output_contract = validate_output_contract_entry(entry)
         route = Route(
             route_id=entry["route_id"],
             artifact_id=entry["artifact_id"],
@@ -402,6 +405,8 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
             placement=entry["placement"],
             memory_demands=entry["memory_demands"],
             requires_nvidia=bool(entry.get("requires_nvidia", False)),
+            model_output_contract=output_contract,
+            base_artifact_id=entry.get("base_artifact_id"),
         )
         routes.append(route)
         if route.requires_nvidia and not hardware["gpu_name"]:
@@ -458,6 +463,9 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
                     **extra,
                 )
             )
+            if output_contract is not None:
+                stage_backends[route.route_id].bind_output_contract(output_contract,
+                                                                  base_artifact_id=route.base_artifact_id)
             continue
         if route.backend not in {"external.llamacpp.text.v1", "external.llamacpp.multimodal.v1"}:
             raise ValueError(f"unsupported complete Agent route backend: {route.backend}")

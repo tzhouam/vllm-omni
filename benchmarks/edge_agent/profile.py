@@ -26,7 +26,7 @@ from statistics import mean
 from typing import Any
 
 LENGTH_BUCKETS = ("short", "medium", "long")
-VISIBLE_TEXT_EVENTS = frozenset({"assistant_text_delta", "visible_token"})
+VISIBLE_TEXT_EVENTS = frozenset({"assistant_text_delta", "visible_token", "assistant_final"})
 _STRATA_BACKEND = "external.strata.text.v1"
 
 
@@ -288,23 +288,36 @@ async def _one_request(
     event_lock = threading.Lock()
     stop_polling = asyncio.Event()
     first_visible_ns: int | None = None
+    first_visible_event_kind: str | None = None
+    consumer = route.backend_identity.get("model_output_consumer_identity")
     closed = False
     started_ns = time.perf_counter_ns()
     started_at = _utc_now()
 
     def emit(kind: str, payload: Any = None) -> None:
-        nonlocal first_visible_ns
+        nonlocal first_visible_ns, first_visible_event_kind
         with event_lock:
             if closed:
                 raise RuntimeError("Agent emitted output after request completion")
             now_ns = time.perf_counter_ns()
-            if kind in VISIBLE_TEXT_EVENTS and first_visible_ns is None:
+            visible = (
+                kind == "assistant_final"
+                and isinstance(payload, Mapping)
+                and payload.get("visibility") == "validated_final_full_response"
+                and payload.get("consumer_identity_sha256") == consumer.get("identity_sha256")
+                if consumer is not None
+                else kind in VISIBLE_TEXT_EVENTS and kind != "assistant_final"
+            )
+            if visible and first_visible_ns is None:
                 first_visible_ns = now_ns
-            events.append({
-                "kind": kind,
-                "offset_s": (now_ns - started_ns) / 1e9,
-                "payload": _json_safe(payload),
-            })
+                first_visible_event_kind = kind
+            events.append(
+                {
+                    "kind": kind,
+                    "offset_s": (now_ns - started_ns) / 1e9,
+                    "payload": _json_safe(payload),
+                }
+            )
 
     async def poll_telemetry() -> None:
         if telemetry is None:
@@ -312,10 +325,12 @@ async def _one_request(
         while not stop_polling.is_set():
             try:
                 snapshot = await asyncio.to_thread(telemetry)
-                telemetry_samples.append({
-                    "offset_s": (time.perf_counter_ns() - started_ns) / 1e9,
-                    **_json_safe(snapshot),
-                })
+                telemetry_samples.append(
+                    {
+                        "offset_s": (time.perf_counter_ns() - started_ns) / 1e9,
+                        **_json_safe(snapshot),
+                    }
+                )
             except Exception as exc:
                 telemetry_errors.append(f"{type(exc).__name__}: {exc}")
             try:
@@ -351,8 +366,10 @@ async def _one_request(
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
     e2e_complete = bool(
-        result is not None and result.trace_scope == "agent_e2e"
-        and result.complete_agent_trace and result.final_answer is not None
+        result is not None
+        and result.trace_scope == "agent_e2e"
+        and result.complete_agent_trace
+        and result.final_answer is not None
     )
     # For Strata this checks configuration and scoped decode evidence; it
     # does not manufacture a whole-model actual placement string.
@@ -362,8 +379,11 @@ async def _one_request(
         placement_matches = result_placement_matches(asdict(result), asdict(route))
     else:
         placement_matches = bool(
-            result is not None and result.model_id == route.model_id and result.artifact_id == route.artifact_id
-            and result.actual_placement == route.expected_placement and result.backend == route.backend
+            result is not None
+            and result.model_id == route.model_id
+            and result.artifact_id == route.artifact_id
+            and result.actual_placement == route.expected_placement
+            and result.backend == route.backend
         )
     return {
         "record_type": "request",
@@ -375,9 +395,17 @@ async def _one_request(
         "started_at": started_at,
         "batch_size": 1,
         "concurrency": 1,
-        "ttft_s": ((first_visible_ns - started_ns) / 1e9
-                   if first_visible_ns is not None else None),
+        "ttft_s": ((first_visible_ns - started_ns) / 1e9 if first_visible_ns is not None else None),
         "answer_latency_s": (ended_ns - started_ns) / 1e9,
+        **(
+            {
+                "first_visible_event_kind": first_visible_event_kind,
+                "first_visible_output_scope": "validated_final_full_response_not_hidden_model_delta_or_Qt_render",
+                "ttft_scope": "time_to_validated_final_visibility",
+            }
+            if route.backend_identity.get("model_output_consumer_identity") is not None
+            else {}
+        ),
         "events": events,
         "result": asdict(result) if result is not None else None,
         "evaluation": asdict(evaluation) if evaluation is not None else None,

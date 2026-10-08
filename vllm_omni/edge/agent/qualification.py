@@ -165,6 +165,8 @@ def _evaluate_case(case: Mapping[str, Any], result: Mapping[str, Any]) -> dict[s
 
 def _trace_complete(events: list[Mapping[str, Any]], answer: str | None,
                     route: Mapping[str, Any], placement_evidence: Mapping[str, Any] | None = None) -> bool:
+    if route.get("model_output_contract") is not None:
+        return False  # explicit consumer requires its own reviewed Agent suite; legacy evidence cannot promote it
     if not events or [event.get("seq") for event in events] != list(range(1, len(events) + 1)):
         return False
     if len({event.get("request_id") for event in events}) != 1 or len({event.get("epoch") for event in events}) != 1:

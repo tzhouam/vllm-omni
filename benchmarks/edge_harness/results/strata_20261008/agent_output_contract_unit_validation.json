@@ -1,0 +1,57 @@
+{
+  "schema": "omni-private-agent-output-production-validation-v1",
+  "observed_unix": 1791486413.7576046,
+  "scope": "applied Python code and unit-contract regressions; no neural execution or qualification",
+  "source_sha256": {
+    "vllm_omni/edge/agent/controller.py": "6f961bce0f729cba931d9d14e1ec012fb9aef3e25853c460eaf43ebe7bac1d0b",
+    "vllm_omni/edge/agent/model_output.py": "62ceca17d3343b68b24b96c600a7c099e411eeea05abf7ef570a2a2c4778b5c3",
+    "vllm_omni/edge/agent/native_app.py": "121bc9ef2d6bb717e3fc9ed0725ec1af92c3f6baf761fa65aad83b1f7344c3df",
+    "vllm_omni/edge/agent/omni_backend.py": "3c6ee15da70511763a36dde23266a2cb02b9bc77d498d2108313cdd388e20361",
+    "vllm_omni/edge/agent/qualification.py": "8bfcb31e3c56a0e2780a76a92f2d7724b608c3f394d228f521e72761a494091a",
+    "vllm_omni/edge/agent/router.py": "d9154681ad725356f9a4292ef8606d8eb7d5b3a7c84ed8f1937f3199fe5c4236",
+    "vllm_omni/edge/agent/strata_route.py": "c739cdb999051607ca22bc80bda5edb861ddafb1fd5a0bba946d4ca63b012116",
+    "vllm_omni/engine/local_plan.py": "9c87273a790abe191c3508157d0af3171be5804d93e78f4c892ada0477b3eafd",
+    "vllm_omni/edge/agent/placement.py": "903db91db7cc5258969f6c46b2a178abffce74d1b25e23adb685c78a03b8fa54",
+    "benchmarks/edge_agent/native_profile.py": "7c9d75351d5830289c3a392e02ec08942941a5bb04677df88c4aedb0c6b7752c",
+    "benchmarks/edge_agent/profile.py": "300600b16ed64f5723d32296ab4103ad6e9a781bf9ab942037ac8027a94f991a",
+    "tests/edge/test_agent_model_output_contract.py": "535aeaa78d54aeaf4179969d0aa86812afbdde942831e6ea6ef63aba7f1b1986",
+    "tests/edge/test_agent_model_output_integration.py": "89c4f5b78b9d445c6510bf9332fb49d883547eeea051672245f646e1418e74cd",
+    "tests/edge/test_agent_output_profile.py": "c69d739c167d42b4aa94e9bc31dd4d5eec43416ef99e01f2f922a3a4201e7986"
+  },
+  "test_runs": [
+    {
+      "exec_session_id": 64877,
+      "exit_code": 0,
+      "passed": 220,
+      "skipped": 2,
+      "subtests_passed": 37
+    },
+    {
+      "exec_session_id": 81490,
+      "exit_code": 0,
+      "passed": 110,
+      "skipped": 0,
+      "subtests_passed": 13
+    }
+  ],
+  "test_environment": "WSL Ubuntu, omni-cuda venv, pytest autoload disabled, explicit pytest_asyncio, addopts override",
+  "observed_warnings": [
+    "WSL test environment reports vLLM 0.28.0 versus vLLM-Omni 0.29.0 development checkout; no model runtime exercised",
+    "torch jit deprecation"
+  ],
+  "stdout_scope": "tool output observations only; no byte-exact stdout archive claimed",
+  "failed_setup_attempts": [
+    {
+      "exec_session_id": 68437,
+      "exit_code": 1,
+      "reason": "disabled plugin autoload with repository xdist addopts; no tests ran"
+    },
+    {
+      "exec_session_id": 95755,
+      "exit_code": 1,
+      "reason": "async plugin disabled; 205 passed/2 skipped, two async tests unexecuted; corrected final run covers all"
+    }
+  ],
+  "neural_execution": false,
+  "default_qualified": false
+}

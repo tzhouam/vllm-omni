@@ -7,12 +7,16 @@ an artifact size, a component benchmark, or an accelerator being present.
 
 from __future__ import annotations
 
+import re
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from math import ceil, isfinite
-import re
-from typing import Callable, Mapping, Sequence
 
-TASK_CLASSES = frozenset({"basic", "browser_text", "browser_vision", "windows_settings", "memory", "code_tools", "long_reasoning"})
+from vllm_omni.edge.agent.model_output import AgentOutputContract
+
+TASK_CLASSES = frozenset({
+    "basic", "browser_text", "browser_vision", "windows_settings", "memory", "code_tools", "long_reasoning",
+})
 LENGTH_BUCKETS = ("short", "medium", "long")
 FIXED_SUITE_ID = "edge-agent-fixed-local-fixtures-v1"
 _DOTTED_TOKEN = re.compile(r"\w+\.\w+", re.UNICODE)
@@ -71,14 +75,23 @@ class Route:
     placement: str
     memory_demands: Mapping[str, int]
     requires_nvidia: bool = False
+    model_output_contract: AgentOutputContract | None = None
+    base_artifact_id: str | None = None
 
     def __post_init__(self) -> None:
         if not all((self.route_id, self.artifact_id, self.model, self.backend, self.placement)):
             raise ValueError("route identity and declared placement are required")
-        if not self.modalities or not self.memory_demands or any(type(value) is not int or value < 0 for value in self.memory_demands.values()):
+        if (not self.modalities or not self.memory_demands or
+                any(type(value) is not int or value < 0 for value in self.memory_demands.values())):
             raise ValueError("modalities and nonnegative memory demands are required")
         if self.memory_demands.get("host_ram", 0) <= 0:
             raise ValueError("complete Agent route must reserve positive host RAM")
+        if self.model_output_contract is not None:
+            if not isinstance(self.model_output_contract, AgentOutputContract):
+                raise ValueError("route requires a typed output contract")
+            identity = self.model_output_contract.consumer_identity(self.base_artifact_id)
+            if self.artifact_id != "strata-agent:" + identity["identity_sha256"]:
+                raise ValueError("route artifact does not bind the actual Agent output consumer")
 
 
 @dataclass(frozen=True)
@@ -106,6 +119,7 @@ class Qualification:
     batch_size: int = 1
     concurrency: int = 1
     raw_evidence: str = ""
+    output_contract_sha256: str | None = None
 
     @property
     def qualification_errors(self) -> tuple[str, ...]:
@@ -204,6 +218,8 @@ def select_route(
             continue
         profile = next((p for p in qualifications if
                         p.route_id == route.route_id and p.artifact_id == route.artifact_id
+                        and p.output_contract_sha256 == (route.model_output_contract.identity_sha256
+                                                        if route.model_output_contract else None)
                         and p.task_class == task_class
                         and p.suite_id == suite_id
                         and p.environment_fingerprint == environment_fingerprint
