@@ -16,6 +16,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from vllm_omni.engine.backends import strata_io
 from vllm_omni.engine.backends.strata import (
     _BOOTSTRAP,
     BACKEND_NAME,
@@ -36,6 +37,8 @@ from vllm_omni.engine.backends.strata import (
 )
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 from vllm_omni.engine.weight_tiers import ArtifactFile, ArtifactManifest, WeightTierBudget, WeightTierPlan
+
+pytestmark = [pytest.mark.cpu, pytest.mark.core_model]
 
 SERVER = r"""
 import argparse, json, os, signal, time
@@ -313,6 +316,7 @@ def test_supervisor_builds_tool_free_bounded_configuration(stage_config):
         assert stage.execution_plan["gpu_aggregate_hard_cap_verified"] is False
         assert stage.execution_plan["three_tier_memory_qualified"] is False
         assert len(stage.execution_plan["route_controls_sha256"]) == 64
+        assert "observation_runtime" not in stage.execution_plan["route_controls"]
     finally:
         stage.shutdown()
     assert ledger.releases[-1] is True
@@ -509,6 +513,32 @@ def test_unpinned_runtime_code_refuses_before_model_hashing(stage_config, monkey
     assert ledger.releases == [True]
 
 
+@pytest.mark.parametrize("binding", ["invalid_descriptor", "missing_descriptor", "stale_identity"])
+def test_observation_preflight_refuses_before_model_hashing(stage_config, monkeypatch, binding):
+    runtime = Path(stage_config["runtime_root"])
+    verify = ArtifactManifest.verify
+    verified_roots = []
+
+    def only_runtime_hashing(self, root):
+        verified_roots.append(Path(root))
+        if Path(root) != runtime:
+            pytest.fail("model bytes were hashed before invalid observer identity was refused")
+        return verify(self, root)
+
+    monkeypatch.setattr(ArtifactManifest, "verify", only_runtime_hashing)
+    config = stage_config | {"observation_runtime_identity_sha256": "0" * 64}
+    if binding == "invalid_descriptor":
+        config["observation_runtime"] = {"schema": "unknown"}
+    elif binding == "stale_identity":
+        # Only this test boundary is mocked: it verifies the constructor binds
+        # the freshly computed static identity before any model byte work.
+        config["observation_runtime"] = {"test_only": True}
+        monkeypatch.setattr(strata_io, "verify_observation_runtime", lambda *a: {"identity_sha256": "1" * 64})
+    with pytest.raises(ValueError, match="descriptor|observation|identity"):
+        _stage(config)
+    assert verified_roots == [runtime]
+
+
 def test_mtp_draft_and_gpu_cache_limit_are_part_of_identity(stage_config):
     pack = Path(stage_config["prepared_model_dir"])
     (pack / "draft").mkdir()
@@ -611,6 +641,125 @@ async def test_ordered_stream_ack_isolation_and_explicit_usage(stage_config):
         assert stage.get_graph_output_nowait()._custom_output["stage_event"]["epoch"] == 2
     finally:
         stage.shutdown()
+
+
+def _attach_mock_io_observer(stage, monkeypatch, *, phases=3):
+    """Observe loopback fixture requests; no native/model/placement evidence."""
+    import vllm_omni.engine.backends.strata as backend
+
+    identity = {
+        "schema": "omni-strata-observed-runtime-v1",
+        "base_revision": strata_io.BASE_REVISION,
+        "dependency_revision": strata_io.DEPENDENCY_REVISION,
+        "patch_sha256": strata_io.PATCH_SHA256,
+        "native_io_schema": "strata-omni-io-v1",
+        "three_tier_memory_qualified": False,
+        "test_only": "mock observer identity; not native provenance or neural evidence",
+    }
+    identity["identity_sha256"] = hashlib.sha256(
+        json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    nonce, pid, created = stage._diagnostics.observer_nonce, 1234, 1234567890123
+    stage._observation_runtime = identity
+    stage.execution_plan["observation_runtime"] = identity
+    stage._diagnostics.io_observer = strata_io.StrataIoObserver(nonce, stage._generation, pid, created, identity)
+    monkeypatch.setattr(backend, "_windows_process_creation_filetime", lambda _: created)
+
+    def emit(row):
+        with stage._diagnostics._changed:
+            stage._diagnostics.io_observer.ingest(row)
+            stage._diagnostics._changed.notify_all()
+
+    writer = strata_io.OwnedNativeFrameWriter(nonce, stage._generation, pid, created, emit)
+    original = backend._stream_request
+
+    def observed_request(*args, **kwargs):
+        writer.observe_input("GEN 2 PRIVATE_TOKEN_IDS\n")
+        for index, phase in enumerate(strata_io.PHASES[:phases]):
+            count = writer.sequence * 10 + index
+            value = {
+                "schema": "strata-omni-io-v1",
+                "request_seq": writer.sequence,
+                "phase": phase,
+                "scope": strata_io.SCOPE,
+                "qpc": 100 + count * 10,
+                "qpc_hz": 100,
+                "physical_ssd_read_bytes": None,
+                "expert": {key: count for key in strata_io.EXPERT_INTS | strata_io.EXPERT_FLOATS},
+                "ple": {key: count for key in strata_io.PLE_INTS | strata_io.PLE_FLOATS},
+            }
+            value["expert"].update({key: True for key in strata_io.EXPERT_BOOLS})
+            value["ple"].update({key: True for key in strata_io.PLE_BOOLS})
+            for group, keys in strata_io.ERROR_KEYS.items():
+                value[group].update({key: 0 for key in keys})
+            writer.observe_output("OMNI_IO_V1 " + json.dumps(value))
+        result = original(*args, **kwargs)
+        writer.observe_output("DONE 2 12 1 1 stop 0 0 0 5 10 0 0 0 12 0\n")
+        return result
+
+    monkeypatch.setattr(backend, "_stream_request", observed_request)
+    return writer
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("phases", [2, 3])
+async def test_neural_response_and_observer_completion_are_distinct_and_plan_immutable(
+    stage_config, monkeypatch, phases
+):
+    stage, _ = _stage(stage_config)
+    _attach_mock_io_observer(stage, monkeypatch, phases=phases)
+    loaded_plan = json.dumps(stage.execution_plan, sort_keys=True)
+    try:
+        await stage.add_request_async("first", {"text": "hello"})
+        await stage._task
+        out = stage.get_graph_output_nowait()
+        assert out.outputs[0].text == "AB"
+        first = out.metrics["runtime_telemetry"]["native_io_observation"]
+        assert first["status"] == ("complete" if phases == 3 else "incomplete")
+        assert first["request_id"] == "first" and first["epoch"] == 1
+        assert first["physical_ssd_read_bytes"] is None and first["three_tier_memory_qualified"] is False
+        terminal = out._custom_output["stage_event"]
+        stage.acknowledge("first", terminal["epoch"], terminal["worker_generation"])
+        await stage.add_request_async("second", {"text": "hello"})
+        await stage._task
+        second = stage.get_graph_output_nowait().metrics["runtime_telemetry"]["native_io_observation"]
+        assert second["request_id"] == "second" and second["epoch"] == 2
+        if phases == 3:
+            assert second["status"] == "complete" and second["native_request_seq"] == 2
+        else:
+            assert second["status"] == "incomplete" and second["raw_snapshots"] == []
+            assert second["intervals"] == {}
+        assert json.dumps(stage.execution_plan, sort_keys=True) == loaded_plan
+    finally:
+        stage.shutdown()
+    saved = stage.last_io_observation()
+    assert saved["request_id"] == "second"
+    saved["reasons"].append("caller mutation")
+    assert "caller mutation" not in stage.last_io_observation()["reasons"]
+
+
+@pytest.mark.asyncio
+async def test_cancelled_observer_report_survives_drain_without_late_output(stage_config, monkeypatch):
+    stage, ledger = _stage(stage_config | {"request_timeout_s": 15})
+    writer = _attach_mock_io_observer(stage, monkeypatch, phases=1)
+    loaded_plan = json.dumps(stage.execution_plan, sort_keys=True)
+    await stage.add_request_async("cancel", {"text": "many", "stream_agent": True})
+    deadline = asyncio.get_running_loop().time() + 8
+    while stage._agent_stream.qsize() < 64 and asyncio.get_running_loop().time() < deadline:
+        await asyncio.sleep(0.01)
+    assert stage._agent_stream.qsize() == 64
+    await stage.abort_requests_async(["cancel"])
+    report = stage.last_io_observation()
+    assert report["status"] == "incomplete" and report["request_id"] == "cancel"
+    assert len(report["raw_snapshots"]) == 1 and report["intervals"] == {}
+    assert report["physical_ssd_read_bytes"] is None
+    assert stage._proc.poll() is not None and ledger.releases[-1] is True
+    writer.observe_output("DONE 2 12 1 1 stop 0 0 0 5 10 0 0 0 12 0\n")
+    assert stage.get_graph_output_nowait() is None
+    assert stage.last_io_observation() == report
+    stage.shutdown()
+    assert stage.last_io_observation() == report
+    assert json.dumps(stage.execution_plan, sort_keys=True) == loaded_plan
 
 
 @pytest.mark.asyncio
@@ -1027,3 +1176,74 @@ def test_bootstrap_observes_native_counters_without_changing_native_stdout(tmp_p
     counters = json.loads(line.split("native done ", 1)[1])
     assert counters["hits"] == 8 and counters["lookups"] == 10 and counters["offloaded"] == 7
     assert _sanitize_diagnostic(line) is not None
+
+
+@pytest.mark.skipif(os.name != "nt", reason="owned FILETIME/DLL-search bootstrap is Windows-specific")
+def test_bootstrap_owned_io_frames_preserve_protocol_and_hide_tokens(tmp_path):
+    """Real Windows pipes/FILETIME, mock child and containment; no neural run."""
+    serve = tmp_path / "serve"
+    serve.mkdir()
+    (serve / "__init__.py").write_text("")
+    (serve / "winjob.py").write_text("def contain(proc): return True\n")
+    shim, server = tmp_path / "bootstrap.py", tmp_path / "server.py"
+    shim.write_text(_BOOTSTRAP)
+    rows = []
+    for index, phase in enumerate(strata_io.PHASES):
+        value = {
+            "schema": "strata-omni-io-v1",
+            "request_seq": 1,
+            "phase": phase,
+            "scope": strata_io.SCOPE,
+            "qpc": 100 + index,
+            "qpc_hz": 100,
+            "physical_ssd_read_bytes": None,
+            "expert": {key: 0 for key in strata_io.EXPERT_INTS | strata_io.EXPERT_FLOATS},
+            "ple": {key: 0 for key in strata_io.PLE_INTS | strata_io.PLE_FLOATS},
+        }
+        value["expert"].update({key: True for key in strata_io.EXPERT_BOOLS})
+        value["ple"].update({key: True for key in strata_io.PLE_BOOLS})
+        rows.append("OMNI_IO_V1 " + json.dumps(value))
+    rows.insert(2, "T 987654321")
+    rows.append("DONE 1 12 1 1 stop 0 0 0 0 0 0 0 0 12 0")
+    child = (
+        "import sys,os;assert not any(k.startswith('OMNI_STRATA_') for k in os.environ);"
+        "assert sys.stdin.readline().startswith('GEN ');" + ";".join(f"print({row!r},flush=True)" for row in rows)
+    )
+    server.write_text(
+        "import subprocess,sys,os\n"
+        f"p=subprocess.Popen([sys.executable,'-I','-B','-c',{child!r}],"
+        "stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)\n"
+        "p.stdin.write('GEN 1 PRIVATE_TOKEN_IDS\\n');p.stdin.flush();p.stdin.close()\n"
+        f"assert [x.strip() for x in p.stdout]=={rows!r}\n"
+        "assert p.wait(timeout=5)==0\nprint('upstream protocol unchanged')\n"
+    )
+    nonce, generation = "b" * 32, "mock-owned-generation"
+    env = os.environ | {
+        "OMNI_STRATA_OBSERVER_NONCE": nonce,
+        "OMNI_STRATA_IO_ADAPTER": str(Path(strata_io.__file__).resolve()),
+        "OMNI_STRATA_IO_ADAPTER_SHA256": strata_io.adapter_source_sha256(),
+        "OMNI_STRATA_IO_GENERATION": generation,
+        "PYTHONDONTWRITEBYTECODE": "1",
+    }
+    result = subprocess.run(
+        [sys.executable, "-B", str(shim), sys.executable, str(server)],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=True,
+    )
+    assert result.stdout.strip() == "upstream protocol unchanged"
+    assert "PRIVATE_TOKEN_IDS" not in result.stderr and "T 987654321" not in result.stderr
+    frame_rows = [line for line in result.stderr.splitlines() if line.startswith(strata_io.PREFIX)]
+    assert len(frame_rows) == 5
+    frame = json.loads(frame_rows[0].split(nonce + " ", 1)[1])
+    assert frame["pid"] > 0 and frame["creation_filetime_100ns"] > 0
+    assert frame["generation"] == generation
+    assert [json.loads(row.split(nonce + " ", 1)[1])["kind"] for row in frame_rows] == [
+        "dispatch",
+        "snapshot",
+        "snapshot",
+        "snapshot",
+        "terminal",
+    ]

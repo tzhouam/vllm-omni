@@ -1,0 +1,282 @@
+diff --git a/include/strata/core/expert_source.hpp b/include/strata/core/expert_source.hpp
+index 1bbdb41..d84ce7e 100644
+--- a/include/strata/core/expert_source.hpp
++++ b/include/strata/core/expert_source.hpp
+@@ -602,6 +602,14 @@ public:
+     int64_t warmed() const { return warm_count_.load(std::memory_order_relaxed); }
+     /// #286: blobs an unbuffered read could not deliver, read through the mapping instead (0 when all went direct).
+     int64_t direct_fallbacks() const { return direct_fallbacks_.load(std::memory_order_relaxed); }
++    /// Observer only: exact completed aligned Windows ReadFile transfers. These
++    /// are OS direct-I/O bytes, not proof of physical SSD/NAND transactions.
++    struct DirectIoCounters {
++        bool available = false;
++        uint64_t submitted = 0, completed = 0, completed_bytes = 0;
++        uint64_t submit_errors = 0, completion_errors = 0, short_reads = 0;
++    };
++    DirectIoCounters direct_io_counters() const;
+ 
+     /// Blobs touched, for the driver to report.  With `h = 0` this is `48 * k` per token and the number is only
+     /// interesting once Phase 3 makes it not so.
+@@ -687,6 +695,8 @@ private:
+     std::unique_ptr<std::atomic<uint32_t>[]> warm_stamp_;   ///< per (layer, expert): epoch_ + 1 when warmed
+     std::atomic<int64_t> warm_hits_{0}, warm_count_{0};
+     mutable std::atomic<int64_t> direct_fallbacks_{0};
++    mutable std::atomic<uint64_t> direct_submitted_{0}, direct_completed_{0}, direct_completed_bytes_{0};
++    mutable std::atomic<uint64_t> direct_submit_errors_{0}, direct_completion_errors_{0}, direct_short_reads_{0};
+     std::unordered_map<int64_t, size_t> stage_of_;
+     uint64_t stage_blob_ = 0;
+     uint64_t stage_seq_ = 0;
+diff --git a/include/strata/kernels/ngram.hpp b/include/strata/kernels/ngram.hpp
+index 207707d..45d50d7 100644
+--- a/include/strata/kernels/ngram.hpp
++++ b/include/strata/kernels/ngram.hpp
+@@ -25,6 +25,8 @@
+ #include <cstdint>
+ #include <string>
+ 
++namespace strata::ngram { struct ReaderStats; }
++
+ namespace strata::kernels {
+ 
+ // ---- geometry, every value confirmed against the artifact (docs/gguf-metadata.txt) ----
+@@ -217,6 +219,8 @@ public:
+ 
+     /// One line of reader statistics (Direct mode), e.g. for --stats. Empty in Mmap mode.
+     std::string io_report() const;
++    /// Observer snapshot of existing counters; empty when no direct reader.
++    strata::ngram::ReaderStats io_stats_snapshot() const;
+     PleIo mode() const;
+ 
+ private:
+diff --git a/include/strata/ngram/ple_reader.hpp b/include/strata/ngram/ple_reader.hpp
+index 2884817..26c0845 100644
+--- a/include/strata/ngram/ple_reader.hpp
++++ b/include/strata/ngram/ple_reader.hpp
+@@ -38,6 +38,9 @@ struct ReaderStats {
+     double read_us_sum = 0;       ///< sum of per-read latencies (issue to completion)
+     uint64_t late_injected = 0;   ///< reads delayed by fault injection
+     uint64_t keepalive_reads = 0; ///< pages read only to keep the SSD awake (not in `reads`, `bytes` or latencies)
++    uint64_t keepalive_bytes = 0; ///< completed keep-alive OS transfers, separate from demand reads
++    uint64_t completed_reads = 0, completed_bytes = 0; ///< all completed OS transfers, including keep-alive
++    uint64_t submit_errors = 0, completion_errors = 0, short_reads = 0;
+     double keepalive_us_max = 0;  ///< the slowest of them
+     std::vector<float> read_us;   ///< last <= 65,536 read latencies, for percentiles
+     double percentile(double q) const;
+diff --git a/src/core/expert_source.cpp b/src/core/expert_source.cpp
+index fcf8b71..4dfc78f 100644
+--- a/src/core/expert_source.cpp
++++ b/src/core/expert_source.cpp
+@@ -976,6 +976,9 @@ void FileExpertSource::close() {
+     file_read_bytes_.store(0);
+     file_blob_bytes_.store(0);
+     file_us_.store(0);
++    direct_fallbacks_.store(0);
++    direct_submitted_.store(0); direct_completed_.store(0); direct_completed_bytes_.store(0);
++    direct_submit_errors_.store(0); direct_completion_errors_.store(0); direct_short_reads_.store(0);
+     io_cached_.store(0); io_uncached_.store(0); io_pread_bytes_.store(0); io_pread_us_.store(0); io_pread_n_.store(0);
+     io_pf_jobs_.store(0); io_pf_blobs_.store(0); io_pf_skips_.store(0); io_pf_dropped_.store(0);
+     io_pf_used_.store(0); io_pf_unused_.store(0); io_crit_us_.store(0); io_crit_n_.store(0);
+@@ -1412,6 +1415,20 @@ uint64_t FileExpertSource::expert_bytes() const {
+     return total;
+ }
+ 
++FileExpertSource::DirectIoCounters FileExpertSource::direct_io_counters() const {
++    DirectIoCounters c;
++#if defined(_WIN32)
++    c.available = true;
++    c.submitted = direct_submitted_.load(std::memory_order_relaxed);
++    c.completed = direct_completed_.load(std::memory_order_relaxed);
++    c.completed_bytes = direct_completed_bytes_.load(std::memory_order_relaxed);
++    c.submit_errors = direct_submit_errors_.load(std::memory_order_relaxed);
++    c.completion_errors = direct_completion_errors_.load(std::memory_order_relaxed);
++    c.short_reads = direct_short_reads_.load(std::memory_order_relaxed);
++#endif
++    return c;
++}
++
+ bool FileExpertSource::open_direct(std::string& why) {
+ #if defined(_WIN32)
+     for (const std::string& path : paths_) {
+@@ -1607,19 +1624,33 @@ bool FileExpertSource::read_direct(const Fill* fills, size_t n) const {
+         o.OffsetHigh = (DWORD) (r.a0 >> 32);
+         o.hEvent = sc.ev[q];
+         if (!ReadFile(r.h, sc.buf + r.pos, (DWORD) r.size, nullptr, &o) && GetLastError() != ERROR_IO_PENDING) {
++            direct_submit_errors_.fetch_add(1, std::memory_order_relaxed);
+             ok = false;
+             break;
+         }
++        direct_submitted_.fetch_add(1, std::memory_order_relaxed);
+         ++issued;
+     }
+     std::vector<DWORD>& got = sc.got;
+     got.assign(sc.req.size(), 0);
+-    for (size_t q = 0; q < issued; ++q)
+-        if (!GetOverlappedResult(sc.req[q].h, &sc.ov[q], &got[q], TRUE)) ok = false;
++    for (size_t q = 0; q < issued; ++q) {
++        if (!GetOverlappedResult(sc.req[q].h, &sc.ov[q], &got[q], TRUE)) {
++            direct_completion_errors_.fetch_add(1, std::memory_order_relaxed);
++            ok = false;
++        } else {
++            // Count successful transfers even if another request in the batch
++            // fails and callers retry the batch or use the mapped fallback.
++            direct_completed_.fetch_add(1, std::memory_order_relaxed);
++            direct_completed_bytes_.fetch_add(got[q], std::memory_order_relaxed);
++        }
++    }
+     if (!ok || issued < sc.req.size()) return false;
+     for (const Window& x : sc.win) {
+         // a request may run past the end of the file: only the role's own bytes have to arrive
+-        if ((uint64_t) got[x.req] < x.in_req + x.skip + x.n) return false;
++        if ((uint64_t) got[x.req] < x.in_req + x.skip + x.n) {
++            direct_short_reads_.fetch_add(1, std::memory_order_relaxed);
++            return false;
++        }
+         std::memcpy(x.dst + x.at, sc.buf + sc.req[x.req].pos + x.in_req + x.skip, (size_t) x.n);
+     }
+     return true;
+diff --git a/src/kernels/ngram.cpp b/src/kernels/ngram.cpp
+index 90631b4..d16afbb 100644
+--- a/src/kernels/ngram.cpp
++++ b/src/kernels/ngram.cpp
+@@ -568,6 +568,11 @@ std::string PleTable::io_report() const {
+     return buf;
+ }
+ 
++strata::ngram::ReaderStats PleTable::io_stats_snapshot() const {
++    if (impl_->mode != PleIo::Direct || !impl_->reader.is_open()) return {};
++    return impl_->reader.snapshot();
++}
++
+ void PleTable::gather(const uint32_t* rows16, float* out2560) const {
+     if (impl_->mode == PleIo::Direct) {
+         // `gather` stays const for its existing callers; the reader's state is the table's I/O state.
+diff --git a/src/ngram/ple_reader.cpp b/src/ngram/ple_reader.cpp
+index a03e4c0..b056e43 100644
+--- a/src/ngram/ple_reader.cpp
++++ b/src/ngram/ple_reader.cpp
+@@ -154,6 +154,7 @@ struct PleReader::Impl {
+             j.issued_us = now_us();
+             std::string kerr;             // a keep-alive read that cannot go out must not fail the reader
+             if (!file.submit(j.offset, slot_buf(s), j.length, s, j.keepalive ? kerr : error)) {
++                ++stats.submit_errors;
+                 if (j.keepalive) {                 // no more of them: the SSD may sleep as before
+                     keep_us = 0;
+                     j.keepalive = false;
+@@ -204,9 +205,16 @@ struct PleReader::Impl {
+             return false;
+         }
+         Job& j = inflight[s];
++        // Completion bytes are storage-stack transfers, including any bytes
++        // returned with an error. They do not establish NAND reads or include
++        // unrelated mapped-file/page-cache traffic.
++        ++stats.completed_reads;
++        stats.completed_bytes += c.bytes;
++        if (!c.ok) ++stats.completion_errors;
+         if (j.keepalive) {                         // no rows: it counts once it is done, with how long it took;
+             if (c.ok) {                            // a failed one turns the keep-alive off, not the reader
+                 ++stats.keepalive_reads;
++                stats.keepalive_bytes += c.bytes;
+                 stats.keepalive_us_max = std::max(stats.keepalive_us_max, now_us() - j.issued_us);
+             } else {
+                 keep_us = 0;
+@@ -229,6 +237,7 @@ struct PleReader::Impl {
+         const uint8_t* buf = slot_buf(s);
+         for (const Use& u : j.uses) {
+             if (u.in_page + row_bytes > c.bytes) {
++                ++stats.short_reads;
+                 error = "PleReader: short read inside the table";
+                 cancel_queued();
+                 j.uses.clear();
+diff --git a/src/program/generate.cpp b/src/program/generate.cpp
+index ce8e004..4cf7fac 100644
+--- a/src/program/generate.cpp
++++ b/src/program/generate.cpp
+@@ -37,6 +37,7 @@
+ #include "strata/kernels/cpu/pool.hpp"
+ #include "strata/kernels/cpu/expert_layout.hpp"
+ #include "strata/kernels/ngram.hpp"
++#include "strata/ngram/ple_reader.hpp"
+ #include "strata/kernels/iq_kernels.hpp"
+ #include "strata/kernels/s2_expert_grouped.hpp"
+ #include "strata/kernels/sampler.hpp"
+@@ -235,6 +236,54 @@ bool refill_blocking() {
+ 
+ using Clock = std::chrono::steady_clock;
+ 
++// Private Omni observer patch v1. Numeric cumulative snapshots, not a new I/O
++// path. Upstream server ignores unknown protocol lines; the Omni shim observes
++// these before forwarding the unchanged line. Three phase boundaries avoid
++// relabelling the legacy DONE decode-only counter as a whole-request value.
++static void omni_io_snapshot(const char* phase, uint64_t request_seq,
++                             const strata::core::FileExpertSource& src,
++                             const strata::kernels::PleTable& ple, bool file_source_active) {
++    const auto direct = src.direct_io_counters();
++    const auto p = ple.io_stats_snapshot();
++    uint64_t qpc = 0, qpc_hz = 0;
++#if defined(_WIN32)
++    LARGE_INTEGER now{}, hz{};
++    if (QueryPerformanceCounter(&now) && QueryPerformanceFrequency(&hz)) {
++        qpc = (uint64_t) now.QuadPart; qpc_hz = (uint64_t) hz.QuadPart;
++    }
++#endif
++    std::printf("OMNI_IO_V1 {\"schema\":\"strata-omni-io-v1\",\"request_seq\":%llu,\"phase\":\"%s\","
++                "\"scope\":\"native_FileExpertSource_and_PLE_counters_excludes_loading\","
++                "\"qpc\":%llu,\"qpc_hz\":%llu,\"physical_ssd_read_bytes\":null,"
++                "\"expert\":{\"source_active\":%s,\"unbuffered_active\":%s,\"logical_file_bytes\":%llu,\"logical_blob_bytes\":%llu,"
++                "\"ram_blobs\":%lld,\"file_blobs\":%lld,\"file_thread_us\":%.0f,\"mapped_fallback_blobs\":%lld,"
++                "\"direct_counters_available\":%s,\"direct_submitted\":%llu,\"direct_completed\":%llu,"
++                "\"direct_completed_aligned_bytes\":%llu,\"direct_submit_errors\":%llu,"
++                "\"direct_completion_errors\":%llu,\"direct_short_reads\":%llu},"
++                "\"ple\":{\"direct_active\":%s,\"logical_table_bytes\":%llu,\"rows_requested\":%llu,"
++                "\"cache_hits\":%llu,\"dedup_rows\":%llu,\"demand_reads_issued\":%llu,"
++                "\"demand_completed_bytes\":%llu,\"keepalive_reads\":%llu,\"keepalive_bytes\":%llu,"
++                "\"all_completed_reads\":%llu,\"all_completed_aligned_bytes\":%llu,"
++                "\"submit_errors\":%llu,\"completion_errors\":%llu,\"short_reads\":%llu,"
++                "\"collect_wait_us\":%.3f,\"submit_us\":%.3f,\"read_latency_sum_us\":%.3f}}\n",
++                (unsigned long long) request_seq, phase, (unsigned long long) qpc, (unsigned long long) qpc_hz,
++                file_source_active ? "true" : "false",
++                src.unbuffered() ? "true" : "false", (unsigned long long) src.file_read_bytes(),
++                (unsigned long long) src.file_blob_bytes(), (long long) src.ram_reads(), (long long) src.file_reads(),
++                src.file_ms() * 1000.0, (long long) src.direct_fallbacks(), direct.available ? "true" : "false",
++                (unsigned long long) direct.submitted, (unsigned long long) direct.completed,
++                (unsigned long long) direct.completed_bytes, (unsigned long long) direct.submit_errors,
++                (unsigned long long) direct.completion_errors, (unsigned long long) direct.short_reads,
++                ple.mode() == strata::kernels::PleIo::Direct ? "true" : "false", (unsigned long long) ple.bytes_read(),
++                (unsigned long long) p.requests, (unsigned long long) p.cache_hits, (unsigned long long) p.dedup_rows,
++                (unsigned long long) p.reads, (unsigned long long) p.bytes, (unsigned long long) p.keepalive_reads,
++                (unsigned long long) p.keepalive_bytes, (unsigned long long) p.completed_reads,
++                (unsigned long long) p.completed_bytes, (unsigned long long) p.submit_errors,
++                (unsigned long long) p.completion_errors, (unsigned long long) p.short_reads,
++                p.wait_us, p.submit_us, p.read_us_sum);
++    std::fflush(stdout);
++}
++
+ // --pipeline-windows: every STRATA_PIPELINE_* test and tuning variable (THETA, FORCE_MISS, SWITCH, LOG, TRACE, DOOM_SKIP,
+ // LOOKUP_PON, PRESTAGE, AGREE, SNAP_OVERLAP) is read only with STRATA_PIPELINE_DEBUG=1; without it the defaults apply.
+ static const char* pipe_dbg_env(const char* name) {
+@@ -8901,6 +8950,9 @@ int main(int argc, char** argv) {
+             }
+             cur = ids;
+             const Clock::time_point r0 = Clock::now();
++            static uint64_t omni_request_seq = 0;
++            const uint64_t omni_seq = ++omni_request_seq;
++            omni_io_snapshot("request_start", omni_seq, src, ple_table, srcp == &src);
+             // ---- where this request starts reading: the live session, or a checkpoint, whose tokens AND pictures are
+             // exactly the start of this prompt - at most n - 1 of them, the last token is always the first window
+             auto starts_with = [&](const std::vector<int32_t>& pre, const std::vector<ImgKey>& pre_imgs) -> bool {
+@@ -9785,6 +9837,7 @@ int main(int argc, char** argv) {
+                                drive.d.pcie_experts};
+             };
+             const DecSnap ds0 = dec_snap();
++            omni_io_snapshot("prefill_end_decode_start", omni_seq, src, ple_table, srcp == &src);
+             double dt_run = 0, dt_commit = 0, dt_draft = 0;
+             int64_t dec_windows = 0, dec_T = 0;
+             const int64_t decode_hits0 = drive.d.cache_hits;
+@@ -10723,6 +10776,7 @@ int main(int argc, char** argv) {
+                 std::snprintf(chain_txt, sizeof(chain_txt), " %lld %lld %lld %lld %lld", (long long) chain_ok,
+                               (long long) chain_drafts, (long long) sfx_ok, (long long) sfx_drafts, (long long) dec_windows);
+             if (yielded_at >= 0) std::printf("YIELDED %d %lld\n", yielded_slot, (long long) yielded_at);
++            omni_io_snapshot("request_end", omni_seq, src, ple_table, srcp == &src);
+             std::printf("DONE %lld %lld %.1f %.1f %s %lld %lld %lld %lld %lld %lld %lld %.1f %lld %lld%s\n",
+                         (long long) produced_n,
+                         (long long) n, prompt_ms, decode_ms, finish, (long long) draft_accepted, (long long) draft_offered,

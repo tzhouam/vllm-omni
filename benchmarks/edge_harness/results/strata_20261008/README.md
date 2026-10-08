@@ -1,5 +1,45 @@
 # Strata / shared-lease evidence — 2026-10-08
 
+The separate [observed-runtime Q4 run](native_q4_observed_io.json) now passed
+three actual text requests and a fresh-worker recovery request. English,
+Chinese arithmetic and JSON checks completed in 10.78 / 17.62 / 16.43 s,
+with three ordered, process/request-bound I/O snapshots each. Text-stream
+cancellation after two chunks drained in 2.72 s and preserved an incomplete
+I/O report. Recovery used a new generation with identical controls; final
+ledger/process drain and source stability passed. Initial/recovery starts
+of 281.60 / 273.62 s include full hashes, not pure model loading.
+Loaded EXE, cuBLAS/Lt and driver modules were verified. Completed OS transfers
+are separate from logical useful bytes and unknown physical SSD traffic.
+There is one sample per case, no independently recorded power condition,
+and no p95, new-runtime Agent or three-tier qualification. The retired-owner
+cancellation GPU edge remains unknown; sampled WDDM peaks do not prove
+loading or aggregate limits. Raw evidence retains the private wrapper-guard
+normalization limitation and the missing actual post-cancel plan snapshot.
+The [independent review](native_q4_observed_io_review.json) passed all 12
+checks. Later formatting and repository-required LF normalization preserve
+all ASTs but change source/route identities; measured adapter bytes are
+archived separately. Strict final-source lifecycle and Agent checks require
+a new registration and run rather than inheriting qualification.
+
+The [ISTA acquisition inventory](ista_artifact_inventory.json) now records
+completed Q2/IQ3 weights and the separate vision projector, with all five
+files independently SHA-verified. The [preparation review](ista_preparation.json)
+binds both text packs, launch configurations, conversion records and all 18
+prepared files. Each uses an 8 GiB expert RAM cache, 4K context, FP16 KV,
+MTP/prefetch off and passed its live-capacity preparation preflight. These
+are SSD-backed cache experiments, not fully RAM-resident models. No Q2/IQ3
+neural request or projector execution is recorded yet; launch admission is
+rechecked rather than inheriting the preparation snapshot.
+
+The separate [native I/O patch/build](../../runtime_patches/README.md) completed
+an isolated Windows CUDA 13.4 build and full bundle static verification;
+[source/build/dependency identities](native_io_build.json) are published
+separately. Windows/WSL integration tests passed and production source is
+frozen during the separate neural run above. That new executable has its
+own functional evidence and does not inherit the old release's results below.
+Logical weight bytes and completed OS direct transfers remain separate;
+physical SSD traffic and aggregate three-tier qualification remain unknown.
+
 The latest [actual Windows Qt Agent request](native_q4_qt_agent.json) passed
 one exact short response through the real Q4 model and offscreen Qt event
 loop, with ordered output, restored terminal controls and clean resource
@@ -84,7 +124,8 @@ every actual launch probes it again. The cache-only lower bounds already
 exceed these resources. At that earlier snapshot, complete Q4/ISTA weight sets were still downloading;
 sparse file logical sizes were not completion evidence. The later Q4 run
 verified all four source files and its prepared pack before execution. Q2/IQ3
-weight verification and complete requests remain pending.
+weight verification and text preparation are now complete in the separate
+records above; their complete requests remain pending.
 
 Reproduction commands, model pins, budget declarations and the full batch-1
 protocol are in [STRATA.md](../../STRATA.md). Current milestones and the

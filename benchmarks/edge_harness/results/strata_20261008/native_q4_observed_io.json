@@ -1,0 +1,1720 @@
+{
+  "schema": "omni-strata-native-observed-q4-functional-v1",
+  "observed_date": "2026-10-08",
+  "status": "functional_requests_and_cancel_recovery_passed",
+  "scope": "three actual text requests, one text-stream cancellation and fresh-worker recovery on a separately built runtime; not Agent, performance, release or three-tier qualification",
+  "batch_size": 1,
+  "concurrency": 1,
+  "hardware_post_run_snapshot": {
+    "observed_utc": "2026-10-08T13:09:59.1200045Z",
+    "scope": "read-only post-run host identity snapshot",
+    "cpu": "AMD Ryzen AI 9 HX 370 w/ Radeon 890M",
+    "os_version": "10.0.26200.0",
+    "gpu": [
+      "NVIDIA GeForce RTX 5090 Laptop GPU, 610.71, 24463"
+    ]
+  },
+  "power_condition_during_run": "not independently recorded; GPU power samples remain in raw telemetry",
+  "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+  "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+  "source_weight_bytes": 111334654784,
+  "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+  "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+  "runtime_manifest_sha256": "2f0c41fce151ed7fcfdd735e1aa29c6b355245e6d45d20aedb6e01b896744c00",
+  "observation_runtime": {
+    "schema": "omni-strata-observed-runtime-v1",
+    "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+    "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
+    "native_executable_sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b",
+    "patch_sha256": "31b98e5e02e21a6289d0713097036334a59aef2d15ad9e951ded80f59f4bfdcc",
+    "patch_source_hashes": {
+      "include/strata/core/expert_source.hpp": {
+        "base_sha256": "32f9bc3e7e72c2713d9323dd7353ad70e6b58604daa4e4c18a7e20e1c9929f1f",
+        "patched_sha256": "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081"
+      },
+      "include/strata/kernels/ngram.hpp": {
+        "base_sha256": "edc6d36eaf6062e8c377577de787ed9e5576ede19e04c5964dc7e6b83b8d01ac",
+        "patched_sha256": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4"
+      },
+      "include/strata/ngram/ple_reader.hpp": {
+        "base_sha256": "d19b99a681a533f47144293bb170913c1496b5e0c344aed097ad1418375f7498",
+        "patched_sha256": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c"
+      },
+      "src/core/expert_source.cpp": {
+        "base_sha256": "2f0e14294ba463fd4fbcfb58829865c5f33712bcc72c6856ebbe2ff595b6e208",
+        "patched_sha256": "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0"
+      },
+      "src/kernels/ngram.cpp": {
+        "base_sha256": "e609caf1bb0812f366d96a5304c0f98e2864c1c0d22a0bef7b35d818e09debd5",
+        "patched_sha256": "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb"
+      },
+      "src/ngram/ple_reader.cpp": {
+        "base_sha256": "ddec6dbcc8afd8186c724403d5aaa54b70b9fbd551fea733ce422974131ede9e",
+        "patched_sha256": "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c"
+      },
+      "src/program/generate.cpp": {
+        "base_sha256": "f4eda3a268133016a74b80d61dca99d6e4ce0df99dae4862fd3f6c1026a11d56",
+        "patched_sha256": "d6cec7139469ded5e949025e145cbbd1328212d9e151f10d1f118b522cd15cb8"
+      }
+    },
+    "build_receipt_sha256": "47047533c9c35dcb5c11189fefc76ccd5f4dd22e08cc43662ca83847d14f108d",
+    "dependency_provenance_sha256": "c61f172b9cd688d57c1b327a4b64a4bd99a53ca62364666cf016f78675856bd1",
+    "runtime_dependencies_sha256": "fd4c9277352c5b247490077212ef97ea6f06658eb62ca32b0f11b5373b249d21",
+    "supervisor_bootstrap_sha256": "ad1e4b4a7b530bebc63bc991b4f0f0874bd452e690085bb77b149859c53df30e",
+    "io_adapter_sha256": "80e69bff887ec81a79acc85ade6138ee6f0b08adfdffa51382a9a9d862a021fd",
+    "native_io_schema": "strata-omni-io-v1",
+    "measurement_identity_changed": true,
+    "three_tier_memory_qualified": false,
+    "native_dll_search_policy": "isolated_engine_and_system32",
+    "live_loaded_module_paths_verified": false,
+    "native_dependency_files": [
+      {
+        "path": "engine/cublas64_13.dll",
+        "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+        "size_bytes": 54942320
+      },
+      {
+        "path": "engine/cublasLt64_13.dll",
+        "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+        "size_bytes": 492752496
+      }
+    ],
+    "identity_sha256": "d19e2620fc6dfe8c7ab894a7eea262b24780b210efdf9b8b9113728d140efae0"
+  },
+  "route_controls_sha256": "390589bcd9e2051f250929695a02d9b6bae302d626b1aff747bf898d62939540",
+  "loaded_plans": [
+    {
+      "phase": "initial",
+      "file_sha256": "bff6fa1f4acf79b4f2cf044c3144ce6ddf6260e4c1b64a3d04ccc97c5719e9eb",
+      "canonical_plan_sha256": "d505aa45d9c1ae3ef91a2705b40b23bb17fd9a1c1afc869682a0e6ec4f68714f",
+      "generation": "82bf89aa27b34d62afa9b7e5c0e9b8fe",
+      "module_audit": {
+        "schema": "omni-strata-selected-module-audit-v1",
+        "status": "verified",
+        "scope": "selected_engine_cublas_and_system32_driver_at_load",
+        "all_os_modules_covered": false,
+        "reasons": [],
+        "pid": 120048,
+        "creation_filetime_100ns": 134359380184626837,
+        "modules": [
+          {
+            "name": "cublas64_13.dll",
+            "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+            "size_bytes": 54942320,
+            "identity_source": "verified_runtime_manifest"
+          },
+          {
+            "name": "cublaslt64_13.dll",
+            "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+            "size_bytes": 492752496,
+            "identity_source": "verified_runtime_manifest"
+          },
+          {
+            "name": "nvcuda.dll",
+            "sha256": "f45bbcc7ef1a3e5c479c080ebd02681e83e4881ee0e0ef133e714b43f1644d57",
+            "size_bytes": 4714688,
+            "identity_source": "machine_System32_driver"
+          },
+          {
+            "name": "strata.exe",
+            "sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b",
+            "size_bytes": 58833408,
+            "identity_source": "verified_runtime_manifest"
+          }
+        ]
+      }
+    },
+    {
+      "phase": "recovery",
+      "file_sha256": "065a80b075df32f35296b2702d913635d9c6a80e83dcd95f1b364d9c06c7c88e",
+      "canonical_plan_sha256": "56984f1fb27d8a25533de5c7fd636de86ee2a3772571a0dbf854d195407a28df",
+      "generation": "af53371f2c7047cdaff50b15198e3984",
+      "module_audit": {
+        "schema": "omni-strata-selected-module-audit-v1",
+        "status": "verified",
+        "scope": "selected_engine_cublas_and_system32_driver_at_load",
+        "all_os_modules_covered": false,
+        "reasons": [],
+        "pid": 74768,
+        "creation_filetime_100ns": 134359383776488890,
+        "modules": [
+          {
+            "name": "cublas64_13.dll",
+            "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+            "size_bytes": 54942320,
+            "identity_source": "verified_runtime_manifest"
+          },
+          {
+            "name": "cublaslt64_13.dll",
+            "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+            "size_bytes": 492752496,
+            "identity_source": "verified_runtime_manifest"
+          },
+          {
+            "name": "nvcuda.dll",
+            "sha256": "f45bbcc7ef1a3e5c479c080ebd02681e83e4881ee0e0ef133e714b43f1644d57",
+            "size_bytes": 4714688,
+            "identity_source": "machine_System32_driver"
+          },
+          {
+            "name": "strata.exe",
+            "sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b",
+            "size_bytes": 58833408,
+            "identity_source": "verified_runtime_manifest"
+          }
+        ]
+      }
+    }
+  ],
+  "configuration": {
+    "expert_ram_budget_bytes": 8589934592,
+    "host_overhead_bytes": 6442450944,
+    "gpu_budget_bytes": 17179869184,
+    "context_tokens": 4096,
+    "max_new_tokens": 512,
+    "kv_type": "fp16",
+    "max_io_bytes": 1048576,
+    "batch_size": 1,
+    "mtp_enabled": false,
+    "ple_prefetch_requested": false,
+    "routing_prefetch_requested": false,
+    "io_prefetch_requested": false,
+    "gpu_expert_cache_control": {
+      "schema": "omni-strata-explicit-cache-v2",
+      "layout_sha256": "5ed2c4a55910616db1efe16f0c989e9bec80cc8b9e95bf1c42f886aadfffd2d6",
+      "layout_version": 4,
+      "layers": 48,
+      "max_blob_bytes": 3993600,
+      "alignment_bytes": 256,
+      "aligned_max_blob_bytes": 3993600,
+      "budget_bytes": 8053063680,
+      "requested_slots": 2016,
+      "allocation_upper_bytes": 8051097600,
+      "source_contract": [
+        "kernels/cpu/expert_layout.cpp:311-415",
+        "core/expert_cache.cpp:469-585"
+      ]
+    },
+    "expert_cache_component_bounds": {
+      "evidence": "native_control_bound_with_floor_MiB_INFO_consistency",
+      "gpu_expert_cache": {
+        "observed_slots": 2572,
+        "observed_mib_floor": 7676,
+        "allocation_lower_bytes": 8048869376,
+        "allocation_upper_bytes": 8049917951,
+        "declared_budget_bytes": 8053063680,
+        "profile_sized": true
+      },
+      "ram_expert_cache": {
+        "observed_mib_floor": 8191,
+        "allocation_lower_bytes": 8588886016,
+        "allocation_upper_bytes": 8589934591,
+        "declared_budget_bytes": 8589934592,
+        "source_contract": "core/expert_source.cpp:2101-2147; program/generate.cpp:7892"
+      },
+      "aggregate_gpu_hard_cap_verified": false,
+      "total_process_peak_verified": false,
+      "aggregate_gpu_declared_components_upper_bytes": 17176723455,
+      "aggregate_gpu_budget_bytes": 17179869184
+    },
+    "verified_execution_configuration": "cpu+cuda:0",
+    "observed_model_placement": null
+  },
+  "startup_including_full_hashes_s": {
+    "initial": 281.60021620010957,
+    "recovery": 273.6241975999437
+  },
+  "requests": [
+    {
+      "case_id": "english_ready",
+      "request_id": "strata-1f294ef858e84baa9503e3a9b9049da8",
+      "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+      "input_tokens": 20,
+      "output_tokens": 2,
+      "first_output_s": 10.166161899920553,
+      "full_response_s": 10.780017599929124,
+      "finish_reason": "stop",
+      "phase": "sequential_functional",
+      "quality_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "counters": {
+          "generated": 2,
+          "hits": 212,
+          "lookups": 922,
+          "offloaded": 38,
+          "prompt_read": 20,
+          "prompt_tokens": 20
+        },
+        "cpu_expert_entries": 710,
+        "gpu_expert_entries": 250,
+        "units": [
+          "cpu",
+          "cuda:0"
+        ],
+        "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+      },
+      "native_io_observation": {
+        "schema": "omni-strata-request-io-observation-v1",
+        "status": "complete",
+        "generation": "82bf89aa27b34d62afa9b7e5c0e9b8fe",
+        "native_pid": 120048,
+        "creation_filetime_100ns": 134359380184626837,
+        "request_id": "strata-1f294ef858e84baa9503e3a9b9049da8",
+        "epoch": 1,
+        "native_request_seq": 1,
+        "runtime_identity_sha256": "d19e2620fc6dfe8c7ab894a7eea262b24780b210efdf9b8b9113728d140efae0",
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+        "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+        "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+        "loading_covered": false,
+        "physical_ssd_read_bytes": null,
+        "three_tier_memory_qualified": false,
+        "raw_snapshots": [
+          {
+            "expert": {
+              "direct_completed": 14408,
+              "direct_completed_aligned_bytes": 17180090368,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 14408,
+              "file_blobs": 0,
+              "file_thread_us": 12846292,
+              "logical_blob_bytes": 8052940800,
+              "logical_file_bytes": 8052940800,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 0,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 0,
+              "all_completed_reads": 0,
+              "cache_hits": 0,
+              "collect_wait_us": 0.0,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 0,
+              "demand_reads_issued": 0,
+              "direct_active": true,
+              "keepalive_bytes": 0,
+              "keepalive_reads": 0,
+              "logical_table_bytes": 0,
+              "read_latency_sum_us": 0.0,
+              "rows_requested": 0,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 0.0
+            },
+            "qpc": 19192061139227,
+            "qpc_hz": 10000000,
+            "request_seq": 1,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 27722,
+              "direct_completed_aligned_bytes": 31880998912,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 27722,
+              "file_blobs": 4616,
+              "file_thread_us": 22295352,
+              "logical_blob_bytes": 22522368000,
+              "logical_file_bytes": 22522368000,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 1311,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "prefill_end_decode_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 1605632,
+              "all_completed_reads": 384,
+              "cache_hits": 0,
+              "collect_wait_us": 13.4,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 1277952,
+              "demand_reads_issued": 304,
+              "direct_active": true,
+              "keepalive_bytes": 327680,
+              "keepalive_reads": 80,
+              "logical_table_bytes": 27360,
+              "read_latency_sum_us": 635189.898,
+              "rows_requested": 304,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 391.098
+            },
+            "qpc": 19192156235618,
+            "qpc_hz": 10000000,
+            "request_seq": 1,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 29276,
+              "direct_completed_aligned_bytes": 33544093696,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 29276,
+              "file_blobs": 5169,
+              "file_thread_us": 23229620,
+              "logical_blob_bytes": 24173568000,
+              "logical_file_bytes": 24173568000,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 1506,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_end",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 1773568,
+              "all_completed_reads": 425,
+              "cache_hits": 0,
+              "collect_wait_us": 19.0,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 1409024,
+              "demand_reads_issued": 336,
+              "direct_active": true,
+              "keepalive_bytes": 364544,
+              "keepalive_reads": 89,
+              "logical_table_bytes": 30240,
+              "read_latency_sum_us": 688843.397,
+              "rows_requested": 336,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 478.798
+            },
+            "qpc": 19192166646136,
+            "qpc_hz": 10000000,
+            "request_seq": 1,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          }
+        ],
+        "intervals": {
+          "prefill": {
+            "expert": {
+              "ram_blobs": 1311,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 14469427200,
+              "direct_completion_errors": 0,
+              "direct_submitted": 13314,
+              "file_blobs": 4616,
+              "file_thread_us": 9449060,
+              "direct_completed_aligned_bytes": 14700908544,
+              "logical_file_bytes": 14469427200,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 13314
+            },
+            "ple": {
+              "demand_reads_issued": 304,
+              "keepalive_reads": 80,
+              "submit_us": 391.098,
+              "rows_requested": 304,
+              "all_completed_aligned_bytes": 1605632,
+              "all_completed_reads": 384,
+              "cache_hits": 0,
+              "collect_wait_us": 13.4,
+              "short_reads": 0,
+              "logical_table_bytes": 27360,
+              "read_latency_sum_us": 635189.898,
+              "demand_completed_bytes": 1277952,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 327680,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 9.5096391
+          },
+          "decode": {
+            "expert": {
+              "ram_blobs": 195,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 1651200000,
+              "direct_completion_errors": 0,
+              "direct_submitted": 1554,
+              "file_blobs": 553,
+              "file_thread_us": 934268,
+              "direct_completed_aligned_bytes": 1663094784,
+              "logical_file_bytes": 1651200000,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 1554
+            },
+            "ple": {
+              "demand_reads_issued": 32,
+              "keepalive_reads": 9,
+              "submit_us": 87.69999999999999,
+              "rows_requested": 32,
+              "all_completed_aligned_bytes": 167936,
+              "all_completed_reads": 41,
+              "cache_hits": 0,
+              "collect_wait_us": 5.6,
+              "short_reads": 0,
+              "logical_table_bytes": 2880,
+              "read_latency_sum_us": 53653.49899999995,
+              "demand_completed_bytes": 131072,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 36864,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 1.0410518
+          },
+          "whole_native_interval": {
+            "expert": {
+              "ram_blobs": 1506,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 16120627200,
+              "direct_completion_errors": 0,
+              "direct_submitted": 14868,
+              "file_blobs": 5169,
+              "file_thread_us": 10383328,
+              "direct_completed_aligned_bytes": 16364003328,
+              "logical_file_bytes": 16120627200,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 14868
+            },
+            "ple": {
+              "demand_reads_issued": 336,
+              "keepalive_reads": 89,
+              "submit_us": 478.798,
+              "rows_requested": 336,
+              "all_completed_aligned_bytes": 1773568,
+              "all_completed_reads": 425,
+              "cache_hits": 0,
+              "collect_wait_us": 19.0,
+              "short_reads": 0,
+              "logical_table_bytes": 30240,
+              "read_latency_sum_us": 688843.397,
+              "demand_completed_bytes": 1409024,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 364544,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 10.5506909
+          }
+        },
+        "native_terminal": "stop",
+        "reasons": [],
+        "io_modes": {
+          "expert": "windows_unbuffered_completions_observed",
+          "ple": "direct_completions_observed",
+          "strict_direct_path_verified": false,
+          "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+        }
+      }
+    },
+    {
+      "case_id": "chinese_arithmetic",
+      "request_id": "strata-99547107b77f48fda28719e59047197c",
+      "input_sha256": "c39a4420f1236500989d1a6bf890854cb1cc4ff83ffcde690a3b2e6f3b9cc5ea",
+      "output_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+      "input_tokens": 30,
+      "output_tokens": 3,
+      "first_output_s": 16.051902999868616,
+      "full_response_s": 17.615358099807054,
+      "finish_reason": "stop",
+      "phase": "sequential_functional",
+      "quality_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "counters": {
+          "generated": 3,
+          "hits": 269,
+          "lookups": 1383,
+          "offloaded": 57,
+          "prompt_read": 30,
+          "prompt_tokens": 30
+        },
+        "cpu_expert_entries": 1114,
+        "gpu_expert_entries": 326,
+        "units": [
+          "cpu",
+          "cuda:0"
+        ],
+        "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+      },
+      "native_io_observation": {
+        "schema": "omni-strata-request-io-observation-v1",
+        "status": "complete",
+        "generation": "82bf89aa27b34d62afa9b7e5c0e9b8fe",
+        "native_pid": 120048,
+        "creation_filetime_100ns": 134359380184626837,
+        "request_id": "strata-99547107b77f48fda28719e59047197c",
+        "epoch": 2,
+        "native_request_seq": 2,
+        "runtime_identity_sha256": "d19e2620fc6dfe8c7ab894a7eea262b24780b210efdf9b8b9113728d140efae0",
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+        "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+        "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+        "loading_covered": false,
+        "physical_ssd_read_bytes": null,
+        "three_tier_memory_qualified": false,
+        "raw_snapshots": [
+          {
+            "expert": {
+              "direct_completed": 29276,
+              "direct_completed_aligned_bytes": 33544093696,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 29276,
+              "file_blobs": 5169,
+              "file_thread_us": 23229620,
+              "logical_blob_bytes": 24173568000,
+              "logical_file_bytes": 24173568000,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 1506,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 1785856,
+              "all_completed_reads": 428,
+              "cache_hits": 0,
+              "collect_wait_us": 19.0,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 1409024,
+              "demand_reads_issued": 336,
+              "direct_active": true,
+              "keepalive_bytes": 376832,
+              "keepalive_reads": 92,
+              "logical_table_bytes": 30240,
+              "read_latency_sum_us": 688843.397,
+              "rows_requested": 336,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 478.798
+            },
+            "qpc": 19192170475088,
+            "qpc_hz": 10000000,
+            "request_seq": 2,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 52378,
+              "direct_completed_aligned_bytes": 58867109888,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 52378,
+              "file_blobs": 13134,
+              "file_thread_us": 38639118,
+              "logical_blob_bytes": 49127321600,
+              "logical_file_bytes": 49127321600,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 3176,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "prefill_end_decode_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 3641344,
+              "all_completed_reads": 873,
+              "cache_hits": 152,
+              "collect_wait_us": 39.1,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 2719744,
+              "demand_reads_issued": 648,
+              "direct_active": true,
+              "keepalive_bytes": 921600,
+              "keepalive_reads": 225,
+              "logical_table_bytes": 72000,
+              "read_latency_sum_us": 1272116.699,
+              "rows_requested": 800,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 829.198
+            },
+            "qpc": 19192322952661,
+            "qpc_hz": 10000000,
+            "request_seq": 2,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 55366,
+              "direct_completed_aligned_bytes": 62061633536,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 55366,
+              "file_blobs": 14151,
+              "file_thread_us": 40495101,
+              "logical_blob_bytes": 52298547200,
+              "logical_file_bytes": 52298547200,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 3426,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_end",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 3858432,
+              "all_completed_reads": 923,
+              "cache_hits": 168,
+              "collect_wait_us": 43.1,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 2863104,
+              "demand_reads_issued": 680,
+              "direct_active": true,
+              "keepalive_bytes": 995328,
+              "keepalive_reads": 243,
+              "logical_table_bytes": 76320,
+              "read_latency_sum_us": 1315919.899,
+              "rows_requested": 848,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 904.198
+            },
+            "qpc": 19192343351388,
+            "qpc_hz": 10000000,
+            "request_seq": 2,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          }
+        ],
+        "intervals": {
+          "prefill": {
+            "expert": {
+              "ram_blobs": 1670,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 24953753600,
+              "direct_completion_errors": 0,
+              "direct_submitted": 23102,
+              "file_blobs": 7965,
+              "file_thread_us": 15409498,
+              "direct_completed_aligned_bytes": 25323016192,
+              "logical_file_bytes": 24953753600,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 23102
+            },
+            "ple": {
+              "demand_reads_issued": 312,
+              "keepalive_reads": 133,
+              "submit_us": 350.4,
+              "rows_requested": 464,
+              "all_completed_aligned_bytes": 1855488,
+              "all_completed_reads": 445,
+              "cache_hits": 152,
+              "collect_wait_us": 20.1,
+              "short_reads": 0,
+              "logical_table_bytes": 41760,
+              "read_latency_sum_us": 583273.302,
+              "demand_completed_bytes": 1310720,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 544768,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 15.2477573
+          },
+          "decode": {
+            "expert": {
+              "ram_blobs": 250,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 3171225600,
+              "direct_completion_errors": 0,
+              "direct_submitted": 2988,
+              "file_blobs": 1017,
+              "file_thread_us": 1855983,
+              "direct_completed_aligned_bytes": 3194523648,
+              "logical_file_bytes": 3171225600,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 2988
+            },
+            "ple": {
+              "demand_reads_issued": 32,
+              "keepalive_reads": 18,
+              "submit_us": 75.0,
+              "rows_requested": 48,
+              "all_completed_aligned_bytes": 217088,
+              "all_completed_reads": 50,
+              "cache_hits": 16,
+              "collect_wait_us": 4.0,
+              "short_reads": 0,
+              "logical_table_bytes": 4320,
+              "read_latency_sum_us": 43803.19999999995,
+              "demand_completed_bytes": 143360,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 73728,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 2.0398727
+          },
+          "whole_native_interval": {
+            "expert": {
+              "ram_blobs": 1920,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 28124979200,
+              "direct_completion_errors": 0,
+              "direct_submitted": 26090,
+              "file_blobs": 8982,
+              "file_thread_us": 17265481,
+              "direct_completed_aligned_bytes": 28517539840,
+              "logical_file_bytes": 28124979200,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 26090
+            },
+            "ple": {
+              "demand_reads_issued": 344,
+              "keepalive_reads": 151,
+              "submit_us": 425.4,
+              "rows_requested": 512,
+              "all_completed_aligned_bytes": 2072576,
+              "all_completed_reads": 495,
+              "cache_hits": 168,
+              "collect_wait_us": 24.1,
+              "short_reads": 0,
+              "logical_table_bytes": 46080,
+              "read_latency_sum_us": 627076.502,
+              "demand_completed_bytes": 1454080,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 618496,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 17.28763
+          }
+        },
+        "native_terminal": "stop",
+        "reasons": [],
+        "io_modes": {
+          "expert": "windows_unbuffered_completions_observed",
+          "ple": "direct_completions_observed",
+          "strict_direct_path_verified": false,
+          "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+        }
+      }
+    },
+    {
+      "case_id": "json_tool_format",
+      "request_id": "strata-5fbf383d8e684b9a83d7c7be74d495ee",
+      "input_sha256": "48c39e3aeab00b081c0e550c8e65121f8f696ec8f2add4ad31521b70f73cf288",
+      "output_sha256": "22cdd6496b02d06a4cd71fa0b3e85fbda10206b7b268ded96746e6b7a10cfbe4",
+      "input_tokens": 27,
+      "output_tokens": 7,
+      "first_output_s": 12.258329599862918,
+      "full_response_s": 16.430397699819878,
+      "finish_reason": "stop",
+      "phase": "sequential_functional",
+      "quality_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "counters": {
+          "generated": 7,
+          "hits": 794,
+          "lookups": 3260,
+          "offloaded": 100,
+          "prompt_read": 27,
+          "prompt_tokens": 27
+        },
+        "cpu_expert_entries": 2466,
+        "gpu_expert_entries": 894,
+        "units": [
+          "cpu",
+          "cuda:0"
+        ],
+        "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+      },
+      "native_io_observation": {
+        "schema": "omni-strata-request-io-observation-v1",
+        "status": "complete",
+        "generation": "82bf89aa27b34d62afa9b7e5c0e9b8fe",
+        "native_pid": 120048,
+        "creation_filetime_100ns": 134359380184626837,
+        "request_id": "strata-5fbf383d8e684b9a83d7c7be74d495ee",
+        "epoch": 3,
+        "native_request_seq": 3,
+        "runtime_identity_sha256": "d19e2620fc6dfe8c7ab894a7eea262b24780b210efdf9b8b9113728d140efae0",
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+        "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+        "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+        "loading_covered": false,
+        "physical_ssd_read_bytes": null,
+        "three_tier_memory_qualified": false,
+        "raw_snapshots": [
+          {
+            "expert": {
+              "direct_completed": 55366,
+              "direct_completed_aligned_bytes": 62061633536,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 55366,
+              "file_blobs": 14151,
+              "file_thread_us": 40495101,
+              "logical_blob_bytes": 52298547200,
+              "logical_file_bytes": 52298547200,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 3426,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 3874816,
+              "all_completed_reads": 927,
+              "cache_hits": 168,
+              "collect_wait_us": 43.1,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 2863104,
+              "demand_reads_issued": 680,
+              "direct_active": true,
+              "keepalive_bytes": 1011712,
+              "keepalive_reads": 247,
+              "logical_table_bytes": 76320,
+              "read_latency_sum_us": 1315919.899,
+              "rows_requested": 848,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 904.198
+            },
+            "qpc": 19192347350429,
+            "qpc_hz": 10000000,
+            "request_seq": 3,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 72940,
+              "direct_completed_aligned_bytes": 81373962240,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 72940,
+              "file_blobs": 20221,
+              "file_thread_us": 51872590,
+              "logical_blob_bytes": 71312179200,
+              "logical_file_bytes": 71312179200,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 5011,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "prefill_end_decode_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 5345280,
+              "all_completed_reads": 1285,
+              "cache_hits": 328,
+              "collect_wait_us": 60.6,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 3915776,
+              "demand_reads_issued": 936,
+              "direct_active": true,
+              "keepalive_bytes": 1429504,
+              "keepalive_reads": 349,
+              "logical_table_bytes": 113760,
+              "read_latency_sum_us": 1836717.296,
+              "rows_requested": 1264,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 1233.496
+            },
+            "qpc": 19192463247594,
+            "qpc_hz": 10000000,
+            "request_seq": 3,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 79563,
+              "direct_completed_aligned_bytes": 88470888448,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 79563,
+              "file_blobs": 22541,
+              "file_thread_us": 55962579,
+              "logical_blob_bytes": 78345113600,
+              "logical_file_bytes": 78345113600,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 5449,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_end",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 5677056,
+              "all_completed_reads": 1365,
+              "cache_hits": 400,
+              "collect_wait_us": 71.701,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 4083712,
+              "demand_reads_issued": 976,
+              "direct_active": true,
+              "keepalive_bytes": 1593344,
+              "keepalive_reads": 389,
+              "logical_table_bytes": 123840,
+              "read_latency_sum_us": 1881783.497,
+              "rows_requested": 1376,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 1336.396
+            },
+            "qpc": 19192508344601,
+            "qpc_hz": 10000000,
+            "request_seq": 3,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          }
+        ],
+        "intervals": {
+          "prefill": {
+            "expert": {
+              "ram_blobs": 1585,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 19013632000,
+              "direct_completion_errors": 0,
+              "direct_submitted": 17574,
+              "file_blobs": 6070,
+              "file_thread_us": 11377489,
+              "direct_completed_aligned_bytes": 19312328704,
+              "logical_file_bytes": 19013632000,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 17574
+            },
+            "ple": {
+              "demand_reads_issued": 256,
+              "keepalive_reads": 102,
+              "submit_us": 329.2980000000001,
+              "rows_requested": 416,
+              "all_completed_aligned_bytes": 1470464,
+              "all_completed_reads": 358,
+              "cache_hits": 160,
+              "collect_wait_us": 17.5,
+              "short_reads": 0,
+              "logical_table_bytes": 37440,
+              "read_latency_sum_us": 520797.3970000001,
+              "demand_completed_bytes": 1052672,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 417792,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 11.5897165
+          },
+          "decode": {
+            "expert": {
+              "ram_blobs": 438,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 7032934400,
+              "direct_completion_errors": 0,
+              "direct_submitted": 6623,
+              "file_blobs": 2320,
+              "file_thread_us": 4089989,
+              "direct_completed_aligned_bytes": 7096926208,
+              "logical_file_bytes": 7032934400,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 6623
+            },
+            "ple": {
+              "demand_reads_issued": 40,
+              "keepalive_reads": 40,
+              "submit_us": 102.89999999999986,
+              "rows_requested": 112,
+              "all_completed_aligned_bytes": 331776,
+              "all_completed_reads": 80,
+              "cache_hits": 72,
+              "collect_wait_us": 11.100999999999992,
+              "short_reads": 0,
+              "logical_table_bytes": 10080,
+              "read_latency_sum_us": 45066.200999999885,
+              "demand_completed_bytes": 167936,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 163840,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 4.5097007
+          },
+          "whole_native_interval": {
+            "expert": {
+              "ram_blobs": 2023,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 26046566400,
+              "direct_completion_errors": 0,
+              "direct_submitted": 24197,
+              "file_blobs": 8390,
+              "file_thread_us": 15467478,
+              "direct_completed_aligned_bytes": 26409254912,
+              "logical_file_bytes": 26046566400,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 24197
+            },
+            "ple": {
+              "demand_reads_issued": 296,
+              "keepalive_reads": 142,
+              "submit_us": 432.198,
+              "rows_requested": 528,
+              "all_completed_aligned_bytes": 1802240,
+              "all_completed_reads": 438,
+              "cache_hits": 232,
+              "collect_wait_us": 28.600999999999992,
+              "short_reads": 0,
+              "logical_table_bytes": 47520,
+              "read_latency_sum_us": 565863.598,
+              "demand_completed_bytes": 1220608,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 581632,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 16.0994172
+          }
+        },
+        "native_terminal": "stop",
+        "reasons": [],
+        "io_modes": {
+          "expert": "windows_unbuffered_completions_observed",
+          "ple": "direct_completions_observed",
+          "strict_direct_path_verified": false,
+          "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+        }
+      }
+    },
+    {
+      "case_id": "english_ready",
+      "request_id": "strata-b5331016d15e4620b356a8e60e22db0a",
+      "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+      "input_tokens": 20,
+      "output_tokens": 2,
+      "first_output_s": 10.195498300017789,
+      "full_response_s": 10.777108599897474,
+      "finish_reason": "stop",
+      "phase": "fresh_worker_recovery",
+      "quality_passed": true,
+      "native_compute": {
+        "scope": "routed_decode_experts_only",
+        "counters": {
+          "generated": 2,
+          "hits": 216,
+          "lookups": 911,
+          "offloaded": 49,
+          "prompt_read": 20,
+          "prompt_tokens": 20
+        },
+        "cpu_expert_entries": 695,
+        "gpu_expert_entries": 265,
+        "units": [
+          "cpu",
+          "cuda:0"
+        ],
+        "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+      },
+      "native_io_observation": {
+        "schema": "omni-strata-request-io-observation-v1",
+        "status": "complete",
+        "generation": "af53371f2c7047cdaff50b15198e3984",
+        "native_pid": 74768,
+        "creation_filetime_100ns": 134359383776488890,
+        "request_id": "strata-b5331016d15e4620b356a8e60e22db0a",
+        "epoch": 1,
+        "native_request_seq": 1,
+        "runtime_identity_sha256": "d19e2620fc6dfe8c7ab894a7eea262b24780b210efdf9b8b9113728d140efae0",
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+        "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+        "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+        "loading_covered": false,
+        "physical_ssd_read_bytes": null,
+        "three_tier_memory_qualified": false,
+        "raw_snapshots": [
+          {
+            "expert": {
+              "direct_completed": 14408,
+              "direct_completed_aligned_bytes": 17180090368,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 14408,
+              "file_blobs": 0,
+              "file_thread_us": 13129838,
+              "logical_blob_bytes": 8052940800,
+              "logical_file_bytes": 8052940800,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 0,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 0,
+              "all_completed_reads": 0,
+              "cache_hits": 0,
+              "collect_wait_us": 0.0,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 0,
+              "demand_reads_issued": 0,
+              "direct_active": true,
+              "keepalive_bytes": 0,
+              "keepalive_reads": 0,
+              "logical_table_bytes": 0,
+              "read_latency_sum_us": 0.0,
+              "rows_requested": 0,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 0.0
+            },
+            "qpc": 19195638154761,
+            "qpc_hz": 10000000,
+            "request_seq": 1,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 27710,
+              "direct_completed_aligned_bytes": 31862005760,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 27710,
+              "file_blobs": 4610,
+              "file_thread_us": 22558001,
+              "logical_blob_bytes": 22503424000,
+              "logical_file_bytes": 22503424000,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 1308,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "prefill_end_decode_start",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 1609728,
+              "all_completed_reads": 385,
+              "cache_hits": 0,
+              "collect_wait_us": 10.0,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 1277952,
+              "demand_reads_issued": 304,
+              "direct_active": true,
+              "keepalive_bytes": 331776,
+              "keepalive_reads": 81,
+              "logical_table_bytes": 27360,
+              "read_latency_sum_us": 627668.602,
+              "rows_requested": 304,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 369.502
+            },
+            "qpc": 19195732888810,
+            "qpc_hz": 10000000,
+            "request_seq": 1,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          },
+          {
+            "expert": {
+              "direct_completed": 29102,
+              "direct_completed_aligned_bytes": 33360596992,
+              "direct_completion_errors": 0,
+              "direct_counters_available": true,
+              "direct_short_reads": 0,
+              "direct_submit_errors": 0,
+              "direct_submitted": 29102,
+              "file_blobs": 5154,
+              "file_thread_us": 23416938,
+              "logical_blob_bytes": 23990784000,
+              "logical_file_bytes": 23990784000,
+              "mapped_fallback_blobs": 0,
+              "ram_blobs": 1508,
+              "source_active": true,
+              "unbuffered_active": true
+            },
+            "phase": "request_end",
+            "physical_ssd_read_bytes": null,
+            "ple": {
+              "all_completed_aligned_bytes": 1769472,
+              "all_completed_reads": 424,
+              "cache_hits": 0,
+              "collect_wait_us": 11.7,
+              "completion_errors": 0,
+              "dedup_rows": 0,
+              "demand_completed_bytes": 1409024,
+              "demand_reads_issued": 336,
+              "direct_active": true,
+              "keepalive_bytes": 360448,
+              "keepalive_reads": 88,
+              "logical_table_bytes": 30240,
+              "read_latency_sum_us": 663226.602,
+              "rows_requested": 336,
+              "short_reads": 0,
+              "submit_errors": 0,
+              "submit_us": 470.403
+            },
+            "qpc": 19195742511974,
+            "qpc_hz": 10000000,
+            "request_seq": 1,
+            "schema": "strata-omni-io-v1",
+            "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+          }
+        ],
+        "intervals": {
+          "prefill": {
+            "expert": {
+              "ram_blobs": 1308,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 14450483200,
+              "direct_completion_errors": 0,
+              "direct_submitted": 13302,
+              "file_blobs": 4610,
+              "file_thread_us": 9428163,
+              "direct_completed_aligned_bytes": 14681915392,
+              "logical_file_bytes": 14450483200,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 13302
+            },
+            "ple": {
+              "demand_reads_issued": 304,
+              "keepalive_reads": 81,
+              "submit_us": 369.502,
+              "rows_requested": 304,
+              "all_completed_aligned_bytes": 1609728,
+              "all_completed_reads": 385,
+              "cache_hits": 0,
+              "collect_wait_us": 10.0,
+              "short_reads": 0,
+              "logical_table_bytes": 27360,
+              "read_latency_sum_us": 627668.602,
+              "demand_completed_bytes": 1277952,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 331776,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 9.4734049
+          },
+          "decode": {
+            "expert": {
+              "ram_blobs": 200,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 1487360000,
+              "direct_completion_errors": 0,
+              "direct_submitted": 1392,
+              "file_blobs": 544,
+              "file_thread_us": 858937,
+              "direct_completed_aligned_bytes": 1498591232,
+              "logical_file_bytes": 1487360000,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 1392
+            },
+            "ple": {
+              "demand_reads_issued": 32,
+              "keepalive_reads": 7,
+              "submit_us": 100.90100000000001,
+              "rows_requested": 32,
+              "all_completed_aligned_bytes": 159744,
+              "all_completed_reads": 39,
+              "cache_hits": 0,
+              "collect_wait_us": 1.6999999999999993,
+              "short_reads": 0,
+              "logical_table_bytes": 2880,
+              "read_latency_sum_us": 35558.0,
+              "demand_completed_bytes": 131072,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 28672,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 0.9623164
+          },
+          "whole_native_interval": {
+            "expert": {
+              "ram_blobs": 1508,
+              "direct_short_reads": 0,
+              "logical_blob_bytes": 15937843200,
+              "direct_completion_errors": 0,
+              "direct_submitted": 14694,
+              "file_blobs": 5154,
+              "file_thread_us": 10287100,
+              "direct_completed_aligned_bytes": 16180506624,
+              "logical_file_bytes": 15937843200,
+              "direct_submit_errors": 0,
+              "mapped_fallback_blobs": 0,
+              "direct_completed": 14694
+            },
+            "ple": {
+              "demand_reads_issued": 336,
+              "keepalive_reads": 88,
+              "submit_us": 470.403,
+              "rows_requested": 336,
+              "all_completed_aligned_bytes": 1769472,
+              "all_completed_reads": 424,
+              "cache_hits": 0,
+              "collect_wait_us": 11.7,
+              "short_reads": 0,
+              "logical_table_bytes": 30240,
+              "read_latency_sum_us": 663226.602,
+              "demand_completed_bytes": 1409024,
+              "dedup_rows": 0,
+              "submit_errors": 0,
+              "keepalive_bytes": 360448,
+              "completion_errors": 0
+            },
+            "boundary_wall_s": 10.4357213
+          }
+        },
+        "native_terminal": "stop",
+        "reasons": [],
+        "io_modes": {
+          "expert": "windows_unbuffered_completions_observed",
+          "ple": "direct_completions_observed",
+          "strict_direct_path_verified": false,
+          "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+        }
+      }
+    }
+  ],
+  "cancellation": {
+    "request_id": "strata-cancel-0ce78415d41546da99c8fbca1bdcedb3",
+    "status": "cancelled",
+    "deltas_before_cancel": 2,
+    "confirmation_wall_s": 2.71668089996092,
+    "drained": true,
+    "native_io_observation": {
+      "schema": "omni-strata-request-io-observation-v1",
+      "status": "incomplete",
+      "generation": "82bf89aa27b34d62afa9b7e5c0e9b8fe",
+      "native_pid": 120048,
+      "creation_filetime_100ns": 134359380184626837,
+      "request_id": "strata-cancel-0ce78415d41546da99c8fbca1bdcedb3",
+      "epoch": 4,
+      "native_request_seq": 4,
+      "runtime_identity_sha256": "d19e2620fc6dfe8c7ab894a7eea262b24780b210efdf9b8b9113728d140efae0",
+      "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+      "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+      "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+      "loading_covered": false,
+      "physical_ssd_read_bytes": null,
+      "three_tier_memory_qualified": false,
+      "raw_snapshots": [
+        {
+          "expert": {
+            "direct_completed": 79563,
+            "direct_completed_aligned_bytes": 88470888448,
+            "direct_completion_errors": 0,
+            "direct_counters_available": true,
+            "direct_short_reads": 0,
+            "direct_submit_errors": 0,
+            "direct_submitted": 79563,
+            "file_blobs": 22541,
+            "file_thread_us": 55962579,
+            "logical_blob_bytes": 78345113600,
+            "logical_file_bytes": 78345113600,
+            "mapped_fallback_blobs": 0,
+            "ram_blobs": 5449,
+            "source_active": true,
+            "unbuffered_active": true
+          },
+          "phase": "request_start",
+          "physical_ssd_read_bytes": null,
+          "ple": {
+            "all_completed_aligned_bytes": 5689344,
+            "all_completed_reads": 1368,
+            "cache_hits": 400,
+            "collect_wait_us": 71.701,
+            "completion_errors": 0,
+            "dedup_rows": 0,
+            "demand_completed_bytes": 4083712,
+            "demand_reads_issued": 976,
+            "direct_active": true,
+            "keepalive_bytes": 1605632,
+            "keepalive_reads": 392,
+            "logical_table_bytes": 123840,
+            "read_latency_sum_us": 1881783.497,
+            "rows_requested": 1376,
+            "short_reads": 0,
+            "submit_errors": 0,
+            "submit_us": 1336.396
+          },
+          "qpc": 19192512006277,
+          "qpc_hz": 10000000,
+          "request_seq": 4,
+          "schema": "strata-omni-io-v1",
+          "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+        },
+        {
+          "expert": {
+            "direct_completed": 139272,
+            "direct_completed_aligned_bytes": 151098970112,
+            "direct_completion_errors": 0,
+            "direct_counters_available": true,
+            "direct_short_reads": 0,
+            "direct_submit_errors": 0,
+            "direct_submitted": 139272,
+            "file_blobs": 22865,
+            "file_thread_us": 1148559013,
+            "logical_blob_bytes": 79335014400,
+            "logical_file_bytes": 140728627200,
+            "mapped_fallback_blobs": 0,
+            "ram_blobs": 8190,
+            "source_active": true,
+            "unbuffered_active": true
+          },
+          "phase": "prefill_end_decode_start",
+          "physical_ssd_read_bytes": null,
+          "ple": {
+            "all_completed_aligned_bytes": 16826368,
+            "all_completed_reads": 4033,
+            "cache_hits": 592,
+            "collect_wait_us": 777677.501,
+            "completion_errors": 0,
+            "dedup_rows": 15504,
+            "demand_completed_bytes": 13938688,
+            "demand_reads_issued": 3328,
+            "direct_active": true,
+            "keepalive_bytes": 2887680,
+            "keepalive_reads": 705,
+            "logical_table_bytes": 1748160,
+            "read_latency_sum_us": 186577112.399,
+            "rows_requested": 19424,
+            "short_reads": 0,
+            "submit_errors": 0,
+            "submit_us": 10488.997
+          },
+          "qpc": 19192861604091,
+          "qpc_hz": 10000000,
+          "request_seq": 4,
+          "schema": "strata-omni-io-v1",
+          "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading"
+        }
+      ],
+      "intervals": {},
+      "native_terminal": null,
+      "reasons": [
+        "request_cancelled",
+        "omni_request_not_completed",
+        "missing_complete_native_phase_set_or_terminal"
+      ],
+      "io_modes": {
+        "expert": "unverified",
+        "ple": "unverified",
+        "strict_direct_path_verified": false
+      }
+    },
+    "gpu_edge_observation": "unknown after native owner retirement; no cancellation-memory proof"
+  },
+  "fresh_generation_recovery_passed": true,
+  "ledger_final": {
+    "capacities": {
+      "host_ram": 22930124800,
+      "vram:0": 25651314688,
+      "ssd": 861586432140,
+      "windows_commit": 68113162240
+    },
+    "reserved": {
+      "host_ram": 0,
+      "vram:0": 0,
+      "ssd": 0,
+      "windows_commit": 0
+    },
+    "owners": [],
+    "quarantined": []
+  },
+  "source_stable": true,
+  "source_scope": "recorded working tree includes preserved unrelated edits; not a clean-commit identity",
+  "recorded_repo_source_manifest_sha256": "c42e05ccbf327c65616b26b32d308c295add531979916b97a7fc75c034509f55",
+  "selected_source_files": {
+    "vllm_omni/engine/backends/strata.py": "b32263ffc79b67147f39862323d2913a04a7564a82f9f704916f97e89b1e323f",
+    "vllm_omni/engine/backends/strata_io.py": "80e69bff887ec81a79acc85ade6138ee6f0b08adfdffa51382a9a9d862a021fd",
+    "benchmarks/edge_harness/strata_profile.py": "9f1b2daac826f2949f9d8d49edde3ef7b9e86d166cf999f8781e5634b927cfc5"
+  },
+  "telemetry": {
+    "samples_this_attempt": 3384,
+    "errors": {},
+    "interval_s": 0.1,
+    "sampling_thread_stopped": true,
+    "scope": "whole host/visible GPUs plus separately identified owned native WDDM process",
+    "process_gpu_generations": [
+      {
+        "owner_identity": {
+          "creation_filetime_100ns": 134359380184626837,
+          "pid": 120048,
+          "status": "verified",
+          "worker_generation": "82bf89aa27b34d62afa9b7e5c0e9b8fe",
+          "gpu": {
+            "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+            "pci_bus_id": "00000000:64:00.0",
+            "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+          }
+        },
+        "samples": 422,
+        "sampled_local_peak_bytes": 14449377280,
+        "sampled_nonlocal_peak_bytes": 10437525504,
+        "hard_cap_verified": false,
+        "scope": "separate sampled WDDM local/nonlocal accounting; do not add nonlocal to host RAM"
+      },
+      {
+        "owner_identity": {
+          "creation_filetime_100ns": 134359383776488890,
+          "pid": 74768,
+          "status": "verified",
+          "worker_generation": "af53371f2c7047cdaff50b15198e3984",
+          "gpu": {
+            "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+            "pci_bus_id": "00000000:64:00.0",
+            "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+          }
+        },
+        "samples": 62,
+        "sampled_local_peak_bytes": 14411628544,
+        "sampled_nonlocal_peak_bytes": 10437525504,
+        "hard_cap_verified": false,
+        "scope": "separate sampled WDDM local/nonlocal accounting; do not add nonlocal to host RAM"
+      }
+    ],
+    "limitations": [
+      "sampled peaks may miss transients",
+      "tree RSS can count shared pages twice",
+      "system disk reads include unrelated processes and storage devices",
+      "system disk reads do not establish model-attributable physical SSD bytes",
+      "GPU power is not whole-device power",
+      "WSL RAM is not an extra RAM pool",
+      "process sampling starts after owner identity is available; loading peak and hard cap are unverified",
+      "WDDM nonlocal GPU memory shares host RAM and must not be added to host RSS"
+    ]
+  },
+  "private_raw_receipt_sha256": "a3bff5b77b39999acf7c27e7e1718fda18329f6a9e9b32dabbf778faa57ef927",
+  "private_raw_files": {
+    "after-cancel-ledger.json": {
+      "size_bytes": 289,
+      "sha256": "c5ae799ef334d319cd506b861d3bdb44144fc9ae99308e737d26571a76854adc"
+    },
+    "cancellation.json": {
+      "size_bytes": 6660,
+      "sha256": "99421d68e847cd2a7affca0f26f9f18e63cc8b01b4522bd005f803ef4b2eb20b"
+    },
+    "cancelled-io.json": {
+      "size_bytes": 4159,
+      "sha256": "7485a7d39a071e277b48c82cf42ac2dae3a08b657cd80abe43e4dedcaf4ab239"
+    },
+    "chinese_arithmetic-io.json": {
+      "size_bytes": 9042,
+      "sha256": "de1ee40ed2db022505d3183b0aeddcd4054fe31d5510495de50cc061a558fd13"
+    },
+    "chinese_arithmetic.json": {
+      "size_bytes": 32244,
+      "sha256": "d1542ff90cf5993c14bbc9b2da13dfb56b539431635fab741f3ddec2c5f134b8"
+    },
+    "effective-launch.json": {
+      "size_bytes": 977498,
+      "sha256": "6f1dc8bcd6a6625473c607fd8839d66656daa5a780c2b3084a09a63640daaebc"
+    },
+    "english_ready-io.json": {
+      "size_bytes": 8991,
+      "sha256": "a600da20779763f827d7b254ab4e5a908ee3566d8f8461cefb9b2ea908ab1f61"
+    },
+    "english_ready.json": {
+      "size_bytes": 30638,
+      "sha256": "b7deb92b1e1b143e27a3d3c068a5c12ca8f2eebb433df41160d3c40a50d35d0a"
+    },
+    "initial-close.json": {
+      "size_bytes": 877,
+      "sha256": "8d2e0d13ac1ee7a06dcc5bde697383d83403c0a2ea143fdf706a79238264dc49"
+    },
+    "initial-loaded-plan.json": {
+      "size_bytes": 252742,
+      "sha256": "bff6fa1f4acf79b4f2cf044c3144ce6ddf6260e4c1b64a3d04ccc97c5719e9eb"
+    },
+    "json_tool_format-io.json": {
+      "size_bytes": 9130,
+      "sha256": "ce40a56d84c4d72c044d7e9a8aeeae3ec68cf74ee7599b0b293c717fa61c4df7"
+    },
+    "json_tool_format.json": {
+      "size_bytes": 38338,
+      "sha256": "5285fb278cfdfca3fbb0e7c61d5df989c22391f009484d560198115b9bf9b5bb"
+    },
+    "recovery-close.json": {
+      "size_bytes": 1767,
+      "sha256": "0439dbc6d93ddae85847dcb0311dddae995332f06b78b8d6e5155e8ec7de2e06"
+    },
+    "recovery-loaded-plan.json": {
+      "size_bytes": 252740,
+      "sha256": "065a80b075df32f35296b2702d913635d9c6a80e83dcd95f1b364d9c06c7c88e"
+    },
+    "recovery-request.json": {
+      "size_bytes": 30657,
+      "sha256": "0c36b5762a5cd921076c3ada5c1653a2a0f51381e46a1dabcec79803847275ef"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 3500094,
+      "sha256": "7e969460d988c7cfd4f00d88ea69ede3d79ecc1ea1d8809b820605c9c5c26ad3"
+    }
+  },
+  "launch_file_sha256": "e84dcadf9051ac3fdb5d7c03609497bdac1f0246cef518fe6c47070fb9d177cb",
+  "physical_ssd_read_bytes": null,
+  "three_tier_memory_qualified": false,
+  "default_route_qualified": false,
+  "limitations": [
+    "Only one request per functional case; timings are not p50/p95 or a paired backend comparison.",
+    "New CUDA13.4 executable has its own evidence; old CUDA13.0 results are not inherited.",
+    "Logical useful bytes, aligned completed OS transfers and physical SSD traffic are different measures.",
+    "Loading peak, aggregate memory hard cap and file-cache residency are unqualified; WDDM nonlocal shares host RAM.",
+    "Plan immutability was checked after three completed requests; no actual post-cancel plan snapshot was captured.",
+    "The private v1 wrapper guard has a path-normalization defect; external single-NN coordination was maintained and general wrapper-guard correctness is not qualified.",
+    "Vision, other cancellation phases, repeated recovery, three-band performance and sustained tests remain pending."
+  ]
+}

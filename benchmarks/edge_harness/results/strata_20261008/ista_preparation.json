@@ -1,0 +1,190 @@
+{
+  "schema": "omni-strata-preparation-hash-review-v1",
+  "reviewed_unix_s": 1791463347.764849,
+  "scope": "actual preparation identities only; no model load, inference, quality or latency qualification",
+  "hash_formats": {
+    "manifest_sha256": "ArtifactManifest canonical JSON: sorted file paths and keys, missing optional fields normalized, ensure_ascii=False, compact separators",
+    "canonical_json_sha256": "sorted keys, ensure_ascii=False, compact separators; these differ from file-byte SHA256",
+    "file_sha256": "SHA256 of actual on-disk bytes"
+  },
+  "source_hash_review_scope": "preparation performed full source-shard SHA verification; earlier independent native full-SHA receipts also passed. This review rehashes the small prepared packs, launch, binding and conversion JSON, not the source weights a third time.",
+  "routes": [
+    {
+      "variant": "IQ3_XXS",
+      "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+      "checkpoint_revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+      "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+      "preparation_status": "completed",
+      "admission_preflight_passed": true,
+      "source_manifest_sha256": "83d8802b861277f3f5bcaf1c8c67f72bb5923f90eb782c64f581aaa68f51b6e7",
+      "source_files": [
+        {
+          "path": "IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf",
+          "size_bytes": 47039860096,
+          "sha256": "219ea929900dfa9ef091f3aa473fdba6874b65fcb36526d7d851ac9e95856d15"
+        },
+        {
+          "path": "IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00002-of-00002.gguf",
+          "size_bytes": 28800138432,
+          "sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113"
+        }
+      ],
+      "prepared_pack_manifest_sha256": "e74612da4cc79eb2f2cdf047df4cef6b7c479ad47d0b2435e3c6e5d05e8f972f",
+      "prepared_pack_files_rehashed": true,
+      "prepared_pack_bytes": 1548225865,
+      "prepared_pack_files": [
+        {
+          "path": "conversions.json",
+          "size_bytes": 326,
+          "sha256": "0b5fd7f418b9a01029067e51b1d2cc36f70fc85c17d0c889fff2273006a4fff5"
+        },
+        {
+          "path": "dense.bin",
+          "size_bytes": 1538035200,
+          "sha256": "d2af3d8331e5c7a1985d1d589747230f9d56719a6d33c7cddc9ee6b81cde6b13"
+        },
+        {
+          "path": "index.txt",
+          "size_bytes": 93687,
+          "sha256": "1afe12b36cd2d13bf122b741fa0e81e1f751319cc3c451e54ba75524d825f148"
+        },
+        {
+          "path": "native_experts.txt",
+          "size_bytes": 3296,
+          "sha256": "ae28cf7a2a1c9063c4b55d6c8cf86d4d079dcddcf597f9e8697c9157d462c0ee"
+        },
+        {
+          "path": "tokenizer/chat_template.jinja",
+          "size_bytes": 9993,
+          "sha256": "12827f24b742ea4e80cdc12dbcf9622227056b9f797252a3149263d4f9aaadce"
+        },
+        {
+          "path": "tokenizer/merges.txt",
+          "size_bytes": 3600844,
+          "sha256": "080cf95432173729d160346b7882bd2a644b07f7a3813a3eb73f4e66787bfde9"
+        },
+        {
+          "path": "tokenizer/token_type.json",
+          "size_bytes": 744960,
+          "sha256": "5088c8c298fc06af8382ddb3b76c888703ac2634e82263b97eedcc2ad202738b"
+        },
+        {
+          "path": "tokenizer/tokenizer.json",
+          "size_bytes": 554,
+          "sha256": "87be2ac47d8bc7393b7435df6ccd276740019a393941a2585d5edce59f450c54"
+        },
+        {
+          "path": "tokenizer/vocab.json",
+          "size_bytes": 5737005,
+          "sha256": "4ba64f0332abcfb0b600b7df1537d1e836e68009d5fb7cdb77339738dc6365c4"
+        }
+      ],
+      "runtime_manifest_sha256": "9ac0400d05dca037673672a76e378df514ccf88fa52df43f6d1538b88cac9962",
+      "runtime_engine_sha256": "34cde150b21148e6cf192dbf2242e5544d3456c09ab0010837aaacfda11eca5b",
+      "conversion_manifest_canonical_sha256": "a5eac8a5b5f68caeeb6cb5ebdee3b4d624c8f69156e9029d764dd7f254c9b828",
+      "upstream_conversions_file_sha256": "0b5fd7f418b9a01029067e51b1d2cc36f70fc85c17d0c889fff2273006a4fff5",
+      "conversion_count": 0,
+      "compat_bf16": false,
+      "launch_canonical_sha256": "04f85537de505579833480b94dd5c63d42ad13016579e40f40e2672fbe5a0aa6",
+      "launch_file_sha256": "76fdbece11b565c252d86e4927fd243b82afacd769bb673331680ab124110f15",
+      "binding_canonical_sha256": "d7d33fe30f603bc3d23c5a99079c5dc71d53e87954e87affe6f088801d8d2e7c",
+      "binding_file_sha256": "dc8207edfe63498e52a33636b561e11460ea54f7c9451ac3bf85f6bacac639b7",
+      "preparation_receipt_file_sha256": "5db2120f51c04d96d84695ac271efaf9b89a08974eda584136e46148500b6d04",
+      "context_tokens": 4096,
+      "kv_type": "fp16",
+      "expert_ram_budget_bytes": 8589934592,
+      "mtp_enabled": false,
+      "prefetch_enabled": false,
+      "neural_status": "not_executed"
+    },
+    {
+      "variant": "Q2_0",
+      "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+      "checkpoint_revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+      "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+      "preparation_status": "completed",
+      "admission_preflight_passed": true,
+      "source_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+      "source_files": [
+        {
+          "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00001-of-00002.gguf",
+          "size_bytes": 37623740192,
+          "sha256": "69820c02ec7d0b45ef2ebb19d6620299db749fe2aded7f39f93c6b88b199b720"
+        },
+        {
+          "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00002-of-00002.gguf",
+          "size_bytes": 28800138432,
+          "sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113"
+        }
+      ],
+      "prepared_pack_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900",
+      "prepared_pack_files_rehashed": true,
+      "prepared_pack_bytes": 1495796923,
+      "prepared_pack_files": [
+        {
+          "path": "conversions.json",
+          "size_bytes": 320,
+          "sha256": "f3845c0566e9b926c4caeea2e1f20f11f5293f143ad08f1b48c91adf3d7ed6fd"
+        },
+        {
+          "path": "dense.bin",
+          "size_bytes": 1485606400,
+          "sha256": "a43d7d0b69525335f4b000d5197a1d3aefcd3c0014fc3e12b3455e0a5d827ba2"
+        },
+        {
+          "path": "index.txt",
+          "size_bytes": 93561,
+          "sha256": "c758314d495a1261d06a806b1c415596dfabe62e0cbf44ce592dc84c53229ccd"
+        },
+        {
+          "path": "native_experts.txt",
+          "size_bytes": 3286,
+          "sha256": "015e53d3ae36324f172be4942bcf129539b343e2eb4fcd4f25ca5eff180bfa41"
+        },
+        {
+          "path": "tokenizer/chat_template.jinja",
+          "size_bytes": 9993,
+          "sha256": "12827f24b742ea4e80cdc12dbcf9622227056b9f797252a3149263d4f9aaadce"
+        },
+        {
+          "path": "tokenizer/merges.txt",
+          "size_bytes": 3600844,
+          "sha256": "080cf95432173729d160346b7882bd2a644b07f7a3813a3eb73f4e66787bfde9"
+        },
+        {
+          "path": "tokenizer/token_type.json",
+          "size_bytes": 744960,
+          "sha256": "5088c8c298fc06af8382ddb3b76c888703ac2634e82263b97eedcc2ad202738b"
+        },
+        {
+          "path": "tokenizer/tokenizer.json",
+          "size_bytes": 554,
+          "sha256": "87be2ac47d8bc7393b7435df6ccd276740019a393941a2585d5edce59f450c54"
+        },
+        {
+          "path": "tokenizer/vocab.json",
+          "size_bytes": 5737005,
+          "sha256": "4ba64f0332abcfb0b600b7df1537d1e836e68009d5fb7cdb77339738dc6365c4"
+        }
+      ],
+      "runtime_manifest_sha256": "9ac0400d05dca037673672a76e378df514ccf88fa52df43f6d1538b88cac9962",
+      "runtime_engine_sha256": "34cde150b21148e6cf192dbf2242e5544d3456c09ab0010837aaacfda11eca5b",
+      "conversion_manifest_canonical_sha256": "61b9bcfa8093f3b84e2eccb1f6c8ee64390746767310c10ad5fb0b0419b3a883",
+      "upstream_conversions_file_sha256": "f3845c0566e9b926c4caeea2e1f20f11f5293f143ad08f1b48c91adf3d7ed6fd",
+      "conversion_count": 0,
+      "compat_bf16": false,
+      "launch_canonical_sha256": "ffa655d1884cac962027d232fa81e09d1acd920c551be953933537f77eb476e5",
+      "launch_file_sha256": "3ff069a7269210a89a60335e862cb37a5958eb66bcf46c87cd914383b1c932ab",
+      "binding_canonical_sha256": "fd1abb12802af9ac8cb23febb058dd11550187a169f2f24fc3dacda06f65d285",
+      "binding_file_sha256": "c94817bf9548ee38d519236c2304c8deed96a0bc8aeaac5cc8fa287cc871212a",
+      "preparation_receipt_file_sha256": "8701cb7af8eea7b17f2674d5f244af47b910347f1332bc7607ee59551a1299ce",
+      "context_tokens": 4096,
+      "kv_type": "fp16",
+      "expert_ram_budget_bytes": 8589934592,
+      "mtp_enabled": false,
+      "prefetch_enabled": false,
+      "neural_status": "not_executed"
+    }
+  ],
+  "review_passed": true
+}

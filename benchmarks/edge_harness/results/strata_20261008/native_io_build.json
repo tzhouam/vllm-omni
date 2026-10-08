@@ -1,0 +1,163 @@
+{
+  "schema": "omni-strata-native-observation-build-v1",
+  "observed_date": "2026-10-08",
+  "status": "built_and_statically_verified_not_neurally_qualified",
+  "scope": "isolated local source build and static bundle identity; no independent rebuild or neural/performance qualification",
+  "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+  "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
+  "patch_sha256": "31b98e5e02e21a6289d0713097036334a59aef2d15ad9e951ded80f59f4bfdcc",
+  "patched_sources": [
+    {
+      "path": "include/strata/core/expert_source.hpp",
+      "base_sha256": "32f9bc3e7e72c2713d9323dd7353ad70e6b58604daa4e4c18a7e20e1c9929f1f",
+      "patched_sha256": "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081"
+    },
+    {
+      "path": "include/strata/kernels/ngram.hpp",
+      "base_sha256": "edc6d36eaf6062e8c377577de787ed9e5576ede19e04c5964dc7e6b83b8d01ac",
+      "patched_sha256": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4"
+    },
+    {
+      "path": "include/strata/ngram/ple_reader.hpp",
+      "base_sha256": "d19b99a681a533f47144293bb170913c1496b5e0c344aed097ad1418375f7498",
+      "patched_sha256": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c"
+    },
+    {
+      "path": "src/core/expert_source.cpp",
+      "base_sha256": "2f0e14294ba463fd4fbcfb58829865c5f33712bcc72c6856ebbe2ff595b6e208",
+      "patched_sha256": "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0"
+    },
+    {
+      "path": "src/kernels/ngram.cpp",
+      "base_sha256": "e609caf1bb0812f366d96a5304c0f98e2864c1c0d22a0bef7b35d818e09debd5",
+      "patched_sha256": "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb"
+    },
+    {
+      "path": "src/ngram/ple_reader.cpp",
+      "base_sha256": "ddec6dbcc8afd8186c724403d5aaa54b70b9fbd551fea733ce422974131ede9e",
+      "patched_sha256": "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c"
+    },
+    {
+      "path": "src/program/generate.cpp",
+      "base_sha256": "f4eda3a268133016a74b80d61dca99d6e4ce0df99dae4862fd3f6c1026a11d56",
+      "patched_sha256": "d6cec7139469ded5e949025e145cbbd1328212d9e151f10d1f118b522cd15cb8"
+    }
+  ],
+  "build_receipt_file_sha256": "47047533c9c35dcb5c11189fefc76ccd5f4dd22e08cc43662ca83847d14f108d",
+  "parallelism": 2,
+  "compiler_versions": {
+    "nvcc": "13.4.59",
+    "msvc": "19.44.35229",
+    "windows_sdk": "10.0.26100.0",
+    "cmake": "3.31.6",
+    "ninja": "1.12.1"
+  },
+  "build_options": {
+    "cuda_architectures": "120",
+    "cuda_runtime_library": "Static",
+    "portable": true,
+    "native_experts": true,
+    "mmq_kquants": false
+  },
+  "outputs": {
+    "strata.exe": {
+      "size_bytes": 58833408,
+      "sha256": "5bd6bd3e7c5f473d5b504f92840331177d2651106d408004457d3d661efa803b"
+    },
+    "CMakeCache.txt": {
+      "size_bytes": 50676,
+      "sha256": "958f7527cebe835c1c75abce5916b7292931711390394758b832a2141a5a79b4"
+    },
+    "compile_commands.json": {
+      "size_bytes": 207449,
+      "sha256": "c023f779441ae874115592588e8bcebd8f629c3e756ac196ece9386eb0bfe872"
+    },
+    "build.ninja": {
+      "size_bytes": 398754,
+      "sha256": "74970c2ff02aa0c612da5d3391c0f434b901fb774a03982f8aad9184aff65b46"
+    }
+  },
+  "build_steps": [
+    {
+      "ordinal": 0,
+      "exit_code": 0,
+      "log_sha256": "6bba86df9fc276138685eec48ba097144cf02a936b1c93b55a6e4a555e29d656"
+    },
+    {
+      "ordinal": 1,
+      "exit_code": 0,
+      "log_sha256": "4d7defe4889736761caf6639ffd4df741b4dd0bc01815194cb5715038d995f26"
+    }
+  ],
+  "tool_logs": {
+    "nvcc": {
+      "exit_code": 0,
+      "log_sha256": "523d89efe80cfc9fe2bb3685c74efe89baf2259d174dc475045d885e2136c4a7"
+    },
+    "cmake": {
+      "exit_code": 0,
+      "log_sha256": "02282b1eefbb0dd98bd4578caa8861cc2de062ebcbef435bace0359683bbfa57"
+    },
+    "ninja": {
+      "exit_code": 0,
+      "log_sha256": "53c905b7eb0035c96d3b8cd4667a1f1e7a52cc6d4fd01c94badb86d46a254118"
+    },
+    "cl": {
+      "exit_code": 2,
+      "log_sha256": "048bc71b2a48f8afd30645c3ea2b2650cde04f883265339c0820a0156a475f6e"
+    }
+  },
+  "runtime_manifest_sha256": "2f0c41fce151ed7fcfdd735e1aa29c6b355245e6d45d20aedb6e01b896744c00",
+  "runtime_manifest_file_sha256": "99f582d1b6e2b1290da8059d9679a34ce8ccc2b85973dda8e12aa0a77a97cdf1",
+  "runtime_file_count": 2335,
+  "runtime_total_bytes": 648639775,
+  "parent_runtime_manifest_sha256": "9ac0400d05dca037673672a76e378df514ccf88fa52df43f6d1538b88cac9962",
+  "native_dependencies": [
+    {
+      "path": "engine/cublas64_13.dll",
+      "size_bytes": 54942320,
+      "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9"
+    },
+    {
+      "path": "engine/cublasLt64_13.dll",
+      "size_bytes": 492752496,
+      "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107"
+    }
+  ],
+  "native_static_imports": {
+    "engine/strata.exe": [
+      "cublas64_13.dll",
+      "KERNEL32.dll",
+      "ADVAPI32.dll"
+    ],
+    "engine/cublas64_13.dll": [
+      "cublasLt64_13.dll",
+      "KERNEL32.dll"
+    ],
+    "engine/cublasLt64_13.dll": [
+      "KERNEL32.dll"
+    ]
+  },
+  "live_loaded_modules_verified": false,
+  "physical_ssd_read_bytes": null,
+  "three_tier_memory_qualified": false,
+  "observation_scope": {
+    "prefix": "OMNI_IO_V1 ",
+    "schema": "strata-omni-io-v1",
+    "phases": [
+      "request_start",
+      "prefill_end_decode_start",
+      "request_end"
+    ],
+    "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+    "values": "cumulative snapshots; derive deltas only for identical process generation and request_seq; exact integer logical/direct completion bytes; summed reader thread times separate from wall latency",
+    "physical_ssd_read_bytes": null
+  },
+  "qualification_created": false,
+  "notes": [
+    "Original CUDA 13.0 runtime, launch and pack remain unchanged.",
+    "The new CUDA 13.4 executable must pass its own neural requests.",
+    "Source/build/patch records are bound by hashes; this is not an independent reproducible rebuild."
+  ]
+}

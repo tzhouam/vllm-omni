@@ -1,5 +1,31 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-08）
 
+新原生 I/O 版本的[真实 Q4 请求及取消/恢复](results/strata_20261008/native_q4_observed_io.json)
+已通过：英文、中文算术、JSON 三条完整请求分别为 **10.78 / 17.62 / 16.43 秒**，
+每条取得有序、绑定进程和请求身份的 prefill/decode/整段原生读取记录。
+两个文本 chunk 后取消，**2.72 秒**确认排空；新 worker 用同一控制配置完成
+精确恢复回答，最终账本为空、进程退出、源码未变化。初次及恢复启动
+**281.60 / 273.62 秒**包含全量哈希，不能称为纯模型加载。实际加载的 EXE、
+cuBLAS/Lt 和驱动模块已核对；三条完成请求的读取错误及映射回退增量均为 0。
+这是独立 CUDA 13.4 运行时的窄范围文本验证，尚未在该版本复跑 Agent。
+每类仅一条样本，运行电源条件未独立记录；不是 p95、物理 SSD 测量或三层内存资格。
+[独立复核](results/strata_20261008/native_q4_observed_io_review.json)通过 12 项检查；
+后续格式化及换行规范化未改变 AST，但改变了源码/路线身份；已保留实测版本，
+最终源码资格仍需重新注册路线及复跑。
+
+最新准备进度：[ISTA Q2/IQ3 的全部权重及独立视觉投影](results/strata_20261008/ista_artifact_inventory.json)
+已下载完成并逐文件独立验证 SHA-256；两条文本路线的
+[兼容 pack、启动配置和准入预检](results/strata_20261008/ista_preparation.json)
+也已完成并独立复核。它们分别使用 8 GiB 专家 RAM 预算、4K 上下文、FP16 KV，
+关闭 MTP 和预取；仍是 SSD 支持的缓存实验，尚未执行神经请求或取得图像资格。
+
+用于补齐读取证据的[原生 I/O 观测补丁](runtime_patches/README.md)已在隔离源码上
+完成 Windows CUDA 13.4 构建；固定了补丁、七个源文件、ggml 依赖、编译日志、
+可执行文件和 cuBLAS DLL。[构建记录](results/strata_20261008/native_io_build.json)、
+CLI 与完整运行时包静态校验通过，Windows/WSL 接入测试已通过并冻结代码；
+该新二进制已完成上述独立神经验证。它分别报告逻辑权重读取和操作系统直接传输，
+物理 SSD 流量仍为 unknown，不继承以下旧运行时的神经请求结果。
+
 最新的[Windows Qt Agent 实际请求](results/strata_20261008/native_q4_qt_agent.json)
 已通过：真实 Q4 模型经离屏 Qt 界面发送、Omni 执行、有序流式显示、精确回答及关闭释放。
 模型调用耗时 **15.59 秒**，Omni 提交到首个可见 SSE delta 为 **14.94 秒**；
@@ -126,9 +152,9 @@ Windows 工具仍由 Agent 的权限边界执行，模型后端没有工具执�
 
 | 路线 | 固定产物 | 当前状态 | 下一道验收 |
 | --- | --- | --- | --- |
-| Strata RAM Q2 | ISTA Q2_0，66,423,878,624 B，不含 projector | 清单与准备工具完成；全部权重核验与完整请求待完成 | 校验全部权重、打包、关闭 MTP 的文本请求、同 GGUF llama.cpp 对照 |
-| Strata RAM IQ3 | ISTA IQ3_XXS，75,839,998,528 B，不含 projector | 清单完成；权重及完整请求待完成 | 独立准入及完整文本质量/延迟；不能继承 Q2 或 Q4 结论 |
-| Strata SSD Q4 | Unsloth UD-Q4_K_XL，111,334,654,784 B，四分片 | 全部分片及 pack 已校验，原生三条短文本通过；显式缓存 Agent 2/2；另一次实际文本流取消/新 worker 恢复通过并保存加载计划；旧自动缓存不一致保留，三层内存未合格 | 其他 I/O/传输取消与重复恢复；同产物对照、物理 I/O、总体内存峰值及完整性能协议 |
+| Strata RAM Q2 | ISTA Q2_0，66,423,878,624 B，不含 projector | 全部分片及独立投影已校验，文本 pack/启动配置完成，8 GiB 缓存准入预检通过；未执行模型 | 启动时重新准入、关闭 MTP 的完整文本请求、同 GGUF llama.cpp 对照 |
+| Strata RAM IQ3 | ISTA IQ3_XXS，75,839,998,528 B，不含 projector | 全部分片及独立投影已校验，文本 pack/启动配置完成，8 GiB 缓存准入预检通过；未执行模型 | 独立完整文本质量/延迟；不能继承 Q2 或 Q4 结论 |
+| Strata SSD Q4 | Unsloth UD-Q4_K_XL，111,334,654,784 B，四分片 | 新 I/O 运行时三条文本及取消/恢复通过，取得实际模块和逐请求读取证据；旧版本 Agent/Qt 窄范围通过；三层内存未合格 | 新运行时 Agent；其他 I/O/传输取消与重复恢复；同产物对照、物理 I/O、总体内存峰值及完整性能协议 |
 | DeepSeek V4.1 | 七分片 Q2_K，264,515,279,456 B | 固定元数据与专用运行时版本；未下载或执行 | 专用 CPU mmap 基线、显式运行选项、受控缓存，Windows 单独验证 |
 | Android | Gemma 4 E2B/E4B、Qwen3.8-27B IQ1_S | 候选身份与控制契约完成 | 实际 LiteRT-LM/llama.cpp 适配器，再做设备本地验证 |
 
@@ -144,6 +170,10 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 
 ## 原始证据与复现
 
+- [新 I/O 运行时真实 Q4](results/strata_20261008/native_q4_observed_io.json)：四条实际完成请求（含恢复）、逐阶段读取、实际 DLL、取消不完整记录、源码稳定性和原始文件哈希。
+- [新 I/O 运行复核](results/strata_20261008/native_q4_observed_io_review.json)：12 项独立检查、原始审计哈希和后续格式化的身份边界。
+- [ISTA 完整产物校验](results/strata_20261008/ista_artifact_inventory.json)及[文本路线准备复核](results/strata_20261008/ista_preparation.json)：下载、逐文件 SHA、pack、转换清单、启动与绑定身份；不包含模型执行。
+- [原生 I/O 补丁与隔离构建](runtime_patches/README.md)：构建配置、二进制身份及观测边界；新运行时神经验证待完成。
 - [实际取消/恢复](results/strata_20261008/native_q4_cancel_recovery.json)：两条文本 chunk 后取消、精确账本排空、新 worker 恢复、实际加载计划/控制哈希及边界。
 - [显式缓存 Agent 复跑](results/strata_20261008/native_q4_bounded_cache_agent.json)：新源代码身份、重建的缓存控制、原生 INFO、跨会话记忆/短回答及观测边界。
 - [此前本机 Q4 完整请求](results/strata_20261008/native_q4_reproduction.json)：全部产物身份、三条短文本请求、旧自动缓存、加载/计算证据和先前失败。
@@ -162,9 +192,9 @@ Strata 启动前会重新探测，不能沿用旧快照。没有通过修改 pag
 ## 后续推进顺序
 
 1. Q4 全部分片、短文本、显式缓存 Agent 和一轮真实模型取消/恢复已完成窄范围检查；实际加载计划已在独立取消实验保存。接着覆盖其他 I/O/传输取消阶段与重复恢复，保留旧自动缓存和失败记录。
-2. 继续 Q2、IQ3 的全部权重核验、打包及独立完整请求；按实际可用 RAM/commit/VRAM 准入，不足时保留明确拒绝。
+2. Q2、IQ3 的全部权重核验与文本打包已完成；接着独立完整请求，启动时按实际可用 RAM/commit/VRAM 重新准入，不足时保留明确拒绝。
 3. 同 GGUF 与 llama.cpp 静态卸载配对；先关闭 MTP，再独立比较 MTP、预取和 24/32/40 GiB 缓存。
-4. 补齐可归属的物理 SSD I/O、实际计算位置和文件缓存峰值观测；未核实前不宣称受控三层内存资格。
+4. 原生逻辑读取和操作系统直接传输已取得逐请求证据；继续补齐可归属的物理 SSD I/O、更多实际计算位置和文件缓存峰值观测，未核实前不宣称受控三层内存资格。
 5. 完成真实图像、中文、代码、工具、记忆、多轮及更多阶段/重复取消恢复质量；三档各 20 次、独立冷启动和连续 30 分钟。
 6. 只有通过完整任务、内存、稳定性和安全门槛的路线才能签署 Agent 资格；同等成功率按完整回答 p95 选择。
 7. 在桌面正确性基线后接 DeepSeek 专用运行时；Android 先实际后端适配，再做真机验收。

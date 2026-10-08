@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import copy
 import dataclasses
 import hashlib
 import json
@@ -35,6 +36,7 @@ from omegaconf import OmegaConf
 from vllm.outputs import CompletionOutput
 
 from omni_stage_contracts import StageEvent, StageRequest
+from vllm_omni.engine.backends import strata_io
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 from vllm_omni.engine.stage_client import StageClientBase
 from vllm_omni.outputs import OmniRequestOutput
@@ -483,6 +485,7 @@ class _DiagnosticLog:
         self.native_starts = 0
         self.native_done_count = 0
         self.native_done = None
+        self.io_observer = None
         self.load_evidence: dict[str, Any] = {}
         self._changed = threading.Condition()
         self.failed = False
@@ -499,10 +502,15 @@ class _DiagnosticLog:
             while row := self.pipe.readline(4097):
                 complete = row.endswith(b"\n")
                 if skipping or len(row) > 4096 or not complete:
+                    if self.io_observer is not None:
+                        self.io_observer.ingest(row.decode("utf-8", "replace"))
                     skipping = not complete
                     continue
-                safe = _sanitize_diagnostic(row.decode("utf-8", "replace"), observer_nonce=self.observer_nonce)
+                decoded = row.decode("utf-8", "replace")
+                safe = _sanitize_diagnostic(decoded, observer_nonce=self.observer_nonce)
                 with self._changed:
+                    if self.io_observer is not None:
+                        self.io_observer.ingest(decoded)
                     if safe == "strata supervisor: native process started":
                         self.native_starts += 1
                     elif safe is not None and safe.startswith("strata supervisor: native done "):
@@ -562,20 +570,72 @@ class _DiagnosticLog:
                 return None
             return dict(self.native_identity)
 
+    def bind_io_observer(self, generation: str, runtime_identity: dict) -> None:
+        with self._changed:
+            identity = self.owned_native_identity()
+            if identity is None:
+                raise RuntimeError("Strata I/O observer needs an authoritative owned native identity")
+            self.io_observer = strata_io.StrataIoObserver(
+                self.observer_nonce, generation, identity["pid"], identity["creation_filetime_100ns"], runtime_identity
+            )
+
+    def finish_io_request(self, request: StageRequest, *, completed: bool, reason: str | None = None) -> dict:
+        with self._changed:
+            observer = self.io_observer
+            if reason:
+                observer.mark_incomplete(reason)
+            if completed:
+                self._changed.wait_for(
+                    lambda: observer.retired or observer.active is not None and observer.active["terminal"] is not None,
+                    timeout=5,
+                )
+            return observer.finish(request.request_id, request.epoch, completed=completed)
+
 
 # Patch only the child stderr sink, not its weights/execution/protocol. This
 # avoids persisting a raw native log. The shim is included in execution identity.
 _BOOTSTRAP = r"""
-import json, os, runpy, subprocess, sys, threading
+import hashlib, importlib.util, json, os, runpy, subprocess, sys, threading
 native, server = sys.argv[1:3]
 sys.argv = [server] + sys.argv[3:]
 observer_nonce = os.environ.pop('OMNI_STRATA_OBSERVER_NONCE', '')
+io_adapter_path = os.environ.pop('OMNI_STRATA_IO_ADAPTER', '')
+io_adapter_sha256 = os.environ.pop('OMNI_STRATA_IO_ADAPTER_SHA256', '')
+io_generation = os.environ.pop('OMNI_STRATA_IO_GENERATION', '')
+io_module = None
+system_directory = None
+if io_adapter_path:
+    if os.name != 'nt': raise RuntimeError('Observed Strata runtime currently requires Windows')
+    with open(io_adapter_path, 'rb') as source:
+        if hashlib.sha256(source.read()).hexdigest() != io_adapter_sha256:
+            raise RuntimeError('Strata observer adapter changed before bootstrap import')
+    spec = importlib.util.spec_from_file_location('omni_strata_owned_io', io_adapter_path)
+    io_module = importlib.util.module_from_spec(spec); spec.loader.exec_module(io_module)
+    import ctypes
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.SetDllDirectoryW.argtypes = (wintypes.LPCWSTR,); kernel.SetDllDirectoryW.restype = wintypes.BOOL
+    kernel.GetSystemDirectoryW.argtypes = (wintypes.LPWSTR, wintypes.UINT)
+    kernel.GetSystemDirectoryW.restype = wintypes.UINT
+    system = ctypes.create_unicode_buffer(32768)
+    count = kernel.GetSystemDirectoryW(system, len(system))
+    if not count or count >= len(system) or not kernel.SetDllDirectoryW(''):
+        raise RuntimeError('Strata native dependency search isolation failed')
+    system_directory = system.value
 original = subprocess.Popen
 def launch(args, *a, **kw):
     if os.path.realpath(str(args[0])) != os.path.realpath(native):
         return original(args, *a, **kw)
     kw['stderr'] = subprocess.PIPE
+    if io_module is not None:
+        # Application-directory pinned cuBLAS plus System32. SetDllDirectory('')
+        # above removes CWD from inherited standard DLL search; OS/driver modules
+        # remain machine-specific and are not claimed pinned by this policy.
+        native_env = dict(kw.get('env') or os.environ)
+        native_env['PATH'] = os.path.dirname(os.path.realpath(native)) + os.pathsep + system_directory
+        kw['env'] = native_env
     p = original(args, *a, **kw)
+    owned_io = None
     sys.stderr.write('strata supervisor: native process started\n'); sys.stderr.flush()
     if os.name == 'nt':
         from serve.winjob import contain
@@ -597,6 +657,21 @@ def launch(args, *a, **kw):
                     identity = {'pid': p.pid, 'creation_filetime_100ns': created}
                     sys.stderr.write('strata supervisor: native identity '+observer_nonce+' '+json.dumps(identity)+'\n')
                     sys.stderr.flush()
+                    if io_module is not None:
+                        def emit_owned(row): sys.stderr.write(row); sys.stderr.flush()
+                        owned_io = io_module.OwnedNativeFrameWriter(
+                            observer_nonce, io_generation, p.pid, created, emit_owned)
+    if io_module is not None and owned_io is None:
+        p.kill(); p.wait(timeout=5)
+        raise RuntimeError('Strata I/O observer did not obtain owned native identity')
+    class NativeInput:
+        def __init__(self, pipe): self.pipe = pipe
+        def write(self, row):
+            text = row.decode('utf-8', 'strict') if isinstance(row, bytes) else row
+            owned_io.observe_input(text)
+            return self.pipe.write(row)
+        def __getattr__(self, name): return getattr(self.pipe, name)
+    if owned_io is not None and p.stdin is not None: p.stdin = NativeInput(p.stdin)
     # Observe counters only; return each exact line unchanged to the upstream
     # parser. Token IDs, prompts and tensor contents are never copied to logs.
     class NativeOutput:
@@ -609,6 +684,7 @@ def launch(args, *a, **kw):
         def readline(self, *args):
             row = self.pipe.readline(*args)
             text = row.decode('utf-8', 'replace') if isinstance(row, bytes) else row
+            if owned_io is not None: owned_io.observe_output(text)
             if text.startswith('DONE '):
                 fields = text.split()
                 try:
@@ -949,6 +1025,11 @@ class StrataTextStageClient(StageClientBase):
         self._completed_requests = 0
         self._retirement_lock = threading.Lock()
         self._known_children: dict[int, float] = {}
+        self._observation_runtime = None
+        self._native_module_audit = None
+        self._io_request = None
+        self._last_io_report = None
+        self._io_report_lock = threading.RLock()
         try:
             # StageRuntime passes the backend through StageConfig's OmegaConf
             # representation. Normalize that transport at this boundary so
@@ -1009,6 +1090,17 @@ class StrataTextStageClient(StageClientBase):
                     if path.is_file() and path.suffix.lower() in {".py", ".pyc", ".dll", ".so", ".exe"}:
                         if path.resolve() not in runtime_files:
                             raise ValueError("Strata runtime has an unpinned code/dependency file")
+        if config.get("observation_runtime") is not None:
+            self._observation_runtime = strata_io.verify_observation_runtime(
+                config["observation_runtime"], runtime, runtime_files, engine, _BOOTSTRAP
+            )
+            if (
+                config.get("observation_runtime_identity_sha256", self._observation_runtime["identity_sha256"])
+                != self._observation_runtime["identity_sha256"]
+            ):
+                raise ValueError("Strata observation runtime changed after route registration")
+        elif config.get("observation_runtime_identity_sha256") is not None:
+            raise ValueError("Strata observation identity requires its runtime descriptor")
         # Reject invalid executable/import roots before reading a potentially
         # hundred-GiB model. Full source and converted-pack verification is
         # still mandatory before any native process can start.
@@ -1179,7 +1271,7 @@ class StrataTextStageClient(StageClientBase):
         bootstrap_path.write_text(_BOOTSTRAP, encoding="utf-8")
         env = os.environ.copy()
         for name in tuple(env):
-            if name.startswith(("STRATA_", "PYTHON")):
+            if name.startswith(("STRATA_", "PYTHON", "OMNI_STRATA_")):
                 env.pop(name)
         env["STRATA_ENGINE_READY_S"] = str(start_timeout)
         env["STRATA_RESIDENT_HEADROOM_GIB"] = str(host_overhead / (1 << 30))
@@ -1246,6 +1338,14 @@ class StrataTextStageClient(StageClientBase):
         flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
         observer_nonce = uuid.uuid4().hex
         env["OMNI_STRATA_OBSERVER_NONCE"] = observer_nonce
+        if self._observation_runtime is not None:
+            adapter_path = Path(self._temporary.name) / "strata_io.py"
+            adapter_path.write_bytes(Path(strata_io.__file__).read_bytes())
+            if _sha256(adapter_path) != self._observation_runtime["io_adapter_sha256"]:
+                raise RuntimeError("Strata trusted I/O adapter changed before launch")
+            env["OMNI_STRATA_IO_ADAPTER"] = str(adapter_path)
+            env["OMNI_STRATA_IO_ADAPTER_SHA256"] = self._observation_runtime["io_adapter_sha256"]
+            env["OMNI_STRATA_IO_GENERATION"] = self._generation
         self._proc = subprocess.Popen(
             [
                 str(python),
@@ -1326,6 +1426,17 @@ class StrataTextStageClient(StageClientBase):
             if key in native_info and native_info[key] != expected:
                 raise RuntimeError(f"Strata native INFO disagrees with the pinned/requested {key}")
         cache_bounds = _verify_cache_bounds(native_info, cache_control, expert_budget, profiled=bool(profile))
+        if self._observation_runtime is not None:
+            identity = self._diagnostics.owned_native_identity()
+            self._native_module_audit = strata_io.audit_selected_loaded_modules(
+                identity, runtime, self._observation_runtime
+            )
+            if self._native_module_audit["status"] != "verified":
+                raise RuntimeError(
+                    "Strata observed runtime selected module binding is unverified: "
+                    + json.dumps(self._native_module_audit, sort_keys=True)
+                )
+            self._diagnostics.bind_io_observer(self._generation, self._observation_runtime)
         if tier_plan is not None:
             fixed_gpu = tier_plan.budget.gpu_steady_bytes - cache_budget
             aggregate_estimate = fixed_gpu + cache_bounds["gpu_expert_cache"]["allocation_upper_bytes"]
@@ -1354,6 +1465,8 @@ class StrataTextStageClient(StageClientBase):
             "ple_io": ple_io,
             "expert_profile_file": profile,
         }
+        if self._observation_runtime is not None:
+            route_controls["observation_runtime"] = self._observation_runtime
         route_controls_sha256 = hashlib.sha256(
             json.dumps(route_controls, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
@@ -1376,6 +1489,8 @@ class StrataTextStageClient(StageClientBase):
             "python_environment": python_environment,
             "fresh_memory_admission": memory_snapshot,
             "supervisor_bootstrap_sha256": hashlib.sha256(_BOOTSTRAP.encode()).hexdigest(),
+            "observation_runtime": self._observation_runtime,
+            "selected_native_module_audit_at_load": self._native_module_audit,
             "runtime_manifest_sha256": runtime_manifest.manifest_sha256,
             "artifact_manifest_sha256": artifacts.manifest_sha256,
             "prepared_manifest_sha256": prepared.manifest_sha256,
@@ -1476,6 +1591,62 @@ class StrataTextStageClient(StageClientBase):
             },
         }
 
+    def last_io_observation(self) -> dict | None:
+        """Bounded last request report, retained after drain; loaded plan stays immutable."""
+        with self._io_report_lock:
+            return copy.deepcopy(self._last_io_report)
+
+    def _begin_io_observation(self, request: StageRequest) -> None:
+        if self._observation_runtime is None:
+            return
+        with self._io_report_lock:
+            self._io_request = request
+            observer = self._diagnostics.io_observer
+            if observer is not None and not observer.retired:
+                observer.begin(request.request_id, request.epoch)
+
+    def _finish_io_observation(
+        self, request: StageRequest | None, *, completed: bool, reason: str | None = None
+    ) -> dict | None:
+        if self._observation_runtime is None or request is None:
+            return None
+        with self._io_report_lock:
+            if self._last_io_report is not None and all(
+                self._last_io_report.get(key) == value
+                for key, value in (
+                    ("request_id", request.request_id),
+                    ("epoch", request.epoch),
+                    ("generation", request.worker_generation),
+                )
+            ):
+                return copy.deepcopy(self._last_io_report)
+            observer = self._diagnostics.io_observer if self._diagnostics is not None else None
+            if observer is not None and observer.active is not None:
+                if completed and _windows_process_creation_filetime(observer.pid) != observer.created:
+                    completed, reason = False, "owned_native_identity_unverified"
+                report = self._diagnostics.finish_io_request(request, completed=completed, reason=reason)
+            else:
+                # The neural output may still complete after this observation
+                # generation was retired. Never borrow its previous intervals.
+                report = {
+                    "schema": "omni-strata-request-io-observation-v1",
+                    "status": "incomplete",
+                    "generation": request.worker_generation,
+                    "request_id": request.request_id,
+                    "epoch": request.epoch,
+                    "runtime_identity_sha256": self._observation_runtime["identity_sha256"],
+                    "native_request_seq": None,
+                    "scope": strata_io.SCOPE,
+                    "raw_snapshots": [],
+                    "intervals": {},
+                    "physical_ssd_read_bytes": None,
+                    "three_tier_memory_qualified": False,
+                    "loading_covered": False,
+                    "reasons": [reason or "observer_generation_unavailable"],
+                }
+            self._last_io_report = copy.deepcopy(report)
+            return report
+
     def _snapshot_children(self) -> None:
         if self._proc is None:
             return
@@ -1521,6 +1692,7 @@ class StrataTextStageClient(StageClientBase):
             self._active = request_id
             self._terminal_published = False
             self._cancel.clear()
+            self._begin_io_observation(request)
             self._agent_stream = asyncio.Queue(maxsize=64) if streaming else None
             self._task = asyncio.create_task(self._run(request, text, maximum, self._agent_stream))
             self._task.add_done_callback(lambda _: self._apply_pending_ack())
@@ -1609,6 +1781,12 @@ class StrataTextStageClient(StageClientBase):
                 self._diagnostics.completed_native_request, self._completed_requests
             )
             self.check_health()
+            io_report = await asyncio.to_thread(
+                self._finish_io_observation,
+                request,
+                completed=native_counters is not None,
+                reason=None if native_counters is not None else "native_done_not_verified",
+            )
             terminal = StageEvent(
                 request.request_id,
                 self.stage_id,
@@ -1627,6 +1805,7 @@ class StrataTextStageClient(StageClientBase):
                 gpu=self._physical_gpu,
             )
             telemetry["native_compute"] = native_compute
+            telemetry["native_io_observation"] = io_report
             output = OmniRequestOutput(
                 request_id=request.request_id,
                 prompt=text,
@@ -1670,7 +1849,10 @@ class StrataTextStageClient(StageClientBase):
             self._closed = True
             drained = await asyncio.to_thread(self._terminate)
             self._ledger.release(self._reservation, drained=drained)
+            io_report = self._finish_io_observation(request, completed=False, reason="request_failed")
             output = OmniRequestOutput.from_error(request.request_id, f"Strata request failed: {type(exc).__name__}")
+            if io_report is not None:
+                output.metrics = {"runtime_telemetry": {"native_io_observation": io_report}}
             output.stage_id = self.stage_id
             output._custom_output = {
                 "stage_event": dataclasses.asdict(
@@ -1730,6 +1912,7 @@ class StrataTextStageClient(StageClientBase):
                 self._agent_stream.get_nowait()
             self._agent_stream.put_nowait(None)
         drained = await asyncio.to_thread(self._terminate)
+        self._finish_io_observation(self._io_request, completed=False, reason="request_cancelled")
         if self._task is not None:
             done, _ = await asyncio.wait({self._task}, timeout=5)
             if not done:
@@ -1845,6 +2028,7 @@ class StrataTextStageClient(StageClientBase):
                 self._agent_stream.get_nowait()
             self._agent_stream.put_nowait(None)
         drained = self._terminate()
+        self._finish_io_observation(self._io_request, completed=False, reason="route_shutdown")
         if self._task is not None and not self._task.done():
             self._ledger.release(self._reservation, drained=False)
             self._task.add_done_callback(lambda _: self._ledger.release(self._reservation, drained=drained))

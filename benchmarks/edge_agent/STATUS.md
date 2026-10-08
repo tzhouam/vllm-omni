@@ -1,5 +1,15 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-08)
 
+Engine preparation has advanced independently: [ISTA Q2/IQ3 acquisition](../edge_harness/results/strata_20261008/ista_artifact_inventory.json)
+and [both text-route packs](../edge_harness/results/strata_20261008/ista_preparation.json)
+are complete, with full hashes and preparation admission checks. Neither
+route has executed a model or Agent request. The isolated native I/O build
+also passed compilation, static runtime verification and Windows/WSL
+integration tests. Its [independent Q4 engine run](../edge_harness/results/strata_20261008/native_q4_observed_io.json)
+now passed three text requests, cancellation and fresh-worker recovery with
+bound I/O records. The new runtime's actual Agent rerun remains pending;
+engine functional results add no Agent/default-route qualification.
+
 The latest [actual Windows Qt Agent request](../edge_harness/results/strata_20261008/native_q4_qt_agent.json)
 passed one short exact-response task through the offscreen Qt event loop and
 real Q4 model, including send, ordered streaming, terminal controls and clean

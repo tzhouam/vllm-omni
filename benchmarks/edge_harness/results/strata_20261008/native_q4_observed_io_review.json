@@ -1,0 +1,75 @@
+{
+  "schema": "omni-strata-native-observed-q4-review-v1",
+  "status": "independent_review_passed",
+  "aggregate_file": "native_q4_observed_io.json",
+  "aggregate_file_sha256": "a7120754d987607f965c5bd7ad50470698f4136f760d4a355fbac014819db4c0",
+  "private_audit_receipt_sha256": "80bd17398a5bd4694552afee453d2f7198b2445a28e8cdc2cca40dcbd234744f",
+  "auditor_script_sha256": "8cfed3ee356ab082b1bd12b3cd0557064470d4b2e9cffd365e073abea7bb4e4f",
+  "checks": {
+    "raw_small_file_sha_closure": true,
+    "static_and_controls_identity_verified": true,
+    "selected_module_path_hash_and_exact_owner_binding": true,
+    "four_complete_request_phase_sets": true,
+    "per_counter_monotonicity_and_interval_deltas": true,
+    "cancellation_seq4_epoch4_two_incomplete_snapshots": true,
+    "fresh_recovery_generation_seq1_epoch1": true,
+    "five_drained_ledger_snapshots": true,
+    "recorded_supervisor_and_native_pids_absent": true,
+    "stopped_telemetry_sample_and_peak_recomputation": true,
+    "parent_source_before_after_equal": true,
+    "public_aggregate_matches_private_numerics_and_scopes": true
+  },
+  "raw_request_receipt_sha256": "a3bff5b77b39999acf7c27e7e1718fda18329f6a9e9b32dabbf778faa57ef927",
+  "qualification_created": false,
+  "subsequent_formatting": {
+    "private_receipt_sha256": "925d3b928d56a1b7a4cc07cf63577d65d35543d5a27e7e557ba8adf9317f848d",
+    "files": {
+      "benchmarks/edge_harness/strata_runtime.py": {
+        "before_sha256": "a244e64c260f260b3b57e77dd73ea114725354dd94a4e3e7b07303fe5c7e7a21",
+        "after_sha256": "d39a266c3c04597862809d920b9370e6768803804008e2ae3363b171d3684bd5",
+        "ast_unchanged": true
+      },
+      "benchmarks/edge_harness/test_strata_runtime.py": {
+        "before_sha256": "2581d0eb3330788b79f7ab5f92f894a503c24cb72a31dd40d83687d736b0257b",
+        "after_sha256": "c8826be910c25573164fd82552f409ca56ba0b88bc8a79e24db3bc5e0c378524",
+        "ast_unchanged": true
+      },
+      "tests/edge/test_agent_strata_profile.py": {
+        "before_sha256": "33832c230eefb927f65036862822b5b4f78b25f1f40efeb4ea00bf3930907565",
+        "after_sha256": "965ea5c147980f9880d3c7cac393eeec335c53d5d199841cf816ac9077db8b78",
+        "ast_unchanged": true
+      },
+      "vllm_omni/edge/agent/placement.py": {
+        "before_sha256": "bcd25e8e35eb028c1981acf69deb2e9fe9aa9497a52aadf6404c80e5b4780c5d",
+        "after_sha256": "a8dc291072ecc166333954a85f0ebf9b63f22bac1817a01d639af4c5cc5b31be",
+        "ast_unchanged": true
+      }
+    },
+    "all_asts_unchanged": true,
+    "backend_and_io_adapter_bytes_unchanged": true,
+    "note": "Agent admission source formatting changes the package-global digest after measurement. Existing recorded-source functional evidence is preserved; strict final-source lifecycle/Agent qualification requires new runs."
+  },
+  "physical_ssd_read_bytes": null,
+  "three_tier_memory_qualified": false,
+  "subsequent_line_ending_normalization": {
+    "private_receipt_sha256": "c81e3b925bff061cb09aecbe5ffd294d9d4b0c1b642d5dcb6f54835a12b0c109",
+    "files": {
+      "vllm_omni/engine/backends/strata_io.py": {
+        "before_sha256": "80e69bff887ec81a79acc85ade6138ee6f0b08adfdffa51382a9a9d862a021fd",
+        "after_sha256": "efdcef837e18392ff439c63c6ae0f86d60873e9309078025e0a4bc5b9886ba5c",
+        "ast_unchanged": true,
+        "normalization": "CRLF to LF; required by repository .gitattributes"
+      },
+      "tests/edge/test_strata_io.py": {
+        "before_sha256": "4f727c9aa8939facbcac96c556728d54e53d56e36a6867ec14e5d14cee95ccd2",
+        "after_sha256": "4e4e00eb92b46fbb1a3f2a87e1d3e48633cf2380034479adec043bf216070c98",
+        "ast_unchanged": true,
+        "normalization": "CRLF to LF; required by repository .gitattributes"
+      }
+    },
+    "all_asts_unchanged": true,
+    "measured_adapter_bytes_archived_sha256": "80e69bff887ec81a79acc85ade6138ee6f0b08adfdffa51382a9a9d862a021fd",
+    "new_route_registration_required": true,
+    "note": "Repository requires LF Python files. Raw adapter source hash and route identity change; do not reuse the earlier expected identity or inherit final-source qualification."
+  }
+}

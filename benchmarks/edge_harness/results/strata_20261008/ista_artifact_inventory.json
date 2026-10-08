@@ -1,0 +1,113 @@
+{
+  "schema": "omni-ista-source-artifact-inventory-v1",
+  "observed_date": "2026-10-08",
+  "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+  "revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+  "scope": "completed source acquisition and independent full SHA verification; not model execution, numerical equivalence or release qualification",
+  "native_download": {
+    "final_success_count": 5,
+    "remaining_controls": 0,
+    "owned_pid_absent_at_observation": true,
+    "private_receipt": "ista-native-completion-20261008-202818.json"
+  },
+  "files": [
+    {
+      "path": "IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf",
+      "role": "weights",
+      "size_bytes": 47039860096,
+      "published_and_independently_verified_sha256": "219ea929900dfa9ef091f3aa473fdba6874b65fcb36526d7d851ac9e95856d15",
+      "stable_during_hash": true,
+      "control_present_during_independent_hash": true,
+      "control_absent_at_final_completion": true,
+      "verification_wall_s": 52.71977259987034,
+      "private_receipt": "iq3-shard1-native-verification.json"
+    },
+    {
+      "path": "IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00002-of-00002.gguf",
+      "role": "weights",
+      "size_bytes": 28800138432,
+      "published_and_independently_verified_sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113",
+      "stable_during_hash": true,
+      "control_present_during_independent_hash": false,
+      "control_absent_at_final_completion": true,
+      "verification_wall_s": 43.24444960011169,
+      "private_receipt": "iq3-shard2-20261008-202022.json"
+    },
+    {
+      "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00001-of-00002.gguf",
+      "role": "weights",
+      "size_bytes": 37623740192,
+      "published_and_independently_verified_sha256": "69820c02ec7d0b45ef2ebb19d6620299db749fe2aded7f39f93c6b88b199b720",
+      "stable_during_hash": true,
+      "control_present_during_independent_hash": false,
+      "control_absent_at_final_completion": true,
+      "verification_wall_s": 47.39370659994893,
+      "private_receipt": "q2-shard1-20261008-202823.json"
+    },
+    {
+      "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00002-of-00002.gguf",
+      "role": "weights",
+      "size_bytes": 28800138432,
+      "published_and_independently_verified_sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113",
+      "stable_during_hash": true,
+      "control_present_during_independent_hash": false,
+      "control_absent_at_final_completion": true,
+      "verification_wall_s": 41.6300743999891,
+      "private_receipt": "q2-shard2-20261008-201706.json"
+    },
+    {
+      "path": "mmproj-Qwen3.8-Flash-Next-BF16.gguf",
+      "role": "mmproj",
+      "size_bytes": 907543008,
+      "published_and_independently_verified_sha256": "b1a82259702816a5330d7bd7607cd9676b11780e79ff7348c21103ff3ce49bd0",
+      "stable_during_hash": true,
+      "control_present_during_independent_hash": false,
+      "control_absent_at_final_completion": true,
+      "verification_wall_s": 1.1585896001197398,
+      "private_receipt": "projector-20261008-203010.json"
+    }
+  ],
+  "q2_weights_bytes": 66423878624,
+  "iq3_weights_bytes": 75839998528,
+  "separate_projector_bytes": 907543008,
+  "all_declared_files_verified": true,
+  "model_execution_qualified": false,
+  "vision_execution_qualified": false,
+  "notes": [
+    "Q2 and IQ3 use the same published second-shard payload; both local files were independently verified.",
+    "IQ3 shard 1 was independently hashed while its native checksum control remained; subsequent native OK completion and control absence are separately recorded.",
+    "An earlier Q2 second-shard timestamp comparison across Windows APIs falsely failed despite matching SHA; the failure is preserved and the corrected verifier checks stability within each API plus common file identity.",
+    "Community quantizations require their own task-quality and complete-request tests.",
+    "Packing and subsequent execution evidence are separate records."
+  ],
+  "private_record_refs": {
+    "ista-complete-inventory-20261008-203110.json": {
+      "size_bytes": 5011,
+      "sha256": "d3f84a81df12fe001a9497fcd5125017761ae4b7b079a0688d89c8cbc4ed24d4"
+    },
+    "ista-native-completion-20261008-202818.json": {
+      "size_bytes": 1413,
+      "sha256": "4794c59a7fa624538b5f6ee2badbf66ebda908bde583fb6da5e7990c7adc988a"
+    },
+    "iq3-shard1-native-verification.json": {
+      "size_bytes": 874,
+      "sha256": "f48fecc5c3765a2eba37610fab55e4bdff70c0c025367f4c2b219b91a299e4b5"
+    },
+    "iq3-shard2-20261008-202022.json": {
+      "size_bytes": 4631,
+      "sha256": "13be5171512e9e0353522dc7e5594645b4877bf12172a496af0fbbffc4d3f7ab"
+    },
+    "q2-shard1-20261008-202823.json": {
+      "size_bytes": 3395,
+      "sha256": "349adc60871454fdc4016b7d3cf57c1c95b2b0587eb5fd47af21eb9642898573"
+    },
+    "q2-shard2-20261008-201706.json": {
+      "size_bytes": 4803,
+      "sha256": "5ffe797545bda103ac7e6fc6574f2b0c7bfc3cc10566e377076f8e2539a3c5bc"
+    },
+    "projector-20261008-203010.json": {
+      "size_bytes": 3574,
+      "sha256": "ceb8b8114723e2b6c303e1ea1cb0c32d92baf71921337c55ba2adb6c9c3f0a31"
+    }
+  }
+}
