@@ -1,0 +1,17 @@
+......................................                                   [100%]
+============================== warnings summary ===============================
+C:\Users\zhout\w2\omni029venv\Lib\site-packages\_pytest\config\__init__.py:1464
+  C:\Users\zhout\w2\omni029venv\Lib\site-packages\_pytest\config\__init__.py:1464: PytestConfigWarning: Unknown config option: asyncio_mode
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+C:\Users\zhout\w2\omni029venv\Lib\site-packages\torch\jit\_script.py:365: 14 warnings
+  C:\Users\zhout\w2\omni029venv\Lib\site-packages\torch\jit\_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+vllm-omni-edge\tests\edge\test_agent_strata.py:107
+  /home/zhout/project/edge_infer/vllm-omni-edge/tests/edge/test_agent_strata.py:107: PytestUnknownMarkWarning: Unknown pytest.mark.asyncio - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.asyncio
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+38 passed, 16 warnings in 78.71s (0:01:18)

@@ -1,0 +1,427 @@
+{
+  "schema": "omni-strata-optimized-execution-lifecycle-evidence-v1",
+  "status": "experimental_four_reference_cancel_fresh_recovery_completed",
+  "batch_size": 1,
+  "concurrency": 1,
+  "authoritative_exec_session": 16110,
+  "actual_terminal_chunk": "3030a0",
+  "actual_exit_code": 0,
+  "closed_lifecycle_receipt_sha256": "a4a8a1b023bbdbd47e6c05a845da7f1c31f12526b0404866a9e19733294e5b1d",
+  "launch_sha256": "b32f3fcb51686290515b505039f834ea866b3db7a47bbf1cde442097a55639b9",
+  "static_receipt_sha256": "09892aa01f24a382eeb7c01c887963810108357c183b36f5431d8041d8b9ae57",
+  "producer_sha256": "4acee4bd1e178401f178e4e6b590d937ddf19277e10d1ef50a080e9f8416a2f0",
+  "source_entries": 1548,
+  "source_stable": true,
+  "model": {
+    "checkpoint": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+    "revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+    "license": "Apache-2.0 asserted by GGUF card; base Qwen Community License review required",
+    "lineage": [
+      {
+        "kind": "ptq",
+        "source_checkpoint": "Qwen/Qwen3.8-Flash-Next",
+        "source_revision": "not independently pinned by this GGUF metadata",
+        "recipe": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL"
+      }
+    ],
+    "files": [
+      {
+        "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00001-of-00002.gguf",
+        "size_bytes": 37623740192,
+        "sha256": "69820c02ec7d0b45ef2ebb19d6620299db749fe2aded7f39f93c6b88b199b720",
+        "role": "weights",
+        "quantization": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL",
+        "layout": "GGUF"
+      },
+      {
+        "path": "Q2_0/Qwen3.8-Flash-Next-GSQ-RCO-Q2_0-00002-of-00002.gguf",
+        "size_bytes": 28800138432,
+        "sha256": "316b46f3a2dbd68c900f43136ab9449f9dcc3725dfd8c794847c204bc161e113",
+        "role": "weights",
+        "quantization": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL",
+        "layout": "GGUF"
+      }
+    ]
+  },
+  "hardware": {
+    "os_scope": "native Windows required by producer",
+    "gpu_observed_at_start": [
+      {
+        "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+        "name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+        "used_vram_bytes": 4745875456,
+        "total_vram_bytes": 25651314688,
+        "power_mw": 17984,
+        "temperature_c": 55
+      }
+    ],
+    "physical_ram_bytes": 67773509632,
+    "driver_or_full_run_power_condition_not_independently_verified_here": true
+  },
+  "runtime": {
+    "revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+    "artifact_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+    "prepared_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900"
+  },
+  "controls": {
+    "expert_ram_budget_bytes": 8589934592,
+    "gpu_budget_bytes": 17179869184,
+    "context_tokens": 4096,
+    "max_new_tokens": 512,
+    "kv_type": "fp16",
+    "batch_size": 1,
+    "request_capacity": 1,
+    "mtp_enabled": false,
+    "spec_tokens": 0,
+    "ple_prefetch_requested": false,
+    "routing_prefetch_requested": false,
+    "io_prefetch_requested": false,
+    "actual_io_mode": null
+  },
+  "fresh_memory_admission": {
+    "initial": {
+      "host_ram_available_bytes": 20021788672,
+      "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+      "gpu_total_bytes": 25651314688,
+      "gpu_free_bytes": 21086973952,
+      "gpu_source": "NVML exact bytes",
+      "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+      "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+      "gpu_pci_bus_id": "00000000:64:00.0",
+      "windows_commit_available_bytes": 65756581888,
+      "windows_host_available_bytes": 20021788672,
+      "wsl_ram_available_bytes": null,
+      "is_wsl": false,
+      "windows_host_verification": "measured",
+      "captured_unix_s": 1791523798.0403113
+    },
+    "recovery": {
+      "host_ram_available_bytes": 19271118848,
+      "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+      "gpu_total_bytes": 25651314688,
+      "gpu_free_bytes": 21087309824,
+      "gpu_source": "NVML exact bytes",
+      "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+      "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+      "gpu_pci_bus_id": "00000000:64:00.0",
+      "windows_commit_available_bytes": 64868536320,
+      "windows_host_available_bytes": 19271118848,
+      "wsl_ram_available_bytes": null,
+      "is_wsl": false,
+      "windows_host_verification": "measured",
+      "captured_unix_s": 1791524877.106959
+    }
+  },
+  "requests": [
+    {
+      "case_id": "english_ready",
+      "request_id": "strata-493bafcf7ad34526b687feac9eb2ea27",
+      "quality_passed": true,
+      "native_seq": 1,
+      "epoch": 1,
+      "full_response_s": 2.0197519999928772,
+      "io_complete": true,
+      "execution_complete_scoped": true,
+      "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526"
+    },
+    {
+      "case_id": "chinese_arithmetic",
+      "request_id": "strata-f9d1d48f6faa4e3e813d2d5c2abde05d",
+      "quality_passed": true,
+      "native_seq": 2,
+      "epoch": 2,
+      "full_response_s": 4.224372799973935,
+      "io_complete": true,
+      "execution_complete_scoped": true,
+      "input_sha256": "c39a4420f1236500989d1a6bf890854cb1cc4ff83ffcde690a3b2e6f3b9cc5ea",
+      "output_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+    },
+    {
+      "case_id": "json_tool_format",
+      "request_id": "strata-13c873c717314bdb9be619d84413ba12",
+      "quality_passed": true,
+      "native_seq": 3,
+      "epoch": 3,
+      "full_response_s": 2.8605158999562263,
+      "io_complete": true,
+      "execution_complete_scoped": true,
+      "input_sha256": "48c39e3aeab00b081c0e550c8e65121f8f696ec8f2add4ad31521b70f73cf288",
+      "output_sha256": "22cdd6496b02d06a4cd71fa0b3e85fbda10206b7b268ded96746e6b7a10cfbe4"
+    },
+    {
+      "case_id": "english_ready",
+      "request_id": "strata-9c4aadcbfac745589d532bb6e9e1d560",
+      "quality_passed": true,
+      "full_response_s": 2.00578620005399,
+      "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+      "recovery": true
+    }
+  ],
+  "distinct_request_ids_including_cancel": 5,
+  "initial_integrity_plus_startup_s": 826.4648058998864,
+  "recovery_integrity_plus_startup_s": 1054.8119228000287,
+  "startup_timing_scope": "integrity verification plus controller/backend startup, not pure model loading; no paired startup speedup qualification",
+  "cancellation": {
+    "deltas_before_cancel": 2,
+    "drain_wall_s": 1.2722100000828505,
+    "drained": true,
+    "cancelled_io_incomplete": true,
+    "cancelled_execution_partial": true
+  },
+  "fresh_generation_recovery_passed": true,
+  "worker_generations": {
+    "initial": "78477a60ef974851bfb7b8ab64a1047c",
+    "recovery": "3d521253be69430f871dd70e384a6952"
+  },
+  "ledger_final": {
+    "capacities": {
+      "host_ram": 23993122816,
+      "vram:0": 25651314688,
+      "ssd": 807693308059,
+      "windows_commit": 71065690112
+    },
+    "reserved": {
+      "host_ram": 0,
+      "vram:0": 0,
+      "ssd": 0,
+      "windows_commit": 0
+    },
+    "owners": [],
+    "quarantined": []
+  },
+  "cleanup_errors": [],
+  "telemetry": {
+    "path": "telemetry.jsonl",
+    "samples_this_attempt": 11833,
+    "errors": {},
+    "interval_s": 0.1,
+    "sampling_thread_stopped": true,
+    "scope": "whole host/visible GPUs plus separately identified owned native WDDM process",
+    "process_gpu_generations": [
+      {
+        "owner_identity": {
+          "creation_filetime_100ns": 134359974010534142,
+          "pid": 17020,
+          "status": "verified",
+          "worker_generation": "78477a60ef974851bfb7b8ab64a1047c",
+          "gpu": {
+            "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+            "pci_bus_id": "00000000:64:00.0",
+            "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+          }
+        },
+        "samples": 134,
+        "sampled_local_peak_bytes": 12545163264,
+        "sampled_nonlocal_peak_bytes": 9516875776,
+        "hard_cap_verified": false,
+        "scope": "separate sampled WDDM local/nonlocal accounting; do not add nonlocal to host RAM"
+      },
+      {
+        "owner_identity": {
+          "creation_filetime_100ns": 134359984798415694,
+          "pid": 14104,
+          "status": "verified",
+          "worker_generation": "3d521253be69430f871dd70e384a6952",
+          "gpu": {
+            "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+            "pci_bus_id": "00000000:64:00.0",
+            "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+          }
+        },
+        "samples": 13,
+        "sampled_local_peak_bytes": 12499025920,
+        "sampled_nonlocal_peak_bytes": 9516875776,
+        "hard_cap_verified": false,
+        "scope": "separate sampled WDDM local/nonlocal accounting; do not add nonlocal to host RAM"
+      }
+    ],
+    "limitations": [
+      "sampled peaks may miss transients",
+      "tree RSS can count shared pages twice",
+      "system disk reads include unrelated processes and storage devices",
+      "system disk reads do not establish model-attributable physical SSD bytes",
+      "GPU power is not whole-device power",
+      "WSL RAM is not an extra RAM pool",
+      "process sampling starts after owner identity is available; loading peak and hard cap are unverified",
+      "WDDM nonlocal GPU memory shares host RAM and must not be added to host RSS"
+    ]
+  },
+  "raw_closed_inventory": {
+    "after-cancel-ledger.json": {
+      "size_bytes": 289,
+      "sha256": "8d7b606d3e78c318e869083b5c24b10d02913f40817a214aa1952d8d6589425b"
+    },
+    "cancellation.json": {
+      "size_bytes": 6662,
+      "sha256": "f80a1d17565af8821edf96916982ae88a382499a54a0626eb0ba9f94bc9f0a1f"
+    },
+    "cancelled-execution.json": {
+      "size_bytes": 49209,
+      "sha256": "97dc94d530394536ff8450df2454cc3127914d48b8f250abd704c7a5ff8b4a23"
+    },
+    "cancelled-io.json": {
+      "size_bytes": 5296,
+      "sha256": "6bec3cdb2c0050ffbd103b977775c59490502fea2ba8282369bd0bfa0875f5d0"
+    },
+    "chinese_arithmetic-execution.json": {
+      "size_bytes": 76054,
+      "sha256": "3326592f34b9ae5a0d41fe25b5cc917584527d6b810032e5b696b752cdd08fe5"
+    },
+    "chinese_arithmetic-io.json": {
+      "size_bytes": 10236,
+      "sha256": "7bd089fee12eedc1ca57a36fc7dbb369a67ba8c0c1b5960c5e5b0c7cb5689e32"
+    },
+    "chinese_arithmetic.json": {
+      "size_bytes": 205570,
+      "sha256": "4904bee4fc92efc1c371961fc3e4a56f6171790ec371cadc4bccb09be3ecd23e"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13499975,
+      "sha256": "82542af81d401c5e85764e4a482df82b2879a1e5f14640efec9a867495c9a1c8"
+    },
+    "english_ready-execution.json": {
+      "size_bytes": 75944,
+      "sha256": "1cebf57fd4c54fd5517377ba50d66eb6da4c6985b4245b60bf14d11da3b65311"
+    },
+    "english_ready-io.json": {
+      "size_bytes": 10119,
+      "sha256": "3196d72f59c7344273509b19343be16ce090ed3cb1cd45c92494d4b657db3208"
+    },
+    "english_ready.json": {
+      "size_bytes": 203630,
+      "sha256": "851e9622bf81b5535b1b08bc64b5d5520a243b8de0413279f341487a2fbba2ab"
+    },
+    "execution-verification-receipts/3d521253be69430f871dd70e384a6952/binding-verification.json": {
+      "size_bytes": 3176,
+      "sha256": "484f9d08b385b459181991d7fae73559deba15272542d47225ab2a040e31dfdc"
+    },
+    "execution-verification-receipts/3d521253be69430f871dd70e384a6952/first-engine-frame.json": {
+      "size_bytes": 9901,
+      "sha256": "c714ad276c14fad07aa150530314464851c8ae3abd8516b797ec7e6662523086"
+    },
+    "execution-verification-receipts/3d521253be69430f871dd70e384a6952/first-frame-modules.json": {
+      "size_bytes": 7406,
+      "sha256": "efa5ac8de1c2857184722e0dca312cd8b1d60c64853abab855612a129e3c0786"
+    },
+    "execution-verification-receipts/3d521253be69430f871dd70e384a6952/load-modules.json": {
+      "size_bytes": 9387,
+      "sha256": "049a318af0444da72c3677636d36e88f7964964e7b413fad703607bb4cb4cf56"
+    },
+    "execution-verification-receipts/78477a60ef974851bfb7b8ab64a1047c/binding-verification.json": {
+      "size_bytes": 3176,
+      "sha256": "e9622575d4b779b41fae319c1a91cd76ee4959662da3754746ac6d79e48a2b49"
+    },
+    "execution-verification-receipts/78477a60ef974851bfb7b8ab64a1047c/first-engine-frame.json": {
+      "size_bytes": 9901,
+      "sha256": "5530b78803ea340b96e18858fde0a656c9771045635de367e67b36b9a83148c5"
+    },
+    "execution-verification-receipts/78477a60ef974851bfb7b8ab64a1047c/first-frame-modules.json": {
+      "size_bytes": 7406,
+      "sha256": "d6c73e56a266eaafc0328ef7075a73d6030ec5c55ec88ea184ded05a33386cfd"
+    },
+    "execution-verification-receipts/78477a60ef974851bfb7b8ab64a1047c/load-modules.json": {
+      "size_bytes": 9387,
+      "sha256": "a3b5723bec58355c803f1053f7017a93b75a6f252c9a917d6fe84157696aecf5"
+    },
+    "initial-close.json": {
+      "size_bytes": 877,
+      "sha256": "18ef97a2935ff7c40b4eadc8545858b332848121bd3e47401c109f59e93a0f2b"
+    },
+    "initial-last-execution-before-close.json": {
+      "size_bytes": 49209,
+      "sha256": "97dc94d530394536ff8450df2454cc3127914d48b8f250abd704c7a5ff8b4a23"
+    },
+    "initial-last-io-before-close.json": {
+      "size_bytes": 5296,
+      "sha256": "6bec3cdb2c0050ffbd103b977775c59490502fea2ba8282369bd0bfa0875f5d0"
+    },
+    "initial-loaded-plan.json": {
+      "size_bytes": 74990,
+      "sha256": "df83252bc1f9db9bc0abc5dd1b1f9b1375a35ea33218151aa96421dcdf149bc5"
+    },
+    "json_tool_format-execution.json": {
+      "size_bytes": 76097,
+      "sha256": "af598b6f9a855b99607cf15f6592ae0e46408a949ffbf6e0ccc9ce6c56b6e994"
+    },
+    "json_tool_format-io.json": {
+      "size_bytes": 10261,
+      "sha256": "f9ee149811ce1541d4467a1290233a916874a1ca88dbfecc01ae8218f8b09a76"
+    },
+    "json_tool_format.json": {
+      "size_bytes": 211642,
+      "sha256": "bf519c9bf3defbceee2c8d922293d97b2f92f8ce9544db484bf359ac8e940a7d"
+    },
+    "recovery-close.json": {
+      "size_bytes": 1766,
+      "sha256": "b5ca483bfc212094dd050b9da252b0f3f74fe1b7b97c73c154ef2abd51731bcd"
+    },
+    "recovery-execution.json": {
+      "size_bytes": 75944,
+      "sha256": "cc6827e2fff3d8303e844c0855807cc34f57a12cb2b86a09ca0e61bb686914f1"
+    },
+    "recovery-io.json": {
+      "size_bytes": 10116,
+      "sha256": "06535194aa4128a027e5e212a17c7f7e170a78285cd255e9bd71bc7afe60064e"
+    },
+    "recovery-last-execution-before-close.json": {
+      "size_bytes": 75944,
+      "sha256": "cc6827e2fff3d8303e844c0855807cc34f57a12cb2b86a09ca0e61bb686914f1"
+    },
+    "recovery-last-io-before-close.json": {
+      "size_bytes": 10116,
+      "sha256": "06535194aa4128a027e5e212a17c7f7e170a78285cd255e9bd71bc7afe60064e"
+    },
+    "recovery-loaded-plan.json": {
+      "size_bytes": 74988,
+      "sha256": "e8908dd70bee9cf4c71a7dcce55b98ce47d6f84854ee668425949388a5d98365"
+    },
+    "recovery-request.json": {
+      "size_bytes": 203608,
+      "sha256": "9b005e8359aa7d9e790a9809bb32e221884bd3870e29860645982a53f1d4d20f"
+    },
+    "route-binding.json": {
+      "size_bytes": 3833,
+      "sha256": "b60cf93846d83f4a5c486d23266fe2f88d6275d656ad4e998970cc71de49f6b0"
+    },
+    "static-prerequisite.json": {
+      "size_bytes": 29152,
+      "sha256": "7a3e26cbcaf483294449519defa310750a628dbc5d17a23eff3ed18ef1e55074"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 11079273,
+      "sha256": "f016bd510926e06ea110c600940f359e34d4f77f5c06ec11acb551bb3464e188"
+    }
+  },
+  "raw_closed_count": 36,
+  "independent_review": {
+    "file": "native_ista_q2_execution_lifecycle_optimized_review.json",
+    "sha256": "60d10011761180c16bc70ead9accc66ddcfbd2765bf389173504c7d17440b953"
+  },
+  "individual_process_memory": {
+    "receipt_file": "native_ista_q2_execution_lifecycle_optimized_memory/receipt.json",
+    "receipt_sha256": "ed9fb595728ed59973ccba50abd67231ada67cf4a8bf84be26e19acb419a0f36",
+    "rows": {
+      "initial": 89,
+      "recovery": 13
+    },
+    "scope": "each exact process lifetime highwater through last query; not isolated loading, final lifetime, aggregate RAM, GPU or file-cache peak"
+  },
+  "scope": "four fixed text references plus cancellation/fresh recovery; scoped CPU-expert/CUDA and logical/OS I/O evidence",
+  "Agent_rerun_performed": false,
+  "performance_qualified": false,
+  "default_eligible": false,
+  "release_qualified": false,
+  "p50_s": null,
+  "p95_s": null,
+  "physical_ssd_model_bytes": null,
+  "aggregate_ram_hard_cap_verified": false,
+  "aggregate_gpu_hard_cap_verified": false,
+  "actual_whole_model_placement": null,
+  "private_prompt_reply_preimages_published": false,
+  "started_unix": 1791522996.085567,
+  "finished_unix": 1791524920.8779316,
+  "request_timing_scope": "API text chunks; not per-token/kernel latency"
+}

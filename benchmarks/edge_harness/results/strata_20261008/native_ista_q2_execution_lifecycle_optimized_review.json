@@ -1,0 +1,57 @@
+{
+  "cancel_deltas": 2,
+  "cancel_drained_ledger_empty": true,
+  "cancel_epoch_and_native_seq": 4,
+  "cancel_io_and_execution_partial": true,
+  "cancel_native_done_missing": true,
+  "cancel_reader_joined": true,
+  "cleanup_errors": [],
+  "closed_source_before_after_equal": true,
+  "final_four_resource_pools_zero_no_owners_or_quarantine": true,
+  "initial_epoch_and_native_seq": [
+    1,
+    2,
+    3
+  ],
+  "initial_exact_reference_count": 3,
+  "initial_recovery_reserved_bytes_equal_loaded_ledger": true,
+  "launch_sha256": "b32f3fcb51686290515b505039f834ea866b3db7a47bbf1cde442097a55639b9",
+  "limitations": [
+    "Source stability is equality of closed source maps; no current Agent/llama source was compared to the historical lifecycle.",
+    "Cancelled-close GPU accounting remains recorded unknown after owner clears; no zero-usage or peak inference.",
+    "External outer/native process retirement stays root scope; producer explicitly marks outer retirement unverified.",
+    "Scope is four fixed text references plus cancellation/drain/fresh recovery; no Agent/default/performance, physical SSD, whole-model placement or aggregate memory hard-cap qualification."
+  ],
+  "native_model_executed_by_review": false,
+  "producer_sha256": "4acee4bd1e178401f178e4e6b590d937ddf19277e10d1ef50a080e9f8416a2f0",
+  "production_or_raw_changed": false,
+  "qualification_granted": false,
+  "raw_bytes_verified": 26195836,
+  "raw_file_count": 36,
+  "receipt_file": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-execution-lifecycle-20261009-v2\\receipt.json",
+  "receipt_sha256": "a4a8a1b023bbdbd47e6c05a845da7f1c31f12526b0404866a9e19733294e5b1d",
+  "reconciliation_tool_chunk": "d18199",
+  "recovery_epoch_and_native_seq": 1,
+  "recovery_new_worker_generation_and_native_birth": true,
+  "review_setup_corrections": [
+    "Initial inline assumptions text_delta, mandatory token IDs, parser-verified binding, and Boolean native request_terminal were corrected to actual API fields (delta/null/false/completed); no runtime defect.",
+    "Metrics stage_events is the nonterminal prefix; full row retains terminal.",
+    "Total telemetry rows include11 explicit request edges beyond11833 sampler-thread samples."
+  ],
+  "runtime_or_weight_scanned": false,
+  "schema": "omni-private-strata-lifecycle-closed-backend-review-v1",
+  "separate_recovery_exact_reference_count": 1,
+  "source_entries": 1548,
+  "status": "accepted_closed_evidence_reconciliation_only",
+  "subsequent_sampler_partition_tool_scope": "Counter-only closed rows; 11833 periodic plus11 explicit request-edge rows, matching existing writer source semantics.",
+  "telemetry_periodic_samples": 11833,
+  "telemetry_request_edge_counts": {
+    "after_request": 4,
+    "before_request": 4,
+    "before_route_shutdown": 3
+  },
+  "telemetry_request_edge_rows": 11,
+  "telemetry_stopped_no_recorded_errors": true,
+  "telemetry_total_rows": 11844,
+  "terminal_stream_getter_raw_reports_and_actual_first_frame_receipt_links_reconciled": true
+}

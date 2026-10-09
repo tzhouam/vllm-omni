@@ -1,0 +1,66 @@
+{
+  "schema": "omni-llamacpp-controls-native-integration-v1",
+  "source_commit": "cd3c6cd09",
+  "actual_exit_code": 0,
+  "terminal_chunk": "ba9219",
+  "test_output_chunk": "40a05e",
+  "tests": 38,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "junit_elapsed_s": 78.688,
+  "native_python": "3.12.10; omni029venv",
+  "package_scope": "normal repository packages; no private candidate module overlay",
+  "test_setup": {
+    "plugin_autoload": false,
+    "default_xdist_addopts_disabled": true,
+    "confcutdir": "tests/edge",
+    "optional_triton_amd_entry_point_filtered_in_test_process_only": true,
+    "process_start_audit_guard": true
+  },
+  "prior_setup_only_failure": {
+    "exit_code": 4,
+    "reason": "repository default --dist=loadgroup requires disabled pytest-xdist plugin; no tests executed"
+  },
+  "source_pins": {
+    "vllm_omni/engine/backends/llamacpp.py": "e731eb588e56c81fc67e7b81f952049671e7cf264771e1063bb33271ee5a76c5",
+    "vllm_omni/engine/backends/llamacpp_controls.py": "b6ae45796c88b04079507bb25e9e79ef17f03799ef4ebeadf22f451b1b11590f",
+    "vllm_omni/edge/agent/llamacpp_route.py": "eea77f6d52ded486c4ae436d85169d3955f9b588b5b9f6e9781c47c081b2fdc0",
+    "vllm_omni/edge/agent/omni_backend.py": "5d1505c990dfe6daf21e474b30d2877ac4c48eac9355f5693114e32388595c25",
+    "vllm_omni/edge/agent/placement.py": "9603c68dae9ab4a7f0c989112470820b6678fba5b7766bd1da3a567e50a021a8",
+    "vllm_omni/edge/agent/qualification.py": "cc423ffc4425d6e1244c6be6c9c9d371cf3146d2c3eabfe2bb6b360247a5962e",
+    "vllm_omni/edge/agent/native_app.py": "c84400b6fd989541371c95f511b732d4c7753f57ec59a8eef252ca759765c383",
+    "benchmarks/edge_agent/native_profile.py": "bfaf711c0e3b57d445d61d81e7015ce3971a25dabc4cc0eb58719732b39ccc10",
+    "tests/edge/test_agent_llamacpp_controls.py": "5c75ad6320cdd22ea5fdfbedb96333697eb576636306bddfb50fe8135a7a1d58"
+  },
+  "reviewed_patch_sha256": "c3a43dc5b98fbcd989ee66eb2b47166c4495c9e40fa8fab39aa5f9ce8f4728e5",
+  "posttest_import_spacing_only_AST_equal": true,
+  "repository_ruff": "passed;188954",
+  "git_diff_check": "passed;188954",
+  "raw_files": {
+    "llamacpp_controls_native_integration.log": {
+      "size_bytes": 1219,
+      "sha256": "28b2de252ac4369a1dd58a5c61b7b35a0070c2e064a56d92315351298a225ac0",
+      "original_private_size_bytes": 1236,
+      "original_private_sha256": "0c0b767d57baf93888ba68c753629ed027ee5b8290508fbeefa08820c5827ec5",
+      "repository_transformation": "CRLF to LF only; private original retained"
+    },
+    "llamacpp_controls_native_integration.xml": {
+      "size_bytes": 5969,
+      "sha256": "50e6608a1a0e587a57db9ddc124e8562a05b04a40ef3a064effd841420703f0a"
+    },
+    "llamacpp_controls_native_integration_setup_failure.log": {
+      "size_bytes": 309,
+      "sha256": "d26d7a480899bfa963be60e05379dc66b734aca8ca8a619a95597b7cf31e9a1b",
+      "original_private_size_bytes": 314,
+      "original_private_sha256": "0b4076e3493ff9c0e9b58f3ef966d44951c15ae696b885da0449fdc17e293e6f",
+      "repository_transformation": "CRLF to LF only; private original retained"
+    }
+  },
+  "scope": "finite launch controls, normal Stage factory and shared ledger refusals/cleanup, Agent route/profile identity, unchanged Strata and legacy qualification gates",
+  "native_model_executed": false,
+  "hardware_discovery_qualified": false,
+  "CPU_offload_execution_qualified": false,
+  "memory_residency_discounted": false,
+  "default_or_performance_qualification_created": false
+}

@@ -1,0 +1,90 @@
+{
+  "roles": {
+    "initial": {
+      "role": "initial",
+      "status": "exact_retained_process_signaled",
+      "plan_sha256": "df83252bc1f9db9bc0abc5dd1b1f9b1375a35ea33218151aa96421dcdf149bc5",
+      "owner": {
+        "pid": 17020,
+        "creation_filetime_100ns": 134359974010534142,
+        "worker_generation": "78477a60ef974851bfb7b8ab64a1047c"
+      },
+      "rows": 89,
+      "observed_rows": 89,
+      "bytes_written": 91699,
+      "read_errors": 0,
+      "peak_working_set_bytes": 11323633664,
+      "peak_private_commit_bytes": 25278504960,
+      "retained_owner_terminal_or_current": {
+        "pid": 17020,
+        "creation_filetime_100ns": "134359974010534142",
+        "generation": "78477a60ef974851bfb7b8ab64a1047c",
+        "signaled": true,
+        "exit_code": 15,
+        "same_retained_handle": true
+      },
+      "query_handle_closed": true,
+      "writer_closed": true,
+      "captured_unix": 1791523822.8536227,
+      "plan_stable_after_observation": true,
+      "raw_file": {
+        "file": "initial-samples.jsonl",
+        "size_bytes": 91699,
+        "sha256": "aa594f1482c3a530555e68bc9604bc862829991692ddea3a70e7ca6af2446f1b"
+      }
+    },
+    "recovery": {
+      "role": "recovery",
+      "status": "exact_retained_process_signaled",
+      "plan_sha256": "e8908dd70bee9cf4c71a7dcce55b98ce47d6f84854ee668425949388a5d98365",
+      "owner": {
+        "pid": 14104,
+        "creation_filetime_100ns": 134359984798415694,
+        "worker_generation": "3d521253be69430f871dd70e384a6952"
+      },
+      "rows": 13,
+      "observed_rows": 13,
+      "bytes_written": 13387,
+      "read_errors": 0,
+      "peak_working_set_bytes": 10995474432,
+      "peak_private_commit_bytes": 24887451648,
+      "retained_owner_terminal_or_current": {
+        "pid": 14104,
+        "creation_filetime_100ns": "134359984798415694",
+        "generation": "3d521253be69430f871dd70e384a6952",
+        "signaled": true,
+        "exit_code": 15,
+        "same_retained_handle": true
+      },
+      "query_handle_closed": true,
+      "writer_closed": true,
+      "captured_unix": 1791524899.9875505,
+      "plan_stable_after_observation": true,
+      "raw_file": {
+        "file": "recovery-samples.jsonl",
+        "size_bytes": 13387,
+        "sha256": "1c8a5045b2d586141acc5ed47130c4d91a7412bbc6eccda59dbd8b7c7d109661"
+      }
+    }
+  },
+  "lifecycle_terminal_receipt_observed": false,
+  "lifecycle_launch_binding_verified": true,
+  "failure": null,
+  "schema": "omni-private-lifecycle-retained-process-memory-sidecar-v1",
+  "launch_sha256": "b32f3fcb51686290515b505039f834ea866b3db7a47bbf1cde442097a55639b9",
+  "launch_stable": true,
+  "observer_source_sha256": "de58a6c07ee62775b94bfb5becca2962f6e9277d7253f1c71009a6e757faa143",
+  "observer_source_stable": true,
+  "sidecar_source_sha256": "d87ecb1e50a4972eada10857108b9bdf50a8868881416d2bfc51e0617c486234",
+  "sidecar_source_stable": true,
+  "max_seconds": 7200,
+  "max_rows_per_role": 28801,
+  "interval_s": 0.25,
+  "scope": "each_exact_native_process_lifetime_through_samples_including_earlier_loading_or_requests_before_attach",
+  "isolated_loading_peak_verified": false,
+  "aggregate_RAM_or_memory_hardcap_verified": false,
+  "gpu_loading_peak_bytes": null,
+  "physical_ssd_model_bytes": null,
+  "model_or_Agent_qualification": false,
+  "individual_process_memory_observed": true
+}

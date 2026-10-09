@@ -1,0 +1,5 @@
+ERROR: usage: pytest.main() [options] [file_or_dir] [file_or_dir] [...]
+pytest.main(): error: unrecognized arguments: --dist=loadgroup
+  inifile: \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge\pyproject.toml
+  rootdir: \\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge
+
