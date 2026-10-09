@@ -1,0 +1,224 @@
+{
+  "schema": "omni-strata-native-browser-smoke-closed-review-v1",
+  "scope": "frozen-source experimental Windows batch-1 functional smoke; original run FAILED; not qualification",
+  "run_id": "ista-q2-browser-native-gpu-smoke-20261009-v1",
+  "closed_unix": 1791560055.8337815,
+  "root_exit_code": 1,
+  "original_status": "failed",
+  "functional_requests": 9,
+  "actual_model_calls": 18,
+  "batch_size": 1,
+  "concurrency": 1,
+  "source_inventory_entries": 1602,
+  "source_stable": true,
+  "runtime_stable": true,
+  "model_route": {
+    "artifact": "ISTA Qwen3.8-Flash-Next GSQ-RCO Q2_0",
+    "expert_ram_cache_gib": 4,
+    "context_tokens": 4096,
+    "runtime_bundle_sha256": "b20b14949d666c9c28e7d5fa571b6ccb169369d374124608a1740225cc7d3e73",
+    "native_gpu": "RTX 5090 Laptop",
+    "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+    "pci": "00000000:64:00.0"
+  },
+  "requests": [
+    {
+      "length": "short",
+      "phase": "warmup",
+      "answer_latency_s": 32.0507599,
+      "ttft_s": 31.9700664,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "short",
+      "phase": "measured",
+      "answer_latency_s": 24.265611,
+      "ttft_s": 24.191206,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "short",
+      "phase": "measured",
+      "answer_latency_s": 24.6918307,
+      "ttft_s": 24.6118916,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "medium",
+      "phase": "warmup",
+      "answer_latency_s": 25.3317684,
+      "ttft_s": 25.2385116,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "medium",
+      "phase": "measured",
+      "answer_latency_s": 24.8445089,
+      "ttft_s": 24.7477705,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "medium",
+      "phase": "measured",
+      "answer_latency_s": 26.1341012,
+      "ttft_s": 26.0627673,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "long",
+      "phase": "warmup",
+      "answer_latency_s": 32.1521451,
+      "ttft_s": 31.9996244,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "long",
+      "phase": "measured",
+      "answer_latency_s": 32.1416746,
+      "ttft_s": 32.035702,
+      "event_count": 13,
+      "reference_exact": true
+    },
+    {
+      "length": "long",
+      "phase": "measured",
+      "answer_latency_s": 32.5694119,
+      "ttft_s": 32.4900968,
+      "event_count": 13,
+      "reference_exact": true
+    }
+  ],
+  "cold_prepare_seconds": 1641.4865924,
+  "cold_prepare_scope": "integrity verification plus startup; not pure loading latency",
+  "independent_closed_review": {
+    "reviewers": [
+      "root/browser_memory_attribution_impl",
+      "root/browser_tool_joint_admission_design"
+    ],
+    "chains": "model -> browser_open -> automatic browser_read -> model -> final",
+    "distinct_outer_requests": 9,
+    "worker_generations": 1,
+    "model_epoch_and_native_sequence_range": [
+      1,
+      18
+    ],
+    "actual_tool_observations_join_second_model_input": true,
+    "prompt_raw_consumer_terminal_hashes_joined": true,
+    "reference_exact_requests": 9,
+    "ordered_event_sequences_audited": true,
+    "profiler_event_count_per_request": 13
+  },
+  "resource_close": {
+    "finite_bound_browser_objects_retired_and_handles_closed": 10,
+    "declared_observation_helper_count": 1,
+    "gpu_adapters_verified_closed": 2,
+    "native_model_retired_and_observer_handle_closed": true,
+    "model_native_exit_code": 15,
+    "model_exit_scope": "explicit termination, not graceful exit-zero evidence",
+    "shared_ledger_pools": 4,
+    "all_reserved_bytes_zero": true,
+    "owners_remaining": 0,
+    "quarantine_remaining": 0,
+    "finite_membership_unknowns": 0,
+    "all_descendant_coverage_proven": false,
+    "helper_exclusive_ownership_proven": false
+  },
+  "preserved_failures": [
+    {
+      "phase": "primary_validation",
+      "error": "overbound_or_partial_profile_row",
+      "record": "route_prepare",
+      "payload_bytes": 37848461,
+      "limit_bytes": 33554432
+    },
+    {
+      "phase": "finalization",
+      "error": "bounded_closed_metadata_required",
+      "record": "block-01-preparation.json",
+      "bytes": 48131065,
+      "limit_bytes": 41943040
+    }
+  ],
+  "qualification": {
+    "functional_fixture_chains_audited": true,
+    "full_performance_protocol": false,
+    "fresh_cancellation_and_recovery": false,
+    "endurance": false,
+    "physical_ssd_io_proven": false,
+    "aggregate_memory_hardcaps_proven": false,
+    "default_route": false,
+    "release": false
+  },
+  "raw_jsonl": {
+    "sha256": "1ef201c9de21ebc9918031a73dae3751a711963236d094d295ee54687674a05e",
+    "bytes": 96234286,
+    "rows": 11,
+    "payload_line_sizes": [
+      6054,
+      37848461,
+      4149976,
+      6088428,
+      6142607,
+      6290278,
+      6191008,
+      6490545,
+      7831096,
+      7620397,
+      7575414
+    ]
+  },
+  "private_retained_evidence": {
+    "profile/receipt.json": {
+      "sha256": "08400a73c868647c3205b224226bac12364dbcbfef73b047c5c119b590b6a530",
+      "bytes": 1505876
+    },
+    "profile-root-terminal-v2.json": {
+      "sha256": "032f905aa180adbfafe80316ede92b4055981f34b84f0df2a17c380cdc215c19",
+      "bytes": 20990
+    },
+    "profile/block-01-preparation.json": {
+      "sha256": "fa19d064975a3cba29963daaaf0c1d2c9778924840437bc6befd2e720c69ed7b",
+      "bytes": 48131065
+    },
+    "profile/block-01-close.json": {
+      "sha256": "f654cb1670c7a34735dc742ebf2f272f316f0e42ab5746ef28279e9d36519dc9",
+      "bytes": 719806
+    },
+    "profile/block-01-attribution-close.json": {
+      "sha256": "859ca87d12ca48dd97c60be18ece136826c8b6fab8cd112f8bec467a59e0f1b2",
+      "bytes": 622657
+    },
+    "profile/block-01-loaded-plan.json": {
+      "sha256": "5c20ea3a4e746c0287f78546d81999df4c5c07e178a1dc6ddf6faec80322e7ce",
+      "bytes": 69532
+    },
+    "profile/source-before.json": {
+      "sha256": "ff725a3a15883d9ded4c248cca2be7e7d0c69a63611e253cf395e6916794a67d",
+      "bytes": 329864
+    },
+    "profile/source-after.json": {
+      "sha256": "ff725a3a15883d9ded4c248cca2be7e7d0c69a63611e253cf395e6916794a67d",
+      "bytes": 329864
+    },
+    "profile/runtime-identity-before.json": {
+      "sha256": "0cd9556f40342af8449b5df7042c0b6cfb5af5b70990992ec2c27b8ba7b1cb50",
+      "bytes": 667
+    },
+    "profile/runtime-identity-after.json": {
+      "sha256": "0cd9556f40342af8449b5df7042c0b6cfb5af5b70990992ec2c27b8ba7b1cb50",
+      "bytes": 667
+    },
+    "source-freeze.json": {
+      "sha256": "bb0e06de68e0f6fe8227c9173e0cb9bb269e3ad205798d89fefce0a4851f0e7c",
+      "bytes": 351940
+    }
+  },
+  "public_projection_scope": "Private prompts/page contents/output preimages omitted. Original failed status preserved. Fixed-file offline hash/capture review corroborates functionality without relaxing original readers."
+}

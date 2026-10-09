@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 from concurrent.futures import Future
 from dataclasses import asdict, replace
 from types import SimpleNamespace
@@ -421,6 +422,386 @@ def test_native_cli_selects_structured_read_url(monkeypatch, tmp_path):
     native_profile.main()
     assert captured["selected_classes"] == {"browser_text"}
     assert captured["structured_read_url"] is True
+
+
+@pytest.mark.parametrize("headless", [False, True])
+def test_native_cli_forwards_explicit_browser_mode(monkeypatch, tmp_path, headless):
+    captured = {}
+
+    async def fake_profile(**kwargs):
+        captured.update(kwargs)
+        return tmp_path / "index.json"
+
+    monkeypatch.setattr(native_profile, "run_native_profile", fake_profile)
+    args = ["native_profile", "--config", "config.json", "--lineage", "lineage.json",
+            "--output-dir", str(tmp_path), "--task-class", "browser_text"]
+    if headless:
+        args.append("--browser-headless")
+    monkeypatch.setattr("sys.argv", args)
+    native_profile.main()
+    assert captured["browser_headless"] is headless
+    assert captured["smoke"] is False  # Existing full protocol remains the default.
+
+
+@pytest.mark.parametrize("malformed", [None, 0, 1, "true", [], {}])
+def test_headless_boolean_rejected_before_platform_or_config_work(monkeypatch, tmp_path, malformed):
+    monkeypatch.setattr(native_profile.sys, "platform", "unsupported-fixture-platform")
+    with pytest.raises(ValueError, match="explicit boolean"):
+        asyncio.run(native_profile.run_native_profile(
+            config_path=tmp_path / "absent.json", lineage_path=tmp_path / "absent-lineage.json",
+            output_dir=tmp_path, selected_classes={"basic"}, browser_headless=malformed))
+    with pytest.raises(ValueError, match="explicit boolean"):
+        NativeProfileBridge(native_config={}, config_root=tmp_path, private_root=tmp_path,
+            fixture_origin="http://127.0.0.1:1", telemetry=None, browser_headless=malformed)
+
+
+@pytest.mark.parametrize("classes", [None, set(), {"browser_vision"}, {"basic", "browser_vision"}])
+def test_headless_foreground_suite_rejected_before_native_setup(monkeypatch, tmp_path, classes):
+    monkeypatch.setattr(native_profile.sys, "platform", "unsupported-fixture-platform")
+    with pytest.raises(ValueError, match="foreground browser_vision"):
+        asyncio.run(native_profile.run_native_profile(
+            config_path=tmp_path / "absent.json", lineage_path=tmp_path / "absent-lineage.json",
+            output_dir=tmp_path, selected_classes=classes, browser_headless=True))
+
+
+def test_headless_structured_default_selects_only_text_before_native_setup(monkeypatch, tmp_path):
+    monkeypatch.setattr(native_profile.sys, "platform", "unsupported-fixture-platform")
+    with pytest.raises(RuntimeError, match="requires native Windows"):
+        asyncio.run(native_profile.run_native_profile(
+            config_path=tmp_path / "absent.json", lineage_path=tmp_path / "absent-lineage.json",
+            output_dir=tmp_path, structured_read_url=True, browser_headless=True))
+
+
+def _closing_bridge(tmp_path):
+    return NativeProfileBridge(native_config={}, config_root=tmp_path, private_root=tmp_path,
+        fixture_origin="http://127.0.0.1:1", telemetry=SimpleNamespace())
+
+
+def test_controller_closing_snapshot_is_after_close_detached_and_preserved_on_repeat(tmp_path):
+    bridge = _closing_bridge(tmp_path)
+    calls = []
+    snapshot = {"ledger": {"host_ram": {"reserved": 0}}, "synthetic_fixture": True}
+    controller = SimpleNamespace(close=lambda: calls.append("close"))
+
+    def capture():
+        assert bridge.controller is controller
+        assert calls == ["close"]
+        calls.append("snapshot")
+        return snapshot
+
+    controller.resource_snapshot = capture
+    bridge.controller, bridge.route = controller, _route()
+    bridge.close()
+    evidence = bridge.controller_close_evidence
+    assert evidence["controller_close_succeeded"] is True
+    assert evidence["snapshot_status"] == "captured"
+    assert evidence["route_id"] == "r"
+    assert evidence["resource_snapshot"] == snapshot
+    assert bridge.controller is None
+    snapshot["ledger"]["host_ram"]["reserved"] = 1
+    assert evidence["resource_snapshot"]["ledger"]["host_ram"]["reserved"] == 0
+    bridge.close()
+    assert calls == ["close", "snapshot"]
+    assert bridge.controller_close_evidence is evidence
+
+
+def test_failed_close_captures_current_quarantine_without_borrowing_prior_snapshot(tmp_path):
+    bridge = _closing_bridge(tmp_path)
+    primary = asyncio.CancelledError("fixture close cancelled")
+    state = {"synthetic_fixture": True, "model_token": "released", "tool_token": "quarantined"}
+
+    def fail():
+        raise primary
+
+    controller = SimpleNamespace(close=fail, resource_snapshot=lambda: state)
+    bridge.controller, bridge.route = controller, _route()
+    bridge.controller_close_evidence = {"resource_snapshot": {"prior_generation_empty": True}}
+    with pytest.raises(asyncio.CancelledError) as caught:
+        bridge.close()
+    assert caught.value is primary and bridge.controller is controller
+    evidence = bridge.controller_close_evidence
+    assert evidence["controller_close_succeeded"] is False
+    assert evidence["snapshot_status"] == "captured"
+    assert evidence["resource_snapshot"] == state
+    assert "prior_generation_empty" not in evidence["resource_snapshot"]
+
+
+@pytest.mark.parametrize("close_fails", [False, True])
+def test_snapshot_failure_preserves_primary_and_drops_only_known_closed_controller(tmp_path, close_fails):
+    bridge = _closing_bridge(tmp_path)
+    primary = RuntimeError("fixture close failed")
+    secondary = asyncio.CancelledError("fixture snapshot cancelled")
+    calls = []
+
+    def close():
+        calls.append("close")
+        if close_fails:
+            raise primary
+
+    def capture():
+        calls.append("snapshot")
+        raise secondary
+
+    controller = SimpleNamespace(close=close, resource_snapshot=capture)
+    bridge.controller, bridge.route = controller, _route()
+    with pytest.raises(BaseException) as caught:
+        bridge.close()
+    assert caught.value is (primary if close_fails else secondary)
+    evidence = bridge.controller_close_evidence
+    assert evidence["snapshot_status"] == "failed"
+    assert evidence["resource_snapshot"] is None
+    assert evidence["snapshot_error"] == "CancelledError"
+    assert evidence["controller_close_succeeded"] is not close_fails
+    if close_fails:
+        assert bridge.controller is controller
+        assert any("secondary controller closing resource snapshot failure" in note
+                   for note in primary.__notes__)
+    else:
+        assert bridge.controller is None
+        bridge.close()
+        assert bridge.controller_close_evidence is evidence
+        assert calls == ["close", "snapshot"]
+
+
+@pytest.mark.parametrize("snapshot", [None, {"bad": float("nan")}, {"bad": object()}])
+def test_invalid_closing_snapshot_never_becomes_an_empty_release_claim(tmp_path, snapshot):
+    bridge = _closing_bridge(tmp_path)
+    bridge.controller = SimpleNamespace(close=lambda: None, resource_snapshot=lambda: snapshot)
+    with pytest.raises((ValueError, TypeError)):
+        bridge.close()
+    assert bridge.controller is None
+    assert bridge.controller_close_evidence["resource_snapshot"] is None
+    assert bridge.controller_close_evidence["snapshot_status"] == "failed"
+
+
+def test_closing_snapshot_metadata_bound_is_enforced(tmp_path):
+    bridge = _closing_bridge(tmp_path)
+    bridge.controller = SimpleNamespace(close=lambda: None, resource_snapshot=lambda: {
+        "oversized": "x" * native_profile.CLOSING_RESOURCE_SNAPSHOT_MAX_BYTES})
+    with pytest.raises(ValueError, match="metadata bound"):
+        bridge.close()
+    assert bridge.controller is None
+    assert bridge.controller_close_evidence["resource_snapshot"] is None
+    assert bridge.controller_close_evidence["snapshot_status"] == "failed"
+
+
+def test_ordinary_controller_without_snapshot_keeps_explicit_unavailable_evidence(tmp_path):
+    bridge = _closing_bridge(tmp_path)
+    bridge.controller = SimpleNamespace(close=lambda: None)
+    bridge.close()
+    assert bridge.controller is None
+    assert bridge.controller_close_evidence["snapshot_status"] == "unavailable_not_exposed"
+    assert bridge.controller_close_evidence["resource_snapshot"] is None
+
+
+def test_secondary_note_failure_cannot_replace_original_close_exception(tmp_path):
+    class PrimaryError(RuntimeError):
+        def add_note(self, _note):
+            raise TypeError("synthetic annotation failure")
+
+    bridge = _closing_bridge(tmp_path)
+    primary = PrimaryError("original close error")
+
+    def close():
+        raise primary
+
+    def capture():
+        raise ValueError("secondary snapshot error")
+
+    bridge.controller = SimpleNamespace(close=close, resource_snapshot=capture)
+    with pytest.raises(PrimaryError) as caught:
+        bridge.close()
+    assert caught.value is primary
+    assert bridge.controller is not None
+    assert bridge.controller_close_evidence["snapshot_error"] == "ValueError"
+
+
+def test_partial_constructor_observer_is_closed_once_without_stale_historical_receipt(tmp_path):
+    bridge = _closing_bridge(tmp_path)
+    bridge.process_memory_attribution = True
+    calls = []
+    proof = {"attribution_close_verified": True, "synthetic_fixture": True}
+    bridge.telemetry = SimpleNamespace(end_controller_processes=lambda **kwargs: calls.append(kwargs) or proof)
+    bridge._process_observation_started = True  # begin succeeded before a constructor failure.
+    bridge.close()
+    assert bridge.process_memory_close_receipt is proof
+    assert bridge.controller_close_evidence is None  # No controller ever existed.
+    bridge.close()
+    assert calls == [{"browser_close_receipt": None}]
+    assert bridge.process_memory_close_receipt is proof
+
+
+@pytest.mark.parametrize("retained_before_failure", [False, True])
+def test_observer_begin_failure_drains_only_newly_retained_registry(tmp_path, retained_before_failure):
+    primary = asyncio.CancelledError("synthetic observer bind interruption")
+    calls = []
+
+    class Telemetry:
+        _process_registry = None
+
+        def begin_controller_processes(self, _generation):
+            if retained_before_failure:
+                self._process_registry = object()
+            raise primary
+
+        def end_controller_processes(self, **kwargs):
+            assert self._process_registry is not None
+            calls.append(kwargs)
+            self._process_registry = None
+            return {"attribution_close_verified": True, "synthetic_fixture": True}
+
+    bridge = NativeProfileBridge(native_config={"routes": [{"route_id": "r"}]},
+        config_root=tmp_path / "config", private_root=tmp_path / "private",
+        fixture_origin="http://127.0.0.1:1", telemetry=Telemetry(), process_memory_attribution=True)
+    with pytest.raises(asyncio.CancelledError) as caught:
+        asyncio.run(bridge.prepare(_route()))
+    assert caught.value is primary
+    assert bridge._process_observation_started is retained_before_failure
+    bridge.close()
+    bridge.close()
+    assert len(calls) == int(retained_before_failure)
+    if not retained_before_failure:
+        assert bridge.process_memory_close_receipt is None
+    assert bridge.controller_close_evidence is None
+
+
+def test_early_failed_prepare_clears_prior_generation_close_and_browser_mode(tmp_path):
+    bridge = _closing_bridge(tmp_path)
+    bridge.controller_close_evidence = {"resource_snapshot": {"prior_generation_empty": True}}
+    bridge.process_memory_close_receipt = {"prior_generation_close": True}
+    bridge._profile_browser = SimpleNamespace(_headless=True)
+    with pytest.raises((RuntimeError, KeyError)):
+        asyncio.run(bridge.prepare(_route()))  # No routes: before controller/native construction.
+    assert bridge.controller_close_evidence is None
+    assert bridge.process_memory_close_receipt is None
+    assert bridge.browser_mode["actual"] is None
+    bridge.process_memory_attribution = True
+    bridge.telemetry = SimpleNamespace(end_controller_processes=lambda **_kwargs: pytest.fail(
+        "an unstarted attempt must not borrow the observer's historical receipt"))
+    bridge.close()
+    assert bridge.process_memory_close_receipt is None
+
+
+@pytest.mark.parametrize("method", ["before_request", "run"])
+def test_direct_headless_bridge_refuses_vision_before_telemetry_or_controller(tmp_path, method):
+    bridge = NativeProfileBridge(native_config={}, config_root=tmp_path, private_root=tmp_path,
+        fixture_origin="http://127.0.0.1:1", telemetry=None, browser_headless=True)
+    case = AgentCase(case_id="vision", task_class="browser_vision", language="en-US",
+        length="short", prompt="fixture", reference="fixture", metadata={})
+    with pytest.raises(ValueError, match="foreground browser_vision"):
+        if method == "before_request":
+            bridge.before_request(_route(), case, "measured", 0)
+        else:
+            asyncio.run(bridge.run(_route(), case, lambda *_args: None))
+
+
+@pytest.mark.parametrize("close_fails", [False, True])
+@pytest.mark.parametrize("interrupted", [False, True])
+def test_index_keeps_route_closing_snapshot_and_browser_mode_even_without_attribution(
+        monkeypatch, tmp_path, close_fails, interrupted):
+    import vllm_omni.edge.agent.native_app as native_app
+    import vllm_omni.edge.agent.tools as native_tools
+
+    route = _route()
+    config_path, lineage_path = tmp_path / "config.json", tmp_path / "lineage.json"
+    config_path.write_text(json.dumps({"routes": [{"route_id": "r"}]}), encoding="utf-8")
+    lineage_path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(native_profile.sys, "platform", "win32")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local"))
+    monkeypatch.setattr(native_app, "_hardware_snapshot", lambda: {"power_condition": "AC"})
+    monkeypatch.setattr(native_tools, "WindowsSettings", lambda: SimpleNamespace(
+        read=lambda _key: {"value": 10}))
+    conditions = ProfileConditions(hardware_id="fake", os_version="fake", driver_versions={},
+        runtime_versions={}, power_condition="AC", suite_id=SUITE_ID, environment_fingerprint="fake")
+    monkeypatch.setattr(native_profile, "_conditions", lambda *_args, **_kwargs: conditions)
+    monkeypatch.setattr(native_profile, "load_profile_routes", lambda *_args: (
+        [route], {"r": {"lineage_verified": False}}))
+
+    class Site:
+        origin = "http://127.0.0.1:1"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+    monkeypatch.setattr(native_profile, "FixtureSite", Site)
+    case = AgentCase(case_id="fake", task_class="basic", language="en-US", length="short",
+        prompt="fake", reference="fake", metadata={"prompt_sha256": "a" * 64})
+    monkeypatch.setattr(native_profile, "build_paired_cases", lambda *_args: {
+        "basic": {length: [replace(case, length=length)] for length in ("short", "medium", "long")}})
+    monkeypatch.setattr(native_profile, "WindowsTelemetry", lambda _condition: SimpleNamespace(
+        sample=lambda: {}, close=lambda: None))
+    primary = RuntimeError("original route close failure")
+    interruption = asyncio.CancelledError("original profile interruption")
+    captured = {}
+
+    class Bridge:
+        controller_close_evidence = None
+        browser_mode = {"requested": "headless", "actual": "headless", "scope": "fake_constructor"}
+        process_memory_close_receipt = None
+
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+            self.calls = 0
+
+        def run(self, *_args):
+            raise AssertionError("fake profile does not execute models")
+
+        prepare = run
+        before_request = run
+
+        def close(self):
+            self.calls += 1
+            self.controller_close_evidence = {
+                "controller_close_succeeded": not close_fails,
+                "resource_snapshot": {"synthetic_fixture": True,
+                                      "tool_token": "quarantined" if close_fails else "released"},
+                "snapshot_status": "captured"}
+            if close_fails:
+                if self.calls == 1:
+                    raise primary
+                raise RuntimeError("secondary final close failure")
+
+    monkeypatch.setattr(native_profile, "NativeProfileBridge", Bridge)
+
+    async def profile(**kwargs):
+        assert kwargs["config"].measured_per_length == 20
+        assert kwargs["config"].endurance_seconds == 1800
+        if interrupted:
+            raise interruption
+        return SimpleNamespace(routes={"r": SimpleNamespace(protocol_compliant=False,
+            correctness_pass=False, tool_safety_pass=False)}, run_directory=tmp_path,
+            raw_jsonl=tmp_path / "raw.jsonl", raw_sha256="b" * 64)
+
+    monkeypatch.setattr(native_profile, "run_profile", profile)
+    invocation = native_profile.run_native_profile(config_path=config_path, lineage_path=lineage_path,
+        output_dir=tmp_path / "out", selected_classes={"basic"}, browser_headless=True)
+    if interrupted:
+        with pytest.raises(asyncio.CancelledError) as caught:
+            asyncio.run(invocation)
+        assert caught.value is interruption
+        if close_fails:
+            assert any("secondary interrupted profile close failure" in note for note in interruption.__notes__)
+    elif close_fails:
+        with pytest.raises(RuntimeError) as caught:
+            asyncio.run(invocation)
+        assert caught.value is primary
+        assert any("secondary final profile bridge close failure" in note for note in primary.__notes__)
+    else:
+        asyncio.run(invocation)
+    index_path, = (tmp_path / "out").glob("native_*/index.json")
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    result, = index["results"]
+    assert captured["browser_headless"] is True
+    assert captured["process_memory_attribution"] is False
+    assert index["browser_mode_requested"] == index["browser_mode_actual"] == "headless"
+    assert result["browser_mode"]["actual"] == "headless"
+    assert result["controller_close_evidence"]["resource_snapshot"]["tool_token"] == (
+        "quarantined" if close_fails else "released")
+    assert result["status"] == (
+        "interrupted" if interrupted else ("failed_close" if close_fails else "evidence_recorded"))
 
 
 def test_evaluator_requires_exact_answer_and_actual_read_evidence():

@@ -1,0 +1,270 @@
+{
+  "schema": "omni-native-profile-full-protocol-focused-validation-v1",
+  "scope": "Windows native model-free focused regression; no neural/browser launch or qualification",
+  "run_id": "native-profile-full-focused-20261009-v2",
+  "pass": true,
+  "pytest_exit_code": 0,
+  "junit": {
+    "present": true,
+    "sha256": "773ce2fe4d539c1366893333268a2c5738158c9c7571029db87aa4483f4bfc3c",
+    "tests": 129,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "source_count": 46,
+  "selected_sources_stable": true,
+  "source_hashes": {
+    "vllm_omni/__init__.py": {
+      "sha256": "77a3d5dc918c00454d34ea0d835c6608388d15003e11636bb65fba46b5df019c",
+      "bytes": 2451
+    },
+    "vllm_omni/version.py": {
+      "sha256": "a5e33e06f342ae25d09643e606097a12c22e1424e1aa23a0df1970f804013965",
+      "bytes": 1911
+    },
+    "vllm_omni/patch.py": {
+      "sha256": "96554e5093b49ff91f6118adc0675692560534f167171da6a5a562626bf66b6f",
+      "bytes": 36236
+    },
+    "vllm_omni/config/__init__.py": {
+      "sha256": "942e52876c023f3c3081cd5b74ae0abb68db30d5b801245ea8f050d5b0f69130",
+      "bytes": 3258
+    },
+    "vllm_omni/config/lora.py": {
+      "sha256": "44e1fa945414dae9c0e83368bfe7cd2a80f1dbd65c2bb6e12b6455f751d0dd11",
+      "bytes": 347
+    },
+    "vllm_omni/config/model.py": {
+      "sha256": "0bc2a0b1fd883f6bb35bbcfc1f91720db6f5e2cc6dba7c8507a20c040b2c019e",
+      "bytes": 16310
+    },
+    "vllm_omni/config/omni_config.py": {
+      "sha256": "deea9bd98f95ecc7b3cc8bacba6d6f843deae437ce29297f93c95dc81196a3ed",
+      "bytes": 81095
+    },
+    "vllm_omni/config/stage_config.py": {
+      "sha256": "0268231bd55f53402b6299e7bdd4bd131b7f3dd1d09b5c86706c892778f6b162",
+      "bytes": 50942
+    },
+    "vllm_omni/config/yaml_util.py": {
+      "sha256": "19cc7e3ed2cc426b54ce24251c443078ca27a71a60250871ca463e3d9e6653e3",
+      "bytes": 1716
+    },
+    "vllm_omni/engine/__init__.py": {
+      "sha256": "a3877242482ca5aa0bb7ee9e137e4791a76480fe9f80d5cf90ebf0c1c4722598",
+      "bytes": 4947
+    },
+    "vllm_omni/engine/backends/__init__.py": {
+      "sha256": "57066d83cad22f06be69a11b507969a542a06269d84eca312ad85c5729d43fe3",
+      "bytes": 1921
+    },
+    "vllm_omni/engine/backends/llamacpp.py": {
+      "sha256": "e731eb588e56c81fc67e7b81f952049671e7cf264771e1063bb33271ee5a76c5",
+      "bytes": 55120
+    },
+    "vllm_omni/engine/backends/llamacpp_controls.py": {
+      "sha256": "b6ae45796c88b04079507bb25e9e79ef17f03799ef4ebeadf22f451b1b11590f",
+      "bytes": 6120
+    },
+    "vllm_omni/engine/backends/strata.py": {
+      "sha256": "2bd0c25ca87aea5bf19f008f1a6f8bb5023111db1a5ce9f1017035a35374db4e",
+      "bytes": 137987
+    },
+    "vllm_omni/engine/local_plan.py": {
+      "sha256": "059117738ba8e8763b80a223b77b7d78285ac370ad14d045a8571c32d8ae8348",
+      "bytes": 40023
+    },
+    "vllm_omni/engine/resource_ledger.py": {
+      "sha256": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b",
+      "bytes": 6252
+    },
+    "vllm_omni/engine/stage_runtime.py": {
+      "sha256": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+      "bytes": 71407
+    },
+    "vllm_omni/engine/weight_tiers.py": {
+      "sha256": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75",
+      "bytes": 19538
+    },
+    "vllm_omni/edge/agent/consumer_trace.py": {
+      "sha256": "92c91f246f07ed9419a8fb15e49a64abc72515bac9e3343b24f056b37080fe97",
+      "bytes": 28458
+    },
+    "vllm_omni/edge/agent/controller.py": {
+      "sha256": "26de96a6ac0623e13cfd9e4cf1cdcc2f526ba70bde0a5d0ff0d25b04f602c4e2",
+      "bytes": 49772
+    },
+    "vllm_omni/edge/agent/browser_resources.py": {
+      "sha256": "b060ebc68289c4c8d87d38b1409e9b67c14e539663d83bd786811c9d7c1d3ddf",
+      "bytes": 26702
+    },
+    "vllm_omni/edge/agent/admission.py": {
+      "sha256": "d3620245722773e6b500c37ba3b92e2d52163b39211e39fa19bccf834bda66ab",
+      "bytes": 425
+    },
+    "vllm_omni/edge/agent/fixed_suite.py": {
+      "sha256": "258020e4d3e8b5811bc8a2389391772daf1875871db685206ca94e51ecc8a19f",
+      "bytes": 7351
+    },
+    "vllm_omni/edge/agent/llamacpp_route.py": {
+      "sha256": "20bb4de7652802867e3004999169779d5d60d3a38a9d127a615aa8ef6d2c63e4",
+      "bytes": 17465
+    },
+    "vllm_omni/edge/agent/memory.py": {
+      "sha256": "bb737a781825d20c0d0dc8b0f7d237c63a110d7f5efad0cc5646e52715f3969f",
+      "bytes": 31919
+    },
+    "vllm_omni/edge/agent/memory_provenance.py": {
+      "sha256": "796b7db9f82563e7d8d065ecd282cc0ccd9e6fb2afc29eacd09c2c61a22e749f",
+      "bytes": 6199
+    },
+    "vllm_omni/edge/windows_process_memory.py": {
+      "sha256": "4250b023894fe46238eda9ba90b6b60454f739eaa2c77a2db6d2b13b4114dc17",
+      "bytes": 49365
+    },
+    "vllm_omni/edge/windows_cdp_helper.py": {
+      "sha256": "a9b2b2898cbcda07680eb0e8693677ee52be1ca456fe31c358d0339b724eee06",
+      "bytes": 8935
+    },
+    "vllm_omni/edge/windows_gpu_memory.py": {
+      "sha256": "e79c69910f4d88ef581510c30911ada15fadc3fad3d35c4ae6dd30476aa6f809",
+      "bytes": 25635
+    },
+    "vllm_omni/edge/windows_bound_gpu_memory.py": {
+      "sha256": "22a6d5a7ee094fb31db7968622339612d0fdb20e0df9c69eadb1ca05e3a0fffd",
+      "bytes": 16845
+    },
+    "vllm_omni/edge/agent/model_output.py": {
+      "sha256": "72339e1d5a4a39e8f0db0a6f9cec1ca8039258832afbc72b7136d1d148f10f90",
+      "bytes": 16140
+    },
+    "vllm_omni/edge/agent/native_app.py": {
+      "sha256": "823a39f9fa59dbbc6f15aa07fb49e74ed028f9503fa5d2b3cde299c3d0cfc1d3",
+      "bytes": 41607
+    },
+    "vllm_omni/edge/agent/native_browser_gpu.py": {
+      "sha256": "e372f5e389460e4261c292efb17725af36229e5faff457f1c9c1204149850e53",
+      "bytes": 21586
+    },
+    "vllm_omni/edge/agent/omni_backend.py": {
+      "sha256": "557ba4d11b264a04f38cf7e520bd9112214275aff83c72e97523dafd8741c0ff",
+      "bytes": 42910
+    },
+    "vllm_omni/edge/agent/placement.py": {
+      "sha256": "9603c68dae9ab4a7f0c989112470820b6678fba5b7766bd1da3a567e50a021a8",
+      "bytes": 28599
+    },
+    "vllm_omni/edge/agent/qualification.py": {
+      "sha256": "746a99f837824e8766ae36df18cd57a3a01d84d069c463edace0c47fef77a7b8",
+      "bytes": 69631
+    },
+    "vllm_omni/edge/agent/router.py": {
+      "sha256": "3e8a1998c95f6450c9c2c78a126376948753f960a861aaf1d006a87244859036",
+      "bytes": 12775
+    },
+    "vllm_omni/edge/agent/runtime_identity.py": {
+      "sha256": "f49a1118af5fe91e97e88be899d73d96b3748f18efe39a162d6067a81c955875",
+      "bytes": 4705
+    },
+    "vllm_omni/edge/agent/strata_route.py": {
+      "sha256": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+      "bytes": 15526
+    },
+    "vllm_omni/edge/agent/tools.py": {
+      "sha256": "237480fc3ad05c7f23b90b3f162f0580b6eb304986326f4fcd9ede8227bb40bb",
+      "bytes": 83855
+    },
+    "benchmarks/edge_agent/native_profile.py": {
+      "sha256": "0227ef051b21a27fea709ca81a2fcd67eb969c3421225a6ad1e4c8d5cc06a77e",
+      "bytes": 78488
+    },
+    "benchmarks/edge_agent/paired_suite.py": {
+      "sha256": "642b04b10a7bffb551a07d7883199aee8e805d896fccf6373ca6c135fc1078ee",
+      "bytes": 15557
+    },
+    "benchmarks/edge_agent/profile.py": {
+      "sha256": "f86f3e3f547ba7ad175af07492972309e074a432837eac21a178892369a2a363",
+      "bytes": 27314
+    },
+    "tests/edge/test_agent_native_profile.py": {
+      "sha256": "4e3f22f2f99a791e41cd3993249605ca78fc076b01d8e273a784eccdd030a213",
+      "bytes": 43069
+    },
+    "tests/edge/test_agent_browser_joint_wiring.py": {
+      "sha256": "067f08c396ff290383019c6bc7ddc32c32c51d24191208f0ffc45b233324ced4",
+      "bytes": 22202
+    },
+    "tests/edge/test_agent_native_browser_gpu.py": {
+      "sha256": "51963def0d3bd9f2c4eca277a1ea43197a718d8c47ee5f22bc6fa1327aa6cc35",
+      "bytes": 39098
+    }
+  },
+  "runtime_versions": {
+    "pytest": "9.1.1",
+    "pytest-asyncio": "1.4.0",
+    "vllm": "0.29.0+cu134",
+    "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+    "torch": "2.13.0+cu130",
+    "triton": null,
+    "PySide6": "6.11.2",
+    "playwright": "1.63.0",
+    "cryptography": "50.0.1"
+  },
+  "process_start_attempts": 0,
+  "origin_violations": [],
+  "required_packages_missing": [],
+  "required_test_modules_missing": [],
+  "asyncio_plugin_registered": true,
+  "pytest_warnings": [],
+  "test_files": [
+    "test_agent_native_profile.py",
+    "test_agent_browser_joint_wiring.py",
+    "test_agent_native_browser_gpu.py"
+  ],
+  "private_evidence": {
+    "receipt.json": {
+      "sha256": "6ef27d2562e083d79278e84ffd3674fded871ed0c32abd3a68ff29c0ec01b618",
+      "bytes": 235081
+    },
+    "pytest.log": {
+      "sha256": "52274b70ba6e3d127aa1552d55373228e8b8c866cac3de82b99e73143bdee51a",
+      "bytes": 348
+    },
+    "junit.xml": {
+      "sha256": "773ce2fe4d539c1366893333268a2c5738158c9c7571029db87aa4483f4bfc3c",
+      "bytes": 20946
+    }
+  },
+  "implemented": [
+    "explicit browser_headless boolean/CLI; foreground vision rejects before native work",
+    "same-controller post-close snapshot with bounded detached metadata",
+    "per-route close/mode evidence on success/failure/cancel; primary exception preserved",
+    "partial observer cleanup and generation reset"
+  ],
+  "not_fixed_yet": [
+    "cold-loading samples embedded in Preparation; streaming sidecar pending"
+  ],
+  "preceding_focused_run": {
+    "run_id": "native-profile-full-focused-20261009-v1",
+    "pytest_passed": 129,
+    "private_evidence": {
+      "receipt.json": {
+        "sha256": "7bb9f62b59aeab1e5eaf0379ddb07943e7f6e5439b155f3a462a0f276b89ea22",
+        "bytes": 234923
+      },
+      "pytest.log": {
+        "sha256": "508596a2d49da6efa0ae04f000c55f0fd1998101c979f3315b403d6b6275eb09",
+        "bytes": 348
+      },
+      "junit.xml": {
+        "sha256": "d382b0bc4c4747ab2df353f96ec1454dd2ae5e33fe372d85c87682320f25202b",
+        "bytes": 20946
+      }
+    },
+    "later_full_ruff_failure": "N818 synthetic exception class Primary required Error suffix",
+    "fix": "rename only the synthetic class and its two references to PrimaryError"
+  },
+  "full_ruff": "passed on all four changed Python files",
+  "qualification": false
+}

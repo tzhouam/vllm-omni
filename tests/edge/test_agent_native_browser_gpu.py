@@ -657,14 +657,20 @@ def test_normal_build_binds_app_source_before_admission_without_factory_injectio
     assert report["current"]["join"]["ledger_pool"] == "vram"
 
 
+@pytest.mark.parametrize("browser_headless", [False, True])
 def test_profiler_forwards_exact_normal_gpu_config_and_uses_companion_factory(tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch: pytest.MonkeyPatch, browser_headless: bool) -> None:
     route = ProfileRoute("r", "model", "artifact", "revision", "a" * 64,
                          "Q4", "external.llamacpp.text.v1", "cpu")
     config = {"routes": [{"route_id": "r"}],
               "browser_resource_envelope": envelope_declaration(tmp_path),
               "browser_native_gpu_accounting": gpu_declaration(tmp_path)}
     calls: list[Any] = []
+    browser_kwargs: dict[str, Any] = {}
+    class Browser:
+        def __init__(self, **kwargs: Any) -> None:
+            browser_kwargs.update(kwargs)
+    monkeypatch.setattr(native_profile, "ManagedEdgeBrowser", Browser)
     backend = SimpleNamespace(execution_plan=None)
     def start() -> None:
         backend.execution_plan = {"requested_device": "cpu"}
@@ -687,8 +693,20 @@ def test_profiler_forwards_exact_normal_gpu_config_and_uses_companion_factory(tm
     bridge = native_profile.NativeProfileBridge(native_config=config, config_root=tmp_path / "configs",
         private_root=tmp_path, fixture_origin="http://127.0.0.1:1234",
         telemetry=SimpleNamespace(sample=lambda: {"ram_used_bytes": 1},
-                                  attach_browser_companion=lambda value: None))
+                                  attach_browser_companion=lambda value: None),
+        browser_headless=browser_headless)
     prepared = asyncio.run(bridge.prepare(route))
     assert prepared.cold_start_confirmed and bridge._browser_companion is calls[0]
     assert type(calls[0]._registry_factory) is ng.NativeBrowserGpuRegistryFactory
+    assert calls[0]._registry is None and calls[0]._browser is None
+    # Exercise only the cold, non-launching browser constructor closure. The
+    # real companion registry/provider remains lazy and owns no native handles.
+    def observer(action: str, payload: Any) -> None:
+        return None
+    def guard() -> None:
+        return None
+    browser = calls[0]._browser_factory(process_observer=observer, resource_guard=guard)
+    assert browser_kwargs["headless"] is browser_headless
+    assert browser_kwargs["process_observer"] is observer and browser_kwargs["resource_guard"] is guard
+    assert bridge._profile_browser is browser
     assert calls[0]._registry is None and calls[0]._browser is None

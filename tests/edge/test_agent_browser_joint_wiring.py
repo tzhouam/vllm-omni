@@ -207,7 +207,9 @@ def test_historical_close_receipt_survives_reset_but_is_not_current_release_auth
     assert companion.close() and companion.last_close_evidence["resource_owner"] == "tool-2"
 
 
-def test_profile_managed_factory_preserves_read_only_tools_and_lazy_guard(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("browser_headless", [False, True])
+def test_profile_managed_factory_preserves_read_only_tools_and_lazy_guard(tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch, browser_headless: bool) -> None:
     route = ProfileRoute("r", "model", "artifact", "revision", "a" * 64,
                          "Q4", "external.llamacpp.text.v1", "cpu")
     captured: dict[str, Any] = {}
@@ -233,7 +235,10 @@ def test_profile_managed_factory_preserves_read_only_tools_and_lazy_guard(tmp_pa
     backend.start = start
     def build(path: Path, **kwargs: Any) -> tuple[Any, Any]:
         assert set(kwargs) == {"tool_boundary_factory", "browser_factory"}
-        companion._browser_factory = kwargs["browser_factory"]
+        def owned_browser_factory(**owned_kwargs: Any) -> Any:
+            captured["owned_browser_kwargs"] = owned_kwargs
+            return kwargs["browser_factory"](**owned_kwargs)
+        companion._browser_factory = owned_browser_factory
         boundary = companion.make_tool_boundary(boundary_factory=kwargs["tool_boundary_factory"])
         controller = SimpleNamespace(tools=boundary, browser_resource_companion=companion,
             routes=[SimpleNamespace(route_id="r")], backends={"r": backend},
@@ -246,7 +251,8 @@ def test_profile_managed_factory_preserves_read_only_tools_and_lazy_guard(tmp_pa
         attach_browser_companion=lambda value: calls.append("attached"))
     bridge = native_profile.NativeProfileBridge(native_config={"routes": [{"route_id": "r"}],
         "browser_resource_envelope": envelope_file(tmp_path)}, config_root=tmp_path / "configs",
-        private_root=tmp_path, fixture_origin="http://127.0.0.1:1234", telemetry=telemetry)
+        private_root=tmp_path, fixture_origin="http://127.0.0.1:1234", telemetry=telemetry,
+        browser_headless=browser_headless)
     preparation = asyncio.run(bridge.prepare(route))
     assert preparation.cold_start_confirmed and calls == ["attached", "model_start"]
     assert bridge.controller.tools is captured["controller"].tools
@@ -262,6 +268,9 @@ def test_profile_managed_factory_preserves_read_only_tools_and_lazy_guard(tmp_pa
     assert "browser_constructed" in calls
     assert captured["browser_kwargs"]["resource_guard"] is not None
     assert captured["browser_kwargs"]["process_observer"] is not None
+    assert captured["browser_kwargs"]["headless"] is browser_headless
+    assert captured["browser_kwargs"]["resource_guard"] is captured["owned_browser_kwargs"]["resource_guard"]
+    assert captured["browser_kwargs"]["process_observer"] is captured["owned_browser_kwargs"]["process_observer"]
     assert bridge._profile_browser is companion._browser
 
 
@@ -293,7 +302,8 @@ def test_profile_failed_controller_close_retains_companion_for_quarantine_and_re
     bridge = native_profile.NativeProfileBridge(native_config={}, config_root=tmp_path,
         private_root=tmp_path, fixture_origin="http://127.0.0.1:1234",
         telemetry=SimpleNamespace(detach_browser_companion=lambda value: calls.append(value)))
-    bridge.controller = SimpleNamespace(close=fail)
+    bridge.controller = SimpleNamespace(close=fail,
+        resource_snapshot=lambda: {"synthetic_fixture": True, "quarantined": True})
     bridge._browser_companion = companion
     with pytest.raises(RuntimeError, match="unretired"):
         bridge.close()
@@ -312,7 +322,9 @@ def test_profile_final_close_uses_verified_historical_companion_receipt_after_re
     bridge = native_profile.NativeProfileBridge(native_config={}, config_root=tmp_path,
         private_root=tmp_path, fixture_origin="http://127.0.0.1:1234", telemetry=telemetry,
         process_memory_attribution=True)
-    bridge.controller = SimpleNamespace(close=lambda: None)
+    # This inert controller owns no real ledger; its empty snapshot is a
+    # synthetic fixture, not production cleanup evidence.
+    bridge.controller = SimpleNamespace(close=lambda: None, resource_snapshot=lambda: {})
     bridge._browser_companion = companion
     bridge.close()
     assert calls[0]["browser_companion_release"] is proof
@@ -331,7 +343,8 @@ def test_failed_close_cannot_borrow_prior_generation_success_for_attribution(tmp
     bridge = native_profile.NativeProfileBridge(native_config={}, config_root=tmp_path,
         private_root=tmp_path, fixture_origin="http://127.0.0.1:1234", telemetry=telemetry,
         process_memory_attribution=True)
-    bridge.controller = SimpleNamespace(close=close)
+    bridge.controller = SimpleNamespace(close=close,
+        resource_snapshot=lambda: {"synthetic_fixture": True, "quarantined": True})
     bridge._browser_companion = companion
     with pytest.raises(RuntimeError, match="current owner"):
         bridge.close()

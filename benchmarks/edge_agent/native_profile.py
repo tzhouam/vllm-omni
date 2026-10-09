@@ -64,6 +64,38 @@ from vllm_omni.engine.resource_ledger import ResourceUnavailable
 ORDINARY_SUBMISSION_MODE = "model_selected_tools_v1"
 STRUCTURED_READ_URL_MODE = "explicit_read_url_v1"
 MODEL_PROMPT_IDENTITY_CAPTURE = "backend_generate_sha256_v1"
+CLOSING_RESOURCE_SNAPSHOT_MAX_BYTES = 1 << 20
+
+
+def _validate_browser_headless(browser_headless: bool,
+                               selected_classes: set[str] | None = None) -> None:
+    if type(browser_headless) is not bool:
+        raise ValueError("browser_headless must be an explicit boolean")
+    if browser_headless and (not selected_classes or "browser_vision" in selected_classes):
+        raise ValueError("headless profiling cannot run foreground browser_vision tasks")
+
+
+def _bounded_resource_snapshot(snapshot: Any) -> dict[str, Any]:
+    """Detach bounded JSON evidence; never infer resource release from it."""
+    if not isinstance(snapshot, Mapping):
+        raise TypeError("controller resource snapshot must be a mapping")
+    chunks: list[str] = []
+    size = 0
+    encoder = json.JSONEncoder(ensure_ascii=True, allow_nan=False, sort_keys=True,
+                               separators=(",", ":"))
+    for chunk in encoder.iterencode(dict(snapshot)):
+        size += len(chunk)  # ensure_ascii makes the encoded byte count exact.
+        if size > CLOSING_RESOURCE_SNAPSHOT_MAX_BYTES:
+            raise ValueError("controller closing resource snapshot exceeds metadata bound")
+        chunks.append(chunk)
+    return json.loads("".join(chunks))
+
+
+def _note_secondary(primary: BaseException, context: str, secondary: BaseException) -> None:
+    try:
+        primary.add_note(context + type(secondary).__name__)
+    except BaseException:
+        pass  # Diagnostic annotation must never replace the original failure.
 
 
 def _profile_classes(selected_classes: set[str] | None,
@@ -707,8 +739,11 @@ class NativeProfileBridge:
         telemetry: WindowsTelemetry,
         structured_read_url: bool = False,
         process_memory_attribution: bool = False,
+        browser_headless: bool = False,
         browser_registry_factory: Callable[..., Any] | None = None,
     ) -> None:
+        if type(browser_headless) is not bool:
+            raise ValueError("browser_headless must be an explicit boolean")
         self.native_config = native_config
         self.config_root = config_root
         self.private_root = private_root
@@ -716,8 +751,11 @@ class NativeProfileBridge:
         self.telemetry = telemetry
         self.structured_read_url = structured_read_url
         self.process_memory_attribution = process_memory_attribution
+        self.browser_headless = browser_headless
         self._browser_registry_factory = browser_registry_factory
         self.process_memory_close_receipt: Mapping[str, Any] | None = None
+        self._process_observation_started = False
+        self.controller_close_evidence: Mapping[str, Any] | None = None
         self.suite_id = STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID
         self.controller: Any = None
         self.route: ProfileRoute | None = None
@@ -730,6 +768,15 @@ class NativeProfileBridge:
         self._prompt_backend: _PromptIdentityBackend | None = None
         self._profile_browser: ManagedEdgeBrowser | None = None
         self._browser_companion: Any = None
+
+    @property
+    def browser_mode(self) -> Mapping[str, Any]:
+        actual = getattr(self._profile_browser, "_headless", None)
+        return {
+            "requested": "headless" if self.browser_headless else "headed",
+            "actual": ("headless" if actual else "headed") if type(actual) is bool else None,
+            "scope": "managed_browser_constructor_configuration_not_launch_or_window_verification",
+        }
 
     def _listen(self, event: Mapping[str, Any]) -> None:
         sanitized = _redact_image(dict(event))
@@ -756,8 +803,15 @@ class NativeProfileBridge:
             self.controller.reject(str(event.get("payload", {}).get("challenge_id", "")))
 
     async def prepare(self, route: ProfileRoute) -> Preparation:
-        if self.controller is not None:
+        # A new attempt must not borrow a prior generation's closing proof,
+        # including when this attempt fails before constructing a controller.
+        self.controller_close_evidence = None
+        self.process_memory_close_receipt = None
+        if self.controller is not None or self._process_observation_started:
             await asyncio.to_thread(self.close)
+        self.controller_close_evidence = None
+        self.process_memory_close_receipt = None
+        self._profile_browser = None
         from vllm_omni.edge.agent.native_app import build_controller
 
         entry = next(item for item in self.native_config["routes"] if item["route_id"] == route.route_id)
@@ -806,13 +860,25 @@ class NativeProfileBridge:
                     or not Path(helper_declaration["path"]).is_absolute()):
                 raise ValueError("profiler browser_cdp_helper requires an absolute app-owned declaration path")
         if self.process_memory_attribution:
-            self.telemetry.begin_controller_processes(prefix + ":" + uuid.uuid4().hex)
+            prior_registry = getattr(self.telemetry, "_process_registry", None)
+            try:
+                self.telemetry.begin_controller_processes(prefix + ":" + uuid.uuid4().hex)
+            except BaseException as failure:
+                try:
+                    retained = getattr(self.telemetry, "_process_registry", None)
+                    self._process_observation_started = prior_registry is None and retained is not None
+                except BaseException as secondary:
+                    _note_secondary(failure, "secondary process observer startup ownership failure:", secondary)
+                raise
+            else:
+                self._process_observation_started = True
         if joint_browser:
             self._fixture_screen = _FixtureForegroundScreen()
             def browser_factory(**kwargs: Any) -> ManagedEdgeBrowser:
                 # The companion supplies the sole browser registry observer
                 # and generation-bound caller guard. Do not replace either.
-                browser = ManagedEdgeBrowser(profile_dir=browser_profile, **kwargs)
+                browser = ManagedEdgeBrowser(profile_dir=browser_profile,
+                                             headless=self.browser_headless, **kwargs)
                 self._profile_browser = browser
                 return browser
             def tools_factory(**kwargs: Any) -> ReadOnlyFixtureTools:
@@ -833,6 +899,7 @@ class NativeProfileBridge:
             self._fixture_screen = _FixtureForegroundScreen()
             self._profile_browser = ManagedEdgeBrowser(
                 profile_dir=browser_profile,
+                headless=self.browser_headless,
                 process_observer=(self.telemetry.browser_process_checkpoint
                                   if self.process_memory_attribution else None))
             controller.tools = ReadOnlyFixtureTools(
@@ -907,6 +974,7 @@ class NativeProfileBridge:
             actual_placement=(None if route.backend == STRATA_BACKEND else route.expected_placement),
             details={
                 "new_controller_and_worker": True,
+                "browser_mode": self.browser_mode,
                 "memory_path": str(self._memory_path),
                 "execution_plan": _redact_image(dict(plan)),
                 "loaded_plan_sha256": evidence_sha256(dict(plan)),
@@ -938,6 +1006,8 @@ class NativeProfileBridge:
 
     def before_request(self, route: ProfileRoute, case: AgentCase,
                        phase: str, repetition: int) -> Mapping[str, Any]:
+        if self.browser_headless and case.task_class == "browser_vision":
+            raise ValueError("headless profiling cannot run foreground browser_vision tasks")
         if self.controller is None or self.route != route or self._memory_path is None:
             raise RuntimeError("route has not been cold-loaded")
         input_contract = _input_contract(
@@ -991,6 +1061,8 @@ class NativeProfileBridge:
         return evidence
 
     async def run(self, route: ProfileRoute, case: AgentCase, emit: Any) -> AgentRunResult:
+        if self.browser_headless and case.task_class == "browser_vision":
+            raise ValueError("headless profiling cannot run foreground browser_vision tasks")
         if self.controller is None or self.route != route:
             raise RuntimeError("route has not been prepared")
         url, instruction = (
@@ -1088,12 +1160,49 @@ class NativeProfileBridge:
             self._events = None
             self._emitter = None
         failure: BaseException | None = None
+        had_controller = self.controller is not None
         try:
             if self.controller is not None:
-                self.controller.close()
-                self.controller = None
-                self.route = None
-                self._prompt_backend = None
+                controller = self.controller
+                closed = False
+                self.controller_close_evidence = None
+                try:
+                    controller.close()
+                    closed = True
+                except BaseException as exc:
+                    failure = exc
+                finally:
+                    record: dict[str, Any] = {
+                        "schema": "omni-native-profile-controller-close-v1",
+                        "route_id": self.route.route_id if self.route is not None else None,
+                        "preparation_sequence": self._preparation_counter,
+                        "controller_close_succeeded": closed,
+                        "snapshot_status": "unavailable_not_exposed",
+                        "resource_snapshot": None,
+                        "snapshot_error": None,
+                        "snapshot_max_encoded_bytes": CLOSING_RESOURCE_SNAPSHOT_MAX_BYTES,
+                        "scope": "reported_post_close_resources_not_independent_release_qualification",
+                    }
+                    try:
+                        snapshotter = getattr(controller, "resource_snapshot", None)
+                        if snapshotter is not None:
+                            record["resource_snapshot"] = _bounded_resource_snapshot(snapshotter())
+                            record["snapshot_status"] = "captured"
+                    except BaseException as exc:
+                        record["snapshot_status"] = "failed"
+                        record["snapshot_error"] = type(exc).__name__
+                        if failure is None:
+                            failure = exc
+                        else:
+                            _note_secondary(failure, "secondary controller closing resource snapshot failure:", exc)
+                    finally:
+                        self.controller_close_evidence = record
+                        if closed:
+                            # Snapshot failure cannot turn a known-closed
+                            # controller into a live authority or close it twice.
+                            self.controller = None
+                            self.route = None
+                            self._prompt_backend = None
         except BaseException as exc:
             failure = exc
         finally:
@@ -1111,8 +1220,8 @@ class NativeProfileBridge:
                     if failure is None:
                         failure = exc
                     else:
-                        failure.add_note("secondary browser companion receipt failure:" + type(exc).__name__)
-            if self.process_memory_attribution:
+                        _note_secondary(failure, "secondary browser companion receipt failure:", exc)
+            if self.process_memory_attribution and (had_controller or self._process_observation_started):
                 try:
                     browser_receipt = (
                         companion_receipt.get("browser_close_receipt")
@@ -1124,6 +1233,7 @@ class NativeProfileBridge:
                         browser_close_receipt=browser_receipt,
                         **({"browser_companion_release": companion_receipt or {}}
                            if self._browser_companion is not None else {}))
+                    self._process_observation_started = False
                     if (self.process_memory_close_receipt is not None
                             and self.process_memory_close_receipt.get("attribution_close_verified") is not True
                             and failure is None):
@@ -1132,7 +1242,7 @@ class NativeProfileBridge:
                     if failure is None:
                         failure = exc
                     else:
-                        failure.add_note("secondary process observer close failure:" + type(exc).__name__)
+                        _note_secondary(failure, "secondary process observer close failure:", exc)
             if self._browser_companion is not None and self.controller is None:
                 try:
                     self.telemetry.detach_browser_companion(self._browser_companion)
@@ -1141,7 +1251,7 @@ class NativeProfileBridge:
                     if failure is None:
                         failure = exc
                     else:
-                        failure.add_note("secondary browser telemetry detach failure:" + type(exc).__name__)
+                        _note_secondary(failure, "secondary browser telemetry detach failure:", exc)
         if failure is not None:
             raise failure
 
@@ -1203,8 +1313,10 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                              output_dir: Path, selected_classes: set[str] | None = None,
                              smoke: bool = False,
                              structured_read_url: bool = False,
-                             process_memory_attribution: bool = False) -> Path:
+                             process_memory_attribution: bool = False,
+                             browser_headless: bool = False) -> Path:
     selected_classes = _profile_classes(selected_classes, structured_read_url)
+    _validate_browser_headless(browser_headless, selected_classes)
     if sys.platform != "win32":
         raise RuntimeError("whole-Agent profiling requires native Windows Python")
     from vllm_omni.edge.agent.native_app import _hardware_snapshot
@@ -1234,6 +1346,10 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                             else ORDINARY_SUBMISSION_MODE),
         "model_prompt_identity_capture": MODEL_PROMPT_IDENTITY_CAPTURE,
         "process_memory_attribution_enabled": process_memory_attribution,
+        "browser_mode_requested": "headless" if browser_headless else "headed",
+        "browser_mode_actual": None,
+        "browser_mode_evidence_scope": (
+            "managed_browser_constructor_configuration_not_launch_or_window_verification"),
         "qualification_blockers": [
             "independent memory admission evidence pending",
             "cancellation and recovery evidence pending",
@@ -1283,6 +1399,7 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                 private_root=private_root, fixture_origin=fixtures.origin,
                 telemetry=sampler, structured_read_url=structured_read_url,
                 process_memory_attribution=process_memory_attribution,
+                browser_headless=browser_headless,
             )
             try:
                 for task_class in sorted(chosen):
@@ -1297,6 +1414,7 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                                                   "submission_mode": manifest["submission_mode"],
                                                   "telemetry_interval_seconds": config.telemetry_interval_seconds}
                         close_error: BaseException | None = None
+                        route_interruption: BaseException | None = None
                         entry = next(item for item in native_config["routes"]
                                      if item["route_id"] == route.route_id)
                         if task_class == "browser_vision" and not entry.get("mmproj_file"):
@@ -1326,14 +1444,27 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                             except Exception as exc:
                                 result.update(status="failed_or_blocked",
                                               error=f"{type(exc).__name__}: {exc}")
+                            except BaseException as exc:
+                                route_interruption = exc
+                                result.update(status="interrupted", error=f"{type(exc).__name__}: {exc}")
                             finally:
                                 try:
                                     await asyncio.to_thread(bridge.close)
                                 except BaseException as exc:
-                                    if not process_memory_attribution:
-                                        raise
                                     close_error = exc
-                                    result.update(status="failed_close", close_error=f"{type(exc).__name__}: {exc}")
+                                    result["close_error"] = f"{type(exc).__name__}: {exc}"
+                                    if route_interruption is None:
+                                        result["status"] = "failed_close"
+                                    else:
+                                        _note_secondary(route_interruption,
+                                                        "secondary interrupted profile close failure:", exc)
+                                result["controller_close_evidence"] = bridge.controller_close_evidence
+                                result["browser_mode"] = bridge.browser_mode
+                                actual_mode = result["browser_mode"]["actual"]
+                                if actual_mode is not None:
+                                    prior_mode = manifest["browser_mode_actual"]
+                                    manifest["browser_mode_actual"] = (
+                                        actual_mode if prior_mode in (None, actual_mode) else "mixed")
                                 if process_memory_attribution:
                                     result["process_memory_close_receipt"] = bridge.process_memory_close_receipt
                         manifest["results"].append(result)
@@ -1341,10 +1472,19 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                             json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
                             encoding="utf-8",
                         )
+                        if route_interruption is not None:
+                            raise route_interruption
                         if close_error is not None:
                             raise close_error
             finally:
-                await asyncio.to_thread(bridge.close)
+                primary = sys.exception()
+                try:
+                    await asyncio.to_thread(bridge.close)
+                except BaseException as exc:
+                    if primary is None:
+                        raise
+                    if exc is not primary:
+                        _note_secondary(primary, "secondary final profile bridge close failure:", exc)
     finally:
         try:
             sampler.close()
@@ -1377,6 +1517,8 @@ def main() -> None:
                         help="Profile only browser_text with explicit URL and canonical prompt instruction")
     parser.add_argument("--process-memory-attribution", action="store_true",
                         help="Fresh owned cohort only: retained-handle Agent/model/Node/CDP RAM samples")
+    parser.add_argument("--browser-headless", action="store_true",
+                        help="Use headless Edge; incompatible with foreground browser_vision tasks")
     args = parser.parse_args()
     index = asyncio.run(run_native_profile(
         config_path=args.config, lineage_path=args.lineage,
@@ -1385,6 +1527,7 @@ def main() -> None:
         smoke=args.smoke,
         structured_read_url=args.structured_read_url,
         process_memory_attribution=args.process_memory_attribution,
+        browser_headless=args.browser_headless,
     ))
     print(index)
 
