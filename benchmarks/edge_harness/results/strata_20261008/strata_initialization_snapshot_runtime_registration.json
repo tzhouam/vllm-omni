@@ -1,0 +1,16 @@
+{
+  "schema": "omni-private-actual-combined-registration-attempt-v1",
+  "status": "registered_not_executed",
+  "parent_launch_file_sha256": "3ff069a7269210a89a60335e862cb37a5958eb66bcf46c87cd914383b1c932ab",
+  "static_receipt_sha256": "09892aa01f24a382eeb7c01c887963810108357c183b36f5431d8041d8b9ae57",
+  "static_identity_sha256": "e9ffe3f7ddfc494636c795f914a15a9954bc5631ba845edd4b5c924de0fd0d18",
+  "raw_member_manifest_sha256": "0f22c2ce5c10aed485d9879d8e6a1e951c29e7e5e4b9ee1db9c18812c48fa597",
+  "outer_runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+  "runtime_files_including_raw_manifest": 42649,
+  "runtime_bytes": 2231676748,
+  "native_model_executed": false,
+  "qualification_created": false,
+  "launch_sha256": "b32f3fcb51686290515b505039f834ea866b3db7a47bbf1cde442097a55639b9",
+  "registration_receipt_sha256": "4ab5019ccdd163db8f4a1100e152c1893918207180a82cbb158877d0d2e7cc10",
+  "producer_source_sha256": "05035829bfdd07660380c1dfe0122e826ca02eef95852269ee59acd10d061836"
+}

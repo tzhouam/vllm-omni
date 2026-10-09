@@ -9,7 +9,7 @@
 
 2026-10-09 初始化优化已接入：后端在同一 Stage 和 worker generation 内复用完整静态校验的结果，保留产物／关键文件变更检查、独占领取、取消失效和失败隔离。
 [原生 Windows 集成回归](results/strata_20261008/strata_initialization_snapshot_native_unit_validation.json)为 **409 通过、3 跳过、161 个子测试通过**，含 34 个新增 snapshot／PE 契约用例，源码前后稳定，仓库 Ruff 通过。
-这是模型无关验证；**[匹配的新运行包](results/strata_20261008/strata_initialization_snapshot_runtime_assembly.json)已组装，[完整静态校验](results/strata_20261008/strata_execution_static_verification_v3_raw.json)已通过（EXIT 0，525.758 秒），运行时登记正在进行；新的模型生命周期、启动收益和基础／浏览器／记忆三类 Agent 复测仍待验证**。静态核验时间不是模型加载或推理延迟。新包共 42,649 个文件、文件大小合计 2,231,676,748 字节（含成员清单），尚未加载模型。上面的四条请求使用优化前的冻结源码，不继承为优化后资格。
+这是模型无关验证；**[匹配的新运行包](results/strata_20261008/strata_initialization_snapshot_runtime_assembly.json)已组装，[完整静态校验](results/strata_20261008/strata_execution_static_verification_v3_raw.json)已通过（EXIT 0，525.758 秒），[运行时登记](results/strata_20261008/strata_initialization_snapshot_runtime_registration.json)已完成（EXIT 0）；匹配的模型生命周期正在初始化，启动收益和基础／浏览器／记忆三类 Agent 复测仍待验证**。静态核验时间不是模型加载或推理延迟。新包共 42,649 个文件、文件大小合计 2,231,676,748 字节（含成员清单），文件大小不代表模型加载内存峰值。上面的四条请求使用优化前的冻结源码，不继承为优化后资格。
 
 2026-10-09 集成回归：完整 I/O／执行观测已接入 Stage、运行时登记、Agent 路由和结果校验；
 观测工作区、Windows commit 与证据磁盘预算分别计入现有账本。
