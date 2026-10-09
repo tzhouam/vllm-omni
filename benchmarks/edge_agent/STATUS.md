@@ -11,7 +11,8 @@ files passed the repository Ruff configuration. The new native engine compiled a
 and its separate complete runtime assembled successfully. The
 [first actual static attempt](../edge_harness/results/strata_20261008/strata_execution_build_assembly_status.json)
 refused an unregistered 483,520-byte experimental projection GGUF from the fixed base
-repository. The failure is retained while exact Git and copy membership checks are added.
+repository. The failure is retained. Exact Git and copy membership checks are now frozen
+and independently source-reviewed; actual static diagnostics are running.
 Actual model parity, observed execution, cancellation/recovery and Agent reruns on this
 combined version are still pending.
 These are model-free integration checks. Prior Q2/IQ3/Q4 actual results keep their own
@@ -63,8 +64,10 @@ excluding **125.469 s** integrity checking/controller preparation. Timings inclu
 first visible output is validated final, not hidden model SSE or Qt rendering.
 All 89 closed files, 1,563 sources, raw parser proofs, ordered state, native retirement and empty leases were checked.
 All 18 replies were raw JSON. Browser closure covers recorded references, threads and driver, not every Edge descendant.
-This qualifies only the fixed local-page smoke. Full 20×3 measurements, 30-minute sequential operation,
-broad task quality, physical SSD attribution, total memory hard caps and default/release eligibility remain pending.
+This qualifies only the fixed local-page smoke. At publication, full 20×3 measurements and
+30-minute sequential operation were pending; the later full protocol above completed those
+on its own frozen route. Broad task quality, physical SSD attribution, total memory hard caps
+and default/release eligibility remain pending.
 
 2026-10-09: the current ISTA Q2 Qwen3.8-Flash-Next route passed an actual
 [NativeProfileBridge basic smoke](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_basic_smoke.json)
@@ -92,7 +95,7 @@ The separate actual basic smoke above follows this fix; the fix itself grants no
 is integrated into native profiling and offline review. Root regression: **357 passed, 6 skipped, 166 subtests passed**.
 Checks bind every model-input hash, trusted task/URL authorization, exact tool schema, owned terminal, final visibility and cross-request state order.
 Bounded six-step metadata reserves 192 KiB inside the existing 2 MiB workspace. This initial text subset does not qualify approval/DOM workflows.
-These are unit/integration results; native profiling was pending at publication. The later basic smoke above leaves the full 20×3 and 30-minute protocol pending.
+These are unit/integration results; native profiling was pending at publication. The later two-class full protocol above completed 20 measurements per input length and separate 30-minute sequential runs on its own frozen Q2 source identity.
 Historical neural receipts keep their source identities; the strict engine JSON failure and lack of default eligibility remain recorded.
 
 2026-10-09: [two ordinary-submit model-tool tasks](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional.json) passed [closed review](../edge_harness/results/strata_20261008/native_ista_q2_agent_model_tool_functional_review.json).
@@ -121,8 +124,9 @@ leases were checked. The 2 MiB consumer workspace was freshly admitted without
 changing the checkpoint, precision or original engine controls.
 All five actual model envelopes were raw JSON finals: fence interpretation and
 model-proposed tools remain unit-tested. Four real browser operations came from
-trusted structured Read URL preprocessing. Next, an ordinary Agent request must
-exercise an actual model-proposed tool, browser observation and final answer.
+trusted structured Read URL preprocessing. At publication, the next step was an ordinary
+Agent request exercising an actual model-proposed tool, browser observation and final answer;
+the later model-tool and full-protocol records above completed that scoped chain.
 This record grants no p50/p95, broad task quality, 30-minute stability, aggregate
 memory hard cap, physical SSD or default eligibility. The strict engine JSON
 failure remains unchanged; explicit-consumer profiling qualification is still closed.
