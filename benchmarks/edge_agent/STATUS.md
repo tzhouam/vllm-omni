@@ -1,5 +1,14 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
+2026-10-09: the engine now includes optional execution-observation Stage lifecycle integration.
+[Model-free regression](../edge_harness/results/strata_20261008/strata_execution_stage_unit_validation.json)
+passed **105 tests and four subtests**, with five skips and Ruff clean. Coverage includes source-pinned
+adapter ownership, fresh per-generation receipts, bounded diagnostics and failure-safe cleanup.
+The WSL test environment's vLLM 0.28/Omni 0.29 warning is retained; this is not native Windows runtime validation.
+Final runtime source alignment, packaging, actual model parity/cancellation/recovery and Agent revalidation
+are pending. The existing Agent loop is unchanged. The 442-task results below retain their frozen source
+identity and do not qualify this new optional engine path.
+
 2026-10-09: the frozen explicit-output Q2 route completed the actual
 [two-class full protocol](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_full_protocol.json)
 and [independent closed/statistical review](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_full_protocol_review.json).

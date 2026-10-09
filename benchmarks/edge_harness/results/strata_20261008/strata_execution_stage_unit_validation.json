@@ -1,0 +1,86 @@
+{
+  "schema": "omni-strata-execution-stage-unit-validation-v1",
+  "status": "unit_regression_passed_native_runtime_pending",
+  "date": "2026-10-09",
+  "scope": "production_Stage_helpers_diagnostics_and_legacy_loopback_regression_no_neural_execution",
+  "pytest": {
+    "collected": 110,
+    "passed": 105,
+    "skipped": 5,
+    "subtests_passed": 4,
+    "terminal_exit_code": 0,
+    "reported_wall_s": 16.58,
+    "junit_sha256": "f8129a73abf3535587778b32c902c479207446787df6718931bd5f579fff93dd",
+    "junit_suites": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "5",
+        "tests": "114",
+        "time": "16.562",
+        "timestamp": "2026-10-09T08:01:59.085945+08:00"
+      }
+    ],
+    "junit_count_scope": "suite tests attribute 114 counts 110 pytest items and four successful subtests"
+  },
+  "environment": {
+    "OS": "Ubuntu under WSL",
+    "Python": "3.12",
+    "vllm": "0.28.0",
+    "vllm_omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+    "version_mismatch_warning_preserved": true,
+    "native_Windows_runtime_compatibility_verified_by_this_record": false
+  },
+  "source_files": [
+    {
+      "path": "vllm_omni/engine/backends/strata.py",
+      "size_bytes": 135665,
+      "sha256": "456dfc64e65fb5c865985a1c33e02162ea8de7ef986bf27fa5f26af1f6c37dd3"
+    },
+    {
+      "path": "vllm_omni/engine/backends/strata_io.py",
+      "size_bytes": 42874,
+      "sha256": "60ca72b35b7f2722c4157c1619fa72363855d925f2f5b98e362d4ea512ad686e"
+    },
+    {
+      "path": "tests/edge/test_strata_backend.py",
+      "size_bytes": 56068,
+      "sha256": "036034ba020004ea8fa1eda609d55786ffc9bfc52d94d14e75155c9bf48c857e"
+    },
+    {
+      "path": "tests/edge/test_strata_io.py",
+      "size_bytes": 22172,
+      "sha256": "fb4024023e1bb62d35cdbb429aaecb7c1451f11cbd6f04c95603b7b7dbca0ea3"
+    },
+    {
+      "path": "tests/edge/test_strata_execution_lifecycle.py",
+      "size_bytes": 8165,
+      "sha256": "57e16b12cd058e73f124ecaf814754246f5d1ddcf3f44f3c0cae986f034bf1fa"
+    }
+  ],
+  "changes": [
+    "optional separately admitted execution observation route",
+    "source-pinned owned adapter module cache",
+    "combined-runtime IO report distinction",
+    "fresh per-generation receipt paths",
+    "authenticated bounded diagnostic reader and actual DONE wait",
+    "independent reporting failures cannot bypass verifier cleanup or release proof"
+  ],
+  "legacy_bootstrap_literal_unchanged": true,
+  "Ruff_check_passed": true,
+  "new_native_runtime_installed": false,
+  "new_native_model_executed": false,
+  "actual_engine_ABI_verified": false,
+  "physical_ssd_read_bytes": null,
+  "aggregate_memory_hard_caps_verified": false,
+  "runtime_qualification": false,
+  "default_eligible": false,
+  "release_qualified": false,
+  "remaining": [
+    "final aligned IO/static/live source registry and complete runtime bundle",
+    "actual owned-engine ABI and complete request parity",
+    "actual cancellation recovery and Agent revalidation",
+    "cache/offload/SSD/quality performance experiments"
+  ]
+}

@@ -14,6 +14,7 @@ import concurrent.futures
 import copy
 import dataclasses
 import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -22,6 +23,7 @@ import re
 import signal
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -33,9 +35,9 @@ from pathlib import Path
 from typing import Any
 
 from omegaconf import OmegaConf
+from omni_stage_contracts import StageEvent, StageRequest
 from vllm.outputs import CompletionOutput
 
-from omni_stage_contracts import StageEvent, StageRequest
 from vllm_omni.engine.backends import strata_io
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 from vllm_omni.engine.stage_client import StageClientBase
@@ -47,6 +49,102 @@ BACKEND_NAME = "external.strata.text.v1"
 _MAX_EVENTS = 4096
 _MAX_DELTA_BYTES = 8192
 _CACHE_CONTROL_SCHEMA = "omni-strata-explicit-cache-v2"
+
+# Optional complete-model observation is source-pinned and has its own route
+# admission. These hashes are reviewed adapter preimages, not native eligibility.
+_EXECUTION_ADAPTER_SHA256 = {
+    "strata_exec": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+    "strata_exec_bridge": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+    "strata_exec_runtime": "efd2c7fd077a84d50bb2c0e2ed4d3cdf12b0a91380e78ec5673d9ad8f416138c",
+    "strata_exec_live": "a4b56f159d4fc986c1e82b536c65e589327b6f25f910d7da98ac3bf8fc4a996a",
+}
+_EXECUTION_MODULE_LOCK = threading.RLock()
+_EXECUTION_LOADED_MODULES = {}
+_EXECUTION_CONFIG_SCHEMA = "omni-strata-execution-observation-config-v1"
+_EXECUTION_WORKSPACE_MIN = 512 << 20
+_EXECUTION_RECEIPT_MIN = 16 << 20
+
+
+def _load_execution_adapters(runtime: Path, verified_files: set[Path]) -> dict:
+    """Load exact reviewed bytes; neither config nor a file chooses Python code."""
+    modules = {}
+    with _EXECUTION_MODULE_LOCK:
+        for name, expected in _EXECUTION_ADAPTER_SHA256.items():
+            path = _contained(runtime, "adapter/" + name + ".py")
+            if path not in verified_files or path.stat().st_size > 256 << 10:
+                raise ValueError("execution adapter is absent or exceeds its source bound")
+            raw = path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != expected:
+                raise ValueError("execution adapter is not a reviewed source preimage")
+            cached = sys.modules.get(name)
+            owned = _EXECUTION_LOADED_MODULES.get(name)
+            if cached is not None:
+                if (
+                    owned is None
+                    or owned[0] is not cached
+                    or owned[1] != expected
+                    or getattr(cached, "__file__", None) != owned[2]
+                    or _sha256(Path(cached.__file__)) != expected
+                ):
+                    raise ValueError("execution adapter module name is not owned by the reviewed loader")
+                modules[name] = cached
+                continue
+            if owned is not None:
+                raise ValueError("owned execution adapter was removed from the interpreter")
+            spec = importlib.util.spec_from_file_location(name, path)
+            if spec is None:
+                raise ValueError("execution adapter import specification is unavailable")
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[name] = module
+            try:
+                # Execute precisely the verified preimage, without rereading the
+                # pathname or consulting an uncontrolled module search path.
+                exec(compile(raw, str(path), "exec"), module.__dict__)
+            except BaseException:
+                if sys.modules.get(name) is module:
+                    del sys.modules[name]
+                raise
+            _EXECUTION_LOADED_MODULES[name] = (module, expected, module.__file__)
+            modules[name] = module
+    return modules
+
+
+def _execution_settings(value, runtime: Path) -> dict:
+    keys = {
+        "schema",
+        "descriptor_file",
+        "static_identity_sha256",
+        "source_context_file",
+        "receipt_root",
+        "workspace_bytes",
+        "receipt_storage_bytes",
+    }
+    if type(value) is not dict or set(value) != keys or value["schema"] != _EXECUTION_CONFIG_SCHEMA:
+        raise ValueError("invalid execution observation configuration")
+    for key in ("descriptor_file", "source_context_file"):
+        name = value[key]
+        if type(name) is not str or "\\" in name or ".." in Path(name).parts:
+            raise ValueError("execution metadata paths must be contained relative POSIX paths")
+        _contained(runtime, name)
+    if type(value["static_identity_sha256"]) is not str or not re.fullmatch(
+        r"[0-9a-f]{64}", value["static_identity_sha256"]
+    ):
+        raise ValueError("execution route requires its exact static identity")
+    for key, minimum, maximum in (
+        ("workspace_bytes", _EXECUTION_WORKSPACE_MIN, 2 << 30),
+        ("receipt_storage_bytes", _EXECUTION_RECEIPT_MIN, 64 << 20),
+    ):
+        if type(value[key]) is not int or not minimum <= value[key] <= maximum:
+            raise ValueError("execution observer requires a separately admitted bounded budget")
+    directory = Path(value["receipt_root"])
+    if directory.is_symlink():
+        raise ValueError("execution receipt root cannot be a symlink")
+    directory = directory.resolve(strict=True)
+    if not directory.is_dir() or directory.is_relative_to(runtime):
+        raise ValueError("execution receipts require a stable root outside the runtime")
+    result = copy.deepcopy(value)
+    result["receipt_root"] = str(directory)
+    return result
 
 
 def _native_cache_control(pack: Path, verified_files: set[Path], budget_bytes: int) -> dict:
@@ -475,7 +573,18 @@ def _sanitize_diagnostic(line: str, *, observer_nonce: str | None = None) -> str
 
 
 class _DiagnosticLog:
-    def __init__(self, pipe, path: Path | None, *, observer_nonce: str | None = None, frame_callback=None):
+    def __init__(
+        self,
+        pipe,
+        path: Path | None,
+        *,
+        observer_nonce: str | None = None,
+        frame_callback=None,
+        execution_token: str | None = None,
+        execution_module=None,
+    ):
+        if (execution_token is None) != (execution_module is None):
+            raise ValueError("Strata execution diagnostics require a verified module and token")
         self.pipe, self.path = pipe, path
         self.observer_nonce = observer_nonce
         self.frame_callback = frame_callback
@@ -490,61 +599,108 @@ class _DiagnosticLog:
         self.load_evidence: dict[str, Any] = {}
         self._changed = threading.Condition()
         self.failed = False
+        self._execution_bridge = None
+        self._execution_token = execution_token
+        self._execution_failure = None
+        self._execution_reader = (
+            execution_module.AuthenticatedControlLineReader(
+                execution_token,
+                on_exec=self._consume_execution_frame,
+                on_ordinary=self._consume_ordinary,
+                on_failure=self._observation_failure,
+            )
+            if execution_module is not None
+            else None
+        )
+        self._diagnostic_handle = None
         self._thread = threading.Thread(target=self._drain, name="strata-diagnostics", daemon=True)
         self._thread.start()
 
+    def _observation_failure(self, code):
+        with self._changed:
+            self.failed = True
+            self._execution_failure = code
+            # The two channels fail independently; failure in one callback must
+            # never prevent the other from retaining a partial observation.
+            try:
+                if self._execution_bridge is not None:
+                    self._execution_bridge.channel_failure(code)
+            finally:
+                try:
+                    if self.io_observer is not None:
+                        self.io_observer.mark_incomplete(code)
+                finally:
+                    self._changed.notify_all()
+
+    def _consume_execution_frame(self, frame):
+        with self._changed:
+            try:
+                if self._execution_bridge is None:
+                    self._observation_failure("invalid_owned_exec_frame")
+                    return
+                self._execution_bridge.ingest(frame, channel_token=self._execution_token)
+            finally:
+                self._changed.notify_all()
+
+    def _consume_ordinary(self, row):
+        decoded = row.decode("utf-8", "replace")
+        if self.frame_callback is not None:
+            self.frame_callback(decoded)
+        safe = _sanitize_diagnostic(decoded, observer_nonce=self.observer_nonce)
+        with self._changed:
+            if self.io_observer is not None:
+                self.io_observer.ingest(decoded)
+            if safe == "strata supervisor: native process started":
+                self.native_starts += 1
+            elif safe is not None and safe.startswith("strata supervisor: native done "):
+                self.native_done_count += 1
+                self.native_done = json.loads(safe.split("native done ", 1)[1])
+            elif safe is not None and safe.startswith("strata supervisor: native identity "):
+                identity = json.loads(safe.split("native identity ", 1)[1])
+                if self.native_identity is not None and self.native_identity != identity:
+                    self.native_identity_conflict = True
+                self.native_identity = identity
+            elif safe == "strata load_evidence: native_pack":
+                self.load_evidence["native_pack"] = True
+            elif safe is not None and safe.startswith("strata load_evidence: "):
+                kind, value = safe.split("strata load_evidence: ", 1)[1].split(" ", 1)
+                parsed = json.loads(value)
+                previous = self.load_evidence.get(kind)
+                if previous is not None and previous != parsed:
+                    self.load_evidence["contradictory"] = True
+                self.load_evidence[kind] = parsed
+            self._changed.notify_all()
+        if safe is not None and safe.startswith("strata file_tier_io_policy: "):
+            self.file_tier_io_policy = safe.rsplit(": ", 1)[1]
+        if safe is not None and safe not in self.records and len(self.records) < 64:
+            self.records.append(safe)
+            if self._diagnostic_handle:
+                self._diagnostic_handle.write(safe + "\n")
+
     def _drain(self):
-        handle = None
         try:
             if self.path:
                 self.path.parent.mkdir(parents=True, exist_ok=True)
-                handle = self.path.open("w", encoding="utf-8", buffering=1)
-            skipping = False
-            while row := self.pipe.readline(4097):
-                complete = row.endswith(b"\n")
-                if skipping or len(row) > 4096 or not complete:
-                    if self.io_observer is not None:
-                        self.io_observer.ingest(row.decode("utf-8", "replace"))
-                    skipping = not complete
-                    continue
-                decoded = row.decode("utf-8", "replace")
-                if self.frame_callback is not None:
-                    self.frame_callback(decoded)
-                safe = _sanitize_diagnostic(decoded, observer_nonce=self.observer_nonce)
-                with self._changed:
-                    if self.io_observer is not None:
-                        self.io_observer.ingest(decoded)
-                    if safe == "strata supervisor: native process started":
-                        self.native_starts += 1
-                    elif safe is not None and safe.startswith("strata supervisor: native done "):
-                        self.native_done_count += 1
-                        self.native_done = json.loads(safe.split("native done ", 1)[1])
-                    elif safe is not None and safe.startswith("strata supervisor: native identity "):
-                        identity = json.loads(safe.split("native identity ", 1)[1])
-                        if self.native_identity is not None and self.native_identity != identity:
-                            self.native_identity_conflict = True
-                        self.native_identity = identity
-                    elif safe == "strata load_evidence: native_pack":
-                        self.load_evidence["native_pack"] = True
-                    elif safe is not None and safe.startswith("strata load_evidence: "):
-                        kind, value = safe.split("strata load_evidence: ", 1)[1].split(" ", 1)
-                        parsed = json.loads(value)
-                        previous = self.load_evidence.get(kind)
-                        if previous is not None and previous != parsed:
-                            self.load_evidence["contradictory"] = True
-                        self.load_evidence[kind] = parsed
-                    self._changed.notify_all()
-                if safe is not None and safe.startswith("strata file_tier_io_policy: "):
-                    self.file_tier_io_policy = safe.rsplit(": ", 1)[1]
-                if safe is not None and safe not in self.records and len(self.records) < 64:
-                    self.records.append(safe)
-                    if handle:
-                        handle.write(safe + "\n")
+                self._diagnostic_handle = self.path.open("w", encoding="utf-8", buffering=1)
+            if self._execution_reader is not None:
+                self._execution_reader.drain(self.pipe)
+            else:
+                # Preserve the legacy bounded ordinary/IO path byte for byte.
+                skipping = False
+                while row := self.pipe.readline(4097):
+                    complete = row.endswith(b"\n")
+                    if skipping or len(row) > 4096 or not complete:
+                        if self.io_observer is not None:
+                            self.io_observer.ingest(row.decode("utf-8", "replace"))
+                        skipping = not complete
+                        continue
+                    self._consume_ordinary(row)
         except Exception:
-            self.failed = True
+            self._observation_failure("diagnostic_read_failed")
         finally:
-            if handle:
-                handle.close()
+            if self._diagnostic_handle:
+                self._diagnostic_handle.close()
+                self._diagnostic_handle = None
 
     def join(self):
         self._thread.join(timeout=5)
@@ -578,9 +734,24 @@ class _DiagnosticLog:
             identity = self.owned_native_identity()
             if identity is None:
                 raise RuntimeError("Strata I/O observer needs an authoritative owned native identity")
-            self.io_observer = strata_io.StrataIoObserver(
-                self.observer_nonce, generation, identity["pid"], identity["creation_filetime_100ns"], runtime_identity
-            )
+            if runtime_identity.get("schema") == "omni-strata-combined-static-runtime-identity-v2":
+                self.io_observer = strata_io.StrataIoObserver.from_combined_runtime(
+                    self.observer_nonce,
+                    generation,
+                    identity["pid"],
+                    identity["creation_filetime_100ns"],
+                    runtime_identity,
+                )
+            else:
+                self.io_observer = strata_io.StrataIoObserver(
+                    self.observer_nonce,
+                    generation,
+                    identity["pid"],
+                    identity["creation_filetime_100ns"],
+                    runtime_identity,
+                )
+            if self._execution_failure is not None:
+                self.io_observer.mark_incomplete(self._execution_failure)
 
     def finish_io_request(self, request: StageRequest, *, completed: bool, reason: str | None = None) -> dict:
         with self._changed:
@@ -593,6 +764,52 @@ class _DiagnosticLog:
                     timeout=5,
                 )
             return observer.finish(request.request_id, request.epoch, completed=completed)
+
+    def bind_execution_bridge(self, bridge) -> None:
+        with self._changed:
+            if self._execution_reader is None or self._execution_bridge is not None:
+                raise RuntimeError("Strata execution reader is unavailable or already bound")
+            if type(bridge.token) is not str or bridge.token != self._execution_token:
+                raise RuntimeError("Strata execution reader token does not match its bridge")
+            self._execution_bridge = bridge
+            if self._execution_failure is not None:
+                bridge.channel_failure(self._execution_failure)
+
+    def begin_execution_request(self, request: StageRequest) -> None:
+        with self._changed:
+            if self._execution_bridge is None:
+                raise RuntimeError("Strata execution bridge is not bound")
+            self._execution_bridge.begin(request.request_id, request.epoch)
+
+    def finish_execution_request(
+        self,
+        request: StageRequest,
+        *,
+        omni_completed: bool,
+        cancellation_requested: bool,
+        lifecycle_outcome: str,
+        reader_joined: bool | None = None,
+    ) -> dict:
+        with self._changed:
+            bridge = self._execution_bridge
+            if bridge is None:
+                raise RuntimeError("Strata execution bridge is not bound")
+            if lifecycle_outcome == "normal":
+                self._changed.wait_for(
+                    lambda: self.failed or bridge.ready_to_finish(request.request_id, request.epoch), timeout=5
+                )
+            actual_reader_joined = not self._thread.is_alive()
+            if reader_joined is not None and (type(reader_joined) is not bool or reader_joined != actual_reader_joined):
+                raise ValueError("Strata diagnostic reader join override contradicts its actual thread")
+            return bridge.finish(
+                request.request_id,
+                request.epoch,
+                omni_completed=omni_completed,
+                cancellation_requested=cancellation_requested,
+                lifecycle_outcome=lifecycle_outcome,
+                reader_healthy=not self.failed and not self._execution_reader.failed,
+                reader_joined=actual_reader_joined,
+            )
 
 
 # Patch only the child stderr sink, not its weights/execution/protocol. This
@@ -702,6 +919,195 @@ def launch(args, *a, **kw):
             return row
         def __getattr__(self, name): return getattr(self.pipe, name)
     if p.stdout is not None: p.stdout = NativeOutput(p.stdout)
+    def drain():
+        skipping = False
+        while True:
+            row = p.stderr.readline(4097)
+            if not row: break
+            if isinstance(row, bytes): row = row.decode('utf-8', 'replace')
+            complete = row.endswith('\n')
+            if skipping or len(row) > 4096 or not complete:
+                skipping = not complete; continue
+            # Only native diagnostics go up this pipe; parent applies a strict
+            # content-free canonical filter before retention.
+            sys.stderr.write(row); sys.stderr.flush()
+        p.stderr.close()
+    threading.Thread(target=drain, daemon=True).start()
+    return p
+subprocess.Popen = launch
+runpy.run_path(server, run_name='__main__')
+"""
+
+
+_EXECUTION_BOOTSTRAP = r"""
+import hashlib, importlib.util, json, os, runpy, subprocess, sys, threading
+native, server = sys.argv[1:3]
+sys.argv = [server] + sys.argv[3:]
+observer_nonce = os.environ.pop('OMNI_STRATA_OBSERVER_NONCE', '')
+io_adapter_path = os.environ.pop('OMNI_STRATA_IO_ADAPTER', '')
+io_adapter_sha256 = os.environ.pop('OMNI_STRATA_IO_ADAPTER_SHA256', '')
+io_generation = os.environ.pop('OMNI_STRATA_IO_GENERATION', '')
+# Remove all private context before importing adapters or launching any native
+# process. Only the opt-in switch below may reach the native child's environment.
+exec_keys = {
+    'OMNI_STRATA_EXEC_TOKEN', 'OMNI_STRATA_EXEC_GENERATION', 'OMNI_STRATA_EXEC_ADAPTER',
+    'OMNI_STRATA_EXEC_ADAPTER_SHA256', 'OMNI_STRATA_EXEC_PARSER', 'OMNI_STRATA_EXEC_PARSER_SHA256',
+}
+exec_values = {name: os.environ.pop(name, '') for name in exec_keys}
+exec_unknown = [name for name in os.environ if name.startswith('OMNI_STRATA_EXEC_')]
+for name in exec_unknown: os.environ.pop(name)
+if exec_unknown: raise RuntimeError('Unrecognized Strata execution observer environment')
+os.environ.pop('STRATA_OMNI_EXEC_OBSERVER', None)
+exec_module = None
+exec_configuration = None
+def load_execution_source(name, path, expected):
+    if name in sys.modules: raise RuntimeError('Strata execution module already imported')
+    with open(path, 'rb') as source: data = source.read(131073)
+    if not 0 < len(data) <= 131072 or hashlib.sha256(data).hexdigest() != expected:
+        raise RuntimeError('Strata execution source changed before bootstrap import')
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    try:
+        # Execute the exact verified bytes, without loader reopening the path.
+        exec(compile(data, path, 'exec'), module.__dict__)
+    except BaseException:
+        sys.modules.pop(name, None)
+        raise
+    return module
+if any(exec_values.values()):
+    if not all(type(value) is str and value for value in exec_values.values()):
+        raise RuntimeError('Partial Strata execution observer environment')
+    if os.name != 'nt': raise RuntimeError('Observed Strata execution currently requires Windows')
+    if (exec_values['OMNI_STRATA_EXEC_PARSER_SHA256'] !=
+            'c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf'):
+        raise RuntimeError('Strata execution parser identity differs')
+    load_execution_source('strata_exec', exec_values['OMNI_STRATA_EXEC_PARSER'],
+                          exec_values['OMNI_STRATA_EXEC_PARSER_SHA256'])
+    exec_module = load_execution_source('omni_strata_owned_exec', exec_values['OMNI_STRATA_EXEC_ADAPTER'],
+                                        exec_values['OMNI_STRATA_EXEC_ADAPTER_SHA256'])
+    exec_configuration = exec_module.take_bootstrap_configuration(exec_values)
+    sys.stderr = exec_module.SerializedDiagnosticSink(sys.stderr)
+io_module = None
+system_directory = None
+if io_adapter_path:
+    if os.name != 'nt': raise RuntimeError('Observed Strata runtime currently requires Windows')
+    with open(io_adapter_path, 'rb') as source:
+        if hashlib.sha256(source.read()).hexdigest() != io_adapter_sha256:
+            raise RuntimeError('Strata observer adapter changed before bootstrap import')
+    spec = importlib.util.spec_from_file_location('omni_strata_owned_io', io_adapter_path)
+    io_module = importlib.util.module_from_spec(spec); spec.loader.exec_module(io_module)
+    import ctypes
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.SetDllDirectoryW.argtypes = (wintypes.LPCWSTR,); kernel.SetDllDirectoryW.restype = wintypes.BOOL
+    kernel.GetSystemDirectoryW.argtypes = (wintypes.LPWSTR, wintypes.UINT)
+    kernel.GetSystemDirectoryW.restype = wintypes.UINT
+    system = ctypes.create_unicode_buffer(32768)
+    count = kernel.GetSystemDirectoryW(system, len(system))
+    if not count or count >= len(system) or not kernel.SetDllDirectoryW(''):
+        raise RuntimeError('Strata native dependency search isolation failed')
+    system_directory = system.value
+if exec_module is not None and io_module is None:
+    raise RuntimeError('Execution observation requires the verified native I/O owner channel')
+original = subprocess.Popen
+def launch(args, *a, **kw):
+    if os.path.realpath(str(args[0])) != os.path.realpath(native):
+        return original(args, *a, **kw)
+    kw['stderr'] = subprocess.PIPE
+    if io_module is not None:
+        # Application-directory pinned cuBLAS plus System32. SetDllDirectory('')
+        # above removes CWD from inherited standard DLL search; OS/driver modules
+        # remain machine-specific and are not claimed pinned by this policy.
+        native_env = dict(kw.get('env') or os.environ)
+        native_env['PATH'] = os.path.dirname(os.path.realpath(native)) + os.pathsep + system_directory
+        kw['env'] = native_env
+    if exec_module is not None:
+        kw = exec_module.prepare_native_kwargs(kw, os.environ, opt_in=True)
+    elif kw.get('env') is not None:
+        native_env = dict(kw['env'])
+        for name in tuple(native_env):
+            if name.startswith('OMNI_STRATA_EXEC_'): native_env.pop(name)
+        native_env.pop('STRATA_OMNI_EXEC_OBSERVER', None)
+        kw['env'] = native_env
+    p = original(args, *a, **kw)
+    owned_io = None
+    sys.stderr.write('strata supervisor: native process started\n'); sys.stderr.flush()
+    if os.name == 'nt':
+        from serve.winjob import contain
+        if not contain(p):
+            p.kill(); p.wait(timeout=5)
+            raise RuntimeError('Strata native Windows containment failed')
+        sys.stderr.write('strata supervisor: native contained in Windows kill-on-close job\n')
+        sys.stderr.flush()
+        if observer_nonce:
+            import ctypes
+            from ctypes import wintypes
+            kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+            kernel.GetProcessTimes.argtypes = (wintypes.HANDLE,) + (ctypes.POINTER(wintypes.FILETIME),) * 4
+            kernel.GetProcessTimes.restype = wintypes.BOOL
+            times = [wintypes.FILETIME() for _ in range(4)]
+            if kernel.GetProcessTimes(int(p._handle), *(ctypes.byref(t) for t in times)):
+                created = (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
+                if created > 0:
+                    identity = {'pid': p.pid, 'creation_filetime_100ns': created}
+                    sys.stderr.write('strata supervisor: native identity '+observer_nonce+' '+json.dumps(identity)+'\n')
+                    sys.stderr.flush()
+                    if io_module is not None:
+                        def emit_owned(row):
+                            if exec_module is not None: sys.stderr.emit_control(row)
+                            else: sys.stderr.write(row); sys.stderr.flush()
+                        owned_io = io_module.OwnedNativeFrameWriter(
+                            observer_nonce, io_generation, p.pid, created, emit_owned)
+    if io_module is not None and owned_io is None:
+        p.kill(); p.wait(timeout=5)
+        raise RuntimeError('Strata I/O observer did not obtain owned native identity')
+    class NativeInput:
+        def __init__(self, pipe): self.pipe = pipe
+        def write(self, row):
+            text = row.decode('utf-8', 'strict') if isinstance(row, bytes) else row
+            owned_io.observe_input(text)
+            return self.pipe.write(row)
+        def __getattr__(self, name): return getattr(self.pipe, name)
+    if owned_io is not None and p.stdin is not None: p.stdin = NativeInput(p.stdin)
+    # Observe counters only; return each exact line unchanged to the upstream
+    # parser. Token IDs, prompts and tensor contents are never copied to logs.
+    class NativeOutput:
+        def __init__(self, pipe): self.pipe = pipe
+        def __iter__(self): return self
+        def __next__(self):
+            row = self.readline()
+            if not row: raise StopIteration
+            return row
+        def readline(self, *args):
+            row = self.pipe.readline(*args)
+            text = row.decode('utf-8', 'replace') if isinstance(row, bytes) else row
+            if owned_io is not None: owned_io.observe_output(text)
+            if text.startswith('DONE '):
+                fields = text.split()
+                try:
+                    if len(fields) == 16:
+                        indexes = {'generated':1, 'prompt_tokens':2, 'hits':9, 'lookups':10,
+                                   'prompt_read':14, 'offloaded':15}
+                        counters = {k:int(fields[i]) for k,i in indexes.items()}
+                        if all(v >= 0 for v in counters.values()) and counters['hits'] <= counters['lookups']:
+                            sys.stderr.write('strata supervisor: native done '+json.dumps(counters)+'\n')
+                            sys.stderr.flush()
+                except (ValueError, IndexError): pass
+            return row
+        def __getattr__(self, name): return getattr(self.pipe, name)
+    if p.stdout is not None: p.stdout = NativeOutput(p.stdout)
+    if exec_module is not None:
+        # Existing IO wrappers and containment/GetProcessTimes are already bound.
+        # The outer wrapper observes metadata and returns original stdout objects.
+        try:
+            owned_exec = exec_module.OwnedExecutionFrameWriter(
+                exec_configuration['OMNI_STRATA_EXEC_TOKEN'],
+                exec_configuration['OMNI_STRATA_EXEC_GENERATION'], p.pid, created, sys.stderr.emit_control)
+            exec_module.attach_execution_pipes(p, owned_exec)
+        except BaseException:
+            p.kill(); p.wait(timeout=5)
+            raise
     def drain():
         skipping = False
         while True:
@@ -1046,6 +1452,15 @@ class StrataTextStageClient(StageClientBase):
         self._retirement_lock = threading.Lock()
         self._known_children: dict[int, float] = {}
         self._observation_runtime = None
+        self._execution_settings = None
+        self._execution_modules = None
+        self._execution_bridge = None
+        self._execution_verifier = None
+        self._execution_token = None
+        self._execution_report_lock = threading.RLock()
+        self._execution_report_request = None
+        self._execution_active_request = None
+        self._last_execution_report = None
         self._native_module_audit = None
         self._io_request = None
         self._last_io_report = None
@@ -1110,7 +1525,32 @@ class StrataTextStageClient(StageClientBase):
                     if path.is_file() and path.suffix.lower() in {".py", ".pyc", ".dll", ".so", ".exe"}:
                         if path.resolve() not in runtime_files:
                             raise ValueError("Strata runtime has an unpinned code/dependency file")
-        if config.get("observation_runtime") is not None:
+        if config.get("execution_observation") is not None:
+            if os.name != "nt" or type(self) is not StrataTextStageClient:
+                raise ValueError("execution observation currently requires the native Windows text Stage")
+            if (
+                config.get("observation_runtime") is not None
+                or config.get("observation_runtime_identity_sha256") is not None
+            ):
+                raise ValueError("combined execution and legacy I/O descriptors cannot be mixed")
+            if config.get("weight_tier_plan") is None or not config.get("route_id"):
+                raise ValueError("execution observation requires an explicit independently admitted tier route")
+            self._execution_settings = _execution_settings(config["execution_observation"], runtime)
+            minimum_host = (
+                _positive(config["expert_ram_budget_bytes"], "expert_ram_budget_bytes")
+                + _positive(config["host_overhead_bytes"], "host_overhead_bytes")
+                + self._max_io_bytes
+                + self._execution_settings["workspace_bytes"]
+            )
+            if minimum_host > self._reservation.demands.get("host_ram", 0):
+                raise ResourceUnavailable("execution observer workspace is not admitted before verification")
+            self._execution_modules = _load_execution_adapters(runtime, runtime_files)
+            self._observation_runtime = self._execution_modules["strata_exec_runtime"].verify_combined_runtime(
+                self._execution_settings["descriptor_file"], runtime
+            )
+            if self._observation_runtime["identity_sha256"] != self._execution_settings["static_identity_sha256"]:
+                raise ValueError("execution runtime changed after route registration")
+        elif config.get("observation_runtime") is not None:
             self._observation_runtime = strata_io.verify_observation_runtime(
                 config["observation_runtime"], runtime, runtime_files, engine, _BOOTSTRAP
             )
@@ -1153,6 +1593,8 @@ class StrataTextStageClient(StageClientBase):
         python_environment = _verify_python_environment(python, config.get("python_environment"))
         expert_budget = _positive(config["expert_ram_budget_bytes"], "expert_ram_budget_bytes")
         host_overhead = _positive(config["host_overhead_bytes"], "host_overhead_bytes")
+        observer_workspace = self._execution_settings["workspace_bytes"] if self._execution_settings else 0
+        observer_receipts = self._execution_settings["receipt_storage_bytes"] if self._execution_settings else 0
         gpu_budget = _positive(config["gpu_budget_bytes"], "gpu_budget_bytes")
         gpu_total = _positive(config["gpu_total_bytes"], "gpu_total_bytes")
         tier_plan = (
@@ -1170,7 +1612,9 @@ class StrataTextStageClient(StageClientBase):
         if gpu_budget > gpu_total:
             raise ResourceUnavailable("Strata GPU budget exceeds physical VRAM")
         gpu_pool = config.get("gpu_pool", "vram:0")
-        if expert_budget + host_overhead + self._max_io_bytes > self._reservation.demands.get("host_ram", 0):
+        if expert_budget + host_overhead + self._max_io_bytes + observer_workspace > self._reservation.demands.get(
+            "host_ram", 0
+        ):
             raise ResourceUnavailable("Strata experts, loading/state/workspace and I/O exceed host reservation")
         if gpu_budget > self._reservation.demands.get(gpu_pool, 0):
             raise ResourceUnavailable("Strata GPU weights/state/workspace exceed GPU reservation")
@@ -1351,8 +1795,16 @@ class StrataTextStageClient(StageClientBase):
             if max(budget.gpu_steady_bytes, budget.gpu_loading_peak_bytes) > gpu_budget:
                 raise ValueError("Strata GPU budget does not cover its tier plan components/peak")
             host_peak = max(budget.host_steady_bytes, budget.host_loading_peak_bytes)
-            if host_overhead + self._max_io_bytes < host_peak - expert_budget:
+            if host_overhead + self._max_io_bytes + observer_workspace < host_peak - expert_budget:
                 raise ValueError("Strata overhead does not cover loading/state/lookup/workspace and I/O")
+            if self._execution_settings is not None:
+                if budget.host_workspace_bytes < observer_workspace or budget.ssd_temporary_bytes < observer_receipts:
+                    raise ResourceUnavailable("tier plan omits separate execution observer workspace/receipts")
+                if (
+                    budget.ssd_artifact_bytes
+                    < artifacts.total_size_bytes + prepared.total_size_bytes + runtime_manifest.total_size_bytes
+                ):
+                    raise ResourceUnavailable("combined observer SSD admission omits runtime provenance/adapter files")
             if budget.ssd_artifact_bytes < artifacts.total_size_bytes + prepared.total_size_bytes:
                 raise ValueError("Strata SSD budget omits source shards or prepared pack files")
             if tier_plan.mtp != bool(spec) or tier_plan.prefetch != any((ple_prefetch, routing_prefetch, io_prefetch)):
@@ -1365,11 +1817,30 @@ class StrataTextStageClient(StageClientBase):
         if self._observation_runtime is not None:
             adapter_path = Path(self._temporary.name) / "strata_io.py"
             adapter_path.write_bytes(Path(strata_io.__file__).read_bytes())
-            if _sha256(adapter_path) != self._observation_runtime["io_adapter_sha256"]:
+            expected_io = (
+                self._execution_modules["strata_exec_live"].ENGINE_ROLE_IO_SHA
+                if self._execution_settings
+                else self._observation_runtime["io_adapter_sha256"]
+            )
+            if _sha256(adapter_path) != expected_io:
                 raise RuntimeError("Strata trusted I/O adapter changed before launch")
             env["OMNI_STRATA_IO_ADAPTER"] = str(adapter_path)
-            env["OMNI_STRATA_IO_ADAPTER_SHA256"] = self._observation_runtime["io_adapter_sha256"]
+            env["OMNI_STRATA_IO_ADAPTER_SHA256"] = expected_io
             env["OMNI_STRATA_IO_GENERATION"] = self._generation
+        if self._execution_settings is not None:
+            import secrets
+
+            self._execution_token = secrets.token_hex(32)
+            for name, prefix in (("strata_exec", "PARSER"), ("strata_exec_bridge", "ADAPTER")):
+                module = self._execution_modules[name]
+                path = Path(self._temporary.name) / (name + ".py")
+                path.write_bytes(Path(module.__file__).read_bytes())
+                if _sha256(path) != _EXECUTION_ADAPTER_SHA256[name]:
+                    raise RuntimeError("execution adapter changed before supervisor launch")
+                env["OMNI_STRATA_EXEC_" + prefix] = str(path)
+                env["OMNI_STRATA_EXEC_" + prefix + "_SHA256"] = _EXECUTION_ADAPTER_SHA256[name]
+            env["OMNI_STRATA_EXEC_TOKEN"] = self._execution_token
+            env["OMNI_STRATA_EXEC_GENERATION"] = self._generation
         self._extension_environment(env)
         self._proc = subprocess.Popen(
             [
@@ -1402,6 +1873,14 @@ class StrataTextStageClient(StageClientBase):
             self._proc.stdout,
             Path(config["log_file"]) if config.get("log_file") else None,
             observer_nonce=observer_nonce,
+            **(
+                {
+                    "execution_token": self._execution_token,
+                    "execution_module": self._execution_modules["strata_exec_bridge"],
+                }
+                if self._execution_settings is not None
+                else {}
+            ),
         )
         deadline = time.monotonic() + start_timeout
         while True:
@@ -1451,7 +1930,7 @@ class StrataTextStageClient(StageClientBase):
             if key in native_info and native_info[key] != expected:
                 raise RuntimeError(f"Strata native INFO disagrees with the pinned/requested {key}")
         cache_bounds = _verify_cache_bounds(native_info, cache_control, expert_budget, profiled=bool(profile))
-        if self._observation_runtime is not None:
+        if self._observation_runtime is not None and self._execution_settings is None:
             identity = self._diagnostics.owned_native_identity()
             self._native_module_audit = strata_io.audit_selected_loaded_modules(
                 identity, runtime, self._observation_runtime
@@ -1492,6 +1971,16 @@ class StrataTextStageClient(StageClientBase):
         }
         if self._observation_runtime is not None:
             route_controls["observation_runtime"] = self._observation_runtime
+        if self._execution_settings is not None:
+            route_controls["execution_observation"] = {
+                "schema": _EXECUTION_CONFIG_SCHEMA,
+                "static_identity_sha256": self._observation_runtime["identity_sha256"],
+                "adapter_sha256": dict(_EXECUTION_ADAPTER_SHA256),
+                "workspace_bytes": observer_workspace,
+                "receipt_storage_bytes": observer_receipts,
+                "workspace_scope": "separate_declared_observer_allowance_not_a_measured_heap_hard_cap",
+                "Agent_consumer_workspace_reused": False,
+            }
         route_controls_sha256 = hashlib.sha256(
             json.dumps(route_controls, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
@@ -1582,6 +2071,30 @@ class StrataTextStageClient(StageClientBase):
         # time while sampling; this does not cover the earlier loading peak.
         self.execution_plan["gpu_observer_identity"] = self.gpu_observer_identity()
         self._finish_extension_plan()
+        if self._execution_settings is not None:
+            settings = self._execution_settings
+            verifier = self._execution_modules["strata_exec_live"].create_live_binding_verifier(
+                self,
+                settings["descriptor_file"],
+                runtime,
+                settings["source_context_file"],
+                Path(settings["receipt_root"]) / ("generation-" + self._generation),
+            )
+            self._execution_verifier = verifier
+            bridge = self._execution_modules["strata_exec_bridge"].ParentExecutionBridge(
+                settings["descriptor_file"],
+                runtime,
+                expected_owner=verifier.owner,
+                token=self._execution_token,
+                verify_combined_runtime=verifier.verify_static_identity,
+                verify_live_binding=verifier,
+            )
+            if verifier.static != self._observation_runtime:
+                raise RuntimeError("execution runtime changed between admission and actual load")
+            self._execution_bridge = bridge
+            verifier.attach_bridge(bridge)
+            self._diagnostics.bind_execution_bridge(bridge)
+            self._diagnostics.bind_io_observer(self._generation, self._observation_runtime)
 
     # Small optional complete-model hooks; the text route retains its exact
     # bootstrap bytes, controls and request serialization.
@@ -1595,7 +2108,7 @@ class StrataTextStageClient(StageClientBase):
         pass
 
     def _bootstrap_source(self):
-        return _BOOTSTRAP
+        return _EXECUTION_BOOTSTRAP if self._execution_settings is not None else _BOOTSTRAP
 
     def _extension_environment(self, env):
         pass
@@ -1658,6 +2171,99 @@ class StrataTextStageClient(StageClientBase):
             },
         }
 
+    def last_execution_observation(self) -> dict | None:
+        with self._execution_report_lock:
+            return copy.deepcopy(self._last_execution_report)
+
+    def _finish_execution_observation(self, request, *, completed, lifecycle_outcome):
+        if self._execution_bridge is None or request is None:
+            return None
+        key = (request.request_id, request.epoch, request.worker_generation)
+        with self._execution_report_lock:
+            if self._execution_report_request == key:
+                return copy.deepcopy(self._last_execution_report)
+            if self._execution_active_request != key:
+                return None  # Startup/begin failure cannot invent an active request.
+            failure = None
+            try:
+                report = self._diagnostics.finish_execution_request(
+                    request,
+                    omni_completed=completed and not self._cancel.is_set(),
+                    cancellation_requested=self._cancel.is_set(),
+                    lifecycle_outcome=lifecycle_outcome,
+                )
+                detached = copy.deepcopy(report)
+            except Exception as error:
+                failure = error
+                report = {
+                    "schema": "omni-strata-stage-execution-observation-failure-v1",
+                    "status": "unavailable",
+                    "complete": False,
+                    "request_binding": {"request_id": request.request_id, "epoch": request.epoch},
+                    "worker_generation": request.worker_generation,
+                    "reason": "execution_report_failed",
+                    "failure_type": type(error).__name__,
+                    "native_observation": None,
+                    "physical_ssd_read_bytes": None,
+                    "runtime_qualification": False,
+                    "default_eligible": False,
+                }
+                detached = copy.deepcopy(report)
+            self._execution_report_request = key
+            self._execution_active_request = None
+            self._last_execution_report = detached
+            if failure is not None and lifecycle_outcome == "normal":
+                # Retire the worker through the existing error path. A broken
+                # observation channel cannot silently authorize the next turn.
+                raise RuntimeError("Strata execution report could not be detached") from failure
+            return report
+
+    def _retire_execution_observer(self, drained):
+        # Reader/process drain is proved by the existing retained-handle path.
+        # Never clear a verifier still reachable from an active reader.
+        with self._execution_report_lock:
+            if drained and self._execution_verifier is not None:
+                try:
+                    self._execution_verifier.close()
+                except Exception:
+                    return False  # Retain ownership if observer cleanup failed.
+                self._execution_verifier = None
+            return drained
+
+    def _finish_failure_observations(self, request, *, reason, lifecycle_outcome, drained):
+        io_report = execution_report = None
+        try:
+            try:
+                io_report = self._finish_io_observation(request, completed=False, reason=reason)
+            except Exception as error:
+                io_report = {
+                    "schema": "omni-strata-stage-io-observation-failure-v1",
+                    "status": "unavailable",
+                    "reason": "io_report_failed",
+                    "failure_type": type(error).__name__,
+                    "native_observation": None,
+                    "physical_ssd_read_bytes": None,
+                    "runtime_qualification": False,
+                }
+            try:
+                execution_report = self._finish_execution_observation(
+                    request, completed=False, lifecycle_outcome=lifecycle_outcome
+                )
+            except Exception as error:
+                execution_report = {
+                    "schema": "omni-strata-stage-execution-observation-failure-v1",
+                    "status": "unavailable",
+                    "reason": "execution_cleanup_report_failed",
+                    "failure_type": type(error).__name__,
+                    "native_observation": None,
+                    "physical_ssd_read_bytes": None,
+                    "runtime_qualification": False,
+                    "default_eligible": False,
+                }
+        finally:
+            drained = self._retire_execution_observer(drained)
+        return io_report, execution_report, drained
+
     def last_io_observation(self) -> dict | None:
         """Bounded last request report, retained after drain; loaded plan stays immutable."""
         with self._io_report_lock:
@@ -1711,6 +2317,16 @@ class StrataTextStageClient(StageClientBase):
                     "loading_covered": False,
                     "reasons": [reason or "observer_generation_unavailable"],
                 }
+            if (
+                self._observation_runtime.get("schema") == "omni-strata-combined-static-runtime-identity-v2"
+                and report.get("schema") == "omni-strata-request-io-observation-v1"
+            ):
+                # A retired/missing combined observer keeps the combined scope.
+                report["schema"] = "omni-strata-combined-request-io-observation-v1"
+                report["runtime_identity_schema"] = self._observation_runtime["schema"]
+                report["combined_io_binding"] = strata_io.validate_combined_io_identity(self._observation_runtime) | {
+                    "io_adapter_sha256": strata_io.adapter_source_sha256()
+                }
             self._last_io_report = copy.deepcopy(report)
             return report
 
@@ -1760,7 +2376,14 @@ class StrataTextStageClient(StageClientBase):
             self._active = request_id
             self._terminal_published = False
             self._cancel.clear()
-            self._begin_io_observation(request)
+            try:
+                self._begin_io_observation(request)
+                if self._execution_bridge is not None:
+                    self._diagnostics.begin_execution_request(request)
+                    self._execution_active_request = (request.request_id, request.epoch, request.worker_generation)
+            except BaseException:
+                self.shutdown()
+                raise
             self._agent_stream = asyncio.Queue(maxsize=64) if streaming else None
             self._task = asyncio.create_task(self._run(request, text, maximum, self._agent_stream))
             self._task.add_done_callback(lambda _: self._apply_pending_ack())
@@ -1909,6 +2532,12 @@ class StrataTextStageClient(StageClientBase):
                     | {"logical_read_scope": telemetry["logical_file_read_scope"]},
                 },
             )
+            if self._execution_bridge is not None:
+                execution_report = await asyncio.to_thread(
+                    self._finish_execution_observation, request, completed=True, lifecycle_outcome="normal"
+                )
+                telemetry["native_execution_observation"] = execution_report
+                output.metrics["strata_wall_s"] = time.perf_counter() - started
         except asyncio.CancelledError:
             raise
         except Exception as exc:
@@ -1917,11 +2546,17 @@ class StrataTextStageClient(StageClientBase):
             self._cancel.set()
             self._closed = True
             drained = await asyncio.to_thread(self._terminate)
+            io_report, execution_report, drained = self._finish_failure_observations(
+                request, reason="request_failed", lifecycle_outcome="error", drained=drained
+            )
             self._ledger.release(self._reservation, drained=drained)
-            io_report = self._finish_io_observation(request, completed=False, reason="request_failed")
             output = OmniRequestOutput.from_error(request.request_id, f"Strata request failed: {type(exc).__name__}")
             if io_report is not None:
                 output.metrics = {"runtime_telemetry": {"native_io_observation": io_report}}
+            if execution_report is not None:
+                if output.metrics is None:
+                    output.metrics = {}
+                output.metrics.setdefault("runtime_telemetry", {})["native_execution_observation"] = execution_report
             output.stage_id = self.stage_id
             output._custom_output = {
                 "stage_event": dataclasses.asdict(
@@ -1981,7 +2616,9 @@ class StrataTextStageClient(StageClientBase):
                 self._agent_stream.get_nowait()
             self._agent_stream.put_nowait(None)
         drained = await asyncio.to_thread(self._terminate)
-        self._finish_io_observation(self._io_request, completed=False, reason="request_cancelled")
+        _, _, drained = self._finish_failure_observations(
+            self._io_request, reason="request_cancelled", lifecycle_outcome="cancelled", drained=drained
+        )
         if self._task is not None:
             done, _ = await asyncio.wait({self._task}, timeout=5)
             if not done:
@@ -2099,7 +2736,9 @@ class StrataTextStageClient(StageClientBase):
                 self._agent_stream.get_nowait()
             self._agent_stream.put_nowait(None)
         drained = self._terminate()
-        self._finish_io_observation(self._io_request, completed=False, reason="route_shutdown")
+        _, _, drained = self._finish_failure_observations(
+            self._io_request, reason="route_shutdown", lifecycle_outcome="drained", drained=drained
+        )
         if self._task is not None and not self._task.done():
             self._ledger.release(self._reservation, drained=False)
             self._task.add_done_callback(lambda _: self._ledger.release(self._reservation, drained=drained))

@@ -1,5 +1,15 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
+2026-10-09：新增执行观测的 Stage 生命周期已接入现有完整模型后端，
+包括独立资源准入、经源码校验的模块加载、有界认证诊断、实际 DONE 等待、
+按 worker generation 分离证据，以及观测报告失败后的取消和资源清理。
+[模型无关回归](results/strata_20261008/strata_execution_stage_unit_validation.json)
+为 **105 通过、5 跳过、4 个子测试通过**，Ruff 通过；旧 bootstrap 字符串保持不变。
+测试环境是 WSL，保留 vLLM 0.28／Omni 0.29 的版本告警，不证明原生 Windows 新运行时兼容性。
+完整 I/O／执行观测运行时的源码身份对齐、打包及真实模型验证仍在进行；
+本次没有安装新运行时或新增模型执行，也不授予默认、内存硬上限或物理 SSD 资格。
+下面 442 条 Agent 请求属于其各自冻结源码，不继承到新接入路径。
+
 2026-10-09：当前冻结 Q2 显式 Agent 路线已完成
 [两类完整性能协议](results/strata_20261008/native_ista_q2_agent_native_profile_full_protocol.json)，
 并通过[独立闭合与统计复核](results/strata_20261008/native_ista_q2_agent_native_profile_full_protocol_review.json)。
