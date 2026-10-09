@@ -9,7 +9,7 @@ This is experimental fixed-input engine evidence, with no Agent rerun, percentil
 
 2026-10-09: same-Stage/generation initialization snapshot reuse is now integrated, including fresh critical-file checks and failure-safe invalidation.
 [Native Windows model-free regression](../edge_harness/results/strata_20261008/strata_initialization_snapshot_native_unit_validation.json) passed **409 tests and 161 subtests**, with three skips, including 34 new snapshot/PE cases. Sources remained stable and repository Ruff passed.
-**The matching optimized runtime is being assembled; its neural lifecycle, measured startup benefit and basic/browser/memory Agent rerun remain pending.** The four requests above used the preceding frozen source and do not qualify the optimization.
+**[The matching optimized runtime](../edge_harness/results/strata_20261008/strata_initialization_snapshot_runtime_assembly.json) assembled successfully and full static verification is running; its neural lifecycle, measured startup benefit and basic/browser/memory Agent rerun remain pending.** The new bundle contains 42,649 files whose sizes total 2,231,676,748 bytes including its member manifest; it has not been registered or loaded. The four requests above used the preceding frozen source and do not qualify the optimization.
 
 2026-10-09 integration regression: combined I/O/execution observation is integrated into the Stage,
 runtime registrar, Agent route translation and result binding. Observer RAM, Windows commit

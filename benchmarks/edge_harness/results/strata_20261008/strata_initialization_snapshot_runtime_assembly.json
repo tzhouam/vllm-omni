@@ -1,0 +1,83 @@
+{
+  "assembled_files": {
+    "materialized_files_including_manifest": 42649,
+    "member_file_size_bytes": 2223102053,
+    "member_rows_excluding_manifest": 42648,
+    "raw_member_manifest_encoded_bytes": 8574695,
+    "size_scope": "Sum of file sizes; not allocated physical storage, physical SSD traffic or model memory usage.",
+    "total_file_size_bytes_including_manifest": 2231676748
+  },
+  "assembler_source_sha256": "edbecd185b4e341f6e2c54fc50e9fde476c4929a98c9bf2a166a4a407e8cf4d4",
+  "assembly_finished_timestamp": "2026-10-09T04:43:54.256154+00:00",
+  "assembly_receipt_sha256": "67fe072ca15b796b555bd88c802a8c9f64da756400123dd6bbf2e89de224d7b6",
+  "descriptor_sha256": "21cff9e1450593c63aa8a4163f84f512f54fd37abcfdeb866204a5443b66307a",
+  "limitations": {
+    "actual_owned_engine_ABI_verified": false,
+    "complete_runtime_verified_by_assembly": false,
+    "default_or_release_qualified": false,
+    "fresh_loaded_modules_verified": false,
+    "new_Agent_verified": false,
+    "new_model_lifecycle_verified": false,
+    "performance_qualified": false,
+    "physical_ssd_or_aggregate_memory_hard_cap_verified": false,
+    "startup_saving_measured": false
+  },
+  "local_alias_witness_metadata": {
+    "collector_sha256": "248a2c877f32bf2626bd0410a5f280632a4cc0535277b23e7de894fdf2902344",
+    "diagnosis_sha256": "a4bf0d93f0be79cb36a724d00f6640dd9fa8dde17b569762dc830dfa85e57d6f",
+    "header_or_alias_preimages_published": false,
+    "pair_count": 11,
+    "raw_preimage_count": 33,
+    "scope": "archived current Windows namespace/content witness, not build-time or fresh OS attestation",
+    "witness_sha256": "483ca972a331c6017808d5bdb68bed6561fd601fb1a7859b7e1b9d68ca6f92d6"
+  },
+  "model_free_source_record_sha256": "916db9f952673dc7b9d93b4b42b99a48a9827bc62cf88754d8c2a34d119fdd8b",
+  "native_build_repeated": false,
+  "native_executable_sha256": "39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177",
+  "original_pack_tools_preserved": true,
+  "original_runtime_preserved": true,
+  "outer_canonical_artifact_manifest_sha256": null,
+  "parent_launch_sha256": "0dbf869915de84673f2c2d4b51fa274abf3c02cd938ae57e1af776a6fa0d206a",
+  "pending": [
+    "Separate actual full-static verification",
+    "New route registration and fresh admission",
+    "Matching model references, cancellation and fresh-generation recovery",
+    "Actual NativeProfileBridge basic, browser-text and memory requests",
+    "Measured startup benefit"
+  ],
+  "preflight_metadata": {
+    "directories": 2865,
+    "max_windows_full_path_chars": 218,
+    "source_metadata_only_not_full_byte_verification": true
+  },
+  "preserved_parent_members_except_explicit_language_executable": 2361,
+  "prior_evidence_scope": "The preceding full-scan-source lifecycle and historical Agent outcomes retain their own identities; assembly does not inherit or replace their neural evidence.",
+  "private_paths_or_preimages_published": false,
+  "raw_member_manifest": {
+    "hash_domain": "Exact raw member-manifest bytes. Distinct from an outer canonical ArtifactManifest, which is not established by this assembly record.",
+    "sha256": "0f22c2ce5c10aed485d9879d8e6a1e951c29e7e5e4b9ee1db9c18812c48fa597"
+  },
+  "registry_sha256": "943f270c01679bed68d5778e031e3502dd68f4d08b086c266433e93f41fa4d28",
+  "retained_native_provenance": {
+    "compiled_standalone_fixture_receipt_sha256": "d942e7ff26662dffad5910b4eed87fa84b98bfab428aa20b007a0f6366e08db5",
+    "engine_ABI_verified_by_fixture": false,
+    "original_failed_build_receipt_sha256": "60d12283b50c7786fcfeeda128e644fda1d4cffc7593fa1f38a32114e1adfede",
+    "target_closure_receipt_sha256": "9f75c745caf79b6fa7aebf068f14682fd524e08a0fb3408c175e7aa36469f674"
+  },
+  "root_reported_terminal": {
+    "exit_code": 0,
+    "scope": "Root-reported retained exec terminal; this projector does not hold process handles.",
+    "session_id": 57862,
+    "terminal_chunk_id": "83cff6"
+  },
+  "schema": "omni-strata-initialization-snapshot-runtime-assembly-v1",
+  "scope": "Closed copy-and-evidence runtime assembly only. New same-Stage snapshot source; no registration, runtime activation, model or Agent execution is established by assembly.",
+  "selected_source_sha256": {
+    "tests/edge/test_strata_runtime_snapshot.py": "d6d9659f74f437282043c840507c5366b6c7b0da9f0abec22fbd2adfe51bf6d3",
+    "vllm_omni/engine/backends/strata.py": "2bd0c25ca87aea5bf19f008f1a6f8bb5023111db1a5ce9f1017035a35374db4e",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_live.py": "a9748c3a29852fc56bf64011f2434a4aeff8be74bd72a25a0b271386b251777b",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_runtime.py": "273b81b115756988ef990d4a0ffde86104141787f1658bd0e90ec596f9753111"
+  },
+  "source_identity_scope": "Selected source identities copied from the separately accepted model-free regression; complete assembled member/source verification is a distinct pending full-static operation.",
+  "status": "assembled_closed_separate_full_static_verification_pending"
+}
