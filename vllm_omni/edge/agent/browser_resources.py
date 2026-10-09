@@ -33,6 +33,7 @@ class ResolvedBrowserEnvelope:
 
     resource_spec: CompanionResourceSpec
     measurement_references: tuple[tuple[str, str], ...]
+    review_metadata: Mapping[str, Any] | None = None
 
 
 def _sha256(value: Any) -> bool:
@@ -111,7 +112,11 @@ def resolve_reviewed_browser_envelope(path: Path, *, expected_sha256: str) -> Re
         purpose_id=body.get("purpose_id"), memory_demands=demands,
         envelope_sha256=expected_sha256, evidence_reference=str(path),
     )
-    return ResolvedBrowserEnvelope(spec, tuple(references))
+    review = {key: deepcopy(body[key]) for key in ("budget_basis", "scope", "headroom", "estimate_not_measured")
+              if key in body}
+    if len(json.dumps(review, allow_nan=False).encode("utf-8")) > 64 << 10:
+        raise ValueError("browser allowance review metadata exceeds its bound")
+    return ResolvedBrowserEnvelope(spec, tuple(references), review or None)
 
 
 class WindowsBrowserResourceCompanion:
@@ -165,6 +170,25 @@ class WindowsBrowserResourceCompanion:
         return self._resource_spec
 
     @property
+    def review_metadata(self) -> Mapping[str, Any] | None:
+        return deepcopy(self._envelope.review_metadata)
+
+    def native_gpu_accounting_snapshot(self) -> Mapping[str, Any] | None:
+        from .native_browser_gpu import NativeBrowserGpuRegistryFactory
+        factory = self._registry_factory
+        return factory.snapshot() if type(factory) is NativeBrowserGpuRegistryFactory else None
+
+    def bind_native_gpu_accounting_source(self, source: Callable[[], Mapping[str, Any]]) -> None:
+        """Trusted app-only source; never supplied by a model, page or tool."""
+        from .native_browser_gpu import NativeBrowserGpuRegistryFactory
+        with self._lock:
+            if not self.is_cold() or self._reservation is not None:
+                raise ResourceUnavailable("native GPU source must be bound before companion admission")
+            if type(self._registry_factory) is not NativeBrowserGpuRegistryFactory:
+                raise ValueError("this companion has no native GPU factory")
+            self._registry_factory.bind_route_source(source)
+
+    @property
     def release_evidence(self) -> Mapping[str, Any] | None:
         with self._lock:
             return deepcopy(self._release_evidence)
@@ -200,6 +224,9 @@ class WindowsBrowserResourceCompanion:
                 raise ResourceUnavailable("browser requires its exact cold joint companion lease")
             # Synchronous storage only. No OS counters, browser constructor,
             # worker submission, manager callback, or process launch here.
+            binder = getattr(self._registry_factory, "bind_resource_context", None)
+            if callable(binder):
+                binder(ledger, reservation, joint_generation=joint_generation)
             self._ledger, self._reservation = ledger, reservation
             self._generation, self._guard = joint_generation, guard
 
@@ -297,8 +324,16 @@ class WindowsBrowserResourceCompanion:
         polling thread or automatic admission allowance is installed here.
         """
         with self._lock:
-            registry = self._registry
-        return registry.sample() if registry is not None else None
+            registry, generation = self._registry, self._generation
+            gpu = self.native_gpu_accounting_snapshot()
+        # Keep the metadata captured with this exact registry generation even
+        # if a close/reset/new lease occurs while the retained sample returns.
+        sample = registry.sample() if registry is not None else None
+        if sample is not None and gpu is not None and (
+                gpu.get("generation") != generation or sample.get("cohort_generation") != generation):
+            raise ResourceUnavailable("browser GPU sample does not match its captured companion generation")
+        return ({**sample, "native_gpu_accounting": gpu}
+                if sample is not None and gpu is not None else sample)
 
     def close_owned_browser(self) -> None:
         """Boundary close callback; manager retains release authority."""
@@ -411,6 +446,8 @@ class WindowsBrowserResourceCompanion:
                     "registry_close_receipt": deepcopy(registry_receipt),
                     "factory_failed": factory_failed,
                     "failure": (type(failure).__name__ + ": " + str(failure) if failure else None),
+                    **({"native_gpu_accounting": self.native_gpu_accounting_snapshot()}
+                       if self.native_gpu_accounting_snapshot() is not None else {}),
                     **dependency_scope,
                 }
                 self._last_close_evidence = deepcopy(self._release_evidence)

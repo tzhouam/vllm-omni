@@ -15,7 +15,7 @@ import json
 import os
 import platform
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -285,7 +285,7 @@ def _artifact_disk_capacity(routes: list[dict[str, Any]]) -> int | None:
     return shutil.disk_usage(roots[0]).free + sum(_allocated_file_bytes(path) for path in files if path.is_file())
 
 
-def _hardware_snapshot(*, include_topology: bool = True) -> dict[str, Any]:
+def _hardware_snapshot(*, include_topology: bool = True, include_gpu_identity: bool = False) -> dict[str, Any]:
     import psutil
 
     vm = psutil.virtual_memory()
@@ -293,6 +293,7 @@ def _hardware_snapshot(*, include_topology: bool = True) -> dict[str, Any]:
     vram_total = None
     gpu_name = None
     driver = None
+    gpu_identity = None
     try:
         import pynvml
 
@@ -308,6 +309,14 @@ def _hardware_snapshot(*, include_topology: bool = True) -> dict[str, Any]:
             driver = pynvml.nvmlSystemGetDriverVersion()
             if isinstance(driver, bytes):
                 driver = driver.decode("ascii", "replace")
+            if include_gpu_identity:
+                uuid = pynvml.nvmlDeviceGetUUID(handle)
+                pci = pynvml.nvmlDeviceGetPciInfo(handle).busId
+                gpu_identity = {
+                    "uuid": uuid.decode("ascii") if isinstance(uuid, bytes) else uuid,
+                    "pci_bus_id": pci.decode("ascii") if isinstance(pci, bytes) else pci,
+                    "name_sha256": hashlib.sha256(gpu_name.strip().encode("utf-8")).hexdigest(),
+                }
         finally:
             pynvml.nvmlShutdown()
     except Exception:
@@ -325,6 +334,7 @@ def _hardware_snapshot(*, include_topology: bool = True) -> dict[str, Any]:
         "gpu_driver": driver,
         "dxgi_adapters": _dxgi_adapter_inventory() if include_topology else [],
         "power_condition": _power_condition(),
+        **({"native_gpu_identity": gpu_identity, "native_gpu_nvml_index": 0} if include_gpu_identity else {}),
     }
 
 
@@ -436,13 +446,63 @@ def _resolve_native_gpu_pool_identity(
     )
 
 
+def _fresh_native_browser_gpu_target() -> dict[str, Any]:
+    """Current app GPU0 identity, from the same NVML handle as the VRAM pool.
+
+    No model, provider, process lookup or ledger is constructed. This snapshot
+    does not claim CUDA ordinal equality; the identity resolver verifies that.
+    """
+    hardware = _hardware_snapshot(include_topology=False, include_gpu_identity=True)
+    identity = hardware.get("native_gpu_identity")
+    if not isinstance(identity, dict) or hardware.get("native_gpu_nvml_index") != 0:
+        raise RuntimeError("fresh native browser GPU UUID/PCI identity is unavailable")
+    return {"gpu_identity": identity, "gpu_index": 0, "gpu_pool": "vram"}
+
+
+def _current_browser_gpu_source(backends: Mapping[str, Any], entries: Mapping[str, Any]) -> dict[str, Any]:
+    """Detached app-owned route metadata; never enter a manager/owner guard.
+
+    Existing backend load/admission gates remain authoritative and unchanged.
+    This identity join makes no new model-operator placement claim.
+    """
+    target = _fresh_native_browser_gpu_target()
+    loaded = [(key, backend.execution_plan) for key, backend in backends.items()
+              if isinstance(backend.execution_plan, Mapping)]
+    if len(loaded) != 1:
+        raise RuntimeError("native browser GPU source requires exactly one current loaded application route")
+    route_id, plan = loaded[0]
+    entry = entries[route_id]
+    requested = plan.get("requested_device")
+    if (requested != entry["placement"]
+            or plan.get("reserved_bytes") != dict(entry["memory_demands"])):
+        raise RuntimeError("current browser GPU source differs from the application's loaded route/claims")
+    admission = plan.get("fresh_memory_admission", {})
+    fields = {"uuid": "gpu_uuid", "pci_bus_id": "gpu_pci_bus_id", "name_sha256": "gpu_name_sha256"}
+    if any(key in admission for key in fields.values()):
+        observed = {name: admission.get(key) for name, key in fields.items()}
+        if observed != target["gpu_identity"]:
+            raise RuntimeError("fresh GPU identity differs from the loaded route's native identity")
+    observer = plan.get("gpu_observer_identity")
+    if observer is not None and (not isinstance(observer, Mapping) or observer.get("status") != "verified"
+            or observer.get("gpu") != target["gpu_identity"]):
+        raise RuntimeError("loaded route GPU observer identity differs from the current native target")
+    identity = {"route_id": route_id, "artifact_id": entry["artifact_id"], "backend": entry.get("backend"),
+        "requested_device": requested, "model_gpu_pool": plan.get("gpu_pool"),
+        "browser_gpu_pool": target["gpu_pool"],
+        "worker_generation": observer.get("worker_generation") if isinstance(observer, Mapping) else None,
+        "artifact_manifest_sha256": plan.get("artifact_manifest_sha256"),
+        "runtime_manifest_sha256": plan.get("runtime_manifest_sha256"),
+        "existing_backend_load_gates_unchanged": True, "model_operator_placement_verified": False}
+    return {**target, "route_scope": "current_loaded_route", "route_identity": identity}
+
+
 def _browser_companion_from_config(data: dict[str, Any], *, config_dir: Path,
                                     browser_factory: Callable[..., Any] | None = None,
                                     browser_registry_factory: Callable[..., Any] | None = None) -> Any:
     declaration = data.get("browser_resource_envelope")
     if declaration is None:
         if (browser_factory is not None or browser_registry_factory is not None
-                or data.get("browser_cdp_helper") is not None):
+                or data.get("browser_cdp_helper") is not None or data.get("browser_native_gpu_accounting") is not None):
             raise ValueError("a managed browser factory requires an explicit reviewed resource envelope")
         return None
     if (not isinstance(declaration, dict) or set(declaration) != {"path", "sha256"}
@@ -456,7 +516,19 @@ def _browser_companion_from_config(data: dict[str, Any], *, config_dir: Path,
     if not path.is_absolute():
         path = config_dir / path
     envelope = resolve_reviewed_browser_envelope(path, expected_sha256=declaration["sha256"])
+    gpu_declaration = data.get("browser_native_gpu_accounting")
+    if "browser_native_gpu_accounting" in data and (
+            type(gpu_declaration) is not dict or set(gpu_declaration) != {"path", "sha256"}
+            or type(gpu_declaration["path"]) is not str or not gpu_declaration["path"]):
+        raise ValueError("browser_native_gpu_accounting requires an explicit descriptor path and SHA256")
+    if gpu_declaration is None and any(
+            (pool == "vram" or pool.startswith("vram:")) and amount > 0
+            for pool, amount in envelope.resource_spec.memory_demands.items()):
+        raise ValueError("a declared browser GPU allowance requires exact native GPU accounting")
+    if gpu_declaration is not None and browser_registry_factory is not None:
+        raise ValueError("native GPU accounting cannot be replaced by a custom registry factory")
     registry_factory = browser_registry_factory
+    capability = None
     helper_declaration = data.get("browser_cdp_helper")
     if helper_declaration is not None:
         if (type(helper_declaration) is not dict or set(helper_declaration) != {"path", "sha256"}
@@ -474,6 +546,17 @@ def _browser_companion_from_config(data: dict[str, Any], *, config_dir: Path,
             # optional GPU observer factory must accept it, not drop it.
             factory = WindowsProcessMemoryRegistry if browser_registry_factory is None else browser_registry_factory
             return factory(generation, cdp_helper_capability=capability)
+    if gpu_declaration is not None:
+        from vllm_omni.edge.agent.native_browser_gpu import (
+            NativeBrowserGpuRegistryFactory,
+            resolve_native_gpu_accounting,
+        )
+        gpu_path = Path(gpu_declaration["path"])
+        if not gpu_path.is_absolute():
+            gpu_path = config_dir / gpu_path
+        native_gpu = resolve_native_gpu_accounting(gpu_path, expected_sha256=gpu_declaration["sha256"])
+        registry_factory = NativeBrowserGpuRegistryFactory(native_gpu, envelope.resource_spec,
+            cdp_helper_capability=capability, review_metadata=envelope.review_metadata)
     return WindowsBrowserResourceCompanion(envelope, browser_factory=browser_factory,
         **({"registry_factory": registry_factory} if registry_factory is not None else {}))
 
@@ -608,6 +691,14 @@ def build_controller(
             "ssd": _artifact_disk_capacity(data["routes"]),
         }
 
+    if companion is not None and companion.native_gpu_accounting_snapshot() is not None:
+        # This source reads detached app/backend data and fresh native identity;
+        # it never calls a manager, lease guard, tool, or owner-worker callback.
+        effective_claims = {route.route_id: dict(route.memory_demands) for route in routes}
+        route_entries = {entry["route_id"]: {**entry, "memory_demands": effective_claims[entry["route_id"]]}
+                         for entry in data["routes"]}
+        companion.bind_native_gpu_accounting_source(
+            lambda: _current_browser_gpu_source(stage_backends, route_entries))
     coordinator = HostMemoryCoordinator(
         routes=routes,
         backends=stage_backends,
@@ -641,13 +732,20 @@ def build_controller(
     # Its presence does not claim route qualification or a hard process cap.
     controller.browser_resource_companion = companion
     if companion is not None:
-        controller.resource_snapshot = coordinator.snapshot
+        if companion.native_gpu_accounting_snapshot() is not None:
+            controller.resource_snapshot = lambda: {
+                **coordinator.snapshot(), "native_gpu_accounting": companion.native_gpu_accounting_snapshot()}
+        else:
+            controller.resource_snapshot = coordinator.snapshot
         hardware = {**hardware, "browser_joint_admission": {
             "enabled": True, "purpose_id": companion.resource_spec.purpose_id,
             "envelope_sha256": companion.resource_spec.envelope_sha256,
             "evidence_reference": companion.resource_spec.evidence_reference,
             "declared_incremental_memory_demands": dict(companion.resource_spec.memory_demands),
             "scope": "reviewed_incremental_allowance_not_process_hard_cap",
+            "review_metadata": companion.review_metadata,
+            **({"native_gpu_accounting": companion.native_gpu_accounting_snapshot()}
+               if companion.native_gpu_accounting_snapshot() is not None else {}),
         }}
     return controller, hardware
 

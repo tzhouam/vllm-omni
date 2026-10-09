@@ -785,13 +785,20 @@ class NativeProfileBridge:
         config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         joint_browser = config.get("browser_resource_envelope") is not None
         if not joint_browser and (
-                self._browser_registry_factory is not None or config.get("browser_cdp_helper") is not None):
+                self._browser_registry_factory is not None or config.get("browser_cdp_helper") is not None
+                or config.get("browser_native_gpu_accounting") is not None):
             raise ValueError("a profiler browser registry factory or helper requires a jointly admitted companion")
         if joint_browser:
             declaration = config["browser_resource_envelope"]
             if (not isinstance(declaration, Mapping) or not isinstance(declaration.get("path"), str)
                     or not Path(declaration["path"]).is_absolute()):
                 raise ValueError("profiler browser_resource_envelope requires an absolute evidence path")
+            gpu_declaration = config.get("browser_native_gpu_accounting")
+            if gpu_declaration is not None and (
+                    not isinstance(gpu_declaration, Mapping)
+                    or not isinstance(gpu_declaration.get("path"), str)
+                    or not Path(gpu_declaration["path"]).is_absolute()):
+                raise ValueError("profiler native_gpu_accounting requires an absolute descriptor path")
             helper_declaration = config.get("browser_cdp_helper")
             if helper_declaration is not None and (
                     not isinstance(helper_declaration, Mapping)
@@ -1052,6 +1059,10 @@ class NativeProfileBridge:
             placement_evidence.update(
                 model_step_identities=model_prompt_identities, model_step_identity_policy=capture_policy
             )
+        if self._browser_companion is not None:
+            gpu = self._browser_companion.native_gpu_accounting_snapshot()
+            if gpu is not None:
+                placement_evidence["native_gpu_accounting"] = gpu
         return AgentRunResult(
             final_answer=answer,
             complete_agent_trace=_trace_complete(

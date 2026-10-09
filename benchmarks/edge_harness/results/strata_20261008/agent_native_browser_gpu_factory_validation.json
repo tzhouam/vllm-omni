@@ -1,0 +1,177 @@
+{
+  "schema": "omni-native-browser-gpu-factory-regression-public-v1",
+  "review_state": "root_reviewed_closed_raw_evidence_projection",
+  "audit_scope": "Closed raw receipt/JUnit/log and exact source verification only; normal Windows imports under existing process guard; synthetic native API/backend fixtures; no native GPU join, browser/model execution or tool allowance inferred",
+  "audit_closed": true,
+  "raw_evidence_root": "C:/Users/zhout/w2/strata-omni",
+  "result": {
+    "harness_schema": "omni-private-native-browser-gpu-factory-focused-tests-v16",
+    "exit_code": 0,
+    "passed": 414,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_collected_items": 414,
+    "junit_testcase_items": 414,
+    "unique_pytest_call_items": 414,
+    "factory_cases": 62,
+    "pool_join_cases": 42,
+    "helper_cases": 66,
+    "selected_pass": true,
+    "all_selected_without_skips_pass": true,
+    "expected_cases_verified": true,
+    "attempted_process_starts": 0,
+    "async_execution_warnings": 0,
+    "origin_violations": 0,
+    "missing_required_packages_or_test_modules": 0,
+    "source_files": 54,
+    "source_before_after_current_equal": true,
+    "runtime_versions_before_after_equal": true,
+    "started_unix": 1791554028.7119565,
+    "finished_unix": 1791554080.9981852
+  },
+  "changes": {
+    "reviewed_afterimages": {
+      "vllm_omni/edge/agent/native_app.py": {
+        "bytes": 41607,
+        "sha256": "823a39f9fa59dbbc6f15aa07fb49e74ed028f9503fa5d2b3cde299c3d0cfc1d3"
+      },
+      "vllm_omni/edge/agent/browser_resources.py": {
+        "bytes": 26702,
+        "sha256": "b060ebc68289c4c8d87d38b1409e9b67c14e539663d83bd786811c9d7c1d3ddf"
+      },
+      "benchmarks/edge_agent/native_profile.py": {
+        "bytes": 70227,
+        "sha256": "af1479e3aabd48c47f6d65e081358a585f3437b1c86e91dbd999f48f046ba92c"
+      },
+      "vllm_omni/edge/agent/native_browser_gpu.py": {
+        "bytes": 21586,
+        "sha256": "e372f5e389460e4261c292efb17725af36229e5faff457f1c9c1204149850e53"
+      },
+      "tests/edge/test_agent_native_browser_gpu.py": {
+        "bytes": 38108,
+        "sha256": "2d464f51675325fcb6f9bb3d054a692114735ceff7eb7f8b66533d89d2e53262"
+      }
+    },
+    "scope": "Explicit top-level browser_native_gpu_accounting path/SHA now activates an app-owned retained-handle GPU registry factory through normal build_controller and NativeProfileBridge. Default absent behavior remains off. Current trusted app identity, effective route claims and exact companion token/generation are revalidated; this is accounting identity, not model operator-placement evidence.",
+    "ownership": "Provider retained before constructor initialization; constructor-return transfers ownership to registry. Failed post-return validation closes/retains registry, never bypasses owner or directly recloses provider. BaseException preserves primary failure; unresolved cleanup terminally blocks new native inventory.",
+    "generation": "Registry/generation/factory sample metadata captured together; generation mismatch refused and a new unstarted generation has current=null.",
+    "independent_cpu_model": "A CPU/UMA model route may separately reserve browser VRAM; effective Route.memory_demands retain consumer parser RAM/commit workspace. Existing backend execution/load checks and protected free-memory floor are unchanged."
+  },
+  "raw_evidence_refs": [
+    {
+      "path": "runs/native-browser-gpu-factory-focused-20261009-v16/receipt.json",
+      "bytes": 501558,
+      "sha256": "13c15a7ab33dbe4e451f607b2e8b4d9f033b7dde9f403e4a629930464e8f76b2"
+    },
+    {
+      "path": "runs/native-browser-gpu-factory-focused-20261009-v16/junit.xml",
+      "bytes": 80277,
+      "sha256": "8adf247104cddf47e870dd1ab7fdcca3b4d5cd05fd74a2a33dde25ac2c9ecc6f"
+    },
+    {
+      "path": "runs/native-browser-gpu-factory-focused-20261009-v16/pytest.log",
+      "bytes": 501,
+      "sha256": "0dfcdf8c1bb9cdbb3fe7b2312bf4f674c6a276c0d0fa8f6802d70488eb5b673a"
+    },
+    {
+      "path": "prototypes/postfreeze-agent-native-checks-v1/run_checks_focused_native_browser_gpu_v16.py",
+      "bytes": 31784,
+      "sha256": "4fd467e32a9625e884688ee1c749e4f529b72ed668c175b5db602e2efb5bb944"
+    },
+    {
+      "path": "runs/gpu-pool-join-focused-native-20261009-v15/receipt.json",
+      "bytes": 452782,
+      "sha256": "14c9ce81fe0f73885e3c23cc09547cdf2b0fec93c3baafbd74ad78c43d702913"
+    },
+    {
+      "path": "runs/gpu-pool-join-focused-native-20261009-v14/receipt.json",
+      "bytes": 452535,
+      "sha256": "21b24b3b6e14bf4956b00d146184c9e292ecb8b405b59efb10e0364a521ef1c7"
+    }
+  ],
+  "runtime": {
+    "python": {
+      "executable": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+      "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "isolated": true,
+      "no_bytecode": true,
+      "utf8_mode": true,
+      "platform": "win32",
+      "windows_version": [
+        10,
+        0,
+        26200,
+        2,
+        ""
+      ],
+      "pointer_bits": 64
+    },
+    "versions": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "torch": "2.13.0+cu130",
+      "triton": null,
+      "PySide6": "6.11.2",
+      "playwright": "1.63.0",
+      "cryptography": "50.0.1"
+    },
+    "versions_after": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "torch": "2.13.0+cu130",
+      "triton": null,
+      "PySide6": "6.11.2",
+      "playwright": "1.63.0",
+      "cryptography": "50.0.1"
+    },
+    "null_distribution_versions_are_unavailable": true
+  },
+  "harness": {
+    "path": "prototypes/postfreeze-agent-native-checks-v1/run_checks_focused_native_browser_gpu_v16.py",
+    "bytes": 31784,
+    "sha256": "4fd467e32a9625e884688ee1c749e4f529b72ed668c175b5db602e2efb5bb944",
+    "process_guard_before_production_imports": true
+  },
+  "preserved_prior_results": [
+    {
+      "public_projection": "benchmarks/edge_harness/results/strata_20261008/agent_gpu_pool_join_native_validation.json",
+      "raw_receipt": "runs/gpu-pool-join-focused-native-20261009-v15/receipt.json",
+      "scope": "Earlier frozen-source synthetic identity-only join regression:352 passed; does not prove the new normal-app native activation",
+      "raw_receipt_sha256": "14c9ce81fe0f73885e3c23cc09547cdf2b0fec93c3baafbd74ad78c43d702913"
+    },
+    {
+      "raw_receipt": "runs/gpu-pool-join-focused-native-20261009-v14/receipt.json",
+      "sha256": "21b24b3b6e14bf4956b00d146184c9e292ecb8b405b59efb10e0364a521ef1c7",
+      "scope": "351 passed/1 failed synthetic ctypes handle fixture; retained, never reclassified"
+    },
+    {
+      "public_projection": "benchmarks/edge_harness/results/strata_20261008/agent_helper_gpu_joint_native_validation.json",
+      "scope": "Earlier frozen-source actual controlled browser/provider paths; private test factory plus synthetic ledger, not new normal-app GPU config or measured tool allowance"
+    }
+  ],
+  "qualification": {
+    "actual_native_gpu_join_for_new_normal_app_factory": false,
+    "actual_new_source_browser_characterization": false,
+    "actual_new_source_model_browser_model_chain": false,
+    "measured_browser_tool_allowance_selected": false,
+    "model_operator_placement_verified_by_this_cohort": false,
+    "physical_memory_union_or_hard_cap_verified": false,
+    "physical_ssd_io_verified": false,
+    "default_route_qualified": false,
+    "release_qualified": false
+  },
+  "next_gate": "After a passing terminal regression and closed source evidence, use the same normal config for a fresh controlled two-generation no-NN browser characterization with a separately reviewed provisional diagnostic envelope; retain actual refusal/partial/query/cleanup outcomes. Derive a scoped reviewed CPU/commit/exact joined GPU allowance, then fresh-source real model-browser-model batch1 validation.",
+  "independent_readback": {
+    "scope": "bounded stdlib source/data only; no target imports/tests/native queries/launches/production writes",
+    "source_before_after_current_equal": true,
+    "pytest_terminal_summary": "414 passed in 23.74s",
+    "test_counts_are_items_not_added_subtests": true,
+    "normal_test_modules": 11,
+    "source_maps_or_all_module_origins_not_republished": true
+  }
+}
