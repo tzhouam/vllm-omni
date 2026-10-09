@@ -1,0 +1,501 @@
+{
+  "schema": "omni-native-helper-gpu-joint-validation-v1",
+  "review_state": "root_reviewed_public_projection",
+  "audit_scope": "bounded read-only audit after terminal; no production import, process query or execution",
+  "audit_closed": true,
+  "cohort": {
+    "schema": "omni-private-owned-native-helper-gpu-joint-tests-v1",
+    "exit_code": 0,
+    "controlled_process_cohort_passed": true,
+    "owned_job_drained": true,
+    "owned_processes_drained": false,
+    "forced_cleanup": false,
+    "errors": [],
+    "started_unix": 1791551387.1139817,
+    "finished_unix": 1791551439.3835442,
+    "workload": "real headless owned Edge on read-only loopback fixtures; synthetic model-free stage and dimensionless ledger units"
+  },
+  "tests": {
+    "selected": 2,
+    "collected": 2,
+    "passed": 2,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit_sha256": "b271f3b594c1d8954c5f54f1fda61966aa017efb937a1839a8f9222bf10df49d",
+    "test_calls": [
+      {
+        "nodeid": "test_native_helper_gpu_joint.py::test_native_joint_guards_floor_release_close_and_fresh_browser",
+        "outcome": "passed"
+      },
+      {
+        "nodeid": "test_native_helper_gpu_joint.py::test_native_joint_registry_bound_limit_keeps_real_cleanup_unknown_and_tool_quarantined",
+        "outcome": "passed"
+      }
+    ],
+    "successful_exact_node_run_driver_launches": 3,
+    "attempted_process_start_audit_rows": 6,
+    "blocked_launch_rows": 0,
+    "retained_direct_node_objects": 3,
+    "all_direct_node_objects_retired": true,
+    "origin_violations": 0,
+    "async_execution_warnings": 0
+  },
+  "job_evidence": {
+    "total_processes": 36,
+    "active_processes": 0,
+    "terminated_processes": 0,
+    "retained_process_objects": 33,
+    "all_retained_wait_signaled": true,
+    "complete_process_identity_coverage": false,
+    "job_count_equals_retained_count": false,
+    "notification_identity_gap_count": 3,
+    "identity_gaps": [
+      {
+        "pid": 119712,
+        "win32_error": 87,
+        "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+      },
+      {
+        "pid": 51604,
+        "win32_error": 87,
+        "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+      },
+      {
+        "pid": 142316,
+        "win32_error": 87,
+        "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+      }
+    ],
+    "owned_job_cleanup_is_separate_from_complete_identity_coverage": true,
+    "all_descendants_covered": false
+  },
+  "positive": {
+    "generation_count": 2,
+    "generations": [
+      {
+        "generation": "b7ca3f373816424483c03a31b0715637",
+        "required_complete_live_sample_calls": 3,
+        "raw_complete_snapshots_for_required_identities": 5,
+        "required_persistent_identities": {
+          "playwright_node": [
+            62588,
+            134360250170601024
+          ],
+          "edge_browser": [
+            61188,
+            134360250174278419
+          ],
+          "declared_helper": [
+            32800,
+            134360250181612020
+          ]
+        },
+        "gpu_capability_sha256": "154b325efaa1cd6a7b26b98df76ae2d90c5455950e2a354cbe698f6d4aef285b",
+        "required_call_distinct_monotonic_values": 1,
+        "all_raw_snapshot_distinct_monotonic_values": 2,
+        "sample_call_scope": "three back-to-back complete CPU/GPU sampling calls; no time-separated cadence or stability claim",
+        "sample_clock_caveat": "First four snapshots share one observed monotonic value; fifth is later. Pinned code issues fresh synchronous registry/provider calls; equal timestamps do not prove caching or independent timing.",
+        "helper": {
+          "pid": 32800,
+          "creation_filetime_100ns": 134360250181612020,
+          "image_path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\154.0.4258.62\\identity_helper.exe",
+          "cdp_process_type": "winrt_app_id.mojom.WinrtAppIdService",
+          "identity_source": "owned_browser_cdp",
+          "retained_wait_signaled": true,
+          "exit_code": 0,
+          "observer_handle_closed": true,
+          "last_cpu_counter_available": false,
+          "last_cpu_counter_error_type": "PermissionError:WinError31",
+          "retirement_evidence": "WaitForSingleObject on original retained handle; final CPU counter availability is not required for retirement",
+          "observed_in_job_new_process_events": false,
+          "job_event_absence_is_not_ancestry_or_external_service_classification": true,
+          "ancestry_verified": false,
+          "exclusive_ownership_verified": false,
+          "termination_authority": false
+        },
+        "finite_bound_set": {
+          "known_children_count": 9,
+          "all_known_retained_children_wait_signaled_and_closed": true,
+          "unknown_count": 0,
+          "registry_observer_handles_closed": true,
+          "worker_joined": true,
+          "observer_callback_error_count": 0,
+          "bound_set_drain_verified": true,
+          "all_descendants_covered": false
+        },
+        "gpu_provider_close": {
+          "drained": true,
+          "adapter_handles_closed": true,
+          "adapter_handle_count": 2,
+          "verified_adapter_close_count": 2,
+          "borrowed_process_handles_retained": false,
+          "process_handles_closed_by_provider": 0,
+          "ordering_evidence": "Pinned registry drains provider before waiting/closing exact process handles; actual provider and registry close receipts verify completion"
+        },
+        "companion_release": {
+          "owned_work_drained": true,
+          "required_ownership_verified_scope": "owned_browser_worker_spawn_and_root_identity_only",
+          "required_observed_dependency_policy_verified": true,
+          "observed_dependency_ownership_verified": false,
+          "observed_dependency_binding_count": 1,
+          "quarantine_required": false
+        }
+      },
+      {
+        "generation": "3d7a9fdb56d94652a71a347e129ce122",
+        "required_complete_live_sample_calls": 3,
+        "raw_complete_snapshots_for_required_identities": 5,
+        "required_persistent_identities": {
+          "playwright_node": [
+            96056,
+            134360250212758976
+          ],
+          "edge_browser": [
+            23656,
+            134360250216120781
+          ],
+          "declared_helper": [
+            99808,
+            134360250221191866
+          ]
+        },
+        "gpu_capability_sha256": "154b325efaa1cd6a7b26b98df76ae2d90c5455950e2a354cbe698f6d4aef285b",
+        "required_call_distinct_monotonic_values": 1,
+        "all_raw_snapshot_distinct_monotonic_values": 2,
+        "sample_call_scope": "three back-to-back complete CPU/GPU sampling calls; no time-separated cadence or stability claim",
+        "sample_clock_caveat": "First four snapshots share one observed monotonic value; fifth is later. Pinned code issues fresh synchronous registry/provider calls; equal timestamps do not prove caching or independent timing.",
+        "helper": {
+          "pid": 99808,
+          "creation_filetime_100ns": 134360250221191866,
+          "image_path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\154.0.4258.62\\identity_helper.exe",
+          "cdp_process_type": "winrt_app_id.mojom.WinrtAppIdService",
+          "identity_source": "owned_browser_cdp",
+          "retained_wait_signaled": true,
+          "exit_code": 0,
+          "observer_handle_closed": true,
+          "last_cpu_counter_available": false,
+          "last_cpu_counter_error_type": "PermissionError:WinError31",
+          "retirement_evidence": "WaitForSingleObject on original retained handle; final CPU counter availability is not required for retirement",
+          "observed_in_job_new_process_events": false,
+          "job_event_absence_is_not_ancestry_or_external_service_classification": true,
+          "ancestry_verified": false,
+          "exclusive_ownership_verified": false,
+          "termination_authority": false
+        },
+        "finite_bound_set": {
+          "known_children_count": 9,
+          "all_known_retained_children_wait_signaled_and_closed": true,
+          "unknown_count": 0,
+          "registry_observer_handles_closed": true,
+          "worker_joined": true,
+          "observer_callback_error_count": 0,
+          "bound_set_drain_verified": true,
+          "all_descendants_covered": false
+        },
+        "gpu_provider_close": {
+          "drained": true,
+          "adapter_handles_closed": true,
+          "adapter_handle_count": 2,
+          "verified_adapter_close_count": 2,
+          "borrowed_process_handles_retained": false,
+          "process_handles_closed_by_provider": 0,
+          "ordering_evidence": "Pinned registry drains provider before waiting/closing exact process handles; actual provider and registry close receipts verify completion"
+        },
+        "companion_release": {
+          "owned_work_drained": true,
+          "required_ownership_verified_scope": "owned_browser_worker_spawn_and_root_identity_only",
+          "required_observed_dependency_policy_verified": true,
+          "observed_dependency_ownership_verified": false,
+          "observed_dependency_binding_count": 1,
+          "quarantine_required": false
+        }
+      }
+    ],
+    "synthetic_model_load_count": 3,
+    "exact_model_and_tool_token_release_assertions_passed_in_pinned_test": true,
+    "immutable_synthetic_floor_assertions_passed_in_pinned_test": true,
+    "stale_generation_and_cold_factory_reset_assertions_passed_in_pinned_test": true,
+    "final_global_empty_synthetic_ledger": true,
+    "final_ledger": {
+      "capacities": {
+        "host_ram": 100,
+        "windows_commit": 100
+      },
+      "reserved": {
+        "host_ram": 0,
+        "windows_commit": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "factory_successful_provider_transfers": 2,
+    "factory_retained_failed_provider_count": 0
+  },
+  "intentional_fault": {
+    "injected_fault": "real_registry_max_bindings_1_intentional_contract_fault",
+    "test_passed": true,
+    "registry_max_bindings": 1,
+    "binding_registry_overflow": true,
+    "unknown_count": 28,
+    "known_retained_count": 1,
+    "known_retained_object_retired_closed": true,
+    "owned_work_drained": false,
+    "quarantine_required": true,
+    "model_owner_released": true,
+    "exact_tool_owner_retained_and_quarantined": "companion:2e88947f8a1140b2aa52413d4e24ccb6:native-browser-contract-fixture",
+    "final_ledger": {
+      "capacities": {
+        "host_ram": 100,
+        "windows_commit": 100
+      },
+      "reserved": {
+        "host_ram": 20,
+        "windows_commit": 30
+      },
+      "owners": [
+        "companion:2e88947f8a1140b2aa52413d4e24ccb6:native-browser-contract-fixture"
+      ],
+      "quarantined": [
+        "companion:2e88947f8a1140b2aa52413d4e24ccb6:native-browser-contract-fixture"
+      ]
+    },
+    "global_empty_synthetic_ledger": false,
+    "reset_refused_and_cached_close_not_promoted_assertions_passed": true,
+    "gpu_provider_drained": true,
+    "gpu_adapter_handles_closed": true,
+    "gpu_process_handles_closed_by_provider": 0,
+    "factory_retained_failed_provider_count": 0,
+    "samples_excluded_from_allowance": true
+  },
+  "integrity": {
+    "production_source_count": 52,
+    "private_harness_source_count": 7,
+    "installed_artifact_count": 7,
+    "production_before_after_current_match": true,
+    "private_before_after_current_match": true,
+    "installed_before_after_current_match": true,
+    "source_pin_manifest": {
+      "path": "C:/Users/zhout/w2/strata-omni/prototypes/native-helper-gpu-joint-cohort-v1/harness/source-pins.json",
+      "bytes": 9712,
+      "sha256": "f1f9031993d85454fa7c0bb5158d92bfedec4b7c481381b7bbdec114f2e1ffde"
+    },
+    "source_and_origin_maps_omitted": true
+  },
+  "runtime": {
+    "hardware_os": "Windows-11-10.0.26200-SP0",
+    "python": {
+      "executable": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+      "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]"
+    },
+    "package_versions": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "playwright": "1.63.0",
+      "psutil": "7.2.2",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "torch": "2.13.0+cu130",
+      "triton": null
+    },
+    "installed_artifacts": [
+      {
+        "path": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+        "bytes": 274424,
+        "sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+      },
+      {
+        "path": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "bytes": 104952,
+        "sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\node.exe",
+        "bytes": 93580104,
+        "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\package\\cli.js",
+        "bytes": 839,
+        "sha256": "f1c4075aef116c766092250d7f37b3249a7cee6465d953207fc38c8f6145becd"
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        "bytes": 5403976,
+        "sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0"
+      },
+      {
+        "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\154.0.4258.62\\identity_helper.exe",
+        "bytes": 2580296,
+        "sha256": "cdb95c83d6206949ed5450c02d39d48a5af56178fb43cf979303cb4a11a5fa50"
+      },
+      {
+        "path": "C:\\Windows\\System32\\conhost.exe",
+        "bytes": 1003520,
+        "sha256": "e449bce01f275cd08f3d4e64bb73b3b43ae845a0dbdb3e6131426e66537705e5"
+      }
+    ],
+    "browser_helper_version_from_declared_install_path": "154.0.4258.62",
+    "gpu_adapter_nodes": [
+      {
+        "adapter_luid_hex": "4c5d010000000000",
+        "physical_adapter_index": 0,
+        "physical_adapter_count": 1,
+        "description": "NVIDIA GeForce RTX 5090 Laptop GPU",
+        "vendor_id": 4318,
+        "device_id": 11288,
+        "uma": false,
+        "cache_coherent_uma": false,
+        "local_physical_pool_alias": "wddm_local:4c5d010000000000:0",
+        "nonlocal_physical_pool_alias": "host_ram",
+        "local_pool_kind": "discrete_gpu_local",
+        "local_omni_pool_id": null,
+        "nonlocal_omni_pool_id": "host_ram",
+        "nonlocal_pool_kind": "shared_system_ram",
+        "discrete_omni_pool_mapping": "requires_explicit_LUID_node_join_to_engine_inventory",
+        "cpu_numa_topology_observed": false
+      },
+      {
+        "adapter_luid_hex": "2638010000000000",
+        "physical_adapter_index": 0,
+        "physical_adapter_count": 1,
+        "description": "AMD Radeon(TM) 890M Graphics",
+        "vendor_id": 4098,
+        "device_id": 5390,
+        "uma": true,
+        "cache_coherent_uma": false,
+        "local_physical_pool_alias": "host_ram",
+        "nonlocal_physical_pool_alias": null,
+        "local_pool_kind": "shared_system_ram",
+        "local_omni_pool_id": "host_ram",
+        "nonlocal_omni_pool_id": null,
+        "nonlocal_pool_kind": "no_independent_UMA_nonlocal_pool_declared",
+        "discrete_omni_pool_mapping": "requires_explicit_LUID_node_join_to_engine_inventory",
+        "cpu_numa_topology_observed": false
+      }
+    ],
+    "gpu_driver_versions_recorded": false,
+    "helper_capability": {
+      "schema": "omni-cdp-observed-helper-capability-v1",
+      "browser_image_path": "c:\\program files (x86)\\microsoft\\edge\\application\\msedge.exe",
+      "browser_size_bytes": 5403976,
+      "browser_sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0",
+      "helper_image_path": "c:\\program files (x86)\\microsoft\\edge\\application\\154.0.4258.62\\identity_helper.exe",
+      "helper_size_bytes": 2580296,
+      "helper_sha256": "cdb95c83d6206949ed5450c02d39d48a5af56178fb43cf979303cb4a11a5fa50",
+      "cdp_process_type": "winrt_app_id.mojom.WinrtAppIdService",
+      "declaration_sha256": "d8c4272309cc97c635280dcf6b1bbff5ebf5960436ca911063709803028702d5",
+      "capability_sha256": "531bb068bb5a95b40235322ce7a74e84f77ed91c99608fd876819b255b121e12",
+      "scope": "declared_CDP_observed_helper_same_retained_process_object",
+      "named_file_hash_is_not_loaded_image_attestation": true,
+      "ancestry_verified": false,
+      "exclusive_ownership_verified": false,
+      "termination_authority": false,
+      "retirement_required": true
+    }
+  },
+  "prerequisites": {
+    "focused_native_helper_regression": {
+      "receipt": {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\helper-gpu-focused-native-20261009-v13\\receipt.json",
+        "bytes": 420014,
+        "sha256": "e7cd15b2e8584e02f0bc8368154a28836b5cbd9d0413d831ddd38d6cc1c0abeb"
+      },
+      "tests": 310,
+      "helper_cases": 66,
+      "model_execution": false
+    },
+    "factory_fake_regression": {
+      "receipt": {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\helper-gpu-factory-fake-native-20261009-v2\\receipt.json",
+        "bytes": 97931,
+        "sha256": "d23762dc043cf7f95a41ca34c9cc030683cd1950e834d31e5746600b08e298d7"
+      },
+      "harness_sha256": "842c86f862909a5ae1fae390205b6967627022e021f5ce1c605ff175fd2500b8",
+      "tests": 34,
+      "passed": true,
+      "process_starts": 0,
+      "model_execution": false,
+      "browser_launched": false,
+      "native_gpu_queries_performed": false,
+      "scope": "normal imports plus fake native provider and registry fixtures; no actual browser/GPU workload"
+    }
+  },
+  "raw_evidence_refs": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\receipt.json",
+      "bytes": 54474,
+      "sha256": "61ba3599904e9e116fc26f5172984853b9b86b063e1ff112b9a873a7492b0715"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\child-receipt.json",
+      "bytes": 75111,
+      "sha256": "7860e186a3d453fb028c271d3f4c5a6226341cbf1d8a0e9dec41ba339ba624d1"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\launch.json",
+      "bytes": 9714,
+      "sha256": "7274a92138d954e94967bc42ebc24eba07de4ff2f5590328bf65d471153a170a"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\junit.xml",
+      "bytes": 548,
+      "sha256": "b271f3b594c1d8954c5f54f1fda61966aa017efb937a1839a8f9222bf10df49d"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\pytest.log",
+      "bytes": 99,
+      "sha256": "a39e919f6758d83e6c12805f84657516f4bd3ad363df36b27ab2d219c2e2e664"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\child-console.log",
+      "bytes": 169,
+      "sha256": "d82e9c5a773a4df7a018e29b5c3486d6127604a2d63f1d42a7635765eded4409"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\pytest-tmp\\test_native_joint_guards_floor0\\native-joint-contract-receipt.json",
+      "bytes": 1641973,
+      "sha256": "d4a4ddc8e8566c036c2d894a2a0693dcbe0bc9475c9528fd2cd1be00d84cc122"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\pytest-tmp\\test_native_joint_guards_floor0\\native-joint-contract-journal.jsonl",
+      "bytes": 5686,
+      "sha256": "28998fbe57adc4d70174aa35397ea9ae42a25309476e147c373a8221a92b4416"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\pytest-tmp\\test_native_joint_registry_bou0\\native-joint-contract-receipt.json",
+      "bytes": 234179,
+      "sha256": "b59171a49fa3e477e6391acbf4ee8fd5fadf8d92048cacec2fb4d60b91d2f223"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-helper-gpu-joint-20261009-v1\\pytest-tmp\\test_native_joint_registry_bou0\\native-joint-contract-journal.jsonl",
+      "bytes": 2154,
+      "sha256": "bd39b1d07ac2302f52d710f1201b6d40a92ccd3d1ddae90cec07d3e476caded4"
+    }
+  ],
+  "qualification": {
+    "model_execution": false,
+    "neural_model_quality_qualification": false,
+    "measured_browser_envelope": false,
+    "memory_allowance_selected": false,
+    "hard_memory_cap_verified": false,
+    "all_descendants_covered": false,
+    "default_route_qualified": false,
+    "agent_model_tool_model_qualified": false,
+    "sustained_operation_qualified": false,
+    "performance_qualified": false,
+    "release_qualified": false,
+    "physical_pool_join_to_engine_vram_verified": false
+  },
+  "limits": [
+    "Finite retained bound set only; three short-lived Job identities were not retained.",
+    "Complete back-to-back counter calls are not spaced stability or startup-peak measurements.",
+    "Only Node/browser-root/helper persistent identities are required for the sampling check.",
+    "Retired helper CPU counters were unavailable; retained-handle wait and close prove retirement.",
+    "Shared RAM, process working set and local/nonlocal WDDM counters must not be added.",
+    "The discrete LUID/node pool is not yet joined to the engine vram pool.",
+    "Dimensionless synthetic claims are not RAM/commit/VRAM budgets.",
+    "Fault samples cannot establish an allowance.",
+    "No neural model, model-tool-model chain, default-route or release qualification was performed."
+  ]
+}
