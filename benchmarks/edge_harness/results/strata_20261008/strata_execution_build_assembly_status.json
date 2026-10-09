@@ -2,7 +2,7 @@
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
   "scope": "native_build_and_complete_assembly_no_model_execution",
-  "status": "assembled_static_verification_failed_on_unregistered_base_auxiliary",
+  "status": "assembled_followup_external_static_diagnostic_failed_on_cache_line_parsing",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -77,6 +77,25 @@
     "next_action": "verify exact base-Git auxiliary membership and all retained copies; preserve failure and complete source archives"
   },
   "native_model_executed": false,
+  "followup_external_static_diagnostic": {
+    "terminal_exit_code": 1,
+    "verifier_source_sha256": "fa44069147b45e6bc9672b17f678d5484dfcfceed1fc9f99581a8e181627dae8",
+    "raw_receipt": {
+      "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_static_diagnostic_v6_raw.json",
+      "size_bytes": 343,
+      "sha256": "20f538b85edecbc9c8ff37c2808e459e2abf40747448a66123f517a676dbdb96"
+    },
+    "raw_context": {
+      "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_static_diagnostic_v6_context_raw.json",
+      "size_bytes": 550,
+      "sha256": "eb8ea1b399bcac40431eb88278c2484136077e95557ac54a43bc7b37e2c714fd"
+    },
+    "reason_code": "build_cache_flags",
+    "scope": "external successor against unchanged original assembly; archived adapter/context differ, no registration authority",
+    "next_action": "repair strict Windows CRLF cache parsing after selected-record proof; repeat full static verification before final matching runtime assembly",
+    "registration_authorized": false,
+    "native_model_executed": false
+  },
   "complete_runtime_verified": false,
   "actual_owned_engine_ABI_verified": false,
   "runtime_qualification": false,

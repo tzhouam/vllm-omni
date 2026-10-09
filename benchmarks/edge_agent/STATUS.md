@@ -12,7 +12,10 @@ and its separate complete runtime assembled successfully. The
 [first actual static attempt](../edge_harness/results/strata_20261008/strata_execution_build_assembly_status.json)
 refused an unregistered 483,520-byte experimental projection GGUF from the fixed base
 repository. The failure is retained. Exact Git and copy membership checks are now frozen
-and independently source-reviewed; actual static diagnostics are running.
+and independently source-reviewed. The follow-up external static diagnostic passed member
+checks, then failed at `build_cache_flags`: all eight actual controls match, but the parser
+retains the CR from Windows CRLF. A strict line-ending repair is being checked; the external
+diagnostic cannot authorize registration of the unchanged old bundle.
 Actual model parity, observed execution, cancellation/recovery and Agent reruns on this
 combined version are still pending.
 These are model-free integration checks. Prior Q2/IQ3/Q4 actual results keep their own

@@ -1,0 +1,10 @@
+{
+  "schema": "omni-private-external-static-diagnostic-context-v1",
+  "external_verifier_sha256": "fa44069147b45e6bc9672b17f678d5484dfcfceed1fc9f99581a8e181627dae8",
+  "archived_verifier_sha256": "458db0a601ff3a69bdc765e26cc98c168adaf6970af9d5b90e589ad09259b213",
+  "scope": "diagnostic_static_build_checks_against_old_unchanged_bundle_external_verifier_not_archived_live_source",
+  "source_context_matches_external_verifier": false,
+  "registration_authorized_by_this_attempt": false,
+  "native_execution": false,
+  "runtime_qualification": false
+}
