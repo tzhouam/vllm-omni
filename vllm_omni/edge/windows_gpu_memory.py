@@ -69,6 +69,107 @@ def unknown_observation(reason: str, identity: dict[str, Any] | None = None) -> 
     }
 
 
+def validate_native_gpu_pool_binding(
+    *, gpu_identity: dict[str, Any], gpu_index: int, gpu_pool: str,
+    ledger_capacities: dict[str, int], cuda_binding: dict[str, Any],
+    provider_capabilities: dict[str, Any],
+) -> dict[str, Any]:
+    """Join app-owned native snapshots, never authenticate external JSON.
+
+    No native call, allocation, admission, process lookup or budget selection.
+    The caller must obtain both snapshots from the current owned native provider
+    and identity resolver; strings/hashes alone are not an authority boundary.
+    """
+    from vllm_omni.edge.windows_bound_gpu_memory import BOUND_GPU_SCHEMA, _AdapterNode, _uint
+
+    expected, binding, capability = (copy.deepcopy(value) for value in (
+        gpu_identity, cuda_binding, provider_capabilities))
+    if (not all(isinstance(value, dict) for value in (expected, binding, capability, ledger_capacities))
+            or not _uint(gpu_index, bits=31)):
+        raise ValueError("explicit GPU identity, configured ordinal and actual ledger are required")
+    uuid, name_hash = expected.get("uuid"), expected.get("name_sha256")
+    if (not isinstance(uuid, str) or not re.fullmatch(
+            r"GPU-[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}", uuid)
+            or not isinstance(name_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", name_hash)):
+        raise ValueError("complete expected NVML UUID/PCI/name identity is required")
+    pci = normalize_pci_bus_id(expected.get("pci_bus_id", ""))
+    canonical_pool = f"vram:{gpu_index}"
+    aliases = ["vram", canonical_pool] if gpu_index == 0 else [canonical_pool]
+    if (gpu_pool not in aliases or gpu_pool not in ledger_capacities
+            or not _uint(ledger_capacities[gpu_pool])
+            or sum(alias in ledger_capacities for alias in aliases) != 1):
+        raise ValueError("actual ledger must expose exactly one canonical GPU pool alias")
+    luid, node, mask = (binding.get(key) for key in (
+        "adapter_luid_hex", "physical_adapter_index", "cuda_node_mask"))
+    if (binding.get("uuid") != uuid
+            or normalize_pci_bus_id(binding.get("pci_bus_id", "")) != pci
+            or binding.get("name_sha256") != name_hash
+            or type(binding.get("cuda_device_ordinal")) is not int
+            or binding["cuda_device_ordinal"] != gpu_index
+            or not _uint(mask, positive=True, bits=32) or mask & (mask - 1)
+            or not _uint(node, bits=32) or node != mask.bit_length() - 1
+            or not isinstance(luid, str) or not re.fullmatch(r"[0-9a-f]{16}", luid)
+            or binding.get("binding_source") != (
+                "NVML UUID/PCI to CUDA cuDeviceGetByPCIBusId/cuDeviceGetLuid to WDDM LUID")):
+        raise ValueError("CUDA UUID/PCI/ordinal/LUID/node identity is incomplete or mismatched")
+    if (not _uint(binding.get("cuda_driver_version"), positive=True, bits=32)
+            or not isinstance(binding.get("observer_driver_dll"), str)
+            or not 1 <= len(binding["observer_driver_dll"]) <= 4096
+            or not re.fullmatch(r"[0-9a-f]{64}", binding.get("observer_driver_dll_sha256", ""))):
+        raise ValueError("identity resolver native driver provenance is incomplete")
+    nodes, capability_hash = capability.get("adapter_nodes"), capability.get("capability_sha256")
+    if (capability.get("schema") != BOUND_GPU_SCHEMA or capability.get("enabled") is not True
+            or capability.get("binding_available") is not True or capability.get("closed") is not False
+            or capability.get("binding_error") is not None
+            or capability.get("capability_source") != "native_DXGI_GetDesc1_D3D12_Architecture1"
+            or not isinstance(nodes, list) or not 1 <= len(nodes) <= 64
+            or not isinstance(capability_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", capability_hash)):
+        raise ValueError("current bounded native provider capabilities are unavailable")
+    groups: dict[str, dict[str, Any]] = {}
+    matches = []
+    for row in nodes:
+        if not isinstance(row, dict):
+            raise ValueError("invalid provider node metadata")
+        keys = ("adapter_luid_hex", "physical_adapter_index", "physical_adapter_count",
+                "description", "vendor_id", "device_id", "uma", "cache_coherent_uma")
+        core = {key: row.get(key) for key in keys}
+        adapter, index, count = (core[key] for key in keys[:3])
+        if (not isinstance(adapter, str) or not re.fullmatch(r"[0-9a-f]{16}", adapter)
+                or not _uint(count, positive=True, bits=32) or count > 16
+                or not _uint(index, bits=32) or index >= count
+                or not isinstance(core["description"], str) or not 1 <= len(core["description"]) <= 128
+                or not _uint(core["vendor_id"], bits=32) or not _uint(core["device_id"], bits=32)
+                or type(core["uma"]) is not bool or type(core["cache_coherent_uma"]) is not bool
+                or _AdapterNode(**core).metadata() != row):
+            raise ValueError("provider node identity/topology/pool metadata is malformed")
+        group_identity = (count, core["description"], core["vendor_id"], core["device_id"])
+        group = groups.setdefault(adapter, {"identity": group_identity, "indices": set()})
+        if group["identity"] != group_identity or index in group["indices"]:
+            raise ValueError("provider adapter/node identity is ambiguous")
+        group["indices"].add(index)
+        if (adapter, index) == (luid, node):
+            matches.append(row)
+    if (len(groups) > 16 or any(group["indices"] != set(range(group["identity"][0]))
+                                for group in groups.values())):
+        raise ValueError("provider physical adapter nodes are incomplete or over bound")
+    actual_hash = hashlib.sha256(json.dumps(nodes, sort_keys=True, ensure_ascii=True,
+        separators=(",", ":"), allow_nan=False).encode("ascii")).hexdigest()
+    if actual_hash != capability_hash or len(matches) != 1 or matches[0]["uma"] is not False:
+        raise ValueError("exact discrete CUDA/provider node join is unavailable")
+    return {
+        "schema": "omni-windows-native-gpu-pool-binding-v1", "status": "identity_joined",
+        "ledger_pool": gpu_pool, "canonical_pool": canonical_pool, "pool_aliases": aliases,
+        "aliases_are_not_independent_capacities": True,
+        "physical_pool_identity": f"wddm_local:{luid}:{node}",
+        "provider_capability_sha256": capability_hash, "provider_node": copy.deepcopy(matches[0]),
+        "gpu_identity": expected, "cuda_binding": binding,
+        "nonlocal_physical_pool_alias": "host_ram", "memory_budget_selected": False,
+        "memory_admission_performed": False, "native_execution_placement_verified": False,
+        "hard_cap_verified": False, "qualification": False,
+        "scope": "current_app_owned_native_identity_snapshots_not_external_JSON_or_execution_proof",
+    }
+
+
 class WindowsProcessGpuObserver:
     """Observe one native generation; any identity or platform mismatch is unknown."""
 
@@ -255,8 +356,12 @@ class _WindowsTransport:
     def close_adapter(self, adapter: int) -> None:
         self._check_status(self.gdi.D3DKMTCloseAdapter(ctypes.byref(self.Close(adapter))), "close_adapter")
 
-    def resolve_gpu(self, expected: dict[str, Any]) -> dict[str, Any]:
-        """Bind CUDA's LUID to the expected NVML physical PCI identity."""
+    def resolve_gpu(self, expected: dict[str, Any], *, expected_cuda_ordinal: int | None = None) -> dict[str, Any]:
+        """Bind CUDA LUID/node; optional ordinal check preserves the default observer format."""
+        if expected_cuda_ordinal is not None and (
+            type(expected_cuda_ordinal) is not int or not 0 <= expected_cuda_ordinal < (1 << 31)
+        ):
+            raise ValueError("an explicit nonnegative CUDA ordinal is required")
         import pynvml as nvml
 
         nvml.nvmlInit()
@@ -295,6 +400,14 @@ class _WindowsTransport:
         check(cuda.cuInit(0))
         device, node, version = ctypes.c_int(), ctypes.c_uint(), ctypes.c_int()
         check(cuda.cuDeviceGetByPCIBusId(ctypes.byref(device), expected["pci_bus_id"].encode("ascii")))
+        if expected_cuda_ordinal is not None:
+            # CUdevice is a handle: validate ordinal through the driver, not its numeric value.
+            cuda.cuDeviceGet.argtypes = [ctypes.POINTER(ctypes.c_int), ctypes.c_int]
+            cuda.cuDeviceGet.restype = ctypes.c_int
+            configured_device = ctypes.c_int()
+            check(cuda.cuDeviceGet(ctypes.byref(configured_device), expected_cuda_ordinal))
+            if configured_device.value != device.value:
+                raise ValueError("resolved CUDA ordinal differs from the configured native device")
         luid, name = ctypes.create_string_buffer(8), ctypes.create_string_buffer(256)
         check(cuda.cuDeviceGetLuid(luid, ctypes.byref(node), device))
         check(cuda.cuDeviceGetName(name, len(name), device))
@@ -308,6 +421,8 @@ class _WindowsTransport:
             for block in iter(lambda: source.read(8 << 20), b""):
                 digest.update(block)
         return {
+            **({"cuda_device_ordinal": expected_cuda_ordinal, "cuda_node_mask": node.value,
+                "name_sha256": expected["name_sha256"]} if expected_cuda_ordinal is not None else {}),
             "uuid": expected["uuid"],
             "pci_bus_id": expected["pci_bus_id"],
             "adapter_luid_hex": luid.raw.hex(),

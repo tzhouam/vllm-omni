@@ -1,0 +1,130 @@
+{
+  "schema": "omni-native-gpu-pool-join-regression-public-v1",
+  "review_state": "root_reviewed_public_projection",
+  "audit_scope": "Read-only filesystem verification of closed raw evidence; no target imports, tests, GPU queries, process launches, PID reopens or repository changes by projection author",
+  "audit_closed": true,
+  "raw_evidence_root": "C:/Users/zhout/w2/strata-omni",
+  "result": {
+    "harness_schema": "omni-private-native-gpu-pool-join-focused-tests-v15",
+    "exit_code": 0,
+    "passed": 352,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "helper_cases": 66,
+    "pool_join_cases": 42,
+    "selected_pass": true,
+    "all_selected_without_skips_pass": true,
+    "expected_cases_verified": true,
+    "attempted_process_starts": 0,
+    "async_execution_warnings": 0,
+    "origin_violations": 0,
+    "missing_required_packages_or_test_modules": 0,
+    "source_files": 52,
+    "source_before_after_current_equal": true,
+    "runtime_versions_before_after_equal": true,
+    "started_unix": 1791552627.8486788,
+    "finished_unix": 1791552677.6137433
+  },
+  "changes": {
+    "reviewed_afterimages": {
+      "vllm_omni/edge/windows_gpu_memory.py": {
+        "bytes": 25635,
+        "sha256": "e79c69910f4d88ef581510c30911ada15fadc3fad3d35c4ae6dd30476aa6f809"
+      },
+      "vllm_omni/edge/agent/native_app.py": {
+        "bytes": 35143,
+        "sha256": "16d7c4c77a65bd86472ba0ec0ad839bebed772bf445f57e7ad24719ccecdca91"
+      },
+      "tests/edge/test_windows_native_gpu_pool_binding.py": {
+        "bytes": 13531,
+        "sha256": "8f75f8ec482fb0562f46f6c87a3d7a8b1b4fa10aa3f0abae02b077deca3afcbf"
+      }
+    },
+    "scope": "Opt-in exact CUDA ordinal-to-handle, UUID/PCI, native LUID/node and unique actual ledger-pool identity join; synthetic normal-import regression, not runtime activation or workload qualification"
+  },
+  "runtime": {
+    "python": {
+      "executable": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+      "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "isolated": true,
+      "no_bytecode": true,
+      "utf8_mode": true,
+      "platform": "win32",
+      "windows_version": [
+        10,
+        0,
+        26200,
+        2,
+        ""
+      ],
+      "pointer_bits": 64
+    },
+    "versions": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "torch": "2.13.0+cu130",
+      "triton": null,
+      "PySide6": "6.11.2",
+      "playwright": "1.63.0",
+      "cryptography": "50.0.1"
+    }
+  },
+  "harness": {
+    "path": "prototypes/postfreeze-agent-native-checks-v1/run_checks_focused_pool_join_v15.py",
+    "sha256": "a745acc5d28f0ad749a9f0152c48f7f5967421a82c73524e9b484eda0982dc54",
+    "process_guard_before_production_imports": true
+  },
+  "successful_prerequisite": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\helper-gpu-focused-native-20261009-v13\\receipt.json",
+    "sha256": "e7cd15b2e8584e02f0bc8368154a28836b5cbd9d0413d831ddd38d6cc1c0abeb"
+  },
+  "preserved_failure": {
+    "path": "runs/gpu-pool-join-focused-native-20261009-v14/receipt.json",
+    "sha256": "21b24b3b6e14bf4956b00d146184c9e292ecb8b405b59efb10e0364a521ef1c7",
+    "tests": 352,
+    "passed": 351,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 0,
+    "corrected_fixture": "Fake CUDA callback now records device.value; native handle71 versus configured ordinal3 assertion unchanged",
+    "production_runtime_logic_changed_by_fixture_correction": false,
+    "failed_result_reclassified": false,
+    "waiver": false
+  },
+  "raw_evidence_refs": [
+    {
+      "path": "runs/gpu-pool-join-focused-native-20261009-v15/receipt.json",
+      "bytes": 452782,
+      "sha256": "14c9ce81fe0f73885e3c23cc09547cdf2b0fec93c3baafbd74ad78c43d702913"
+    },
+    {
+      "path": "runs/gpu-pool-join-focused-native-20261009-v15/junit.xml",
+      "bytes": 69806,
+      "sha256": "5e096111100cf7ffe2ad0bb52c16f5dbe4baaee55f7011e162a1ca9b1344817d"
+    },
+    {
+      "path": "runs/gpu-pool-join-focused-native-20261009-v15/pytest.log",
+      "bytes": 421,
+      "sha256": "f222fd3397eaf9cde348f4c0927c5a2c8a49f0c36d2602e5566b46753ee92017"
+    }
+  ],
+  "qualification": {
+    "real_gpu_probe": false,
+    "native_browser_workload": false,
+    "neural_model_execution": false,
+    "memory_budget_or_peak_qualified": false,
+    "engine_gpu_pool_runtime_activated": false,
+    "performance_qualified": false,
+    "default_route_qualified": false,
+    "release_qualified": false
+  },
+  "limits": [
+    "Real native Python normally imported production packages; NVML/CUDA/adapter responses in these tests were synthetic fixtures.",
+    "The harness checked historical owner retirement; zero attempted process starts concerns this test cohort, not all OS activity.",
+    "Source maps, fixture contents and full module origins are omitted from this bounded projection; exact raw receipts retain them.",
+    "Passed synthetic tests establish contract and identity-validation behavior, not browser or model task quality, native placement, physical memory admission, or sustained operation."
+  ]
+}

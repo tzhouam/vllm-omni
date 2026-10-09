@@ -402,6 +402,40 @@ def _qualifications(config: dict[str, Any], *, config_dir: Path | None = None) -
     return profiles
 
 
+def _resolve_native_gpu_pool_identity(
+    *, gpu_provider: Any, gpu_identity: dict[str, Any], gpu_index: int,
+    gpu_pool: str, ledger_capacities: dict[str, int],
+) -> dict[str, Any]:
+    """Optional app-owned preparation seam; default controller does not call it.
+
+    The registry factory retains ownership of its provider. This helper neither
+    closes/transfers it nor chooses a resource allowance. Failure must prevent
+    factory activation, with its provider drained/quarantined by that owner.
+    """
+    from copy import deepcopy
+
+    from vllm_omni.edge.windows_bound_gpu_memory import WindowsRetainedProcessGpuProvider
+    from vllm_omni.edge.windows_gpu_memory import _WindowsTransport, validate_native_gpu_pool_binding
+
+    if type(gpu_provider) is not WindowsRetainedProcessGpuProvider:
+        raise ValueError("exact app-owned native retained-handle GPU provider is required")
+    before = gpu_provider.capabilities()
+    if before.get("binding_available") is not True or before.get("closed") is not False:
+        raise ValueError("native GPU provider is unavailable before pool resolution")
+    identity, capacities = deepcopy(gpu_identity), deepcopy(ledger_capacities)
+    # Identity only: never invoke legacy query(), enumerate adapters for polling,
+    # open a process, or construct another provider/registry/manager here.
+    binding = _WindowsTransport().resolve_gpu(identity, expected_cuda_ordinal=gpu_index)
+    after = gpu_provider.capabilities()
+    if before != after:
+        raise ValueError("native GPU provider capability changed during pool resolution")
+    return validate_native_gpu_pool_binding(
+        gpu_identity=identity, gpu_index=gpu_index, gpu_pool=gpu_pool,
+        ledger_capacities=capacities, cuda_binding=binding,
+        provider_capabilities=after,
+    )
+
+
 def _browser_companion_from_config(data: dict[str, Any], *, config_dir: Path,
                                     browser_factory: Callable[..., Any] | None = None,
                                     browser_registry_factory: Callable[..., Any] | None = None) -> Any:
