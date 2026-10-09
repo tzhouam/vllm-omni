@@ -2,7 +2,7 @@
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
   "scope": "native_build_complete_assembly_and_matching_static_records_no_model_execution",
-  "status": "matching_complete_runtime_static_records_verified_registration_in_progress",
+  "status": "matching_runtime_registered_actual_lifecycle_validation_in_progress",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -184,7 +184,7 @@
     "static_runtime_eligibility": false,
     "static_consumer_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
   },
-  "next_action": "complete actual runtime registration, then native model reference/cancellation/recovery and separate actual Agent run",
+  "next_action": "complete actual native lifecycle model/reference/cancellation/recovery validation, then separate actual Agent run",
   "alias_native_regression": {
     "path": "strata_execution_alias_native_unit_validation.json",
     "sha256": "61374f5ed9db8cbc9f8684c8d5f5c611dd03ccac6e6739f4a25cac7a4a149b37",
@@ -230,16 +230,48 @@
     "runtime_eligible": false,
     "runtime_binding": null,
     "compiled_engine_ABI_verified": false,
-    "runtime_registration_status": "in_progress_not_completed"
+    "runtime_registration_status": "completed_by_subsequent_registration_not_by_static_receipt"
   },
   "complete_runtime_verified_scope": "Complete archived member/source/build/PE/compiled standalone fixture records only; live owner/modules and actual engine ABI excluded",
   "runtime_eligible": false,
-  "runtime_registration_status": "in_progress_not_completed",
+  "runtime_registration_status": "completed_registered_not_executed",
   "current_Q4_capacity_preflight": {
     "path": "strata_q4_current_capacity_preflight.json",
     "sha256": "c284330b7afc0c51be65fbdf95a0a55c0cf4d3d86dbd07f63aa837a587af63a0",
     "size_bytes": 13039,
     "captured_utc": "2026-10-09T02:26:45Z",
     "scope": "Content-free current-capacity projection; 24/32/40 GiB expert caches refused before model execution; historical 8 GiB results unchanged."
+  },
+  "matching_runtime_registration": {
+    "status": "registered_not_executed",
+    "terminal_exit_code": 0,
+    "raw_receipt": {
+      "path": "strata_execution_registration_v2_raw.json",
+      "sha256": "83e13dc3c5833fd9479873c3db3d5c3cb31e9b6bb7797c399a9141a5e0a734ae",
+      "size_bytes": 1035
+    },
+    "static_identity_sha256": "46bec9f5e6ec0cce68d0fa5fce671bad317e4deb7e6215aba1617f2d72f7e336",
+    "raw_member_manifest_sha256": "f82fdd3e1e635d2c3eeff29510583d28272ef590ed5d693c0192e8dab95b217b",
+    "outer_runtime_manifest_sha256": "6f37d6b73f6a5fba28a6be6b50938b69e3f814e0c1fbfb534368992ae6ab5fa2",
+    "manifest_identity_scope": "Raw observer-member manifest and canonical outer ArtifactManifest are distinct domains.",
+    "launch_sha256": "e63bf00e5fa1a3342dfefa2acb528380bc4d33d0273e3eba86c6cfe5791fd841",
+    "registration_receipt_sha256": "76f1d244a65c20cf120b990cbb41bdcc3c1c99ec8dabbddb5be813d6c353895c",
+    "producer_source_sha256": "647b42af56064021efb77ff56edfbf160fb54cfc5ed30ec703c7f8808f48cf70",
+    "runtime_files_including_raw_manifest": 42649,
+    "runtime_bytes": 2231664083,
+    "native_model_executed": false,
+    "qualification_created": false
+  },
+  "actual_lifecycle_validation": {
+    "status": "in_progress_no_confirmed_native_model_output",
+    "producer_source_sha256": "2b317236675ce8d6bc84bcc72bd4326d825bfe88f5456a90f5f32c5d206806f8",
+    "batch_size": 1,
+    "max_active_requests": 1,
+    "stage_init_timeout_s": 900,
+    "backend_start_timeout_s": 900,
+    "request_timeout_s": 600,
+    "timeout_scope": "Recorded launch/config values; no overall StageRuntime GRAPH initialization deadline is claimed.",
+    "native_model_execution_confirmed": false,
+    "qualification_created": false
   }
 }

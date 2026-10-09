@@ -1,7 +1,8 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
 2026-10-09 latest: the current-source matching runtime passed [complete static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json).
-Registration is in progress; new-version model execution, cancellation/recovery and Agent rerun remain pending. Static success grants no live/default eligibility.
+[Runtime registration](../edge_harness/results/strata_20261008/strata_execution_registration_v2_raw.json) completed (`registered_not_executed`); independent lifecycle validation is in progress, with no confirmed new native model output yet.
+Model parity, cancellation/recovery and Agent rerun remain pending. Static/registration success grants no live/default eligibility.
 
 2026-10-09 integration regression: combined I/O/execution observation is integrated into the Stage,
 runtime registrar, Agent route translation and result binding. Observer RAM, Windows commit
@@ -26,7 +27,8 @@ The fresh matching runtime assembled successfully: 42,649 files, 2,231,664,083 b
 maximum Windows path length 218. [Matching full static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json)
 completed with **EXIT 0 in 668.004 s**, covering archived members/source/build/target closure/PE and standalone fixture ABI records.
 This is static-check wall time, not model loading or inference. Actual owned engine ABI/native module eligibility is still unverified and `runtime_binding` is null.
-Registration is in progress; actual model parity, cancellation/recovery and Agent rerun remain pending.
+Runtime registration subsequently completed. The raw member manifest and outer ArtifactManifest retain distinct hash domains.
+Independent lifecycle validation is in progress; actual model parity, cancellation/recovery and Agent rerun remain pending.
 Old bundles/failures are retained. No default, memory-cap or physical SSD qualification is granted; historical 442-task results retain their sources.
 
 2026-10-09 **CURRENT-CAPACITY**: the [Q4 capacity projection](../edge_harness/results/strata_20261008/strata_q4_current_capacity_preflight.json) records UTC 02:26:45 availability of **20.16 GiB RAM / 68.16 GiB commit / 19.81 GiB GPU**.
