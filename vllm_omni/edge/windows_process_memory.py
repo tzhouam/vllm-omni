@@ -270,13 +270,19 @@ class WindowsProcessMemoryRegistry:
     """
 
     def __init__(self, cohort_generation: str, *, transport: Any = None,
-                 max_bindings: int = 128, max_unknown_details: int = 32) -> None:
+                 max_bindings: int = 128, max_unknown_details: int = 32,
+                 gpu_provider: Any = None) -> None:
         if not isinstance(cohort_generation, str) or not 1 <= len(cohort_generation) <= 256:
             raise ValueError("cohort generation is required and bounded")
         if type(max_bindings) is not int or not 1 <= max_bindings <= 128:
             raise ValueError("process binding limit must be between 1 and 128")
         if type(max_unknown_details) is not int or not 1 <= max_unknown_details <= 32:
             raise ValueError("unknown detail limit must be between 1 and 32")
+        if gpu_provider is not None and any(not callable(getattr(gpu_provider, name, None))
+                for name in ("sample_process", "unavailable", "capabilities", "close")):
+            raise ValueError("optional GPU provider contract is incomplete")
+        self._gpu_provider = gpu_provider
+        self._gpu_close_receipt: dict[str, Any] | None = None
         self.generation = cohort_generation
         self._transport = transport if transport is not None else _Win32ProcessCounters()
         self._max_bindings = max_bindings
@@ -580,11 +586,13 @@ class WindowsProcessMemoryRegistry:
         if binding.close_attempted:
             row.update(last_counters=binding.last_sample, closure=binding.closure)
             return row
+        identity_verified = False
         try:
             identity = self._transport.identity(binding.handle)
             if (identity["pid"] != binding.pid or identity["creation_filetime_100ns"] != binding.creation
                     or ntpath.normcase(identity["image_path"]) != ntpath.normcase(binding.image_path)):
                 raise ValueError("retained handle identity changed")
+            identity_verified = True
             state = self._transport.wait(binding.handle, 0)
             row.update(state)
             if state["signaled"]:
@@ -603,6 +611,18 @@ class WindowsProcessMemoryRegistry:
                                                          memory["private_commit_bytes"])
         except Exception as exc:
             row["counter_error"] = type(exc).__name__ + ":" + str(exc)[:192]
+        if self._gpu_provider is not None:
+            try:
+                if identity_verified and row.get("signaled") is False:
+                    row["gpu_memory"] = self._gpu_provider.sample_process(
+                        binding.handle, self._metadata(binding))
+                else:
+                    row["gpu_memory"] = self._gpu_provider.unavailable(
+                        self._metadata(binding), "registry_identity_or_live_state_unverified")
+            except Exception as exc:
+                row["gpu_memory"] = {"enabled": True, "available": False,
+                    "status": "unavailable", "reason": type(exc).__name__,
+                    "missing_measurements_are_not_zero": True, "adapter_nodes": []}
         binding.last_sample = dict(row)
         return row
 
@@ -628,6 +648,16 @@ class WindowsProcessMemoryRegistry:
                 "model_identity_verified": any(row.role == "model" for row in self._bindings.values()),
                 "unadopted_handle_close_failures": self._unadopted_handle_close_failures}
 
+    def _gpu_capabilities(self) -> dict[str, Any]:
+        try:
+            value = self._gpu_provider.capabilities()
+            if not isinstance(value, Mapping):
+                raise ValueError("GPU capability report is incomplete")
+            return deepcopy(dict(value))
+        except Exception as exc:
+            return {"enabled": True, "binding_available": False,
+                    "error_type": type(exc).__name__, "missing_measurements_are_not_zero": True}
+
     def sample(self) -> dict[str, Any]:
         with self._lock:
             checkpoints = deepcopy(self._checkpoint_samples)
@@ -638,7 +668,10 @@ class WindowsProcessMemoryRegistry:
                     "private_commit_is_not_physical_residency": True,
                     "sampled_maxima_are_lower_bounds": True, "coverage": self._coverage(),
                     "owner_checkpoint_samples": checkpoints,
-                    "processes": deepcopy([self._sample_binding(binding) for binding in self._bindings.values()])}
+                    "processes": deepcopy([self._sample_binding(binding) for binding in self._bindings.values()]),
+                    **({"gpu_memory_capabilities": self._gpu_capabilities(),
+                        "gpu_memory_scope": "bound_set_only_ownership_unknowns_preserved_in_coverage"}
+                       if self._gpu_provider is not None else {})}
 
     def _close_bindings(self, roles: frozenset[str], timeout_seconds: float) -> dict[str, Any]:
         started = time.monotonic()
@@ -664,7 +697,24 @@ class WindowsProcessMemoryRegistry:
                 # registry lock is held during bounded waits or CloseHandle.
                 binding.close_attempted = True
                 pending.append((binding, binding.handle, outcome))
+            if self._gpu_provider is not None and self._gpu_close_receipt is None:
+                try:
+                    receipt = self._gpu_provider.close()
+                    if (not isinstance(receipt, Mapping) or type(receipt.get("drained")) is not bool
+                            or type(receipt.get("adapter_handles_closed")) is not bool):
+                        raise ValueError("GPU provider close receipt is incomplete")
+                    self._gpu_close_receipt = deepcopy(dict(receipt))
+                except Exception as exc:
+                    self._gpu_close_receipt = {"drained": False, "adapter_handles_closed": False,
+                                               "error_type": type(exc).__name__}
+            gpu_drained = self._gpu_provider is None or self._gpu_close_receipt.get("drained") is True
         for binding, handle, outcome in pending:
+            if not gpu_drained:
+                outcome["gpu_sampling_drain_unverified"] = True
+                with self._lock:
+                    binding.closure = dict(outcome)
+                rows.append(outcome)
+                continue  # Preserve borrowed process objects when drain is unverified.
             try:
                 remaining_ms = max(0, int((deadline - time.monotonic()) * 1000))
                 outcome.update(self._transport.wait(handle, remaining_ms))
@@ -701,13 +751,18 @@ class WindowsProcessMemoryRegistry:
             retired = (not self._unadopted_handle_close_failures and
                        all(row.get("signaled") is True and row.get("observer_handle_closed") is True
                            for row in observed["processes"]))
+            gpu_closed = (self._gpu_provider is None or (self._gpu_close_receipt.get("drained") is True
+                          and self._gpu_close_receipt.get("adapter_handles_closed") is True))
             self._children_receipt = {"schema": PROCESS_MEMORY_SCHEMA,
                 "cohort_generation": self.generation, "coverage": self._coverage(), **observed,
                 "owner_checkpoint_samples": deepcopy(self._checkpoint_samples),
                 "required_owned_bindings_verified": required,
-                "known_bound_children_retired": retired, "bound_set_drain_verified": required and retired,
+                "known_bound_children_retired": retired,
+                "bound_set_drain_verified": required and retired and gpu_closed,
                 "all_descendants_retired": False,
-                "quarantine_required": not (required and retired)}
+                "quarantine_required": not (required and retired and gpu_closed),
+                **({"gpu_sampling_close": deepcopy(self._gpu_close_receipt)}
+                   if self._gpu_provider is not None else {})}
             self._checkpoint_samples.clear()
             return deepcopy(self._children_receipt)
 

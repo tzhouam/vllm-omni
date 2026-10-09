@@ -143,7 +143,7 @@ class ProcessGpuPeakTracker:
 
 
 class _WindowsTransport:
-    def __init__(self) -> None:
+    def __init__(self, *, retained_handle_queries: bool = False) -> None:
         if os.name != "nt":
             raise OSError("WDDM process accounting requires native Windows")
         from ctypes import wintypes as w
@@ -185,6 +185,75 @@ class _WindowsTransport:
             function = getattr(self.gdi, name)
             function.argtypes = [ctypes.POINTER(struct)]
             function.restype = w.LONG
+        if retained_handle_queries:
+            if ctypes.sizeof(ctypes.c_void_p) != 8:
+                raise OSError("retained WDDM sampling requires native Windows x64")
+
+            class OpenAdapter(ctypes.Structure):
+                _fields_ = [("luid", Luid), ("adapter", w.UINT)]
+
+            class AdapterInfo(ctypes.Structure):
+                _fields_ = [("adapter", w.UINT), ("kind", ctypes.c_int),
+                            ("data", ctypes.c_void_p), ("size", w.UINT)]
+
+            if (ctypes.sizeof(OpenAdapter), ctypes.sizeof(AdapterInfo), ctypes.sizeof(Query),
+                    ctypes.sizeof(Close), Query.budget.offset, Query.physical_index.offset) != (
+                    12, 24, 56, 4, 16, 48):
+                raise OSError("unsupported WDDM structure ABI")
+            self.w, self.Luid, self.OpenAdapter, self.AdapterInfo = w, Luid, OpenAdapter, AdapterInfo
+            self.kernel.GetProcessId.argtypes, self.kernel.GetProcessId.restype = [w.HANDLE], w.DWORD
+            self.kernel.WaitForSingleObject.argtypes = [w.HANDLE, w.DWORD]
+            self.kernel.WaitForSingleObject.restype = w.DWORD
+            for name, structure in (("D3DKMTOpenAdapterFromLuid", OpenAdapter),
+                                    ("D3DKMTQueryAdapterInfo", AdapterInfo)):
+                function = getattr(self.gdi, name)
+                function.argtypes, function.restype = [ctypes.POINTER(structure)], w.LONG
+
+    @staticmethod
+    def _check_status(status: int, operation: str) -> None:
+        if status != 0:
+            raise OSError(f"{operation}:NTSTATUS=0x{status & 0xFFFFFFFF:08x}")
+
+    def open_adapter(self, luid_hex: str) -> int:
+        request = self.OpenAdapter(self.Luid.from_buffer_copy(bytes.fromhex(luid_hex)), 0)
+        self._check_status(self.gdi.D3DKMTOpenAdapterFromLuid(ctypes.byref(request)), "open_adapter")
+        if not request.adapter:
+            raise OSError("KMT returned a null adapter handle")
+        return int(request.adapter)
+
+    def physical_adapter_count(self, adapter: int) -> int:
+        count = self.w.UINT()
+        # KMTQAITYPE_PHYSICALADAPTERCOUNT = 30 in the pinned Microsoft SDK.
+        request = self.AdapterInfo(adapter, 30, ctypes.addressof(count), ctypes.sizeof(count))
+        self._check_status(self.gdi.D3DKMTQueryAdapterInfo(ctypes.byref(request)), "physical_adapter_count")
+        return int(count.value)
+
+    def check_process(self, handle: Any, pid: int, creation: int) -> None:
+        observed_pid = int(self.kernel.GetProcessId(handle))
+        if not observed_pid:
+            raise ctypes.WinError(ctypes.get_last_error())
+        times = [self.w.FILETIME() for _ in range(4)]
+        if not self.kernel.GetProcessTimes(handle, *(ctypes.byref(value) for value in times)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        observed_birth = times[0].dwLowDateTime | times[0].dwHighDateTime << 32
+        if observed_pid != pid or observed_birth != creation:
+            raise ValueError("retained process PID or birth identity changed")
+        status = int(self.kernel.WaitForSingleObject(handle, 0))
+        if status == 0:
+            raise ValueError("retained process retired before or during GPU observation")
+        if status != 0x102:
+            raise ctypes.WinError(ctypes.get_last_error())
+
+    def query_segment(self, process: Any, adapter: int, node: int, segment: int) -> dict[str, int]:
+        # Borrowed handle: no OpenProcess, duplication, or process CloseHandle.
+        request = self.Query(process, adapter, segment, 0, 0, 0, 0, node)
+        self._check_status(self.gdi.D3DKMTQueryVideoMemoryInfo(ctypes.byref(request)), "query_video_memory")
+        return {"current_usage_bytes": int(request.usage), "budget_bytes": int(request.budget),
+                "current_reservation_bytes": int(request.reservation),
+                "available_for_reservation_bytes": int(request.available)}
+
+    def close_adapter(self, adapter: int) -> None:
+        self._check_status(self.gdi.D3DKMTCloseAdapter(ctypes.byref(self.Close(adapter))), "close_adapter")
 
     def resolve_gpu(self, expected: dict[str, Any]) -> dict[str, Any]:
         """Bind CUDA's LUID to the expected NVML physical PCI identity."""

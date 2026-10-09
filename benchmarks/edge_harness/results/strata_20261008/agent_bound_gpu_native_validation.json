@@ -1,0 +1,545 @@
+{
+  "schema": "omni-bound-gpu-native-validation-v1",
+  "updated_utc": "2026-10-09T12:17:26.9840851Z",
+  "status": "optional_provider_integrated_native_model_free_regression_passed",
+  "scope": {
+    "native_windows_python": true,
+    "normal_production_imports": true,
+    "model_execution": false,
+    "browser_execution": false,
+    "actual_wddm_gpu_queries": false,
+    "memory_envelope_selected": false,
+    "physical_pool_ledger_join_verified": false,
+    "performance_qualified": false,
+    "release_qualified": false,
+    "default_enabled": false
+  },
+  "source_candidate": {
+    "manifest_sha256": "ae9a3c6bbb8b90573ed2f91824ab977be9e30a84de0894f3b2f941d8e57963bf",
+    "patch_sha256": "b88fa20bf557db47653728145b2e8c716d95aa626cb674d97eb3035f0d1b9895",
+    "provider_sha256": "22a6d5a7ee094fb31db7968622339612d0fdb20e0df9c69eadb1ca05e3a0fffd",
+    "independent_source_review": "No remaining blocker after constructor and interrupted-close repairs; source review is not native API validation."
+  },
+  "raw_references": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\bound-gpu-focused-native-20261009-v12\\receipt.json",
+      "bytes": 366512,
+      "sha256": "a939a4832fbd4207c47dffe7ae61b8389a645bf0e1afaa77a795a49fea6e1bb8"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\bound-gpu-focused-native-20261009-v12\\junit.xml",
+      "bytes": 51466,
+      "sha256": "7a5536aff01899815971248467f498d6f841e1b39977139f1fc0aa0da1a9fe0c"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\bound-gpu-focused-native-20261009-v12\\pytest.log",
+      "bytes": 341,
+      "sha256": "be50af4b7352f4262fe389aa64f1e264450f7161cc825a738fc924b84220d7cc"
+    }
+  ],
+  "harness": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-native-checks-v1\\run_checks_focused_gpu_v12.py",
+    "sha256": "e5c5f4be4fcd49d29f6666e38ac912befb181e423076fe2c83b76584c8e60fe2",
+    "parent_harness_sha256": "aee6fb82a880c00b05d624679b84ff0f3c7c64db153cf1b543f102eda80e740a",
+    "process_guard_installed_before_pytest_and_production_imports": true,
+    "asyncio_plugin_registered": true,
+    "process_start_attempt_count": 0,
+    "origin_violation_count": 0,
+    "missing_required_packages": [],
+    "test_origin_violation_count": 0,
+    "async_execution_warning_count": 0
+  },
+  "execution": {
+    "python": {
+      "executable": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+      "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "isolated": true,
+      "no_bytecode": true,
+      "utf8_mode": true,
+      "platform": "win32",
+      "windows_version": [
+        10,
+        0,
+        26200,
+        2,
+        ""
+      ],
+      "pointer_bits": 64
+    },
+    "runtime_versions": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "torch": "2.13.0+cu130",
+      "triton": null,
+      "PySide6": "6.11.2",
+      "playwright": "1.63.0",
+      "cryptography": "50.0.1"
+    },
+    "pytest_exit_code": 0,
+    "junit": {
+      "present": true,
+      "sha256": "7a5536aff01899815971248467f498d6f841e1b39977139f1fc0aa0da1a9fe0c",
+      "tests": 244,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "elapsed_test_harness_seconds": 44.34327429998666,
+    "tests_by_module": [
+      {
+        "Name": "tests/edge/test_agent_browser_joint_wiring.py",
+        "Count": 13
+      },
+      {
+        "Name": "tests/edge/test_agent_browser_resources.py",
+        "Count": 34
+      },
+      {
+        "Name": "tests/edge/test_agent_host_memory.py",
+        "Count": 19
+      },
+      {
+        "Name": "tests/edge/test_agent_native_profile.py",
+        "Count": 19
+      },
+      {
+        "Name": "tests/edge/test_agent_process_memory_attribution.py",
+        "Count": 65
+      },
+      {
+        "Name": "tests/edge/test_agent_rejected_cdp_diagnostics.py",
+        "Count": 21
+      },
+      {
+        "Name": "tests/edge/test_windows_bound_gpu_memory.py",
+        "Count": 49
+      },
+      {
+        "Name": "tests/edge/test_windows_gpu_memory.py",
+        "Count": 24
+      }
+    ],
+    "new_provider_cases": 49,
+    "ruff": "All checks passed on the five changed files"
+  },
+  "source_before": {
+    "vllm_omni/__init__.py": {
+      "sha256": "77a3d5dc918c00454d34ea0d835c6608388d15003e11636bb65fba46b5df019c",
+      "bytes": 2451
+    },
+    "vllm_omni/version.py": {
+      "sha256": "a5e33e06f342ae25d09643e606097a12c22e1424e1aa23a0df1970f804013965",
+      "bytes": 1911
+    },
+    "vllm_omni/patch.py": {
+      "sha256": "96554e5093b49ff91f6118adc0675692560534f167171da6a5a562626bf66b6f",
+      "bytes": 36236
+    },
+    "vllm_omni/config/__init__.py": {
+      "sha256": "942e52876c023f3c3081cd5b74ae0abb68db30d5b801245ea8f050d5b0f69130",
+      "bytes": 3258
+    },
+    "vllm_omni/config/lora.py": {
+      "sha256": "44e1fa945414dae9c0e83368bfe7cd2a80f1dbd65c2bb6e12b6455f751d0dd11",
+      "bytes": 347
+    },
+    "vllm_omni/config/model.py": {
+      "sha256": "0bc2a0b1fd883f6bb35bbcfc1f91720db6f5e2cc6dba7c8507a20c040b2c019e",
+      "bytes": 16310
+    },
+    "vllm_omni/config/omni_config.py": {
+      "sha256": "deea9bd98f95ecc7b3cc8bacba6d6f843deae437ce29297f93c95dc81196a3ed",
+      "bytes": 81095
+    },
+    "vllm_omni/config/stage_config.py": {
+      "sha256": "0268231bd55f53402b6299e7bdd4bd131b7f3dd1d09b5c86706c892778f6b162",
+      "bytes": 50942
+    },
+    "vllm_omni/config/yaml_util.py": {
+      "sha256": "19cc7e3ed2cc426b54ce24251c443078ca27a71a60250871ca463e3d9e6653e3",
+      "bytes": 1716
+    },
+    "vllm_omni/engine/__init__.py": {
+      "sha256": "a3877242482ca5aa0bb7ee9e137e4791a76480fe9f80d5cf90ebf0c1c4722598",
+      "bytes": 4947
+    },
+    "vllm_omni/engine/backends/__init__.py": {
+      "sha256": "57066d83cad22f06be69a11b507969a542a06269d84eca312ad85c5729d43fe3",
+      "bytes": 1921
+    },
+    "vllm_omni/engine/backends/llamacpp.py": {
+      "sha256": "e731eb588e56c81fc67e7b81f952049671e7cf264771e1063bb33271ee5a76c5",
+      "bytes": 55120
+    },
+    "vllm_omni/engine/backends/llamacpp_controls.py": {
+      "sha256": "b6ae45796c88b04079507bb25e9e79ef17f03799ef4ebeadf22f451b1b11590f",
+      "bytes": 6120
+    },
+    "vllm_omni/engine/backends/strata.py": {
+      "sha256": "2bd0c25ca87aea5bf19f008f1a6f8bb5023111db1a5ce9f1017035a35374db4e",
+      "bytes": 137987
+    },
+    "vllm_omni/engine/local_plan.py": {
+      "sha256": "059117738ba8e8763b80a223b77b7d78285ac370ad14d045a8571c32d8ae8348",
+      "bytes": 40023
+    },
+    "vllm_omni/engine/resource_ledger.py": {
+      "sha256": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b",
+      "bytes": 6252
+    },
+    "vllm_omni/engine/stage_runtime.py": {
+      "sha256": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+      "bytes": 71407
+    },
+    "vllm_omni/engine/weight_tiers.py": {
+      "sha256": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75",
+      "bytes": 19538
+    },
+    "vllm_omni/edge/agent/consumer_trace.py": {
+      "sha256": "92c91f246f07ed9419a8fb15e49a64abc72515bac9e3343b24f056b37080fe97",
+      "bytes": 28458
+    },
+    "vllm_omni/edge/agent/controller.py": {
+      "sha256": "26de96a6ac0623e13cfd9e4cf1cdcc2f526ba70bde0a5d0ff0d25b04f602c4e2",
+      "bytes": 49772
+    },
+    "vllm_omni/edge/agent/browser_resources.py": {
+      "sha256": "0e28627a0ed255294ee45b029a53239c0081b9eeef653fc248b14c47fa79476b",
+      "bytes": 22056
+    },
+    "vllm_omni/edge/agent/admission.py": {
+      "sha256": "d3620245722773e6b500c37ba3b92e2d52163b39211e39fa19bccf834bda66ab",
+      "bytes": 425
+    },
+    "vllm_omni/edge/agent/fixed_suite.py": {
+      "sha256": "258020e4d3e8b5811bc8a2389391772daf1875871db685206ca94e51ecc8a19f",
+      "bytes": 7351
+    },
+    "vllm_omni/edge/agent/llamacpp_route.py": {
+      "sha256": "20bb4de7652802867e3004999169779d5d60d3a38a9d127a615aa8ef6d2c63e4",
+      "bytes": 17465
+    },
+    "vllm_omni/edge/agent/memory.py": {
+      "sha256": "bb737a781825d20c0d0dc8b0f7d237c63a110d7f5efad0cc5646e52715f3969f",
+      "bytes": 31919
+    },
+    "vllm_omni/edge/agent/memory_provenance.py": {
+      "sha256": "796b7db9f82563e7d8d065ecd282cc0ccd9e6fb2afc29eacd09c2c61a22e749f",
+      "bytes": 6199
+    },
+    "vllm_omni/edge/windows_process_memory.py": {
+      "sha256": "993b02d01117eb179f84abe8f83dcb9764f4d95ac1f64063a0375b1851ab48de",
+      "bytes": 45000
+    },
+    "vllm_omni/edge/windows_gpu_memory.py": {
+      "sha256": "c2a301120e392261f6c677218a148d27a9781438125b4afa12f4a9af202982e6",
+      "bytes": 17655
+    },
+    "vllm_omni/edge/windows_bound_gpu_memory.py": {
+      "sha256": "22a6d5a7ee094fb31db7968622339612d0fdb20e0df9c69eadb1ca05e3a0fffd",
+      "bytes": 16845
+    },
+    "vllm_omni/edge/agent/model_output.py": {
+      "sha256": "72339e1d5a4a39e8f0db0a6f9cec1ca8039258832afbc72b7136d1d148f10f90",
+      "bytes": 16140
+    },
+    "vllm_omni/edge/agent/native_app.py": {
+      "sha256": "d7bef3550f369504c16bdf16c95f2b59b619ad6aef045cecc96eae4eef8781a1",
+      "bytes": 31647
+    },
+    "vllm_omni/edge/agent/omni_backend.py": {
+      "sha256": "557ba4d11b264a04f38cf7e520bd9112214275aff83c72e97523dafd8741c0ff",
+      "bytes": 42910
+    },
+    "vllm_omni/edge/agent/placement.py": {
+      "sha256": "9603c68dae9ab4a7f0c989112470820b6678fba5b7766bd1da3a567e50a021a8",
+      "bytes": 28599
+    },
+    "vllm_omni/edge/agent/qualification.py": {
+      "sha256": "746a99f837824e8766ae36df18cd57a3a01d84d069c463edace0c47fef77a7b8",
+      "bytes": 69631
+    },
+    "vllm_omni/edge/agent/router.py": {
+      "sha256": "3e8a1998c95f6450c9c2c78a126376948753f960a861aaf1d006a87244859036",
+      "bytes": 12775
+    },
+    "vllm_omni/edge/agent/runtime_identity.py": {
+      "sha256": "f49a1118af5fe91e97e88be899d73d96b3748f18efe39a162d6067a81c955875",
+      "bytes": 4705
+    },
+    "vllm_omni/edge/agent/strata_route.py": {
+      "sha256": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+      "bytes": 15526
+    },
+    "vllm_omni/edge/agent/tools.py": {
+      "sha256": "237480fc3ad05c7f23b90b3f162f0580b6eb304986326f4fcd9ede8227bb40bb",
+      "bytes": 83855
+    },
+    "benchmarks/edge_agent/native_profile.py": {
+      "sha256": "535ffb6d60dd54c9762abacb807691d24e81795c8b89bdf0799820ffdbb9664b",
+      "bytes": 68494
+    },
+    "benchmarks/edge_agent/paired_suite.py": {
+      "sha256": "642b04b10a7bffb551a07d7883199aee8e805d896fccf6373ca6c135fc1078ee",
+      "bytes": 15557
+    },
+    "benchmarks/edge_agent/profile.py": {
+      "sha256": "f86f3e3f547ba7ad175af07492972309e074a432837eac21a178892369a2a363",
+      "bytes": 27314
+    },
+    "tests/edge/test_agent_process_memory_attribution.py": {
+      "sha256": "6f1dac2b8ccd9d663d4c975177941e006ea2a70e40611fa8ad7caaa5601785dc",
+      "bytes": 32314
+    },
+    "tests/edge/test_agent_browser_resources.py": {
+      "sha256": "d717a7f784c2d91e018fcee28adfdf8c1ee46168e5d2dc18c3165b2e3e89fcb8",
+      "bytes": 34636
+    },
+    "tests/edge/test_agent_rejected_cdp_diagnostics.py": {
+      "sha256": "ff92fbf8776c886b13b9eac7bd551482df8757be2af045e7ce6933a9a5569963",
+      "bytes": 14790
+    },
+    "tests/edge/test_windows_bound_gpu_memory.py": {
+      "sha256": "7f7d5d9e0c9881b9c08476ddbf65ecc51818ae81332ff4b50cded2d0fd327612",
+      "bytes": 25727
+    },
+    "tests/edge/test_windows_gpu_memory.py": {
+      "sha256": "8e0426371de70fa5f84a21b532e955749beb7fa43633a493bd8cabbf4e551a32",
+      "bytes": 8189
+    },
+    "tests/edge/test_agent_host_memory.py": {
+      "sha256": "43cf80a267d5d97fcf95bf7245436ec0c149b8de27039883a6bfbc9835825b94",
+      "bytes": 16393
+    },
+    "tests/edge/test_agent_native_profile.py": {
+      "sha256": "a72e60ac5d35f2bf52564147a7f1aca716017671ba07f6c4c041f8603b2f602c",
+      "bytes": 25076
+    },
+    "tests/edge/test_agent_browser_joint_wiring.py": {
+      "sha256": "151a5853beb4b5d87bfd894a083c0e373e660cdcd39a101c78941f2ba1636c5d",
+      "bytes": 21264
+    }
+  },
+  "source_after": {
+    "vllm_omni/__init__.py": {
+      "sha256": "77a3d5dc918c00454d34ea0d835c6608388d15003e11636bb65fba46b5df019c",
+      "bytes": 2451
+    },
+    "vllm_omni/version.py": {
+      "sha256": "a5e33e06f342ae25d09643e606097a12c22e1424e1aa23a0df1970f804013965",
+      "bytes": 1911
+    },
+    "vllm_omni/patch.py": {
+      "sha256": "96554e5093b49ff91f6118adc0675692560534f167171da6a5a562626bf66b6f",
+      "bytes": 36236
+    },
+    "vllm_omni/config/__init__.py": {
+      "sha256": "942e52876c023f3c3081cd5b74ae0abb68db30d5b801245ea8f050d5b0f69130",
+      "bytes": 3258
+    },
+    "vllm_omni/config/lora.py": {
+      "sha256": "44e1fa945414dae9c0e83368bfe7cd2a80f1dbd65c2bb6e12b6455f751d0dd11",
+      "bytes": 347
+    },
+    "vllm_omni/config/model.py": {
+      "sha256": "0bc2a0b1fd883f6bb35bbcfc1f91720db6f5e2cc6dba7c8507a20c040b2c019e",
+      "bytes": 16310
+    },
+    "vllm_omni/config/omni_config.py": {
+      "sha256": "deea9bd98f95ecc7b3cc8bacba6d6f843deae437ce29297f93c95dc81196a3ed",
+      "bytes": 81095
+    },
+    "vllm_omni/config/stage_config.py": {
+      "sha256": "0268231bd55f53402b6299e7bdd4bd131b7f3dd1d09b5c86706c892778f6b162",
+      "bytes": 50942
+    },
+    "vllm_omni/config/yaml_util.py": {
+      "sha256": "19cc7e3ed2cc426b54ce24251c443078ca27a71a60250871ca463e3d9e6653e3",
+      "bytes": 1716
+    },
+    "vllm_omni/engine/__init__.py": {
+      "sha256": "a3877242482ca5aa0bb7ee9e137e4791a76480fe9f80d5cf90ebf0c1c4722598",
+      "bytes": 4947
+    },
+    "vllm_omni/engine/backends/__init__.py": {
+      "sha256": "57066d83cad22f06be69a11b507969a542a06269d84eca312ad85c5729d43fe3",
+      "bytes": 1921
+    },
+    "vllm_omni/engine/backends/llamacpp.py": {
+      "sha256": "e731eb588e56c81fc67e7b81f952049671e7cf264771e1063bb33271ee5a76c5",
+      "bytes": 55120
+    },
+    "vllm_omni/engine/backends/llamacpp_controls.py": {
+      "sha256": "b6ae45796c88b04079507bb25e9e79ef17f03799ef4ebeadf22f451b1b11590f",
+      "bytes": 6120
+    },
+    "vllm_omni/engine/backends/strata.py": {
+      "sha256": "2bd0c25ca87aea5bf19f008f1a6f8bb5023111db1a5ce9f1017035a35374db4e",
+      "bytes": 137987
+    },
+    "vllm_omni/engine/local_plan.py": {
+      "sha256": "059117738ba8e8763b80a223b77b7d78285ac370ad14d045a8571c32d8ae8348",
+      "bytes": 40023
+    },
+    "vllm_omni/engine/resource_ledger.py": {
+      "sha256": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b",
+      "bytes": 6252
+    },
+    "vllm_omni/engine/stage_runtime.py": {
+      "sha256": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+      "bytes": 71407
+    },
+    "vllm_omni/engine/weight_tiers.py": {
+      "sha256": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75",
+      "bytes": 19538
+    },
+    "vllm_omni/edge/agent/consumer_trace.py": {
+      "sha256": "92c91f246f07ed9419a8fb15e49a64abc72515bac9e3343b24f056b37080fe97",
+      "bytes": 28458
+    },
+    "vllm_omni/edge/agent/controller.py": {
+      "sha256": "26de96a6ac0623e13cfd9e4cf1cdcc2f526ba70bde0a5d0ff0d25b04f602c4e2",
+      "bytes": 49772
+    },
+    "vllm_omni/edge/agent/browser_resources.py": {
+      "sha256": "0e28627a0ed255294ee45b029a53239c0081b9eeef653fc248b14c47fa79476b",
+      "bytes": 22056
+    },
+    "vllm_omni/edge/agent/admission.py": {
+      "sha256": "d3620245722773e6b500c37ba3b92e2d52163b39211e39fa19bccf834bda66ab",
+      "bytes": 425
+    },
+    "vllm_omni/edge/agent/fixed_suite.py": {
+      "sha256": "258020e4d3e8b5811bc8a2389391772daf1875871db685206ca94e51ecc8a19f",
+      "bytes": 7351
+    },
+    "vllm_omni/edge/agent/llamacpp_route.py": {
+      "sha256": "20bb4de7652802867e3004999169779d5d60d3a38a9d127a615aa8ef6d2c63e4",
+      "bytes": 17465
+    },
+    "vllm_omni/edge/agent/memory.py": {
+      "sha256": "bb737a781825d20c0d0dc8b0f7d237c63a110d7f5efad0cc5646e52715f3969f",
+      "bytes": 31919
+    },
+    "vllm_omni/edge/agent/memory_provenance.py": {
+      "sha256": "796b7db9f82563e7d8d065ecd282cc0ccd9e6fb2afc29eacd09c2c61a22e749f",
+      "bytes": 6199
+    },
+    "vllm_omni/edge/windows_process_memory.py": {
+      "sha256": "993b02d01117eb179f84abe8f83dcb9764f4d95ac1f64063a0375b1851ab48de",
+      "bytes": 45000
+    },
+    "vllm_omni/edge/windows_gpu_memory.py": {
+      "sha256": "c2a301120e392261f6c677218a148d27a9781438125b4afa12f4a9af202982e6",
+      "bytes": 17655
+    },
+    "vllm_omni/edge/windows_bound_gpu_memory.py": {
+      "sha256": "22a6d5a7ee094fb31db7968622339612d0fdb20e0df9c69eadb1ca05e3a0fffd",
+      "bytes": 16845
+    },
+    "vllm_omni/edge/agent/model_output.py": {
+      "sha256": "72339e1d5a4a39e8f0db0a6f9cec1ca8039258832afbc72b7136d1d148f10f90",
+      "bytes": 16140
+    },
+    "vllm_omni/edge/agent/native_app.py": {
+      "sha256": "d7bef3550f369504c16bdf16c95f2b59b619ad6aef045cecc96eae4eef8781a1",
+      "bytes": 31647
+    },
+    "vllm_omni/edge/agent/omni_backend.py": {
+      "sha256": "557ba4d11b264a04f38cf7e520bd9112214275aff83c72e97523dafd8741c0ff",
+      "bytes": 42910
+    },
+    "vllm_omni/edge/agent/placement.py": {
+      "sha256": "9603c68dae9ab4a7f0c989112470820b6678fba5b7766bd1da3a567e50a021a8",
+      "bytes": 28599
+    },
+    "vllm_omni/edge/agent/qualification.py": {
+      "sha256": "746a99f837824e8766ae36df18cd57a3a01d84d069c463edace0c47fef77a7b8",
+      "bytes": 69631
+    },
+    "vllm_omni/edge/agent/router.py": {
+      "sha256": "3e8a1998c95f6450c9c2c78a126376948753f960a861aaf1d006a87244859036",
+      "bytes": 12775
+    },
+    "vllm_omni/edge/agent/runtime_identity.py": {
+      "sha256": "f49a1118af5fe91e97e88be899d73d96b3748f18efe39a162d6067a81c955875",
+      "bytes": 4705
+    },
+    "vllm_omni/edge/agent/strata_route.py": {
+      "sha256": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+      "bytes": 15526
+    },
+    "vllm_omni/edge/agent/tools.py": {
+      "sha256": "237480fc3ad05c7f23b90b3f162f0580b6eb304986326f4fcd9ede8227bb40bb",
+      "bytes": 83855
+    },
+    "benchmarks/edge_agent/native_profile.py": {
+      "sha256": "535ffb6d60dd54c9762abacb807691d24e81795c8b89bdf0799820ffdbb9664b",
+      "bytes": 68494
+    },
+    "benchmarks/edge_agent/paired_suite.py": {
+      "sha256": "642b04b10a7bffb551a07d7883199aee8e805d896fccf6373ca6c135fc1078ee",
+      "bytes": 15557
+    },
+    "benchmarks/edge_agent/profile.py": {
+      "sha256": "f86f3e3f547ba7ad175af07492972309e074a432837eac21a178892369a2a363",
+      "bytes": 27314
+    },
+    "tests/edge/test_agent_process_memory_attribution.py": {
+      "sha256": "6f1dac2b8ccd9d663d4c975177941e006ea2a70e40611fa8ad7caaa5601785dc",
+      "bytes": 32314
+    },
+    "tests/edge/test_agent_browser_resources.py": {
+      "sha256": "d717a7f784c2d91e018fcee28adfdf8c1ee46168e5d2dc18c3165b2e3e89fcb8",
+      "bytes": 34636
+    },
+    "tests/edge/test_agent_rejected_cdp_diagnostics.py": {
+      "sha256": "ff92fbf8776c886b13b9eac7bd551482df8757be2af045e7ce6933a9a5569963",
+      "bytes": 14790
+    },
+    "tests/edge/test_windows_bound_gpu_memory.py": {
+      "sha256": "7f7d5d9e0c9881b9c08476ddbf65ecc51818ae81332ff4b50cded2d0fd327612",
+      "bytes": 25727
+    },
+    "tests/edge/test_windows_gpu_memory.py": {
+      "sha256": "8e0426371de70fa5f84a21b532e955749beb7fa43633a493bd8cabbf4e551a32",
+      "bytes": 8189
+    },
+    "tests/edge/test_agent_host_memory.py": {
+      "sha256": "43cf80a267d5d97fcf95bf7245436ec0c149b8de27039883a6bfbc9835825b94",
+      "bytes": 16393
+    },
+    "tests/edge/test_agent_native_profile.py": {
+      "sha256": "a72e60ac5d35f2bf52564147a7f1aca716017671ba07f6c4c041f8603b2f602c",
+      "bytes": 25076
+    },
+    "tests/edge/test_agent_browser_joint_wiring.py": {
+      "sha256": "151a5853beb4b5d87bfd894a083c0e373e660cdcd39a101c78941f2ba1636c5d",
+      "bytes": 21264
+    }
+  },
+  "selected_source_count": 49,
+  "selected_sources_stable": true,
+  "all_selected_tests_without_skips_passed": true,
+  "behavior": [
+    "Borrows retained registry process handles; provider never opens, duplicates or closes a process handle.",
+    "Binds explicit native LUID and per-node UMA metadata; no dynamic process discovery or polling thread.",
+    "Preserves partial segment failures and unknown browser membership.",
+    "UMA LOCAL aliases host RAM; UMA NONLOCAL has no independent pool declaration.",
+    "Synchronous provider drain precedes process observer handle close.",
+    "Adapter close interruption records unverified terminal failure, attempts remaining known adapter closes once, preserves cancellation and cannot become green on repeat."
+  ],
+  "remaining": [
+    "Execute the separately reviewed Agent-only normal native inventory/provider probe.",
+    "Integrate and validate the exact helper descriptor; current strict browser release still fails.",
+    "Join discrete LUID/node identity to engine pools and measure a conservative tool allowance.",
+    "Run a fresh actual model-browser-model cohort and remaining batch-1 qualification."
+  ],
+  "limitations": [
+    "Model-free fake-transport tests do not prove actual WDDM ABI, current browser GPU peaks, physical memory capacity or a default route.",
+    "One helper retirement observation does not establish ancestry or ownership.",
+    "Earlier neural and browser results retain their original frozen sources."
+  ]
+}

@@ -35,7 +35,7 @@ from vllm_omni.edge.agent.router import Qualification, Route
 from vllm_omni.edge.agent.tools import WindowsToolBoundary
 
 
-def _dxgi_adapter_inventory() -> list[dict[str, Any]]:
+def _dxgi_adapter_inventory(*, include_gpu_accounting: bool = False) -> list[dict[str, Any]]:
     """Read physical video-memory topology from native DXGI, fail closed.
 
     A route's ``integrated_gpu`` JSON flag is only a declaration. DXGI adapter
@@ -122,6 +122,12 @@ def _dxgi_adapter_inventory() -> list[dict[str, Any]]:
                     if not description.flags & 2:  # DXGI_ADAPTER_FLAG_SOFTWARE
                         device = ctypes.c_void_p()
                         uma: bool | None = None
+                        accounting: dict[str, Any] = {
+                            "available": False, "source": "native_DXGI_GetDesc1_D3D12_Architecture1",
+                            "adapter_luid_hex": ctypes.string_at(ctypes.byref(description.luid), 8).hex(),
+                            "physical_adapter_count": None, "nodes": [],
+                            "reason": "D3D12_capability_unavailable",
+                        } if include_gpu_accounting else {}
                         if (
                             create_d3d12(pointer, 0xB000, ctypes.byref(device_iid), ctypes.byref(device)) == 0
                             and device.value
@@ -133,6 +139,26 @@ def _dxgi_adapter_inventory() -> list[dict[str, Any]]:
                                 )
                                 if check(device, 16, ctypes.byref(features), ctypes.sizeof(features)) == 0:
                                     uma = features.uma == 1
+                                if include_gpu_accounting:
+                                    count = int(com_method(device, 7, ctypes.c_uint32)(device))
+                                    accounting["physical_adapter_count"] = count
+                                    if 1 <= count <= 16:
+                                        for node_index in range(count):
+                                            node_features = Architecture1(node_index, 0, 0, 0, 0)
+                                            if (check(device, 16, ctypes.byref(node_features),
+                                                      ctypes.sizeof(node_features)) != 0
+                                                    or node_features.uma not in (0, 1)
+                                                    or node_features.cache_coherent_uma not in (0, 1)):
+                                                accounting["reason"] = "node_architecture_unavailable"
+                                                break
+                                            accounting["nodes"].append({
+                                                "physical_adapter_index": node_index,
+                                                "uma": node_features.uma == 1,
+                                                "cache_coherent_uma": node_features.cache_coherent_uma == 1})
+                                        else:
+                                            accounting.update(available=True, reason=None)
+                                    else:
+                                        accounting["reason"] = "physical_adapter_count_out_of_bound"
                             finally:
                                 com_method(device, 2, ctypes.c_ulong)(device)
                         adapters.append(
@@ -143,6 +169,7 @@ def _dxgi_adapter_inventory() -> list[dict[str, Any]]:
                                 "dedicated_video_memory_bytes": int(description.dedicated_video_memory_bytes),
                                 "shared_system_memory_bytes": int(description.shared_system_memory_bytes),
                                 "uma": uma,
+                                **({"gpu_memory_accounting": accounting} if include_gpu_accounting else {}),
                             }
                         )
                 finally:

@@ -1,0 +1,1511 @@
+{
+  "schema": "omni-native-joint-helper-diagnostic-public-projection-v1",
+  "status": "diagnostic_capture_complete_original_joint_contract_failed",
+  "offline_audit_passed": true,
+  "scope": {
+    "native_browser_observed": true,
+    "neural_model_execution": false,
+    "model_and_ledger_units": "synthetic",
+    "physical_browser_budget_selected": false,
+    "physical_budget_qualified": false,
+    "performance_qualified": false,
+    "ownership_classification_granted": false,
+    "external_or_shared_service_classification_granted": false,
+    "lease_release_authority": false,
+    "original_test_pass_granted": false,
+    "release_qualified": false,
+    "all_descendants_covered": false,
+    "process_reopens_or_process_queries_by_this_auditor": 0
+  },
+  "outcome": {
+    "pytest_exit_code": 1,
+    "test_counts": {
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "positive": "strict companion release FAILED",
+    "intentional_registry_limit_fault": "PASSED with exact synthetic tool quarantine",
+    "diagnostic_capture_completed": true,
+    "helper_retirement_observed_at_final_bounded_wait": true,
+    "helper_retirement_observed_at_children_closed": null,
+    "children_closed_liveness_unavailable_reason": "PermissionError during optional exact-handle identity/counter sample",
+    "prior_failed_release_retroactively_changed": false,
+    "global_synthetic_ledger_empty": false
+  },
+  "positive": {
+    "recorded_failure_type": "ResourceUnavailable",
+    "injected_fault": null,
+    "synthetic_model_load_count": 1,
+    "real_browser_worker_count": 1,
+    "all_real_browser_workers_joined": true,
+    "cached_close_proof_count": 2,
+    "known_retained_child_count": 8,
+    "known_retained_children_retired_and_query_handles_closed": true,
+    "registry_bound_set_drain_verified": true,
+    "registry_required_bindings_verified": true,
+    "companion_owned_work_drained": false,
+    "companion_required_ownership_verified": false,
+    "companion_quarantine_required": true,
+    "observer_callback_error_count": 0,
+    "unknown_count": 7,
+    "unknown_detail_count": 7,
+    "unknown_details_truncated": false,
+    "cdp_checkpoint_count": 8,
+    "binding_registry_overflow": false,
+    "unadopted_handle_close_failures": 0,
+    "final_synthetic_reserved": {
+      "host_ram": 20,
+      "windows_commit": 30
+    },
+    "final_synthetic_owner_count": 1,
+    "final_synthetic_quarantined_owner_count": 1,
+    "exact_synthetic_tool_owner_join_verified": true,
+    "synthetic_model_owner_not_charged": true,
+    "initial_model_owner_reference_available": true,
+    "global_synthetic_ledger_empty": false,
+    "ownership_or_external_service_classification_granted": false
+  },
+  "intentional_quarantine_fault": {
+    "recorded_failure_type": null,
+    "injected_fault": "real_registry_max_bindings_1_intentional_contract_fault",
+    "synthetic_model_load_count": 1,
+    "real_browser_worker_count": 1,
+    "all_real_browser_workers_joined": true,
+    "cached_close_proof_count": 3,
+    "known_retained_child_count": 1,
+    "known_retained_children_retired_and_query_handles_closed": true,
+    "registry_bound_set_drain_verified": false,
+    "registry_required_bindings_verified": false,
+    "companion_owned_work_drained": false,
+    "companion_required_ownership_verified": false,
+    "companion_quarantine_required": true,
+    "observer_callback_error_count": 0,
+    "unknown_count": 28,
+    "unknown_detail_count": 8,
+    "unknown_details_truncated": true,
+    "cdp_checkpoint_count": 4,
+    "binding_registry_overflow": true,
+    "unadopted_handle_close_failures": 0,
+    "final_synthetic_reserved": {
+      "host_ram": 20,
+      "windows_commit": 30
+    },
+    "final_synthetic_owner_count": 1,
+    "final_synthetic_quarantined_owner_count": 1,
+    "exact_synthetic_tool_owner_join_verified": true,
+    "synthetic_model_owner_not_charged": true,
+    "initial_model_owner_reference_available": false,
+    "global_synthetic_ledger_empty": false,
+    "ownership_or_external_service_classification_granted": false
+  },
+  "helper": {
+    "pid": 109564,
+    "creation_filetime_100ns": 134360213077473079,
+    "image_path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\154.0.4258.62\\identity_helper.exe",
+    "cdp_process_type": "winrt_app_id.mojom.WinrtAppIdService",
+    "browser_and_helper_named_artifacts": {
+      "browser": {
+        "path": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+        "size_bytes": 5403976,
+        "sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0"
+      },
+      "helper": {
+        "path": "C:/Program Files (x86)/Microsoft/Edge/Application/154.0.4258.62/identity_helper.exe",
+        "size_bytes": 2580296,
+        "sha256": "cdb95c83d6206949ed5450c02d39d48a5af56178fb43cf979303cb4a11a5fa50"
+      }
+    },
+    "named_file_hashes_are_not_running_image_content_hashes": true,
+    "capture_attempts": 1,
+    "duplicate_identity_verified": true,
+    "initial_signaled": false,
+    "final_signaled": true,
+    "final_exit_code": 0,
+    "observer_handle_closed": true,
+    "all_diagnostic_handles_closed": true,
+    "wait_error": null,
+    "close_error": null,
+    "optional_error_count": 0,
+    "not_observed_in_finite_job_set": true,
+    "job_absence_is_not_external_shared_or_ownership_classification": true,
+    "valid_memory_sample_count": 7,
+    "sampled_working_set_max_bytes": 32288768,
+    "sampled_private_commit_max_bytes": 10514432,
+    "memory_maxima_are_lower_bounds": true,
+    "working_set_includes_shared_pages": true,
+    "private_commit_is_not_physical_ram_residency": true,
+    "working_set_and_commit_must_not_be_added": true,
+    "children_closed": {
+      "available": false,
+      "signaled": null,
+      "error_type": "PermissionError",
+      "monotonic_ns": 2002469359000000
+    },
+    "final_optional_sample": {
+      "available": false,
+      "error_type": "PermissionError",
+      "monotonic_ns": 2002472375000000
+    },
+    "final_bounded_wait": {
+      "signaled": true,
+      "exit_code": 0,
+      "timeout_seconds": 5.0,
+      "finished_monotonic_ns": 2002472375000000
+    },
+    "retirement_time_within_shutdown_not_established": true
+  },
+  "job": {
+    "new_process_event_count": 25,
+    "retained_identity_count": 23,
+    "explicit_short_lived_identity_gap_count": 2,
+    "active_processes": 0,
+    "terminated_processes": 0,
+    "forced_cleanup": false,
+    "owned_job_drained": true,
+    "complete_process_identity_coverage": false,
+    "all_descendants_covered": false
+  },
+  "prerequisites": {
+    "fake_native": {
+      "receipt": {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-helper-fake-native-20261009-v1\\receipt.json",
+        "bytes": 32740,
+        "sha256": "b5a9aa21c7cfe65eb97c719e0cfa709f9e9295a8391b482439e701c6f90e41cc"
+      },
+      "test_counts": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "actual_browser_or_helper_observation": false,
+      "process_launch_count": 0,
+      "production_source_count": 42,
+      "private_source_count": 4
+    },
+    "focused_v11": {
+      "receipt": {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-cdp-focused-native-20261009-v11\\receipt.json",
+        "bytes": 208260,
+        "sha256": "44f26ceb28bd5c74e6bdc2a2cf8d5120f9ea165ae589499619964c56686f4eb3"
+      },
+      "test_counts": {
+        "tests": 120,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "production_source_count": 42
+    },
+    "prior_failure_projection": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\native-joint-closed-public-audit-v1\\projection.json",
+      "bytes": 23436,
+      "sha256": "cac6c1bdb0ace200bca8b42eea5d4f5c451e036679dd0b11a133b0a82dc7f8a3"
+    },
+    "prior_failures_preserved": "Prior strict native joint failure, v10 harness failure despite pytest pass, and private metadata setup failure remain in the linked immutable prior projection."
+  },
+  "selected_source_count": 43,
+  "selected_sources_stable_during_closed_run": true,
+  "private_harness_stable": true,
+  "installed_paths_stable_during_closed_run": true,
+  "current_sources_equal_closed_run": false,
+  "current_source_mismatch_count": 2,
+  "current_source_comparison_is_not_a_current_backend_execution_claim": true,
+  "selected_source_pins": [
+    {
+      "relative_path": "vllm_omni/__init__.py",
+      "bytes": 2451,
+      "sha256": "77a3d5dc918c00454d34ea0d835c6608388d15003e11636bb65fba46b5df019c",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/version.py",
+      "bytes": 1911,
+      "sha256": "a5e33e06f342ae25d09643e606097a12c22e1424e1aa23a0df1970f804013965",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/patch.py",
+      "bytes": 36236,
+      "sha256": "96554e5093b49ff91f6118adc0675692560534f167171da6a5a562626bf66b6f",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/config/__init__.py",
+      "bytes": 3258,
+      "sha256": "942e52876c023f3c3081cd5b74ae0abb68db30d5b801245ea8f050d5b0f69130",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/config/lora.py",
+      "bytes": 347,
+      "sha256": "44e1fa945414dae9c0e83368bfe7cd2a80f1dbd65c2bb6e12b6455f751d0dd11",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/config/model.py",
+      "bytes": 16310,
+      "sha256": "0bc2a0b1fd883f6bb35bbcfc1f91720db6f5e2cc6dba7c8507a20c040b2c019e",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/config/omni_config.py",
+      "bytes": 81095,
+      "sha256": "deea9bd98f95ecc7b3cc8bacba6d6f843deae437ce29297f93c95dc81196a3ed",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/config/stage_config.py",
+      "bytes": 50942,
+      "sha256": "0268231bd55f53402b6299e7bdd4bd131b7f3dd1d09b5c86706c892778f6b162",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/config/yaml_util.py",
+      "bytes": 1716,
+      "sha256": "19cc7e3ed2cc426b54ce24251c443078ca27a71a60250871ca463e3d9e6653e3",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/__init__.py",
+      "bytes": 4947,
+      "sha256": "a3877242482ca5aa0bb7ee9e137e4791a76480fe9f80d5cf90ebf0c1c4722598",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/backends/__init__.py",
+      "bytes": 1921,
+      "sha256": "57066d83cad22f06be69a11b507969a542a06269d84eca312ad85c5729d43fe3",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/backends/llamacpp.py",
+      "bytes": 55120,
+      "sha256": "e731eb588e56c81fc67e7b81f952049671e7cf264771e1063bb33271ee5a76c5",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/backends/llamacpp_controls.py",
+      "bytes": 6120,
+      "sha256": "b6ae45796c88b04079507bb25e9e79ef17f03799ef4ebeadf22f451b1b11590f",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/backends/strata.py",
+      "bytes": 137987,
+      "sha256": "2bd0c25ca87aea5bf19f008f1a6f8bb5023111db1a5ce9f1017035a35374db4e",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/local_plan.py",
+      "bytes": 40023,
+      "sha256": "059117738ba8e8763b80a223b77b7d78285ac370ad14d045a8571c32d8ae8348",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/resource_ledger.py",
+      "bytes": 6252,
+      "sha256": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/stage_runtime.py",
+      "bytes": 71407,
+      "sha256": "e59934f247caef092b19ade3f1c61c8e6c64c95536f164fa02cb9e771a12134f",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/engine/weight_tiers.py",
+      "bytes": 19538,
+      "sha256": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/consumer_trace.py",
+      "bytes": 28458,
+      "sha256": "92c91f246f07ed9419a8fb15e49a64abc72515bac9e3343b24f056b37080fe97",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/controller.py",
+      "bytes": 49772,
+      "sha256": "26de96a6ac0623e13cfd9e4cf1cdcc2f526ba70bde0a5d0ff0d25b04f602c4e2",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/browser_resources.py",
+      "bytes": 22056,
+      "sha256": "0e28627a0ed255294ee45b029a53239c0081b9eeef653fc248b14c47fa79476b",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/admission.py",
+      "bytes": 425,
+      "sha256": "d3620245722773e6b500c37ba3b92e2d52163b39211e39fa19bccf834bda66ab",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/fixed_suite.py",
+      "bytes": 7351,
+      "sha256": "258020e4d3e8b5811bc8a2389391772daf1875871db685206ca94e51ecc8a19f",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/llamacpp_route.py",
+      "bytes": 17465,
+      "sha256": "20bb4de7652802867e3004999169779d5d60d3a38a9d127a615aa8ef6d2c63e4",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/memory.py",
+      "bytes": 31919,
+      "sha256": "bb737a781825d20c0d0dc8b0f7d237c63a110d7f5efad0cc5646e52715f3969f",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/memory_provenance.py",
+      "bytes": 6199,
+      "sha256": "796b7db9f82563e7d8d065ecd282cc0ccd9e6fb2afc29eacd09c2c61a22e749f",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/windows_process_memory.py",
+      "bytes": 41554,
+      "sha256": "e9c478c8e7fc7080e75899fab9d0c1b5386873738c3edd51a5c45028eae15ada",
+      "current_source_same_as_closed_run": false
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/model_output.py",
+      "bytes": 16140,
+      "sha256": "72339e1d5a4a39e8f0db0a6f9cec1ca8039258832afbc72b7136d1d148f10f90",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/native_app.py",
+      "bytes": 29409,
+      "sha256": "4585fbb740d971db3d7ff33bf2165bb87ee91639c0ea029b816c9e2d0bc47224",
+      "current_source_same_as_closed_run": false
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/omni_backend.py",
+      "bytes": 42910,
+      "sha256": "557ba4d11b264a04f38cf7e520bd9112214275aff83c72e97523dafd8741c0ff",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/placement.py",
+      "bytes": 28599,
+      "sha256": "9603c68dae9ab4a7f0c989112470820b6678fba5b7766bd1da3a567e50a021a8",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/qualification.py",
+      "bytes": 69631,
+      "sha256": "746a99f837824e8766ae36df18cd57a3a01d84d069c463edace0c47fef77a7b8",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/router.py",
+      "bytes": 12775,
+      "sha256": "3e8a1998c95f6450c9c2c78a126376948753f960a861aaf1d006a87244859036",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/runtime_identity.py",
+      "bytes": 4705,
+      "sha256": "f49a1118af5fe91e97e88be899d73d96b3748f18efe39a162d6067a81c955875",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/strata_route.py",
+      "bytes": 15526,
+      "sha256": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "vllm_omni/edge/agent/tools.py",
+      "bytes": 83855,
+      "sha256": "237480fc3ad05c7f23b90b3f162f0580b6eb304986326f4fcd9ede8227bb40bb",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "benchmarks/edge_agent/native_profile.py",
+      "bytes": 68494,
+      "sha256": "535ffb6d60dd54c9762abacb807691d24e81795c8b89bdf0799820ffdbb9664b",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "benchmarks/edge_agent/paired_suite.py",
+      "bytes": 15557,
+      "sha256": "642b04b10a7bffb551a07d7883199aee8e805d896fccf6373ca6c135fc1078ee",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "benchmarks/edge_agent/profile.py",
+      "bytes": 27314,
+      "sha256": "f86f3e3f547ba7ad175af07492972309e074a432837eac21a178892369a2a363",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "tests/edge/test_agent_browser_joint_native.py",
+      "bytes": 22051,
+      "sha256": "4900f15408521c3d54fad996a3fe2c69e65c1757cd85bcc34dae5894e21e8698",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "tests/edge/test_agent_process_memory_attribution.py",
+      "bytes": 32314,
+      "sha256": "6f1dac2b8ccd9d663d4c975177941e006ea2a70e40611fa8ad7caaa5601785dc",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "tests/edge/test_agent_browser_resources.py",
+      "bytes": 34636,
+      "sha256": "d717a7f784c2d91e018fcee28adfdf8c1ee46168e5d2dc18c3165b2e3e89fcb8",
+      "current_source_same_as_closed_run": true
+    },
+    {
+      "relative_path": "tests/edge/test_agent_rejected_cdp_diagnostics.py",
+      "bytes": 14790,
+      "sha256": "ff92fbf8776c886b13b9eac7bd551482df8757be2af045e7ce6933a9a5569963",
+      "current_source_same_as_closed_run": true
+    }
+  ],
+  "harness_source_references": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\run_process_tests.py",
+      "bytes": 26973,
+      "sha256": "a1147a789d2ba1f4cd59042673475266de0d45f6ccac594561b399d2c7b15838"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\pytest_child.py",
+      "bytes": 17443,
+      "sha256": "5186537c26ef00a9568d2d64c2a3ac1a634a3fb88218f9a1b0b26a0b7f6a203d"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\win32_job.py",
+      "bytes": 11324,
+      "sha256": "77f7e1136f376048335ba7d74ac0f0e1167a3916ec70f3c31e0670d39e41f093"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\joint_receipts.py",
+      "bytes": 19607,
+      "sha256": "d4bacae14a06faec3a049805ca7f66b94a8edf4496d43128459b47005e8e39cf"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\helper_lifetime_capture.py",
+      "bytes": 19372,
+      "sha256": "b4168c04f5017f95bcc0974e3f97c34635164bce8bca158c73edd2974fa10ffa"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\helper_capture_plugin.py",
+      "bytes": 5516,
+      "sha256": "be5983fe47a43abbfe968852e7a30eddbcc962137d0b4463473747735be01d1f"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\declaration.json",
+      "bytes": 607,
+      "sha256": "6b066336564408d366f68d84dcd00dfaa71d2e466af3b8035d1050f975d3a870"
+    }
+  ],
+  "raw_references": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\child-console.log",
+      "bytes": 169,
+      "sha256": "3fabebb28e568b38b6966a6c9ac70f2e68c7a8569a42797d01fdf8aabc6581c1"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\child-receipt.json",
+      "bytes": 69145,
+      "sha256": "ee4c87ba51425d4527e9eb3ae186d3186f86dd65ca16ab355b9afb59208a8546"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\junit.xml",
+      "bytes": 1628,
+      "sha256": "6671c69fe3105d21fe4762d0a5710d7e1c33533db7848b91817420eee41621f2"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\launch.json",
+      "bytes": 9059,
+      "sha256": "faecc13d62f4557ac0b80bdc7abb34a9a3c18649d8a2e942ae737604de11d8c1"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\pytest-tmp\\test_native_joint_guards_floor0\\helper-lifetime-capture.json",
+      "bytes": 33233,
+      "sha256": "159bc46696a7f79bd4db41170d47fc2735bc5510cbc08e6d7bddc415811dba7f"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\pytest-tmp\\test_native_joint_guards_floor0\\native-joint-contract-journal.jsonl",
+      "bytes": 3407,
+      "sha256": "41fed5dd581bd648e56c1d89e993d45e3e653352811a8313a93952c943749dfb"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\pytest-tmp\\test_native_joint_guards_floor0\\native-joint-contract-receipt.json",
+      "bytes": 465833,
+      "sha256": "a857475352b54e6cdc28131630fdeb0bc656f07b7bed29054d5dbdbf5a9ed097"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\pytest-tmp\\test_native_joint_registry_bou0\\helper-lifetime-capture.json",
+      "bytes": 13586,
+      "sha256": "18a91440a5c6a59429c8ef20821ef2150191d2335ca3b260583c4155ec74b14a"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\pytest-tmp\\test_native_joint_registry_bou0\\native-joint-contract-journal.jsonl",
+      "bytes": 2154,
+      "sha256": "7c7b5ed8087169e8edcb236fc721ffe2b01188c8b1defb130b04f875b0dfa739"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\pytest-tmp\\test_native_joint_registry_bou0\\native-joint-contract-receipt.json",
+      "bytes": 124459,
+      "sha256": "11aaa4c76c191873677208b541c25c97fa9c17bc35db0b44c5f04a8916a05486"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\pytest.log",
+      "bytes": 1249,
+      "sha256": "51dceff92ad6bc53704d8c223787ad99736d2534a92e1f605f893d064a804529"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\receipt.json",
+      "bytes": 47609,
+      "sha256": "e8499a4d35627cedb877120540ce560d700365ebd77c763a4af91203d49664ba"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-helper-capture-20261009-v1\\supervisor-error.log",
+      "bytes": 859,
+      "sha256": "2ae922b78b1926466586598606c88242504b4725ab6a1da146cb7e2bf9ac3a8b"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-helper-fake-native-20261009-v1\\receipt.json",
+      "bytes": 32740,
+      "sha256": "b5a9aa21c7cfe65eb97c719e0cfa709f9e9295a8391b482439e701c6f90e41cc"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-helper-fake-native-20261009-v1\\junit.xml",
+      "bytes": 3422,
+      "sha256": "8dd6892aed48143a77dc400466e930c4ef0fc5e522a0bc81fce899fc9d99a115"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-cdp-focused-native-20261009-v11\\receipt.json",
+      "bytes": 208260,
+      "sha256": "44f26ceb28bd5c74e6bdc2a2cf8d5120f9ea165ae589499619964c56686f4eb3"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-cdp-focused-native-20261009-v11\\junit.xml",
+      "bytes": 32518,
+      "sha256": "2b875d9c59f3cdf7c3e6c95854b176f6cbf072a596d30a2f4948a92f02db19d7"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-joint-helper-process-checks-v1\\source-pins.json",
+      "bytes": 9561,
+      "sha256": "5d4833c6c723ccbb099c34a1bf026db1a080020e3010effb880fdb005684ba0b"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\native-joint-closed-public-audit-v1\\projection.json",
+      "bytes": 23436,
+      "sha256": "cac6c1bdb0ace200bca8b42eea5d4f5c451e036679dd0b11a133b0a82dc7f8a3"
+    }
+  ],
+  "original_raw_inputs_unchanged": true,
+  "offline_check_count": 218,
+  "offline_checks": [
+    {
+      "name": "exact root-reviewed terminal supervisor hash",
+      "passed": true
+    },
+    {
+      "name": "original two-test failure preserved",
+      "passed": true
+    },
+    {
+      "name": "positive failed and deliberate fault passed without retry",
+      "passed": true
+    },
+    {
+      "name": "child receipt and JUnit hash joins",
+      "passed": true
+    },
+    {
+      "name": "43 selected source snapshots match each other and manifest",
+      "passed": true
+    },
+    {
+      "name": "seven private harness source rows and installed identities stable",
+      "passed": true
+    },
+    {
+      "name": "current private harness equals reviewed run source",
+      "passed": true
+    },
+    {
+      "name": "current private harness equals reviewed run source",
+      "passed": true
+    },
+    {
+      "name": "current private harness equals reviewed run source",
+      "passed": true
+    },
+    {
+      "name": "current private harness equals reviewed run source",
+      "passed": true
+    },
+    {
+      "name": "current private harness equals reviewed run source",
+      "passed": true
+    },
+    {
+      "name": "current private harness equals reviewed run source",
+      "passed": true
+    },
+    {
+      "name": "current private harness equals reviewed run source",
+      "passed": true
+    },
+    {
+      "name": "source manifest hash join",
+      "passed": true
+    },
+    {
+      "name": "journal count equals raw receipt event count",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal count equals raw receipt event count",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "raw joint receipt inventory hash join",
+      "passed": true
+    },
+    {
+      "name": "raw joint receipt inventory hash join",
+      "passed": true
+    },
+    {
+      "name": "raw joint journal inventory hash join",
+      "passed": true
+    },
+    {
+      "name": "raw joint journal inventory hash join",
+      "passed": true
+    },
+    {
+      "name": "helper sidecar inventory hash join",
+      "passed": true
+    },
+    {
+      "name": "helper sidecar inventory hash join",
+      "passed": true
+    },
+    {
+      "name": "new fake-native receipt has exact reviewed hash",
+      "passed": true
+    },
+    {
+      "name": "prior fake suite 27 passes and zero process launches",
+      "passed": true
+    },
+    {
+      "name": "fake 42 source rows stable and equal run subset",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "fake source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "four fake private source pins stable",
+      "passed": true
+    },
+    {
+      "name": "fake reviewed observer and declaration pin joins",
+      "passed": true
+    },
+    {
+      "name": "fake reviewed observer and declaration pin joins",
+      "passed": true
+    },
+    {
+      "name": "fake reviewed observer and declaration pin joins",
+      "passed": true
+    },
+    {
+      "name": "v11 exact success prerequisite preserved",
+      "passed": true
+    },
+    {
+      "name": "v11 120 passes without skips or errors",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "v11 source subset exact joins diagnostic run",
+      "passed": true
+    },
+    {
+      "name": "prior failure projection kept immutable",
+      "passed": true
+    },
+    {
+      "name": "two exact diagnostic sidecars with unchanged false authority",
+      "passed": true
+    },
+    {
+      "name": "sidecar diagnostic scope and false authority remain explicit",
+      "passed": true
+    },
+    {
+      "name": "sidecar observer declaration and named artifacts match source pins",
+      "passed": true
+    },
+    {
+      "name": "sidecar diagnostic scope and false authority remain explicit",
+      "passed": true
+    },
+    {
+      "name": "sidecar observer declaration and named artifacts match source pins",
+      "passed": true
+    },
+    {
+      "name": "positive same-handle duplicate capture verified once and closed",
+      "passed": true
+    },
+    {
+      "name": "exact helper image and pre-CDP cutoff bind current process identity",
+      "passed": true
+    },
+    {
+      "name": "initial live helper finally retired on exact duplicate without termination",
+      "passed": true
+    },
+    {
+      "name": "seven valid memory samples and unavailable children-close sample preserved",
+      "passed": true
+    },
+    {
+      "name": "memory lower-bound maxima recomputed from actual valid samples",
+      "passed": true
+    },
+    {
+      "name": "seven unresolved original rejections remain exact same helper and closed query handles",
+      "passed": true
+    },
+    {
+      "name": "original positive and fault synthetic tool leases remain quarantined",
+      "passed": true
+    },
+    {
+      "name": "both real browser workers joined and known handles retired",
+      "passed": true
+    },
+    {
+      "name": "fault did not fabricate helper capture and closed its diagnostics",
+      "passed": true
+    },
+    {
+      "name": "finite Job drained without force with exact identity gaps",
+      "passed": true
+    },
+    {
+      "name": "helper not observed in finite Job event or retained sets without ownership inference",
+      "passed": true
+    },
+    {
+      "name": "independent diagnostic complete flag agrees without original release promotion",
+      "passed": true
+    },
+    {
+      "name": "all raw inputs unchanged during offline projection",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "One successful diagnostic helper retirement observation does not establish ownership, exclusive use, package/parent/Job ancestry or future lifecycle behavior.",
+    "Children-closed optional sample was unavailable; final retirement must not be attributed to that earlier checkpoint.",
+    "The strict production positive still failed and retains seven unknowns and its synthetic tool quarantine.",
+    "No browser allowance, GPU budget, neural model quality, inference latency or physical shared memory qualification follows.",
+    "Sampled maxima exclude unobserved periods and other processes; memory metrics must not be summed as physical RAM.",
+    "This offline audit reads finite saved files only; it does not re-prove live OS state or reopen processes."
+  ],
+  "publication": {
+    "updated_utc": "2026-10-09T12:17:25.8593071Z",
+    "private_projection_path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\native-helper-closed-public-audit-v1\\projection.json",
+    "private_projection_sha256": "148f16d450b738db92f72b11c1ae128962547458e4d2ecb6adced60158ec99bc",
+    "private_auditor_sha256": "7d61d691f10e5b9a39dcf619c5c64dd28b10d591cb4a057a2b092e32fdb37d48",
+    "private_audit_source_pins_sha256": "e92250b000a987506f509a08ce1eafdba947c0aaa6eab2d112bb8f1b626ffca7",
+    "root_rehashed_raw_evidence_count": 19,
+    "root_rehashed_harness_count": 7,
+    "execution_conditions": {
+      "hardware_os": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "playwright": "1.63.0",
+      "synthetic_model": true,
+      "batch_and_concurrency_performance_measurement": false
+    },
+    "subsequent_gpu_patch_has_separate_validation": "agent_bound_gpu_native_validation.json"
+  }
+}
