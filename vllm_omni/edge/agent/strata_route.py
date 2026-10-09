@@ -142,7 +142,16 @@ def agent_entry_from_launch(launch: Mapping[str, Any], *, expected_device_name: 
     io_bytes = _positive(backend.get("max_io_bytes"), "max_io_bytes")
     if context <= maximum + 8 or budget.host_transfer_bytes < io_bytes:
         raise ValueError("context or I/O bounds exceed the admitted plan")
-    if demands["host_ram"] != budget.cpu_expert_cache_bytes + host_overhead + io_bytes:
+    from vllm_omni.edge.agent.strata_execution_evidence import execution_route_binding
+
+    execution = execution_route_binding(backend, runtime, plan)
+    observer_workspace = execution["workspace_bytes"] if execution is not None else 0
+    if execution is not None and (
+        selected_backend != BACKEND
+        or budget.ssd_artifact_bytes < source.total_size_bytes + prepared.total_size_bytes + runtime.total_size_bytes
+    ):
+        raise ValueError("combined execution observation requires the text Stage and complete runtime SSD allowance")
+    if demands["host_ram"] != budget.cpu_expert_cache_bytes + host_overhead + io_bytes + observer_workspace:
         raise ValueError("host claim omits cache, loading/state/workspace overhead or I/O")
     for key in ("request_timeout_s", "start_timeout_s"):
         value = backend.get(key)

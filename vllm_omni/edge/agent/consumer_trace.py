@@ -305,8 +305,18 @@ def _native_io(
     previous_seq: int | None,
 ) -> int | None:
     observed = binding.get("observation_runtime")
-    if observed is None:
+    execution = binding.get("execution_observation")
+    if observed is None and execution is None:
         return previous_seq
+    _require(observed is None or execution is None, "legacy and combined runtime observations cannot be mixed")
+    if execution is not None:
+        _require(isinstance(execution, Mapping), "combined runtime observation binding is missing")
+        identity = execution.get("static_identity_sha256")
+        schema = "omni-strata-combined-request-io-observation-v1"
+    else:
+        _require(isinstance(observed, Mapping), "observed runtime binding is missing")
+        identity = observed.get("identity_sha256")
+        schema = "omni-strata-request-io-observation-v1"
     owner = plan.get("gpu_observer_identity")
     observation = metrics.get("backend_metrics", {}).get("runtime_telemetry", {}).get("native_io_observation")
     _require(
@@ -317,7 +327,11 @@ def _native_io(
         and type(owner.get("creation_filetime_100ns")) is int
         and owner["creation_filetime_100ns"] > 0
         and isinstance(observation, Mapping)
-        and observation.get("schema") == "omni-strata-request-io-observation-v1"
+        and observation.get("schema") == schema
+        and (
+            execution is None
+            or observation.get("runtime_identity_schema") == "omni-strata-combined-static-runtime-identity-v2"
+        )
         and observation.get("status") == "complete"
         and observation.get("reasons") == []
         and observation.get("native_terminal") == "stop"
@@ -332,7 +346,7 @@ def _native_io(
         and observation["native_pid"] == owner["pid"]
         and type(observation.get("creation_filetime_100ns")) is int
         and observation["creation_filetime_100ns"] == owner["creation_filetime_100ns"]
-        and observation.get("runtime_identity_sha256") == observed["identity_sha256"]
+        and observation.get("runtime_identity_sha256") == identity
         and observation.get("scope") == "native_FileExpertSource_and_PLE_counters_excludes_loading"
         and "physical_ssd_read_bytes" in observation
         and observation.get("physical_ssd_read_bytes") is None

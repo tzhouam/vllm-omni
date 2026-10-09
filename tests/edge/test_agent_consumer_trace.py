@@ -485,6 +485,49 @@ class ConsumerTraceTests(unittest.TestCase):
         sample = scenario(observed=False)
         self.validate(sample)
 
+    def test_combined_runtime_preserves_owned_complete_sequential_io_gates(self):
+        def combined(kind="final"):
+            sample = scenario(kind)
+            binding = sample[1]["backend_identity"]
+            binding["observation_runtime"] = None
+            binding["execution_observation"] = {"static_identity_sha256": "b" * 64}
+            for event in sample[0]:
+                if event["kind"] == "model_metrics":
+                    io = event["payload"]["metrics"]["backend_metrics"]["runtime_telemetry"]["native_io_observation"]
+                    io["schema"] = "omni-strata-combined-request-io-observation-v1"
+                    io["runtime_identity_schema"] = "omni-strata-combined-static-runtime-identity-v2"
+            return sample
+
+        self.validate(combined("tool"))
+        for field, value in (
+            ("schema", "omni-strata-request-io-observation-v1"),
+            ("runtime_identity_schema", "legacy"),
+            ("status", "incomplete"),
+            ("reasons", ["missing_native_snapshot"]),
+            ("native_terminal", "length"),
+            ("native_pid", 999),
+            ("creation_filetime_100ns", True),
+            ("request_id", "other"),
+            ("epoch", True),
+            ("generation", "other"),
+            ("runtime_identity_sha256", "f" * 64),
+            ("physical_ssd_read_bytes", 0),
+            ("loading_covered", True),
+            ("three_tier_memory_qualified", True),
+            ("native_request_seq", 7),
+            ("native_request_seq", 9),
+            ("native_request_seq", True),
+        ):
+            sample = combined("tool")
+            metrics = [event["payload"]["metrics"] for event in sample[0] if event["kind"] == "model_metrics"][-1]
+            metrics["backend_metrics"]["runtime_telemetry"]["native_io_observation"][field] = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                self.validate(sample)
+        sample = combined()
+        sample[1]["backend_identity"]["observation_runtime"] = {"identity_sha256": "b" * 64}
+        with self.assertRaises(ValueError):
+            self.validate(sample)
+
     def test_model_proof_must_precede_tool_and_unknown_automatic_action_refuses(self):
         for change in [
             lambda e: e[4]["payload"].update(automatic_after_navigation="browser_open"),

@@ -113,6 +113,47 @@ def _entry(launch):
     return agent_entry_from_launch(launch, expected_device_name="fixture NVIDIA GPU 0")
 
 
+@pytest.fixture
+def combined_launch(launch):
+    backend = launch["backend"]
+    runtime = ArtifactManifest.from_dict(backend["runtime_manifest"])
+    extras = (
+        ArtifactFile("proof/combined.json", 1, "a" * 64, role="runtime"),
+        ArtifactFile("proof/source-context.json", 1, "b" * 64, role="runtime"),
+        ArtifactFile("proof/members.json", 1, "c" * 64, role="runtime"),
+    ) + tuple(
+        ArtifactFile(f"adapter/{name}.py", 1, "d" * 64, role="runtime")
+        for name in ("strata_exec", "strata_exec_bridge", "strata_exec_runtime", "strata_exec_live")
+    )
+    runtime = replace(runtime, files=runtime.files + extras)
+    backend["runtime_manifest"] = runtime.to_dict()
+    workspace, receipts = 512 << 20, 16 << 20
+    backend["execution_observation"] = {
+        "schema": "omni-strata-execution-observation-config-v1",
+        "descriptor_file": "proof/combined.json",
+        "static_identity_sha256": "e" * 64,
+        "source_context_file": "proof/source-context.json",
+        "receipt_root": "C:/fixture/observer-receipts",
+        "workspace_bytes": workspace,
+        "receipt_storage_bytes": receipts,
+    }
+    backend["runtime_provenance"] = {"combined_member_manifest": {"file": "proof/members.json", "sha256": "c" * 64}}
+    plan = WeightTierPlan.from_dict(backend["weight_tier_plan"])
+    budget = replace(
+        plan.budget,
+        host_workspace_bytes=plan.budget.host_workspace_bytes + workspace,
+        host_loading_peak_bytes=plan.budget.host_loading_peak_bytes + workspace,
+        windows_commit_peak_bytes=plan.budget.windows_commit_peak_bytes + workspace,
+        ssd_artifact_bytes=plan.budget.ssd_artifact_bytes + runtime.total_size_bytes,
+        ssd_temporary_bytes=plan.budget.ssd_temporary_bytes + receipts,
+    )
+    plan = replace(plan, budget=budget)
+    backend["weight_tier_plan"] = plan.to_dict()
+    launch["resource_budget"]["demands"] = budget.resource_demands(include_windows_commit=True)
+    launch["resource_budget"]["capacities"].update(host_ram=2 << 30, windows_commit=2 << 30, ssd=2 << 30)
+    return launch
+
+
 def test_converter_preserves_identity_and_exact_bytes_without_mutating_launch(launch):
     original = copy.deepcopy(launch)
     entry = _entry(launch)
@@ -132,6 +173,45 @@ def test_converter_preserves_identity_and_exact_bytes_without_mutating_launch(la
     assert entry["model"] == "fixture/Qwen" and entry["modalities"] == ["text"]
     assert entry["requires_nvidia"] is True
     assert "unqualified" in entry["experimental_status"]
+
+
+def test_combined_converter_counts_observer_workspace_once_without_changing_model_controls(combined_launch):
+    before = copy.deepcopy(combined_launch)
+    entry = _entry(combined_launch)
+    backend = entry["backend_config"]
+    workspace = backend["execution_observation"]["workspace_bytes"]
+    assert combined_launch == before
+    assert entry["memory_demands"]["host_ram"] == 1216 + workspace
+    assert entry["memory_demands"]["windows_commit"] == 1280 + workspace
+    assert backend["host_overhead_bytes"] == 128
+    assert backend["execution_observation"] == before["backend"]["execution_observation"]
+    assert {key: value for key, value in backend.items() if key != "gpu_pool"} == {
+        key: value for key, value in before["backend"].items() if key != "gpu_pool"
+    }
+    assert "unqualified" in entry["experimental_status"]
+
+
+@pytest.mark.parametrize("mutation", ["bool", "schema", "workspace", "receipt", "runtime", "double_count"])
+def test_combined_converter_refuses_missing_or_double_counted_observer_allowance(combined_launch, mutation):
+    backend = combined_launch["backend"]
+    if mutation == "bool":
+        backend["execution_observation"]["workspace_bytes"] = True
+    elif mutation == "schema":
+        backend["execution_observation"]["schema"] = "legacy"
+    elif mutation == "double_count":
+        backend["host_overhead_bytes"] += backend["execution_observation"]["workspace_bytes"]
+    else:
+        plan = WeightTierPlan.from_dict(backend["weight_tier_plan"])
+        field, value = {
+            "workspace": ("host_workspace_bytes", 128),
+            "receipt": ("ssd_temporary_bytes", 64),
+            "runtime": ("ssd_artifact_bytes", 800),
+        }[mutation]
+        plan = replace(plan, budget=replace(plan.budget, **{field: value}))
+        backend["weight_tier_plan"] = plan.to_dict()
+        combined_launch["resource_budget"]["demands"] = plan.budget.resource_demands(include_windows_commit=True)
+    with pytest.raises(ValueError):
+        _entry(combined_launch)
 
 
 def test_converted_adapter_accepts_same_engine_lease_and_still_requires_placement(launch):

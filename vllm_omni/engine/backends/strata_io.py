@@ -14,7 +14,76 @@ import math
 import os
 import re
 import threading
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+
+COMBINED_STATIC_SCHEMA = "omni-strata-combined-static-runtime-identity-v2"
+COMBINED_IO_REPORT_SCHEMA = "omni-strata-combined-request-io-observation-v1"
+COMBINED_EXEC_PATCH_SHA256 = "884ce375cfab94756834f1e97211bfbef6471674e50e24c0bfcc03a9eca96358"
+COMBINED_BOUNDARY_PATCH_SHA256 = "4689571b0c15873dba9e232baf3834db925c1cfb6d9f5929ef70f95c773ab583"
+COMBINED_PATCH_MANIFEST_SHA256 = "b6a0546fc281491fb6171c5e201c46dad714bf7183f3b0ccbd96b872968ee98f"
+COMBINED_HEADER_SHA256 = "148b2d3de4b3f62e8f5ebff9211d04a89d488bd00d9256cc26ef41cc5bfa2f55"
+COMBINED_SCHEMA_SHA256 = "d7ff209a7533f85e182e2be9954805c1e08d505e253a7e116c405542ea729cfc"
+COMBINED_PARSER_SHA256 = "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf"
+COMBINED_METADATA_BYTES = 65536
+COMBINED_MANIFEST_BYTES = 16 << 20
+COMBINED_MANIFEST_NODES = 300000
+COMBINED_MEMBER_COUNT = 65536
+COMBINED_MEMBER_BYTES = 512 << 20
+COMBINED_TOTAL_BYTES = 4 << 30
+COMBINED_STATIC_KEYS = {
+    "schema", "status", "base_revision", "base_tree", "dependency_revision", "dependency_tree",
+    "native_io_schema", "native_execution_schema", "patch_chain", "combined_patch_manifest_sha256",
+    "header_sha256", "schema_sha256", "parser_sha256", "runtime_manifest_sha256", "descriptor_sha256",
+    "native_executable_sha256", "source_hashes", "build", "pe", "ABI_reference", "observer_layout",
+    "observer_layout_scope", "compiled_engine_ABI_verified", "runtime_binding", "live_loaded_module_paths_verified",
+    "current_OS_identity_verified", "owner_adapter_verified", "build_execution_attested_by_verifier",
+    "runtime_qualification", "default_eligible", "aggregate_gpu_hard_cap_verified", "aggregate_ram_hard_cap_verified",
+    "physical_ssd_read_bytes", "identity_sha256",
+}
+
+COMBINED_SOURCE_CHAIN = {
+    "include/strata/core/expert_source.hpp": (
+        "32f9bc3e7e72c2713d9323dd7353ad70e6b58604daa4e4c18a7e20e1c9929f1f",
+        "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081"),
+    "include/strata/kernels/ngram.hpp": (
+        "edc6d36eaf6062e8c377577de787ed9e5576ede19e04c5964dc7e6b83b8d01ac",
+        "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4"),
+    "include/strata/ngram/ple_reader.hpp": (
+        "d19b99a681a533f47144293bb170913c1496b5e0c344aed097ad1418375f7498",
+        "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c"),
+    "src/core/expert_source.cpp": (
+        "2f0e14294ba463fd4fbcfb58829865c5f33712bcc72c6856ebbe2ff595b6e208",
+        "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0"),
+    "src/kernels/ngram.cpp": (
+        "e609caf1bb0812f366d96a5304c0f98e2864c1c0d22a0bef7b35d818e09debd5",
+        "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb"),
+    "src/ngram/ple_reader.cpp": (
+        "ddec6dbcc8afd8186c724403d5aaa54b70b9fbd551fea733ce422974131ede9e",
+        "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c"),
+    "src/program/generate.cpp": (
+        "f4eda3a268133016a74b80d61dca99d6e4ce0df99dae4862fd3f6c1026a11d56",
+        "d6cec7139469ded5e949025e145cbbd1328212d9e151f10d1f118b522cd15cb8",
+        "d0c92501d8fb57751b0f25aeffdaf8de4b9ce69b99f824e99ffc51dab49a204a"),
+    "src/kernels/cpu/pool.cpp": (
+        "e54f0c2fe6a297c4aa49a3a9efabab3166d8644f05385b9f7e2fa5e5d34f8eff",
+        "e54f0c2fe6a297c4aa49a3a9efabab3166d8644f05385b9f7e2fa5e5d34f8eff",
+        "0aea96e3f050b1e72563c9939224328422ecdec323b2a02ae6d5ff3fbdb32975"),
+    "src/core/session.cpp": (
+        "9ce0156024e2a923df5baf913c7474f1b1462b8fec20e6d12775b2e0c992bb00",
+        "9ce0156024e2a923df5baf913c7474f1b1462b8fec20e6d12775b2e0c992bb00",
+        "761a324da5842095bd0d08b5cefab6cb8ba2256a5ace6dcd13f9a100b2f90035"),
+    "src/core/verify.cpp": (
+        "8ad078d10468c28f95b29bb996e78b3600a61c9d5408219324db125c9b7a2472",
+        "8ad078d10468c28f95b29bb996e78b3600a61c9d5408219324db125c9b7a2472",
+        "9d923524df6b4accba027f1476f12567bf81ee64a6e6f0c7f7680eb94352c312"),
+    "src/core/expert_cache.cpp": (
+        "583f090a5d013d5e52289d1c844f5a9877e7768886dc775aa575d5d333b95051",
+        "583f090a5d013d5e52289d1c844f5a9877e7768886dc775aa575d5d333b95051",
+        "84bfc1ae38cc8c8f9afe649613716ca397b506b656216a48a0d9781e3f32c387"),
+    "include/strata/core/omni_execution_observer.hpp": (None, None, "1aab06f18a6c3068ae3de389acc3f32347092bc3dd18c415343cb8b0e8a8d81b", COMBINED_HEADER_SHA256),
+}
+COMBINED_SOURCE_CHAIN = {path: (*values, *(values[-1] for _ in range(4 - len(values))))
+                for path, values in COMBINED_SOURCE_CHAIN.items()}
 
 BASE_REVISION = "d5ea7133741e67743c0e886bb426c0ce8d69cf6c"
 DEPENDENCY_REVISION = "3cf03257f219afbe7334045ff7c6a06ac68c627d"
@@ -111,6 +180,252 @@ def _digest(path):
 
 def adapter_source_sha256():
     return _digest(__file__)
+
+
+def _combined_sha(value):
+    if type(value) is not str or not re.fullmatch(r"[0-9a-f]{64}", value):
+        raise ValueError("invalid combined metadata SHA")
+    return value
+
+
+def _combined_relative(value):
+    if type(value) is not str or not 0 < len(value) <= 4096 or any(c in value for c in ("\\", ":", "\0", "\r", "\n")):
+        raise ValueError("invalid combined metadata member")
+    path = PurePosixPath(value)
+    if path.is_absolute() or path.as_posix() != value or any(part in (".", "..") or part.endswith((".", " ")) for part in path.parts):
+        raise ValueError("invalid combined metadata member")
+    return value
+
+
+def _combined_structure(value, node_limit=250000):
+    stack, nodes = [(iter((value,)), 0)], 0
+    while stack:
+        iterator, depth = stack[-1]
+        try:
+            node = next(iterator)
+        except StopIteration:
+            stack.pop()
+            continue
+        nodes += 1
+        if nodes > node_limit or type(node) not in (dict, list, str, int, bool, type(None)):
+            raise ValueError("combined metadata node/type bound")
+        if type(node) in (dict, list):
+            if depth >= 64 or type(node) is dict and any(type(key) is not str for key in node):
+                raise ValueError("combined metadata depth/key bound")
+            stack.append((iter(node.values() if type(node) is dict else node), depth + 1))
+    return value
+
+
+def _combined_json(raw, maximum, *, node_limit=250000):
+    if type(raw) is not bytes or len(raw) > maximum:
+        raise ValueError("combined metadata byte bound")
+    try:
+        return _combined_structure(_json(raw), node_limit)
+    except (RecursionError, UnicodeError, TypeError):
+        raise ValueError("invalid combined metadata JSON") from None
+
+
+def validate_combined_io_identity(runtime_identity):
+    """Validate the actual static-v2 contract, never fabricate an old I/O identity.
+
+    This is a bounded metadata/lineage validator, not a build, module or OS
+    verifier. The Stage must first obtain this identity from the reviewed actual
+    combined-runtime byte verifier. Self-consistent caller metadata alone cannot
+    establish those preimages or authorize OMNI_EXEC.
+    """
+    if type(runtime_identity) is not dict or set(runtime_identity) != COMBINED_STATIC_KEYS:
+        raise ValueError("exact combined static identity is required")
+    _combined_structure(runtime_identity)
+    try:
+        encoded = _canonical(runtime_identity).encode("ascii")
+    except (ValueError, TypeError, RecursionError, UnicodeError):
+        raise ValueError("invalid combined identity serialization") from None
+    if len(encoded) > COMBINED_METADATA_BYTES:
+        raise ValueError("combined identity metadata bound")
+    identity = {key: value for key, value in runtime_identity.items() if key != "identity_sha256"}
+    if runtime_identity["identity_sha256"] != hashlib.sha256(_canonical(identity).encode()).hexdigest():
+        raise ValueError("combined identity preimage mismatch")
+    expected = {
+        "schema": COMBINED_STATIC_SCHEMA,
+        "status": "static_archived_bytes_and_build_records_verified_not_live_runtime_eligible",
+        "base_revision": BASE_REVISION, "base_tree": "332979d72ea7c5fae7f00bec6f2c79234292bc3b",
+        "dependency_revision": DEPENDENCY_REVISION, "dependency_tree": DEPENDENCY_TREE,
+        "native_io_schema": "strata-omni-io-v1", "native_execution_schema": "strata-omni-exec-v1",
+        "combined_patch_manifest_sha256": COMBINED_PATCH_MANIFEST_SHA256,
+        "header_sha256": COMBINED_HEADER_SHA256, "schema_sha256": COMBINED_SCHEMA_SHA256,
+        "parser_sha256": COMBINED_PARSER_SHA256,
+        "observer_layout_scope": "compiled_standalone_fixture_reference_only",
+    }
+    if any(type(runtime_identity[key]) is not str or runtime_identity[key] != value for key, value in expected.items()):
+        raise ValueError("unreviewed combined IO source or schema identity")
+    false_keys = ("compiled_engine_ABI_verified", "live_loaded_module_paths_verified", "current_OS_identity_verified",
+                  "owner_adapter_verified", "build_execution_attested_by_verifier", "runtime_qualification",
+                  "default_eligible", "aggregate_gpu_hard_cap_verified", "aggregate_ram_hard_cap_verified")
+    if any(runtime_identity[key] is not False for key in false_keys) or runtime_identity["runtime_binding"] is not None or runtime_identity["physical_ssd_read_bytes"] is not None:
+        raise ValueError("combined static identity cannot claim live qualification")
+    for key in ("runtime_manifest_sha256", "descriptor_sha256", "native_executable_sha256", "identity_sha256"):
+        _combined_sha(runtime_identity[key])
+    chain = runtime_identity["patch_chain"]
+    expected_chain = (("existing_io_patch", PATCH_SHA256), ("incremental_execution_patch", COMBINED_EXEC_PATCH_SHA256),
+                      ("boundary_safety_v2", COMBINED_BOUNDARY_PATCH_SHA256))
+    if type(chain) is not list or len(chain) != 3:
+        raise ValueError("combined IO patch order is required")
+    for row, (kind, sha256) in zip(chain, expected_chain):
+        if type(row) is not dict or set(row) != {"kind", "file", "sha256"} or row["kind"] != kind or row["sha256"] != sha256:
+            raise ValueError("combined IO patch order or bytes differ")
+        _combined_relative(row["file"])
+    sources = runtime_identity["source_hashes"]
+    if type(sources) is not dict or set(sources) != set(COMBINED_SOURCE_CHAIN):
+        raise ValueError("combined IO requires all twelve distinct sources")
+    for name, pins in COMBINED_SOURCE_CHAIN.items():
+        states = sources[name]
+        if type(states) is not list or len(states) != 4:
+            raise ValueError("combined IO requires all four source states")
+        for index, (row, pin) in enumerate(zip(states, pins)):
+            if pin is None:
+                if row is not None:
+                    raise ValueError("combined new header must be absent")
+                continue
+            canonical_base = index == 0 and name in PATCH_SOURCES
+            keys = {"path", "size_bytes", "sha256"} | ({"canonical_sha256", "pin_scope"} if canonical_base else set())
+            if type(row) is not dict or set(row) != keys or _uint(row["size_bytes"], positive=True) > 16 << 20:
+                raise ValueError("invalid combined IO source state")
+            _combined_relative(row["path"])
+            if not row["path"].endswith("/source/" + name):
+                raise ValueError("combined IO source path binding differs")
+            _combined_sha(row["sha256"])
+            if canonical_base:
+                if row["canonical_sha256"] != pin or row["pin_scope"] != "base_IO_canonical_Git_blob_raw_checkout_separately_bound":
+                    raise ValueError("combined IO canonical base pin differs")
+            elif row["sha256"] != pin:
+                raise ValueError("combined IO raw source afterimage differs")
+    for key in ("build", "pe", "ABI_reference", "observer_layout"):
+        if type(runtime_identity[key]) is not dict:
+            raise ValueError("combined static proof projection must be present")
+    abi = runtime_identity["ABI_reference"]
+    layout = runtime_identity["observer_layout"]
+    layout_keys = {"state_bytes", "frame_buffer_bytes", "frame_state_bytes", "ticket_bytes",
+                   "concurrent_ticket_count_verified", "root_registry_capacity", "overhead_scope"}
+    if (set(layout) != layout_keys or _uint(layout["state_bytes"], positive=True) > 16384
+            or type(layout["frame_buffer_bytes"]) is not int or layout["frame_buffer_bytes"] != 32768
+            or _uint(layout["frame_state_bytes"], positive=True) < 32768 or _uint(layout["ticket_bytes"], positive=True) > 1 << 20
+            or layout["concurrent_ticket_count_verified"] is not False
+            or type(layout["root_registry_capacity"]) is not int or layout["root_registry_capacity"] != 16
+            or layout["overhead_scope"] != "fixed_Cpp_state_and_one_owner_frame_plus_per_call_stack_ticket_excludes_CRT_stdio"):
+        raise ValueError("combined fixture layout contract differs")
+    if (abi.get("schema") != "omni-strata-compiled-fixture-ABI-reference-v1"
+            or abi.get("observer_layout_scope") != "compiled_standalone_fixture_reference_only"
+            or abi.get("compiled_engine_ABI_verified") is not False or abi.get("runtime_binding") is not None
+            or abi.get("observer_layout") != runtime_identity["observer_layout"]):
+        raise ValueError("combined fixture reference must not become engine ABI")
+    projection = {
+        "schema": "omni-strata-combined-io-binding-v1", "combined_static_identity_sha256": runtime_identity["identity_sha256"],
+        "runtime_manifest_sha256": runtime_identity["runtime_manifest_sha256"],
+        "native_executable_sha256": runtime_identity["native_executable_sha256"], "io_patch_sha256": PATCH_SHA256,
+        "combined_patch_manifest_sha256": COMBINED_PATCH_MANIFEST_SHA256,
+        "source_states_sha256": hashlib.sha256(_canonical(sources).encode()).hexdigest(),
+        "native_io_schema": "strata-omni-io-v1", "native_execution_schema": "strata-omni-exec-v1",
+        "scope": "IO_lineage_binding_actual_combined_verifier_and_separate_live_verifier_required",
+        "compiled_engine_ABI_verified": False, "runtime_qualification": False,
+    }
+    return copy.deepcopy(projection)
+
+
+def _combined_member_manifest(raw):
+    manifest = _combined_json(raw, COMBINED_MANIFEST_BYTES, node_limit=COMBINED_MANIFEST_NODES)
+    if type(manifest) is not dict or set(manifest) != {"schema", "files"} or manifest["schema"] != "omni-strata-combined-members-v2" or type(manifest["files"]) is not list or not 0 < len(manifest["files"]) <= COMBINED_MEMBER_COUNT:
+        raise ValueError("combined IO member manifest shape")
+    records, folded, total = {}, set(), 0
+    for record in manifest["files"]:
+        if type(record) is not dict or set(record) != {"path", "size_bytes", "sha256"}:
+            raise ValueError("combined IO member record shape")
+        name = _combined_relative(record["path"])
+        if len(name) > 512 or not name.isascii() or name.casefold() in folded:
+            raise ValueError("combined IO manifest path alias/bound")
+        folded.add(name.casefold())
+        size = _uint(record["size_bytes"])
+        if size > COMBINED_MEMBER_BYTES:
+            raise ValueError("combined IO member size bound")
+        total += size
+        if total > COMBINED_TOTAL_BYTES:
+            raise ValueError("combined IO member total bound")
+        _combined_sha(record["sha256"])
+        records[name] = record
+    return records
+
+
+def combined_io_adapter_identity(runtime_root, runtime_identity, source_context_file, *, manifest_file):
+    """Read actual manifest-bound context and this loaded IO source, not models.
+
+    The complete combined static verifier owns whole-bundle verification. This
+    small lookup rechecks the raw manifest identity, context and IO-source bytes
+    required by the Stage/bootstrap; it is not a second whole-runtime verifier.
+    """
+    validate_combined_io_identity(runtime_identity)
+    root = Path(runtime_root).resolve(strict=True)
+
+    def read_member(name, maximum):
+        _combined_relative(name)
+        path = root
+        for part in PurePosixPath(name).parts:
+            path = path / part
+            if path.is_symlink() or getattr(path, "is_junction", lambda: False)():
+                raise ValueError("combined IO member reparse path")
+        path = path.resolve(strict=True)
+        if not path.is_relative_to(root) or not path.is_file():
+            raise ValueError("combined IO member escapes runtime")
+        with path.open("rb") as stream:
+            before = os.fstat(stream.fileno())
+            if before.st_size > maximum:
+                raise ValueError("combined IO member byte bound")
+            raw = stream.read(maximum + 1)
+            after = os.fstat(stream.fileno())
+        if len(raw) > maximum or (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns) != (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns):
+            raise ValueError("combined IO member changed")
+        return raw
+
+    manifest_raw = read_member(manifest_file, COMBINED_MANIFEST_BYTES)
+    if hashlib.sha256(manifest_raw).hexdigest() != runtime_identity["runtime_manifest_sha256"]:
+        raise ValueError("combined IO manifest identity differs")
+    records = _combined_member_manifest(manifest_raw)
+    if manifest_file in records:
+        raise ValueError("combined IO manifest self-member")
+    del manifest_raw
+
+    def bound_member(name, maximum):
+        raw = read_member(name, maximum)
+        record = records.get(name)
+        if record is None or record["size_bytes"] != len(raw) or record["sha256"] != hashlib.sha256(raw).hexdigest():
+            raise ValueError("combined IO source/context not manifest-bound")
+        return raw
+
+    context_raw = bound_member(source_context_file, COMBINED_METADATA_BYTES)
+    context = _combined_json(context_raw, COMBINED_METADATA_BYTES)
+    if type(context) is not dict or set(context) != {"schema", "scope", "modules", "bootstrap_member", "bootstrap_sha256"} or context["schema"] != "omni-strata-execution-live-source-context-v1" or context["scope"] != "reviewed_stage_adapter_preimages_not_native_execution_proof" or type(context["modules"]) is not list or len(context["modules"]) != 6:
+        raise ValueError("combined IO source context shape")
+    roles, selected = set(), None
+    for row in context["modules"]:
+        if type(row) is not dict or set(row) != {"role", "module", "member", "sha256"} or row["role"] not in {"stage", "io", "bridge", "parser", "static", "live"} or row["role"] in roles:
+            raise ValueError("combined IO source context module shape")
+        roles.add(row["role"])
+        _combined_relative(row["member"])
+        _combined_sha(row["sha256"])
+        if row["role"] == "io":
+            selected = row
+    if selected["module"] != "vllm_omni.engine.backends.strata_io":
+        raise ValueError("combined IO source context module differs")
+    source = bound_member(selected["member"], 256 << 10)
+    source_sha = hashlib.sha256(source).hexdigest()
+    if source_sha != selected["sha256"] or source_sha != adapter_source_sha256():
+        raise ValueError("combined IO loaded source preimage differs")
+    result = {"schema": "omni-strata-combined-io-adapter-identity-v1", "scope": "actual_manifest_context_and_loaded_IO_source_preimages_only",
+              "combined_static_identity_sha256": runtime_identity["identity_sha256"],
+              "runtime_manifest_sha256": runtime_identity["runtime_manifest_sha256"],
+              "source_context_sha256": hashlib.sha256(context_raw).hexdigest(),
+              "io_adapter_file": selected["member"], "io_adapter_sha256": source_sha, "io_adapter_size_bytes": len(source),
+              "native_execution_verified": False, "runtime_qualification": False}
+    result["identity_sha256"] = hashlib.sha256(_canonical(result).encode()).hexdigest()
+    return copy.deepcopy(result)
 
 
 def production_bootstrap_source():
@@ -452,7 +767,7 @@ def audit_selected_loaded_modules(
                 or ".." in relative.parts
                 or not executable.is_relative_to(root)
                 or type(include_cuda_driver) is not bool
-                or role not in (None, "encoder")
+                or role not in (None, "encoder", "engine")
             ):
                 raise ValueError("invalid selected native role/executable binding")
             expected = {
@@ -471,7 +786,7 @@ def audit_selected_loaded_modules(
                 preimage = dict(closure)
                 identity_sha = preimage.pop("identity_sha256", None)
                 if (
-                    role != "encoder"
+                    role not in ("encoder", "engine")
                     or closure.get("schema") != "omni-strata-pe-closure-v1"
                     or identity_sha != hashlib.sha256(_canonical(preimage).encode()).hexdigest()
                     or closure.get("all_dynamic_loads_covered") is not False
@@ -688,6 +1003,27 @@ class StrataIoObserver:
         self.retired = False
         self.lock = threading.RLock()
 
+    @classmethod
+    def from_combined_runtime(cls, nonce, generation, pid, creation_filetime_100ns, runtime_identity):
+        """Explicit static-v2 route; no old-v1 identity is synthesized.
+
+        Call only with the reviewed combined byte verifier's actual result.
+        Counter ownership remains the same bounded nonce/PID/birth protocol;
+        native execution ABI and loaded modules require their separate verifier.
+        """
+        if type(nonce) is not str or not re.fullmatch(r"[0-9a-f]{32}", nonce) or type(generation) is not str or not 0 < len(generation) <= 128 or any(c in generation for c in ("\0", "\r", "\n")):
+            raise ValueError("invalid combined observer context")
+        binding = validate_combined_io_identity(runtime_identity)
+        observer = cls.__new__(cls)
+        observer.nonce, observer.generation = nonce, generation
+        observer.pid, observer.created = _uint(pid, positive=True), _uint(creation_filetime_100ns, positive=True)
+        observer.runtime_identity = copy.deepcopy(runtime_identity)
+        observer._combined_io_binding = binding | {"io_adapter_sha256": adapter_source_sha256()}
+        observer.active, observer.last_seq, observer.last_epoch, observer.last_snapshot = None, 0, 0, None
+        observer.retired = False
+        observer.lock = threading.RLock()
+        return observer
+
     def begin(self, request_id, epoch):
         with self.lock:
             if self.active is not None or self.retired or not isinstance(request_id, str) or not request_id:
@@ -858,6 +1194,11 @@ class StrataIoObserver:
                 "reasons": list(active["reasons"]),
                 "io_modes": self._io_modes(active["snapshots"], intervals),
             }
+            combined_binding = getattr(self, "_combined_io_binding", None)
+            if combined_binding is not None:
+                report["schema"] = COMBINED_IO_REPORT_SCHEMA
+                report["runtime_identity_schema"] = COMBINED_STATIC_SCHEMA
+                report["combined_io_binding"] = copy.deepcopy(combined_binding)
             if active["dispatch_seq"] is not None:
                 self.last_seq = active["dispatch_seq"]
             self.last_epoch = epoch

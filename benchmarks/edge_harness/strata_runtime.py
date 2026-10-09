@@ -26,6 +26,7 @@ from benchmarks.edge_harness.strata_prepare import (
 from benchmarks.edge_harness.strata_profile import RUNTIME_REVISION, canonical_hash, file_hash
 
 SCHEMA = "omni-strata-runtime-registration-v1"
+EXECUTION_IDENTITY_SCHEMA = "omni-strata-combined-static-runtime-identity-v2"
 
 
 def _object(path: Path) -> dict[str, Any]:
@@ -72,12 +73,53 @@ def _packing_code(manifest) -> dict[str, tuple[int, str]]:
     return result
 
 
+def _execution_variant(config, runtime: Path, verified_files: set[Path], engine_file: str, runtime_manifest):
+    """Use the Stage's reviewed source loader, never caller-provided verifiers.
+
+    This verifies archived bytes and the loaded IO adapter only. Native owner,
+    engine ABI, module paths and request completion still require a real load.
+    """
+    from vllm_omni.engine.backends import strata, strata_io
+
+    settings = strata._execution_settings(copy.deepcopy(dict(config)), runtime)
+    modules = strata._load_execution_adapters(runtime, verified_files)
+    descriptor = _object(runtime / settings["descriptor_file"])
+    if descriptor.get("engine_file") != engine_file:
+        raise ValueError("runtime variant must retain the native engine entry point")
+    identity = modules["strata_exec_runtime"].verify_combined_runtime(settings["descriptor_file"], runtime)
+    engine = (runtime / engine_file).resolve(strict=True)
+    if (
+        identity.get("schema") != EXECUTION_IDENTITY_SCHEMA
+        or identity.get("identity_sha256") != settings["static_identity_sha256"]
+        or engine not in verified_files
+        or identity.get("native_executable_sha256") != file_hash(engine)
+        or identity.get("runtime_binding") is not None
+        or identity.get("compiled_engine_ABI_verified") is not False
+        or identity.get("observer_layout_scope") != "compiled_standalone_fixture_reference_only"
+    ):
+        raise ValueError("combined execution runtime identity differs or claims live eligibility")
+    member_file = descriptor["manifest_file"]
+    member = next((item for item in runtime_manifest.files if item.path == member_file), None)
+    if (
+        member is None
+        or (runtime / member_file).resolve(strict=True) not in verified_files
+        or member.sha256 != identity.get("runtime_manifest_sha256")
+    ):
+        raise ValueError("combined member manifest raw hash differs from its complete runtime record")
+    member_reference = {"file": member_file, "sha256": member.sha256}
+    context_identity = strata_io.combined_io_adapter_identity(
+        runtime, identity, settings["source_context_file"], manifest_file=descriptor["manifest_file"]
+    )
+    return settings, identity, context_identity, member_reference
+
+
 def register_runtime_variant(
     parent_launch_path: Path,
     *,
     runtime_root: Path,
     runtime_manifest_path: Path,
-    observation_runtime: Mapping[str, Any],
+    observation_runtime: Mapping[str, Any] | None = None,
+    execution_observation: Mapping[str, Any] | None = None,
     launch_out: Path,
     route_id: str | None = None,
 ) -> dict[str, Any]:
@@ -88,9 +130,10 @@ def register_runtime_variant(
     Only a native-runtime variant is accepted; packing tools and pack format
     must remain byte-identical to the original preparation.
     """
-    from vllm_omni.engine.backends.strata_io import verify_observation_runtime
     from vllm_omni.engine.weight_tiers import ArtifactManifest, WeightTierPlan
 
+    if (observation_runtime is None) == (execution_observation is None):
+        raise ValueError("select exactly one legacy IO or combined execution observation route")
     parent_path = parent_launch_path.resolve(strict=True)
     launch = _object(parent_path)
     if launch.get("schema") != "omni-strata-launch-v1":
@@ -100,6 +143,9 @@ def register_runtime_variant(
         backend.get("name") != "external.strata.text.v1"
         or backend.get("runtime_revision") != RUNTIME_REVISION
         or backend.get("observation_runtime") is not None
+        or backend.get("observation_runtime_identity_sha256") is not None
+        or backend.get("execution_observation") is not None
+        or launch.get("execution_observation") is not None
         or launch.get("runtime_registration") is not None
     ):
         raise ValueError("parent must be the pinned original Strata preparation")
@@ -189,11 +235,23 @@ def register_runtime_variant(
     python = Path(backend["python_bin"]).resolve(strict=True)
     if file_hash(python) != backend["python_sha256"]:
         raise ValueError("parent Python executable identity changed")
-    descriptor = copy.deepcopy(dict(observation_runtime))
-    if descriptor.get("engine_file") != backend["engine_file"]:
-        raise ValueError("runtime variant must retain the native engine entry point")
-    engine = (new_root / descriptor["engine_file"]).resolve(strict=True)
-    identity = verify_observation_runtime(descriptor, new_root, verified_runtime, engine)
+    settings = context_identity = member_reference = None
+    if execution_observation is not None:
+        settings, identity, context_identity, member_reference = _execution_variant(
+            execution_observation, new_root, verified_runtime, backend["engine_file"], variant
+        )
+        if any(
+            Path(settings["receipt_root"]).is_relative_to(root) for root in (parent_runtime, source_root, pack_root)
+        ):
+            raise ValueError("execution receipts must stay outside immutable runtime/model bundles")
+    else:
+        from vllm_omni.engine.backends.strata_io import verify_observation_runtime
+
+        descriptor = copy.deepcopy(dict(observation_runtime))
+        if descriptor.get("engine_file") != backend["engine_file"]:
+            raise ValueError("runtime variant must retain the native engine entry point")
+        engine = (new_root / descriptor["engine_file"]).resolve(strict=True)
+        identity = verify_observation_runtime(descriptor, new_root, verified_runtime, engine)
 
     tier = WeightTierPlan.from_dict(backend["weight_tier_plan"])
     if (
@@ -217,8 +275,19 @@ def register_runtime_variant(
     tier_data = tier.to_dict()
     tier_data["route_id"] = new_id
     tier_data["budget"]["ssd_artifact_bytes"] += variant.total_size_bytes
+    if settings is not None:
+        # The Stage adds this workspace separately to its host-overhead formula;
+        # leave the original model/cache/I/O controls unchanged and charge once.
+        workspace = settings["workspace_bytes"]
+        for field in ("host_workspace_bytes", "host_loading_peak_bytes", "windows_commit_peak_bytes"):
+            tier_data["budget"][field] += workspace
+        tier_data["budget"]["ssd_temporary_bytes"] += settings["receipt_storage_bytes"]
     new_tier = WeightTierPlan.from_dict(tier_data)
-    new_demands = dict(demands, ssd=demands["ssd"] + variant.total_size_bytes)
+    new_demands = new_tier.budget.resource_demands(
+        gpu_pool=backend["gpu_pool"],
+        include_wsl="wsl_ram" in resources["demands"],
+        include_windows_commit="windows_commit" in resources["demands"],
+    )
     if any(
         type(resources["capacities"].get(pool)) is not int or amount > resources["capacities"][pool]
         for pool, amount in new_demands.items()
@@ -231,10 +300,13 @@ def register_runtime_variant(
         runtime_root=str(new_root),
         runtime_manifest=variant.to_dict(),
         route_id=new_id,
-        observation_runtime=descriptor,
-        observation_runtime_identity_sha256=identity["identity_sha256"],
         weight_tier_plan=new_tier.to_dict(),
     )
+    if settings is not None:
+        target["execution_observation"] = settings
+    else:
+        target["observation_runtime"] = descriptor
+        target["observation_runtime_identity_sha256"] = identity["identity_sha256"]
     provenance = {
         "schema": SCHEMA,
         "parent_launch_sha256": canonical_hash(launch),
@@ -251,6 +323,17 @@ def register_runtime_variant(
         "runtime_disk_bytes_added": variant.total_size_bytes,
         "scope": "locally verified build provenance; no independent rebuild, inference or qualification",
     }
+    if settings is not None:
+        provenance.update(
+            runtime_identity_schema=identity["schema"],
+            observation_kind="combined_execution",
+            execution_observation_schema=settings["schema"],
+            observer_workspace_bytes_added=settings["workspace_bytes"],
+            observer_receipt_storage_bytes_added=settings["receipt_storage_bytes"],
+            combined_io_adapter_identity=context_identity,
+            combined_member_manifest=member_reference,
+            scope="verified combined archived build/source bytes; live owner/modules/engine ABI and inference pending",
+        )
     target["runtime_provenance"] = provenance
     derived["runtime_provenance"] = provenance
     derived["runtime_registration"] = provenance
@@ -283,15 +366,19 @@ def register_runtime_variant(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("parent-launch", "runtime-root", "runtime-manifest", "observation-runtime", "launch-out"):
+    for name in ("parent-launch", "runtime-root", "runtime-manifest", "launch-out"):
         parser.add_argument("--" + name, type=Path, required=True)
+    observation = parser.add_mutually_exclusive_group(required=True)
+    observation.add_argument("--observation-runtime", type=Path)
+    observation.add_argument("--execution-observation", type=Path)
     parser.add_argument("--route-id")
     args = parser.parse_args()
     receipt = register_runtime_variant(
         args.parent_launch,
         runtime_root=args.runtime_root,
         runtime_manifest_path=args.runtime_manifest,
-        observation_runtime=_object(args.observation_runtime),
+        observation_runtime=_object(args.observation_runtime) if args.observation_runtime else None,
+        execution_observation=_object(args.execution_observation) if args.execution_observation else None,
         launch_out=args.launch_out,
         route_id=args.route_id,
     )

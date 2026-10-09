@@ -55,8 +55,8 @@ _CACHE_CONTROL_SCHEMA = "omni-strata-explicit-cache-v2"
 _EXECUTION_ADAPTER_SHA256 = {
     "strata_exec": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
     "strata_exec_bridge": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
-    "strata_exec_runtime": "efd2c7fd077a84d50bb2c0e2ed4d3cdf12b0a91380e78ec5673d9ad8f416138c",
-    "strata_exec_live": "a4b56f159d4fc986c1e82b536c65e589327b6f25f910d7da98ac3bf8fc4a996a",
+    "strata_exec_runtime": "458db0a601ff3a69bdc765e26cc98c168adaf6970af9d5b90e589ad09259b213",
+    "strata_exec_live": "2978cfee6d4adf2e17683a988bd023c24df0aa59c33a658c4ed451d5888a876d",
 }
 _EXECUTION_MODULE_LOCK = threading.RLock()
 _EXECUTION_LOADED_MODULES = {}

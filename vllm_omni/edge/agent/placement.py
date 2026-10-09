@@ -189,6 +189,9 @@ def strata_route_binding(entry: Mapping[str, Any]) -> dict[str, Any]:
         }
     elif expected_observed_identity is not None:
         raise ValueError("Strata observation identity cannot exist without a runtime descriptor")
+    from vllm_omni.edge.agent.strata_execution_evidence import execution_route_binding
+
+    execution_binding = execution_route_binding(config, runtime, tier)
     return {
         "schema": "omni-strata-profile-binding-v1",
         "backend_config_sha256": evidence_sha256(config),
@@ -212,6 +215,7 @@ def strata_route_binding(entry: Mapping[str, Any]) -> dict[str, Any]:
         "gpu_expert_cache_budget_bytes": tier.budget.gpu_expert_cache_bytes,
         "expected_controls": controls,
         "observation_runtime": observed_binding,
+        **({"execution_observation": execution_binding} if execution_binding is not None else {}),
         **(
             {"base_engine_artifact_id": entry["base_artifact_id"], "model_output_consumer_identity": consumer}
             if consumer is not None
@@ -261,13 +265,26 @@ def validate_strata_profile_plan(plan: Mapping[str, Any], route: Mapping[str, An
     controls = plan["route_controls"]
     if (
         plan.get("route_controls_sha256") != evidence_sha256(controls, ascii=True)
-        or {k: v for k, v in controls.items() if k not in {"gpu_expert_cache", "observation_runtime"}}
+        or {
+            k: v
+            for k, v in controls.items()
+            if k not in {"gpu_expert_cache", "observation_runtime", "execution_observation"}
+        }
         != binding["expected_controls"]
     ):
         raise ValueError("Strata cache/control identity is missing, changed or unbound")
     observed_binding = binding.get("observation_runtime")
     observed_identity = plan.get("observation_runtime")
-    if observed_binding is None:
+    execution_binding = binding.get("execution_observation")
+    if execution_binding is not None:
+        from vllm_omni.edge.agent.strata_execution_evidence import validate_execution_plan
+
+        if observed_binding is not None:
+            raise ValueError("legacy and combined observation routes cannot be mixed")
+        validate_execution_plan(plan, binding)
+    elif controls.get("execution_observation") is not None:
+        raise ValueError("unregistered execution observation controls appeared")
+    elif observed_binding is None:
         if observed_identity is not None or controls.get("observation_runtime") is not None:
             raise ValueError("Strata unregistered observation runtime appeared in the loaded plan")
     elif (
@@ -391,13 +408,26 @@ def validate_strata_request_evidence(
         seen.add(state)
         telemetry = metrics["backend_metrics"]["runtime_telemetry"]
         io_observation = telemetry.get("native_io_observation")
+        execution_binding = route["backend_identity"].get("execution_observation")
         if io_observation is not None:
             observed_binding = route["backend_identity"].get("observation_runtime")
+            if execution_binding is not None:
+                from vllm_omni.edge.agent.strata_execution_evidence import validate_combined_io_report
+
+                validate_combined_io_report(io_observation, plan, route["backend_identity"])
             if (
-                observed_binding is None
+                (observed_binding is None and execution_binding is None)
                 or not isinstance(io_observation, Mapping)
-                or io_observation.get("schema") != "omni-strata-request-io-observation-v1"
-                or io_observation.get("runtime_identity_sha256") != observed_binding["identity_sha256"]
+                or (
+                    execution_binding is None
+                    and io_observation.get("schema") != "omni-strata-request-io-observation-v1"
+                )
+                or io_observation.get("runtime_identity_sha256")
+                != (
+                    execution_binding["static_identity_sha256"]
+                    if execution_binding is not None
+                    else observed_binding["identity_sha256"]
+                )
                 or io_observation.get("generation") != stage["worker_generation"]
                 or io_observation.get("request_id") != stage["request_id"]
                 or io_observation.get("epoch") != stage["epoch"]
@@ -408,6 +438,15 @@ def validate_strata_request_evidence(
                 or io_observation.get("three_tier_memory_qualified") is not False
             ):
                 raise ValueError("Strata native I/O observation differs from its runtime/request identity or scope")
+        execution_report = telemetry.get("native_execution_observation")
+        if execution_binding is not None:
+            from vllm_omni.edge.agent.strata_execution_evidence import validate_execution_report
+
+            if io_observation is None:
+                raise ValueError("combined execution route omitted its I/O observation")
+            validate_execution_report(execution_report, stage, plan, route["backend_identity"], io_observation)
+        elif execution_report is not None:
+            raise ValueError("unregistered execution observation appeared in Agent metrics")
         if (
             telemetry.get("logical_file_read_bytes") is not None
             and telemetry.get("logical_file_read_scope") != "decode_only_excludes_prefill_and_loading"

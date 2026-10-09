@@ -1,0 +1,193 @@
+{
+  "schema": "omni-strata-combined-native-unit-validation-v1",
+  "date": "2026-10-09",
+  "status": "native_unit_regressions_passed_actual_combined_model_run_pending",
+  "scope": "production_stage_registrar_Agent_report_binding_parser_and_legacy_loopback_no_neural_execution",
+  "runs": [
+    {
+      "name": "combined",
+      "scope": "production_Stage_registrar_Agent_metadata_and_loopback_no_neural_execution",
+      "passed": 297,
+      "skipped": 3,
+      "subtests_passed": 161,
+      "pytest_reported_s": 103.3,
+      "runner_elapsed_s": 105.69000310008414,
+      "terminal_exit_code": 0,
+      "junit_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "3",
+          "tests": "461",
+          "time": "103.285",
+          "timestamp": "2026-10-09T08:30:54.164974+08:00",
+          "hostname": "LAPTOP-07175OF9"
+        }
+      ],
+      "junit_count_scope": "items plus successful subtests; do not sum overlapping runs",
+      "private_receipt_sha256": "8c54bda2c77d921ba5ff8ade24d70b88a0fbcfd31e9f204b2c2228f764d9527b",
+      "source_preimages": {
+        "vllm_omni/engine/backends/strata.py": "8520708aec642060ee5a586c155339717a6d4ef22144e84bde07870bec3bb872",
+        "vllm_omni/engine/backends/strata_io.py": "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43",
+        "vllm_omni/edge/agent/placement.py": "a6feb5895e81d26429d91d8720603b8d3c5f419df9453b06e403e676f77064b6",
+        "vllm_omni/edge/agent/strata_execution_evidence.py": "415e6062774932bf9de616f89b3eb49498d49c192f2a719ab9ed49019970c6c1",
+        "vllm_omni/edge/agent/consumer_trace.py": "55b52ff12fddd575c731eb3624a16bbb65f0a2d5efd83c4187c6569e01558b40",
+        "vllm_omni/edge/agent/strata_route.py": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+        "benchmarks/edge_harness/strata_runtime.py": "beb4e0f8a42330523a0ec244f59c952fc0f378b68367f8100dd63561cb1df477",
+        "vllm_omni/engine/backends/strata_execution/__init__.py": "7599029f8a77a32659d021a8c9f18cce7403c637712c3674a7df8376cc68b6c1",
+        "vllm_omni/engine/backends/strata_execution/strata_exec.py": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+        "vllm_omni/engine/backends/strata_execution/strata_exec_bridge.py": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+        "vllm_omni/engine/backends/strata_execution/strata_exec_runtime.py": "458db0a601ff3a69bdc765e26cc98c168adaf6970af9d5b90e589ad09259b213",
+        "vllm_omni/engine/backends/strata_execution/strata_exec_live.py": "2978cfee6d4adf2e17683a988bd023c24df0aa59c33a658c4ed451d5888a876d",
+        "tests/edge/test_strata_backend.py": "036034ba020004ea8fa1eda609d55786ffc9bfc52d94d14e75155c9bf48c857e",
+        "tests/edge/test_strata_io.py": "fb4024023e1bb62d35cdbb429aaecb7c1451f11cbd6f04c95603b7b7dbca0ea3",
+        "tests/edge/test_strata_execution_lifecycle.py": "57e16b12cd058e73f124ecaf814754246f5d1ddcf3f44f3c0cae986f034bf1fa",
+        "tests/edge/test_strata_execution_parser.py": "b400485059bc4f4111b0c1de33e99cd9e23d4bb734b4cd8739a5feb0c032487f",
+        "tests/edge/test_agent_strata_profile.py": "e504d15c6a0f5f069ac6f85cd937d73d5817a143cb54eba4ab2601d8d0059911",
+        "tests/edge/test_agent_strata_execution.py": "3da2d6e7a5b311d86508e96c3cf7492580c4e07fdd20fab38b350827f5072e29",
+        "tests/edge/test_agent_consumer_trace.py": "de2e479f91533e55421e4c280c9cca17e3e689f8737f5657b50b29ce35a7910f",
+        "tests/edge/test_agent_strata_route.py": "465dec60487ce2a536a69b216a689e6beb0ce0ae74063da5effba3078ab49fdc",
+        "benchmarks/edge_harness/test_strata_runtime.py": "97ff053b5ee6270b56a554b561cb860789b845dbe8d2c634e43b63569667c815",
+        "benchmarks/edge_harness/test_strata_prepare.py": "dc04dd8cf7a8e4971309d6c65c0632ad5941bbfc0090eb67a1f2ce32b9c3c466"
+      },
+      "source_pre_post_unchanged": true,
+      "raw_files": {
+        "junit": {
+          "path": "strata_execution_combined_native_unit/combined-junit.xml",
+          "sha256": "955e7cdee9a4b9716ab5f413c8315a89244c0b9a6e6bf317b136cb1153ffcf7d",
+          "size_bytes": 47367
+        },
+        "log": {
+          "path": "strata_execution_combined_native_unit/combined-pytest.log",
+          "sha256": "23583c68b100c7624a7d7894e52f50349d4a92493648f841b560c98895f76e8a",
+          "size_bytes": 1084
+        }
+      },
+      "environment": {
+        "OS": "native Windows",
+        "Python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "packages": {
+          "vllm": "0.29.0+cu134",
+          "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "pytest": "9.1.1"
+        }
+      }
+    },
+    {
+      "name": "exact_done_type",
+      "scope": "production_Agent_execution_report_native_DONE_exact_integer_type_no_neural_execution",
+      "passed": 24,
+      "skipped": 0,
+      "subtests_passed": 0,
+      "pytest_reported_s": 33.02,
+      "runner_elapsed_s": 35.052626400021836,
+      "terminal_exit_code": 0,
+      "junit_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "24",
+          "time": "33.023",
+          "timestamp": "2026-10-09T08:36:01.302757+08:00",
+          "hostname": "LAPTOP-07175OF9"
+        }
+      ],
+      "junit_count_scope": "items plus successful subtests; do not sum overlapping runs",
+      "private_receipt_sha256": "ffc1d124eb837f8c031fb8f3ce4bbd7659d4733567590b1095ef6a41f3f5e7ec",
+      "source_preimages": {
+        "vllm_omni/engine/backends/strata.py": "8520708aec642060ee5a586c155339717a6d4ef22144e84bde07870bec3bb872",
+        "vllm_omni/engine/backends/strata_io.py": "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43",
+        "vllm_omni/edge/agent/placement.py": "a6feb5895e81d26429d91d8720603b8d3c5f419df9453b06e403e676f77064b6",
+        "vllm_omni/edge/agent/strata_execution_evidence.py": "251dd72f915b69e20df54e1d9f5ff68103241b0d04421f55ba7a9fad1840d17f",
+        "vllm_omni/edge/agent/consumer_trace.py": "55b52ff12fddd575c731eb3624a16bbb65f0a2d5efd83c4187c6569e01558b40",
+        "vllm_omni/edge/agent/strata_route.py": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+        "benchmarks/edge_harness/strata_runtime.py": "beb4e0f8a42330523a0ec244f59c952fc0f378b68367f8100dd63561cb1df477",
+        "vllm_omni/engine/backends/strata_execution/__init__.py": "7599029f8a77a32659d021a8c9f18cce7403c637712c3674a7df8376cc68b6c1",
+        "vllm_omni/engine/backends/strata_execution/strata_exec.py": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+        "vllm_omni/engine/backends/strata_execution/strata_exec_bridge.py": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+        "vllm_omni/engine/backends/strata_execution/strata_exec_runtime.py": "458db0a601ff3a69bdc765e26cc98c168adaf6970af9d5b90e589ad09259b213",
+        "vllm_omni/engine/backends/strata_execution/strata_exec_live.py": "2978cfee6d4adf2e17683a988bd023c24df0aa59c33a658c4ed451d5888a876d",
+        "tests/edge/test_agent_strata_execution.py": "c7f3ca20ad056913365bf5556b45a35c8ba7f843e251f37431f33e0e8fe20f66"
+      },
+      "source_pre_post_unchanged": true,
+      "raw_files": {
+        "junit": {
+          "path": "strata_execution_combined_native_unit/exact_done_type-junit.xml",
+          "sha256": "05424796e609c3f0389fb86902e88d262eede2325302f28f773993d74eb6b89e",
+          "size_bytes": 4257
+        },
+        "log": {
+          "path": "strata_execution_combined_native_unit/exact_done_type-pytest.log",
+          "sha256": "639b4a81c63a1d468ce13974d1423eab3522733f0dad3bf00030187b814615d8",
+          "size_bytes": 560
+        }
+      },
+      "environment": {
+        "OS": "native Windows",
+        "Python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+        "packages": {
+          "vllm": "0.29.0+cu134",
+          "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+          "pytest": "9.1.1"
+        }
+      }
+    }
+  ],
+  "final_source_preimages": {
+    "vllm_omni/engine/backends/strata.py": "8520708aec642060ee5a586c155339717a6d4ef22144e84bde07870bec3bb872",
+    "vllm_omni/engine/backends/strata_io.py": "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43",
+    "vllm_omni/edge/agent/placement.py": "a6feb5895e81d26429d91d8720603b8d3c5f419df9453b06e403e676f77064b6",
+    "vllm_omni/edge/agent/strata_execution_evidence.py": "251dd72f915b69e20df54e1d9f5ff68103241b0d04421f55ba7a9fad1840d17f",
+    "vllm_omni/edge/agent/consumer_trace.py": "55b52ff12fddd575c731eb3624a16bbb65f0a2d5efd83c4187c6569e01558b40",
+    "vllm_omni/edge/agent/strata_route.py": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+    "benchmarks/edge_harness/strata_runtime.py": "beb4e0f8a42330523a0ec244f59c952fc0f378b68367f8100dd63561cb1df477",
+    "vllm_omni/engine/backends/strata_execution/__init__.py": "7599029f8a77a32659d021a8c9f18cce7403c637712c3674a7df8376cc68b6c1",
+    "vllm_omni/engine/backends/strata_execution/strata_exec.py": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_bridge.py": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_runtime.py": "458db0a601ff3a69bdc765e26cc98c168adaf6970af9d5b90e589ad09259b213",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_live.py": "2978cfee6d4adf2e17683a988bd023c24df0aa59c33a658c4ed451d5888a876d",
+    "tests/edge/test_strata_backend.py": "036034ba020004ea8fa1eda609d55786ffc9bfc52d94d14e75155c9bf48c857e",
+    "tests/edge/test_strata_io.py": "fb4024023e1bb62d35cdbb429aaecb7c1451f11cbd6f04c95603b7b7dbca0ea3",
+    "tests/edge/test_strata_execution_lifecycle.py": "57e16b12cd058e73f124ecaf814754246f5d1ddcf3f44f3c0cae986f034bf1fa",
+    "tests/edge/test_strata_execution_parser.py": "b400485059bc4f4111b0c1de33e99cd9e23d4bb734b4cd8739a5feb0c032487f",
+    "tests/edge/test_agent_strata_profile.py": "e504d15c6a0f5f069ac6f85cd937d73d5817a143cb54eba4ab2601d8d0059911",
+    "tests/edge/test_agent_strata_execution.py": "c7f3ca20ad056913365bf5556b45a35c8ba7f843e251f37431f33e0e8fe20f66",
+    "tests/edge/test_agent_consumer_trace.py": "de2e479f91533e55421e4c280c9cca17e3e689f8737f5657b50b29ce35a7910f",
+    "tests/edge/test_agent_strata_route.py": "465dec60487ce2a536a69b216a689e6beb0ce0ae74063da5effba3078ab49fdc",
+    "benchmarks/edge_harness/test_strata_runtime.py": "97ff053b5ee6270b56a554b561cb860789b845dbe8d2c634e43b63569667c815",
+    "benchmarks/edge_harness/test_strata_prepare.py": "dc04dd8cf7a8e4971309d6c65c0632ad5941bbfc0090eb67a1f2ce32b9c3c466"
+  },
+  "final_delta_after_combined_regression": {
+    "vllm_omni/edge/agent/strata_execution_evidence.py": {
+      "before": "415e6062774932bf9de616f89b3eb49498d49c192f2a719ab9ed49019970c6c1",
+      "after": "251dd72f915b69e20df54e1d9f5ff68103241b0d04421f55ba7a9fad1840d17f"
+    },
+    "tests/edge/test_agent_strata_execution.py": {
+      "before": "3da2d6e7a5b311d86508e96c3cf7492580c4e07fdd20fab38b350827f5072e29",
+      "after": "c7f3ca20ad056913365bf5556b45a35c8ba7f843e251f37431f33e0e8fe20f66"
+    }
+  },
+  "final_delta_validation": "exact_done_type run; rejects bool and float native_request_seq and preserves normal reports",
+  "Ruff_check": {
+    "passed": true,
+    "scope": "nine touched non-pinned integration files from repository cwd",
+    "config": "pyproject.toml"
+  },
+  "native_model_executed": false,
+  "complete_runtime_verified": false,
+  "actual_owned_engine_ABI_verified": false,
+  "physical_model_ssd_bytes_verified": false,
+  "aggregate_memory_hard_caps_verified": false,
+  "runtime_qualification": false,
+  "default_eligible": false,
+  "release_qualified": false,
+  "remaining": [
+    "actual complete bundle static verification",
+    "owned native engine ABI and full-request reference parity",
+    "combined cancellation recovery and actual Agent rerun",
+    "cache/offload/physical-I/O and quality/performance experiments"
+  ]
+}
