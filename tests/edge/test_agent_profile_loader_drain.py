@@ -117,6 +117,11 @@ async def test_sampler_failure_waits_for_exact_startup_before_close(tmp_path, mo
     with pytest.raises(RuntimeError) as caught:
         await task
     assert caught.value is failure
+    reference = bridge.startup_samples_evidence
+    assert reference["complete"] is False and reference["error_type"] == "RuntimeError"
+    assert reference["sample_count"] == reference["attempted_sample_count"] == 0
+    assert reference["bytes"] == 0
+    assert bridge._startup_journal._file is None
     bridge.close()
     assert backend.finished.is_set() and controller.close_count == backend.close_count == 1
 
@@ -137,6 +142,9 @@ async def test_cancellation_and_repeated_cancellation_cannot_cancel_loader_wrapp
     with pytest.raises(asyncio.CancelledError) as caught:
         await task
     assert caught.value.args == ("original cancellation",)
+    assert bridge.startup_samples_evidence["complete"] is False
+    assert bridge.startup_samples_evidence["error_type"] == "CancelledError"
+    assert bridge._startup_journal._file is None
     bridge.close()
     assert backend.finished.is_set() and controller.close_count == backend.close_count == 1
 
@@ -217,5 +225,45 @@ async def test_success_still_waits_for_resident_startup_and_closes_once(tmp_path
     preparation = await task
     assert preparation.cold_start_confirmed
     assert preparation.details["execution_plan"] == {"requested_device": "cpu"}
+    assert preparation.details["startup_samples"] == bridge.startup_samples_evidence
+    assert bridge.startup_samples_evidence["complete"] is True
+    assert bridge.startup_samples_evidence["sample_count"] == preparation.details["sample_count"]
+    assert "bound_process_cpu_load_samples" not in preparation.details
+    bridge.close()
+    assert controller.close_count == backend.close_count == 1
+
+
+@pytest.mark.asyncio
+async def test_sidecar_append_failure_drains_loader_before_file_close(tmp_path, monkeypatch):
+    bridge, route, backend, controller = bridge_fixture(tmp_path, monkeypatch)
+    failure = OSError("synthetic startup sidecar write failure")
+    original_finish = native._StartupSampleJournal.finish
+
+    def fail_append(journal, _sample):
+        journal.attempted_sample_count += 1
+        assert not backend.finished.is_set()
+        raise failure
+
+    def finish(journal, primary=None):
+        assert backend.finished.is_set(), "journal closed before exact loader reached terminal"
+        assert controller.close_count == backend.close_count == 0
+        return original_finish(journal, primary)
+
+    monkeypatch.setattr(native._StartupSampleJournal, "append", fail_append)
+    monkeypatch.setattr(native._StartupSampleJournal, "finish", finish)
+    task = asyncio.create_task(bridge.prepare(route))
+    try:
+        await entered(backend)
+        await still_loading(task, backend, controller)
+        assert bridge._startup_journal._file is not None
+    finally:
+        backend.release.set()
+    with pytest.raises(OSError) as caught:
+        await task
+    assert caught.value is failure
+    reference = bridge.startup_samples_evidence
+    assert reference["complete"] is False and reference["error_type"] == "OSError"
+    assert reference["sample_count"] == 0 and reference["attempted_sample_count"] == 1
+    assert bridge._startup_journal._file is None
     bridge.close()
     assert controller.close_count == backend.close_count == 1

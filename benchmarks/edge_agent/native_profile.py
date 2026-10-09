@@ -18,6 +18,7 @@ import os
 import platform
 import sys
 import threading
+import time
 import uuid
 from collections.abc import Callable, Mapping
 from copy import deepcopy
@@ -65,6 +66,145 @@ ORDINARY_SUBMISSION_MODE = "model_selected_tools_v1"
 STRUCTURED_READ_URL_MODE = "explicit_read_url_v1"
 MODEL_PROMPT_IDENTITY_CAPTURE = "backend_generate_sha256_v1"
 CLOSING_RESOURCE_SNAPSHOT_MAX_BYTES = 1 << 20
+STARTUP_SAMPLE_ROW_MAX_BYTES = 16 << 20
+
+
+class _StartupSampleJournal:
+    """Retain exact startup rows without embedding all rows in Preparation."""
+
+    def __init__(self, root: Path, route: ProfileRoute, sequence: int) -> None:
+        self.root = root.resolve()
+        load_id = uuid.uuid4().hex
+        self.relative_path = f"startup-samples/{load_id}.jsonl"
+        self.path = self.root / self.relative_path
+        self.binding = {
+            "route_id": route.route_id, "artifact_id": route.artifact_id,
+            "checkpoint_revision": route.checkpoint_revision,
+            "preparation_sequence": sequence, "load_id": load_id,
+        }
+        self._file: Any = None
+        self._file_created = False
+        self._digest = hashlib.sha256()
+        self._written_bytes = 0
+        self.sample_count = 0
+        self.attempted_sample_count = 0
+        self.ram_peak: int | None = None
+        self.vram_peak: int | None = None
+        self.vram_sample_count = 0
+        self.evidence: Mapping[str, Any] | None = None
+
+    def open(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.resolve().relative_to(self.root)
+        # Never overwrite a prior load, and never retain a Python write buffer
+        # containing the complete sampling history. OS caching is unchanged.
+        self._file = self.path.open("xb", buffering=0)
+        self._file_created = True
+
+    def append(self, sample: Mapping[str, Any]) -> None:
+        self.attempted_sample_count += 1
+        if self._file is None or self.evidence is not None:
+            raise RuntimeError("startup sample journal is not open")
+        if not isinstance(sample, Mapping):
+            raise TypeError("startup telemetry must be a mapping")
+        ram = sample.get("ram_used_bytes")
+        vram = sample.get("vram_used_bytes")
+        if type(ram) is not int or ram < 0:
+            raise ValueError("startup RAM reading must be a nonnegative integer")
+        if vram is not None and (type(vram) is not int or vram < 0):
+            raise ValueError("startup VRAM reading must be unavailable or a nonnegative integer")
+        row = {"schema": "omni-native-startup-sample-v1", "binding": self.binding,
+               "sequence": self.sample_count, "recorded_monotonic_ns": time.monotonic_ns(),
+               "telemetry": dict(sample)}
+        chunks: list[bytes] = []
+        size = 1  # The terminating newline is part of the existing row bound.
+        encoder = json.JSONEncoder(ensure_ascii=True, allow_nan=False, sort_keys=True,
+                                   separators=(",", ":"))
+        for chunk in encoder.iterencode(row):
+            encoded = chunk.encode("ascii")
+            size += len(encoded)
+            if size > STARTUP_SAMPLE_ROW_MAX_BYTES:
+                raise ValueError("startup sample exceeds existing JSONL row bound")
+            chunks.append(encoded)
+        encoded_row = b"".join(chunks) + b"\n"
+        written = self._file.write(encoded_row)
+        if type(written) is not int or written != len(encoded_row):
+            raise OSError("partial startup sample write")
+        self._digest.update(encoded_row)
+        self._written_bytes += written
+        self.sample_count += 1
+        self.ram_peak = ram if self.ram_peak is None else max(self.ram_peak, ram)
+        if vram is not None:
+            self.vram_sample_count += 1
+            self.vram_peak = vram if self.vram_peak is None else max(self.vram_peak, vram)
+
+    def finish(self, primary: BaseException | None = None) -> Mapping[str, Any]:
+        if self.evidence is not None:
+            return self.evidence
+        secondary: BaseException | None = None
+        # Always attempt close after flush/fsync failure. A failed close leaves
+        # the exact handle reachable on this journal for diagnosis, not proof.
+        if self._file is not None:
+            try:
+                self._file.flush()
+                os.fsync(self._file.fileno())
+            except BaseException as exc:
+                secondary = exc
+            try:
+                self._file.close()
+            except BaseException as exc:
+                if secondary is None:
+                    secondary = exc
+                else:
+                    _note_secondary(secondary, "secondary startup journal close failure:", exc)
+            else:
+                self._file = None
+        digest: str | None = None
+        size: int | None = None
+        if self._file_created and self._file is None:
+            try:
+                actual_digest, actual_size = hashlib.sha256(), 0
+                self.path.resolve().relative_to(self.root)
+                with self.path.open("rb") as stream:
+                    before = os.fstat(stream.fileno())
+                    while actual_size < before.st_size:
+                        chunk = stream.read(min(1 << 20, before.st_size - actual_size))
+                        if not chunk:
+                            break
+                        actual_digest.update(chunk)
+                        actual_size += len(chunk)
+                    after = os.fstat(stream.fileno())
+                    if (actual_size != before.st_size or stream.read(1)
+                            or (before.st_size, before.st_mtime_ns, before.st_ino, before.st_dev)
+                            != (after.st_size, after.st_mtime_ns, after.st_ino, after.st_dev)):
+                        raise ValueError("startup journal changed during closed-file hashing")
+                digest, size = actual_digest.hexdigest(), actual_size
+                if digest != self._digest.hexdigest() or size != self._written_bytes:
+                    raise ValueError("startup journal bytes differ from complete accepted writes")
+            except BaseException as exc:
+                if secondary is None:
+                    secondary = exc
+                else:
+                    _note_secondary(secondary, "secondary startup journal hash failure:", exc)
+        failure = primary if primary is not None else secondary
+        self.evidence = {
+            "schema": "omni-native-startup-samples-v1", "path": self.relative_path,
+            "sha256": digest, "bytes": size, "sample_count": self.sample_count,
+            "attempted_sample_count": self.attempted_sample_count,
+            "binding": dict(self.binding),
+            "complete": (failure is None and self.sample_count > 0
+                         and self.sample_count == self.attempted_sample_count),
+            "error_type": None if failure is None else type(failure).__name__,
+            "ram_used_bytes_sampled_peak": self.ram_peak,
+            "vram_used_bytes_sampled_peak": self.vram_peak,
+            "vram_sample_count": self.vram_sample_count,
+        }
+        if secondary is not None:
+            if primary is None:
+                raise secondary
+            if secondary is not primary:
+                _note_secondary(primary, "secondary startup journal finalization failure:", secondary)
+        return self.evidence
 
 
 def _validate_browser_headless(browser_headless: bool,
@@ -756,6 +896,8 @@ class NativeProfileBridge:
         self.process_memory_close_receipt: Mapping[str, Any] | None = None
         self._process_observation_started = False
         self.controller_close_evidence: Mapping[str, Any] | None = None
+        self.startup_samples_evidence: Mapping[str, Any] | None = None
+        self._startup_journal: _StartupSampleJournal | None = None
         self.suite_id = STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID
         self.controller: Any = None
         self.route: ProfileRoute | None = None
@@ -803,6 +945,10 @@ class NativeProfileBridge:
             self.controller.reject(str(event.get("payload", {}).get("challenge_id", "")))
 
     async def prepare(self, route: ProfileRoute) -> Preparation:
+        if self._startup_journal is not None and self._startup_journal._file is not None:
+            raise RuntimeError("prior startup sample file did not close; refusing a new generation")
+        self.startup_samples_evidence = None
+        self._startup_journal = None
         # A new attempt must not borrow a prior generation's closing proof,
         # including when this attempt fails before constructing a controller.
         self.controller_close_evidence = None
@@ -933,40 +1079,54 @@ class NativeProfileBridge:
         bind_gpu = getattr(self.telemetry, "bind_native_process", None)
         if route.backend == STRATA_BACKEND and callable(bind_gpu):
             bind_gpu(None)
-        samples: list[dict[str, Any]] = []
-        task = asyncio.create_task(asyncio.to_thread(backend.start))
+        journal = _StartupSampleJournal(self.config_root.parent, route, self._preparation_counter)
+        self._startup_journal = journal
         try:
-            while not task.done():
-                samples.append(self.telemetry.sample())
-                await asyncio.sleep(.1)
-            await asyncio.shield(task)
-        except BaseException as failure:
-            # A power/sampler failure or caller cancellation must not unwind
-            # into controller.close() while backend.start() is still loading.
+            journal.open()
+            task = asyncio.create_task(asyncio.to_thread(backend.start))
             try:
-                await _observe_startup_terminal(task)
-            except BaseException as startup_failure:
-                if startup_failure is not failure:
-                    raise failure from startup_failure
-            raise
-        samples.append(self.telemetry.sample())
-        plan = backend.execution_plan
-        if not isinstance(plan, Mapping):
-            raise RuntimeError("Omni worker did not become resident after cold load")
-        if plan.get("requested_device") != route.expected_placement:
-            raise RuntimeError("Omni worker placement differs from the paired route")
-        if route.backend == STRATA_BACKEND:
-            validate_strata_profile_plan(plan, asdict(route))
-            if callable(bind_gpu):
-                bind_gpu(plan.get("gpu_observer_identity"))
-                samples.append(self.telemetry.sample())
-        if capture_policy is not None and route.backend == "external.llamacpp.text.v1":
-            from vllm_omni.edge.agent.llamacpp_route import validate_llamacpp_consumer_plan
+                while not task.done():
+                    journal.append(self.telemetry.sample())
+                    await asyncio.sleep(.1)
+                await asyncio.shield(task)
+            except BaseException as failure:
+                # Do not close the journal or controller while the native
+                # loader remains live, including repeated caller cancellation.
+                try:
+                    await _observe_startup_terminal(task)
+                except BaseException as startup_failure:
+                    if startup_failure is not failure:
+                        raise failure from startup_failure
+                raise
+            journal.append(self.telemetry.sample())
+            plan = backend.execution_plan
+            if not isinstance(plan, Mapping):
+                raise RuntimeError("Omni worker did not become resident after cold load")
+            if plan.get("requested_device") != route.expected_placement:
+                raise RuntimeError("Omni worker placement differs from the paired route")
+            if route.backend == STRATA_BACKEND:
+                validate_strata_profile_plan(plan, asdict(route))
+                if callable(bind_gpu):
+                    bind_gpu(plan.get("gpu_observer_identity"))
+                    journal.append(self.telemetry.sample())
+            if capture_policy is not None and route.backend == "external.llamacpp.text.v1":
+                from vllm_omni.edge.agent.llamacpp_route import validate_llamacpp_consumer_plan
 
-            validate_llamacpp_consumer_plan(plan, route.backend_identity)
-        if self.process_memory_attribution:
-            self.telemetry.bind_model_process(plan.get("gpu_observer_identity"))
-            samples.append(self.telemetry.sample())
+                validate_llamacpp_consumer_plan(plan, route.backend_identity)
+            if self.process_memory_attribution:
+                self.telemetry.bind_model_process(plan.get("gpu_observer_identity"))
+                journal.append(self.telemetry.sample())
+            startup_evidence = journal.finish()
+        except BaseException as failure:
+            try:
+                journal.finish(failure)
+            except BaseException as secondary:
+                if secondary is not failure:
+                    _note_secondary(failure, "secondary startup sample evidence failure:", secondary)
+            finally:
+                self.startup_samples_evidence = journal.evidence
+            raise
+        self.startup_samples_evidence = startup_evidence
         self._prompt_backend = _PromptIdentityBackend(backend, capture_policy=capture_policy)
         controller.backends[route.route_id] = self._prompt_backend
         return Preparation(
@@ -983,16 +1143,14 @@ class NativeProfileBridge:
                     if route.backend == STRATA_BACKEND else
                     ("loaded_configuration_and_terminal_stage_identity" if capture_policy is not None
                      else "reported_whole_model_placement")),
-                "ram_used_bytes_sampled_peak": max(s["ram_used_bytes"] for s in samples),
-                "vram_used_bytes_sampled_peak": max((s.get("vram_used_bytes", 0) for s in samples), default=0),
-                "sample_count": len(samples),
+                "ram_used_bytes_sampled_peak": startup_evidence["ram_used_bytes_sampled_peak"],
+                "vram_used_bytes_sampled_peak": startup_evidence["vram_used_bytes_sampled_peak"],
+                "sample_count": startup_evidence["sample_count"],
                 "sampled_peaks_are_lower_bounds": True,
                 "native_gpu_startup_peak_covered": False,
                 "process_memory_attribution_enabled": self.process_memory_attribution,
-                "bound_process_cpu_load_samples": [s["bound_process_cpu_memory"] for s in samples
-                                                   if "bound_process_cpu_memory" in s],
-                "native_process_gpu_load_samples": [s["native_process_gpu_memory"] for s in samples
-                                                   if "native_process_gpu_memory" in s],
+                "load_samples_storage": "jsonl_sidecar_v1",
+                "startup_samples": dict(startup_evidence),
                 "placement_independently_verified": False,
                 "hardware_at_load": hardware,
                 **({"browser_joint_admission": {
@@ -1459,6 +1617,9 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                                         _note_secondary(route_interruption,
                                                         "secondary interrupted profile close failure:", exc)
                                 result["controller_close_evidence"] = bridge.controller_close_evidence
+                                startup_evidence = getattr(bridge, "startup_samples_evidence", None)
+                                if startup_evidence is not None:
+                                    result["startup_samples_evidence"] = startup_evidence
                                 result["browser_mode"] = bridge.browser_mode
                                 actual_mode = result["browser_mode"]["actual"]
                                 if actual_mode is not None:

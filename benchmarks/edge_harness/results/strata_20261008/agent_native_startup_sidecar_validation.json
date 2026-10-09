@@ -1,0 +1,174 @@
+{
+  "schema": "omni-native-startup-sidecar-validation-v1",
+  "scope": "source integration plus model-free regressions; fresh neural smoke pending",
+  "implementation": [
+    "create-only contained startup JSONL; complete original telemetry mapping and ordered bound rows",
+    "small Preparation reference with actual closed hash/bytes/count/peaks; null unavailable counters preserved",
+    "startup task observed terminal before file/controller cleanup; primary exceptions and partial evidence preserved",
+    "same native index saves success/failure descriptors; private audit verifies and deduplicates sidecars; legacy inline retained"
+  ],
+  "unchanged_limits_bytes": {
+    "ordinary_row": 16777216,
+    "route_prepare_row": 33554432,
+    "preparation": 41943040
+  },
+  "new_allowance_or_model_control_change": false,
+  "whole_profiler_memory_hardcap_proven": false,
+  "cold_preparation_scope": "includes journal serialization/write/fsync/closed-file hashing; not pure engine startup",
+  "source_files": {
+    "benchmarks/edge_agent/native_profile.py": {
+      "sha256": "dc317a799ef6785ad2493889494f9b81f4626fb60a3dc3d9abd7efa1fe1d7ae6",
+      "bytes": 86696
+    },
+    "tests/edge/test_agent_native_profile.py": {
+      "sha256": "68277cabccc934d0762c41c9b29048a2251ee7a1af61591a343ac449e87ea691",
+      "bytes": 54303
+    },
+    "tests/edge/test_agent_profile_loader_drain.py": {
+      "sha256": "49b964a7e4c8bccef06853aadd4a0043f7d153ed95487b60a3de5f33f79756f5",
+      "bytes": 10279
+    }
+  },
+  "source_review_package": {
+    "pins": {
+      "sha256": "5c9ef892f299b8149b3812375b35213142192f880bcfb040faa2d56b39e43aa1",
+      "bytes": 3688
+    },
+    "handoff": {
+      "sha256": "c84bb46ceb85baf2459d54b66c56a424c4eff0b8e880a63b038603bf8911e27a",
+      "bytes": 9797
+    },
+    "semantic_diff": {
+      "sha256": "f3f3294b12415f352712191a23fabf50723cde61ee767886825a4b4e5f5e3456",
+      "bytes": 67310
+    }
+  },
+  "private_deployment_pins": {
+    "sha256": "615984b1e5bee6fbe6ba1b245532c6b504510870c7e046ecfb418ccf629eceda",
+    "bytes": 1565
+  },
+  "test_cohorts": {
+    "native_profile": {
+      "run_id": "native-profile-startup-sidecar-focused-20261010-v1",
+      "pytest_exit_code": 0,
+      "tests": 152,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source_count": 47,
+      "sources_stable": true,
+      "process_start_attempts": 0,
+      "origin_violations": [],
+      "evidence": {
+        "receipt.json": {
+          "sha256": "2e49c09727cdafc1304cd63a434499662b3529546988900334362df6a74780db",
+          "bytes": 252344
+        },
+        "junit.xml": {
+          "sha256": "48bb4ecfd5a24a7c712bbb34878780df09c81db21c7ca4b9ddbddb63ca59f4b9",
+          "bytes": 24475
+        }
+      },
+      "scope": "normal repository imports, synthetic backend/OS fixtures; no model or browser process starts"
+    },
+    "private_reader": {
+      "run_id": "native-profile-startup-private-reader-20261010-v1",
+      "pytest_exit_code": 0,
+      "tests": 62,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source_count": 7,
+      "sources_stable": true,
+      "process_start_attempts": 0,
+      "origin_violations": [],
+      "evidence": {
+        "receipt.json": {
+          "sha256": "79ec0d5b3ff83619d911c18e15e8574321a283a05444a0afe67a764cf84b89f2",
+          "bytes": 40218
+        },
+        "junit.xml": {
+          "sha256": "51c43d27b5162377ba9519523073c6b0bcb9ed9d9ddb07cbc98df50701b799bd",
+          "bytes": 7647
+        }
+      },
+      "scope": "actual versioned stdlib auditor, synthetic files; no framework imports",
+      "framework_module_count": 0
+    },
+    "cache_metadata": {
+      "run_id": "strata-four-gib-cache-native-metadata-20261010-v1",
+      "pytest_exit_code": 0,
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source_count": 57,
+      "sources_stable": true,
+      "process_start_attempts": 0,
+      "origin_violations": [],
+      "evidence": {
+        "receipt.json": {
+          "sha256": "eb54752d330099589b70f7c952b91883b89ab41e30bc4da9807835c823be3e1c",
+          "bytes": 70148
+        },
+        "junit.xml": {
+          "sha256": "ada716aa1aca102e6c6a6cc57d497cb70f46fa6662c9bd3cc52d440c4181f795",
+          "bytes": 1728
+        }
+      },
+      "scope": "same10 immutable metadata tests against57 current pinned sources; no model load",
+      "runner_and_private_sources_stable": true
+    }
+  },
+  "runtime_versions": {
+    "pytest": "9.1.1",
+    "pytest-asyncio": "1.4.0",
+    "vllm": "0.29.0+cu134",
+    "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+    "torch": "2.13.0+cu130",
+    "triton": null,
+    "PySide6": "6.11.2",
+    "playwright": "1.63.0",
+    "cryptography": "50.0.1"
+  },
+  "fresh_neural_execution_performed": false,
+  "previous_failed_neural_run_preserved": true,
+  "qualification": {
+    "full_batch1_protocol": false,
+    "default": false,
+    "release": false,
+    "physical_ssd_io": false,
+    "aggregate_memory_hardcaps": false
+  },
+  "initial_prepare_failure": {
+    "run_id": "ista-q2-browser-sidecar-smoke-20261010-v1",
+    "exit_code": 1,
+    "failure_type": "FileNotFoundError",
+    "cause": "root launch command used envelope.json instead of the existing browser-resource-envelope.json",
+    "model_execution_performed": false,
+    "retained_prepare_log": {
+      "sha256": "85e63c8b4606fefadb67c0ba122bee0b882e4985e6b47a70c9c02b5732b918e3",
+      "bytes": 1949
+    }
+  },
+  "fresh_preparation": {
+    "run_id": "ista-q2-browser-sidecar-smoke-20261010-v2",
+    "exit_code": 0,
+    "status": "consumer_prepared_not_executed",
+    "model_execution_performed": false,
+    "evidence": {
+      "prepare.log": {
+        "sha256": "0ab7f8bc553e3894b2a7187793a9667efd95eb4fbeb2cdebee151d18e8ab262b",
+        "bytes": 428
+      },
+      "consumer/config.json": {
+        "sha256": "d7c88d5b5b36e7286d4b494802f0e2a8bc9d3eb7d46cb0ddadba5535f86fbadf",
+        "bytes": 14519984
+      },
+      "consumer/combined-prerequisite.json": {
+        "sha256": "bc234dd1f50b3fca599778fe5a130514b5c9f4295234eb30578b46d4e921fbd4",
+        "bytes": 24951
+      }
+    }
+  }
+}

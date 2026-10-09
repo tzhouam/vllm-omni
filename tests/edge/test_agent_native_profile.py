@@ -54,6 +54,240 @@ def _route():
     )
 
 
+def test_startup_journal_retains_full_rows_and_unavailable_counters(tmp_path):
+    journal = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    journal.open()
+    samples = [
+        {"ram_used_bytes": 10, "vram_used_bytes": None,
+         "bound_process_cpu_memory": {"unknowns": [{"reason": "access_denied"}]},
+         "native_process_gpu_memory": {"sample_status": "unavailable"}},
+        {"ram_used_bytes": 30, "vram_used_bytes": 20,
+         "unrecognized_future_field": {"retained": True}},
+        {"ram_used_bytes": 15, "vram_used_bytes": 12},
+    ]
+    for sample in samples:
+        journal.append(sample)
+    evidence = journal.finish()
+    retained = (tmp_path / evidence["path"]).read_bytes()
+    rows = [json.loads(line) for line in retained.splitlines()]
+    assert [row["telemetry"] for row in rows] == samples
+    assert [row["sequence"] for row in rows] == [0, 1, 2]
+    assert all(row["binding"] == evidence["binding"] for row in rows)
+    assert all(type(row["recorded_monotonic_ns"]) is int for row in rows)
+    assert evidence["sha256"] == hashlib.sha256(retained).hexdigest()
+    assert evidence["bytes"] == len(retained)
+    assert evidence["sample_count"] == evidence["attempted_sample_count"] == 3
+    assert evidence["ram_used_bytes_sampled_peak"] == 30
+    assert evidence["vram_used_bytes_sampled_peak"] == 20
+    assert evidence["vram_sample_count"] == 2
+    assert evidence["complete"] is True and evidence["error_type"] is None
+    assert journal.finish() is evidence  # No re-open or re-hash after terminal close.
+    assert journal._file is None
+
+
+def test_startup_journal_all_unavailable_vram_stays_unavailable(tmp_path):
+    journal = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    journal.open()
+    journal.append({"ram_used_bytes": 1})
+    journal.append({"ram_used_bytes": 2, "vram_used_bytes": None})
+    evidence = journal.finish()
+    assert evidence["vram_used_bytes_sampled_peak"] is None
+    assert evidence["vram_sample_count"] == 0
+    assert evidence["sample_count"] == 2 and evidence["complete"] is True
+
+
+@pytest.mark.parametrize("sample", [
+    {}, {"ram_used_bytes": True}, {"ram_used_bytes": -1},
+    {"ram_used_bytes": 1, "vram_used_bytes": False},
+    {"ram_used_bytes": 1, "vram_used_bytes": -1},
+    {"ram_used_bytes": 1, "unknown": float("nan")},
+])
+def test_startup_journal_rejects_malformed_rows_without_fabricating_samples(tmp_path, sample):
+    journal = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    journal.open()
+    with pytest.raises((ValueError, TypeError)) as caught:
+        journal.append(sample)
+    evidence = journal.finish(caught.value)
+    assert evidence["complete"] is False
+    assert evidence["sample_count"] == 0 and evidence["attempted_sample_count"] == 1
+    assert evidence["bytes"] == 0 and evidence["sha256"] == hashlib.sha256(b"").hexdigest()
+    assert evidence["ram_used_bytes_sampled_peak"] is None
+
+
+def test_startup_journal_row_bound_does_not_enlarge_existing_cap(monkeypatch, tmp_path):
+    assert native_profile.STARTUP_SAMPLE_ROW_MAX_BYTES == 16 << 20
+    monkeypatch.setattr(native_profile, "STARTUP_SAMPLE_ROW_MAX_BYTES", 100)
+    journal = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    journal.open()
+    with pytest.raises(ValueError, match="existing JSONL row bound") as caught:
+        journal.append({"ram_used_bytes": 1, "future": "x" * 200})
+    evidence = journal.finish(caught.value)
+    assert evidence["bytes"] == 0 and evidence["sample_count"] == 0
+    assert evidence["complete"] is False
+
+
+def test_startup_journal_short_write_retains_exact_partial_file_and_primary(tmp_path):
+    journal = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    journal.open()
+    original = journal._file
+
+    class ShortWriter:
+        def write(self, value):
+            return original.write(value[:len(value) // 2])
+
+        def flush(self):
+            return original.flush()
+
+        def fileno(self):
+            return original.fileno()
+
+        def close(self):
+            return original.close()
+
+    journal._file = ShortWriter()
+    with pytest.raises(OSError, match="partial startup sample write") as caught:
+        journal.append({"ram_used_bytes": 10})
+    evidence = journal.finish(caught.value)
+    retained = journal.path.read_bytes()
+    assert retained and not retained.endswith(b"\n")
+    assert evidence["bytes"] == len(retained)
+    assert evidence["sha256"] == hashlib.sha256(retained).hexdigest()
+    assert evidence["complete"] is False
+    assert evidence["sample_count"] == 0 and evidence["attempted_sample_count"] == 1
+    assert evidence["error_type"] == "OSError"
+    assert any("startup journal finalization failure" in note for note in caught.value.__notes__)
+
+
+@pytest.mark.parametrize("has_primary", [False, True])
+def test_startup_journal_finalization_failure_closes_and_preserves_primary(monkeypatch, tmp_path, has_primary):
+    journal = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    journal.open()
+    journal.append({"ram_used_bytes": 10})
+    failure = asyncio.CancelledError("original preparation cancellation") if has_primary else None
+    secondary = OSError("synthetic fsync failure")
+
+    def fail_fsync(_fd):
+        raise secondary
+
+    monkeypatch.setattr(native_profile.os, "fsync", fail_fsync)
+    if has_primary:
+        evidence = journal.finish(failure)
+        assert evidence["error_type"] == "CancelledError"
+        assert any("startup journal finalization failure" in note for note in failure.__notes__)
+    else:
+        with pytest.raises(OSError) as caught:
+            journal.finish()
+        assert caught.value is secondary
+        evidence = journal.evidence
+        assert evidence["error_type"] == "OSError"
+    assert journal._file is None and evidence["complete"] is False
+    assert evidence["sample_count"] == 1 and evidence["bytes"] == journal.path.stat().st_size
+
+
+def test_startup_journal_close_failure_remains_reachable_and_refuses_next_generation(tmp_path):
+    journal = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    journal.open()
+    journal.append({"ram_used_bytes": 10})
+    original = journal._file
+
+    class FailedClose:
+        flush = original.flush
+        fileno = original.fileno
+
+        def close(self):
+            raise OSError("synthetic unresolved journal close")
+
+    retained = FailedClose()
+    journal._file = retained
+    try:
+        with pytest.raises(OSError, match="unresolved journal close"):
+            journal.finish()
+        assert journal._file is retained
+        assert journal.evidence["bytes"] is None and journal.evidence["sha256"] is None
+        assert journal.evidence["complete"] is False
+        bridge = _closing_bridge(tmp_path)
+        bridge._startup_journal = journal
+        bridge.startup_samples_evidence = journal.evidence
+        with pytest.raises(RuntimeError, match="refusing a new generation"):
+            asyncio.run(bridge.prepare(_route()))
+        assert bridge._startup_journal is journal
+        assert bridge.startup_samples_evidence is journal.evidence
+    finally:
+        original.close()  # Test owns the fake unresolved handle; no production retry.
+
+
+def test_startup_journal_create_only_and_resolved_containment(monkeypatch, tmp_path):
+    first = native_profile._StartupSampleJournal(tmp_path, _route(), 1)
+    first.open()
+    first.append({"ram_used_bytes": 1})
+    evidence = first.finish()
+    duplicate = native_profile._StartupSampleJournal(tmp_path, _route(), 2)
+    duplicate.path = first.path
+    with pytest.raises(FileExistsError):
+        duplicate.open()
+    assert first.path.read_bytes() and evidence["complete"] is True
+    assert not duplicate._file_created
+    escaping = native_profile._StartupSampleJournal(tmp_path, _route(), 3)
+    path_type, original_resolve = type(escaping.path), type(escaping.path).resolve
+
+    def resolve(path, *args, **kwargs):
+        return tmp_path.parent / "outside.jsonl" if path == escaping.path else original_resolve(path, *args, **kwargs)
+
+    monkeypatch.setattr(path_type, "resolve", resolve)
+    with pytest.raises(ValueError):
+        escaping.open()
+    assert escaping._file is None and not escaping.path.exists()
+
+
+def test_prepare_references_complete_startup_rows_without_embedding_arrays(monkeypatch, tmp_path):
+    import vllm_omni.edge.agent.native_app as native_app
+
+    class Backend:
+        execution_plan = None
+
+        def start(self):
+            self.execution_plan = {"requested_device": "cpu"}
+
+        def close(self):
+            return True
+
+    backend = Backend()
+    controller = SimpleNamespace(
+        backends={"r": backend}, routes=[SimpleNamespace(route_id="r")],
+        tools=SimpleNamespace(close=lambda: None), limits=SimpleNamespace(max_model_steps=6),
+        add_listener=lambda _listener: None,
+        admit=lambda _route: SimpleNamespace(admitted=True), close=lambda: None)
+    monkeypatch.setattr(native_app, "build_controller", lambda _path: (controller, {"synthetic_fixture": True}))
+    monkeypatch.setattr(native_profile, "_FixtureForegroundScreen", lambda: object())
+    monkeypatch.setattr(native_profile, "ManagedEdgeBrowser", lambda **_kwargs: object())
+    monkeypatch.setattr(native_profile, "ReadOnlyFixtureTools", lambda *_args, **_kwargs: object())
+    sample = {"ram_used_bytes": 7, "vram_used_bytes": None,
+              "bound_process_cpu_memory": {"unknowns": [{"reason": "denied"}]}}
+    bridge = NativeProfileBridge(native_config={"routes": [{"route_id": "r"}]},
+        config_root=tmp_path / "configs", private_root=tmp_path / "private",
+        fixture_origin="http://127.0.0.1:1", telemetry=SimpleNamespace(sample=lambda: sample))
+    try:
+        preparation = asyncio.run(bridge.prepare(_route()))
+        details = preparation.details
+        assert details["load_samples_storage"] == "jsonl_sidecar_v1"
+        assert "bound_process_cpu_load_samples" not in details
+        assert "native_process_gpu_load_samples" not in details
+        reference = details["startup_samples"]
+        assert reference == bridge.startup_samples_evidence
+        assert reference["binding"]["preparation_sequence"] == 1
+        assert reference["binding"]["route_id"] == "r"
+        rows = [json.loads(line) for line in (tmp_path / reference["path"]).read_bytes().splitlines()]
+        assert len(rows) == details["sample_count"] == reference["sample_count"]
+        assert all(row["telemetry"] == sample for row in rows)
+        assert details["ram_used_bytes_sampled_peak"] == 7
+        assert details["vram_used_bytes_sampled_peak"] is None
+        assert details["sampled_peaks_are_lower_bounds"] is True
+        assert details["native_gpu_startup_peak_covered"] is False
+    finally:
+        bridge.close()
+    assert bridge.startup_samples_evidence is not None  # Retained after terminal close.
+
+
 def test_lineage_binds_exact_native_hash_and_projector():
     native = {"routes": [{
         "route_id": "r", "model": "model", "artifact_id": "artifact",
@@ -670,10 +904,12 @@ def test_early_failed_prepare_clears_prior_generation_close_and_browser_mode(tmp
     bridge.controller_close_evidence = {"resource_snapshot": {"prior_generation_empty": True}}
     bridge.process_memory_close_receipt = {"prior_generation_close": True}
     bridge._profile_browser = SimpleNamespace(_headless=True)
+    bridge.startup_samples_evidence = {"prior_generation": True}
     with pytest.raises((RuntimeError, KeyError)):
         asyncio.run(bridge.prepare(_route()))  # No routes: before controller/native construction.
     assert bridge.controller_close_evidence is None
     assert bridge.process_memory_close_receipt is None
+    assert bridge.startup_samples_evidence is None
     assert bridge.browser_mode["actual"] is None
     bridge.process_memory_attribution = True
     bridge.telemetry = SimpleNamespace(end_controller_processes=lambda **_kwargs: pytest.fail(
@@ -741,6 +977,8 @@ def test_index_keeps_route_closing_snapshot_and_browser_mode_even_without_attrib
         controller_close_evidence = None
         browser_mode = {"requested": "headless", "actual": "headless", "scope": "fake_constructor"}
         process_memory_close_receipt = None
+        startup_samples_evidence = {"schema": "omni-native-startup-samples-v1",
+            "complete": not interrupted, "binding": {"synthetic_fixture": True}}
 
         def __init__(self, **kwargs):
             captured.update(kwargs)
@@ -800,6 +1038,7 @@ def test_index_keeps_route_closing_snapshot_and_browser_mode_even_without_attrib
     assert result["browser_mode"]["actual"] == "headless"
     assert result["controller_close_evidence"]["resource_snapshot"]["tool_token"] == (
         "quarantined" if close_fails else "released")
+    assert result["startup_samples_evidence"] == Bridge.startup_samples_evidence
     assert result["status"] == (
         "interrupted" if interrupted else ("failed_close" if close_fails else "evidence_recorded"))
 

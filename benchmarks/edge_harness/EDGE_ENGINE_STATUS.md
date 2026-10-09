@@ -1,10 +1,14 @@
-# Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
+# Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
+
+2026-10-10 最新实现：[冷启动采样流式 sidecar 与原生回归](results/strata_20261008/agent_native_startup_sidecar_validation.json)已完成。完整原始采样逐行写入受控 JSONL，preparation／route_prepare 只保存关闭后的哈希、大小、计数与峰值引用；原有 16／32／40 MiB 验证上限和模型／预算配置不变。实际原生回归 **152/152**、私有审计器 **62/62**、当前缓存配置回归 **10/10** 均通过，EXIT 0；源码稳定，未启动模型或浏览器进程，三个生产改动文件 Ruff 通过。新版真实模型 smoke 的配置准备已 EXIT 0，尚未产生新的神经执行结果。首轮准备命令的文件名错误及下方原始模型运行的两项超限失败均保留。
+
+下一步使用冻结源码执行新版 4 GiB 专家缓存的模型→浏览器→模型 smoke，再验证该路线取消／恢复及 batch=1、单活跃请求的三档各 20 次＋30 分钟顺序协议。冷准备计时包含采样序列化、写入、fsync 和关闭后哈希，不能称为纯模型加载。当前无默认／发布资格，也未证明物理 SSD I/O 或聚合内存硬上限。
 
 2026-10-09 最新闭合证据：[原生 GPU＋真实浏览器＋Strata Q2 功能链审计](results/strata_20261008/agent_native_gpu_browser_smoke_closed_review.json)确认 **9/9 条指定 fixture 请求、18 次实际模型调用**。独立 4 GiB 专家 RAM 缓存路线在 Windows 原生环境完成模型→浏览器 open/read→模型→最终回答；使用正常应用 GPU factory，实际 RTX 5090 Laptop 的 CUDA／LUID／VRAM 池身份匹配。1,602 项源码及运行时前后一致。已绑定的 10 个浏览器对象、观察 helper、GPU provider／两张适配器句柄均闭合，模型退场，四个共享资源池预留归零，无 owner／隔离项；不宣称全部后代身份覆盖或 helper 独占归属。
 
 **原实验仍为 EXIT 1，未获默认或发布资格。** 主验证失败是 route_prepare 的 37,848,461 字节记录超过 32 MiB；收尾另因 48,131,065 字节 preparation 超过 40 MiB 失败，两项原始失败均保留。上述功能结论来自固定原始文件的独立离线哈希／完整链核对。每档只有 1 次预热和 2 次测量：short **24.266／24.692 s**、medium **24.845／26.134 s**、long **32.142／32.569 s**，不能授予完整协议或 p95 资格。冷准备 **1,641.487 s（约 27.36 分钟）**含完整性校验及启动，不是纯加载时间；当前功能链仍未达到普通回答 10 秒目标。
 
-[完整协议 profiler 的定向原生回归](results/strata_20261008/agent_native_profile_full_protocol_validation.json) **129/129 通过，EXIT 0**，46 项源码前后一致，0 进程启动尝试／来源违规／跳过。已合入显式 `--browser-headless`（前台视觉任务提前拒绝）、同一控制器关闭后的真实资源快照，以及成功／失败／取消时的模式和关闭证据；这些无模型测试不继承前述冻结源码的神经运行资格。下一步将冷启动采样改为保留完整原始行的有界 JSONL sidecar，维持现有验证上限，然后验证当前 4 GiB 路线的取消／恢复及 batch=1、单活跃请求的三档各 20 次＋30 分钟顺序协议。物理 SSD I/O、聚合内存硬上限、Q4 SSD 路线全面资格、DeepSeek 完整运行和手机常驻资格仍未完成。
+[完整协议 profiler 的定向原生回归](results/strata_20261008/agent_native_profile_full_protocol_validation.json) **129/129 通过，EXIT 0**，46 项源码前后一致，0 进程启动尝试／来源违规／跳过。已合入显式 `--browser-headless`（前台视觉任务提前拒绝）、同一控制器关闭后的真实资源快照，以及成功／失败／取消时的模式和关闭证据；这些无模型测试不继承前述冻结源码的神经运行资格。冷启动 JSONL sidecar 已按文首记录合入；新版神经 smoke、当前 4 GiB 路线的取消／恢复，以及 batch=1、单活跃请求的三档各 20 次＋30 分钟顺序协议仍待完成。物理 SSD I/O、聚合内存硬上限、Q4 SSD 路线全面资格、DeepSeek 完整运行和手机常驻资格仍未完成。
 
 2026-10-09 14:16:12 UTC 最新闭合进展：[正常应用配置的真实浏览器资源表征](results/strata_20261008/agent_normal_browser_characterization_validation.json) **1/1 通过，EXIT 0**。两代冷启动均使用生产应用持有的 GPU factory，实际完成 **18 条只读 open/read 链、36 个有序工具结果**，无重试；准确 RTX 5090 Laptop 的 NVML／CUDA／WDDM 身份关联到同一个 Omni VRAM 池。133 条 CPU／GPU 采样中，两代各有 **31 条至少间隔 0.2 秒的完整 live 观察**。各代有限绑定集合、必须观察的 helper、provider／adapter 句柄及工具租约已正常关闭，最终真实字节账本 RAM／commit／VRAM 预留归零，无 owner／隔离项；采样器、观察句柄与页面夹具均关闭。
 
