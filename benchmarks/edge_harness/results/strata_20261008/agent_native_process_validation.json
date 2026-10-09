@@ -1,0 +1,411 @@
+{
+  "schema": "omni-agent-native-process-validation-v1",
+  "updated_utc": "2026-10-09T10:17:14.607302+00:00",
+  "scope": "Trusted fixed helper/browser integration. No neural inference, performance qualification or exhaustive descendant identity proof.",
+  "runs": [
+    {
+      "version": 2,
+      "private_receipt_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\postfreeze-agent-process-checks-20261009-v2\\receipt.json",
+      "private_receipt_sha256": "9483c0aa860d874a1f75d5478f9f25d0008337c7d44bb4d4af3b67b19b45b436",
+      "schema": "omni-private-owned-native-process-tests-v2",
+      "started_unix": 1791539920.3124826,
+      "finished_unix": 1791539921.1689851,
+      "errors": [
+        {
+          "type": "RuntimeError",
+          "message": "unexpected owned executable for PID 66688"
+        }
+      ],
+      "forced_cleanup": true,
+      "final_job_accounting": {
+        "total_processes": 3,
+        "active_processes": 0,
+        "terminated_processes": 0
+      },
+      "notification_pids_unretained": [
+        66688
+      ],
+      "owned_processes_drained": false,
+      "controlled_process_cohort_passed": false,
+      "harness_before": {
+        "run_process_tests.py": {
+          "sha256": "75344ef8321b74e5cd35b24b90497a3737c0d0317ca091485ebcd9868d1a0430",
+          "bytes": 17506
+        },
+        "pytest_child.py": {
+          "sha256": "f7ed2591861a29ce09ae1f1acc9e3816dbfb5b0e7127ab121434c8cefa5d8855",
+          "bytes": 15631
+        },
+        "win32_job.py": {
+          "sha256": "77f7e1136f376048335ba7d74ac0f0e1167a3916ec70f3c31e0670d39e41f093",
+          "bytes": 11324
+        }
+      },
+      "installed_paths": {
+        "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe": {
+          "bytes": 274424,
+          "mtime_ns": 1789545008071026200,
+          "sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+        },
+        "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\python.exe": {
+          "bytes": 104952,
+          "mtime_ns": 1744088256000000000,
+          "sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\node.exe": {
+          "bytes": 93580104,
+          "mtime_ns": 1791188229735499200,
+          "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\package\\cli.js": {
+          "bytes": 839,
+          "mtime_ns": 1791188229738503600,
+          "sha256": "f1c4075aef116c766092250d7f37b3249a7cee6465d953207fc38c8f6145becd"
+        },
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe": {
+          "bytes": 5403976,
+          "mtime_ns": 1791146882255488500,
+          "sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0"
+        }
+      }
+    },
+    {
+      "version": 3,
+      "private_receipt_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\postfreeze-agent-process-checks-20261009-v3\\receipt.json",
+      "private_receipt_sha256": "e280c3d8f3f986aa6e96215ac595bf707e6eb1088d1726b02353d198b23b9dc0",
+      "schema": "omni-private-owned-native-process-tests-v3",
+      "started_unix": 1791540563.1858287,
+      "finished_unix": 1791540564.2074413,
+      "errors": [
+        {
+          "type": "RuntimeError",
+          "message": "unexpected owned executable for PID 62524: C:\\Windows\\System32\\conhost.exe birth 134360141639189864"
+        }
+      ],
+      "forced_cleanup": true,
+      "final_job_accounting": {
+        "total_processes": 3,
+        "active_processes": 0,
+        "terminated_processes": 0
+      },
+      "notification_pids_unretained": [],
+      "owned_processes_drained": false,
+      "controlled_process_cohort_passed": false,
+      "harness_before": {
+        "run_process_tests.py": {
+          "sha256": "4f6cdf3cc623f5200aa164399658f381345c9e273291b6c350caeaecf5c55bd7",
+          "bytes": 18028
+        },
+        "pytest_child.py": {
+          "sha256": "f7ed2591861a29ce09ae1f1acc9e3816dbfb5b0e7127ab121434c8cefa5d8855",
+          "bytes": 15631
+        },
+        "win32_job.py": {
+          "sha256": "77f7e1136f376048335ba7d74ac0f0e1167a3916ec70f3c31e0670d39e41f093",
+          "bytes": 11324
+        }
+      },
+      "installed_paths": {
+        "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe": {
+          "bytes": 274424,
+          "mtime_ns": 1789545008071026200,
+          "sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+        },
+        "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\python.exe": {
+          "bytes": 104952,
+          "mtime_ns": 1744088256000000000,
+          "sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\node.exe": {
+          "bytes": 93580104,
+          "mtime_ns": 1791188229735499200,
+          "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\package\\cli.js": {
+          "bytes": 839,
+          "mtime_ns": 1791188229738503600,
+          "sha256": "f1c4075aef116c766092250d7f37b3249a7cee6465d953207fc38c8f6145becd"
+        },
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe": {
+          "bytes": 5403976,
+          "mtime_ns": 1791146882255488500,
+          "sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0"
+        }
+      }
+    },
+    {
+      "version": 4,
+      "private_receipt_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\postfreeze-agent-process-checks-20261009-v4\\receipt.json",
+      "private_receipt_sha256": "856fb1f66505d81975b7c1681f4752fe16c60244385c14a54db2ee0dfc627971",
+      "schema": "omni-private-owned-native-process-tests-v4",
+      "started_unix": 1791540645.80796,
+      "finished_unix": 1791540672.9853957,
+      "errors": [
+        {
+          "type": "RuntimeError",
+          "message": "cannot retain exact owned process 152000: Win32 87"
+        }
+      ],
+      "forced_cleanup": true,
+      "final_job_accounting": {
+        "total_processes": 11,
+        "active_processes": 0,
+        "terminated_processes": 0
+      },
+      "notification_pids_unretained": [
+        152000
+      ],
+      "owned_processes_drained": false,
+      "controlled_process_cohort_passed": false,
+      "harness_before": {
+        "run_process_tests.py": {
+          "sha256": "7160694d62e3e27440cf23a61f07de6853f4cb7af3bf40bd117c6ab60fb283dc",
+          "bytes": 18455
+        },
+        "pytest_child.py": {
+          "sha256": "f7ed2591861a29ce09ae1f1acc9e3816dbfb5b0e7127ab121434c8cefa5d8855",
+          "bytes": 15631
+        },
+        "win32_job.py": {
+          "sha256": "77f7e1136f376048335ba7d74ac0f0e1167a3916ec70f3c31e0670d39e41f093",
+          "bytes": 11324
+        }
+      },
+      "installed_paths": {
+        "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe": {
+          "bytes": 274424,
+          "mtime_ns": 1789545008071026200,
+          "sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+        },
+        "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\python.exe": {
+          "bytes": 104952,
+          "mtime_ns": 1744088256000000000,
+          "sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\node.exe": {
+          "bytes": 93580104,
+          "mtime_ns": 1791188229735499200,
+          "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\package\\cli.js": {
+          "bytes": 839,
+          "mtime_ns": 1791188229738503600,
+          "sha256": "f1c4075aef116c766092250d7f37b3249a7cee6465d953207fc38c8f6145becd"
+        },
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe": {
+          "bytes": 5403976,
+          "mtime_ns": 1791146882255488500,
+          "sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0"
+        },
+        "C:\\Windows\\System32\\conhost.exe": {
+          "bytes": 1003520,
+          "mtime_ns": 1788982105817070000,
+          "sha256": "e449bce01f275cd08f3d4e64bb73b3b43ae845a0dbdb3e6131426e66537705e5"
+        }
+      }
+    },
+    {
+      "version": 5,
+      "private_receipt_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\postfreeze-agent-process-checks-20261009-v5\\receipt.json",
+      "private_receipt_sha256": "c4f704fdc502e42a60be281ebc14668846b0368590f4fa9e6ba1d3ce9e23efa7",
+      "schema": "omni-private-owned-native-process-tests-v5",
+      "started_unix": 1791540862.7752757,
+      "finished_unix": 1791540910.278192,
+      "errors": [],
+      "forced_cleanup": false,
+      "final_job_accounting": {
+        "total_processes": 104,
+        "active_processes": 0,
+        "terminated_processes": 0
+      },
+      "notification_pids_unretained": [
+        1056,
+        8840,
+        11696,
+        28384,
+        52264,
+        54208,
+        92808,
+        119996,
+        123940,
+        136596
+      ],
+      "owned_processes_drained": false,
+      "controlled_process_cohort_passed": true,
+      "harness_before": {
+        "run_process_tests.py": {
+          "sha256": "fdc90c29dce1b5976f96a94fb31ad5429243d3fb787839fafafc814391d22bb6",
+          "bytes": 20126
+        },
+        "pytest_child.py": {
+          "sha256": "f7ed2591861a29ce09ae1f1acc9e3816dbfb5b0e7127ab121434c8cefa5d8855",
+          "bytes": 15631
+        },
+        "win32_job.py": {
+          "sha256": "77f7e1136f376048335ba7d74ac0f0e1167a3916ec70f3c31e0670d39e41f093",
+          "bytes": 11324
+        }
+      },
+      "installed_paths": {
+        "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe": {
+          "bytes": 274424,
+          "mtime_ns": 1789545008071026200,
+          "sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+        },
+        "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\python.exe": {
+          "bytes": 104952,
+          "mtime_ns": 1744088256000000000,
+          "sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\node.exe": {
+          "bytes": 93580104,
+          "mtime_ns": 1791188229735499200,
+          "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
+        },
+        "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\package\\cli.js": {
+          "bytes": 839,
+          "mtime_ns": 1791188229738503600,
+          "sha256": "f1c4075aef116c766092250d7f37b3249a7cee6465d953207fc38c8f6145becd"
+        },
+        "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe": {
+          "bytes": 5403976,
+          "mtime_ns": 1791146882255488500,
+          "sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0"
+        },
+        "C:\\Windows\\System32\\conhost.exe": {
+          "bytes": 1003520,
+          "mtime_ns": 1788982105817070000,
+          "sha256": "e449bce01f275cd08f3d4e64bb73b3b43ae845a0dbdb3e6131426e66537705e5"
+        }
+      },
+      "process_identity_gaps": [
+        {
+          "pid": 1056,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 119996,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 136596,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 123940,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 28384,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 8840,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 52264,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 92808,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 11696,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 54208,
+          "win32_error": 87,
+          "scope": "Job NEW_PROCESS observed; identity unavailable/absent at OpenProcess query; not retained retirement proof"
+        },
+        {
+          "pid": 118076,
+          "parent_pid": null,
+          "scope": "Retained owned Job member; exact parent ancestry unavailable"
+        },
+        {
+          "pid": 42744,
+          "parent_pid": null,
+          "scope": "Retained owned Job member; exact parent ancestry unavailable"
+        },
+        {
+          "pid": 22936,
+          "parent_pid": null,
+          "scope": "Retained owned Job member; exact parent ancestry unavailable"
+        }
+      ],
+      "owned_job_drained": true,
+      "selected_sources_stable": true,
+      "harness_sources_stable": true,
+      "installed_paths_stable": true,
+      "child_receipt": {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\postfreeze-agent-process-checks-20261009-v5\\child-receipt.json",
+        "sha256": "fc13cf4ef1411acef07a43304b5a66712843ff30179ccdc27f2953e68472e8b3",
+        "selected_process_tests_passed": true
+      }
+    }
+  ],
+  "qualification_created": false,
+  "latest_functional_result": {
+    "pytest_exit_code": 0,
+    "collected_items": 8,
+    "junit": {
+      "present": true,
+      "sha256": "8cbdb70699d4194b9e66b14a9a04e651f6f14e748b284d190e0fc6d074c93476",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "selected_sources_stable": true,
+    "asyncio_plugin_registered": true,
+    "reviewed_launch_counts_match": true,
+    "runtime_versions": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "playwright": "1.63.0",
+      "psutil": "7.2.2",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "torch": "2.13.0+cu130",
+      "triton": null
+    },
+    "pytest_summary": "8 passed, 14 warnings in 37.39s",
+    "fixed_helper_launches": 3,
+    "approved_node_launches": 8,
+    "job_total_processes": 104,
+    "identity_gap_count": 13,
+    "exhaustive_identity_drain_verified": false
+  },
+  "native_browser_attribution": {
+    "private_receipt_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\postfreeze-agent-process-checks-20261009-v5\\pytest-tmp\\test_native_owned_browser_memo0\\native-browser-memory-receipt.json",
+    "private_receipt_sha256": "8e78f9c3b5e786f800b8ab617399523ad256f134970d268168690e5c489145a1",
+    "sampled_roles": [
+      "agent",
+      "edge_browser",
+      "edge_gpu",
+      "edge_renderer",
+      "playwright_node"
+    ],
+    "bound_set_drain_verified": true,
+    "browser_worker_joined": true,
+    "observer_callback_error_count": 0,
+    "observer_handles_closed": true,
+    "all_descendants_retired": false,
+    "model_created": false,
+    "tool_budget_derived": false,
+    "memory_cap_verified": false
+  },
+  "scope_revision": "V2/v3 rejected the startup console host; v3 retained its exact identity. V4 retained the console host but failed when an owned short-lived helper delegate disappeared before OpenProcess. V5 preserves absent/parent-unknown identities as gaps. Direct approved children remain retained before Resume; known image/identity mismatches still fail. Functional success requires eight tests, exact launch counts, unchanged sources/origins/files, no forced cleanup, and zero active members of the non-breakaway owned Job. The older complete-identity drain flag remains false; functional success does not reinterpret it."
+}
