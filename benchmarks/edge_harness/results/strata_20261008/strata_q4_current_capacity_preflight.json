@@ -1,0 +1,331 @@
+{
+  "schema": "omni-strata-q4-current-capacity-projection-v1",
+  "status": "current_capacity_refused_before_neural_execution",
+  "scope": "Content-free projection of one captured Windows capacity preflight; not raw receipt, permanent model support conclusion or a model execution.",
+  "private_input_raw_sha256": "dc98e182ce8399a9c7106845fbe2ec6ff816b7554c41d9074fd0758852a23dc2",
+  "captured_utc": "2026-10-09T02:26:45Z",
+  "collector_source_sha256": "31c9137c07dbec5d67f39a4d7d24d52c630d5c6c368ecacbcaa28686884ac7b3",
+  "artifact": {
+    "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+    "revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+    "license": "Qwen Community License 1.0",
+    "hash_origin": "declared",
+    "files": [
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+        "size_bytes": 10946624,
+        "sha256": "4448186216b3af4cc558bbce2c3213f01608f8f8b2e5267a9767971dd3ec8082",
+        "role": "weights",
+        "quantization": "Unsloth UD-Q4_K_XL mixed",
+        "layout": "GGUF"
+      },
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf",
+        "size_bytes": 49859583136,
+        "sha256": "3f342f1c1580473f1ee94ddd5b28206e8c07a70fa1a366f59d1d6c922919a6c9",
+        "role": "weights",
+        "quantization": "Unsloth UD-Q4_K_XL mixed",
+        "layout": "GGUF"
+      },
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00003-of-00004.gguf",
+        "size_bytes": 49376141504,
+        "sha256": "56758f40269cad5cd9b0d3d6fbae0f40f6d5be6de49e4ab392dbe83157d9cbd3",
+        "role": "weights",
+        "quantization": "Unsloth UD-Q4_K_XL mixed",
+        "layout": "GGUF"
+      },
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00004-of-00004.gguf",
+        "size_bytes": 12087983520,
+        "sha256": "753bda48b98ba4f1636134a90a967de1b2d3908a236c026e464777342e53510a",
+        "role": "weights",
+        "quantization": "Unsloth UD-Q4_K_XL mixed",
+        "layout": "GGUF"
+      }
+    ]
+  },
+  "typed_source_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+  "complete_source_weight_bytes": 111334654784,
+  "prepared_pack_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+  "prepared_pack_bytes": 1496075596,
+  "combined_runtime_disk_bytes_from_closed_assembly_receipt": 2231664083,
+  "snapshot": {
+    "host_ram_available_bytes": 21649776640,
+    "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+    "gpu_total_bytes": 25651314688,
+    "gpu_free_bytes": 21268889600,
+    "gpu_source": "NVML exact bytes",
+    "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+    "windows_commit_available_bytes": 73187446784,
+    "windows_host_available_bytes": 21649776640,
+    "wsl_ram_available_bytes": null,
+    "is_wsl": false,
+    "windows_host_verification": "measured",
+    "captured_unix_s": 1791512805.4840014
+  },
+  "pool_capacities": {
+    "host_ram": 21649776640,
+    "vram:0": 21268889600,
+    "windows_commit": 73187446784,
+    "ssd": 842759421535
+  },
+  "windows_volume_free_bytes": 727697027072,
+  "ssd_capacity_scope": "Ledger capacity equals measured free volume bytes plus already present declared route artifact bytes; not all physically free SSD bytes.",
+  "observer_workspace_bytes_added": 2147483648,
+  "observer_receipt_storage_bytes_added": 16777216,
+  "budget_rule": "base8GiB cache delta added to RAM/loading/commit; observer workspace added once; preserve absolute base40GiB commit claim",
+  "preserved_controls": {
+    "native_file": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+    "ple_file": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf",
+    "gpu_total_bytes": 25651314688,
+    "gpu_budget_bytes": 17179869184,
+    "gpu_pool": "vram:0",
+    "gpu_index": 0,
+    "context_tokens": 4096,
+    "max_new_tokens": 512,
+    "max_io_bytes": 1048576,
+    "spec_tokens": 0,
+    "ple_prefetch": false,
+    "routing_prefetch": false,
+    "io_prefetch": false,
+    "io_mode": "auto",
+    "ple_io": "direct",
+    "kv_type": "fp16"
+  },
+  "outcomes": [
+    {
+      "expert_ram_gib": 24,
+      "budget": {
+        "gpu_weights_bytes": 6442450944,
+        "gpu_expert_cache_bytes": 8053063680,
+        "cpu_resident_weights_bytes": 268435456,
+        "cpu_mapped_weights_bytes": 1610612736,
+        "cpu_expert_cache_bytes": 25769803776,
+        "pinned_bytes": 805306368,
+        "host_kv_bytes": 0,
+        "gpu_kv_bytes": 536870912,
+        "host_workspace_bytes": 3758096384,
+        "gpu_workspace_bytes": 1073741824,
+        "host_transfer_bytes": 1048576,
+        "gpu_transfer_bytes": 268435456,
+        "host_headroom_bytes": 2147483648,
+        "gpu_headroom_bytes": 805306368,
+        "host_loading_peak_bytes": 34360786944,
+        "gpu_loading_peak_bytes": 17179869184,
+        "windows_commit_peak_bytes": 62277025792,
+        "ssd_artifact_bytes": 115062394463,
+        "ssd_temporary_bytes": 4311744512
+      },
+      "demands": {
+        "host_ram": 34360786944,
+        "vram:0": 17179869184,
+        "windows_commit": 62277025792,
+        "ssd": 119374138975
+      },
+      "fresh_capacity_over_pools": [
+        "host_ram"
+      ],
+      "ledger_refusal": "host_ram: 0 reserved + 34360786944 requested > 21649776640",
+      "production_live_refusal": "Strata fresh admission refused: host_ram: required=34360786944, host_ram_available_bytes=21649776640; host_ram: required=34360786944, windows_host_available_bytes=21649776640",
+      "fresh_capacity_admitted": false,
+      "headroom_bytes": {
+        "host_ram": -12711010304,
+        "vram:0": 4089020416,
+        "windows_commit": 10910420992,
+        "ssd": 723385282560
+      },
+      "ledger_reserved_after": {
+        "host_ram": 0,
+        "vram:0": 0,
+        "windows_commit": 0,
+        "ssd": 0
+      },
+      "old_preparation_ceiling_reused": false
+    },
+    {
+      "expert_ram_gib": 32,
+      "budget": {
+        "gpu_weights_bytes": 6442450944,
+        "gpu_expert_cache_bytes": 8053063680,
+        "cpu_resident_weights_bytes": 268435456,
+        "cpu_mapped_weights_bytes": 1610612736,
+        "cpu_expert_cache_bytes": 34359738368,
+        "pinned_bytes": 805306368,
+        "host_kv_bytes": 0,
+        "gpu_kv_bytes": 536870912,
+        "host_workspace_bytes": 3758096384,
+        "gpu_workspace_bytes": 1073741824,
+        "host_transfer_bytes": 1048576,
+        "gpu_transfer_bytes": 268435456,
+        "host_headroom_bytes": 2147483648,
+        "gpu_headroom_bytes": 805306368,
+        "host_loading_peak_bytes": 42950721536,
+        "gpu_loading_peak_bytes": 17179869184,
+        "windows_commit_peak_bytes": 70866960384,
+        "ssd_artifact_bytes": 115062394463,
+        "ssd_temporary_bytes": 4311744512
+      },
+      "demands": {
+        "host_ram": 42950721536,
+        "vram:0": 17179869184,
+        "windows_commit": 70866960384,
+        "ssd": 119374138975
+      },
+      "fresh_capacity_over_pools": [
+        "host_ram"
+      ],
+      "ledger_refusal": "host_ram: 0 reserved + 42950721536 requested > 21649776640",
+      "production_live_refusal": "Strata fresh admission refused: host_ram: required=42950721536, host_ram_available_bytes=21649776640; host_ram: required=42950721536, windows_host_available_bytes=21649776640",
+      "fresh_capacity_admitted": false,
+      "headroom_bytes": {
+        "host_ram": -21300944896,
+        "vram:0": 4089020416,
+        "windows_commit": 2320486400,
+        "ssd": 723385282560
+      },
+      "ledger_reserved_after": {
+        "host_ram": 0,
+        "vram:0": 0,
+        "windows_commit": 0,
+        "ssd": 0
+      },
+      "old_preparation_ceiling_reused": false
+    },
+    {
+      "expert_ram_gib": 40,
+      "budget": {
+        "gpu_weights_bytes": 6442450944,
+        "gpu_expert_cache_bytes": 8053063680,
+        "cpu_resident_weights_bytes": 268435456,
+        "cpu_mapped_weights_bytes": 1610612736,
+        "cpu_expert_cache_bytes": 42949672960,
+        "pinned_bytes": 805306368,
+        "host_kv_bytes": 0,
+        "gpu_kv_bytes": 536870912,
+        "host_workspace_bytes": 3758096384,
+        "gpu_workspace_bytes": 1073741824,
+        "host_transfer_bytes": 1048576,
+        "gpu_transfer_bytes": 268435456,
+        "host_headroom_bytes": 2147483648,
+        "gpu_headroom_bytes": 805306368,
+        "host_loading_peak_bytes": 51540656128,
+        "gpu_loading_peak_bytes": 17179869184,
+        "windows_commit_peak_bytes": 79456894976,
+        "ssd_artifact_bytes": 115062394463,
+        "ssd_temporary_bytes": 4311744512
+      },
+      "demands": {
+        "host_ram": 51540656128,
+        "vram:0": 17179869184,
+        "windows_commit": 79456894976,
+        "ssd": 119374138975
+      },
+      "fresh_capacity_over_pools": [
+        "host_ram",
+        "windows_commit"
+      ],
+      "ledger_refusal": "host_ram: 0 reserved + 51540656128 requested > 21649776640",
+      "production_live_refusal": "Strata fresh admission refused: host_ram: required=51540656128, host_ram_available_bytes=21649776640; windows_commit: required=79456894976, windows_commit_available_bytes=73187446784; host_ram: required=51540656128, windows_host_available_bytes=21649776640",
+      "fresh_capacity_admitted": false,
+      "headroom_bytes": {
+        "host_ram": -29890879488,
+        "vram:0": 4089020416,
+        "windows_commit": -6269448192,
+        "ssd": 723385282560
+      },
+      "ledger_reserved_after": {
+        "host_ram": 0,
+        "vram:0": 0,
+        "windows_commit": 0,
+        "ssd": 0
+      },
+      "old_preparation_ceiling_reused": false
+    }
+  ],
+  "input_metadata_identities": [
+    {
+      "index": 0,
+      "size_bytes": 6252,
+      "sha256": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b"
+    },
+    {
+      "index": 1,
+      "size_bytes": 19538,
+      "sha256": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75"
+    },
+    {
+      "index": 2,
+      "size_bytes": 135665,
+      "sha256": "df3d38c21fd3d8d26c55dce8fd349122533ab84559177bcb013884ca4cd1651a"
+    },
+    {
+      "index": 3,
+      "size_bytes": 964708,
+      "sha256": "cb2fbfb2cdb6fefdb342c7429fa6075ae8475d03fbf548f2e752f0a06a62c314"
+    },
+    {
+      "index": 4,
+      "size_bytes": 952848,
+      "sha256": "63267892b4c90892e4fadd35c7f0adbabe0309650f5deb0a6e59e7c6f5cc2ac5"
+    },
+    {
+      "index": 5,
+      "size_bytes": 3374,
+      "sha256": "ad693b15377e31379bd8baadc8c01b43da2960159a302ccf280f0cb792d6da8d"
+    },
+    {
+      "index": 6,
+      "size_bytes": 948,
+      "sha256": "30ea4776075e64d27a5ba273592c8d69e281f3d8b2e583f06598cea9373c36d0"
+    },
+    {
+      "index": 7,
+      "size_bytes": 3517,
+      "sha256": "1848b1c2b7606b28fb3255f0d1ff83cd95ee7adae1be213180273a0c7a945006"
+    }
+  ],
+  "production_sources_before_after_stable": true,
+  "source_execution_scope": "exact isolated resource_ledger module and weight_tiers AST minus only its ledger import; supplied real source ledger classes; exact two Strata capacity functions; no package/native/model imports",
+  "source_shard_current_check_scope": "Four declared shard sizes were checked. Published hashes are retained from the pinned manifest; model payloads were not rehashed in this capacity check.",
+  "source_shards_checked": [
+    {
+      "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+      "size_bytes": 10946624,
+      "mtime_ns": 1791436518029843600,
+      "expected_sha256": "4448186216b3af4cc558bbce2c3213f01608f8f8b2e5267a9767971dd3ec8082",
+      "current_content_rehashed": false
+    },
+    {
+      "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf",
+      "size_bytes": 49859583136,
+      "mtime_ns": 1791447286450393000,
+      "expected_sha256": "3f342f1c1580473f1ee94ddd5b28206e8c07a70fa1a366f59d1d6c922919a6c9",
+      "current_content_rehashed": false
+    },
+    {
+      "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00003-of-00004.gguf",
+      "size_bytes": 49376141504,
+      "mtime_ns": 1791455672627640000,
+      "expected_sha256": "56758f40269cad5cd9b0d3d6fbae0f40f6d5be6de49e4ab392dbe83157d9cbd3",
+      "current_content_rehashed": false
+    },
+    {
+      "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00004-of-00004.gguf",
+      "size_bytes": 12087983520,
+      "mtime_ns": 1791439787481762500,
+      "expected_sha256": "753bda48b98ba4f1636134a90a967de1b2d3908a236c026e464777342e53510a",
+      "current_content_rehashed": false
+    }
+  ],
+  "model_loaded": false,
+  "model_payload_read_or_hashed": false,
+  "runtime_bundle_scanned": false,
+  "launch_or_production_changed": false,
+  "runtime_static_verified_by_this_check": false,
+  "physical_peak_or_hard_cap_verified": false,
+  "qualification_created": false,
+  "historical_Q4_8GiB_results_scope": "Existing text and Agent results keep their own frozen sources and budgets; these larger-cache refusals do not invalidate or qualify those results.",
+  "elapsed_s": 0.2809999999590218,
+  "elapsed_scope": "Capacity preflight wall time only; not neural latency."
+}

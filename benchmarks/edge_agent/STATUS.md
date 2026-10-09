@@ -1,6 +1,9 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
-2026-10-09 latest: combined I/O/execution observation is integrated into the Stage,
+2026-10-09 latest: the current-source matching runtime passed [complete static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json).
+Registration is in progress; new-version model execution, cancellation/recovery and Agent rerun remain pending. Static success grants no live/default eligibility.
+
+2026-10-09 integration regression: combined I/O/execution observation is integrated into the Stage,
 runtime registrar, Agent route translation and result binding. Observer RAM, Windows commit
 and receipt storage are charged through the existing ledger.
 [Latest native Windows regression and raw logs](../edge_harness/results/strata_20261008/strata_execution_alias_native_unit_validation.json)
@@ -12,7 +15,7 @@ These are model-free checks; the historical Q2/IQ3/Q4 executions below retain th
 The new native engine compiled/linked and its separate complete runtime assembled.
 [Retained actual static failures](../edge_harness/results/strata_20261008/strata_execution_build_assembly_status.json)
 include the base experimental GGUF, CRLF, compile-record size and CUDA dependency-path projection.
-The cache and record-size repairs are integrated and tested. The latest full external diagnostic failed
+The cache and record-size repairs are integrated and tested. The last full external diagnostic against the old bundle failed
 at `target_dependency_projection_differs`: Ninja records Windows short CUDA header names while the
 collector resolves long names. Actual Win32 checks established matching file identity and bytes for
 all **11 exact pairs**, including archived compiler inputs. This is current namespace/content evidence,
@@ -20,19 +23,23 @@ not build-time execution attestation. The narrow consumer is integrated; selecte
 reconciled all 125 dependency records and passed subsequent PE/ABI reference checks. Those diagnostics
 skip full Bundle/Git/source prerequisites and authorize no registration or neural execution.
 The fresh matching runtime assembled successfully: 42,649 files, 2,231,664,083 bytes,
-maximum Windows path length 218. Actual full static verification is now running with its
-matched archived verifier, separately from old-bundle diagnostics. No registration or neural run yet.
-Old bundles/failures are retained; external diagnostics cannot authorize the unchanged old bundle.
-Combined-version full static verification, actual model parity, cancellation/recovery and Agent rerun
-remain pending. The existing Agent loop and historical 442-task scope below remain unchanged.
+maximum Windows path length 218. [Matching full static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json)
+completed with **EXIT 0 in 668.004 s**, covering archived members/source/build/target closure/PE and standalone fixture ABI records.
+This is static-check wall time, not model loading or inference. Actual owned engine ABI/native module eligibility is still unverified and `runtime_binding` is null.
+Registration is in progress; actual model parity, cancellation/recovery and Agent rerun remain pending.
+Old bundles/failures are retained. No default, memory-cap or physical SSD qualification is granted; historical 442-task results retain their sources.
+
+2026-10-09 **CURRENT-CAPACITY**: the [Q4 capacity projection](../edge_harness/results/strata_20261008/strata_q4_current_capacity_preflight.json) records UTC 02:26:45 availability of **20.16 GiB RAM / 68.16 GiB commit / 19.81 GiB GPU**.
+With a 2 GiB observer workspace, 24/32/40 GiB expert-cache plans need about 32/40/48 GiB host RAM plus 1 MiB and were all refused before neural execution; the 40 GiB plan also exceeds available commit.
+This is a time-specific capacity check with no payload rehash or new inference, not permanent Q4 incompatibility. Historical 8 GiB-cache executions keep their original scope.
 
 2026-10-09: the engine now includes optional execution-observation Stage lifecycle integration.
 [Model-free regression](../edge_harness/results/strata_20261008/strata_execution_stage_unit_validation.json)
 passed **105 tests and four subtests**, with five skips and Ruff clean. Coverage includes source-pinned
 adapter ownership, fresh per-generation receipts, bounded diagnostics and failure-safe cleanup.
 The WSL test environment's vLLM 0.28/Omni 0.29 warning is retained; this is not native Windows runtime validation.
-Final runtime source alignment, packaging, actual model parity/cancellation/recovery and Agent revalidation
-are pending. The existing Agent loop is unchanged. The 442-task results below retain their frozen source
+At that 105-test regression publication, runtime source alignment, packaging and actual model/Agent revalidation
+were pending; the later matching static result is above. The existing Agent loop is unchanged. The 442-task results below retain their frozen source
 identity and do not qualify this new optional engine path.
 
 2026-10-09: the frozen explicit-output Q2 route completed the actual
@@ -58,8 +65,8 @@ and empty final leases were verified. Public evidence preserves measured samples
 The basic fixture meets the 10 s p95 goal; browser text misses it. Power-scheme checks cover endpoints only.
 This completes the narrow fixed bilingual basic/browser protocol, not open-web quality, visual/settings/code tasks,
 other quantizations or mobile execution. Lineage, all-operator placement, physical SSD attribution, memory hard caps
-and default/release eligibility remain open. Next: actual execution-observer integration, paired cache/backend
-experiments and broader task qualification. Historical failures below retain their original scope.
+and default/release eligibility remain open. Next: actual neural validation of the integrated execution observer,
+paired cache/backend experiments and broader task qualification. Historical failures below retain their original scope.
 
 2026-10-09: the same frozen Q2 route passed an actual
 [NativeProfileBridge browser smoke](../edge_harness/results/strata_20261008/native_ista_q2_agent_native_profile_browser_smoke.json)

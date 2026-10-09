@@ -1,8 +1,8 @@
 {
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
-  "scope": "native_build_and_complete_assembly_no_model_execution",
-  "status": "matching_runtime_assembled_actual_full_static_verification_in_progress",
+  "scope": "native_build_complete_assembly_and_matching_static_records_no_model_execution",
+  "status": "matching_complete_runtime_static_records_verified_registration_in_progress",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -36,7 +36,7 @@
   "original_build_wrapper_failure": "phony Ninja dependency was treated as a physical file after successful native compile/link",
   "original_failed_wrapper_receipt_sha256": "60d12283b50c7786fcfeeda128e644fda1d4cffc7593fa1f38a32114e1adfede",
   "target_closure_supplement_sha256": "9f75c745caf79b6fa7aebf068f14682fd524e08a0fb3408c175e7aa36469f674",
-  "target_closure_scope": "separate archived physical inputs and recursively derived target graph; independent static verification incomplete",
+  "target_closure_scope": "strata target and recursive dependency archived inputs independently verified by matching full static check; 125 target TUs and 62 retained unexecuted configured TUs",
   "toolchain": {
     "MSVC": "19.44.35229",
     "NVCC": "13.4.59",
@@ -97,7 +97,7 @@
     "registration_authorized": false,
     "native_model_executed": false
   },
-  "complete_runtime_verified": false,
+  "complete_runtime_verified": true,
   "actual_owned_engine_ABI_verified": false,
   "runtime_qualification": false,
   "default_eligible": false,
@@ -171,7 +171,7 @@
     "size_bytes": 5420
   },
   "current_CUDA_header_alias_witness": {
-    "status": "exact_consumer_integrated_selected_actual_records_passed_full_matching_runtime_pending",
+    "status": "exact_consumer_verified_by_matching_complete_static_check_no_build_time_attestation",
     "receipt_sha256": "483ca972a331c6017808d5bdb68bed6561fd601fb1a7859b7e1b9d68ca6f92d6",
     "collector_sha256": "248a2c877f32bf2626bd0410a5f280632a4cc0535277b23e7de894fdf2902344",
     "diagnosis_sha256": "a4bf0d93f0be79cb36a724d00f6640dd9fa8dde17b569762dc830dfa85e57d6f",
@@ -184,7 +184,7 @@
     "static_runtime_eligibility": false,
     "static_consumer_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
   },
-  "next_action": "complete actual full static verification of this fresh matched runtime, then registration, native model reference/cancellation/recovery and actual Agent run",
+  "next_action": "complete actual runtime registration, then native model reference/cancellation/recovery and separate actual Agent run",
   "alias_native_regression": {
     "path": "strata_execution_alias_native_unit_validation.json",
     "sha256": "61374f5ed9db8cbc9f8684c8d5f5c611dd03ccac6e6739f4a25cac7a4a149b37",
@@ -207,14 +207,39 @@
     "static_verifier_source_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2",
     "stage_source_sha256": "df3d38c21fd3d8d26c55dce8fd349122533ab84559177bcb013884ca4cd1651a",
     "live_source_sha256": "de6c036b83092ab1782c61a56481df21b4ad9bd0938745d4db30527e026766fe",
-    "scope": "fresh matching runtime assembly only; native EXE unchanged; full static, registration and neural execution pending"
+    "scope": "Fresh matching runtime assembly only; native EXE unchanged. Subsequent matching full static result is recorded separately."
   },
   "matching_runtime_static_attempt": {
-    "status": "actual_full_static_in_progress",
+    "status": "static_records_verified_live_eligibility_unavailable",
     "producer_sha256": "c98cbb073bde4099909066f31a4c2f0026c29e8a89c47af8fa8b06069fea9ec3",
     "archived_verifier_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2",
     "external_successor_diagnostic": false,
     "registration_authorized": false,
-    "native_model_executed": false
+    "native_model_executed": false,
+    "terminal_exit_code": 0,
+    "raw_receipt": {
+      "path": "strata_execution_static_verification_v2_raw.json",
+      "size_bytes": 21590,
+      "sha256": "94eb623fbbfc65378ffe96f59bcd2df3cf2880ea8efb5434cc47a482214b0376"
+    },
+    "identity_sha256": "46bec9f5e6ec0cce68d0fa5fce671bad317e4deb7e6215aba1617f2d72f7e336",
+    "runtime_manifest_sha256": "f82fdd3e1e635d2c3eeff29510583d28272ef590ed5d693c0192e8dab95b217b",
+    "descriptor_sha256": "21cff9e1450593c63aa8a4163f84f512f54fd37abcfdeb866204a5443b66307a",
+    "elapsed_s": 668.0040124000516,
+    "elapsed_scope": "Retained root execution wall time for complete static verification only; not model load/inference latency.",
+    "runtime_eligible": false,
+    "runtime_binding": null,
+    "compiled_engine_ABI_verified": false,
+    "runtime_registration_status": "in_progress_not_completed"
+  },
+  "complete_runtime_verified_scope": "Complete archived member/source/build/PE/compiled standalone fixture records only; live owner/modules and actual engine ABI excluded",
+  "runtime_eligible": false,
+  "runtime_registration_status": "in_progress_not_completed",
+  "current_Q4_capacity_preflight": {
+    "path": "strata_q4_current_capacity_preflight.json",
+    "sha256": "c284330b7afc0c51be65fbdf95a0a55c0cf4d3d86dbd07f63aa837a587af63a0",
+    "size_bytes": 13039,
+    "captured_utc": "2026-10-09T02:26:45Z",
+    "scope": "Content-free current-capacity projection; 24/32/40 GiB expert caches refused before model execution; historical 8 GiB results unchanged."
   }
 }
