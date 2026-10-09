@@ -1,0 +1,41 @@
+{
+  "schema": "omni-strata-agent-live-progress-v1",
+  "observed_utc": "2026-10-09T10:38:17Z",
+  "run_id": "ista-q2-browser-memory-smoke-20261009-v1",
+  "phase": "preparing_actual_bridge",
+  "batch_size": 1,
+  "concurrency": 1,
+  "planned_attempts": 9,
+  "completed_request_count_not_yet_established": true,
+  "native_session_alive_at_observation": true,
+  "source_freeze_count": 1579,
+  "source_freeze_sha256": "a95f0b350df5f23b32c9cdf7f359d51159421faf511e8f570d08239cf07f8f1d",
+  "qualification_created": false,
+  "default_route_qualified": false,
+  "closed_evidence": false,
+  "new_tool_resource_lease_enabled": false,
+  "observed_files": {
+    "profile-owner-v2.json": {
+      "sha256": "d6dd86150d7ab28f4b8ad3e338baa04ac803e620959ddf1aa08528f537839ed0",
+      "bytes": 3666,
+      "scope": "observation_of_live_file_not_closed_evidence"
+    },
+    "profile/receipt.json": {
+      "sha256": "d6674708082e1e073b3706e1a39a04639739e2224faec818005d12d6ca7c2318",
+      "bytes": 6915,
+      "scope": "observation_of_live_file_not_closed_evidence"
+    },
+    "profile/phases.jsonl": {
+      "sha256": "a6919511b7c667254862b00c6fd75ed8b6ef19efe655f6bc914ea7548aca1acf",
+      "bytes": 140,
+      "scope": "observation_of_live_file_not_closed_evidence"
+    },
+    "source-freeze.json": {
+      "sha256": "a95f0b350df5f23b32c9cdf7f359d51159421faf511e8f570d08239cf07f8f1d",
+      "bytes": 328711,
+      "scope": "observation_of_live_file_not_closed_evidence"
+    }
+  },
+  "scope": "Fresh actual model-browser-model attribution cohort dispatched; preparation still active. No completed request, final source stability, retirement, or lease cleanup inferred.",
+  "next": "Wait for actual terminal state, then audit raw dependencies, attribution coverage, known writers, exact owners and leases before qualification."
+}
