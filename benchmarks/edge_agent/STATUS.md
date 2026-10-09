@@ -19,7 +19,9 @@ all **11 exact pairs**, including archived compiler inputs. This is current name
 not build-time execution attestation. The narrow consumer is integrated; selected actual-record diagnostics
 reconciled all 125 dependency records and passed subsequent PE/ABI reference checks. Those diagnostics
 skip full Bundle/Git/source prerequisites and authorize no registration or neural execution.
-A fresh matching runtime is being assembled separately.
+The fresh matching runtime assembled successfully: 42,649 files, 2,231,664,083 bytes,
+maximum Windows path length 218. Actual full static verification is now running with its
+matched archived verifier, separately from old-bundle diagnostics. No registration or neural run yet.
 Old bundles/failures are retained; external diagnostics cannot authorize the unchanged old bundle.
 Combined-version full static verification, actual model parity, cancellation/recovery and Agent rerun
 remain pending. The existing Agent loop and historical 442-task scope below remain unchanged.

@@ -2,7 +2,7 @@
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
   "scope": "native_build_and_complete_assembly_no_model_execution",
-  "status": "exact_alias_consumer_integrated_native_tests_passed_matching_runtime_assembly_in_progress",
+  "status": "matching_runtime_assembled_actual_full_static_verification_in_progress",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -184,10 +184,37 @@
     "static_runtime_eligibility": false,
     "static_consumer_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
   },
-  "next_action": "finish fresh matching runtime assembly, full static verification, then actual model reference/cancellation/recovery and Agent run",
+  "next_action": "complete actual full static verification of this fresh matched runtime, then registration, native model reference/cancellation/recovery and actual Agent run",
   "alias_native_regression": {
     "path": "strata_execution_alias_native_unit_validation.json",
     "sha256": "61374f5ed9db8cbc9f8684c8d5f5c611dd03ccac6e6739f4a25cac7a4a149b37",
     "size_bytes": 7000
+  },
+  "matching_runtime_assembly": {
+    "terminal_exit_code": 0,
+    "raw_receipt": {
+      "path": "strata_execution_assembly_v3_raw.json",
+      "sha256": "1848b1c2b7606b28fb3255f0d1ff83cd95ee7adae1be213180273a0c7a945006",
+      "size_bytes": 3517
+    },
+    "assembler_source_sha256": "edbecd185b4e341f6e2c54fc50e9fde476c4929a98c9bf2a166a4a407e8cf4d4",
+    "registry_sha256": "0f0bd0c3fbce19141dadb36e5fa57eaa62d01e192cbc6b6ec94ea7b84f885c74",
+    "manifest_sha256": "f82fdd3e1e635d2c3eeff29510583d28272ef590ed5d693c0192e8dab95b217b",
+    "descriptor_sha256": "21cff9e1450593c63aa8a4163f84f512f54fd37abcfdeb866204a5443b66307a",
+    "physical_files": 42649,
+    "physical_bytes": 2231664083,
+    "max_windows_full_path_chars": 218,
+    "static_verifier_source_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2",
+    "stage_source_sha256": "df3d38c21fd3d8d26c55dce8fd349122533ab84559177bcb013884ca4cd1651a",
+    "live_source_sha256": "de6c036b83092ab1782c61a56481df21b4ad9bd0938745d4db30527e026766fe",
+    "scope": "fresh matching runtime assembly only; native EXE unchanged; full static, registration and neural execution pending"
+  },
+  "matching_runtime_static_attempt": {
+    "status": "actual_full_static_in_progress",
+    "producer_sha256": "c98cbb073bde4099909066f31a4c2f0026c29e8a89c47af8fa8b06069fea9ec3",
+    "archived_verifier_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2",
+    "external_successor_diagnostic": false,
+    "registration_authorized": false,
+    "native_model_executed": false
   }
 }
