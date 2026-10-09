@@ -1,0 +1,263 @@
+{
+  "schema": "omni-public-current-agent-native-gpu-validation-v1",
+  "result": "native_binding_and_three_complete_idle_agent_samples",
+  "exit_code": 0,
+  "finished_utc": "2026-10-09T12:31:23.208Z",
+  "source_receipt": {
+    "path": "runs/current-agent-gpu-probe-20261009-v2/receipt.json",
+    "sha256": "c02f61c318bdfafce401bb9672049bbc9e7756f3d504ee7dcc93de2ed0a3de3c"
+  },
+  "raw_artifacts": [
+    {
+      "path": "runs/current-agent-gpu-probe-20261009-v2/native-inventory.json",
+      "bytes": 1188,
+      "sha256": "845f11960fdd9fadbd84821ceb9bed1438ee95cc3c00a39daa18d7e3c373ab7b"
+    },
+    {
+      "path": "runs/current-agent-gpu-probe-20261009-v2/sample-01.json",
+      "bytes": 8723,
+      "sha256": "015dae98400bd82a1cecdf1235e9ca951d9c81108c6f5cf2c221c308784a129f"
+    },
+    {
+      "path": "runs/current-agent-gpu-probe-20261009-v2/sample-02.json",
+      "bytes": 8723,
+      "sha256": "fa47f421a6e86f7ea0ebcc8a755fe714e43427f961d96d04de2f14a62f2423b0"
+    },
+    {
+      "path": "runs/current-agent-gpu-probe-20261009-v2/sample-03.json",
+      "bytes": 8723,
+      "sha256": "128344c2845f66cb6ab3b6a42cff239367c339acfbdf488c1ae7c59e66119c23"
+    }
+  ],
+  "hardware": [
+    {
+      "description": "NVIDIA GeForce RTX 5090 Laptop GPU",
+      "vendor_id": 4318,
+      "device_id": 11288,
+      "adapter_luid_hex": "4c5d010000000000",
+      "uma": false,
+      "dedicated_video_memory_bytes": 25309478912,
+      "dxgi_advertised_shared_system_memory_bytes": 50593640448,
+      "native_source": "native_DXGI_GetDesc1_D3D12_Architecture1",
+      "physical_adapter_count": 1
+    },
+    {
+      "description": "AMD Radeon(TM) 890M Graphics",
+      "vendor_id": 4098,
+      "device_id": 5390,
+      "adapter_luid_hex": "2638010000000000",
+      "uma": true,
+      "dedicated_video_memory_bytes": 353640448,
+      "dxgi_advertised_shared_system_memory_bytes": 50593640448,
+      "native_source": "native_DXGI_GetDesc1_D3D12_Architecture1",
+      "physical_adapter_count": 1
+    }
+  ],
+  "operating_system": {
+    "platform": "win32",
+    "windows_version": [
+      10,
+      0,
+      26200,
+      2,
+      ""
+    ],
+    "pointer_bits": 64
+  },
+  "python": {
+    "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "isolated": true,
+    "no_bytecode": true,
+    "utf8_mode": true
+  },
+  "runtime_versions": {
+    "pytest": "9.1.1",
+    "pytest-asyncio": "1.4.0",
+    "vllm": "0.29.0+cu134",
+    "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+    "torch": "2.13.0+cu130",
+    "triton": null,
+    "PySide6": "6.11.2",
+    "playwright": "1.63.0",
+    "cryptography": "50.0.1"
+  },
+  "samples": [
+    {
+      "sample": 1,
+      "scope": "one exact retained current Agent process only",
+      "complete": true,
+      "unknown_count": 0,
+      "observed_segments": 4,
+      "segments": [
+        {
+          "adapter_luid_hex": "4c5d010000000000",
+          "physical_adapter_index": 0,
+          "segment": "local",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "4c5d010000000000",
+          "physical_adapter_index": 0,
+          "segment": "nonlocal",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "2638010000000000",
+          "physical_adapter_index": 0,
+          "segment": "local",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "2638010000000000",
+          "physical_adapter_index": 0,
+          "segment": "nonlocal",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "scope": "one exact retained current Agent process only",
+      "complete": true,
+      "unknown_count": 0,
+      "observed_segments": 4,
+      "segments": [
+        {
+          "adapter_luid_hex": "4c5d010000000000",
+          "physical_adapter_index": 0,
+          "segment": "local",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "4c5d010000000000",
+          "physical_adapter_index": 0,
+          "segment": "nonlocal",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "2638010000000000",
+          "physical_adapter_index": 0,
+          "segment": "local",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "2638010000000000",
+          "physical_adapter_index": 0,
+          "segment": "nonlocal",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "scope": "one exact retained current Agent process only",
+      "complete": true,
+      "unknown_count": 0,
+      "observed_segments": 4,
+      "segments": [
+        {
+          "adapter_luid_hex": "4c5d010000000000",
+          "physical_adapter_index": 0,
+          "segment": "local",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "4c5d010000000000",
+          "physical_adapter_index": 0,
+          "segment": "nonlocal",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "2638010000000000",
+          "physical_adapter_index": 0,
+          "segment": "local",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        },
+        {
+          "adapter_luid_hex": "2638010000000000",
+          "physical_adapter_index": 0,
+          "segment": "nonlocal",
+          "available": true,
+          "current_usage_bytes": 0,
+          "current_reservation_bytes": 0
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "raw_hashes_and_receipt_sample_joins_verified": true,
+    "selected_source_count": 49,
+    "selected_sources_stable": true,
+    "selected_runtime_file_count": 12,
+    "selected_runtime_files_stable": true,
+    "runtime_versions_stable": true,
+    "repository_namespace_comparable_and_stable": true,
+    "attempted_process_starts": 0,
+    "production_origin_violations": 0,
+    "required_probe_modules_missing": 0,
+    "imported_test_modules": 0,
+    "named_loaded_dll_paths_matched": 7,
+    "provider_native_binding_available": true,
+    "cleanup_verified": true,
+    "adapter_handles_verified_closed": 2,
+    "borrowed_process_handles_retained": false,
+    "process_handles_closed_by_provider": 0,
+    "registry_observer_handles_closed": true,
+    "agent_alive_expected_and_observed": true,
+    "empty_child_bound_set_drained": true
+  },
+  "prior_setup_failure": {
+    "path": "runs/current-agent-gpu-probe-20261009-v1/receipt.json",
+    "sha256": "99e01d4a8e5a9a6868f3fcdb32dae36b2e6d350e52efd4f63e285cd72797ff0e",
+    "exit_code": 1,
+    "preserved": true,
+    "native_samples": 0,
+    "normal_production_imports_completed": false,
+    "native_gpu_queries_performed": false,
+    "classification": "bootstrap_metadata_namespace_mismatch_before_native_probe",
+    "wheel_namespace_vllm_omni": "0.29.0",
+    "reviewed_repository_namespace_vllm_omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+    "successor_fix": "record pre-repository provenance separately; compare versions after exact reviewed REPO bootstrap; retain strict equality and final repo-first gate",
+    "not_a_wddm_refusal": true
+  },
+  "scope": {
+    "idle_agent_only": true,
+    "current_usage_and_reservation_observations_all_zero": true,
+    "segment_observations": 12,
+    "missing_measurements_are_not_zero": true,
+    "browser_workload_measured": false,
+    "neural_inference_run": false,
+    "performance_or_peak_qualification": false,
+    "memory_envelope_selected": false,
+    "hard_cap_verified": false,
+    "physical_pool_ledger_join_verified": false,
+    "default_route_qualified": false,
+    "all_descendants_covered": false,
+    "local_nonlocal_and_process_working_set_are_nonadditive": true,
+    "uma_nonlocal_has_no_independent_physical_pool": true,
+    "dxgi_shared_memory_limit_is_not_physical_ram_capacity_or_admission_budget": true
+  },
+  "audit_scope": "Filesystem-only bounded rehash/JSON projection of closed raw evidence; no imports, tests, native queries, PID reopens or process launches; original receipts and raw files unchanged."
+}
