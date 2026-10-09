@@ -1,11 +1,11 @@
 {
   "schema": "omni-strata-combined-agent-preparation-and-launch-v1",
-  "status": "full_protocol_running_browser_admission_refusals",
+  "status": "full_protocol_running_memory_preparation_browser_failed",
   "actual_exec_session": 1799,
   "launch_tool_chunk": "3ab3bd",
-  "confirmed_live_tool_chunk": "1c78fd",
+  "confirmed_live_tool_chunk": "cfb174",
   "owner_receipt_sha256": "90d49767313395fae00fc99440e1251b38c7e46198bebcea7ea1d5e0ed320da0",
-  "observed_unix": 1791526076.904022,
+  "observed_unix": 1791533118.865091,
   "producer_sha256": "b60c05e9b6ef5b7222861d44b9238793f4484323cc99d07f94ee4c7e0cf8d16e",
   "owner_sha256": "1ecfc27564655e4692c864d4949514e430f253500be6d33a235107fe6fdf994f",
   "source_freeze_sha256": "0010e358e14f454ff579077e8654d364e6f241b17e8cdfba1ea7211edb5585f8",
@@ -73,90 +73,20 @@
   "physical_ssd_bytes": null,
   "aggregate_memory_hard_caps_verified": false,
   "live_progress": {
-    "observed_unix": 1791527525.4803426,
-    "wrapper_phase": "actual_bridge_ready",
-    "error_type": null,
-    "raw_prefix": {
-      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T060940Z_9fee0518\\samples.jsonl",
-      "bytes": 24600937,
-      "sha256": "f8c9d6029ed369b6ea6fa64ab3a7e77f4ab4061867b92b683e2a97ac82ad83e7",
-      "still_appending": true,
-      "ignored_trailing_bytes": 0
-    },
-    "request_rows": 76,
-    "counts": [
-      {
-        "task_class": "basic",
-        "length": "short",
-        "phase": "warmup",
-        "count": 2
-      },
-      {
-        "task_class": "basic",
-        "length": "short",
-        "phase": "measured",
-        "count": 20
-      },
-      {
-        "task_class": "basic",
-        "length": "medium",
-        "phase": "warmup",
-        "count": 2
-      },
-      {
-        "task_class": "basic",
-        "length": "medium",
-        "phase": "measured",
-        "count": 20
-      },
-      {
-        "task_class": "basic",
-        "length": "long",
-        "phase": "warmup",
-        "count": 2
-      },
-      {
-        "task_class": "basic",
-        "length": "long",
-        "phase": "measured",
-        "count": 20
-      },
-      {
-        "task_class": "basic",
-        "length": "short",
-        "phase": "endurance",
-        "count": 4
-      },
-      {
-        "task_class": "basic",
-        "length": "medium",
-        "phase": "endurance",
-        "count": 4
-      },
-      {
-        "task_class": "basic",
-        "length": "long",
-        "phase": "endurance",
-        "count": 2
-      }
+    "observed_utc": "2026-10-09T08:05:18.864090+00:00",
+    "wrapper_phase": "preparing_actual_bridge",
+    "selected_class": "memory",
+    "controller_blocks_closed": [
+      true,
+      true,
+      false
     ],
-    "observed_row_flags": {
-      "quality_pass": true,
-      "success": true,
-      "tool_safe": true,
-      "e2e_complete": true,
-      "placement_matches": true,
-      "no_errors": true,
-      "batch1_concurrency1": true
-    },
-    "endurance_active_s": 63.4478047,
-    "closed_protocol_result": false,
-    "statistical_or_default_qualification_granted": false,
-    "memory_scope": "seeded encrypted-store retrieval within one open controller; no close/reopen persistence test",
+    "whole_protocol_closed": false,
+    "qualification_granted": false,
     "verified_live_session": {
       "session_id": 1799,
-      "tool_chunk": "f6b100",
-      "observed_utc": "2026-10-09 06:30:50 UTC"
+      "tool_chunk": "cfb174",
+      "scope": "Specific running session polled before this publication; no restart."
     }
   },
   "basic_class_closed_progress": {
@@ -1023,7 +953,8 @@
       "session_id": 1799,
       "tool_chunk": "1c78fd",
       "observed_utc": "2026-10-09 07:32:49 UTC"
-    }
+    },
+    "observation_scope": "Historical 45-attempt prefix before browser-class closure; see browser_class_closed_progress."
   },
   "previous_browser_class_live_progress": {
     "observed_utc": "2026-10-09T07:17:24.463562+00:00",
@@ -1057,5 +988,302 @@
       "tool_chunk": "90dbbb",
       "observed_utc": "2026-10-09 07:19:20 UTC"
     }
+  },
+  "earlier_basic_class_live_progress": {
+    "observed_unix": 1791527525.4803426,
+    "wrapper_phase": "actual_bridge_ready",
+    "error_type": null,
+    "raw_prefix": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T060940Z_9fee0518\\samples.jsonl",
+      "bytes": 24600937,
+      "sha256": "f8c9d6029ed369b6ea6fa64ab3a7e77f4ab4061867b92b683e2a97ac82ad83e7",
+      "still_appending": true,
+      "ignored_trailing_bytes": 0
+    },
+    "request_rows": 76,
+    "counts": [
+      {
+        "task_class": "basic",
+        "length": "short",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "basic",
+        "length": "short",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "basic",
+        "length": "medium",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "basic",
+        "length": "medium",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "basic",
+        "length": "long",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "basic",
+        "length": "long",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "basic",
+        "length": "short",
+        "phase": "endurance",
+        "count": 4
+      },
+      {
+        "task_class": "basic",
+        "length": "medium",
+        "phase": "endurance",
+        "count": 4
+      },
+      {
+        "task_class": "basic",
+        "length": "long",
+        "phase": "endurance",
+        "count": 2
+      }
+    ],
+    "observed_row_flags": {
+      "quality_pass": true,
+      "success": true,
+      "tool_safe": true,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "no_errors": true,
+      "batch1_concurrency1": true
+    },
+    "endurance_active_s": 63.4478047,
+    "closed_protocol_result": false,
+    "statistical_or_default_qualification_granted": false,
+    "memory_scope": "seeded encrypted-store retrieval within one open controller; no close/reopen persistence test",
+    "verified_live_session": {
+      "session_id": 1799,
+      "tool_chunk": "f6b100",
+      "observed_utc": "2026-10-09 06:30:50 UTC"
+    },
+    "observation_scope": "Historical basic-class prefix at its recorded observation time; the basic file has since closed."
+  },
+  "browser_class_closed_progress": {
+    "observed_utc": "2026-10-09T08:05:18.864090+00:00",
+    "task_class": "browser_text",
+    "raw_file_closed": true,
+    "whole_three_class_protocol_closed": false,
+    "request_attempts": 178,
+    "successful_raw_row_flags": 163,
+    "failing_raw_rows": 15,
+    "warmup": {
+      "attempts": 6,
+      "successes": 4,
+      "pre_model_host_ram_refusals": 2
+    },
+    "measured": {
+      "attempts": 60,
+      "successes": 47,
+      "pre_model_host_ram_refusals": 13,
+      "successful_samples_per_length": {
+        "short": 15,
+        "medium": 12,
+        "long": 20
+      }
+    },
+    "endurance": {
+      "attempts": 112,
+      "successful_raw_row_flags": 112,
+      "failing_raw_rows": 0,
+      "active_seconds": 1805.3051819000004,
+      "wall_seconds": 1809.9593567000702
+    },
+    "raw_row_check_scope": "Incremental bounded raw-row projections across the class; no independent final complete raw hash/reference/causal-trace audit.",
+    "raw_file": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T070114Z_e9b6c09a\\samples.jsonl",
+      "bytes": 96975989,
+      "sha256_writer_reported": "0a17d0f6b4a31b8be7c281cf42e2c075fbbfdc359f7a5e3b344cca5a3c7ca76e",
+      "independent_full_hash_completed": false
+    },
+    "summary_file": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T070114Z_e9b6c09a\\summary.json",
+      "bytes": 11280,
+      "sha256": "7d027aeb2a4691b0e2e64f031d0a13109db92d357c124fcc5b9110b3a1816104"
+    },
+    "summary_flags": {
+      "correctness_pass": false,
+      "protocol_compliant": false,
+      "stability_pass": true,
+      "e2e_trace_pass": false,
+      "actual_placement_matches": false,
+      "placement_evidence_present": true,
+      "telemetry_present": true,
+      "tool_safety_pass": true
+    },
+    "summary_attempt_latencies_s": {
+      "long": [
+        20.3428086,
+        21.1445005,
+        20.7880294,
+        20.8936849,
+        20.2832814,
+        21.0828494,
+        19.9130651,
+        20.6329503,
+        20.0408942,
+        20.7471522,
+        19.7985578,
+        20.5321897,
+        20.1525646,
+        21.1610726,
+        20.6508426,
+        20.7894214,
+        20.5879056,
+        21.5607544,
+        21.6014542,
+        21.4837597
+      ],
+      "medium": [
+        0.1073222,
+        0.1116534,
+        0.1044424,
+        0.1016945,
+        0.1036841,
+        0.1055521,
+        0.0970612,
+        0.0915545,
+        14.8149804,
+        15.1545515,
+        14.1049207,
+        15.4186281,
+        14.3065362,
+        15.1667186,
+        14.525025,
+        15.0261335,
+        14.547346,
+        15.069313,
+        14.3492249,
+        15.3488062
+      ],
+      "short": [
+        13.1803777,
+        13.8544508,
+        13.0500727,
+        13.6702721,
+        12.9974374,
+        13.9199903,
+        13.2463009,
+        14.0526167,
+        13.8385931,
+        13.7908836,
+        13.3153709,
+        13.6448312,
+        13.1494045,
+        13.969611,
+        14.3543016,
+        0.1113551,
+        0.1211751,
+        0.1073163,
+        0.1084106,
+        0.0958488
+      ]
+    },
+    "latency_scope": "All measured attempts, including 13 approximately 0.1-second pre-model refusals; these are not qualified successful-generation p50/p95. No discarded/refilled failures.",
+    "integrity_and_controller_preparation_s": 835.6376685,
+    "preparation_scope": "Integrity and controller preparation, not pure model loading.",
+    "close_file": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\block-02-close.json",
+      "bytes": 81982,
+      "sha256": "587daa3afcb1ed51ddb0daa73b711724090c4e232c575e69af9d6ada057fdca9"
+    },
+    "closed_review": {
+      "scope": "Independent bounded summary/index/close metadata and source review; no full raw/reference/trace or DB/verifier digest rehash.",
+      "closed": true,
+      "bridge_close_returned": true,
+      "retired_processes": [
+        {
+          "creation_filetime_100ns": 134360036913984921,
+          "exit_code": 15,
+          "exit_code_observed": true,
+          "original_process_retired": true,
+          "pid": 17808,
+          "retained_handle_signaled": true,
+          "role": "native_model",
+          "wait_result": 0
+        },
+        {
+          "creation_filetime_100ns": 134360036887308289,
+          "exit_code": 1,
+          "exit_code_observed": true,
+          "original_process_retired": true,
+          "pid": 61552,
+          "retained_handle_signaled": true,
+          "role": "stage_supervisor",
+          "wait_result": 0
+        }
+      ],
+      "writers": {
+        "browser_driver_reaped_or_never_started": true,
+        "browser_runtime_references_closed": true,
+        "browser_threads_stopped": true,
+        "controller_thread_stopped": true,
+        "tool_threads_stopped": true
+      },
+      "ledger_after_close": {
+        "ledger": {
+          "capacities": {
+            "host_ram": 26167586816,
+            "ssd": 792540024987,
+            "vram": 20796198912,
+            "windows_commit": 64061034496
+          },
+          "owners": [],
+          "quarantined": [],
+          "reserved": {
+            "host_ram": 0,
+            "ssd": 0,
+            "vram": 0,
+            "windows_commit": 0
+          }
+        },
+        "resident_free_floor": {},
+        "resident_route": null
+      },
+      "private_memory": {
+        "bytes": 528384,
+        "sha256_writer_reported": "a1e3fe5fc8e2dd8a6b4f227caee208a089f9d732bcf1e5eb731f645ef7ae2c8f",
+        "wal_absent": true
+      },
+      "exit_scope": "Native/supervisor exits 15/1 are explicit termination, not graceful exit zero. Browser reference/driver/thread flags do not prove every Edge descendant retired.",
+      "last_completed_request_getter_is_fresh_shutdown_proof": false
+    },
+    "ram_drop_cause": "unattributed",
+    "model_or_runtime_incompatibility_inferred": false,
+    "full_reference_and_causal_trace_audit_complete": false,
+    "statistical_or_default_qualification_granted": false
+  },
+  "browser_tool_memory_gap": {
+    "evidence_kind": "bounded_source_review",
+    "explicit_browser_playwright_lease_present": false,
+    "consumer_2_mib_workspace_is_browser_headroom": false,
+    "current_telemetry_attributes_agent_node_edge_ram": false,
+    "source_locations": [
+      "vllm_omni/edge/agent/tools.py:422-488,1110-1113",
+      "vllm_omni/edge/agent/native_app.py:487-503",
+      "vllm_omni/engine/local_plan.py:42-63,256-264",
+      "vllm_omni/edge/agent/controller.py:778-780",
+      "benchmarks/edge_agent/native_profile.py:418-446"
+    ],
+    "response_disposal_candidate": "Source-reviewed private candidate; not integrated, executed or proven to cause/reduce the observed RAM drop.",
+    "next_action": "After whole freeze closes, integrate and test reviewed repairs; measure exact-owned model/Agent/Node/Edge working set and private commit in a fresh bounded browser cohort before selecting conservative shared-ledger tool headroom. Preserve resident guard and owner-scoped verified drain."
   }
 }
