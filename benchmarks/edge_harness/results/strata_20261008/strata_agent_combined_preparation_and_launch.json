@@ -1,9 +1,9 @@
 {
   "schema": "omni-strata-combined-agent-preparation-and-launch-v1",
-  "status": "full_protocol_running_basic_block_closed",
+  "status": "full_protocol_running_browser_admission_refusals",
   "actual_exec_session": 1799,
   "launch_tool_chunk": "3ab3bd",
-  "confirmed_live_tool_chunk": "90dbbb",
+  "confirmed_live_tool_chunk": "1c78fd",
   "owner_receipt_sha256": "90d49767313395fae00fc99440e1251b38c7e46198bebcea7ea1d5e0ed320da0",
   "observed_unix": 1791526076.904022,
   "producer_sha256": "b60c05e9b6ef5b7222861d44b9238793f4484323cc99d07f94ee4c7e0cf8d16e",
@@ -926,6 +926,106 @@
     }
   },
   "browser_class_live_progress": {
+    "observed_utc": "2026-10-09T07:22:39.999977+00:00",
+    "wrapper_phase": "actual_bridge_ready",
+    "raw_prefix": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T070114Z_e9b6c09a\\samples.jsonl",
+      "bytes": 20579334,
+      "sha256": "5b270e42e6a475c0bd0e676fb96a40564a446d5e33bb5dd38c42295028fa341b",
+      "still_appending": true
+    },
+    "request_attempts": 45,
+    "counts": [
+      {
+        "task_class": "browser_text",
+        "length": "long",
+        "phase": "warmup",
+        "count": 1
+      },
+      {
+        "task_class": "browser_text",
+        "length": "medium",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "browser_text",
+        "length": "medium",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "browser_text",
+        "length": "short",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "browser_text",
+        "length": "short",
+        "phase": "warmup",
+        "count": 2
+      }
+    ],
+    "failing_raw_row_flags": 15,
+    "pre_model_host_ram_refusals": 15,
+    "first_refusal": {
+      "line": 20,
+      "raw_line_sha256": "f6634637becbd4899c1af66ce6b9c3df030948720e4b6ff360d6126df993a741",
+      "started_at": "2026-10-09T07:19:08.261349+00:00",
+      "phase": "measured",
+      "length": "short",
+      "repetition": 15,
+      "rejection_latency_s": 0.1113551,
+      "outer_error": null,
+      "refusal": {
+        "initial_power_condition": "AC",
+        "message": "No admitted, qualified complete route for this task and current power condition",
+        "power_condition": "AC",
+        "reasons": {
+          "ista-q2-strata-combined-agent-full-20261009-v3": "host_ram: resident route live free 8038002688 bytes fell below declared reservation floor 9152946176 bytes; unload and re-admit explicitly"
+        },
+        "task_class": "browser_text"
+      },
+      "model_steps": 0
+    },
+    "refusal_row_lines": [
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34
+    ],
+    "live_free_min_bytes": 7730118656,
+    "live_free_max_bytes": 8333422592,
+    "reservation_floor_bytes": [
+      9152946176
+    ],
+    "failure_classification": "resident_route_host_ram_headroom_refusal_before_model_dispatch",
+    "source_guard": "vllm_omni/engine/local_plan.py:125-137; vllm_omni/edge/agent/controller.py:523-529",
+    "outer_error_null_scope": "refusal returns normally with an incomplete result; outer error=null does not mean request success",
+    "ram_decrease_attribution": "unknown; model/browser/profiler/other-app cause not established",
+    "model_or_runtime_incompatibility_inferred": false,
+    "closed_class_or_protocol": false,
+    "statistical_or_default_qualification_granted": false,
+    "all_measured_failures_retained": true,
+    "verified_live_session": {
+      "session_id": 1799,
+      "tool_chunk": "1c78fd",
+      "observed_utc": "2026-10-09 07:32:49 UTC"
+    }
+  },
+  "previous_browser_class_live_progress": {
     "observed_utc": "2026-10-09T07:17:24.463562+00:00",
     "wrapper_phase": "actual_bridge_ready",
     "raw_prefix": {
