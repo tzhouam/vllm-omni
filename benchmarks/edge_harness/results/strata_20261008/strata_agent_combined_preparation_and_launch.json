@@ -1,6 +1,6 @@
 {
   "schema": "omni-strata-combined-agent-preparation-and-launch-v1",
-  "status": "full_protocol_running_memory_endurance_browser_failed",
+  "status": "full_protocol_closed_browser_failed_memory_captures_reconciled",
   "actual_exec_session": 1799,
   "launch_tool_chunk": "3ab3bd",
   "confirmed_live_tool_chunk": "032f88",
@@ -73,24 +73,10 @@
   "physical_ssd_bytes": null,
   "aggregate_memory_hard_caps_verified": false,
   "live_progress": {
-    "observed_utc": "2026-10-09T08:29:15.060819+00:00",
-    "wrapper_phase": "actual_bridge_ready",
-    "selected_class": "memory",
-    "phase": "endurance",
-    "controller_blocks_closed": [
-      true,
-      true,
-      false
-    ],
-    "request_rows": 85,
-    "failing_raw_row_flags": 0,
-    "whole_protocol_closed": false,
-    "qualification_granted": false,
-    "verified_live_session": {
-      "session_id": 1799,
-      "tool_chunk": "032f88",
-      "observed_utc": "2026-10-09 08:33:37 UTC"
-    }
+    "live": false,
+    "phase": "closed",
+    "all_known_writers_quiesced": true,
+    "exit_code": 1
   },
   "basic_class_closed_progress": {
     "observed_utc": "2026-10-09T07:03:54.411551+00:00",
@@ -1444,5 +1430,105 @@
     "finding": "Current evaluator defaults source_ok to true for memory; trusted fixture setup is attached to the raw row only after evaluation. Actual first-row causal reconciliation is separate narrow evidence, not a whole-class gate.",
     "private_fix_status": "Minimal source-only candidate under preparation; not integrated, compiled, tested or executed.",
     "next_action": "After full source freeze closes, integrate reviewed source-provenance plumbing and fail-closed evaluator, run meaningful tamper/isolation regressions, then perform fresh actual memory validation. Independently audit every current closed-cohort seed/input/output link; do not inherit qualification."
-  }
+  },
+  "actual_exec_session_state": "terminal_exit_1",
+  "terminal_tool_chunk": "77f157",
+  "last_live_progress": {
+    "observed_utc": "2026-10-09T08:29:15.060819+00:00",
+    "wrapper_phase": "actual_bridge_ready",
+    "selected_class": "memory",
+    "phase": "endurance",
+    "controller_blocks_closed": [
+      true,
+      true,
+      false
+    ],
+    "request_rows": 85,
+    "failing_raw_row_flags": 0,
+    "whole_protocol_closed": false,
+    "qualification_granted": false,
+    "verified_live_session": {
+      "session_id": 1799,
+      "tool_chunk": "032f88",
+      "observed_utc": "2026-10-09 08:33:37 UTC"
+    }
+  },
+  "closed_protocol": {
+    "outer_attempts": 840,
+    "actual_model_calls": 988,
+    "class_attempts": {
+      "basic": 345,
+      "browser_text": 178,
+      "memory": 317
+    },
+    "all_requested_classes_recorded": true,
+    "full_protocol_passed": false,
+    "preserved_failure": "15 pre-model browser RAM refusals:2 warmup+13 measured; measured47/60 successful",
+    "final_receipt_sha256": "86074325de5c8cead8e8b1b2fc0ce05f70c0b5c8e5b9cb9d4971a06fa295afbf",
+    "outer_terminal_sha256": "222a79d8fbba01753d4cc397ef2cab76d5654d1b3593a26d34117c0d862e73e4",
+    "all_known_writers_quiesced": true,
+    "three_controllers_closed": true,
+    "capture_writer_quiesced": true,
+    "fixture_server_threads_and_socket_closed": true,
+    "telemetry_closed_active_samples": 0,
+    "source_files": 1573,
+    "source_stable": true,
+    "loaded_runtime_stable": true,
+    "source_before_after_file_sha256": "cf8417c5f639b594eb7fae2a0bb96c62c12a2c1ec4a5d27ebc6ad7067cd8694c",
+    "root_exact_outer_owners_and_final_model_supervisor_absent": true,
+    "all_descendant_retirement_proven": false,
+    "qualification_granted": false
+  },
+  "memory_class_closed_progress": {
+    "request_rows": 317,
+    "warmup_attempts": 6,
+    "measured_attempts": 60,
+    "measured_per_length": 20,
+    "endurance_attempts": 251,
+    "endurance_active_seconds": 1807.0671623000005,
+    "all_recorded_captured_chains_reconciled": true,
+    "raw_file": {
+      "size_bytes": 97520845,
+      "sha256": "81acf0da370365dd2d90d0dff54657aa2c5ccbbbc4ef31aa055a259b78f265ca"
+    },
+    "independent_audit": "strata_agent_memory_closed_capture_audit.json",
+    "private_audit_receipt_sha256": "bb7877c8ba79204ae5fd67d60ec8b720cff4cc72c5f47f855411702a4e2679bc",
+    "block_close_sha256": "c6634fdfe33e0800ec0c8ae44b6dc585f30e672eacafd830c5a899cd7d96b1b6",
+    "closed_database_size_bytes": 307200,
+    "closed_database_sha256": "c96add1e24744527eb0eefb844a887fa24804e20473d353f5f5fbc0565035e34",
+    "wal_absent": true,
+    "four_copied_verifier_receipt_hashes_independently_matched": true,
+    "complete_answer_measured": {
+      "long": {
+        "n": 20,
+        "p50_s": 8.4396351,
+        "p95_s": 9.1566351
+      },
+      "medium": {
+        "n": 20,
+        "p50_s": 6.979357,
+        "p95_s": 7.4348847
+      },
+      "short": {
+        "n": 20,
+        "p50_s": 6.3475771,
+        "p95_s": 6.6175798
+      }
+    },
+    "scope": "All recorded isolated seeded recall chains within one open controller; counts per length only. Canonical bilingual/repetition shape, close/reopen persistence and counterfactual dependence remain unverified.",
+    "qualification_granted": false
+  },
+  "post_freeze_integration": {
+    "reviewed_repairs_applied": 4,
+    "native_tests_executed": true,
+    "offline_memory_evaluator_drift_found": true,
+    "shared_validator_followup": "live and offline memory evaluation share the pure mapping validator; v5 remains failed at four typed Route fixture errors and requires rerun",
+    "native_validation_evidence": "agent_postfreeze_native_validation.json",
+    "initial_failed_regression_preserved": true,
+    "current_model_free_cohort_passed": false,
+    "intentional_process_tests_deferred": 7,
+    "browser_allowance": "attribution candidate remains private; no invented headroom or lowered RAM floor",
+    "fresh_actual_validation_required": true
+  },
+  "updated_utc": "2026-10-09T09:36:17+00:00"
 }
