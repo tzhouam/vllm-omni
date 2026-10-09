@@ -1,0 +1,777 @@
+{
+  "schema": "omni-native-joint-closed-public-projection-v1",
+  "status": "native_joint_positive_failed_intentional_quarantine_test_passed",
+  "scope": {
+    "synthetic_model_and_ledger": true,
+    "neural_model_execution": false,
+    "physical_RAM_or_commit_budget": false,
+    "measured_browser_envelope": false,
+    "performance_qualification": false,
+    "release_qualified": false,
+    "all_descendants_covered": false,
+    "process_queries_or_PID_reopens_during_audit": false,
+    "browser_or_model_launches_during_audit": false,
+    "raw_fixture_texts_published": false,
+    "owner_UUIDs_published": false
+  },
+  "raw_evidence_references": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\child-console.log",
+      "bytes": 169,
+      "sha256": "82481b1b43b8f305816db2a2bf64a30a153f0877b862cce4830b111db5f5df72"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\child-receipt.json",
+      "bytes": 68753,
+      "sha256": "1f50384ffbfa2b8c1d23654f076db72183f07908c577db9d9230dbc38c06e308"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\junit.xml",
+      "bytes": 1628,
+      "sha256": "73c5fd52b77e76cd11044ce3fe5b2623deb8fa1600aca46fff2c7d92b3833e81"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\launch.json",
+      "bytes": 7790,
+      "sha256": "269cea907c443bfa51db6183fd59b4849080a61dccb63a348e0c1f5fd299b73b"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\pytest-tmp\\test_native_joint_guards_floor0\\native-joint-contract-journal.jsonl",
+      "bytes": 3426,
+      "sha256": "de3f58e184f8325c34e046a2cfd4faaf38ec5c36512bc75aaf120953aedbf7aa"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\pytest-tmp\\test_native_joint_guards_floor0\\native-joint-contract-receipt.json",
+      "bytes": 465396,
+      "sha256": "0020e014810ad2bae0d87a2b111bfd50312277e71a243cdb222fdce9fcc98d8f"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\pytest-tmp\\test_native_joint_registry_bou0\\native-joint-contract-journal.jsonl",
+      "bytes": 2143,
+      "sha256": "b7c9868c9d239dfc422799b0f79760c5265d1076acdfe7fa193b8f565dfef35b"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\pytest-tmp\\test_native_joint_registry_bou0\\native-joint-contract-receipt.json",
+      "bytes": 124540,
+      "sha256": "ea2d8ae14e430e50a25d55eab2559f0ded9e03492b4390134f6e61ab0639e604"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\pytest.log",
+      "bytes": 1249,
+      "sha256": "304cf673431f81f9a7c15373996efd15d5d2256c0a594ddd51ce57be7bfc81ce"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\receipt.json",
+      "bytes": 41099,
+      "sha256": "b184d92cc947c1582dea2f6d34c7f6d926fe805cbf4e1a475ee3a6aec4d02461"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-joint-contract-20261009-v1\\supervisor-error.log",
+      "bytes": 838,
+      "sha256": "4a1e9f75ce6cc6015369cc40675d3fd1f257e5e28bf8f493bbb91ce71cc71cd3"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-cdp-focused-native-20261009-v10\\receipt.json",
+      "bytes": 210736,
+      "sha256": "07353fc7524bd1fc09c43b1e26d01599c3ba60101af2dc4bf1704a8d99348498"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-cdp-focused-native-20261009-v10\\junit.xml",
+      "bytes": 32519,
+      "sha256": "3d527b27ffb0446d0092434d607b42e21729310bd3f7039695d60cfc767704a0"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-cdp-focused-native-20261009-v11\\receipt.json",
+      "bytes": 208260,
+      "sha256": "44f26ceb28bd5c74e6bdc2a2cf8d5120f9ea165ae589499619964c56686f4eb3"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\rejected-cdp-focused-native-20261009-v11\\junit.xml",
+      "bytes": 32518,
+      "sha256": "2b875d9c59f3cdf7c3e6c95854b176f6cbf072a596d30a2f4948a92f02db19d7"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\successor-metadata-native-20261009-v1\\junit.xml",
+      "bytes": 12967,
+      "sha256": "cbbef6213d0b1a8a8ba3f16c92badba9dc9aa74f695a3fb0f1b9e904b8c5f352"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\successor-metadata-native-20261009-v2\\junit.xml",
+      "bytes": 2424,
+      "sha256": "3525ec8c733d65a44740ccc69a903165bb59b4da18047aaf9e665a795f1ea650"
+    }
+  ],
+  "native_joint": {
+    "supervisor_exit": 1,
+    "pytest_exit": 1,
+    "junit": {
+      "tests": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "call_outcomes": [
+      {
+        "nodeid": "tests/edge/test_agent_browser_joint_native.py::test_native_joint_guards_floor_release_close_and_fresh_browser",
+        "outcome": "failed"
+      },
+      {
+        "nodeid": "tests/edge/test_agent_browser_joint_native.py::test_native_joint_registry_bound_limit_keeps_real_cleanup_unknown_and_tool_quarantined",
+        "outcome": "passed"
+      }
+    ],
+    "actual_Node_run_driver_count": 2,
+    "expected_count_only_on_full_success": 3,
+    "controlled_cohort_passed": false,
+    "selected_source_count": 43,
+    "selected_sources_before_after_current_equal": true,
+    "harness_sources_before_after_equal": true,
+    "installed_paths_before_after_equal": true,
+    "positive": {
+      "recorded_failure_type": "ResourceUnavailable",
+      "injected_fault": null,
+      "synthetic_model_load_count": 1,
+      "real_browser_worker_count": 1,
+      "all_real_browser_workers_joined": true,
+      "cached_close_proof_count": 2,
+      "known_retained_child_count": 8,
+      "known_retained_children_retired_and_query_handles_closed": true,
+      "registry_bound_set_drain_verified": true,
+      "registry_required_bindings_verified": true,
+      "companion_owned_work_drained": false,
+      "companion_required_ownership_verified": false,
+      "companion_quarantine_required": true,
+      "observer_callback_error_count": 0,
+      "unknown_count": 7,
+      "unknown_detail_count": 7,
+      "unknown_details_truncated": false,
+      "cdp_checkpoint_count": 8,
+      "binding_registry_overflow": false,
+      "unadopted_handle_close_failures": 0,
+      "final_synthetic_reserved": {
+        "host_ram": 20,
+        "windows_commit": 30
+      },
+      "final_synthetic_owner_count": 1,
+      "final_synthetic_quarantined_owner_count": 1,
+      "exact_synthetic_tool_owner_join_verified": true,
+      "synthetic_model_owner_not_charged": true,
+      "initial_model_owner_reference_available": true,
+      "global_synthetic_ledger_empty": false,
+      "ownership_or_external_service_classification_granted": false
+    },
+    "intentional_registry_limit_fault": {
+      "recorded_failure_type": null,
+      "injected_fault": "real_registry_max_bindings_1_intentional_contract_fault",
+      "synthetic_model_load_count": 1,
+      "real_browser_worker_count": 1,
+      "all_real_browser_workers_joined": true,
+      "cached_close_proof_count": 3,
+      "known_retained_child_count": 1,
+      "known_retained_children_retired_and_query_handles_closed": true,
+      "registry_bound_set_drain_verified": false,
+      "registry_required_bindings_verified": false,
+      "companion_owned_work_drained": false,
+      "companion_required_ownership_verified": false,
+      "companion_quarantine_required": true,
+      "observer_callback_error_count": 0,
+      "unknown_count": 28,
+      "unknown_detail_count": 8,
+      "unknown_details_truncated": true,
+      "cdp_checkpoint_count": 4,
+      "binding_registry_overflow": true,
+      "unadopted_handle_close_failures": 0,
+      "final_synthetic_reserved": {
+        "host_ram": 20,
+        "windows_commit": 30
+      },
+      "final_synthetic_owner_count": 1,
+      "final_synthetic_quarantined_owner_count": 1,
+      "exact_synthetic_tool_owner_join_verified": true,
+      "synthetic_model_owner_not_charged": true,
+      "initial_model_owner_reference_available": false,
+      "global_synthetic_ledger_empty": false,
+      "ownership_or_external_service_classification_granted": false
+    }
+  },
+  "rejected_helper": {
+    "pid": 30912,
+    "creation_filetime_100ns": 134360196009605836,
+    "image_path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\154.0.4258.62\\identity_helper.exe",
+    "image_path_sha256": "667417c4ca4a864da36698f9bd7cf14d8a37756ef91124c59cb97064f9e1d95c",
+    "image_hash_scope": "observed_path_text_not_executable_contents",
+    "cdp_process_type": "winrt_app_id.mojom.WinrtAppIdService",
+    "cdp_type_known": false,
+    "failed_check": "edge_runtime_image",
+    "rejected_observation_count": 7,
+    "pre_cdp_birth_cutoffs": [
+      134360196010072380,
+      134360196012245734,
+      134360196012333955,
+      134360196013188874,
+      134360196013559228,
+      134360196013788061,
+      134360196013996713
+    ],
+    "birth_not_after_any_cutoff": true,
+    "all_diagnostic_query_handles_closed": true,
+    "liveness_check_attempted": false,
+    "helper_retirement_verified": false,
+    "present_in_25_captured_Job_NEW_events": false,
+    "present_in_23_retained_Job_processes": false,
+    "ownership_or_external_shared_service_classification": "unresolved",
+    "absence_from_Job_is_external_service_proof": false,
+    "parent_package_Job_evidence_from_same_handle": "not_collected_in_this_cohort",
+    "original_unknown_count_preserved": 7
+  },
+  "outer_owned_job": {
+    "final_accounting": {
+      "total_processes": 25,
+      "active_processes": 0,
+      "terminated_processes": 0
+    },
+    "owned_job_drained": true,
+    "forced_cleanup": false,
+    "captured_NEW_PROCESS_event_count": 25,
+    "retained_process_count": 23,
+    "all_retained_processes_signaled": true,
+    "identity_gap_count": 2,
+    "complete_process_identity_coverage": false,
+    "helper_retirement_or_external_classification_granted": false
+  },
+  "earlier_runs_preserved": {
+    "focused_v10": {
+      "pytest_counts": {
+        "present": true,
+        "sha256": "3d527b27ffb0446d0092434d607b42e21729310bd3f7039695d60cfc767704a0",
+        "tests": 120,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "pytest_exit": 0,
+      "harness_success": false,
+      "missing_required_package": "vllm_omni.engine.backends"
+    },
+    "focused_v11": {
+      "receipt_sha256": "44f26ceb28bd5c74e6bdc2a2cf8d5120f9ea165ae589499619964c56686f4eb3",
+      "pytest_counts": {
+        "present": true,
+        "sha256": "2b875d9c59f3cdf7c3e6c95854b176f6cbf072a596d30a2f4948a92f02db19d7",
+        "tests": 120,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "harness_success": true,
+      "normal_required_package_import_verified_by_pinned_harness": true
+    },
+    "private_metadata_v1": {
+      "junit": {
+        "tests": 21,
+        "failures": 0,
+        "errors": 21,
+        "skipped": 0
+      },
+      "status": "setup_failed",
+      "reason": "WinError3_missing_pytest_tmp_basepath",
+      "not_a_production_model_test": true
+    },
+    "private_metadata_v2": {
+      "junit": {
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "status": "private_metadata_tests_passed",
+      "not_a_production_model_test": true
+    }
+  },
+  "offline_checks": [
+    {
+      "name": "joint supervisor and child are terminal failure",
+      "passed": true
+    },
+    {
+      "name": "exact two native call outcomes",
+      "passed": true
+    },
+    {
+      "name": "source before after and child snapshots agree",
+      "passed": true
+    },
+    {
+      "name": "private harness and installed identities stable",
+      "passed": true
+    },
+    {
+      "name": "child receipt hash join",
+      "passed": true
+    },
+    {
+      "name": "JUnit hash join",
+      "passed": true
+    },
+    {
+      "name": "43 current selected source files equal closed snapshots",
+      "passed": true
+    },
+    {
+      "name": "journal count equals raw receipt event count",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal count equals raw receipt event count",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "journal ordered event equals raw receipt event",
+      "passed": true
+    },
+    {
+      "name": "journal sequence is contiguous",
+      "passed": true
+    },
+    {
+      "name": "positive remains failed with exact synthetic tool quarantine",
+      "passed": true
+    },
+    {
+      "name": "positive model owner exact original reference absent from final ledger",
+      "passed": true
+    },
+    {
+      "name": "fault passes honest intentional quarantine",
+      "passed": true
+    },
+    {
+      "name": "actual workers and known retained children closed in both cases",
+      "passed": true
+    },
+    {
+      "name": "positive seven failures across eight checkpoints with eight known children",
+      "passed": true
+    },
+    {
+      "name": "helper same identity image refusal and closed diagnostic handle",
+      "passed": true
+    },
+    {
+      "name": "helper same identity image refusal and closed diagnostic handle",
+      "passed": true
+    },
+    {
+      "name": "helper same identity image refusal and closed diagnostic handle",
+      "passed": true
+    },
+    {
+      "name": "helper same identity image refusal and closed diagnostic handle",
+      "passed": true
+    },
+    {
+      "name": "helper same identity image refusal and closed diagnostic handle",
+      "passed": true
+    },
+    {
+      "name": "helper same identity image refusal and closed diagnostic handle",
+      "passed": true
+    },
+    {
+      "name": "helper same identity image refusal and closed diagnostic handle",
+      "passed": true
+    },
+    {
+      "name": "owned Job zero without forced cleanup retains identity gaps",
+      "passed": true
+    },
+    {
+      "name": "helper absent from both captured Job evidence sets",
+      "passed": true
+    },
+    {
+      "name": "v11 exact successful focused receipt retained",
+      "passed": true
+    },
+    {
+      "name": "v10 harness origin gate failure retained despite pytest pass",
+      "passed": true
+    },
+    {
+      "name": "private metadata setup failure and later pass both retained",
+      "passed": true
+    },
+    {
+      "name": "all 17 audited original evidence files unchanged",
+      "passed": true
+    }
+  ],
+  "original_audited_evidence_unchanged": true,
+  "limits": [
+    "Filesystem-only closed-receipt audit; no current OS-state proof or native re-execution.",
+    "Positive contract did not reach fresh-browser second generation/reset acceptance.",
+    "Known retained-set retirement and diagnostic handle closure do not prove helper retirement.",
+    "Job absence does not identify a process as external/shared, safe or unrelated.",
+    "Synthetic tool reservation stayed charged at test close; this is not a claim of a live physical memory allocation after pytest exit.",
+    "No acceptance filter, unknown suppression, release-policy change, measured browser allowance or route qualification is authorized."
+  ],
+  "publication": {
+    "updated_utc": "2026-10-09T11:50:40.0625849Z",
+    "private_projection_path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\native-joint-closed-public-audit-v1\\projection.json",
+    "private_projection_sha256": "cac6c1bdb0ace200bca8b42eea5d4f5c451e036679dd0b11a133b0a82dc7f8a3",
+    "private_auditor_path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\native-joint-closed-public-audit-v1\\project.ps1",
+    "private_auditor_sha256": "57ccacc2f05e6f27bff0ce748efed688902a0a446af80a8ab35ee85908665f7a",
+    "private_audit_source_pins_sha256": "d1e16dd7efa79978b7327e870856555328d950c17de830b7ccdac563a7d160c2",
+    "root_rehashed_raw_evidence_count": 17,
+    "root_rehashed_closed_source_count": 43,
+    "changed_source_pins": {
+      "vllm_omni/edge/windows_process_memory.py": {
+        "sha256": "e9c478c8e7fc7080e75899fab9d0c1b5386873738c3edd51a5c45028eae15ada",
+        "bytes": 41554
+      },
+      "tests/edge/test_agent_rejected_cdp_diagnostics.py": {
+        "sha256": "ff92fbf8776c886b13b9eac7bd551482df8757be2af045e7ce6933a9a5569963",
+        "bytes": 14790
+      },
+      "tests/edge/test_agent_browser_joint_native.py": {
+        "sha256": "4900f15408521c3d54fad996a3fe2c69e65c1757cd85bcc34dae5894e21e8698",
+        "bytes": 22051
+      }
+    },
+    "execution_conditions": {
+      "hardware_os": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "playwright": "1.63.0",
+      "synthetic_model": true,
+      "batch_and_concurrency_performance_measurement": false
+    }
+  }
+}

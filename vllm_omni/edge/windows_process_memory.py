@@ -26,6 +26,8 @@ _EDGE_TYPES = {"browser": "edge_browser", "renderer": "edge_renderer", "GPU": "e
                "utility": "edge_utility", "other": "edge_other"}
 _CHILD_ROLES = frozenset({"playwright_node", *_EDGE_TYPES.values()})
 _CDP_TYPE_MAX_UTF8_BYTES = 128
+_REJECTED_CDP_IMAGE_MAX_CHARS = 1024
+_PROCESS_IMAGE_IDENTITY_MAX_CHARS = 4096
 _NO_CDP_TYPE = object()
 
 
@@ -64,6 +66,69 @@ def _cdp_type_metadata(value: Any) -> dict[str, Any]:
         result["cdp_process_type_escaped_prefix"] = value[:64].encode("unicode_escape").decode("ascii")[:128]
         result["cdp_process_type_prefix_only"] = True
     return result
+
+
+def _rejected_cdp_metadata(identity: Any, *, requested_pid: int, cutoff: Any,
+                           failed_check: str, handle_obtained: bool,
+                           liveness_attempted: bool, liveness: Any) -> dict[str, Any]:
+    """Bounded diagnostics from one existing handle query, never authority.
+
+    Rejected candidates are not bindings. A path hash identifies observed path
+    text, not executable contents or verified ownership. No PID lookup, scan,
+    additional identity/wait query, command line, environment or file read is
+    performed here. The caller separately preserves every original refusal.
+    """
+    def filetime(value: Any) -> int | None:
+        return value if type(value) is int and 0 < value <= 0xFFFFFFFFFFFFFFFF else None
+
+    row: dict[str, Any] = {
+        "schema": "omni-rejected-cdp-candidate-v1",
+        "scope": "already_open_handle_diagnostic_not_ownership_or_retirement_proof",
+        "requested_pid": requested_pid, "failed_check": failed_check,
+        "cutoff_filetime_100ns": filetime(cutoff),
+        "query_handle_obtained": handle_obtained,
+        "identity_query_returned": isinstance(identity, Mapping),
+        "observed_pid": None, "creation_filetime_100ns": None,
+        "image_path": None, "image_path_sha256": None,
+        "image_path_hash_encoding": None, "image_path_representation": None,
+        "image_path_truncated": False,
+        "liveness_check_attempted": liveness_attempted,
+        "signaled_at_existing_liveness_check": None,
+        "query_handle_close_attempted": False, "query_handle_closed": None,
+        "query_handle_close_error_type": None,
+    }
+    if isinstance(liveness, Mapping) and type(liveness.get("signaled")) is bool:
+        row["signaled_at_existing_liveness_check"] = liveness["signaled"]
+    if not isinstance(identity, Mapping):
+        return row
+    pid = identity.get("pid")
+    row["observed_pid"] = pid if _valid_process_id(pid) else None
+    row["creation_filetime_100ns"] = filetime(identity.get("creation_filetime_100ns"))
+    image = identity.get("image_path")
+    if type(image) is not str:
+        return row
+    if len(image) > _PROCESS_IMAGE_IDENTITY_MAX_CHARS:
+        # An unexpected transport can supply over-bound data. Do not hash or
+        # serialize its complete contents, and do not claim a full path hash.
+        row["image_path"] = image[:128].encode("unicode_escape").decode("ascii")[:1024]
+        row["image_path_representation"] = "escaped_prefix_only"
+        row["image_path_truncated"] = True
+        return row
+    try:
+        raw = image.encode("utf-8")
+    except UnicodeEncodeError:
+        raw = image.encode("utf-16-le", errors="surrogatepass")
+        row["image_path_hash_encoding"] = "utf-16-le-surrogatepass"
+        row["image_path"] = image[:128].encode("unicode_escape").decode("ascii")[:1024]
+        row["image_path_representation"] = "escaped_prefix_only"
+        row["image_path_truncated"] = True
+    else:
+        row["image_path_hash_encoding"] = "utf-8"
+        row["image_path"] = image[:_REJECTED_CDP_IMAGE_MAX_CHARS]
+        row["image_path_representation"] = "observed_text"
+        row["image_path_truncated"] = len(image) > _REJECTED_CDP_IMAGE_MAX_CHARS
+    row["image_path_sha256"] = hashlib.sha256(raw).hexdigest()
+    return row
 
 
 class _Win32ProcessCounters:
@@ -235,14 +300,23 @@ class WindowsProcessMemoryRegistry:
         self._receipt: dict[str, Any] | None = None
 
     def _unknown_event(self, reason: str, *, pid: Any = None, source: str = "observer",
-                       count: int = 1, cdp_process_type: Any = _NO_CDP_TYPE) -> None:
+                       count: int = 1, cdp_process_type: Any = _NO_CDP_TYPE,
+                       rejected_cdp_candidate: dict[str, Any] | None = None) -> dict[str, Any] | None:
         self._unknown_count += count
         if len(self._unknown) < self._max_unknown_details:
-            self._unknown.append({"reason": reason[:256], "pid": pid if _valid_process_id(pid) else None,
-                                  "source": source[:64], "count": count,
-                                  "monotonic_ns": time.monotonic_ns(),
-                                  **(_cdp_type_metadata(cdp_process_type)
-                                     if cdp_process_type is not _NO_CDP_TYPE else {})})
+            row = {"reason": reason[:256], "pid": pid if _valid_process_id(pid) else None,
+                   "source": source[:64], "count": count,
+                   "monotonic_ns": time.monotonic_ns(),
+                   **(_cdp_type_metadata(cdp_process_type)
+                      if cdp_process_type is not _NO_CDP_TYPE else {})}
+            if rejected_cdp_candidate is not None:
+                row["rejected_cdp_candidate"] = rejected_cdp_candidate
+            self._unknown.append(row)
+            # _adopt runs under this registry's RLock. Only its diagnostic
+            # CloseHandle outcome is filled before that lock is released;
+            # every external sample/receipt returns a locked deepcopy.
+            return row
+        return None
 
     def _metadata(self, binding: _Binding) -> dict[str, Any]:
         return {"cohort_generation": self.generation, "role": binding.role, "pid": binding.pid,
@@ -259,10 +333,12 @@ class WindowsProcessMemoryRegistry:
     def _adopt(self, *, pid: Any, role: str, source: str, expected_creation: Any = None,
                cutoff: Any = None, spawn_handle: Any = None, expected_image: str | None = None,
                worker_generation: str | None = None, cdp_process_type: str | None = None) -> bool:
-        def unknown(reason: str, *, pid: Any = None) -> None:
-            self._unknown_event(reason, pid=pid, source=source,
-                                cdp_process_type=(cdp_process_type if cdp_process_type is not None
-                                                  else _NO_CDP_TYPE))
+        def unknown(reason: str, *, pid: Any = None,
+                    diagnostic: dict[str, Any] | None = None) -> dict[str, Any] | None:
+            return self._unknown_event(reason, pid=pid, source=source,
+                                       cdp_process_type=(cdp_process_type if cdp_process_type is not None
+                                                         else _NO_CDP_TYPE),
+                                       rejected_cdp_candidate=diagnostic)
 
         if self._closing or self._children_closing or self._receipt is not None or self._children_receipt is not None:
             unknown("registration_after_closure_refused", pid=pid)
@@ -308,24 +384,38 @@ class WindowsProcessMemoryRegistry:
             return False
         handle = None
         adopted = False
+        identity = liveness = None
+        liveness_attempted = False
+        failed_check = "open_process_handle"
+        rejected_detail = None
         try:
             handle = (self._transport.duplicate_spawn_handle(spawn_handle)
                       if spawn_handle is not None else self._transport.open(pid))
+            failed_check = "query_existing_handle_identity"
             identity = self._transport.identity(handle)
             birth = identity["creation_filetime_100ns"]
             image = identity["image_path"]
+            failed_check = "source_pid_and_positive_birth"
             if identity["pid"] != pid or not _positive_int(birth):
                 raise ValueError("retained process identity does not match its source")
+            failed_check = "expected_creation_time"
             if expected_creation is not None and (not _positive_int(expected_creation) or birth != expected_creation):
                 raise ValueError("creation time mismatch; PID reuse is refused")
+            failed_check = "pre_cdp_birth_cutoff"
             if cutoff is not None and (not _positive_int(cutoff) or birth > cutoff):
                 raise ValueError("birth is after the pre-CDP cutoff; membership is unverified")
+            failed_check = "owned_spawn_image"
             if expected_image is not None and ntpath.normcase(image) != ntpath.normcase(expected_image):
                 raise ValueError("process image differs from its owned spawn source")
+            failed_check = "edge_runtime_image"
             if role.startswith("edge_") and ntpath.basename(image).casefold() != "msedge.exe":
                 raise ValueError("CDP process image is not the owned Edge runtime")
-            if self._transport.wait(handle, 0)["signaled"]:
+            failed_check = "existing_pre_adoption_liveness"
+            liveness_attempted = True
+            liveness = self._transport.wait(handle, 0)
+            if liveness["signaled"]:
                 raise ValueError("process exited before identity adoption")
+            failed_check = "retain_verified_binding"
             now = time.monotonic_ns()
             self._bindings[pid] = _Binding(role, pid, birth, image, source, handle, now, now,
                                           worker_generation=worker_generation,
@@ -333,15 +423,62 @@ class WindowsProcessMemoryRegistry:
             adopted = True
             return True
         except Exception as exc:
-            unknown("binding_failed:" + type(exc).__name__ + ":" + str(exc)[:128], pid=pid)
+            diagnostic = None
+            if source == "owned_browser_cdp":
+                try:
+                    diagnostic = _rejected_cdp_metadata(
+                        identity, requested_pid=pid, cutoff=cutoff, failed_check=failed_check,
+                        handle_obtained=handle is not None, liveness_attempted=liveness_attempted,
+                        liveness=liveness,
+                    )
+                except BaseException as diagnostic_failure:
+                    # Formatting may fail independently. Preserve the exact
+                    # primary refusal/count/order and still close its handle.
+                    diagnostic = {"schema": "omni-rejected-cdp-candidate-v1",
+                        "scope": "diagnostic_formatting_failed_not_ownership_or_retirement_proof",
+                        "failed_check": failed_check,
+                        "diagnostic_error_type": type(diagnostic_failure).__name__[:64],
+                        "query_handle_obtained": handle is not None,
+                        "query_handle_close_attempted": False, "query_handle_closed": None,
+                        "query_handle_close_error_type": None}
+            rejected_detail = unknown("binding_failed:" + type(exc).__name__ + ":" + str(exc)[:128],
+                                      pid=pid, diagnostic=diagnostic)
             return False
         finally:
             if handle is not None and not adopted:
+                diagnostic = (rejected_detail.get("rejected_cdp_candidate")
+                              if rejected_detail is not None else None)
+                close_succeeded = False
+                close_error_type = None
                 try:
                     self._transport.close(handle)
+                    close_succeeded = True
                 except Exception as exc:
+                    close_error_type = type(exc).__name__[:64]
                     self._unadopted_handle_close_failures += 1
                     unknown("unadopted_handle_close_failed:" + type(exc).__name__, pid=pid)
+                finally:
+                    if diagnostic is not None:
+                        try:
+                            diagnostic.update(query_handle_close_attempted=True,
+                                              query_handle_closed=close_succeeded,
+                                              query_handle_close_error_type=close_error_type)
+                        except BaseException as diagnostic_failure:
+                            # Optional output bookkeeping runs only after the
+                            # required close and must not mask either refusal.
+                            try:
+                                rejected_detail["rejected_cdp_candidate"] = {
+                                    "schema": "omni-rejected-cdp-candidate-v1",
+                                    "scope": "diagnostic_formatting_failed_not_ownership_or_retirement_proof",
+                                    "failed_check": failed_check,
+                                    "diagnostic_error_type": type(diagnostic_failure).__name__[:64],
+                                    "query_handle_obtained": True,
+                                    "query_handle_close_attempted": True,
+                                    "query_handle_closed": close_succeeded,
+                                    "query_handle_close_error_type": close_error_type,
+                                }
+                            except BaseException:
+                                pass
 
     def bind_current_agent(self) -> bool:
         with self._lock:
