@@ -3,7 +3,7 @@
   "status": "full_protocol_running_basic_block_closed",
   "actual_exec_session": 1799,
   "launch_tool_chunk": "3ab3bd",
-  "confirmed_live_tool_chunk": "5a81d3",
+  "confirmed_live_tool_chunk": "90dbbb",
   "owner_receipt_sha256": "90d49767313395fae00fc99440e1251b38c7e46198bebcea7ea1d5e0ed320da0",
   "observed_unix": 1791526076.904022,
   "producer_sha256": "b60c05e9b6ef5b7222861d44b9238793f4484323cc99d07f94ee4c7e0cf8d16e",
@@ -166,8 +166,9 @@
     "raw_prefix": {
       "bytes": 99758074,
       "sha256": "d3b1153c8f6d2ad8823550ef946f0631ffa86b879f36c30141b483ba6b002047",
-      "scope": "complete JSON lines through basic block; the protocol file remains open for later classes",
-      "whole_protocol_file_closed": false
+      "scope": "complete closed basic task-class file; browser and memory use separate files, while the three-class protocol remains live",
+      "task_class_file_closed": true,
+      "whole_protocol_closed": false
     },
     "request_rows": 345,
     "counts": [
@@ -901,6 +902,60 @@
       "session_id": 1799,
       "tool_chunk": "5a81d3",
       "observed_utc": "2026-10-09 07:06:32 UTC"
+    },
+    "recorded_index_result": {
+      "correctness_pass": true,
+      "lineage_verified": false,
+      "protocol_compliant": true,
+      "raw_jsonl": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T060940Z_9fee0518\\samples.jsonl",
+      "raw_sha256": "d3b1153c8f6d2ad8823550ef946f0631ffa86b879f36c30141b483ba6b002047",
+      "release_qualified": false,
+      "route_id": "ista-q2-strata-combined-agent-full-20261009-v3",
+      "status": "evidence_recorded",
+      "submission_mode": "model_selected_tools_v1",
+      "summary": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T060940Z_9fee0518\\summary.json",
+      "task_class": "basic",
+      "telemetry_interval_seconds": 0.1,
+      "tool_safety_pass": true
+    },
+    "recorded_summary": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T060940Z_9fee0518\\summary.json",
+      "sha256": "bb7b66502dfff5cf150f936a4d16f608bcdc15f6e2b7e629019192d215fbe3d9",
+      "size_bytes": 11455,
+      "scope": "closed basic-class writer summary; count/nearest-rank quantiles independently matched small summary arrays; full raw trace review pending"
+    }
+  },
+  "browser_class_live_progress": {
+    "observed_utc": "2026-10-09T07:17:24.463562+00:00",
+    "wrapper_phase": "actual_bridge_ready",
+    "raw_prefix": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T070114Z_e9b6c09a\\samples.jsonl",
+      "bytes": 8209991,
+      "sha256": "ba5f9c02a889685688a35f125997d5d5b1b8f3899c195cff7c7a940d211c7323",
+      "still_appending": true
+    },
+    "request_rows": 9,
+    "counts": [
+      {
+        "task_class": "browser_text",
+        "length": "short",
+        "phase": "measured",
+        "count": 7
+      },
+      {
+        "task_class": "browser_text",
+        "length": "short",
+        "phase": "warmup",
+        "count": 2
+      }
+    ],
+    "failing_raw_row_flags": 0,
+    "closed_class_or_protocol": false,
+    "statistical_or_default_qualification_granted": false,
+    "verified_live_session": {
+      "session_id": 1799,
+      "tool_chunk": "90dbbb",
+      "observed_utc": "2026-10-09 07:19:20 UTC"
     }
   }
 }
