@@ -15,6 +15,7 @@ import json
 import os
 import platform
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -374,10 +375,38 @@ def _qualifications(config: dict[str, Any], *, config_dir: Path | None = None) -
     return profiles
 
 
-def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str, Any]]:
+def _browser_companion_from_config(data: dict[str, Any], *, config_dir: Path,
+                                    browser_factory: Callable[..., Any] | None = None) -> Any:
+    declaration = data.get("browser_resource_envelope")
+    if declaration is None:
+        if browser_factory is not None:
+            raise ValueError("a managed browser factory requires an explicit reviewed resource envelope")
+        return None
+    if (not isinstance(declaration, dict) or set(declaration) != {"path", "sha256"}
+            or not isinstance(declaration["path"], str) or not declaration["path"]):
+        raise ValueError("browser_resource_envelope requires only an explicit local path and SHA256")
+    from vllm_omni.edge.agent.browser_resources import (
+        WindowsBrowserResourceCompanion,
+        resolve_reviewed_browser_envelope,
+    )
+    path = Path(declaration["path"])
+    if not path.is_absolute():
+        path = config_dir / path
+    envelope = resolve_reviewed_browser_envelope(path, expected_sha256=declaration["sha256"])
+    return WindowsBrowserResourceCompanion(envelope, browser_factory=browser_factory)
+
+
+def build_controller(config_path: str | Path, *,
+                     tool_boundary_factory: Callable[..., Any] | None = None,
+                     browser_factory: Callable[..., Any] | None = None) -> tuple[AgentController, dict[str, Any]]:
     if sys.platform != "win32":
         raise RuntimeError("this application requires native Windows Python")
     data = json.loads(Path(config_path).read_text(encoding="utf-8"))
+    # Resolve the caller's evidence declaration before any route admission.
+    # The companion constructor is cold and chooses no allowance itself.
+    companion = _browser_companion_from_config(
+        data, config_dir=Path(config_path).resolve().parent, browser_factory=browser_factory,
+    )
     hardware = _hardware_snapshot()
     routes: list[Route] = []
     stage_backends: dict[str, OmniLlamaBackend] = {}
@@ -395,6 +424,12 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
     for entry in data["routes"]:
         llamacpp_route_binding(entry)
         output_contract = validate_output_contract_entry(entry)
+        if entry.get("backend") == "external.llamacpp.text.v1" and output_contract is not None:
+            from vllm_omni.edge.agent.llamacpp_route import llamacpp_memory_demands
+
+            route_demands = llamacpp_memory_demands(entry)
+        else:
+            route_demands = entry["memory_demands"]
         route = Route(
             route_id=entry["route_id"],
             artifact_id=entry["artifact_id"],
@@ -405,7 +440,7 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
             ),
             modalities=frozenset(entry.get("modalities", ["text"])),
             placement=entry["placement"],
-            memory_demands=entry["memory_demands"],
+            memory_demands=route_demands,
             requires_nvidia=bool(entry.get("requires_nvidia", False)),
             model_output_contract=output_contract,
             base_artifact_id=entry.get("base_artifact_id"),
@@ -473,6 +508,8 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
         backend = OmniLlamaBackend(
             llama_config_from_entry(entry, capacities=capacities)
         )
+        if output_contract is not None:
+            backend.bind_output_contract(output_contract, base_artifact_id=route.base_artifact_id)
         stage_backends[route.route_id] = backend
 
     def live_free() -> dict[str, int | None]:
@@ -490,16 +527,20 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
         capacities=capacities,
         free_bytes=live_free,
         blocked_reasons=capacity_refusals,
+        **({"companion": companion} if companion is not None else {}),
     )
 
     local_app_data = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
     memory_path = Path(data.get("memory_file") or local_app_data / "OmniEdgeAgent" / "memory.sqlite")
+    tools = (companion.make_tool_boundary(boundary_factory=tool_boundary_factory)
+             if companion is not None else
+             tool_boundary_factory() if tool_boundary_factory is not None else WindowsToolBoundary())
     controller = AgentController(
         routes=routes,
         qualifications=_qualifications(data, config_dir=Path(config_path).resolve().parent),
         backends=coordinator.wrappers(),
         memory=EncryptedMemoryStore(memory_path),
-        tools=WindowsToolBoundary(),
+        tools=tools,
         admit=coordinator.admit,
         environment_fingerprint=_fingerprint(hardware),
         power_condition=hardware["power_condition"],
@@ -507,7 +548,20 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
         qualification_suite_id=data.get("qualification_suite_id", "edge-agent-paired-v1"),
         bootstrap_route_id=data.get("experimental_bootstrap_route_id"),
         limits=AgentLimits(**data.get("limits", {})),
+        **({"resource_finalize": coordinator.finalize_close} if companion is not None else {}),
     )
+    # Application/profiler ownership handle, never exposed as a model tool.
+    # Its presence does not claim route qualification or a hard process cap.
+    controller.browser_resource_companion = companion
+    if companion is not None:
+        controller.resource_snapshot = coordinator.snapshot
+        hardware = {**hardware, "browser_joint_admission": {
+            "enabled": True, "purpose_id": companion.resource_spec.purpose_id,
+            "envelope_sha256": companion.resource_spec.envelope_sha256,
+            "evidence_reference": companion.resource_spec.evidence_reference,
+            "declared_incremental_memory_demands": dict(companion.resource_spec.memory_demands),
+            "scope": "reviewed_incremental_allowance_not_process_hard_cap",
+        }}
     return controller, hardware
 
 
@@ -569,6 +623,7 @@ def main() -> None:
                             output.write(json.dumps(event, ensure_ascii=False) + "\n")
         return
     from PySide6.QtWidgets import QApplication
+
     from vllm_omni.edge.agent.desktop import AgentWindow
 
     app = QApplication(sys.argv)

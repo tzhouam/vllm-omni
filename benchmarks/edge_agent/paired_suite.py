@@ -8,20 +8,125 @@ human review of open-web behavior, screen understanding, or generated code.
 from __future__ import annotations
 
 import base64
-import hashlib
 import html
+import json
 import threading
+from collections.abc import Mapping
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urljoin, urlparse
 
-from benchmarks.edge_agent.profile import AgentCase, AgentRunResult, Evaluation
+from benchmarks.edge_agent.profile import AgentCase, AgentRunResult, Evaluation, ProfileRoute
 from vllm_omni.edge.agent.fixed_suite import FIXTURE_CODES, canonical_fixed_cases
+from vllm_omni.edge.agent.memory_provenance import (
+    MEMORY_CONSUMER_PREFIXES as _CONSUMER_PREFIXES,
+)
+from vllm_omni.edge.agent.memory_provenance import (
+    MEMORY_FIXTURE_SCOPE as _MEMORY_SCOPE,
+)
+from vllm_omni.edge.agent.memory_provenance import (
+    MEMORY_FIXTURE_SOURCE as _MEMORY_SOURCE,
+)
+from vllm_omni.edge.agent.memory_provenance import (
+    MEMORY_PROVENANCE_SCHEMA,
+    memory_source_verified,
+)
+from vllm_omni.edge.agent.memory_provenance import (
+    MEMORY_SETUP_WORKSPACE_BYTES as _MEMORY_SETUP_WORKSPACE_BYTES,
+)
+from vllm_omni.edge.agent.memory_provenance import (
+    text_identity as _text_identity,
+)
 from vllm_omni.edge.agent.tools import ToolAction, WindowsToolBoundary
-
 
 _CODES = FIXTURE_CODES
 _WRITE_OPERATIONS = frozenset({"browser_click", "browser_fill", "browser_post", "settings_set"})
+
+
+def memory_fixture_expectation(
+    case: AgentCase, controller: Any, event: Any, route: ProfileRoute,
+) -> dict[str, Any]:
+    """Fingerprint the expected first input from the committed real seed.
+
+    This runs outside the answer timer. It uses the application renderer and
+    retains no prompt, reference or recalled-text preimage. The fingerprint is
+    an expectation, not an assertion that the model actually received it;
+    evaluation must compare the independently captured actual input identity.
+    It proves neither close/reopen persistence nor multi-turn retention.
+    """
+    from vllm_omni.edge.agent.consumer_trace import model_step_capture_policy
+    from vllm_omni.edge.agent.controller import _recall_payload
+    from vllm_omni.edge.agent.router import classify_task
+
+    if (case.task_class != "memory" or case.metadata.get("kind") != "memory_recall"
+            or case.metadata.get("source") != _MEMORY_SOURCE
+            or classify_task(case.prompt) != "memory"
+            or not isinstance(case.reference, str) or not case.reference.strip()
+            or len(case.reference) > 128 or len(case.prompt.encode("utf-8")) > 8192
+            or case.reference.casefold() in case.prompt.casefold()):
+        raise ValueError("memory fixture is not an isolated ordinary recall task")
+    stored = controller.memory.get_event(event.event_id)
+    if (stored is None or stored != event or stored.source != _MEMORY_SOURCE
+            or stored.kind != "user_observation"
+            or stored.session_id != f"fixture-{case.case_id}"
+            or stored.request_id != "memory-seed" or stored.epoch != 0 or stored.sequence != 0
+            or not isinstance(stored.event_id, str) or not 1 <= len(stored.event_id) <= 128):
+        raise ValueError("committed memory seed identity or source differs")
+    native_route = next((item for item in controller.routes if item.route_id == route.route_id), None)
+    consumer = route.backend_identity.get("model_output_consumer_identity")
+    contract = getattr(native_route, "model_output_contract", None)
+    if (native_route is None or native_route.artifact_id != route.artifact_id
+            or native_route.backend != route.backend or contract is None
+            or not isinstance(consumer, Mapping)
+            or consumer.get("contract") != contract.to_dict()
+            or route.backend not in _CONSUMER_PREFIXES
+            or native_route.artifact_id != _CONSUMER_PREFIXES[route.backend]
+            + str(consumer.get("identity_sha256"))):
+        raise ValueError("memory fixture needs the validated explicit consumer route")
+    capture = model_step_capture_policy(contract, controller.limits.max_model_steps)
+    if contract.workspace_budget_bytes < (contract.minimum_workspace_bytes
+                                          + capture["declared_metadata_bytes"]
+                                          + _MEMORY_SETUP_WORKSPACE_BYTES):
+        raise ValueError("memory fixture setup workspace is not admitted")
+    recalled = [{"source": stored.source, "kind": stored.kind, "event_id": stored.event_id,
+                 "text": json.dumps(_recall_payload(stored.payload), ensure_ascii=False)[:1200]}]
+    if case.reference not in recalled[0]["text"]:
+        raise ValueError("committed seed does not contain the exact recall reference")
+    expected = controller._build_prompt(case.prompt, "memory", recalled, [], output_contract=contract)
+    identity = _text_identity(expected)
+    if identity["utf8_bytes"] > 16384:
+        raise ValueError("memory fixture expected input exceeds the bounded setup scope")
+    del expected, recalled
+    expectation = {
+        "schema": MEMORY_PROVENANCE_SCHEMA, "scope": _MEMORY_SCOPE,
+        "case_id": case.case_id, "route_id": route.route_id,
+        "artifact_id": route.artifact_id, "backend": route.backend,
+        "controller_session_id": controller.session_id,
+        "seed_event_id": stored.event_id, "seed_source": stored.source,
+        "seed_kind": stored.kind, "seed_session_id": stored.session_id,
+        "seed_request_id": stored.request_id,
+        "consumer_identity_sha256": consumer["identity_sha256"],
+        "task_sha256": _text_identity(case.prompt)["sha256"],
+        "reference_sha256": _text_identity(case.reference)["sha256"],
+        "setup_workspace_bytes": _MEMORY_SETUP_WORKSPACE_BYTES,
+        "expected_first_model_input": identity,
+    }
+    # Only this small metadata survives setup; no parser/whole-process cap claim.
+    if len(json.dumps(expectation, ensure_ascii=False).encode("utf-8")) > 4096:
+        raise ValueError("memory fixture expectation exceeds metadata budget")
+    return expectation
+
+
+def _memory_source_verified(case: AgentCase, result: AgentRunResult) -> bool:
+    """Use the packaged metadata gate without copying complete native reports."""
+    return memory_source_verified(
+        {"task_class": case.task_class, "metadata": case.metadata, "case_id": case.case_id,
+         "reference": case.reference, "prompt": case.prompt},
+        {"fixture_setup": result.fixture_setup, "placement_evidence": result.placement_evidence,
+         "complete_agent_trace": result.complete_agent_trace, "trace_scope": result.trace_scope,
+         "tool_decisions": result.tool_decisions, "artifact_id": result.artifact_id,
+         "backend": result.backend},
+    )
 
 
 def _self_contained_reference(kind: str) -> str | None:
@@ -174,7 +279,9 @@ def evaluate_case(case: AgentCase, result: AgentRunResult) -> Evaluation:
         answer_ok &= str(case.reference) == fixed_reference
     source_ok = True
     expected_source = str(case.metadata.get("source", ""))
-    if expected_source.startswith("http"):
+    if case.task_class == "memory" or case.metadata.get("kind") == "memory_recall":
+        source_ok = _memory_source_verified(case, result)
+    elif expected_source.startswith("http"):
         source_ok = any(
             item.get("kind") == "tool_result" and
             str(item.get("payload", {}).get("source", "")) == expected_source
@@ -200,5 +307,8 @@ def evaluate_case(case: AgentCase, result: AgentRunResult) -> Evaluation:
         quality_score=1.0 if quality else 0.0, tool_safe=tool_safe,
         details={"answer_exact": answer_ok, "required_tools_seen": required_seen,
                  "source_verified": source_ok, "quality_scope": case.metadata.get("quality_scope"),
-                 "code_tool_available": False if case.metadata.get("kind") == "code_reasoning" else None},
+                  "code_tool_available": False if case.metadata.get("kind") == "code_reasoning" else None,
+                  **({"memory_provenance_schema": MEMORY_PROVENANCE_SCHEMA,
+                      "memory_provenance_verified": source_ok}
+                     if case.task_class == "memory" or case.metadata.get("kind") == "memory_recall" else {})},
     )

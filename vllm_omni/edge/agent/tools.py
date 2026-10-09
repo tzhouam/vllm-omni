@@ -8,30 +8,34 @@ outside the model's tool schema.  Browser and UI text remain untrusted data.
 
 from __future__ import annotations
 
-import ctypes
 import asyncio
 import base64
 import binascii
+import ctypes
 import hashlib
 import hmac
-import ipaddress
 import io
+import ipaddress
 import json
+import ntpath
 import os
 import re
 import secrets
 import sys
 import threading
 import time
+from collections.abc import Callable, Iterator, Mapping
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping, Protocol
 from types import MappingProxyType
+from typing import Any, Protocol
 from urllib.parse import quote, unquote, urljoin, urlparse, urlsplit, urlunsplit
 
 import psutil
 
+from vllm_omni.engine.resource_ledger import ResourceUnavailable
 
 _READ_OPERATIONS = frozenset({
     "browser_open",
@@ -118,6 +122,26 @@ class ToolResult:
     untrusted_output: bool = True
 
 
+class BrowserResourcePostconditionFailed(ResourceUnavailable):  # noqa: N818
+    """Operation finished/failed before its postcondition refused more work.
+
+    A completed ToolResult must be recorded by the controller before stopping
+    the turn. An uncertain write must never be retried under the same approval.
+    This exception does not release the model or browser resource reservation.
+    """
+
+    def __init__(self, completed_output: Any = None, *, operation_error: BaseException | None = None) -> None:
+        self.completed_output = completed_output
+        self.operation_error = operation_error
+        super().__init__(
+            "browser resource postcondition failed after an operation; "
+            "preserve its outcome and do not retry automatically")
+
+    @property
+    def completed_result(self) -> ToolResult | None:
+        return self.completed_output if isinstance(self.completed_output, ToolResult) else None
+
+
 @dataclass(frozen=True)
 class ApprovalChallenge:
     challenge_id: str
@@ -138,13 +162,13 @@ class ApprovalChallenge:
         }
 
 
-class ApprovalRequired(RuntimeError):
+class ApprovalRequired(RuntimeError):  # noqa: N818 - public tool approval signal
     def __init__(self, challenge: ApprovalChallenge) -> None:
         self.challenge = challenge
         super().__init__(f"approval required for {challenge.action.operation}")
 
 
-class ToolRequestCancelled(RuntimeError):
+class ToolRequestCancelled(RuntimeError):  # noqa: N818 - public tool cancellation signal
     """The owning Agent request ended before this tool action could start."""
 
 
@@ -410,6 +434,74 @@ def _high_impact_text(*values: Any) -> bool:
     return _HIGH_IMPACT_CONTROL.search(text) is not None
 
 
+def _playwright_owned_node_spawn(playwright: Any) -> dict[str, Any]:
+    """Pin a private ownership seam; never discover a Node PID by name."""
+    import importlib.metadata
+
+    if (importlib.metadata.version("playwright") != "1.63.0"
+            or sys.implementation.name != "cpython" or tuple(sys.version_info[:3]) != (3, 12, 10)):
+        raise RuntimeError("Node spawn ownership requires reviewed Playwright 1.63.0 / CPython 3.12.10")
+    process = playwright._impl_obj._connection._transport._proc
+    transport = process._transport
+    popen = transport._proc
+    if (type(process).__module__ != "asyncio.subprocess"
+            or type(transport).__module__ != "asyncio.windows_events"
+            or type(popen).__module__ != "asyncio.windows_utils"
+            or type(process.pid) is not int or process.pid <= 0
+            or popen.pid != process.pid):
+        raise RuntimeError("reviewed Playwright subprocess ownership shape is unavailable")
+    handle = int(popen._handle)
+    args = popen.args
+    if (handle <= 0 or not isinstance(args, (list, tuple)) or not args
+            or not isinstance(args[0], str) or not ntpath.isabs(args[0])
+            or ntpath.basename(args[0]).casefold() != "node.exe"):
+        raise RuntimeError("reviewed owned Node spawn handle or image is unavailable")
+    # The receiver duplicates this handle synchronously. The original remains
+    # Playwright-owned and must never be closed by the observer.
+    return {"pid": process.pid, "spawn_handle": handle, "expected_image": args[0],
+            "playwright_version": "1.63.0", "python_version": "3.12.10"}
+
+
+@contextmanager
+def _browser_resource_scope(guard: Callable[[], None] | None) -> Iterator[None]:
+    """Optional caller-thread admission before/after operations, never cleanup."""
+    if guard is None:
+        yield
+        return
+    guard()
+    try:
+        yield
+    except BaseException:
+        # A failed postcondition takes priority (with the original exception
+        # as context), so an approval signal cannot mask memory refusal.
+        guard()
+        raise
+    else:
+        guard()
+
+
+def _guarded_browser_call(guard: Callable[[], None] | None, function: Callable[..., Any], *args: Any) -> Any:
+    if guard is None:
+        return function(*args)
+    guard()
+    try:
+        result = function(*args)
+    except BaseException as original:
+        try:
+            guard()
+        except BaseException as failure:
+            if isinstance(original, BrowserResourcePostconditionFailed):
+                original.add_note("outer browser resource postcondition also refused continued work")
+                raise original from failure
+            raise BrowserResourcePostconditionFailed(operation_error=original) from failure
+        raise
+    try:
+        guard()
+    except BaseException as failure:
+        raise BrowserResourcePostconditionFailed(result) from failure
+    return result
+
+
 class ManagedEdgeBrowser:
     """One isolated app-owned Edge context; no arbitrary JavaScript or OS commands.
 
@@ -420,13 +512,21 @@ class ManagedEdgeBrowser:
     """
 
     def __init__(self, profile_dir: Path | None = None, *, max_text_chars: int = 20_000,
-                 headless: bool = False) -> None:
+                 headless: bool = False,
+                 process_observer: Callable[[str, Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+                 resource_guard: Callable[[], None] | None = None) -> None:
         _require_windows()
         local_app_data = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
         # Do not open any existing directory as a Chromium user-data-dir.
         self.profile_dir = profile_dir or local_app_data / "OmniEdgeAgent" / "browser-profile"
         self.max_text_chars = max_text_chars
         self._headless = headless
+        self._process_observer = process_observer
+        self._resource_guard = resource_guard
+        self._process_observer_errors: list[str] = []
+        self._process_observer_error_count = 0
+        self._process_cdp: Any = None
+        self.process_memory_close_receipt: Mapping[str, Any] | None = None
         self._playwright: Any = None
         self._browser: Any = None
         self._context: Any = None
@@ -440,9 +540,58 @@ class ManagedEdgeBrowser:
         self._worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-edge-browser")
 
     def _call(self, function: Any, *args: Any) -> Any:
+        closing = function == self._close
         if self._owner_thread == threading.get_ident():
+            if self._resource_guard is not None and not closing:
+                raise RuntimeError("guarded browser operations must originate outside the owner worker")
+            return self._observed_call(function, args)
+        # Manager close may hold its lifecycle lock while waiting for this
+        # worker. Guard only on the caller, and never on the close path.
+        return _guarded_browser_call(
+            None if closing else self._resource_guard,
+            lambda: self._worker.submit(self._observed_call, function, args).result(),
+        )
+
+    def _process_notify(self, action: str, payload: Mapping[str, Any]) -> Mapping[str, Any] | None:
+        if self._process_observer is None:
+            return None
+        try:
+            return self._process_observer(action, payload)
+        except Exception as exc:
+            self._process_observer_error_count += 1
+            if len(self._process_observer_errors) < 16:
+                self._process_observer_errors.append(action[:64] + ":" + type(exc).__name__)
+            return None
+
+    def _process_checkpoint(self, checkpoint: str = "tool_boundary") -> None:
+        if self._process_observer is None or self._browser is None:
+            return
+        if threading.get_ident() != self._owner_thread:
+            raise RuntimeError("browser CDP memory checkpoints require the owner worker")
+        cutoff = self._process_notify("cdp_begin", {"checkpoint": checkpoint})
+        if not isinstance(cutoff, Mapping) or type(cutoff.get("cutoff_filetime_100ns")) is not int:
+            self._process_notify("cdp_unavailable", {"reason": "pre-CDP FILETIME cutoff unavailable"})
+            return
+        try:
+            if self._process_cdp is None:
+                self._process_cdp = self._browser.new_browser_cdp_session()
+            info = self._process_cdp.send("SystemInfo.getProcessInfo")
+            self._process_notify("cdp_membership", {
+                "cutoff_filetime_100ns": cutoff["cutoff_filetime_100ns"],
+                "process_info": info.get("processInfo") if isinstance(info, Mapping) else None,
+                "checkpoint": checkpoint,
+            })
+        except Exception as exc:
+            self._process_notify("cdp_unavailable", {"reason": "owned CDP failed:" + type(exc).__name__})
+
+    def _observed_call(self, function: Any, args: tuple[Any, ...]) -> Any:
+        if self._process_observer is None or function == self._close:
             return function(*args)
-        return self._worker.submit(function, *args).result()
+        self._process_checkpoint("before_tool")
+        try:
+            return function(*args)
+        finally:
+            self._process_checkpoint("after_tool")
 
     def _ensure_page(self) -> Any:
         thread_id = threading.get_ident()
@@ -463,19 +612,30 @@ class ManagedEdgeBrowser:
             try:
                 if sys.platform == "win32":
                     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+                self._process_notify("node_start_attempted", {})
                 self._playwright = sync_playwright().start()
-            except Exception:
+            except Exception as exc:
+                self._process_notify("node_start_failed", {"reason": "Playwright start failed:" + type(exc).__name__})
                 self._owner_thread = None
                 raise
             finally:
                 asyncio.set_event_loop_policy(old_policy)
+            if self._process_observer is not None:
+                try:
+                    self._process_notify("node_spawn", _playwright_owned_node_spawn(self._playwright))
+                except Exception as exc:
+                    self._process_notify("node_spawn_unavailable", {
+                        "reason": "owned Node spawn unavailable:" + type(exc).__name__,
+                    })
             try:
+                self._process_notify("browser_launch_started", {})
                 # A persistent profile may restore a page before Playwright can
                 # install its route. An isolated context begins with no pages;
                 # install both guards before creating the first page.
                 self._browser = self._playwright.chromium.launch(
                     channel="msedge", headless=self._headless,
                 )
+                self._process_checkpoint("after_browser_launch")
                 self._context = self._browser.new_context(
                     accept_downloads=False, service_workers="block",
                 )
@@ -486,20 +646,9 @@ class ManagedEdgeBrowser:
                 # read must not be able to open a separate write channel.
                 self._context.route_web_socket("**/*", lambda socket: socket.close())
                 self._page = self._context.new_page()
-            except Exception:
-                try:
-                    if self._context is not None:
-                        self._context.close()
-                finally:
-                    try:
-                        if self._browser is not None:
-                            self._browser.close()
-                    finally:
-                        try:
-                            self._playwright.stop()
-                        finally:
-                            self._context = self._page = self._browser = self._playwright = None
-                            self._owner_thread = None
+                self._process_checkpoint("after_page_creation")
+            except BaseException as failure:
+                self._cleanup_browser_objects(failure)
                 raise
         return self._page
 
@@ -669,13 +818,29 @@ class ManagedEdgeBrowser:
         except Exception:
             route.abort("failed")
             return
-        location = response.headers.get("location")
-        if 300 <= response.status < 400 and location:
-            self._block_request(
-                route, "HTTP redirect requires separate URL approval", navigation=navigation,
-            )
-            return
-        route.fulfill(response=response)
+        response_error: BaseException | None = None
+        try:
+            location = response.headers.get("location")
+            if 300 <= response.status < 400 and location:
+                self._block_request(
+                    route, "HTTP redirect requires separate URL approval",
+                    navigation=navigation,
+                )
+                return
+            # The response body must remain available until synchronous fulfill returns.
+            route.fulfill(response=response)
+        except BaseException as exc:
+            response_error = exc
+            raise
+        finally:
+            try:
+                response.dispose()
+            except BaseException as cleanup_error:
+                if response_error is not None:
+                    # Keep navigation failure primary; expose cleanup failure
+                    # through exception chaining.
+                    raise response_error from cleanup_error
+                raise
 
     def read(self) -> Mapping[str, Any]:
         return self._call(self._read)
@@ -795,26 +960,76 @@ class ManagedEdgeBrowser:
         raise PermissionError(_MANAGED_BROWSER_WRITE_BLOCK_REASON)
 
     def close(self) -> None:
-        self._call(self._close)
-        self._worker.shutdown(wait=True)
+        failure: BaseException | None = None
+        worker_joined = False
+        try:
+            self._call(self._close)
+        except BaseException as exc:
+            failure = exc
+        finally:
+            try:
+                self._worker.shutdown(wait=True)
+                worker_joined = True
+            except BaseException as exc:
+                if failure is None:
+                    failure = exc
+            if self._process_observer is not None:
+                receipt = self._process_notify("children_closed", {})
+                self.process_memory_close_receipt = {
+                    "worker_joined": worker_joined,
+                    "bound_set": dict(receipt) if isinstance(receipt, Mapping) else None,
+                    "observer_callback_error_count": self._process_observer_error_count,
+                    "observer_callback_errors": list(self._process_observer_errors),
+                    "all_descendants_retired": False,
+                }
+                if (not isinstance(receipt, Mapping) or receipt.get("bound_set_drain_verified") is not True
+                        or self._process_observer_error_count or not worker_joined):
+                    if failure is None:
+                        failure = RuntimeError("browser observed bound-set drain is unverified; quarantine required")
+        if failure is not None:
+            raise failure
+
+    def _cleanup_browser_objects(self, failure: BaseException | None = None) -> BaseException | None:
+        self._process_checkpoint("before_browser_close")
+        if self._process_cdp is not None:
+            try:
+                self._process_cdp.detach()
+            except BaseException as exc:
+                self._process_notify("cdp_detach_failed", {"reason": "CDP detach failed:" + type(exc).__name__})
+                if failure is None:
+                    failure = exc
+                else:
+                    failure.add_note("secondary browser cleanup failure: CDP detach:" + type(exc).__name__)
+            finally:
+                self._process_cdp = None
+        try:
+            for label, owned, method in (
+                ("context", self._context, "close"), ("browser", self._browser, "close"),
+                ("playwright", self._playwright, "stop"),
+            ):
+                if owned is None:
+                    continue
+                try:
+                    getattr(owned, method)()
+                except BaseException as exc:
+                    self._process_notify("browser_cleanup_failed", {
+                        "reason": "owned cleanup failed:" + label + ":" + type(exc).__name__,
+                    })
+                    if failure is None:
+                        failure = exc
+                    else:
+                        failure.add_note("secondary browser cleanup failure:" + label + ":" + type(exc).__name__)
+        finally:
+            self._context = self._page = self._browser = self._playwright = None
+            self._owner_thread = None
+        return failure
 
     def _close(self) -> None:
         if self._owner_thread is not None and threading.get_ident() != self._owner_thread:
             raise RuntimeError("browser close must run on its controller thread")
-        try:
-            if self._context is not None:
-                self._context.close()
-        finally:
-            try:
-                if self._browser is not None:
-                    self._browser.close()
-            finally:
-                try:
-                    if self._playwright is not None:
-                        self._playwright.stop()
-                finally:
-                    self._context = self._page = self._browser = self._playwright = None
-                    self._owner_thread = None
+        failure = self._cleanup_browser_objects()
+        if failure is not None:
+            raise failure
 
 
 class WindowsSettings:
@@ -1052,8 +1267,19 @@ class WindowsToolBoundary:
         browser: BrowserBackend | None = None,
         settings: SettingsBackend | None = None,
         screen: ScreenBackend | None = None,
+        *,
+        browser_factory: Callable[[], BrowserBackend] | None = None,
+        browser_resource_guard: Callable[[], None] | None = None,
+        browser_close: Callable[[], None] | None = None,
     ) -> None:
+        if browser is not None and browser_factory is not None:
+            raise ValueError("choose one browser owner or a cold browser factory")
+        if browser_factory is not None and (browser_resource_guard is None or browser_close is None):
+            raise ValueError("a cold browser factory requires its admission guard and owner close callback")
         self._browser = browser
+        self._browser_factory = browser_factory
+        self._browser_resource_guard = browser_resource_guard
+        self._browser_close = browser_close
         self._settings = settings
         self._screen = screen
         self._pending: dict[str, _Pending] = {}
@@ -1106,11 +1332,20 @@ class WindowsToolBoundary:
         if request_id and request_id in self._cancelled_requests:
             raise ToolRequestCancelled("tool request was cancelled before execution")
 
+    def _guard_browser(self, operation: str) -> None:
+        if operation.startswith("browser_") and self._browser_resource_guard is not None:
+            self._browser_resource_guard()
+
     @property
     def browser(self) -> BrowserBackend:
-        if self._browser is None:
-            self._browser = ManagedEdgeBrowser()
-        return self._browser
+        with _browser_resource_scope(self._browser_resource_guard):
+            if self._browser_factory is not None:
+                # Factory owner holds the current browser. Do not cache it
+                # here: a verified joint drain replaces its closed executor.
+                return self._browser_factory()
+            if self._browser is None:
+                self._browser = ManagedEdgeBrowser()
+            return self._browser
 
     @property
     def settings(self) -> SettingsBackend:
@@ -1134,6 +1369,10 @@ class WindowsToolBoundary:
 
     def execute(self, action: ToolAction) -> ToolResult:
         self._validate(action)
+        guard = self._browser_resource_guard if action.operation.startswith("browser_") else None
+        return _guarded_browser_call(guard, self._execute_validated, action)
+
+    def _execute_validated(self, action: ToolAction) -> ToolResult:
         self._require_supported_browser_write(action.operation)
         with self._lock:
             self._require_active(action.request_id)
@@ -1189,6 +1428,11 @@ class WindowsToolBoundary:
         if time.monotonic() > pending.deadline:
             raise TimeoutError("approval challenge expired")
         action = pending.challenge.action
+        guard = self._browser_resource_guard if action.operation.startswith("browser_") else None
+        return _guarded_browser_call(guard, self._approve_pending, pending)
+
+    def _approve_pending(self, pending: _Pending) -> ToolResult:
+        action = pending.challenge.action
         self._require_supported_browser_write(action.operation)
         if action.operation == "browser_follow":
             current, _ = self._navigation_context(action)
@@ -1222,11 +1466,29 @@ class WindowsToolBoundary:
             if self._pending.pop(challenge_id, None) is None:
                 raise ValueError("approval challenge is unknown or already used")
 
+    def reset_browser_owner_after_verified_drain(self) -> None:
+        """Factory owner's reset hook; no guard, launch, inspection or close.
+
+        Only the resource owner may call this after exact-token drain. Revoke
+        browser grants from the previous generation; keep trusted task URLs
+        and unrelated settings/screen grants in this boundary.
+        """
+        if self._browser_factory is None:
+            raise RuntimeError("browser reset requires a cold factory owner")
+        with self._lock:
+            for challenge_id, pending in tuple(self._pending.items()):
+                if pending.challenge.action.operation.startswith("browser_"):
+                    del self._pending[challenge_id]
+
     def close(self) -> None:
         """Discard approval grants and release the app-owned browser profile."""
         with self._lock:
             self._pending.clear()
             self._task_urls.clear()
+        if self._browser_close is not None:
+            # Cleanup never calls the admission guard, even after model release.
+            self._browser_close()
+            return
         browser = self._browser
         if browser is not None:
             closer = getattr(browser, "close", None)
@@ -1374,6 +1636,23 @@ class WindowsToolBoundary:
 
     def _run(self, action: ToolAction, *,
              navigation_context: Mapping[str, Any] | None = None) -> ToolResult:
+        self._guard_browser(action.operation)
+        try:
+            return self._run_admitted(action, navigation_context=navigation_context)
+        except BrowserResourcePostconditionFailed as failure:
+            # ManagedEdgeBrowser can finish a real write before its caller
+            # postcondition fails. Keep that result visible to the controller.
+            if isinstance(failure.completed_output, Mapping):
+                source = (str(action.arguments["url"]) if action.operation == "browser_post"
+                          else str(failure.completed_output.get("url", "managed-browser")))
+                failure.completed_output = ToolResult(
+                    operation=action.operation, data=failure.completed_output,
+                    source=source, observed_at_unix=time.time(), untrusted_output=True,
+                )
+            raise
+
+    def _run_admitted(self, action: ToolAction, *,
+                      navigation_context: Mapping[str, Any] | None = None) -> ToolResult:
         op, args = action.operation, action.arguments
         if op == "browser_open":
             data = self.browser.open(str(args["url"]))

@@ -59,6 +59,8 @@ def _digest(value: Any) -> bool:
 
 def _consumer(route: Mapping[str, Any]) -> tuple[AgentOutputContract, Mapping[str, Any]] | None:
     _require(isinstance(route, Mapping), "consumer route is not a mapping")
+    if route.get("backend") == "external.llamacpp.text.v1":
+        return _llamacpp_consumer(route)
     nested = route.get("backend_identity")
     if nested is None:
         nested = {}
@@ -113,6 +115,37 @@ def _consumer(route: Mapping[str, Any]) -> tuple[AgentOutputContract, Mapping[st
         )
         if "backend_config" in route:
             _require(validate_output_contract_entry(dict(route)) == contract, "native consumer binding differs")
+    return contract, expected
+
+
+def _llamacpp_consumer(route: Mapping[str, Any]):
+    from vllm_omni.edge.agent.llamacpp_route import (
+        llamacpp_route_binding,
+        validate_llamacpp_consumer_binding,
+    )
+
+    nested = route.get("backend_identity", {})
+    _require(isinstance(nested, Mapping), "llama.cpp backend identity is not a mapping")
+    top = {key for key in _TOP if route.get(key) is not None}
+    nested_marked = any(key in nested for key in (
+        "base_engine_artifact_id", "model_output_consumer_identity",
+        "consumer_memory_demands", "consumer_workspace_bytes", "consumer_memory_overhead_bytes",
+        "base_artifact_id", "model_output_contract", "model_output_workspace_bytes",
+    ))
+    marked = str(route.get("artifact_id", "")).startswith(("llamacpp-agent", "strata-agent"))
+    _require(route.get("base_engine_artifact_id") is None, "unsupported top-level engine identity")
+    if not top and not nested_marked and not marked:
+        return None
+    _require(not top or top == _TOP, "partial llama.cpp consumer identity")
+    if top:
+        contract = validate_output_contract_entry(dict(route))
+        expected_binding = llamacpp_route_binding(route)
+        _require(not nested or _encoded(dict(nested)) == _encoded(expected_binding),
+                 "native/profile llama.cpp consumer identities conflict")
+        nested = expected_binding
+    contract, expected = validate_llamacpp_consumer_binding(nested)
+    _require(route.get("artifact_id") == "llamacpp-agent:" + expected["identity_sha256"],
+             "llama.cpp consumer artifact/parser identity differs")
     return contract, expected
 
 
@@ -434,7 +467,12 @@ def validate_consumer_trace(
     else:
         boundary.register_user_task(outer, text)
     records = _identities(placement_evidence, contract, outer)
-    validate_strata_request_evidence(placement_evidence, route, events=events)
+    if route["backend"] == STRATA_BACKEND:
+        validate_strata_request_evidence(placement_evidence, route, events=events)
+    else:
+        from vllm_omni.edge.agent.llamacpp_route import validate_llamacpp_consumer_request_evidence
+
+        validate_llamacpp_consumer_request_evidence(placement_evidence, route)
     plan, binding = placement_evidence["execution_plan"], route["backend_identity"]
     _require(type(plan.get("stage_id")) is int and plan["stage_id"] >= 0, "invalid owned stage identity")
     cursor = 0
@@ -545,7 +583,23 @@ def validate_consumer_trace(
             "model state generation/epoch is reused",
         )
         previous_epoch = stage["epoch"]
-        native_seq = _native_io(metric["metrics"], stage, plan, binding, native_seq)
+        if route["backend"] == STRATA_BACKEND:
+            native_seq = _native_io(metric["metrics"], stage, plan, binding, native_seq)
+        else:
+            backend_metrics = metric["metrics"].get("backend_metrics", {})
+            _require(isinstance(backend_metrics, Mapping), "invalid llama.cpp backend metrics")
+            telemetry = backend_metrics.get("runtime_telemetry", {})
+            unsupported_provenance = (
+                "native_io_observation", "expert_compute_verified", "expert_final_storage_verified",
+                "cpu_compute_verified", "cpu_expert_compute_verified", "execution_observation",
+                "observation_runtime", "gpu_observer_identity", "weight_tier_plan",
+            )
+            _require(
+                isinstance(telemetry, Mapping)
+                and all(key not in layer for layer in (backend_metrics, telemetry)
+                        for key in unsupported_provenance),
+                "llama.cpp consumer cannot carry Strata native I/O or unknown compute provenance",
+            )
         if step < len(records) - 1:
             envelope = tool()
         else:

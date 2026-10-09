@@ -22,6 +22,7 @@ from urllib.parse import urlparse
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
 from vllm_omni.edge.agent.consumer_trace import (
     consumer_trace_requested,
     validate_consumer_trace,
@@ -32,6 +33,8 @@ from vllm_omni.edge.agent.llamacpp_route import (
     llamacpp_profile_identity,
     validate_llamacpp_profile_binding,
 )
+from vllm_omni.edge.agent.memory_provenance import MEMORY_PROVENANCE_SCHEMA, memory_source_verified
+from vllm_omni.edge.agent.model_output import validate_output_contract_entry
 from vllm_omni.edge.agent.placement import (
     STRATA_BACKEND,
     native_gpu_sample_summary,
@@ -137,7 +140,10 @@ def _evaluate_case(case: Mapping[str, Any], result: Mapping[str, Any]) -> dict[s
     answer_ok = answer.casefold() == str(case.get("reference")).casefold()
     source_ok = True
     expected_source = str(metadata.get("source", ""))
-    if expected_source.startswith("http"):
+    is_memory = case.get("task_class") == "memory" or metadata.get("kind") == "memory_recall"
+    if is_memory:
+        source_ok = memory_source_verified(case, result)
+    elif expected_source.startswith("http"):
         source_ok = any(
             item.get("kind") == "tool_result" and
             str(item.get("payload", {}).get("source", "")) == expected_source
@@ -167,6 +173,8 @@ def _evaluate_case(case: Mapping[str, Any], result: Mapping[str, Any]) -> dict[s
             "source_verified": source_ok,
             "quality_scope": metadata.get("quality_scope"),
             "code_tool_available": False if metadata.get("kind") == "code_reasoning" else None,
+            **({"memory_provenance_schema": MEMORY_PROVENANCE_SCHEMA,
+                "memory_provenance_verified": source_ok} if is_memory else {}),
         },
     }
 
@@ -1183,6 +1191,7 @@ def load_reviewed_qualification(
         raise ValueError("gate receipt reused as another gate's raw source")
 
     conditions = summary["conditions"]
+    output_contract = validate_output_contract_entry(dict(current_route))
     fields = {
         "route_id": identity["route_id"],
         "artifact_id": identity["artifact_id"],
@@ -1206,6 +1215,7 @@ def load_reviewed_qualification(
         "batch_size": 1,
         "concurrency": 1,
         "raw_evidence": f"{audit.raw_jsonl}#sha256={audit.raw_sha256}",
+        "output_contract_sha256": output_contract.identity_sha256 if output_contract is not None else None,
     }
     qualification = Qualification(**fields)
     if not qualification.qualified:

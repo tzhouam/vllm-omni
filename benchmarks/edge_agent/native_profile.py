@@ -20,16 +20,19 @@ import sys
 import threading
 import uuid
 from collections.abc import Mapping
+from copy import deepcopy
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 from benchmarks.edge_agent.paired_suite import (
+    MEMORY_PROVENANCE_SCHEMA,
     FixtureSite,
     ReadOnlyFixtureTools,
     build_paired_cases,
     evaluate_case,
+    memory_fixture_expectation,
 )
 from benchmarks.edge_agent.profile import (
     AgentCase,
@@ -230,8 +233,10 @@ def load_profile_routes(
     for entry in entries:
         llama_binding = llamacpp_route_binding(entry)
         route_id = str(entry["route_id"])
-        if entry.get("model_output_contract") is not None and entry.get("backend") != STRATA_BACKEND:
-            raise ValueError("explicit output consumers require the reviewed Strata text profile binding")
+        if entry.get("model_output_contract") is not None and entry.get("backend") not in {
+            STRATA_BACKEND, "external.llamacpp.text.v1",
+        }:
+            raise ValueError("explicit output consumers require a supported reviewed text profile binding")
         item = metadata.get(route_id)
         if not isinstance(item, dict):
             raise ValueError(f"{route_id}: lineage metadata missing")
@@ -275,6 +280,15 @@ def load_profile_routes(
         precision = str(item.get("precision", ""))
         if not revision or not precision or len(model_sha) != 64:
             raise ValueError(f"{route_id}: exact revision, precision and SHA-256 required")
+        if entry.get("model_output_contract") is not None:
+            from vllm_omni.engine.weight_tiers import ArtifactManifest
+
+            source = ArtifactManifest.from_dict(entry["artifact_manifest"])
+            weights = [row for row in source.files if row.role == "weights"]
+            if (item.get("artifact_manifest_sha256") != source.manifest_sha256
+                    or revision != source.revision or not weights
+                    or any(row.quantization != precision for row in weights)):
+                raise ValueError(f"{route_id}: llama.cpp all-shard revision/precision identity differs")
         profile = ProfileRoute(
             route_id=route_id,
             model_id=str(entry["model"]),
@@ -353,7 +367,7 @@ def _trace_complete(
     if route.backend == "external.strata.multimodal.v1":
         return False  # text trace and nullable placement cannot qualify an image chain
     if consumer_requested:
-        if route.backend != STRATA_BACKEND:
+        if route.backend not in {STRATA_BACKEND, "external.llamacpp.text.v1"}:
             return False
         try:
             validate_consumer_trace(
@@ -387,6 +401,9 @@ class WindowsTelemetry:
         self._gpu = None
         self._native_gpu_observer = None
         self._native_gpu_enabled = False
+        self._process_registry: Any = None
+        self._browser_companion: Any = None
+        self._process_memory_closures: list[Mapping[str, Any]] = []
         try:
             import pynvml
 
@@ -397,6 +414,76 @@ class WindowsTelemetry:
             if self._nvml is not None:
                 self._nvml.nvmlShutdown()
             self._nvml = self._gpu = None
+
+    @property
+    def process_memory_closures(self) -> list[Mapping[str, Any]]:
+        return deepcopy(getattr(self, "_process_memory_closures", []))
+
+    def begin_controller_processes(self, generation: str) -> None:
+        from vllm_omni.edge.windows_process_memory import WindowsProcessMemoryRegistry
+
+        if self._process_registry is not None:
+            raise RuntimeError("previous attributed controller has not closed")
+        self._process_registry = WindowsProcessMemoryRegistry(generation)
+        self._process_registry.bind_current_agent()
+
+    def browser_process_checkpoint(self, action: str, payload: Mapping[str, Any]) -> Mapping[str, Any] | None:
+        if self._process_registry is None:
+            raise RuntimeError("browser process registry is unavailable")
+        return self._process_registry.browser_checkpoint(action, payload)
+
+    def attach_browser_companion(self, companion: Any) -> None:
+        if self._browser_companion is not None:
+            raise RuntimeError("previous browser companion telemetry has not detached")
+        self._browser_companion = companion
+
+    def detach_browser_companion(self, companion: Any) -> None:
+        if self._browser_companion is not companion:
+            raise RuntimeError("browser companion telemetry identity changed")
+        self._browser_companion = None
+
+    def bind_model_process(self, identity: Mapping[str, Any] | None) -> None:
+        if self._process_registry is not None:
+            self._process_registry.bind_model(identity)
+
+    def end_controller_processes(self, *, browser_close_receipt: Mapping[str, Any] | None = None,
+                                 browser_companion_release: Mapping[str, Any] | None = None,
+                                 ) -> Mapping[str, Any] | None:
+        registry = getattr(self, "_process_registry", None)
+        if registry is None:
+            receipts = self.process_memory_closures
+            return receipts[-1] if receipts else None
+        receipt = registry.close()
+        receipt["browser_tool_close"] = (
+            deepcopy(dict(browser_close_receipt)) if browser_close_receipt is not None else None
+        )
+        browser_verified = (
+            browser_close_receipt is not None and browser_close_receipt.get("worker_joined") is True
+            and browser_close_receipt.get("observer_callback_error_count") == 0
+        )
+        if browser_companion_release is not None:
+            # This is a separate browser-only registry/generation. The outer
+            # observer binds Agent/model only; never sum duplicate process sets.
+            receipt["browser_companion_release"] = deepcopy(dict(browser_companion_release))
+            receipt["browser_attribution_scope"] = "separate_companion_exact_bound_set_no_descendant_claim"
+            browser_verified = (
+                browser_companion_release.get("schema") == "omni-companion-release-v1"
+                and browser_companion_release.get("owned_work_drained") is True
+                and browser_companion_release.get("required_ownership_verified") is True
+                and browser_companion_release.get("all_descendants_retired") is False
+                and browser_companion_release.get("quarantine_required") is False
+            )
+        receipt["attribution_close_verified"] = (
+            receipt.get("agent_alive_observed") is True and receipt.get("model_retirement_verified") is True
+            and receipt.get("observer_handles_closed") is True
+            and receipt.get("children", {}).get("bound_set_drain_verified") is True
+            and browser_verified
+        )
+        self._process_registry = None
+        if len(self._process_memory_closures) >= 128:
+            raise RuntimeError("process-memory controller receipt limit reached")
+        self._process_memory_closures.append(deepcopy(receipt))
+        return deepcopy(receipt)
 
     def power_condition(self) -> str:
         battery = self._psutil.sensors_battery()
@@ -425,6 +512,18 @@ class WindowsTelemetry:
             "ram_available_bytes": int(vm.available),
             "power_condition": observed_power,
         }
+        registry = getattr(self, "_process_registry", None)
+        if registry is not None:
+            from vllm_omni.edge.agent.native_app import _windows_commit_available
+
+            sample["windows_commit_available_bytes"] = _windows_commit_available()
+            sample["bound_process_cpu_memory"] = registry.sample()
+        companion = getattr(self, "_browser_companion", None)
+        if companion is not None:
+            browser_sample = companion.sample_process_memory()
+            if browser_sample is not None:
+                sample["bound_browser_companion_memory"] = browser_sample
+                sample["browser_process_memory_scope"] = "separate_browser_only_bound_set_not_added_to_agent_model"
         if self._nvml is not None and self._gpu is not None:
             nvml = self._nvml
             sample["vram_used_bytes"] = int(nvml.nvmlDeviceGetMemoryInfo(self._gpu).used)
@@ -447,6 +546,7 @@ class WindowsTelemetry:
         return sample
 
     def close(self) -> None:
+        self.end_controller_processes()
         if self._nvml is not None:
             self._nvml.nvmlShutdown()
             self._nvml = self._gpu = None
@@ -606,6 +706,7 @@ class NativeProfileBridge:
         fixture_origin: str,
         telemetry: WindowsTelemetry,
         structured_read_url: bool = False,
+        process_memory_attribution: bool = False,
     ) -> None:
         self.native_config = native_config
         self.config_root = config_root
@@ -613,6 +714,8 @@ class NativeProfileBridge:
         self.fixture_origin = fixture_origin
         self.telemetry = telemetry
         self.structured_read_url = structured_read_url
+        self.process_memory_attribution = process_memory_attribution
+        self.process_memory_close_receipt: Mapping[str, Any] | None = None
         self.suite_id = STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID
         self.controller: Any = None
         self.route: ProfileRoute | None = None
@@ -623,6 +726,8 @@ class NativeProfileBridge:
         self._lock = threading.RLock()
         self._fixture_screen: _FixtureForegroundScreen | None = None
         self._prompt_backend: _PromptIdentityBackend | None = None
+        self._profile_browser: ManagedEdgeBrowser | None = None
+        self._browser_companion: Any = None
 
     def _listen(self, event: Mapping[str, Any]) -> None:
         sanitized = _redact_image(dict(event))
@@ -676,13 +781,43 @@ class NativeProfileBridge:
         self.config_root.mkdir(parents=True, exist_ok=True)
         config_path = self.config_root / (prefix + ".json")
         config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        controller, hardware = build_controller(config_path)
-        controller.tools.close()
-        self._fixture_screen = _FixtureForegroundScreen()
-        controller.tools = ReadOnlyFixtureTools(
-            self.fixture_origin, browser=ManagedEdgeBrowser(profile_dir=browser_profile),
-            screen=self._fixture_screen,
-        )
+        joint_browser = config.get("browser_resource_envelope") is not None
+        if joint_browser:
+            declaration = config["browser_resource_envelope"]
+            if (not isinstance(declaration, Mapping) or not isinstance(declaration.get("path"), str)
+                    or not Path(declaration["path"]).is_absolute()):
+                raise ValueError("profiler browser_resource_envelope requires an absolute evidence path")
+        if self.process_memory_attribution:
+            self.telemetry.begin_controller_processes(prefix + ":" + uuid.uuid4().hex)
+        if joint_browser:
+            self._fixture_screen = _FixtureForegroundScreen()
+            def browser_factory(**kwargs: Any) -> ManagedEdgeBrowser:
+                # The companion supplies the sole browser registry observer
+                # and generation-bound caller guard. Do not replace either.
+                browser = ManagedEdgeBrowser(profile_dir=browser_profile, **kwargs)
+                self._profile_browser = browser
+                return browser
+            def tools_factory(**kwargs: Any) -> ReadOnlyFixtureTools:
+                return ReadOnlyFixtureTools(self.fixture_origin,
+                    **{**kwargs, "screen": self._fixture_screen})
+            controller, hardware = build_controller(config_path,
+                tool_boundary_factory=tools_factory, browser_factory=browser_factory)
+            self.controller, self.route = controller, route
+            self._browser_companion = controller.browser_resource_companion
+            if self._browser_companion is None:
+                raise RuntimeError("native build omitted the requested managed browser companion")
+            self.telemetry.attach_browser_companion(self._browser_companion)
+        else:
+            controller, hardware = build_controller(config_path)
+            controller.tools.close()
+            self._fixture_screen = _FixtureForegroundScreen()
+            self._profile_browser = ManagedEdgeBrowser(
+                profile_dir=browser_profile,
+                process_observer=(self.telemetry.browser_process_checkpoint
+                                  if self.process_memory_attribution else None))
+            controller.tools = ReadOnlyFixtureTools(
+                self.fixture_origin, browser=self._profile_browser, screen=self._fixture_screen,
+            )
         controller.add_listener(self._listen)
         self.controller, self.route = controller, route
         capture_policy = None
@@ -738,6 +873,13 @@ class NativeProfileBridge:
             if callable(bind_gpu):
                 bind_gpu(plan.get("gpu_observer_identity"))
                 samples.append(self.telemetry.sample())
+        if capture_policy is not None and route.backend == "external.llamacpp.text.v1":
+            from vllm_omni.edge.agent.llamacpp_route import validate_llamacpp_consumer_plan
+
+            validate_llamacpp_consumer_plan(plan, route.backend_identity)
+        if self.process_memory_attribution:
+            self.telemetry.bind_model_process(plan.get("gpu_observer_identity"))
+            samples.append(self.telemetry.sample())
         self._prompt_backend = _PromptIdentityBackend(backend, capture_policy=capture_policy)
         controller.backends[route.route_id] = self._prompt_backend
         return Preparation(
@@ -750,16 +892,27 @@ class NativeProfileBridge:
                 "loaded_plan_sha256": evidence_sha256(dict(plan)),
                 "placement_verification_scope": (
                     "loaded_configuration_and_per_request_routed_decode_experts"
-                    if route.backend == STRATA_BACKEND else "reported_whole_model_placement"),
+                    if route.backend == STRATA_BACKEND else
+                    ("loaded_configuration_and_terminal_stage_identity" if capture_policy is not None
+                     else "reported_whole_model_placement")),
                 "ram_used_bytes_sampled_peak": max(s["ram_used_bytes"] for s in samples),
                 "vram_used_bytes_sampled_peak": max((s.get("vram_used_bytes", 0) for s in samples), default=0),
                 "sample_count": len(samples),
                 "sampled_peaks_are_lower_bounds": True,
                 "native_gpu_startup_peak_covered": False,
+                "process_memory_attribution_enabled": self.process_memory_attribution,
+                "bound_process_cpu_load_samples": [s["bound_process_cpu_memory"] for s in samples
+                                                   if "bound_process_cpu_memory" in s],
                 "native_process_gpu_load_samples": [s["native_process_gpu_memory"] for s in samples
                                                    if "native_process_gpu_memory" in s],
                 "placement_independently_verified": False,
                 "hardware_at_load": hardware,
+                **({"browser_joint_admission": {
+                    "envelope_sha256": self._browser_companion.resource_spec.envelope_sha256,
+                    "declared_incremental_memory_demands": dict(self._browser_companion.resource_spec.memory_demands),
+                    "resource_snapshot_at_load": controller.resource_snapshot(),
+                    "scope": "joint_declarative_model_tool_claims_not_process_hard_cap",
+                }} if self._browser_companion is not None else {}),
             },
         )
 
@@ -792,6 +945,9 @@ class NativeProfileBridge:
             )
             evidence["seed_event_id"] = event.event_id
             evidence["seed_source"] = event.source
+            evidence["memory_provenance"] = memory_fixture_expectation(
+                case, self.controller, event, route,
+            )
         elif case.metadata.get("kind") == "desktop_screen":
             # The desktop image is an actual Windows screen capture during
             # the timed request. Present a fixed card before starting the
@@ -874,7 +1030,8 @@ class NativeProfileBridge:
             "placement_verification_scope": (
                 "loaded_configuration_and_per_request_routed_decode_experts"
                 if route.backend == STRATA_BACKEND
-                else "reported_whole_model_placement"
+                else ("loaded_configuration_and_terminal_stage_identity" if capture_policy is not None
+                      else "reported_whole_model_placement")
             ),
             "independent_log_review_pending": True,
         }
@@ -906,11 +1063,63 @@ class NativeProfileBridge:
         with self._lock:
             self._events = None
             self._emitter = None
-        if self.controller is not None:
-            self.controller.close()
-            self.controller = None
-            self.route = None
-            self._prompt_backend = None
+        failure: BaseException | None = None
+        try:
+            if self.controller is not None:
+                self.controller.close()
+                self.controller = None
+                self.route = None
+                self._prompt_backend = None
+        except BaseException as exc:
+            failure = exc
+        finally:
+            companion_receipt = None
+            if self._browser_companion is not None:
+                try:
+                    # Only a successfully finalized controller can use the
+                    # historical receipt preserved across its cold reset. A
+                    # failed close must describe the current lease, never an
+                    # earlier successfully drained generation.
+                    companion_receipt = (self._browser_companion.last_close_evidence
+                        if self.controller is None else
+                        getattr(self._browser_companion, "release_evidence", None))
+                except BaseException as exc:
+                    if failure is None:
+                        failure = exc
+                    else:
+                        failure.add_note("secondary browser companion receipt failure:" + type(exc).__name__)
+            if self.process_memory_attribution:
+                try:
+                    browser_receipt = (
+                        companion_receipt.get("browser_close_receipt")
+                        if isinstance(companion_receipt, Mapping) else None
+                    ) if self._browser_companion is not None else (
+                        self._profile_browser.process_memory_close_receipt
+                        if self._profile_browser is not None else None)
+                    self.process_memory_close_receipt = self.telemetry.end_controller_processes(
+                        browser_close_receipt=browser_receipt,
+                        **({"browser_companion_release": companion_receipt or {}}
+                           if self._browser_companion is not None else {}))
+                    if (self.process_memory_close_receipt is not None
+                            and self.process_memory_close_receipt.get("attribution_close_verified") is not True
+                            and failure is None):
+                        failure = RuntimeError("attributed controller close is unverified; quarantine required")
+                except BaseException as exc:
+                    if failure is None:
+                        failure = exc
+                    else:
+                        failure.add_note("secondary process observer close failure:" + type(exc).__name__)
+            if self._browser_companion is not None and self.controller is None:
+                try:
+                    self.telemetry.detach_browser_companion(self._browser_companion)
+                    self._browser_companion = None
+                except BaseException as exc:
+                    if failure is None:
+                        failure = exc
+                    else:
+                        failure.add_note("secondary browser telemetry detach failure:" + type(exc).__name__)
+        if failure is not None:
+            raise failure
 
 
 def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
@@ -945,6 +1154,7 @@ def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
         os_version=str(hardware["os"]),
         driver_versions={"nvidia": str(hardware.get("gpu_driver"))},
         runtime_versions={
+            "memory_fixture_evaluation_schema": MEMORY_PROVENANCE_SCHEMA,
             "python": platform.python_version(),
             "vllm": installed_version("vllm"),
             "vllm_omni": vllm_omni.__version__,
@@ -968,7 +1178,8 @@ def _conditions(hardware: Mapping[str, Any], native_config: Mapping[str, Any],
 async def run_native_profile(*, config_path: Path, lineage_path: Path,
                              output_dir: Path, selected_classes: set[str] | None = None,
                              smoke: bool = False,
-                             structured_read_url: bool = False) -> Path:
+                             structured_read_url: bool = False,
+                             process_memory_attribution: bool = False) -> Path:
     selected_classes = _profile_classes(selected_classes, structured_read_url)
     if sys.platform != "win32":
         raise RuntimeError("whole-Agent profiling requires native Windows Python")
@@ -998,6 +1209,7 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
         "submission_mode": (STRUCTURED_READ_URL_MODE if structured_read_url
                             else ORDINARY_SUBMISSION_MODE),
         "model_prompt_identity_capture": MODEL_PROMPT_IDENTITY_CAPTURE,
+        "process_memory_attribution_enabled": process_memory_attribution,
         "qualification_blockers": [
             "independent memory admission evidence pending",
             "cancellation and recovery evidence pending",
@@ -1046,6 +1258,7 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                 native_config=native_config, config_root=config_root,
                 private_root=private_root, fixture_origin=fixtures.origin,
                 telemetry=sampler, structured_read_url=structured_read_url,
+                process_memory_attribution=process_memory_attribution,
             )
             try:
                 for task_class in sorted(chosen):
@@ -1059,6 +1272,7 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                                                   "route_id": route.route_id,
                                                   "submission_mode": manifest["submission_mode"],
                                                   "telemetry_interval_seconds": config.telemetry_interval_seconds}
+                        close_error: BaseException | None = None
                         entry = next(item for item in native_config["routes"]
                                      if item["route_id"] == route.route_id)
                         if task_class == "browser_vision" and not entry.get("mmproj_file"):
@@ -1089,16 +1303,36 @@ async def run_native_profile(*, config_path: Path, lineage_path: Path,
                                 result.update(status="failed_or_blocked",
                                               error=f"{type(exc).__name__}: {exc}")
                             finally:
-                                await asyncio.to_thread(bridge.close)
+                                try:
+                                    await asyncio.to_thread(bridge.close)
+                                except BaseException as exc:
+                                    if not process_memory_attribution:
+                                        raise
+                                    close_error = exc
+                                    result.update(status="failed_close", close_error=f"{type(exc).__name__}: {exc}")
+                                if process_memory_attribution:
+                                    result["process_memory_close_receipt"] = bridge.process_memory_close_receipt
                         manifest["results"].append(result)
                         (work_root / "index.json").write_text(
                             json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
                             encoding="utf-8",
                         )
+                        if close_error is not None:
+                            raise close_error
             finally:
                 await asyncio.to_thread(bridge.close)
     finally:
-        sampler.close()
+        try:
+            sampler.close()
+        finally:
+            if process_memory_attribution:
+                # Preserve finite partial close receipts even when controller
+                # shutdown raised. They never imply all descendants retired.
+                manifest["process_memory_closures"] = list(sampler.process_memory_closures)
+                (work_root / "index.json").write_text(
+                    json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
     return work_root / "index.json"
 
 
@@ -1117,6 +1351,8 @@ def main() -> None:
                         help="One measured request per length, no endurance; cannot qualify")
     parser.add_argument("--structured-read-url", action="store_true",
                         help="Profile only browser_text with explicit URL and canonical prompt instruction")
+    parser.add_argument("--process-memory-attribution", action="store_true",
+                        help="Fresh owned cohort only: retained-handle Agent/model/Node/CDP RAM samples")
     args = parser.parse_args()
     index = asyncio.run(run_native_profile(
         config_path=args.config, lineage_path=args.lineage,
@@ -1124,6 +1360,7 @@ def main() -> None:
         selected_classes=set(args.task_class) if args.task_class else None,
         smoke=args.smoke,
         structured_read_url=args.structured_read_url,
+        process_memory_attribution=args.process_memory_attribution,
     ))
     print(index)
 

@@ -13,22 +13,34 @@ from urllib.request import urlopen
 import pytest
 
 from benchmarks.edge_agent import native_profile
-from benchmarks.edge_agent.native_profile import (
-    SUITE_ID, NativeProfileBridge, _trace_complete, load_profile_routes,
-)
 from benchmarks.edge_agent.evidence import audit_summary
+from benchmarks.edge_agent.native_profile import (
+    SUITE_ID,
+    NativeProfileBridge,
+    _trace_complete,
+    load_profile_routes,
+)
 from benchmarks.edge_agent.paired_suite import (
-    FixtureSite, ReadOnlyFixtureTools, build_paired_cases, evaluate_case,
+    FixtureSite,
+    ReadOnlyFixtureTools,
+    build_paired_cases,
+    evaluate_case,
 )
 from benchmarks.edge_agent.profile import (
-    AgentCase, AgentRunResult, Preparation, ProfileConditions, ProfileConfig,
-    ProfileRoute, run_profile,
+    AgentCase,
+    AgentRunResult,
+    Preparation,
+    ProfileConditions,
+    ProfileConfig,
+    ProfileRoute,
+    run_profile,
 )
-from vllm_omni.edge.agent.tools import ToolAction, _explicit_task_urls
-from vllm_omni.edge.agent.controller import _RECALL_KINDS
+from vllm_omni.edge.agent.controller import _RECALL_KINDS, AgentController
 from vllm_omni.edge.agent.memory import AesGcmCipher, EncryptedMemoryStore
+from vllm_omni.edge.agent.model_output import AgentOutputContract
 from vllm_omni.edge.agent.qualification import _evaluate_case as audit_evaluate_case
-from vllm_omni.edge.agent.router import classify_task
+from vllm_omni.edge.agent.router import Admission, Route, classify_task
+from vllm_omni.edge.agent.tools import ToolAction, WindowsToolBoundary, _explicit_task_urls
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 
 
@@ -328,28 +340,50 @@ def test_self_contained_cases_have_independent_exact_answers(task_class):
 
 
 def test_memory_fixture_seed_is_recallable_and_reset_between_cases(tmp_path):
-    with FixtureSite() as site:
-        case = build_paired_cases(site.origin, mouse_speed=10)["memory"]["short"][0]
-        path = tmp_path / "profile-memory.sqlite"
-        with EncryptedMemoryStore(path, cipher=AesGcmCipher(b"k" * 32)) as store:
-            bridge = NativeProfileBridge(
-                native_config={}, config_root=tmp_path, private_root=tmp_path,
-                fixture_origin=site.origin,
-                telemetry=SimpleNamespace(sample=lambda: {"ram_used_bytes": 1}),
-            )
-            bridge.controller = SimpleNamespace(memory=store)
-            bridge.route = _route()
-            bridge._memory_path = path
-            first = bridge.before_request(_route(), case, "measured", 0)
-            matches = store.search(case.prompt, kinds=_RECALL_KINDS)
-            assert [match.event.event_id for match in matches] == [first["seed_event_id"]]
-            assert matches[0].event.kind == "user_observation"
-            second = bridge.before_request(_route(), case, "measured", 1)
-            assert second["deleted_prior_fixture_events"] == 1
-            assert store.get_event(first["seed_event_id"]) is None
-            assert [match.event.event_id for match in store.search(case.prompt, kinds=_RECALL_KINDS)] == [
-                second["seed_event_id"]
-            ]
+    origin = "http://127.0.0.1:1"
+    case = build_paired_cases(origin, mouse_speed=10)["memory"]["short"][0]
+    assert classify_task(case.prompt) == "memory"
+    contract = AgentOutputContract("strict_outer_json_fence_agent_v1")
+    base = "llamacpp:" + "a" * 64
+    consumer = contract.consumer_identity(base)
+    route = replace(_route(), artifact_id="llamacpp-agent:" + consumer["identity_sha256"],
+                    backend_identity={"model_output_consumer_identity": consumer})
+    native_route = Route(
+        route.route_id, route.artifact_id, route.model_id, route.backend, frozenset({"text"}),
+        route.expected_placement, {"host_ram": 1}, model_output_contract=contract,
+        base_artifact_id=base,
+    )
+    path = tmp_path / "profile-memory.sqlite"
+    store = EncryptedMemoryStore(path, cipher=AesGcmCipher(b"k" * 32))
+    controller = AgentController(
+        routes=[native_route], qualifications=[], backends={}, memory=store,
+        tools=WindowsToolBoundary(), admit=lambda _: Admission(True, "fixture-only"),
+        environment_fingerprint="unit", power_condition="AC", qualification_suite_id="unit",
+    )
+    try:
+        bridge = NativeProfileBridge(
+            native_config={}, config_root=tmp_path, private_root=tmp_path,
+            fixture_origin=origin,
+            telemetry=SimpleNamespace(sample=lambda: {"ram_used_bytes": 1}),
+        )
+        bridge.controller, bridge.route, bridge._memory_path = controller, route, path
+        first = bridge.before_request(route, case, "measured", 0)
+        matches = store.search(case.prompt, kinds=_RECALL_KINDS)
+        assert [match.event.event_id for match in matches] == [first["seed_event_id"]]
+        assert matches[0].event.kind == "user_observation"
+        assert first["memory_provenance"]["controller_session_id"] == controller.session_id
+        assert first["memory_provenance"]["seed_event_id"] == matches[0].event.event_id
+        second = bridge.before_request(route, case, "measured", 1)
+        assert second["deleted_prior_fixture_events"] == 1
+        assert store.get_event(first["seed_event_id"]) is None
+        assert [match.event.event_id for match in store.search(case.prompt, kinds=_RECALL_KINDS)] == [
+            second["seed_event_id"]
+        ]
+        assert first["memory_provenance"]["expected_first_model_input"] != second[
+            "memory_provenance"
+        ]["expected_first_model_input"]
+    finally:
+        controller.close()
 
 
 @pytest.mark.parametrize("task_class", ["basic", "long_reasoning"])

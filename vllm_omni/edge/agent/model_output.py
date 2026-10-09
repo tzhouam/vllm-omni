@@ -366,6 +366,11 @@ def validate_output_contract_entry(entry: dict) -> AgentOutputContract | None:
             raise ValueError("consumer metadata without an explicit output contract")
         return None
     contract = AgentOutputContract.from_dict(value)
+    if entry.get("backend") == "external.llamacpp.text.v1":
+        from vllm_omni.edge.agent.llamacpp_route import validate_llamacpp_consumer_entry
+
+        validate_llamacpp_consumer_entry(entry)
+        return contract
     backend = entry.get("backend_config")
     if (
         not isinstance(backend, dict)

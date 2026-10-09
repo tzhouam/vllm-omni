@@ -14,6 +14,7 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
+from benchmarks.edge_agent.paired_suite import FixtureSite
 from vllm_omni.edge.agent.tools import (
     ApprovalRequired,
     ManagedEdgeBrowser,
@@ -23,7 +24,6 @@ from vllm_omni.edge.agent.tools import (
     _explicit_task_urls,
     _network_target,
 )
-from benchmarks.edge_agent.paired_suite import FixtureSite
 
 
 @pytest.mark.parametrize("task,expected", [
@@ -211,13 +211,17 @@ def test_exact_top_level_get_reaches_network_but_form_post_does_not() -> None:
         return SimpleNamespace(
             request=request,
             abort=lambda reason: calls.append(("abort", reason)),
-            fetch=lambda **kwargs: (calls.append(("fetch", kwargs)) or
-                                    SimpleNamespace(status=200, headers={})),
+            fetch=lambda **kwargs: (
+                calls.append(("fetch", kwargs)) or SimpleNamespace(
+                    status=200, headers={},
+                    dispose=lambda: calls.append(("dispose", None)),
+                )
+            ),
             fulfill=lambda **kwargs: calls.append(("fulfill", kwargs)),
         )
 
     browser._guard_navigation(route_for("GET", "https://example.test/report"))
-    assert [item[0] for item in calls] == ["fetch", "fulfill"]
+    assert [item[0] for item in calls] == ["fetch", "fulfill", "dispose"]
     assert browser._navigation_target_used is True
     calls.clear()
     browser._guard_navigation(route_for("GET", "https://example.test/report"))

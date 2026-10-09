@@ -31,6 +31,7 @@ from vllm_omni.edge.agent.router import (
 )
 from vllm_omni.edge.agent.tools import (
     ApprovalRequired,
+    BrowserResourcePostconditionFailed,
     ToolAction,
     ToolRequestCancelled,
     WindowsToolBoundary,
@@ -140,6 +141,28 @@ def _recall_payload(value: Any) -> Any:
     return value
 
 
+def _model_release_verified(proof: Any, *, request_id: str, route_id: str) -> bool:
+    """Accept exact model retirement without claiming persistent tools exited."""
+    if not (isinstance(proof, Mapping) and proof.get("request_id") == request_id
+            and proof.get("worker_exit_confirmed") is True
+            and proof.get("stage_ledger_empty") is True
+            and proof.get("host_claim_released") is True):
+        return False
+    if proof.get("host_ledger_empty") is True:
+        return True  # retain the existing legacy/global-empty contract
+    return bool(
+        proof.get("schema") == "omni-resource-release-v2"
+        and proof.get("host_ledger_empty") is False
+        and proof.get("resource_claim_released") is True
+        and proof.get("exact_resource_token_released") is True
+        and proof.get("resource_owner") == route_id
+        and proof.get("release_scope") == "exact_model_lease"
+        and proof.get("tool_lease_retained") is True
+        and isinstance(proof.get("joint_generation"), str)
+        and bool(proof["joint_generation"])
+    )
+
+
 class AgentController:
     """Thread-backed PySide6 controller and async testable Agent core.
 
@@ -156,6 +179,7 @@ class AgentController:
         bootstrap_route_id: str | None = None,
         power_condition_provider: Callable[[], str] | None = None,
         limits: AgentLimits = AgentLimits(), session_id: str | None = None,
+        resource_finalize: Callable[[], Mapping[str, Any]] | None = None,
     ) -> None:
         self.routes = list(routes)
         self.qualifications = list(qualifications)
@@ -193,6 +217,12 @@ class AgentController:
         self._lock = threading.RLock()
         self._memory_sources: list[str] = []
         self._model_output_epochs: dict[tuple[str, str, int], int] = {}
+        if resource_finalize is not None and (
+            not callable(resource_finalize) or inspect.iscoroutinefunction(resource_finalize)
+        ):
+            raise ValueError("resource_finalize must be a callable final controller check")
+        self._resource_finalize = resource_finalize
+        self.resource_close_evidence: Mapping[str, Any] | None = None
 
     def add_listener(self, callback: Callable[[Mapping[str, Any]], None]) -> None:
         self._listeners.append(callback)
@@ -266,6 +296,20 @@ class AgentController:
             "completed_during_cancel": completed_during_cancel,
         }, source=result.source)
 
+    def _record_tool_resource_refusal(self, failure: BrowserResourcePostconditionFailed,
+                                      *, operation: str, completed_during_cancel: bool = False) -> None:
+        result = failure.completed_result
+        if result is not None:
+            self._record_tool_result(result, completed_during_cancel=completed_during_cancel)
+        self._emit("tool_resource_refused", {
+            "operation": operation, "completed_result_preserved": result is not None,
+            "automatic_retry_forbidden": True,
+            "completed_during_cancel": completed_during_cancel,
+            "type": type(failure).__name__, "message": str(failure),
+            "operation_error": (type(failure.operation_error).__name__ + ": " + str(failure.operation_error)
+                                if failure.operation_error is not None else None),
+        })
+
     async def _run_tool(self, callback: Callable[..., Any], *args: Any,
                         operation: str) -> Any:
         """Keep native tool work observable even when the Agent is cancelled."""
@@ -273,6 +317,9 @@ class AgentController:
         worker = loop.run_in_executor(self._tool_executor, callback, *args)
         try:
             return await asyncio.shield(worker)
+        except BrowserResourcePostconditionFailed as failure:
+            self._record_tool_resource_refusal(failure, operation=operation)
+            raise
         except asyncio.CancelledError:
             # Cancelling an asyncio wrapper does not stop a running browser or
             # Win32 call. Drain it before releasing the request gate, and record
@@ -288,6 +335,8 @@ class AgentController:
                 result = worker.result()
             except (ApprovalRequired, ToolRequestCancelled, asyncio.CancelledError):
                 pass
+            except BrowserResourcePostconditionFailed as failure:
+                self._record_tool_resource_refusal(failure, operation=operation, completed_during_cancel=True)
             except Exception as exc:
                 self._emit("tool_error", {
                     "operation": operation, "type": type(exc).__name__,
@@ -772,12 +821,7 @@ class AgentController:
                         released = False
                     if released:
                         proof = getattr(backend, "release_evidence", None)
-                        if (isinstance(proof, Mapping) and
-                                proof.get("request_id") == request_id and
-                                proof.get("worker_exit_confirmed") is True and
-                                proof.get("stage_ledger_empty") is True and
-                                proof.get("host_claim_released") is True and
-                                proof.get("host_ledger_empty") is True):
+                        if _model_release_verified(proof, request_id=request_id, route_id=route.route_id):
                             self._emit("state_released", {
                                 "backend_request_state_verified": True,
                                 "graph_gate_released": True,
@@ -881,6 +925,7 @@ class AgentController:
             return self.memory.delete_all()
 
     def close(self) -> None:
+        self.resource_close_evidence = None
         self.cancel()
         if self._current is not None:
             # run_coroutine_threadsafe's Future becomes cancelled before its
@@ -915,6 +960,19 @@ class AgentController:
             self.memory.close()
         except Exception as exc:
             failures.append(exc)
+        if self._resource_finalize is not None:
+            try:
+                evidence = self._resource_finalize()
+                ledger = evidence.get("ledger") if isinstance(evidence, Mapping) else None
+                if not (isinstance(ledger, Mapping) and ledger.get("owners") == []
+                        and ledger.get("quarantined") == []
+                        and isinstance(ledger.get("reserved"), Mapping)
+                        and bool(ledger["reserved"])
+                        and all(type(value) is int and value == 0 for value in ledger["reserved"].values())):
+                    raise RuntimeError("final controller resource check did not verify an empty shared ledger")
+                self.resource_close_evidence = dict(evidence)
+            except Exception as exc:
+                failures.append(exc)
         if failures:
             raise RuntimeError(
                 "Agent shutdown could not verify complete release: "

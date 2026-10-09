@@ -19,7 +19,7 @@ import threading
 import time
 import uuid
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
@@ -96,6 +96,8 @@ class AgentRunResult:
     tool_decisions: Sequence[Mapping[str, Any]] = ()
     trace_scope: str = "agent_e2e"
     output_tokens: int | None = None
+    # Set by the profiler from before_request, never accepted from the runner.
+    fixture_setup: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -281,7 +283,13 @@ async def _one_request(
     evaluator: Evaluator,
     telemetry: Telemetry | None,
     telemetry_interval_s: float,
+    fixture_setup: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    owned_fixture_setup = _json_safe(dict(fixture_setup or {}))
+    owned_fixture_setup["profile_request"] = {
+        "run_id": run_id, "route_id": route.route_id, "case_id": case.case_id,
+        "phase": phase, "repetition": repetition,
+    }
     events: list[dict[str, Any]] = []
     telemetry_samples: list[dict[str, Any]] = []
     telemetry_errors: list[str] = []
@@ -347,6 +355,7 @@ async def _one_request(
         result = await runner(route, case, emit)
         if not isinstance(result, AgentRunResult):
             raise TypeError("runner returned the wrong result type")
+        result = replace(result, fixture_setup=owned_fixture_setup)
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
         if not isinstance(result, AgentRunResult):
@@ -557,11 +566,13 @@ async def run_profile(
             setup = await prepared if inspect.isawaitable(prepared) else prepared
             if not isinstance(setup, Mapping):
                 raise TypeError("before_request must return setup evidence")
+            setup = _json_safe(setup)
         row = await _one_request(
             run_id=run_id, route=route, case=case, phase=phase,
             repetition=repetition, runner=runner, evaluator=evaluator,
             telemetry=telemetry,
             telemetry_interval_s=config.telemetry_interval_seconds,
+            fixture_setup=setup,
         )
         row["fixture_setup"] = _json_safe(setup)
         return row

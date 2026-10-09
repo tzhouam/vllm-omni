@@ -90,7 +90,8 @@ class Route:
             if not isinstance(self.model_output_contract, AgentOutputContract):
                 raise ValueError("route requires a typed output contract")
             identity = self.model_output_contract.consumer_identity(self.base_artifact_id)
-            if self.artifact_id != "strata-agent:" + identity["identity_sha256"]:
+            prefix = "llamacpp-agent:" if self.backend == "external.llamacpp.text.v1" else "strata-agent:"
+            if self.artifact_id != prefix + identity["identity_sha256"]:
                 raise ValueError("route artifact does not bind the actual Agent output consumer")
 
 

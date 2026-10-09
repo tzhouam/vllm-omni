@@ -109,7 +109,7 @@ def fixture(replies, *, contract=None, **backend_kw):
     identity = contract.consumer_identity("fixture-base")
     route = r.Route(
         "explicit-json",
-        "strata-agent:" + identity["identity_sha256"],
+        "llamacpp-agent:" + identity["identity_sha256"],
         "fixture",
         "external.llamacpp.text.v1",
         frozenset({"text"}),
@@ -228,7 +228,7 @@ class AgentIntegration(unittest.IsolatedAsyncioTestCase):
     async def test_managed_wrapper_closes_underlying_generator_on_consumer_error(self):
         contract = m.AgentOutputContract("strict_raw_agent_json_v1", max_response_bytes=8)
         backend = Backend([["x" * 9]], contract)
-        manager = types.SimpleNamespace(_backends={"r": backend})
+        manager = types.SimpleNamespace(_backends={"r": backend}, _companion=None)
         wrapped = lp.ManagedLocalBackend(manager, "r")
         buffer = m.AgentOutputBuffer(
             contract, request_id="id", worker_generation="fixture-generation", stage_id=0, permitted_tools=frozenset()

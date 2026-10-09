@@ -62,8 +62,21 @@ class OmniLlamaConfig:
     artifact_manifest: Mapping[str, Any] | None = None
     launch_controls: Mapping[str, Any] | None = None
     launch_controls_runtime_manifest: Mapping[str, Any] | None = None
+    model_output_workspace_bytes: int = 0
 
     def __post_init__(self) -> None:
+        workspace = self.model_output_workspace_bytes
+        if type(workspace) is not int or not 0 <= workspace <= 32 << 20:
+            raise ValueError("invalid llama.cpp consumer workspace")
+        if workspace:
+            if (self.mmproj_file is not None or self.launch_controls is None
+                    or self.artifact_manifest is None or self.placement.startswith("Vulkan_Host+")
+                    or type(self.memory_overhead_bytes) is not int or self.memory_overhead_bytes <= 0):
+                raise ValueError("llama.cpp consumer requires controlled text and explicit base overhead")
+            if (any(type(self.demands.get(pool)) is not int or self.demands[pool] <= workspace
+                    for pool in ("host_ram", "windows_commit"))
+                    or self.memory_overhead_bytes <= workspace):
+                raise ValueError("llama.cpp consumer needs charged RAM/commit and preserved base overhead")
         if (self.launch_controls is None) != (self.launch_controls_runtime_manifest is None):
             raise ValueError("llama.cpp launch controls and runtime manifest must be paired")
         if self.launch_controls is not None:
@@ -160,7 +173,17 @@ class OmniLlamaConfig:
 
 
 def llama_config_from_entry(entry: Mapping[str, Any], *, capacities: Mapping[str, int]) -> OmniLlamaConfig:
-    """Keep native config translation shared with reproducible route identity."""
+    """Translate base native claims; charge parser workspace once in this lease."""
+    from vllm_omni.edge.agent.llamacpp_route import llamacpp_memory_demands
+
+    workspace = entry.get("model_output_workspace_bytes", 0)
+    demands = entry["memory_demands"]
+    overhead = entry["memory_overhead_bytes"]
+    if workspace:
+        demands = llamacpp_memory_demands(entry)
+        if type(overhead) is not int or overhead <= 0:
+            raise ValueError("llama.cpp consumer needs exact positive base overhead")
+        overhead += workspace
     return OmniLlamaConfig(
         route_id=entry["route_id"],
         model_file=entry["model_file"],
@@ -170,8 +193,8 @@ def llama_config_from_entry(entry: Mapping[str, Any], *, capacities: Mapping[str
         log_file=entry["log_file"],
         placement=entry["placement"],
         capacities=capacities,
-        demands=entry["memory_demands"],
-        memory_overhead_bytes=entry["memory_overhead_bytes"],
+        demands=demands,
+        memory_overhead_bytes=overhead,
         context_tokens=entry.get("context_tokens", 4096),
         max_new_tokens=entry.get("max_new_tokens", 512),
         max_io_bytes=entry.get("max_io_bytes", 1 << 20),
@@ -195,6 +218,7 @@ def llama_config_from_entry(entry: Mapping[str, Any], *, capacities: Mapping[str
         artifact_manifest=entry.get("artifact_manifest"),
         launch_controls=entry.get("launch_controls"),
         launch_controls_runtime_manifest=entry.get("launch_controls_runtime_manifest"),
+        model_output_workspace_bytes=entry.get("model_output_workspace_bytes", 0),
     )
 
 
@@ -577,6 +601,21 @@ class OmniCompleteModelBackend:
 class OmniLlamaBackend(OmniCompleteModelBackend):
     """Pinned llama.cpp stage using the shared complete-model lifecycle."""
 
+    def bind_output_contract(self, contract: Any, *, base_artifact_id: str) -> None:
+        from vllm_omni.edge.agent.llamacpp_route import llamacpp_consumer_binding
+
+        if self._runtime is not None or self._active is not None:
+            raise ValueError("output consumer must be bound before stage loading")
+        binding = llamacpp_consumer_binding(self.config, contract)
+        if base_artifact_id != binding["base_engine_artifact_id"]:
+            raise ValueError("llama.cpp consumer base differs from actual backend/reservation")
+        self.model_output_contract_identity = binding["model_output_consumer_identity"]
+
+    def start(self) -> None:
+        if self.config.model_output_workspace_bytes and self.model_output_contract_identity is None:
+            raise ValueError("llama.cpp parser workspace requires a bound output consumer before loading")
+        super().start()
+
     def _validate_loaded_plan(self, plan: Mapping[str, Any]) -> None:
         super()._validate_loaded_plan(plan)
         if self.config.launch_controls is not None:
@@ -586,6 +625,18 @@ class OmniLlamaBackend(OmniCompleteModelBackend):
             )
 
             validate_llamacpp_launch_plan(plan, llamacpp_config_binding(self.config))
+        if self.model_output_contract_identity is not None:
+            from vllm_omni.edge.agent.llamacpp_route import (
+                llamacpp_consumer_binding,
+                validate_llamacpp_consumer_plan,
+            )
+            from vllm_omni.edge.agent.model_output import AgentOutputContract
+
+            contract = AgentOutputContract.from_dict(self.model_output_contract_identity["contract"])
+            binding = llamacpp_consumer_binding(self.config, contract)
+            if binding["model_output_consumer_identity"] != self.model_output_contract_identity:
+                raise ValueError("llama.cpp loaded config changed after consumer binding")
+            validate_llamacpp_consumer_plan(plan, binding)
 
     def _stage_backend_config(self) -> dict[str, Any]:
         cfg = self.config
