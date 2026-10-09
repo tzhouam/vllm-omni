@@ -1,11 +1,11 @@
 {
   "schema": "omni-strata-combined-agent-preparation-and-launch-v1",
-  "status": "full_protocol_running_memory_preparation_browser_failed",
+  "status": "full_protocol_running_memory_endurance_browser_failed",
   "actual_exec_session": 1799,
   "launch_tool_chunk": "3ab3bd",
-  "confirmed_live_tool_chunk": "cfb174",
+  "confirmed_live_tool_chunk": "032f88",
   "owner_receipt_sha256": "90d49767313395fae00fc99440e1251b38c7e46198bebcea7ea1d5e0ed320da0",
-  "observed_unix": 1791533118.865091,
+  "observed_unix": 1791534891.2401674,
   "producer_sha256": "b60c05e9b6ef5b7222861d44b9238793f4484323cc99d07f94ee4c7e0cf8d16e",
   "owner_sha256": "1ecfc27564655e4692c864d4949514e430f253500be6d33a235107fe6fdf994f",
   "source_freeze_sha256": "0010e358e14f454ff579077e8654d364e6f241b17e8cdfba1ea7211edb5585f8",
@@ -73,20 +73,23 @@
   "physical_ssd_bytes": null,
   "aggregate_memory_hard_caps_verified": false,
   "live_progress": {
-    "observed_utc": "2026-10-09T08:05:18.864090+00:00",
-    "wrapper_phase": "preparing_actual_bridge",
+    "observed_utc": "2026-10-09T08:29:15.060819+00:00",
+    "wrapper_phase": "actual_bridge_ready",
     "selected_class": "memory",
+    "phase": "endurance",
     "controller_blocks_closed": [
       true,
       true,
       false
     ],
+    "request_rows": 85,
+    "failing_raw_row_flags": 0,
     "whole_protocol_closed": false,
     "qualification_granted": false,
     "verified_live_session": {
       "session_id": 1799,
-      "tool_chunk": "cfb174",
-      "scope": "Specific running session polled before this publication; no restart."
+      "tool_chunk": "032f88",
+      "observed_utc": "2026-10-09 08:33:37 UTC"
     }
   },
   "basic_class_closed_progress": {
@@ -1285,5 +1288,161 @@
     ],
     "response_disposal_candidate": "Source-reviewed private candidate; not integrated, executed or proven to cause/reduce the observed RAM drop.",
     "next_action": "After whole freeze closes, integrate and test reviewed repairs; measure exact-owned model/Agent/Node/Edge working set and private commit in a fresh bounded browser cohort before selecting conservative shared-ledger tool headroom. Preserve resident guard and owner-scoped verified drain."
+  },
+  "memory_preparation_live_progress": {
+    "observed_utc": "2026-10-09T08:05:18.864090+00:00",
+    "wrapper_phase": "preparing_actual_bridge",
+    "selected_class": "memory",
+    "controller_blocks_closed": [
+      true,
+      true,
+      false
+    ],
+    "whole_protocol_closed": false,
+    "qualification_granted": false,
+    "verified_live_session": {
+      "session_id": 1799,
+      "tool_chunk": "cfb174",
+      "scope": "Specific running session polled before this publication; no restart."
+    },
+    "observation_scope": "Historical preparation observation before actual memory requests began."
+  },
+  "memory_class_live_progress": {
+    "observed_utc": "2026-10-09T08:29:15.060819+00:00",
+    "task_class": "memory",
+    "request_rows": 85,
+    "warmup_attempts": 6,
+    "measured_attempts": 60,
+    "measured_per_length": {
+      "short": 20,
+      "medium": 20,
+      "long": 20
+    },
+    "endurance_attempts": 19,
+    "failing_raw_row_flags": 0,
+    "endurance_active_seconds": 140.53307059999997,
+    "counts": [
+      {
+        "task_class": "memory",
+        "length": "medium",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "memory",
+        "length": "medium",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "memory",
+        "length": "short",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "memory",
+        "length": "short",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "memory",
+        "length": "long",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "memory",
+        "length": "long",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "memory",
+        "length": "long",
+        "phase": "endurance",
+        "count": 6
+      },
+      {
+        "task_class": "memory",
+        "length": "medium",
+        "phase": "endurance",
+        "count": 6
+      },
+      {
+        "task_class": "memory",
+        "length": "short",
+        "phase": "endurance",
+        "count": 7
+      }
+    ],
+    "raw_prefix": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T075958Z_51f9939b\\samples.jsonl",
+      "bytes": 29517462,
+      "sha256": "0250cfd3ac9dbf43955899ce3b9d120d21cef4ffbdb71b3037912a01d291c2f3",
+      "still_appending": true,
+      "closed_protocol_result": false
+    },
+    "checks_scope": "Bounded incremental raw-row flags; does not independently establish seed provenance for every request or full-class quality.",
+    "loaded_plan_sha256": "f3017492cfe1d51d2c462341d6d1395ef9f610c0317c59ecf429dc6dfb4b6353",
+    "native_process": {
+      "pid": 43448,
+      "creation_filetime_100ns": 134360075074166423,
+      "worker_generation": "e5e5a800d8b841b8848d59f9474d2f03",
+      "scope": "Actual prepared-stage identity; no whole-operator or aggregate memory-cap qualification."
+    },
+    "first_request_causal_review": {
+      "scope": "Exactly one memory_recall-en-short warmup request and actual captured call-000672; independently reconciled input/output/event/consumer evidence.",
+      "raw_byte_offset": 4501308,
+      "raw_line_bytes_including_crlf": 290949,
+      "raw_line_sha256_including_crlf": "550d79f7c13ca0de891c95064128404a4ec9dcf83e60c30d1edab76bd6423508",
+      "raw_json_bytes_without_terminator": 290947,
+      "raw_json_sha256_without_terminator": "4eafcb8fa0b1400e1465eb124b5845aadaeedf081333324da85e627da2808749",
+      "outer_request_id": "58a893bb850f4b51b9f815d4e221545f",
+      "model_step_request_id": "58a893bb850f4b51b9f815d4e221545f-step-0",
+      "model_step": 0,
+      "seed_event_id": "265be3ff-ecda-49cf-a8d6-072b3beb1698",
+      "seed_source_sha256": "1db188ac2da65fad20aa9736ac70cdeab0b373b60d923576eae48dcd8b460e87",
+      "reference_sha256": "dc0379b22c1b41ff704d9c7f4f35643d52385a2c985c9220d22533c8e2660951",
+      "captured_prompt_sha256": "d38411323a169388069d466a7ca50f69901e0cbd6110b88e654be98bef677ecc",
+      "captured_raw_output_sha256": "b9a42b491559f765a7ec441aaedd4ced1f697a5ff0dd48a1e547b025f65b0fa7",
+      "exactly_one_recalled_entry_matches_seed_event_and_source": true,
+      "reference_present_in_recalled_memory_payload": true,
+      "reference_absent_case_prompt_actual_task_current_observation_and_all_nonmemory_input": true,
+      "captured_prompt_matches_raw_row_identity_and_consumer_input": true,
+      "captured_output_matches_consumer_reference_and_all_finals": true,
+      "same_request_session_epoch_and_ordered_outer_events": true,
+      "outer_event_sequences": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "epoch": 1,
+      "captured_terminal_stage_sequence": 11,
+      "one_terminal_captured_before_consumer": true,
+      "inner_iterator_closed": true,
+      "whole_memory_cohort_provenance_verified": false,
+      "close_reopen_or_cross_controller_persistence_verified": false,
+      "counterfactual_memory_dependence_tested": false
+    },
+    "statistical_or_default_qualification_granted": false,
+    "whole_protocol_closed": false
+  },
+  "memory_provenance_evaluator_gap": {
+    "evidence_kind": "bounded_source_and_actual_single_request_review",
+    "source_locations": [
+      "benchmarks/edge_agent/paired_suite.py:175-197",
+      "benchmarks/edge_agent/profile.py:360-363,555-566",
+      "benchmarks/edge_agent/native_profile.py:787-794",
+      "vllm_omni/edge/agent/controller.py:653-675,824-825"
+    ],
+    "current_memory_specific_seed_provenance_gate_present": false,
+    "current_quality_flags_alone_prove_memory_retrieval": false,
+    "finding": "Current evaluator defaults source_ok to true for memory; trusted fixture setup is attached to the raw row only after evaluation. Actual first-row causal reconciliation is separate narrow evidence, not a whole-class gate.",
+    "private_fix_status": "Minimal source-only candidate under preparation; not integrated, compiled, tested or executed.",
+    "next_action": "After full source freeze closes, integrate reviewed source-provenance plumbing and fail-closed evaluator, run meaningful tamper/isolation regressions, then perform fresh actual memory validation. Independently audit every current closed-cohort seed/input/output link; do not inherit qualification."
   }
 }
