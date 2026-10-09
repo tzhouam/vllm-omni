@@ -71,3 +71,53 @@ Python environment, bootstrap and adapter to a new route identity. The
 original CUDA 13.0 release remains separate; its earlier neural results and
 latencies do not qualify this CUDA 13.4 executable. See
 [current integration status](../EDGE_ENGINE_STATUS.md) for actual runs.
+
+## Combined CPU/CUDA execution observation
+
+Two additional byte-pinned patches extend the same I/O build with scoped
+execution counters. Apply them in order after `strata_omni_io_v1.patch`:
+
+```text
+git -C strata-observed apply /absolute/path/strata_omni_execution_v1.patch
+git -C strata-observed apply /absolute/path/strata_omni_execution_boundary_v2.patch
+```
+
+The incremental patch SHA-256 is
+`884ce375cfab94756834f1e97211bfbef6471674e50e24c0bfcc03a9eca96358`;
+the boundary correction SHA-256 is
+`4689571b0c15873dba9e232baf3834db925c1cfb6d9f5929ef70f95c773ab583`.
+Use the same exact base/dependency and CMake options above. Preserve all patch
+bytes; the local attributes disable patch line-ending conversion, and their
+single-space context lines are protected by the three-file trailing-whitespace
+exclusion.
+
+The [original wire specification](strata_omni_execution_schema_v1.md) is
+retained verbatim, SHA-256
+`d7ff209a7533f85e182e2be9954805c1e08d505e253a7e116c405542ea729cfc`.
+Its source-only wording describes the document's original evidence scope.
+The [separate build and assembly record](../results/strata_20261008/strata_execution_build_assembly_status.json)
+tracks later actual work without rewriting that document.
+
+The patch instruments existing CPU expert methods, CPU row-partition phases,
+CUDA graph replay and completion at existing successful stream fences, plus
+ordinary owned expert-cache allocation/free accounting. It adds no scheduler
+or inference kernel. Counter families overlap and must not be summed as
+disjoint work. Coverage stays partial: whole-model placement and physical SSD
+bytes remain unknown, and memory observations do not enforce aggregate caps.
+Raw native records carry no trustworthy process or Omni request ownership;
+the Stage must establish actual process birth, GPU, loaded modules, adapter
+identity and ordered request binding before consuming them.
+
+The 2026-10-09 native configure and compile/link commands both returned zero;
+the resulting EXE SHA-256 is
+`39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177`.
+The original build wrapper then failed by treating a Ninja phony dependency
+as a physical file. That failed receipt is preserved; a separate closure
+supplement archives actual target membership and physical inputs. A compiled
+standalone fixture is only an ABI reference, pending an owned engine frame.
+
+The complete separate runtime assembled successfully, but its first actual
+static verification refused the base repository's small experimental projection
+GGUF. The linked record preserves that specific failure and the next check.
+No model request, Agent result, default route or release qualification is
+granted to this combined runtime by compilation or assembly.

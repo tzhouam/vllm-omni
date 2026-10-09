@@ -1,0 +1,60 @@
+{
+  "schema": "omni-strata-combined-runtime-assembly-v1",
+  "status": "assembled_bytes_independent_static_verification_pending",
+  "runtime_root": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v1",
+  "original_runtime_preserved": true,
+  "original_pack_tools_preserved": true,
+  "native_build_repeated": false,
+  "models_loaded": false,
+  "runtime_activated": false,
+  "static_verification_passed": false,
+  "engine_ABI_verified": false,
+  "live_modules_verified": false,
+  "qualification_created": false,
+  "parent_launch_sha256": "0dbf869915de84673f2c2d4b51fa274abf3c02cd938ae57e1af776a6fa0d206a",
+  "parent_runtime_root": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cpu-v1",
+  "parent_manifest_files_preserved_except_explicit_language_EXE": 2361,
+  "original_failed_build_receipt_sha256": "60d12283b50c7786fcfeeda128e644fda1d4cffc7593fa1f38a32114e1adfede",
+  "target_closure_receipt_sha256": "9f75c745caf79b6fa7aebf068f14682fd524e08a0fb3408c175e7aa36469f674",
+  "fixture_receipt_sha256": "d942e7ff26662dffad5910b4eed87fa84b98bfab428aa20b007a0f6366e08db5",
+  "new_engine_sha256": "39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177",
+  "final_role_members": {
+    "stage_source": "adapter/omni_strata_stage.py",
+    "io_adapter": "adapter/strata_io.py",
+    "parser": "adapter/strata_exec.py",
+    "bridge": "adapter/strata_exec_bridge.py",
+    "static_verifier": "adapter/strata_exec_runtime.py",
+    "live_verifier": "adapter/strata_exec_live.py",
+    "bootstrap": "adapter/strata_bootstrap.py",
+    "source_context": "adapter/live-source-context.json"
+  },
+  "scope": "copy-and-evidence assembly only; no registration/activation/model execution",
+  "preflight": {
+    "files_before_generated_metadata": 42604,
+    "generated_metadata_members": 10,
+    "directories": 2851,
+    "source_bytes_before_generated_metadata": 2217090425,
+    "max_windows_full_path_chars": 218,
+    "limits": {
+      "files": 65536,
+      "directories": 8192,
+      "total_bytes": 4294967296,
+      "member_bytes": 536870912,
+      "windows_full_path_chars": 259
+    },
+    "source_metadata_only_not_full_byte_verification": true
+  },
+  "registry_sha256": "efa9a0c61520568dda98e14ebc8dc6d4957a5dd4a4fbbf7722a99fa6614c79f5",
+  "files": 42612,
+  "size_bytes": 2217216913,
+  "manifest_sha256": "2c3148a2f8b2e35fbaa81ca8d576b9dcd139f4dc748bd85ad17323a3a3f75aa6",
+  "physical_files_including_manifest": 42613,
+  "physical_bytes_including_manifest": 2225785323,
+  "descriptor_sha256": "4c7af5682c3517fa54f487c3ebd86ea2bcf497ce4d097cfcd0eecc5fe5bc979d",
+  "manifest_bounds": {
+    "encoded_bytes": 8568410,
+    "traversal_nodes": 170451
+  },
+  "finished_utc": "2026-10-09T00:47:20.996781+00:00",
+  "assembler_source_sha256": "211e3c4b4e4114ca20639341f4f619151d07fad9246a16446ea31df80d971e7b"
+}

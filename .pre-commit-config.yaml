@@ -17,7 +17,7 @@ repos:
         args: ["--markdown-linebreak-ext=md"]
         # Unified-patch blank context lines require their leading space. These
         # exact bytes are part of the native runtime's provenance identity.
-        exclude: ^benchmarks/edge_harness/runtime_patches/strata_omni_io_v1\.patch$
+        exclude: ^benchmarks/edge_harness/runtime_patches/strata_omni_(io_v1|execution_v1|execution_boundary_v2)\.patch$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.10

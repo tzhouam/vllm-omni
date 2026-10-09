@@ -1,0 +1,26 @@
+--- a/include/strata/core/omni_execution_observer.hpp
++++ b/include/strata/core/omni_execution_observer.hpp
+@@ -5,6 +5,7 @@
+ #include <cstddef>
+ #include <cstdint>
+ #include <cstdio>
++#include <cstring>
+ #include <cstdlib>
+ #include <limits>
+ 
+@@ -252,8 +253,13 @@
+ }
+ inline void snapshot(const char* boundary, uint64_t seq, bool cancelled, uint64_t ticks, uint64_t hz) {
+     if (!enabled) return;
+-    const bool start = boundary[0] == 'r' && boundary[8] == 's';
+-    const bool end = boundary[0] == 'r' && boundary[8] == 'e';
++    // Exact internal labels only. Reject null/short/unknown inputs before
++    // indexing or formatting them; the original native callers use literals.
++    if (boundary == nullptr) { issue(invalid_boundary); return; }
++    const bool start = std::strcmp(boundary, "request_start") == 0;
++    const bool middle = std::strcmp(boundary, "prefill_end_decode_start") == 0;
++    const bool end = std::strcmp(boundary, "request_end") == 0;
++    if (!start && !middle && !end) { issue(invalid_boundary); return; }
+     const unsigned index = start ? 0 : end ? 2 : 1;
+     if ((scope() >> 2) != seq || index != state.next_snapshot || index > 2) { issue(invalid_boundary); return; }
+     ++state.next_snapshot;

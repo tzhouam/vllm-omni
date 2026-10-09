@@ -1,0 +1,588 @@
+--- a/src/program/generate.cpp
++++ b/src/program/generate.cpp
+@@ -14,6 +14,7 @@
+ // AND IT IS PHASE 2, so hit rate is `h = 0` and the number it prints is slow on purpose
+ // (`phase-2-correct-engine.md:5-9`).  What it is FOR is the honest tok/s figure and the logit dump.
+ 
++#include "strata/core/omni_execution_observer.hpp"
+ #include "strata/platform/memory.hpp"
+ #include "strata/core/arch_defaults.hpp"
+ #include "strata/core/dma_batch.hpp"
+@@ -235,6 +236,22 @@
+ }
+ 
+ using Clock = std::chrono::steady_clock;
++
++// Incremental opt-in execution observer. Existing I/O V1 records are unchanged.
++static void omni_exec_snapshot(const char* phase, uint64_t request_seq, bool cancelled = false) {
++    if (!strata::omni_exec::enabled) return;
++    uint64_t qpc = 0, qpc_hz = 0;
++#if defined(_WIN32)
++    LARGE_INTEGER now{}, hz{};
++    if (QueryPerformanceCounter(&now) && QueryPerformanceFrequency(&hz) && now.QuadPart > 0 && hz.QuadPart > 0) {
++        qpc = (uint64_t) now.QuadPart; qpc_hz = (uint64_t) hz.QuadPart;
++    }
++#endif
++    if (std::strcmp(phase, "request_start") == 0) strata::omni_exec::request_begin(request_seq);
++    strata::omni_exec::snapshot(phase, request_seq, cancelled, qpc, qpc_hz);
++    if (std::strcmp(phase, "prefill_end_decode_start") == 0) strata::omni_exec::decode_begin(request_seq);
++    if (std::strcmp(phase, "request_end") == 0) strata::omni_exec::request_retire(request_seq);
++}
+ 
+ // Private Omni observer patch v1. Numeric cumulative snapshots, not a new I/O
+ // path. Upstream server ignores unknown protocol lines; the Omni shim observes
+@@ -8953,6 +8970,7 @@
+             static uint64_t omni_request_seq = 0;
+             const uint64_t omni_seq = ++omni_request_seq;
+             omni_io_snapshot("request_start", omni_seq, src, ple_table, srcp == &src);
++            omni_exec_snapshot("request_start", omni_seq);
+             // ---- where this request starts reading: the live session, or a checkpoint, whose tokens AND pictures are
+             // exactly the start of this prompt - at most n - 1 of them, the last token is always the first window
+             auto starts_with = [&](const std::vector<int32_t>& pre, const std::vector<ImgKey>& pre_imgs) -> bool {
+@@ -9838,6 +9856,7 @@
+             };
+             const DecSnap ds0 = dec_snap();
+             omni_io_snapshot("prefill_end_decode_start", omni_seq, src, ple_table, srcp == &src);
++            omni_exec_snapshot("prefill_end_decode_start", omni_seq);
+             double dt_run = 0, dt_commit = 0, dt_draft = 0;
+             int64_t dec_windows = 0, dec_T = 0;
+             const int64_t decode_hits0 = drive.d.cache_hits;
+@@ -10777,6 +10796,7 @@
+                               (long long) chain_drafts, (long long) sfx_ok, (long long) sfx_drafts, (long long) dec_windows);
+             if (yielded_at >= 0) std::printf("YIELDED %d %lld\n", yielded_slot, (long long) yielded_at);
+             omni_io_snapshot("request_end", omni_seq, src, ple_table, srcp == &src);
++            omni_exec_snapshot("request_end", omni_seq, cancelled);
+             std::printf("DONE %lld %lld %.1f %.1f %s %lld %lld %lld %lld %lld %lld %lld %.1f %lld %lld%s\n",
+                         (long long) produced_n,
+                         (long long) n, prompt_ms, decode_ms, finish, (long long) draft_accepted, (long long) draft_offered,
+--- a/src/kernels/cpu/pool.cpp
++++ b/src/kernels/cpu/pool.cpp
+@@ -1,4 +1,5 @@
+ // src/kernels/cpu/pool.cpp - P2.S3: the CPU expert pool.  Read pool.hpp first; it explains the protocol.
++#include "strata/core/omni_execution_observer.hpp"
+ #include "strata/kernels/cpu/pool.hpp"
+ #include "strata/core/progress.hpp"
+ #include "strata/kernels/cpu/expert_layout.hpp"
+@@ -689,10 +690,12 @@
+     wait_parked("before a phase");
+     mode_ = mode;
+     njobs_ = n_tasks;
++    const auto omni_phase = strata::omni_exec::cpu_phase_begin(mode, n_tasks);
+     const uint32_t e = begin_batch(n_tasks);
+     if (host_works_) drain(-1, host_scratch_, e);
+     wait_done(n_tasks);
+     wait_parked("after a phase");
++    strata::omni_exec::cpu_phase_complete(omni_phase);
+     hstate_.store(kIdle, std::memory_order_relaxed);
+     hstate_ms_.store(now_ms(), std::memory_order_relaxed);
+ }
+@@ -700,6 +703,7 @@
+ void ExpertPool::run_split(ExpertJob* jobs, int n) {
+     if (n <= 0) return;
+     if (n > kMaxSplit || n_ == 1 || expert_oracle_q8_0_enabled()) { run(jobs, n); return; }
++    const auto omni_method = strata::omni_exec::cpu_begin(1, n, n);
+     const auto t0 = std::chrono::steady_clock::now();
+     jobs_ = jobs;
+     const int threads = n_ + (host_works_ ? 1 : 0);
+@@ -710,6 +714,7 @@
+     for (int e = 0; e < n; ++e) act_quant_q8_1(split_[(size_t) e].ff, FF, split_[(size_t) e].a2);
+     run_phase(2, n * parts_b_);
+     mode_ = 0;
++    strata::omni_exec::cpu_complete(omni_method);
+     ms_drain_ += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+ }
+ 
+@@ -735,6 +740,7 @@
+         return;
+     }
+     const auto t0 = std::chrono::steady_clock::now();
++    const auto omni_method = strata::omni_exec::cpu_begin(2, n, strata::omni_exec::entries(jobs, n));
+     mjobs_ = jobs;
+     mrows_ = (int64_t) n * FF;
+     mtasks_ = phase_tasks(mrows_);
+@@ -753,11 +759,13 @@
+     ms_multi_down += std::chrono::duration<double, std::milli>(t3 - t2).count();
+     multi_bytes += (int64_t) n * (int64_t) BLOB;
+     mode_ = 0;
++    strata::omni_exec::cpu_complete(omni_method);
+     ms_drain_ += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+ }
+ 
+ void ExpertPool::run_split_multi_native(const NativeFmt& f, ExpertJobMulti* jobs, int n) {
+     if (n <= 0) return;
++    const auto omni_method = strata::omni_exec::cpu_begin(3, n, strata::omni_exec::entries(jobs, n));
+     const auto t0 = std::chrono::steady_clock::now();
+     // more distinct experts than buffers: run them in batches
+     for (int b0 = 0; b0 < n; b0 += kMaxSplitMulti) {
+@@ -784,13 +792,16 @@
+     }
+     multi_bytes += (int64_t) n * (int64_t) f.bytes;
+     mode_ = 0;
++    strata::omni_exec::cpu_complete(omni_method);
+     ms_drain_ += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+ }
+ 
+ void ExpertPool::run(ExpertJob* jobs, int n) {
+     if (n <= 0) return;
++    const auto omni_method = strata::omni_exec::cpu_begin(0, n, n);
+     if (n_ == 1) {   // no workers: run inline, so a single-core machine still produces a token
+         for (int i = 0; i < n; ++i) s2_expert_vnni_q(jobs[i].blob, *jobs[i].act, jobs[i].out, scratch_[0]);
++        strata::omni_exec::cpu_complete(omni_method);
+         return;
+     }
+     // Wait for every worker to be parked BEFORE touching the batch, so the publish below is the only thing
+@@ -840,6 +851,7 @@
+     hstate_.store(kIdle, std::memory_order_relaxed);
+     hstate_ms_.store(now_ms(), std::memory_order_relaxed);
+     const auto t_d = std::chrono::steady_clock::now();
++    strata::omni_exec::cpu_complete(omni_method);
+ 
+     ms_wait_park_ += std::chrono::duration<double, std::milli>(t_b - t_a).count();
+     ms_drain_ += std::chrono::duration<double, std::milli>(t_c - t_b).count();
+--- a/src/core/session.cpp
++++ b/src/core/session.cpp
+@@ -1,4 +1,5 @@
+ // src/core/session.cpp - one token through all 48 layers.  See the header for why the graphs are per-layer.
++#include "strata/core/omni_execution_observer.hpp"
+ #include "strata/core/session.hpp"
+ #include "strata/kernels/mrope.hpp"
+ #include "strata/core/progress.hpp"
+@@ -915,7 +916,9 @@
+     ++tg.calls;
+     stage_token(g, pos, pos_base, s);
+     doorbell_reset(*s.db);
++    auto omni_graph = strata::omni_exec::cuda_prepare(0);
+     const cudaError_t le = cudaGraphLaunch(tg.exec, cs);
++    strata::omni_exec::cuda_launch_result(omni_graph, (int) le, le == cudaSuccess);
+     if (le != cudaSuccess) { err = std::string("session_run_token: launch: ") + cudaGetErrorString(le); return false; }
+     (void) cudaStreamQuery(cs);                     // one flush, so WDDM submits the graph now
+     static const int flush_us = [] {
+@@ -963,6 +966,7 @@
+     }
+     progress_at("token: waiting for the GPU to finish the token");
+     const cudaError_t se = cudaStreamSynchronize(cs);
++    strata::omni_exec::cuda_fence_result(omni_graph, (int) se, se == cudaSuccess);
+     if (se != cudaSuccess) { err = std::string("session_run_token: ") + cudaGetErrorString(se); return false; }
+     progress_at("decode");
+     progress_beat();
+--- a/src/core/verify.cpp
++++ b/src/core/verify.cpp
+@@ -1,4 +1,5 @@
+ // src/core/verify.cpp - see include/strata/core/verify.hpp.
++#include "strata/core/omni_execution_observer.hpp"
+ #include "strata/core/verify.hpp"
+ #include "strata/core/remote_expert_opt.hpp"
+ #include "strata/core/dma_batch.hpp"
+@@ -1894,7 +1895,9 @@
+     ms_host += ms_since(t0);
+     VDBG("staged; launching\n");
+     if (ar_on() && h_plan_err_ != nullptr) *(volatile uint32_t*) h_plan_err_ = 0;
++    auto omni_graph = strata::omni_exec::cuda_prepare(1);
+     const cudaError_t le = cudaGraphLaunch(ar_off_ ? exec_nr_[T] : exec_[T], cs_);
++    strata::omni_exec::cuda_launch_result(omni_graph, (int) le, le == cudaSuccess);
+     trace_ev("LAUNCHED", -1, -1, (int64_t) le);
+     if (le != cudaSuccess) { err = std::string("verify: launch: ") + cudaGetErrorString(le); return false; }
+     (void) cudaStreamQuery(cs_);
+@@ -2007,6 +2010,7 @@
+     trace_ev("SYNC", -1, -1, 0);
+     const cudaError_t se = cudaStreamSynchronize(cs_);
+     trace_ev("SYNCED", -1, -1, (int64_t) se);
++    strata::omni_exec::cuda_fence_result(omni_graph, (int) se, se == cudaSuccess);
+     if (se != cudaSuccess) { err = std::string("verify: ") + cudaGetErrorString(se); return false; }
+     if (ar_on() && h_plan_err_ != nullptr && *(volatile uint32_t*) h_plan_err_ != 0) {   // #871: refresh_ar saw the table whole
+         *(volatile uint32_t*) h_plan_err_ = 0;
+--- a/src/core/expert_cache.cpp
++++ b/src/core/expert_cache.cpp
+@@ -1,4 +1,5 @@
+ // src/core/expert_cache.cpp - R4's slot storage and residency table.  Read the header first.
++#include "strata/core/omni_execution_observer.hpp"
+ #include "strata/core/expert_cache.hpp"
+ 
+ // #533's segmented cache uses CUDA's virtual memory management (cuMem*): not on HIP, neither the RDNA backend nor
+@@ -503,8 +504,10 @@
+     }
+ 
+     if (seg_req_ > 0) {   // #533: --vram-elastic: physical segments behind one address range (zeroed below)
++        strata::omni_exec::untracked_cache_family(1);
+         if (!open_segmented(want, err)) return false;
+     } else if (g_cache_vmm && vmm_available()) {
++        strata::omni_exec::untracked_cache_family(2);
+         // the elastic K/V: every chunk mapped now; the K/V may later take some of them (and give them back)
+         auto r = std::make_unique<VmmRange>();
+         if (!r->reserve(want) || !r->map_range(0, r->chunks(), [] { return (VmmChunk) 0; })) {
+@@ -516,13 +519,18 @@
+         }
+         base_ = r->base();
+         vmm_ = std::move(r);
+-    } else if (cudaMalloc((void**) &base_, (size_t) want) != cudaSuccess) {
+-        base_ = nullptr;
+-        char buf[256];
+-        std::snprintf(buf, sizeof buf, "ExpertCache: cudaMalloc(%.2f GiB) failed: %s",
+-                      (double) want / 1073741824.0, cudaGetErrorString(cudaGetLastError()));
+-        err = buf;
+-        return false;
++    } else {
++        const cudaError_t omni_alloc_status = cudaMalloc((void**) &base_, (size_t) want);
++        strata::omni_exec::cache_alloc_result(this, want, (int) omni_alloc_status,
++                                             omni_alloc_status == cudaSuccess);
++        if (omni_alloc_status != cudaSuccess) {
++            base_ = nullptr;
++            char buf[256];
++            std::snprintf(buf, sizeof buf, "ExpertCache: cudaMalloc(%.2f GiB) failed: %s",
++                          (double) want / 1073741824.0, cudaGetErrorString(cudaGetLastError()));
++            err = buf;
++            return false;
++        }
+     }
+     // Zeroed so a slot read before it is filled is a DETERMINISTIC wrong answer rather than whatever the
+     // allocator handed back.  A stale block of a previous process's memory would still sum to finite floats.
+@@ -604,7 +612,8 @@
+         vmm_.reset();   // unmaps and frees every chunk it still holds
+         base_ = nullptr;
+     } else if (base_ != nullptr) {
+-        cudaFree(base_);
++        const cudaError_t omni_free_status = cudaFree(base_);
++        strata::omni_exec::cache_free_result(this, (int) omni_free_status, omni_free_status == cudaSuccess);
+         base_ = nullptr;
+     }
+     residency_.clear();
+--- /dev/null
++++ b/include/strata/core/omni_execution_observer.hpp
+@@ -0,0 +1,337 @@
++// Incremental Omni native observer, opt-in and partial coverage. No CUDA API calls.
++#pragma once
++
++#include <atomic>
++#include <cstddef>
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <limits>
++
++namespace strata::omni_exec {
++
++// C++17 inline objects give all linked translation units one observer. There is
++// no function-local initialization or lock/allocation on the CPU callback path.
++inline const bool enabled = [] {
++    const char* value = std::getenv("STRATA_OMNI_EXEC_OBSERVER");
++#if defined(STRATA_USE_HIP) || defined(STRATA_HIP_GFX906)
++    (void) value;
++    return false;  // This patch makes CUDA claims only; HIP aliases are unreviewed.
++#else
++    return value != nullptr && value[0] == '1' && value[1] == '\0';
++#endif
++}();
++
++constexpr unsigned phase_count = 3;  // outside/loading, request prefill, request decode
++constexpr unsigned cpu_kind_count = 4;  // full, split, split_multi, split_multi_native
++constexpr unsigned cpu_phase_count = 7;  // mode 0 unused; existing row phases 1..6
++constexpr unsigned cuda_kind_count = 2;  // session_run_token, Verifier::run
++constexpr unsigned root_capacity = 16;
++constexpr std::size_t frame_bytes = 32768;
++enum Issue : uint64_t {
++    counter_overflow = 1, invalid_geometry = 2, stale_scope = 4,
++    invalid_boundary = 8, unresolved_work = 16, registry_exhausted = 32,
++    missing_root = 64, duplicate_root = 128, allocation_api_error = 256,
++    free_api_error = 512, graph_launch_error = 1024, graph_fence_error = 2048,
++    report_overflow = 4096, clock_unavailable = 8192,
++};
++
++struct CpuCounters {
++    std::atomic<uint64_t> submitted{0}, completed{0}, jobs_submitted{0}, jobs_completed{0};
++    std::atomic<uint64_t> entries_submitted{0}, entries_completed{0};
++};
++struct PhaseCounters {
++    std::atomic<uint64_t> submitted{0}, completed{0}, tasks_submitted{0}, tasks_completed{0};
++};
++struct CudaCounters {
++    std::atomic<uint64_t> attempts{0}, submitted{0}, completed{0}, launch_errors{0}, fence_errors{0};
++    std::atomic<int> last_launch_status{-1}, last_fence_status{-1};
++};
++struct Root { const void* owner = nullptr; uint64_t bytes = 0, serial = 0; };
++struct State {
++    // One atomic key is an immutable (native sequence, phase) capture. Counters
++    // are lifetime cumulative; snapshots are independent atomic loads, not a
++    // coherent global transaction. Never impose cross-counter equalities.
++    std::atomic<uint64_t> scope_key{0}, issues{0}, cpu_inflight{0}, cuda_inflight{0};
++    CpuCounters cpu[phase_count][cpu_kind_count];
++    PhaseCounters cpu_phase[phase_count][cpu_phase_count];
++    CudaCounters cuda[phase_count][cuda_kind_count];
++    std::atomic_flag roots_lock = ATOMIC_FLAG_INIT;
++    Root roots[root_capacity];
++    uint64_t next_root_serial = 0;  // accessed only under roots_lock
++    std::atomic<uint64_t> alloc_attempts{0}, alloc_success{0}, alloc_errors{0};
++    std::atomic<uint64_t> free_attempts{0}, free_success{0}, free_errors{0};
++    std::atomic<int> last_alloc_status{-1}, last_free_status{-1};
++    std::atomic<uint64_t> tracked_live{0}, lifetime_peak{0}, request_peak{0};
++    std::atomic<uint64_t> untracked_cache_families{0};  // 1 segmented, 2 VMM
++    unsigned next_snapshot = 0;  // only native request owner writes/emits
++};
++inline State state;
++static_assert(sizeof(State) <= 16384, "fixed observer state grew beyond declared bound");
++static_assert(std::atomic<uint64_t>::is_always_lock_free, "callback counters must be lock-free");
++static_assert(std::atomic<int>::is_always_lock_free, "callback status counters must be lock-free");
++
++inline void issue(uint64_t value) { state.issues.fetch_or(value, std::memory_order_relaxed); }
++inline uint64_t get(const std::atomic<uint64_t>& value) { return value.load(std::memory_order_relaxed); }
++inline void add(std::atomic<uint64_t>& value, uint64_t delta) {
++    auto previous = value.load(std::memory_order_relaxed);
++    for (;;) {
++        const bool overflow = delta > (std::numeric_limits<uint64_t>::max)() - previous;
++        const auto next = overflow ? (std::numeric_limits<uint64_t>::max)() : previous + delta;
++        if (value.compare_exchange_weak(previous, next, std::memory_order_relaxed)) {
++            if (overflow) issue(counter_overflow);
++            return;
++        }
++    }
++}
++inline void peak(std::atomic<uint64_t>& value, uint64_t candidate) {
++    auto previous = get(value);
++    while (previous < candidate && !value.compare_exchange_weak(previous, candidate, std::memory_order_relaxed)) {}
++}
++inline unsigned phase(uint64_t key) { return (unsigned) (key & 3); }
++inline uint64_t scope() { return state.scope_key.load(std::memory_order_acquire); }
++inline void retire_work(std::atomic<uint64_t>& inflight, uint64_t key) {
++    if (scope() != key) issue(stale_scope);
++    auto previous = get(inflight);
++    while (previous != 0 && !inflight.compare_exchange_weak(previous, previous - 1, std::memory_order_relaxed)) {}
++    if (previous == 0) issue(unresolved_work);
++}
++
++struct Ticket {
++    uint64_t key = 0, jobs = 0, entries = 0;
++    unsigned kind = 0;
++    bool active = false;
++};
++template <class Jobs> inline uint64_t entries(const Jobs* jobs, int n) {
++    if (!enabled) return 0;
++    uint64_t total = 0;
++    for (int i = 0; i < n; ++i) {
++        if (jobs[i].nt < 0 || (uint64_t) jobs[i].nt > (std::numeric_limits<uint64_t>::max)() - total) {
++            issue(invalid_geometry); return 0;
++        }
++        total += (uint64_t) jobs[i].nt;
++    }
++    return total;
++}
++inline Ticket cpu_begin(unsigned kind, uint64_t jobs, uint64_t entries_count) {
++    if (!enabled) return {};
++    const auto key = scope();
++    if (kind >= cpu_kind_count || phase(key) >= phase_count) { issue(invalid_geometry); return {}; }
++    auto& c = state.cpu[phase(key)][kind];
++    add(c.submitted, 1); add(c.jobs_submitted, jobs); add(c.entries_submitted, entries_count);
++    add(state.cpu_inflight, 1);
++    return {key, jobs, entries_count, kind, true};
++}
++inline void cpu_complete(const Ticket& t) {
++    if (!t.active) return;
++    auto& c = state.cpu[phase(t.key)][t.kind];
++    add(c.completed, 1); add(c.jobs_completed, t.jobs); add(c.entries_completed, t.entries);
++    retire_work(state.cpu_inflight, t.key);
++}
++inline Ticket cpu_phase_begin(int mode, int tasks) {
++    if (!enabled) return {};
++    const auto key = scope();
++    if (mode < 1 || mode > 6 || tasks < 0 || phase(key) >= phase_count) { issue(invalid_geometry); return {}; }
++    auto& c = state.cpu_phase[phase(key)][mode];
++    add(c.submitted, 1); add(c.tasks_submitted, (uint64_t) tasks); add(state.cpu_inflight, 1);
++    return {key, (uint64_t) tasks, 0, (unsigned) mode, true};
++}
++inline void cpu_phase_complete(const Ticket& t) {
++    if (!t.active) return;
++    auto& c = state.cpu_phase[phase(t.key)][t.kind];
++    add(c.completed, 1); add(c.tasks_completed, t.jobs);
++    retire_work(state.cpu_inflight, t.key);
++}
++inline Ticket cuda_prepare(unsigned kind) {
++    if (!enabled) return {};
++    const auto key = scope();
++    if (kind >= cuda_kind_count || phase(key) >= phase_count) { issue(invalid_geometry); return {}; }
++    return {key, 0, 0, kind, true};
++}
++inline void cuda_launch_result(Ticket& t, int status, bool successful) {
++    if (!t.active) return;
++    auto& c = state.cuda[phase(t.key)][t.kind];
++    add(c.attempts, 1); c.last_launch_status.store(status, std::memory_order_relaxed);
++    if (successful) { add(c.submitted, 1); add(state.cuda_inflight, 1); }
++    else { add(c.launch_errors, 1); issue(graph_launch_error); t.active = false; }
++}
++inline void cuda_fence_result(const Ticket& t, int status, bool successful) {
++    if (!t.active) return;
++    auto& c = state.cuda[phase(t.key)][t.kind];
++    c.last_fence_status.store(status, std::memory_order_relaxed);
++    if (successful) { add(c.completed, 1); retire_work(state.cuda_inflight, t.key); }
++    else { add(c.fence_errors, 1); issue(graph_fence_error); }  // completion is still unknown
++}
++
++// Only allocation/free hooks and request-peak reset use this fixed registry.
++// No observer lock spans a CUDA API, pool wait, or host callback. Private owner
++// pointers never leave this object. Failed frees retain their live allocation.
++struct RootsGuard {
++    RootsGuard() { while (state.roots_lock.test_and_set(std::memory_order_acquire)) {} }
++    ~RootsGuard() { state.roots_lock.clear(std::memory_order_release); }
++};
++inline void untracked_cache_family(uint64_t bit) {
++    if (enabled) state.untracked_cache_families.fetch_or(bit, std::memory_order_relaxed);
++}
++inline void cache_alloc_result(const void* owner, uint64_t bytes, int status, bool successful) {
++    if (!enabled) return;
++    add(state.alloc_attempts, 1); state.last_alloc_status.store(status, std::memory_order_relaxed);
++    if (!successful) { add(state.alloc_errors, 1); issue(allocation_api_error); return; }
++    add(state.alloc_success, 1);
++    RootsGuard lock;
++    Root* empty = nullptr;
++    for (auto& r : state.roots) {
++        if (r.owner == owner) issue(duplicate_root);  // e.g. a previous failed free
++        if (r.owner == nullptr && empty == nullptr) empty = &r;
++    }
++    if (empty == nullptr || owner == nullptr || bytes == 0) { issue(registry_exhausted); return; }
++    if (state.next_root_serial == (std::numeric_limits<uint64_t>::max)()) { issue(counter_overflow); return; }
++    *empty = {owner, bytes, ++state.next_root_serial};
++    add(state.tracked_live, bytes);
++    peak(state.lifetime_peak, get(state.tracked_live));
++    if (phase(scope()) != 0) peak(state.request_peak, get(state.tracked_live));
++}
++inline void cache_free_result(const void* owner, int status, bool successful) {
++    if (!enabled) return;
++    add(state.free_attempts, 1); state.last_free_status.store(status, std::memory_order_relaxed);
++    if (!successful) { add(state.free_errors, 1); issue(free_api_error); return; }
++    add(state.free_success, 1);
++    RootsGuard lock;
++    Root* found = nullptr;
++    for (auto& r : state.roots)
++        if (r.owner == owner && (found == nullptr || r.serial > found->serial)) found = &r;
++    if (found == nullptr) { issue(missing_root); return; }
++    const auto live = get(state.tracked_live);
++    if (found->bytes > live) { issue(counter_overflow); return; }
++    state.tracked_live.store(live - found->bytes, std::memory_order_relaxed);
++    *found = {};
++}
++inline void request_begin(uint64_t seq) {
++    if (!enabled) return;
++    const auto previous = scope();
++    if (seq == 0 || seq > ((std::numeric_limits<uint64_t>::max)() >> 2) || seq <= (previous >> 2)) {
++        issue(invalid_boundary); return;
++    }
++    if (phase(previous) != 0) issue(invalid_boundary);
++    if (get(state.cpu_inflight) != 0 || get(state.cuda_inflight) != 0) issue(unresolved_work);
++    RootsGuard lock;
++    state.request_peak.store(get(state.tracked_live), std::memory_order_relaxed);
++    state.scope_key.store((seq << 2) | 1, std::memory_order_release);
++    state.next_snapshot = 0;
++}
++inline void decode_begin(uint64_t seq) {
++    if (!enabled) return;
++    if (scope() != ((seq << 2) | 1)) { issue(invalid_boundary); return; }
++    if (get(state.cpu_inflight) != 0 || get(state.cuda_inflight) != 0) issue(unresolved_work);
++    state.scope_key.store((seq << 2) | 2, std::memory_order_release);
++}
++inline void request_retire(uint64_t seq) {
++    if (!enabled) return;
++    if ((scope() >> 2) != seq) { issue(invalid_boundary); return; }
++    state.scope_key.store(seq << 2, std::memory_order_release);
++}
++
++struct Frame {
++    char data[frame_bytes]{};
++    std::size_t used = 0;
++    bool good = true;
++    template <class... Args> void put(const char* format, Args... args) {
++        if (!good) return;
++        const int n = std::snprintf(data + used, sizeof(data) - used, format, args...);
++        if (n < 0 || (std::size_t) n >= sizeof(data) - used) { good = false; issue(report_overflow); return; }
++        used += (std::size_t) n;
++    }
++    void number(uint64_t value) { put("%llu", (unsigned long long) value); }
++};
++inline void optional_status(Frame& f, int status) {
++    if (status == -1) f.put("null"); else f.put("%d", status);
++}
++inline const char* phase_name(unsigned p) { return p == 1 ? "prefill" : p == 2 ? "decode" : "outside_request"; }
++inline const char* cpu_name(unsigned k) {
++    constexpr const char* names[] = {"full", "split", "split_multi", "split_multi_native"}; return names[k];
++}
++inline void snapshot(const char* boundary, uint64_t seq, bool cancelled, uint64_t ticks, uint64_t hz) {
++    if (!enabled) return;
++    const bool start = boundary[0] == 'r' && boundary[8] == 's';
++    const bool end = boundary[0] == 'r' && boundary[8] == 'e';
++    const unsigned index = start ? 0 : end ? 2 : 1;
++    if ((scope() >> 2) != seq || index != state.next_snapshot || index > 2) { issue(invalid_boundary); return; }
++    ++state.next_snapshot;
++    if (ticks == 0 || hz == 0) issue(clock_unavailable);
++    if (end && (get(state.cpu_inflight) != 0 || get(state.cuda_inflight) != 0)) issue(unresolved_work);
++    Frame f;
++    f.put("OMNI_EXEC_V1 {\"schema\":\"strata-omni-exec-v1\",\"native_request_seq\":"); f.number(seq);
++    f.put(",\"snapshot_seq\":%u,\"phase\":\"%s\",\"clock\":{\"source\":\"Windows_QPC\",\"ticks\":", index, boundary);
++    if (ticks == 0 || hz == 0) f.put("null,\"frequency_hz\":null}");
++    else { f.number(ticks); f.put(",\"frequency_hz\":"); f.number(hz); f.put("}"); }
++    f.put(",\"counter_scope\":\"process_lifetime_cumulative_phase_at_submission\","
++          "\"snapshot_coherent\":false,\"scope_status\":\"partial_coverage\",\"request_terminal\":");
++    f.put(end ? (cancelled ? "\"cancelled\"" : "\"completed\"") : "null");
++    f.put(",\"boundary_complete\":%s,\"issues\":", end && !cancelled && get(state.issues) == 0 ? "true" : "false");
++    f.number(get(state.issues));
++    f.put(",\"observer\":{\"state_bytes\":%llu,\"frame_buffer_bytes\":%llu,\"frame_state_bytes\":%llu,"
++          "\"ticket_bytes\":%llu,\"concurrent_ticket_count_verified\":false,\"root_registry_capacity\":%u,"
++          "\"overhead_scope\":\"fixed_Cpp_state_and_one_owner_frame_plus_per_call_stack_ticket_excludes_CRT_stdio\"},"
++          "\"inflight\":{\"cpu_methods_and_phases\":", (unsigned long long) sizeof(State),
++          (unsigned long long) frame_bytes, (unsigned long long) sizeof(Frame),
++          (unsigned long long) sizeof(Ticket), root_capacity);
++    f.number(get(state.cpu_inflight)); f.put(",\"cuda_replays\":"); f.number(get(state.cuda_inflight));
++    f.put("},\"counters\":{\"cpu\":[");
++    bool comma = false;
++    for (unsigned p = 0; p < phase_count; ++p) for (unsigned k = 0; k < cpu_kind_count; ++k) {
++        auto& c = state.cpu[p][k];
++        if (comma) f.put(","); comma = true;
++        f.put("{\"phase\":\"%s\",\"family\":\"%s\",\"unit\":\"CPU_expert_method\",\"submitted\":", phase_name(p), cpu_name(k));
++        f.number(get(c.submitted)); f.put(",\"completed\":"); f.number(get(c.completed));
++        f.put(",\"unique_jobs_submitted\":"); f.number(get(c.jobs_submitted));
++        f.put(",\"unique_jobs_completed\":"); f.number(get(c.jobs_completed));
++        f.put(",\"token_expert_entries_submitted\":"); f.number(get(c.entries_submitted));
++        f.put(",\"token_expert_entries_completed\":"); f.number(get(c.entries_completed)); f.put("}");
++    }
++    f.put("],\"cpu_phase\":["); comma = false;
++    for (unsigned p = 0; p < phase_count; ++p) for (unsigned k = 1; k < cpu_phase_count; ++k) {
++        auto& c = state.cpu_phase[p][k];
++        if (comma) f.put(","); comma = true;
++        f.put("{\"phase\":\"%s\",\"mode\":%u,\"unit\":\"CPU_row_partition_phase\",\"submitted\":", phase_name(p), k);
++        f.number(get(c.submitted)); f.put(",\"completed\":"); f.number(get(c.completed));
++        f.put(",\"row_tasks_submitted\":"); f.number(get(c.tasks_submitted));
++        f.put(",\"row_tasks_completed\":"); f.number(get(c.tasks_completed)); f.put("}");
++    }
++    f.put("],\"cuda\":["); comma = false;
++    for (unsigned p = 0; p < phase_count; ++p) for (unsigned k = 0; k < cuda_kind_count; ++k) {
++        auto& c = state.cuda[p][k];
++        if (comma) f.put(","); comma = true;
++        f.put("{\"phase\":\"%s\",\"family\":\"%s\",\"unit\":\"CUDA_graph_replay_including_host_copy_nodes\",\"launch_attempts\":",
++              phase_name(p), k == 0 ? "session_run_token" : "Verifier_run");
++        f.number(get(c.attempts)); f.put(",\"submitted\":"); f.number(get(c.submitted));
++        f.put(",\"completed_after_successful_existing_stream_fence\":"); f.number(get(c.completed));
++        f.put(",\"launch_errors\":"); f.number(get(c.launch_errors)); f.put(",\"fence_errors\":"); f.number(get(c.fence_errors));
++        f.put(",\"last_launch_status\":"); optional_status(f, c.last_launch_status.load(std::memory_order_relaxed));
++        f.put(",\"last_fence_status\":"); optional_status(f, c.last_fence_status.load(std::memory_order_relaxed)); f.put("}");
++    }
++    f.put("]},\"memory\":{\"ordinary_expert_cache\":{\"unit\":\"bytes\",\"accounting\":\"successful_owned_cudaMalloc_requested_bytes\","
++          "\"allocation_attempts\":"); f.number(get(state.alloc_attempts));
++    f.put(",\"successful_allocations\":"); f.number(get(state.alloc_success));
++    f.put(",\"allocation_errors\":"); f.number(get(state.alloc_errors));
++    f.put(",\"free_attempts\":"); f.number(get(state.free_attempts)); f.put(",\"successful_frees\":"); f.number(get(state.free_success));
++    f.put(",\"failed_frees\":"); f.number(get(state.free_errors));
++    f.put(",\"last_allocation_status\":"); optional_status(f, state.last_alloc_status.load(std::memory_order_relaxed));
++    f.put(",\"last_free_status\":"); optional_status(f, state.last_free_status.load(std::memory_order_relaxed));
++    f.put(",\"tracked_live_requested_bytes\":"); f.number(get(state.tracked_live));
++    f.put(",\"lifetime_peak_requested_bytes\":"); f.number(get(state.lifetime_peak));
++    f.put(",\"request_peak_requested_bytes\":"); f.number(get(state.request_peak));
++    f.put(",\"untracked_cache_family_bits\":"); f.number(get(state.untracked_cache_families));
++    f.put(",\"physical_resident_bytes\":null,\"vmm_reserved_bytes\":null,\"vmm_mapped_committed_bytes\":null}},"
++          "\"coverage\":{\"instrumented\":[\"CPU_pool_methods_and_row_phase_barriers\",\"session_run_token_stream_fence\","
++          "\"Verifier_run_stream_fence\",\"ordinary_ExpertCache_cudaMalloc_cudaFree\"],"
++          "\"excluded\":[\"VMM_segmented_cache_and_KV_handle_transfers\",\"prefill_direct_CUDA_cuBLAS\","
++          "\"other_session_graphs\",\"Verifier_commit_slots_pipeline_graphs\",\"embedding_head_PLE_direct_kernels\","
++          "\"graph_node_inventory\",\"CPU_activation_quantization_separate_accounting\",\"all_other_allocators_aliases_library_driver\"],"
++          "\"entire_model_covered\":false},\"whole_model_placement\":null,\"physical_ssd_read_bytes\":null,"
++          "\"aggregate_gpu_hard_cap_verified\":false,\"aggregate_ram_hard_cap_verified\":false}\n");
++    if (f.good) { std::fwrite(f.data, 1, f.used, stdout); std::fflush(stdout); }
++    // An overflow emits no malformed/truncated record. Missing required record
++    // must be handled as partial by the separately reviewed owned host parser.
++}
++
++}  // namespace strata::omni_exec

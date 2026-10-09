@@ -1,0 +1,87 @@
+{
+  "schema": "omni-strata-execution-build-assembly-status-v1",
+  "date": "2026-10-09",
+  "scope": "native_build_and_complete_assembly_no_model_execution",
+  "status": "assembled_static_verification_failed_on_unregistered_base_auxiliary",
+  "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+  "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
+  "native_executable_sha256": "39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177",
+  "patch_application_order": [
+    {
+      "path": "benchmarks/edge_harness/runtime_patches/strata_omni_io_v1.patch",
+      "sha256": "31b98e5e02e21a6289d0713097036334a59aef2d15ad9e951ded80f59f4bfdcc"
+    },
+    {
+      "path": "benchmarks/edge_harness/runtime_patches/strata_omni_execution_v1.patch",
+      "size_bytes": 32244,
+      "sha256": "884ce375cfab94756834f1e97211bfbef6471674e50e24c0bfcc03a9eca96358"
+    },
+    {
+      "path": "benchmarks/edge_harness/runtime_patches/strata_omni_execution_boundary_v2.patch",
+      "size_bytes": 1235,
+      "sha256": "4689571b0c15873dba9e232baf3834db925c1cfb6d9f5929ef70f95c773ab583"
+    }
+  ],
+  "wire_schema": {
+    "path": "benchmarks/edge_harness/runtime_patches/strata_omni_execution_schema_v1.md",
+    "size_bytes": 7041,
+    "sha256": "d7ff209a7533f85e182e2be9954805c1e08d505e253a7e116c405542ea729cfc"
+  },
+  "native_configure_build_exit_codes": [
+    0,
+    0
+  ],
+  "original_build_wrapper_exit_code": 1,
+  "original_build_wrapper_failure": "phony Ninja dependency was treated as a physical file after successful native compile/link",
+  "original_failed_wrapper_receipt_sha256": "60d12283b50c7786fcfeeda128e644fda1d4cffc7593fa1f38a32114e1adfede",
+  "target_closure_supplement_sha256": "9f75c745caf79b6fa7aebf068f14682fd524e08a0fb3408c175e7aa36469f674",
+  "target_closure_scope": "separate archived physical inputs and recursively derived target graph; independent static verification incomplete",
+  "toolchain": {
+    "MSVC": "19.44.35229",
+    "NVCC": "13.4.59",
+    "CMake": "3.31.6",
+    "Ninja": "1.12.1",
+    "CUDA_architectures": "120",
+    "CMAKE_CUDA_RUNTIME_LIBRARY": "Static",
+    "parallelism": 2
+  },
+  "assembly": {
+    "terminal_exit_code": 0,
+    "raw_receipt": {
+      "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_assembly_raw.json",
+      "size_bytes": 2793,
+      "sha256": "aaa2878186cf84335e5e368b316c098722925568e151e39dc3020658a78caac3"
+    },
+    "manifest_sha256": "2c3148a2f8b2e35fbaa81ca8d576b9dcd139f4dc748bd85ad17323a3a3f75aa6",
+    "descriptor_sha256": "4c7af5682c3517fa54f487c3ebd86ea2bcf497ce4d097cfcd0eecc5fe5bc979d",
+    "physical_files": 42613,
+    "physical_bytes": 2225785323,
+    "max_windows_full_path_chars": 218
+  },
+  "static_attempt": {
+    "terminal_exit_code": 1,
+    "raw_receipt": {
+      "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_static_attempt_v1_raw.json",
+      "size_bytes": 348,
+      "sha256": "b29b4f7f4eae9b428223ae5cc6d13f194103e3fe06e4c959491c3624981510df"
+    },
+    "reason_code": "model_member_forbidden",
+    "specific_auxiliary": {
+      "path": "data/experimental-speed-projection/Qwen3.8-Flash-Next-experimental-speed-projection.gguf",
+      "size_bytes": 483520,
+      "sha256": "ef0724c5b79297e481017be85769832bc26eb220c984ecba2b0e1b0c8426312b",
+      "canonical_blob": "5c10294a9981a76ea83f51aadd15816d3911285f",
+      "copies": "root and five descriptor-bound Strata source stages"
+    },
+    "next_action": "verify exact base-Git auxiliary membership and all retained copies; preserve failure and complete source archives"
+  },
+  "native_model_executed": false,
+  "complete_runtime_verified": false,
+  "actual_owned_engine_ABI_verified": false,
+  "runtime_qualification": false,
+  "default_eligible": false,
+  "release_qualified": false,
+  "physical_ssd_read_bytes": null,
+  "aggregate_memory_hard_caps_verified": false
+}

@@ -7,9 +7,13 @@ Windows commit and receipt storage are charged separately through the existing l
 passed **297 tests and 161 subtests**, with three skips. A subsequent strict-integer DONE
 sequence fix passed **24 focused native tests**; the overlapping runs are not added together.
 Native vLLM is `0.29.0+cu134`, aligned with Omni 0.29; nine changed non-pinned integration
-files passed the repository Ruff configuration. The new native engine compiled and linked;
-its separate complete runtime is being assembled. Actual model parity, observed execution,
-cancellation/recovery and Agent reruns on this combined version are still pending.
+files passed the repository Ruff configuration. The new native engine compiled and linked,
+and its separate complete runtime assembled successfully. The
+[first actual static attempt](../edge_harness/results/strata_20261008/strata_execution_build_assembly_status.json)
+refused an unregistered 483,520-byte experimental projection GGUF from the fixed base
+repository. The failure is retained while exact Git and copy membership checks are added.
+Actual model parity, observed execution, cancellation/recovery and Agent reruns on this
+combined version are still pending.
 These are model-free integration checks. Prior Q2/IQ3/Q4 actual results keep their own
 frozen source identities and do not qualify the new observer path.
 
