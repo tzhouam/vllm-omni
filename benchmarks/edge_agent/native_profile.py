@@ -19,7 +19,7 @@ import platform
 import sys
 import threading
 import uuid
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from copy import deepcopy
 from dataclasses import asdict
 from pathlib import Path
@@ -707,6 +707,7 @@ class NativeProfileBridge:
         telemetry: WindowsTelemetry,
         structured_read_url: bool = False,
         process_memory_attribution: bool = False,
+        browser_registry_factory: Callable[..., Any] | None = None,
     ) -> None:
         self.native_config = native_config
         self.config_root = config_root
@@ -715,6 +716,7 @@ class NativeProfileBridge:
         self.telemetry = telemetry
         self.structured_read_url = structured_read_url
         self.process_memory_attribution = process_memory_attribution
+        self._browser_registry_factory = browser_registry_factory
         self.process_memory_close_receipt: Mapping[str, Any] | None = None
         self.suite_id = STRUCTURED_READ_URL_SUITE_ID if structured_read_url else SUITE_ID
         self.controller: Any = None
@@ -782,11 +784,20 @@ class NativeProfileBridge:
         config_path = self.config_root / (prefix + ".json")
         config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         joint_browser = config.get("browser_resource_envelope") is not None
+        if not joint_browser and (
+                self._browser_registry_factory is not None or config.get("browser_cdp_helper") is not None):
+            raise ValueError("a profiler browser registry factory or helper requires a jointly admitted companion")
         if joint_browser:
             declaration = config["browser_resource_envelope"]
             if (not isinstance(declaration, Mapping) or not isinstance(declaration.get("path"), str)
                     or not Path(declaration["path"]).is_absolute()):
                 raise ValueError("profiler browser_resource_envelope requires an absolute evidence path")
+            helper_declaration = config.get("browser_cdp_helper")
+            if helper_declaration is not None and (
+                    not isinstance(helper_declaration, Mapping)
+                    or not isinstance(helper_declaration.get("path"), str)
+                    or not Path(helper_declaration["path"]).is_absolute()):
+                raise ValueError("profiler browser_cdp_helper requires an absolute app-owned declaration path")
         if self.process_memory_attribution:
             self.telemetry.begin_controller_processes(prefix + ":" + uuid.uuid4().hex)
         if joint_browser:
@@ -801,7 +812,9 @@ class NativeProfileBridge:
                 return ReadOnlyFixtureTools(self.fixture_origin,
                     **{**kwargs, "screen": self._fixture_screen})
             controller, hardware = build_controller(config_path,
-                tool_boundary_factory=tools_factory, browser_factory=browser_factory)
+                tool_boundary_factory=tools_factory, browser_factory=browser_factory,
+                **({"browser_registry_factory": self._browser_registry_factory}
+                   if self._browser_registry_factory is not None else {}))
             self.controller, self.route = controller, route
             self._browser_companion = controller.browser_resource_companion
             if self._browser_companion is None:

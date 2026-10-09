@@ -1,0 +1,156 @@
+{
+  "schema": "omni-observed-cdp-helper-native-validation-v1",
+  "result": "310_passed_including_66_helper_cases",
+  "finished_utc": "2026-10-09 12:48:44 UTC",
+  "raw_receipt": {
+    "private_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\helper-gpu-focused-native-20261009-v13\\receipt.json",
+    "sha256": "e7cd15b2e8584e02f0bc8368154a28836b5cbd9d0413d831ddd38d6cc1c0abeb",
+    "bytes": 420014
+  },
+  "parent_validation": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\bound-gpu-focused-native-20261009-v12\\receipt.json",
+    "sha256": "a939a4832fbd4207c47dffe7ae61b8389a645bf0e1afaa77a795a49fea6e1bb8"
+  },
+  "harness": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\postfreeze-agent-native-checks-v1\\run_checks_focused_helper_gpu_v13.py",
+    "sha256": "2df8162719db65989b544960fdf76ef1db07103ed40a0a83aa14998aaf8dcfe2"
+  },
+  "junit": {
+    "present": true,
+    "sha256": "f33618bb529ca6e9e1de5bef3671fd8cdce640d199c77beaf42e84d63c60c35c",
+    "tests": 310,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pytest_log": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\helper-gpu-focused-native-20261009-v13\\pytest.log",
+    "sha256": "df5e79aee03e6d79034e01006f7d5bad129bcd0d4be1da2d9e25e8088acec394",
+    "bytes": 421
+  },
+  "module_counts": [
+    {
+      "module": "tests/edge/test_agent_browser_joint_wiring.py",
+      "passed": 13
+    },
+    {
+      "module": "tests/edge/test_agent_browser_resources.py",
+      "passed": 34
+    },
+    {
+      "module": "tests/edge/test_agent_host_memory.py",
+      "passed": 19
+    },
+    {
+      "module": "tests/edge/test_agent_native_profile.py",
+      "passed": 19
+    },
+    {
+      "module": "tests/edge/test_agent_process_memory_attribution.py",
+      "passed": 65
+    },
+    {
+      "module": "tests/edge/test_agent_rejected_cdp_diagnostics.py",
+      "passed": 21
+    },
+    {
+      "module": "tests/edge/test_windows_bound_gpu_memory.py",
+      "passed": 49
+    },
+    {
+      "module": "tests/edge/test_windows_cdp_observed_helper.py",
+      "passed": 66
+    },
+    {
+      "module": "tests/edge/test_windows_gpu_memory.py",
+      "passed": 24
+    }
+  ],
+  "helper_cases": 66,
+  "test_scope": "Real repository package initializers, API/unit integration and synthetic stage fixtures; no native backend launch, model generation, measured RAM benefit or performance qualification.",
+  "selected_source_count": 51,
+  "selected_sources_stable": true,
+  "current_selected_sources_rehashed_matching": true,
+  "reviewed_helper_afterimages": {
+    "vllm_omni/edge/windows_cdp_helper.py": {
+      "bytes": 8935,
+      "sha256": "a9b2b2898cbcda07680eb0e8693677ee52be1ca456fe31c358d0339b724eee06"
+    },
+    "vllm_omni/edge/windows_process_memory.py": {
+      "bytes": 49365,
+      "sha256": "4250b023894fe46238eda9ba90b6b60454f739eaa2c77a2db6d2b13b4114dc17"
+    },
+    "vllm_omni/edge/agent/browser_resources.py": {
+      "bytes": 24239,
+      "sha256": "2ed4cbb789411b88138495940a8090040ed858a3b5244eb7efcb8b5841138e80"
+    },
+    "vllm_omni/edge/agent/native_app.py": {
+      "bytes": 33331,
+      "sha256": "b4e7d3fd4b5232a9718e2ac5c0cc69dc45ddcefcaf74150c8700404265ec77c2"
+    },
+    "benchmarks/edge_agent/native_profile.py": {
+      "bytes": 69498,
+      "sha256": "d0c2ce933718daf5d44646784ba055d2575d56c6904112d7951771ca864843e2"
+    },
+    "tests/edge/test_windows_cdp_observed_helper.py": {
+      "bytes": 32535,
+      "sha256": "86cc7a53f11c45ef0f0080d3b0aef0a7fdc78d2f78d9481b950a57908e51c856"
+    }
+  },
+  "runtime_versions": {
+    "pytest": "9.1.1",
+    "pytest-asyncio": "1.4.0",
+    "vllm": "0.29.0+cu134",
+    "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+    "torch": "2.13.0+cu130",
+    "triton": null,
+    "PySide6": "6.11.2",
+    "playwright": "1.63.0",
+    "cryptography": "50.0.1"
+  },
+  "python": {
+    "executable": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe",
+    "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "isolated": true,
+    "no_bytecode": true,
+    "utf8_mode": true,
+    "platform": "win32",
+    "windows_version": [
+      10,
+      0,
+      26200,
+      2,
+      ""
+    ],
+    "pointer_bits": 64
+  },
+  "origin_violations": [],
+  "required_packages_missing": [],
+  "attempted_process_starts": 0,
+  "pytest_warnings": [],
+  "async_execution_warnings": [],
+  "all_selected_without_skips_passed": true,
+  "ruff": "Six integrated files pass; initial test-only E731 corrected from assigned lambda to equivalent annotated function.",
+  "implemented": [
+    "Explicit app-owned exact artifact/path/CDP-type helper capability; absent by default",
+    "Same retained process handle, CPU/optional GPU observations, mandatory current helper retirement",
+    "Cancellation and artifact/identity contradictions latch unknown; failed close stays quarantined",
+    "App and NativeProfileBridge config/factory forwarding, managed read-only tools and admission guards"
+  ],
+  "qualification": {
+    "actual_helper_enabled_browser_run": false,
+    "actual_gpu_queries_in_this_suite": false,
+    "browser_memory_allowance_selected": false,
+    "neural_execution": false,
+    "full_request_performance": false,
+    "default_or_release_qualified": false
+  },
+  "scope_limits": [
+    "Exact two original owner process checks do not prove all descendants/writers closed.",
+    "Selected source before/after hashes do not replace a full fresh source-freeze manifest.",
+    "A process-start guard does not constitute a sandbox against arbitrary direct Win32 DLL calls.",
+    "Blocked process attempts are recorded; intentional caught negative-path attempts may occur.",
+    "Skipped tests remain unverified; zero exit code never grants real-model qualification."
+  ],
+  "next": "Controlled real-browser positive with two fresh generations plus deliberate bound-limit quarantine; exact GPU pool join and measured allowance before current-source neural chain."
+}

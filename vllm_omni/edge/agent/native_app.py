@@ -403,10 +403,12 @@ def _qualifications(config: dict[str, Any], *, config_dir: Path | None = None) -
 
 
 def _browser_companion_from_config(data: dict[str, Any], *, config_dir: Path,
-                                    browser_factory: Callable[..., Any] | None = None) -> Any:
+                                    browser_factory: Callable[..., Any] | None = None,
+                                    browser_registry_factory: Callable[..., Any] | None = None) -> Any:
     declaration = data.get("browser_resource_envelope")
     if declaration is None:
-        if browser_factory is not None:
+        if (browser_factory is not None or browser_registry_factory is not None
+                or data.get("browser_cdp_helper") is not None):
             raise ValueError("a managed browser factory requires an explicit reviewed resource envelope")
         return None
     if (not isinstance(declaration, dict) or set(declaration) != {"path", "sha256"}
@@ -420,12 +422,35 @@ def _browser_companion_from_config(data: dict[str, Any], *, config_dir: Path,
     if not path.is_absolute():
         path = config_dir / path
     envelope = resolve_reviewed_browser_envelope(path, expected_sha256=declaration["sha256"])
-    return WindowsBrowserResourceCompanion(envelope, browser_factory=browser_factory)
+    registry_factory = browser_registry_factory
+    helper_declaration = data.get("browser_cdp_helper")
+    if helper_declaration is not None:
+        if (type(helper_declaration) is not dict or set(helper_declaration) != {"path", "sha256"}
+                or type(helper_declaration["path"]) is not str or not helper_declaration["path"]):
+            raise ValueError("browser_cdp_helper requires only an explicit local path and SHA256")
+        from vllm_omni.edge.windows_cdp_helper import resolve_cdp_observed_helper_capability
+        from vllm_omni.edge.windows_process_memory import WindowsProcessMemoryRegistry
+        helper_path = Path(helper_declaration["path"])
+        if not helper_path.is_absolute():
+            helper_path = config_dir / helper_path
+        capability = resolve_cdp_observed_helper_capability(
+            helper_path, expected_sha256=helper_declaration["sha256"])
+        def registry_factory(generation: str) -> Any:
+            # Explicit app configuration alone supplies this capability. An
+            # optional GPU observer factory must accept it, not drop it.
+            factory = WindowsProcessMemoryRegistry if browser_registry_factory is None else browser_registry_factory
+            return factory(generation, cdp_helper_capability=capability)
+    return WindowsBrowserResourceCompanion(envelope, browser_factory=browser_factory,
+        **({"registry_factory": registry_factory} if registry_factory is not None else {}))
 
 
-def build_controller(config_path: str | Path, *,
-                     tool_boundary_factory: Callable[..., Any] | None = None,
-                     browser_factory: Callable[..., Any] | None = None) -> tuple[AgentController, dict[str, Any]]:
+def build_controller(
+    config_path: str | Path,
+    *,
+    tool_boundary_factory: Callable[..., Any] | None = None,
+    browser_factory: Callable[..., Any] | None = None,
+    browser_registry_factory: Callable[..., Any] | None = None,
+) -> tuple[AgentController, dict[str, Any]]:
     if sys.platform != "win32":
         raise RuntimeError("this application requires native Windows Python")
     data = json.loads(Path(config_path).read_text(encoding="utf-8"))
@@ -433,6 +458,7 @@ def build_controller(config_path: str | Path, *,
     # The companion constructor is cold and chooses no allowance itself.
     companion = _browser_companion_from_config(
         data, config_dir=Path(config_path).resolve().parent, browser_factory=browser_factory,
+        browser_registry_factory=browser_registry_factory,
     )
     hardware = _hardware_snapshot()
     routes: list[Route] = []

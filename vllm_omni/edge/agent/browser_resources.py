@@ -323,6 +323,7 @@ class WindowsBrowserResourceCompanion:
         failure: BaseException | None = None
         browser_receipt: Mapping[str, Any] | None = None
         registry_receipt: Mapping[str, Any] | None = None
+        dependency_scope: dict[str, Any] = {}
         try:
             if browser is not None:
                 try:
@@ -370,6 +371,33 @@ class WindowsBrowserResourceCompanion:
                     and bound.get("all_descendants_retired") is False
                     and children.get("all_descendants_retired") is False)
                 scope = "joined_browser_owner_worker_and_exact_retained_handle_bound_set_only"
+                bound_coverage = bound.get("coverage", {}) if isinstance(bound, Mapping) else {}
+                child_coverage = children.get("coverage", {}) if isinstance(children, Mapping) else {}
+                bound_coverage = bound_coverage if isinstance(bound_coverage, Mapping) else {}
+                child_coverage = child_coverage if isinstance(child_coverage, Mapping) else {}
+                helper = child_coverage.get("observed_cdp_helper_capability")
+                bound_helper = bound_coverage.get("observed_cdp_helper_capability")
+                if helper is not None or bound_helper is not None:
+                    count = child_coverage.get("observed_cdp_helper_binding_count")
+                    dependency_verified = (isinstance(helper, Mapping) and helper == bound_helper
+                        and _sha256(helper.get("capability_sha256"))
+                        and helper.get("ancestry_verified") is False
+                        and helper.get("exclusive_ownership_verified") is False
+                        and helper.get("termination_authority") is False
+                        and helper.get("retirement_required") is True
+                        and type(count) is int and 0 <= count <= 1
+                        and count == bound_coverage.get("observed_cdp_helper_binding_count"))
+                    verified = verified and dependency_verified
+                    # Legacy engine flag below describes the owned worker,
+                    # spawn and browser root. Observed helper dependencies
+                    # have no exclusive ownership or termination authority.
+                    dependency_scope = {
+                        "required_ownership_verified_scope": "owned_browser_worker_spawn_and_root_identity_only",
+                        "required_observed_dependency_policy_verified": verified is True,
+                        "observed_dependency_ownership_verified": False,
+                        "observed_dependency_capability": deepcopy(helper),
+                        "observed_dependency_binding_count": count,
+                    }
             with self._lock:
                 self._close_verified = verified is True
                 self._quarantined = not self._close_verified
@@ -383,6 +411,7 @@ class WindowsBrowserResourceCompanion:
                     "registry_close_receipt": deepcopy(registry_receipt),
                     "factory_failed": factory_failed,
                     "failure": (type(failure).__name__ + ": " + str(failure) if failure else None),
+                    **dependency_scope,
                 }
                 self._last_close_evidence = deepcopy(self._release_evidence)
         finally:

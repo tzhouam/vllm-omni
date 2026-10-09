@@ -20,6 +20,8 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
+from vllm_omni.edge.windows_cdp_helper import CdpObservedHelperCapability
+
 PROCESS_MEMORY_SCHEMA = "omni-windows-bound-process-memory-v1"
 _QUERY_RIGHTS = 0x0400 | 0x0010 | 0x00100000  # query information, VM read, synchronize
 _EDGE_TYPES = {"browser": "edge_browser", "renderer": "edge_renderer", "GPU": "edge_gpu",
@@ -253,6 +255,7 @@ class _Binding:
     last_seen_monotonic_ns: int
     worker_generation: str | None = None
     cdp_process_type: str | None = None
+    helper_capability_sha256: str | None = None
     last_sample: dict[str, Any] = field(default_factory=dict)
     sampled_working_set_max: int | None = None
     sampled_private_commit_max: int | None = None
@@ -271,7 +274,8 @@ class WindowsProcessMemoryRegistry:
 
     def __init__(self, cohort_generation: str, *, transport: Any = None,
                  max_bindings: int = 128, max_unknown_details: int = 32,
-                 gpu_provider: Any = None) -> None:
+                 gpu_provider: Any = None,
+                 cdp_helper_capability: CdpObservedHelperCapability | None = None) -> None:
         if not isinstance(cohort_generation, str) or not 1 <= len(cohort_generation) <= 256:
             raise ValueError("cohort generation is required and bounded")
         if type(max_bindings) is not int or not 1 <= max_bindings <= 128:
@@ -281,6 +285,11 @@ class WindowsProcessMemoryRegistry:
         if gpu_provider is not None and any(not callable(getattr(gpu_provider, name, None))
                 for name in ("sample_process", "unavailable", "capabilities", "close")):
             raise ValueError("optional GPU provider contract is incomplete")
+        if cdp_helper_capability is not None:
+            if type(cdp_helper_capability) is not CdpObservedHelperCapability:
+                raise ValueError("an explicit app-owned CDP helper capability is required")
+            cdp_helper_capability.verify_named_artifacts()
+        self._cdp_helper_capability = cdp_helper_capability
         self._gpu_provider = gpu_provider
         self._gpu_close_receipt: dict[str, Any] | None = None
         self.generation = cohort_generation
@@ -333,8 +342,35 @@ class WindowsProcessMemoryRegistry:
                 "worker_generation": binding.worker_generation,
                 "first_seen_monotonic_ns": binding.first_seen_monotonic_ns,
                 "last_seen_monotonic_ns": binding.last_seen_monotonic_ns,
+                **({"observed_cdp_helper": self._cdp_helper_capability.metadata()}
+                   if binding.helper_capability_sha256 is not None else {}),
                 **(_cdp_type_metadata(binding.cdp_process_type)
                    if binding.cdp_process_type is not None else {})}
+
+    def _verify_observed_helper(self, *, pid: int, image: str, label: str | None) -> str:
+        """Only the exact app declaration broadens the image check.
+
+        No CDP label, basename, historical receipt or Job absence supplies
+        authority. The existing original handle is retained by _adopt; this
+        method never opens a PID or grants ancestry/termination rights.
+        """
+        capability = self._cdp_helper_capability
+        roots = [row for row in self._bindings.values()
+                 if row.role == "edge_browser" and row.source == "owned_browser_cdp"
+                 and row.cdp_process_type == "browser" and not row.close_attempted]
+        helpers = [row for row in self._bindings.values() if row.helper_capability_sha256 is not None]
+        if (capability is None or len(roots) != 1 or any(row.pid != pid for row in helpers)
+                or not capability.matches(browser_image_path=roots[0].image_path,
+                                          helper_image_path=image, cdp_process_type=label)):
+            raise ValueError("CDP helper does not match its exact declared browser installation and type")
+        root = roots[0]
+        identity = self._transport.identity(root.handle)
+        if (identity["pid"] != root.pid or identity["creation_filetime_100ns"] != root.creation
+                or ntpath.normcase(identity["image_path"]) != ntpath.normcase(root.image_path)
+                or self._transport.wait(root.handle, 0)["signaled"]):
+            raise ValueError("declared helper browser root is no longer a verified live retained object")
+        capability.verify_named_artifacts()
+        return capability.capability_sha256
 
     def _adopt(self, *, pid: Any, role: str, source: str, expected_creation: Any = None,
                cutoff: Any = None, spawn_handle: Any = None, expected_image: str | None = None,
@@ -365,6 +401,10 @@ class WindowsProcessMemoryRegistry:
                         or (expected_image is not None and
                             ntpath.normcase(previous.image_path) != ntpath.normcase(expected_image))):
                     raise ValueError("PID reuse or contradictory source identity is refused")
+                if previous.helper_capability_sha256 is not None:
+                    if previous.helper_capability_sha256 != self._verify_observed_helper(
+                            pid=pid, image=previous.image_path, label=cdp_process_type):
+                        raise ValueError("retained helper capability identity changed")
                 if spawn_handle is not None:
                     duplicate = self._transport.duplicate_spawn_handle(spawn_handle)
                     observed = self._transport.identity(duplicate)
@@ -377,6 +417,10 @@ class WindowsProcessMemoryRegistry:
             except Exception as exc:
                 unknown("existing_identity_unavailable:" + type(exc).__name__, pid=pid)
                 return False
+            except BaseException as exc:
+                if self._cdp_helper_capability is not None and source == "owned_browser_cdp":
+                    unknown("declared_cdp_validation_interrupted:" + type(exc).__name__, pid=pid)
+                raise
             finally:
                 if duplicate is not None:
                     try:
@@ -394,6 +438,7 @@ class WindowsProcessMemoryRegistry:
         liveness_attempted = False
         failed_check = "open_process_handle"
         rejected_detail = None
+        helper_capability_sha256 = None
         try:
             handle = (self._transport.duplicate_spawn_handle(spawn_handle)
                       if spawn_handle is not None else self._transport.open(pid))
@@ -414,8 +459,17 @@ class WindowsProcessMemoryRegistry:
             if expected_image is not None and ntpath.normcase(image) != ntpath.normcase(expected_image):
                 raise ValueError("process image differs from its owned spawn source")
             failed_check = "edge_runtime_image"
-            if role.startswith("edge_") and ntpath.basename(image).casefold() != "msedge.exe":
-                raise ValueError("CDP process image is not the owned Edge runtime")
+            declared_helper_label = (self._cdp_helper_capability is not None
+                                     and cdp_process_type == self._cdp_helper_capability.cdp_process_type)
+            if role.startswith("edge_") and (ntpath.basename(image).casefold() != "msedge.exe"
+                                            or declared_helper_label):
+                if self._cdp_helper_capability is None:
+                    raise ValueError("CDP process image is not the owned Edge runtime")
+                failed_check = "declared_cdp_helper_capability"
+                if source != "owned_browser_cdp" or role != "edge_other":
+                    raise ValueError("declared helper requires its exact observed CDP membership")
+                helper_capability_sha256 = self._verify_observed_helper(
+                    pid=pid, image=image, label=cdp_process_type)
             failed_check = "existing_pre_adoption_liveness"
             liveness_attempted = True
             liveness = self._transport.wait(handle, 0)
@@ -425,7 +479,8 @@ class WindowsProcessMemoryRegistry:
             now = time.monotonic_ns()
             self._bindings[pid] = _Binding(role, pid, birth, image, source, handle, now, now,
                                           worker_generation=worker_generation,
-                                          cdp_process_type=cdp_process_type)
+                                          cdp_process_type=cdp_process_type,
+                                          helper_capability_sha256=helper_capability_sha256)
             adopted = True
             return True
         except Exception as exc:
@@ -450,6 +505,10 @@ class WindowsProcessMemoryRegistry:
             rejected_detail = unknown("binding_failed:" + type(exc).__name__ + ":" + str(exc)[:128],
                                       pid=pid, diagnostic=diagnostic)
             return False
+        except BaseException as exc:
+            if self._cdp_helper_capability is not None and source == "owned_browser_cdp":
+                unknown("declared_cdp_validation_interrupted:" + type(exc).__name__, pid=pid)
+            raise
         finally:
             if handle is not None and not adopted:
                 diagnostic = (rejected_detail.get("rejected_cdp_candidate")
@@ -646,7 +705,11 @@ class WindowsProcessMemoryRegistry:
                 "browser_root_identity_verified": self._browser_root_verified,
                 "agent_identity_verified": any(row.role == "agent" for row in self._bindings.values()),
                 "model_identity_verified": any(row.role == "model" for row in self._bindings.values()),
-                "unadopted_handle_close_failures": self._unadopted_handle_close_failures}
+                "unadopted_handle_close_failures": self._unadopted_handle_close_failures,
+                **({"observed_cdp_helper_capability": self._cdp_helper_capability.metadata(),
+                    "observed_cdp_helper_binding_count": sum(
+                        row.helper_capability_sha256 is not None for row in self._bindings.values())}
+                   if self._cdp_helper_capability is not None else {})}
 
     def _gpu_capabilities(self) -> dict[str, Any]:
         try:
