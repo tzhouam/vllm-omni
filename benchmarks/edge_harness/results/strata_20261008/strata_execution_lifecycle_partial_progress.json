@@ -1,0 +1,422 @@
+{
+  "schema": "omni-public-strata-combined-lifecycle-partial-progress-v1",
+  "status": "initial_three_cases_and_cancellation_partial_review_accepted_recovery_pending",
+  "scope": "Completed initial text smoke and cancellation records only; recovery and final lifecycle/source/owner closure not reviewed.",
+  "partial_review_sha256": "1586d5a2df126205c454f37ac7b68f90f38758951cffce3ad85722b33be7638e",
+  "partial_reviewer_source_sha256": "c4c5b84b0620d17610357757d12a99b644e606c91bc47bc542efeac32caf49af",
+  "producer_source_sha256": "2b317236675ce8d6bc84bcc72bd4326d825bfe88f5456a90f5f32c5d206806f8",
+  "producer_source_pin_origin": "Parent-retained frozen producer identity; not independently rehashed during this bounded partial review.",
+  "lifecycle_terminal": false,
+  "recovery_pending": true,
+  "fresh_generation_recovery_verified": false,
+  "Agent_rerun_performed": false,
+  "completed_requests": 3,
+  "independent_reference_passed_requests": 3,
+  "batch_size": 1,
+  "concurrency": 1,
+  "initial_integrity_and_startup_s": 2466.1888096,
+  "initial_startup_timing_scope": "Integrity verification plus stage startup, not pure model-load time. Parent-supplied scalar from the still-live producer receipt; no volatile receipt published or accepted as final.",
+  "request_timing_scope": "API request-to-complete-response smoke wall time; first text chunk separately recorded; no percentiles or performance qualification.",
+  "model": {
+    "alias": "qwen3.8-flash-next",
+    "artifact_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+    "prepared_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900",
+    "checkpoint_revision_or_precision_rederived_from_this_plan": false
+  },
+  "runtime": {
+    "revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "outer_artifact_manifest_sha256": "6f37d6b73f6a5fba28a6be6b50938b69e3f814e0c1fbfb534368992ae6ab5fa2",
+    "raw_member_manifest_sha256": "f82fdd3e1e635d2c3eeff29510583d28272ef590ed5d693c0192e8dab95b217b",
+    "static_identity_sha256": "46bec9f5e6ec0cce68d0fa5fce671bad317e4deb7e6215aba1617f2d72f7e336",
+    "native_executable_sha256": "39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177",
+    "combined_patch_manifest_sha256": "b6a0546fc281491fb6171c5e201c46dad714bf7183f3b0ccbd96b872968ee98f",
+    "route_controls_sha256": "e7901eee25a22252a52059ce734ad8be2ed7d319b49cd38735051e3592219692",
+    "python_environment": {
+      "sys_version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "dependencies": {
+        "numpy": "2.3.5",
+        "jinja2": "3.1.6",
+        "regex": "2026.9.10",
+        "PyYAML": "6.0.3",
+        "psutil": "7.2.2",
+        "Pillow": "12.3.0",
+        "gguf": "0.19.0"
+      },
+      "executable_sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+    }
+  },
+  "admission_snapshot": {
+    "host_ram_available_bytes": 21366046720,
+    "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+    "gpu_total_bytes": 25651314688,
+    "gpu_free_bytes": 21075529728,
+    "gpu_source": "NVML exact bytes",
+    "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+    "windows_commit_available_bytes": 68918571008,
+    "windows_host_available_bytes": 21366046720,
+    "wsl_ram_available_bytes": null,
+    "is_wsl": false,
+    "windows_host_verification": "measured",
+    "captured_unix_s": 1791514927.0229695
+  },
+  "hardware_identity_scope": "Only the native Windows admission snapshot and GPU-name hash captured in the inspected loaded plan; no marketing CPU/GPU name or driver/OS version inferred.",
+  "controls": {
+    "verified_execution_configuration": "cpu+cuda:0",
+    "expert_ram_budget_bytes": 8589934592,
+    "gpu_budget_bytes": 17179869184,
+    "context_tokens": 4096,
+    "kv_type": "fp16",
+    "max_new_tokens": 512,
+    "mtp_enabled": false,
+    "spec_tokens": 0,
+    "native_verify_window": 2,
+    "ple_prefetch_requested": false,
+    "routing_prefetch_requested": false,
+    "io_prefetch_requested": false
+  },
+  "reserved_bytes": {
+    "host_ram": 17180917760,
+    "vram:0": 17179869184,
+    "windows_commit": 45097156608,
+    "ssd": 74463084142
+  },
+  "requests": [
+    {
+      "case_id": "english_ready",
+      "request_id": "strata-30ee2f9e63f44e13a98b3ae0bc386865",
+      "epoch": 1,
+      "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+      "reference_pass": true,
+      "full_response_s": 2.111096999840811,
+      "first_output_s": 1.9592593999113888,
+      "input_tokens": 20,
+      "output_tokens": 2,
+      "native_request_seq": 1,
+      "quality_scope": "Independent fixed reference check; no prompt/answer/reference preimage published.",
+      "execution": {
+        "runtime_binding_sha256": "91a91ff7e3649bb6330f9cf1ff3ee32526253d3498120ee04d979f6c1f2a3a36",
+        "owner_binding_sha256": "92f7fad1e7a8a4cb1670dd991382c00e6d87262a90377510346c8460f34474d8",
+        "snapshot_sha256": [
+          "45629982f90d336249c4ee6586648983916c7a56f13c349b2a6860bf0b1ec39a",
+          "98fc29f40f5a65ae9f6b9682b9934460723ed6f62c3bf22541918d6c8af91749",
+          "51e23545bbc8e6bffc2e3ef0a0df64dbdbdfe7a238b477e9f27188fa5d1803cf"
+        ],
+        "counter_deltas_recomputed": true,
+        "named_positive_cpu_cuda_deltas": [
+          {
+            "cpu:prefill:split_multi_native:submitted": 480,
+            "cpu:prefill:split_multi_native:completed": 480,
+            "cpu:prefill:split_multi_native:unique_jobs_submitted": 3402,
+            "cpu:prefill:split_multi_native:unique_jobs_completed": 3402,
+            "cpu:prefill:split_multi_native:token_expert_entries_submitted": 4267,
+            "cpu:prefill:split_multi_native:token_expert_entries_completed": 4267,
+            "cuda:prefill:Verifier_run:launch_attempts": 10,
+            "cuda:prefill:Verifier_run:submitted": 10,
+            "cuda:prefill:Verifier_run:completed_after_successful_existing_stream_fence": 10
+          },
+          {
+            "cpu:decode:split_multi_native:submitted": 96,
+            "cpu:decode:split_multi_native:completed": 96,
+            "cpu:decode:split_multi_native:unique_jobs_submitted": 433,
+            "cpu:decode:split_multi_native:unique_jobs_completed": 433,
+            "cpu:decode:split_multi_native:token_expert_entries_submitted": 433,
+            "cpu:decode:split_multi_native:token_expert_entries_completed": 433,
+            "cuda:decode:Verifier_run:launch_attempts": 2,
+            "cuda:decode:Verifier_run:submitted": 2,
+            "cuda:decode:Verifier_run:completed_after_successful_existing_stream_fence": 2
+          }
+        ],
+        "ordinary_owned_cudaMalloc_requested_bytes": 8052480000
+      },
+      "io": {
+        "native_fileexpert_logical_file_bytes": 1942272000,
+        "OS_completed_aligned_expert_bytes": 2012913664,
+        "OS_completed_aligned_PLE_bytes": 1466368,
+        "intervals_recomputed": true,
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+        "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+        "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+        "io_modes": {
+          "expert": "windows_unbuffered_completions_observed",
+          "ple": "direct_completions_observed",
+          "strict_direct_path_verified": false,
+          "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+        }
+      }
+    },
+    {
+      "case_id": "chinese_arithmetic",
+      "request_id": "strata-be82214a97724da380b4e76569e65da5",
+      "epoch": 2,
+      "input_sha256": "c39a4420f1236500989d1a6bf890854cb1cc4ff83ffcde690a3b2e6f3b9cc5ea",
+      "output_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+      "reference_pass": true,
+      "full_response_s": 4.385227000107989,
+      "first_output_s": 4.003038899973035,
+      "input_tokens": 30,
+      "output_tokens": 3,
+      "native_request_seq": 2,
+      "quality_scope": "Independent fixed reference check; no prompt/answer/reference preimage published.",
+      "execution": {
+        "runtime_binding_sha256": "91a91ff7e3649bb6330f9cf1ff3ee32526253d3498120ee04d979f6c1f2a3a36",
+        "owner_binding_sha256": "92f7fad1e7a8a4cb1670dd991382c00e6d87262a90377510346c8460f34474d8",
+        "snapshot_sha256": [
+          "fa9dac4bd66894ec077332403171d3875395168ff1272e1f95f06c9898050b45",
+          "7b0eff0af01391b4da027b377b645e77ae823b1cb85c501ef4d1d18c066ffbbf",
+          "36bc1b4fd75f299b9f3031b66ba8bc40d7e55700bb2c7d0ddb08c1a0219f8b9f"
+        ],
+        "counter_deltas_recomputed": true,
+        "named_positive_cpu_cuda_deltas": [
+          {
+            "cpu:prefill:split_multi_native:submitted": 720,
+            "cpu:prefill:split_multi_native:completed": 720,
+            "cpu:prefill:split_multi_native:unique_jobs_submitted": 6452,
+            "cpu:prefill:split_multi_native:unique_jobs_completed": 6452,
+            "cpu:prefill:split_multi_native:token_expert_entries_submitted": 8003,
+            "cpu:prefill:split_multi_native:token_expert_entries_completed": 8003,
+            "cuda:prefill:Verifier_run:launch_attempts": 15,
+            "cuda:prefill:Verifier_run:submitted": 15,
+            "cuda:prefill:Verifier_run:completed_after_successful_existing_stream_fence": 15
+          },
+          {
+            "cpu:decode:split_multi_native:submitted": 143,
+            "cpu:decode:split_multi_native:completed": 143,
+            "cpu:decode:split_multi_native:unique_jobs_submitted": 809,
+            "cpu:decode:split_multi_native:unique_jobs_completed": 809,
+            "cpu:decode:split_multi_native:token_expert_entries_submitted": 809,
+            "cpu:decode:split_multi_native:token_expert_entries_completed": 809,
+            "cuda:decode:Verifier_run:launch_attempts": 3,
+            "cuda:decode:Verifier_run:submitted": 3,
+            "cuda:decode:Verifier_run:completed_after_successful_existing_stream_fence": 3
+          }
+        ],
+        "ordinary_owned_cudaMalloc_requested_bytes": 8052480000
+      },
+      "io": {
+        "native_fileexpert_logical_file_bytes": 5308416000,
+        "OS_completed_aligned_expert_bytes": 5543567360,
+        "OS_completed_aligned_PLE_bytes": 1552384,
+        "intervals_recomputed": true,
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+        "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+        "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+        "io_modes": {
+          "expert": "windows_unbuffered_completions_observed",
+          "ple": "direct_completions_observed",
+          "strict_direct_path_verified": false,
+          "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+        }
+      }
+    },
+    {
+      "case_id": "json_tool_format",
+      "request_id": "strata-9946d5d0c58b468185609e06e9f601f0",
+      "epoch": 3,
+      "input_sha256": "48c39e3aeab00b081c0e550c8e65121f8f696ec8f2add4ad31521b70f73cf288",
+      "output_sha256": "22cdd6496b02d06a4cd71fa0b3e85fbda10206b7b268ded96746e6b7a10cfbe4",
+      "reference_pass": true,
+      "full_response_s": 2.8630775997880846,
+      "first_output_s": 1.8788627998437732,
+      "input_tokens": 27,
+      "output_tokens": 7,
+      "native_request_seq": 3,
+      "quality_scope": "Independent fixed reference check; no prompt/answer/reference preimage published.",
+      "execution": {
+        "runtime_binding_sha256": "91a91ff7e3649bb6330f9cf1ff3ee32526253d3498120ee04d979f6c1f2a3a36",
+        "owner_binding_sha256": "92f7fad1e7a8a4cb1670dd991382c00e6d87262a90377510346c8460f34474d8",
+        "snapshot_sha256": [
+          "2e01b9e800a41ac1787b2bf1c32844e0b88514f86353f8cd215ef31c19f487f6",
+          "756ef8029df3cae1455913fa731774a81d742a6eef1d0618a69875f1ba7d1809",
+          "7c22a00db9ee0bcd92d0e1dddfe2ec11d18edcd06434b4dcfb578ddca303edbb"
+        ],
+        "counter_deltas_recomputed": true,
+        "named_positive_cpu_cuda_deltas": [
+          {
+            "cpu:prefill:split_multi_native:submitted": 623,
+            "cpu:prefill:split_multi_native:completed": 623,
+            "cpu:prefill:split_multi_native:unique_jobs_submitted": 4295,
+            "cpu:prefill:split_multi_native:unique_jobs_completed": 4295,
+            "cpu:prefill:split_multi_native:token_expert_entries_submitted": 5086,
+            "cpu:prefill:split_multi_native:token_expert_entries_completed": 5086,
+            "cuda:prefill:Verifier_run:launch_attempts": 13,
+            "cuda:prefill:Verifier_run:submitted": 13,
+            "cuda:prefill:Verifier_run:completed_after_successful_existing_stream_fence": 13
+          },
+          {
+            "cpu:decode:split_multi_native:submitted": 335,
+            "cpu:decode:split_multi_native:completed": 335,
+            "cpu:decode:split_multi_native:unique_jobs_submitted": 1733,
+            "cpu:decode:split_multi_native:unique_jobs_completed": 1733,
+            "cpu:decode:split_multi_native:token_expert_entries_submitted": 1733,
+            "cpu:decode:split_multi_native:token_expert_entries_completed": 1733,
+            "cuda:decode:Verifier_run:launch_attempts": 7,
+            "cuda:decode:Verifier_run:submitted": 7,
+            "cuda:decode:Verifier_run:completed_after_successful_existing_stream_fence": 7
+          }
+        ],
+        "ordinary_owned_cudaMalloc_requested_bytes": 8052480000
+      },
+      "io": {
+        "native_fileexpert_logical_file_bytes": 3314995200,
+        "OS_completed_aligned_expert_bytes": 3405766656,
+        "OS_completed_aligned_PLE_bytes": 1327104,
+        "intervals_recomputed": true,
+        "scope": "native_FileExpertSource_and_PLE_counters_excludes_loading",
+        "attribution": "counter_differences_during_owned_boundary_intervals_may_include_background_work",
+        "snapshot_consistency": "independent_atomic_counters_not_global_transaction",
+        "io_modes": {
+          "expert": "windows_unbuffered_completions_observed",
+          "ple": "direct_completions_observed",
+          "strict_direct_path_verified": false,
+          "note": "OS transfer observations do not prove model-attributed physical SSD I/O or aggregate cache bounds"
+        }
+      }
+    }
+  ],
+  "execution_scope": {
+    "saved_actual_engine_ABI_binding_established": true,
+    "observer_layout": {
+      "concurrent_ticket_count_verified": false,
+      "frame_buffer_bytes": 32768,
+      "frame_state_bytes": 32784,
+      "overhead_scope": "fixed_Cpp_state_and_one_owner_frame_plus_per_call_stack_ticket_excludes_CRT_stdio",
+      "root_registry_capacity": 16,
+      "state_bytes": 2064,
+      "ticket_bytes": 32
+    },
+    "saved_same_owner_and_generation_crosschecked": true,
+    "separate_owner_module_verification_receipt_preimages_reaudited": false,
+    "fresh_OS_probe_by_partial_reviewer": false,
+    "counter_scope": "Independently recomputed per-named cumulative differences at native boundaries; phase-at-submission, non-atomic across counters.",
+    "coverage": {
+      "instrumented": [
+        "CPU_pool_methods_and_row_phase_barriers",
+        "session_run_token_stream_fence",
+        "Verifier_run_stream_fence",
+        "ordinary_ExpertCache_cudaMalloc_cudaFree"
+      ],
+      "excluded": [
+        "VMM_segmented_cache_and_KV_handle_transfers",
+        "prefill_direct_CUDA_cuBLAS",
+        "other_session_graphs",
+        "Verifier_commit_slots_pipeline_graphs",
+        "embedding_head_PLE_direct_kernels",
+        "graph_node_inventory",
+        "CPU_activation_quantization_separate_accounting",
+        "all_other_allocators_aliases_library_driver"
+      ],
+      "entire_model_covered": false
+    },
+    "memory_scope": "8052480000 ordinary ExpertCache successful-owned cudaMalloc requested bytes only; not physical residency, all allocators, whole GPU usage or total RAM."
+  },
+  "cancellation": {
+    "recorded_actual_deltas_before_cancel": 2,
+    "cancel_to_drain_s_from_record": 1.0057055000215769,
+    "requires_fresh_route_reload": true,
+    "ledger_all_claims_empty": true,
+    "execution_status": "partial",
+    "execution_complete": false,
+    "native_request_seq": 4,
+    "epoch": 4,
+    "native_done_missing": true,
+    "execution_counter_deltas_recomputed": true,
+    "io": {
+      "status": "incomplete",
+      "reasons": [
+        "request_cancelled",
+        "omni_request_not_completed",
+        "missing_complete_native_phase_set_or_terminal"
+      ],
+      "intervals_not_fabricated": true
+    },
+    "cancellation_memory_observation": {
+      "status": "unknown",
+      "reason_code": "owner_unavailable_after_retirement_AttributeError",
+      "actual_memory_observed": false
+    }
+  },
+  "raw_completed_input_inventory": [
+    {
+      "name": "initial-loaded-plan.json",
+      "size_bytes": 74992,
+      "sha256": "90e16428c991df6f5e4a141897896c49f3321afb711b27a3f0bdca3a671a218d"
+    },
+    {
+      "name": "english_ready.json",
+      "size_bytes": 203645,
+      "sha256": "594bdce96239120695ac8e2a453d808eebcc46ca5868d7862ed62537d71190a1"
+    },
+    {
+      "name": "english_ready-io.json",
+      "size_bytes": 10127,
+      "sha256": "86afbc6487528d37fe9a36bd690347db24ac44bb67fc0c7ad9bcb1919effe27c"
+    },
+    {
+      "name": "english_ready-execution.json",
+      "size_bytes": 75945,
+      "sha256": "cfdfb008529a0b4038b78b631e66f99e1dd5d8a3d600bab5733fd3aa2f699dd8"
+    },
+    {
+      "name": "chinese_arithmetic.json",
+      "size_bytes": 205533,
+      "sha256": "7e0d7308fdc34570d140931a9722ad791cbafbbbc24b7e09796e96b9c7ead36f"
+    },
+    {
+      "name": "chinese_arithmetic-io.json",
+      "size_bytes": 10216,
+      "sha256": "24a4a3467df14d5feaac30d1a25709b442e1b9ca8745bbd9af2d4007edb496aa"
+    },
+    {
+      "name": "chinese_arithmetic-execution.json",
+      "size_bytes": 76055,
+      "sha256": "ec80b0c63fa80f1a4b5906136492bda158fb5de54e5b15bbd88982a6800aff31"
+    },
+    {
+      "name": "json_tool_format.json",
+      "size_bytes": 211616,
+      "sha256": "3d2e1f76ae4786533bf79ed28be9a0645d22df943271e2351522846b7ea9826b"
+    },
+    {
+      "name": "json_tool_format-io.json",
+      "size_bytes": 10242,
+      "sha256": "4ab1d809a2db3591e123dcfd6fdc69f380dead1cff0b0c825573ee8e61abb596"
+    },
+    {
+      "name": "json_tool_format-execution.json",
+      "size_bytes": 76098,
+      "sha256": "6a99756bf29e5280e516cc3cab2bcd791e4ec4f9adde4932a06c9e0964ccf2dd"
+    },
+    {
+      "name": "cancellation.json",
+      "size_bytes": 6662,
+      "sha256": "01bb284fb6fa78c1dc48ef593a6f91dcdcd6acd6e05cd583c601a2dafc9f7cbf"
+    },
+    {
+      "name": "cancelled-io.json",
+      "size_bytes": 5297,
+      "sha256": "2356fc326133e31683c8cc9c1499a261b9962bd1f3b58214ae5f0e87857104f0"
+    },
+    {
+      "name": "cancelled-execution.json",
+      "size_bytes": 49210,
+      "sha256": "0c7c4612c0fba68e5eeb4eb01406b9e87bfb835cd02f4b5b53d97062b09249a1"
+    },
+    {
+      "name": "after-cancel-ledger.json",
+      "size_bytes": 289,
+      "sha256": "8d7b606d3e78c318e869083b5c24b10d02913f40817a214aa1952d8d6589425b"
+    }
+  ],
+  "raw_named_input_count": 14,
+  "named_inputs_unchanged_before_after_review": true,
+  "physical_ssd_read_bytes": null,
+  "actual_whole_model_placement": null,
+  "aggregate_RAM_hard_cap_verified": false,
+  "aggregate_GPU_hard_cap_verified": false,
+  "default_route_qualified": false,
+  "release_qualified": false,
+  "performance_qualified": false,
+  "whole_lifecycle_accepted": false,
+  "private_preimages_published": false
+}

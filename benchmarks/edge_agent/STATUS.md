@@ -1,8 +1,11 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
-2026-10-09 latest: the current-source matching runtime passed [complete static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json).
-[Runtime registration](../edge_harness/results/strata_20261008/strata_execution_registration_v2_raw.json) completed (`registered_not_executed`); independent lifecycle validation is in progress, with no confirmed new native model output yet.
-Model parity, cancellation/recovery and Agent rerun remain pending. Static/registration success grants no live/default eligibility.
+2026-10-09 latest: the new Strata Q2 whole-model backend completed [three actual text references and a bounded cancellation review](../edge_harness/results/strata_20261008/strata_execution_lifecycle_partial_progress.json).
+English, Chinese arithmetic and whole-JSON references independently passed in **2.111 / 4.385 / 2.863 s** per complete API request. These three smoke samples grant no percentile or performance qualification.
+Initial integrity verification plus startup took **2,466.189 s**, not pure model loading. The initial worker records positive scoped CPU-expert/CUDA execution and logical-file/OS-completion counters; these do not establish whole-model placement or physical SSD bytes.
+Cancellation after two real deltas drained in **1.006 s** with all four reservations zero and no owners/quarantine. Cancellation-time memory observation remains unknown.
+**Fresh-worker recovery is still running; final lifecycle/source/independent owner closure and the new Agent rerun remain unaccepted.** The partial review covers only 14 completed initial/cancel files, with no default/release, physical SSD or aggregate memory-cap qualification.
+The matching runtime previously passed [complete static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json) and [registration](../edge_harness/results/strata_20261008/strata_execution_registration_v2_raw.json). Registration itself remains `registered_not_executed`; the new separate neural record above establishes actual execution.
 
 2026-10-09 integration regression: combined I/O/execution observation is integrated into the Stage,
 runtime registrar, Agent route translation and result binding. Observer RAM, Windows commit
@@ -26,9 +29,9 @@ skip full Bundle/Git/source prerequisites and authorize no registration or neura
 The fresh matching runtime assembled successfully: 42,649 files, 2,231,664,083 bytes,
 maximum Windows path length 218. [Matching full static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json)
 completed with **EXIT 0 in 668.004 s**, covering archived members/source/build/target closure/PE and standalone fixture ABI records.
-This is static-check wall time, not model loading or inference. Actual owned engine ABI/native module eligibility is still unverified and `runtime_binding` is null.
+This is static-check wall time, not model loading or inference. This static receipt verifies no owned engine ABI/native module eligibility and retains `runtime_binding: null`; the initial native records reviewed above carry separate scoped bindings.
 Runtime registration subsequently completed. The raw member manifest and outer ArtifactManifest retain distinct hash domains.
-Independent lifecycle validation is in progress; actual model parity, cancellation/recovery and Agent rerun remain pending.
+The initial three reference requests and cancellation have the partial review above; fresh-worker recovery, final lifecycle closure and the new Agent rerun remain pending.
 Old bundles/failures are retained. No default, memory-cap or physical SSD qualification is granted; historical 442-task results retain their sources.
 
 2026-10-09 **CURRENT-CAPACITY**: the [Q4 capacity projection](../edge_harness/results/strata_20261008/strata_q4_current_capacity_preflight.json) records UTC 02:26:45 availability of **20.16 GiB RAM / 68.16 GiB commit / 19.81 GiB GPU**.

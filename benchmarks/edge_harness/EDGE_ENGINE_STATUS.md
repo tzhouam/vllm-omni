@@ -1,8 +1,11 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
-2026-10-09 最新：与当前源码匹配的完整运行包已通过[完整静态校验](results/strata_20261008/strata_execution_static_verification_v2_raw.json)。
-[运行时登记](results/strata_20261008/strata_execution_registration_v2_raw.json)已正常完成（`registered_not_executed`）；独立生命周期验证正在进行，尚无确认的新版原生模型输出。
-模型参考比较、取消恢复与 Agent 复测尚未完成；静态／登记成功不授予实时执行或默认资格。
+2026-10-09 最新：新版 Strata Q2 完整模型后端已实际完成[三条文本参考请求与取消的部分复核](results/strata_20261008/strata_execution_lifecycle_partial_progress.json)。
+英文短答、中文计算和完整 JSON 回答均通过独立参考检查，完整请求分别为 **2.111 / 4.385 / 2.863 秒**；这是三条功能 smoke，不能生成 p50/p95 或完整性能资格。
+初始完整性校验与启动共 **2,466.189 秒**，不是纯模型加载时间。初始 worker 的有界原生记录包含实际 CPU 专家与 CUDA 执行计数，以及逻辑文件／OS 完成读取计数；不能扩大为全算子放置或物理 SSD 字节。
+收到两个实际增量后触发取消，记录的取消至排空为 **1.006 秒**，随后四类资源预留归零且无 owner／隔离项；取消时内存采样为未知。
+**新 worker 恢复仍在运行，完整生命周期／源码终态、独立进程闭合及新版 Agent 复测尚未验收。** 此处仅复核 14 份已完成初始／取消文件，不授予默认、发布、物理 SSD 或总内存硬上限资格。
+此前匹配运行包的[完整静态校验](results/strata_20261008/strata_execution_static_verification_v2_raw.json)和[运行时登记](results/strata_20261008/strata_execution_registration_v2_raw.json)均已完成；登记记录自身仍为 `registered_not_executed`，新增模型执行由上述独立实跑记录证明。
 
 2026-10-09 集成回归：完整 I/O／执行观测已接入 Stage、运行时登记、Agent 路由和结果校验；
 观测工作区、Windows commit 与证据磁盘预算分别计入现有账本。
@@ -25,7 +28,7 @@ CRLF 和编译记录大小修补已接入生产代码并通过上述回归；旧
 [匹配运行包的完整静态校验](results/strata_20261008/strata_execution_static_verification_v2_raw.json)已正常结束（EXIT 0），
 耗时 **668.004 秒**，仅为静态核验时间，不是模型加载或推理延迟。完整成员、源码、构建、目标依赖、PE 和独立 fixture ABI 参考记录已核验；
 该静态记录的实际引擎 ABI、原生进程／模块和执行资格仍未建立，`runtime_binding` 为空。随后运行时登记已完成，
-原始成员清单与外层 ArtifactManifest 分属不同哈希域；独立生命周期验证正在进行，模型参考比较、取消恢复及 Agent 复测尚未完成。
+原始成员清单与外层 ArtifactManifest 分属不同哈希域；最新三条文本参考及取消记录见上方部分复核，新 worker 恢复、完整生命周期及新版 Agent 复测尚未验收。
 旧运行包和全部失败均保留；外部诊断不能授权旧包登记，新静态结果也不授予默认、内存硬上限或物理 SSD 资格。
 下面 Q2／IQ3／Q4 的历史实跑继续绑定各自源码，不继承为新版资格。
 

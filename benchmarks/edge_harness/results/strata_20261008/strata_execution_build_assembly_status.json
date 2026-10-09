@@ -1,8 +1,8 @@
 {
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
-  "scope": "native_build_complete_assembly_and_matching_static_records_no_model_execution",
-  "status": "matching_runtime_registered_actual_lifecycle_validation_in_progress",
+  "scope": "native_build_assembly_matching_static_registration_and_partial_native_lifecycle",
+  "status": "initial_native_reference_cases_passed_fresh_recovery_in_progress",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -76,7 +76,7 @@
     },
     "next_action": "verify exact base-Git auxiliary membership and all retained copies; preserve failure and complete source archives"
   },
-  "native_model_executed": false,
+  "native_model_executed": true,
   "followup_external_static_diagnostic": {
     "terminal_exit_code": 1,
     "verifier_source_sha256": "101a856d61903c460f6c241325c604f560c63bb37ba5355f5bb0a781be5fddd7",
@@ -184,7 +184,7 @@
     "static_runtime_eligibility": false,
     "static_consumer_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
   },
-  "next_action": "complete actual native lifecycle model/reference/cancellation/recovery validation, then separate actual Agent run",
+  "next_action": "finish current fresh-worker recovery and final source/owner closure, then separately execute the prepared three-class Agent rerun",
   "alias_native_regression": {
     "path": "strata_execution_alias_native_unit_validation.json",
     "sha256": "61374f5ed9db8cbc9f8684c8d5f5c611dd03ccac6e6739f4a25cac7a4a149b37",
@@ -263,7 +263,7 @@
     "qualification_created": false
   },
   "actual_lifecycle_validation": {
-    "status": "in_progress_no_confirmed_native_model_output",
+    "status": "initial_three_reference_cases_and_cancel_partially_reviewed_recovery_pending",
     "producer_source_sha256": "2b317236675ce8d6bc84bcc72bd4326d825bfe88f5456a90f5f32c5d206806f8",
     "batch_size": 1,
     "max_active_requests": 1,
@@ -271,7 +271,19 @@
     "backend_start_timeout_s": 900,
     "request_timeout_s": 600,
     "timeout_scope": "Recorded launch/config values; no overall StageRuntime GRAPH initialization deadline is claimed.",
-    "native_model_execution_confirmed": false,
-    "qualification_created": false
-  }
+    "native_model_execution_confirmed": true,
+    "qualification_created": false,
+    "completed_reference_requests": 3,
+    "initial_integrity_and_startup_s": 2466.1888096,
+    "partial_progress": {
+      "path": "strata_execution_lifecycle_partial_progress.json",
+      "size_bytes": 19716,
+      "sha256": "4c30e1a579577cc5a967711a227ffa1f483438712b18a818b05e67b6ad65e7a0"
+    },
+    "partial_review_sha256": "1586d5a2df126205c454f37ac7b68f90f38758951cffce3ad85722b33be7638e",
+    "fresh_worker_recovery_verified": false,
+    "lifecycle_terminal": false,
+    "Agent_rerun_performed": false
+  },
+  "native_model_execution_scope": "Three independently reviewed initial text requests only; final lifecycle and source/owner closure remain pending."
 }
