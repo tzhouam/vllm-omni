@@ -1,6 +1,6 @@
 {
   "schema": "omni-strata-combined-agent-preparation-and-launch-v1",
-  "status": "full_protocol_launched_initialization_pending",
+  "status": "full_protocol_running_partial_rows_not_closed",
   "actual_exec_session": 1799,
   "launch_tool_chunk": "3ab3bd",
   "confirmed_live_tool_chunk": "a867a9",
@@ -71,5 +71,92 @@
   "model_or_Agent_qualification_created": false,
   "historical_442_results_inherited": false,
   "physical_ssd_bytes": null,
-  "aggregate_memory_hard_caps_verified": false
+  "aggregate_memory_hard_caps_verified": false,
+  "live_progress": {
+    "observed_unix": 1791527525.4803426,
+    "wrapper_phase": "actual_bridge_ready",
+    "error_type": null,
+    "raw_prefix": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-agent-combined-full-20261009-v3\\profile\\profiler\\native_f076338690b94447b5ef13f4d8ce222c\\raw\\20261009T060940Z_9fee0518\\samples.jsonl",
+      "bytes": 24600937,
+      "sha256": "f8c9d6029ed369b6ea6fa64ab3a7e77f4ab4061867b92b683e2a97ac82ad83e7",
+      "still_appending": true,
+      "ignored_trailing_bytes": 0
+    },
+    "request_rows": 76,
+    "counts": [
+      {
+        "task_class": "basic",
+        "length": "short",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "basic",
+        "length": "short",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "basic",
+        "length": "medium",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "basic",
+        "length": "medium",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "basic",
+        "length": "long",
+        "phase": "warmup",
+        "count": 2
+      },
+      {
+        "task_class": "basic",
+        "length": "long",
+        "phase": "measured",
+        "count": 20
+      },
+      {
+        "task_class": "basic",
+        "length": "short",
+        "phase": "endurance",
+        "count": 4
+      },
+      {
+        "task_class": "basic",
+        "length": "medium",
+        "phase": "endurance",
+        "count": 4
+      },
+      {
+        "task_class": "basic",
+        "length": "long",
+        "phase": "endurance",
+        "count": 2
+      }
+    ],
+    "observed_row_flags": {
+      "quality_pass": true,
+      "success": true,
+      "tool_safe": true,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "no_errors": true,
+      "batch1_concurrency1": true
+    },
+    "endurance_active_s": 63.4478047,
+    "closed_protocol_result": false,
+    "statistical_or_default_qualification_granted": false,
+    "memory_scope": "seeded encrypted-store retrieval within one open controller; no close/reopen persistence test",
+    "verified_live_session": {
+      "session_id": 1799,
+      "tool_chunk": "f6b100",
+      "observed_utc": "2026-10-09 06:30:50 UTC"
+    }
+  }
 }
