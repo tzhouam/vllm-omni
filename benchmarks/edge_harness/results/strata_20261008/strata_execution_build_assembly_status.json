@@ -2,7 +2,7 @@
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
   "scope": "native_build_and_complete_assembly_no_model_execution",
-  "status": "assembled_external_static_failed_exact_CUDA_header_alias_witness_ready_consumer_pending",
+  "status": "exact_alias_consumer_integrated_native_tests_passed_matching_runtime_assembly_in_progress",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -171,7 +171,7 @@
     "size_bytes": 5420
   },
   "current_CUDA_header_alias_witness": {
-    "status": "actual_current_Windows_witness_passed_static_consumer_and_matching_runtime_pending",
+    "status": "exact_consumer_integrated_selected_actual_records_passed_full_matching_runtime_pending",
     "receipt_sha256": "483ca972a331c6017808d5bdb68bed6561fd601fb1a7859b7e1b9d68ca6f92d6",
     "collector_sha256": "248a2c877f32bf2626bd0410a5f280632a4cc0535277b23e7de894fdf2902344",
     "diagnosis_sha256": "a4bf0d93f0be79cb36a724d00f6640dd9fa8dde17b569762dc830dfa85e57d6f",
@@ -181,7 +181,13 @@
     "raw_preimage_bytes": 5789718,
     "observed_identity": "same held Win32 file IDs and exact bytes for short path, long path and archived compiler input",
     "build_time_execution_attested": false,
-    "static_runtime_eligibility": false
+    "static_runtime_eligibility": false,
+    "static_consumer_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
   },
-  "next_action": "consume only the exact witnessed external CUDA aliases, assemble a fresh source-aligned runtime, then full static verification and actual model/cancellation/Agent replay"
+  "next_action": "finish fresh matching runtime assembly, full static verification, then actual model reference/cancellation/recovery and Agent run",
+  "alias_native_regression": {
+    "path": "strata_execution_alias_native_unit_validation.json",
+    "sha256": "61374f5ed9db8cbc9f8684c8d5f5c611dd03ccac6e6739f4a25cac7a4a149b37",
+    "size_bytes": 7000
+  }
 }

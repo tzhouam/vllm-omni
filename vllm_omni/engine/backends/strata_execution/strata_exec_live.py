@@ -21,7 +21,7 @@ from pathlib import Path, PurePosixPath
 import strata_exec as parser
 import strata_exec_runtime as static_verifier
 
-STATIC_VERIFIER_SHA = "101a856d61903c460f6c241325c604f560c63bb37ba5355f5bb0a781be5fddd7"
+STATIC_VERIFIER_SHA = "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
 PARSER_SHA = "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf"
 BRIDGE_SHA = "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe"
 ENGINE_ROLE_IO_SHA = "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43"

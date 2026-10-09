@@ -1,0 +1,869 @@
+{
+  "build_dict_origin": {
+    "fields": [
+      "tools.cl.binary_sha256",
+      "compiler_environment.VCToolsVersion",
+      "compiler_environment.WindowsSDKVersion"
+    ],
+    "original_build_receipt_sha256": "60d12283b50c7786fcfeeda128e644fda1d4cffc7593fa1f38a32114e1adfede",
+    "scope": "selected recorded compiler identity/environment only"
+  },
+  "build_execution_attested": false,
+  "compiled_engine_ABI_verified": false,
+  "complete_DLL_EXE_and_other_member_bodies_rehashed": false,
+  "current_OS_or_owner_modules_verified": false,
+  "elapsed_s": 0.26599999982863665,
+  "full_Git_and_source_preconditions_verified": false,
+  "full_bundle_constructor_invoked": false,
+  "full_static_verification_passed": false,
+  "gates": {
+    "ABI_reference": {
+      "result": {
+        "actual_frame_observations": [
+          {
+            "label": "allocator-success-memset-equivalent",
+            "native_frames": 3,
+            "raw_sha256": "6c48129b60617d99854e0ec50bf102bc19fb7e25def7347ceb9dc5bd1cfcf049"
+          },
+          {
+            "label": "allocator-failed-allocation",
+            "native_frames": 3,
+            "raw_sha256": "feaa54f564dc74999deaad719efa8e67cf39dcd9abd167cd4fcbddc31275fd46"
+          },
+          {
+            "label": "allocator-failed-free",
+            "native_frames": 3,
+            "raw_sha256": "df14367661abac54b935c4fa199768503a401b26c16970153da38e016640ecd5"
+          },
+          {
+            "label": "allocator-same-owner",
+            "native_frames": 3,
+            "raw_sha256": "8082efc6449c0cd4fb3daa8737c775af92419e05fd9d357dfe555a98348022ba"
+          },
+          {
+            "label": "allocator-registry-exhaustion",
+            "native_frames": 3,
+            "raw_sha256": "4a740e64d090cbe0875e55661836622c38a9c8feda654b79bf0b47f4d531d6f0"
+          },
+          {
+            "label": "allocator-baseline-gauge",
+            "native_frames": 3,
+            "raw_sha256": "056905f4f1cb8f15d8fe2c1cc4a5145e844043e68b7a9547b9a25f3758bfb65d"
+          },
+          {
+            "label": "allocator-request-transient",
+            "native_frames": 3,
+            "raw_sha256": "7d42e2fa447f4c47a352ca463c17433e273920db3c9c0fc9ace7880ce9f3b663"
+          },
+          {
+            "label": "allocator-untracked-families",
+            "native_frames": 3,
+            "raw_sha256": "1bbe9b282866e7515689c9651fd521e83a6331f09bf2d7f32cddd39b40b9df35"
+          },
+          {
+            "label": "cpu-counts",
+            "native_frames": 3,
+            "raw_sha256": "37591c73d29878fe4dabe3aba2f02e76608a4fce9d8cde1806908127c669e223"
+          },
+          {
+            "label": "cpu-invalid-geometry",
+            "native_frames": 3,
+            "raw_sha256": "ce3a50181b8a5f8a193600a19976edeacbc6eda19d35dcc47d5f96ad424bf08c"
+          },
+          {
+            "label": "cpu-stale-phase",
+            "native_frames": 3,
+            "raw_sha256": "fe413eec521618725469be53af9e183cfaf79419d34f6cc9fd7ea396756dd8f8"
+          },
+          {
+            "label": "cpu-stale-sequence",
+            "native_frames": 6,
+            "raw_sha256": "1ea0cf49541fcb2d9d7b5d6d082dfdacc55fb53b6a75996c13616bdb36031148"
+          },
+          {
+            "label": "cuda-launch-error",
+            "native_frames": 3,
+            "raw_sha256": "33fae932d06e166311f4c87b040e8239a37919bb3b15173c3063bc1817eeda4e"
+          },
+          {
+            "label": "cuda-successful-fence",
+            "native_frames": 3,
+            "raw_sha256": "f83e6ad778fcacb093fca5736e3cfb7e2eb189a0a614b64d38cec401f685f18b"
+          },
+          {
+            "label": "cuda-fence-error",
+            "native_frames": 3,
+            "raw_sha256": "15981bda538b3240762e83e6a44e8590c834ef4953ddb2f4cc4ac9a589d5ff39"
+          },
+          {
+            "label": "cuda-stale-phase",
+            "native_frames": 3,
+            "raw_sha256": "7afa56f29e8c70eacbfd829c542823d6e5600a5defc085309a6c88afcfe131a0"
+          },
+          {
+            "label": "boundary-labels",
+            "native_frames": 3,
+            "raw_sha256": "f2fe80ea39807e7de3807b0548fba117748ae3ccc7cd941a85e2903813fd342f"
+          },
+          {
+            "label": "boundary-order",
+            "native_frames": 3,
+            "raw_sha256": "f2fe80ea39807e7de3807b0548fba117748ae3ccc7cd941a85e2903813fd342f"
+          },
+          {
+            "label": "clock-unavailable",
+            "native_frames": 3,
+            "raw_sha256": "90cdf5aa216c943c7e2b9583b7b4c1033fd2d87b940e7eaa8a0ad0ccb7783acf"
+          },
+          {
+            "label": "cancelled",
+            "native_frames": 3,
+            "raw_sha256": "783c0e0ad4b05b4d081ae836149e38da1b323114e5282113174a1ce49324cc8b"
+          },
+          {
+            "label": "cancelled-pending-fence",
+            "native_frames": 3,
+            "raw_sha256": "8c646d906cb1a80e15b71406ce5d907f35e11d765363047d45b75e4011d5f18e"
+          },
+          {
+            "label": "missing-end",
+            "native_frames": 2,
+            "raw_sha256": "9e7c9daebdb0909872a3838a721c75889ebfa1b5457e386dfa2a25024f57cef8"
+          },
+          {
+            "label": "counter-overflow",
+            "native_frames": 3,
+            "raw_sha256": "48ec943a0b17a956893760c91bdb68b076500ad9f519c3723a1ea6980e141651"
+          },
+          {
+            "label": "formatting-overflow",
+            "native_frames": 3,
+            "raw_sha256": "a0c75e4c665dba8ac7def05defbe3ffca7a18847dc3bddfc5113022c299116c1"
+          },
+          {
+            "label": "worst-case-frames",
+            "native_frames": 3,
+            "raw_sha256": "09036848a43a026ec38f49baa2b661616abe05ae4722836316301f09d61e8844"
+          },
+          {
+            "label": "disabled-unset",
+            "native_frames": 0,
+            "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "label": "disabled-0",
+            "native_frames": 0,
+            "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "label": "disabled-true",
+            "native_frames": 0,
+            "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "label": "disabled-11",
+            "native_frames": 0,
+            "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ],
+        "case_processes": 29,
+        "compiled_engine_ABI_verified": false,
+        "fixture_executable_sha256": "a217b0ee1b36046d9d2d0ab41dedd89a4350b64fbec7181d6d16476c93753bb2",
+        "fixture_receipt_sha256": "d942e7ff26662dffad5910b4eed87fa84b98bfab428aa20b007a0f6366e08db5",
+        "fixture_recorder_sha256": "ddc2f71c85af1a9ba475f14fac61e9b34efb07d91172f0bc19efc147341b05b3",
+        "fixture_source_sha256": "ff6e9b06a31b9aca702889296c736741f703e1019d3789e02288837ba75ee286",
+        "observer_layout": {
+          "concurrent_ticket_count_verified": false,
+          "frame_buffer_bytes": 32768,
+          "frame_state_bytes": 32784,
+          "overhead_scope": "fixed_Cpp_state_and_one_owner_frame_plus_per_call_stack_ticket_excludes_CRT_stdio",
+          "root_registry_capacity": 16,
+          "state_bytes": 2064,
+          "ticket_bytes": 32
+        },
+        "observer_layout_scope": "compiled_standalone_fixture_reference_only",
+        "runtime_binding": null,
+        "runtime_qualified": false,
+        "schema": "omni-strata-compiled-fixture-ABI-reference-v1",
+        "system_toolchain_include_closure_verified": false
+      },
+      "status": "selected_gate_passed"
+    },
+    "PE": {
+      "result": {
+        "all_dynamic_loads_covered": false,
+        "current_system_dependencies_verified": false,
+        "files": [
+          {
+            "delay": [],
+            "non_system": [
+              "cublaslt64_13.dll"
+            ],
+            "normal": [
+              "cublaslt64_13.dll",
+              "kernel32.dll"
+            ],
+            "path": "engine/cublas64_13.dll",
+            "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+            "size_bytes": 54942320,
+            "system": [
+              "kernel32.dll"
+            ]
+          },
+          {
+            "delay": [],
+            "non_system": [],
+            "normal": [
+              "kernel32.dll"
+            ],
+            "path": "engine/cublasLt64_13.dll",
+            "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+            "size_bytes": 492752496,
+            "system": [
+              "kernel32.dll"
+            ]
+          },
+          {
+            "delay": [],
+            "non_system": [
+              "cublas64_13.dll"
+            ],
+            "normal": [
+              "advapi32.dll",
+              "cublas64_13.dll",
+              "kernel32.dll"
+            ],
+            "path": "engine/strata.exe",
+            "sha256": "39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177",
+            "size_bytes": 58853888,
+            "system": [
+              "advapi32.dll",
+              "kernel32.dll"
+            ]
+          }
+        ],
+        "identity_sha256": "9f7716d6bba585d6ba27afcce378c631f88af9aefce8e2e3c561072c069054f2",
+        "schema": "omni-strata-static-PE-closure-v2"
+      },
+      "status": "selected_gate_passed"
+    }
+  },
+  "manifest_raw_sha256": "2c3148a2f8b2e35fbaa81ca8d576b9dcd139f4dc748bd85ad17323a3a3f75aa6",
+  "registration_or_neural_eligibility": false,
+  "runner_sha256": "365cb7f05ab72ccc7015782e8243de73f3acb12189e7923456ea92a0c077e877",
+  "schema": "omni-strata-selected-PE-ABI-metadata-replay-v1",
+  "selected_read_bytes": 979513,
+  "selected_read_count": 101,
+  "selected_reads": [
+    {
+      "limit_bytes": 2097152,
+      "path": "descriptor.json",
+      "sha256": "4c7af5682c3517fa54f487c3ebd86ea2bcf497ce4d097cfcd0eecc5fe5bc979d",
+      "size_bytes": 117020
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "b/build-receipt.json",
+      "sha256": "60d12283b50c7786fcfeeda128e644fda1d4cffc7593fa1f38a32114e1adfede",
+      "size_bytes": 22084
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "p/pe.json",
+      "sha256": "37afc036702a5eebf46ba6744c57360ee4cc324eb9f82f2ab0e658f02b78bb96",
+      "size_bytes": 2247
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "p/pe-strata.exe.txt",
+      "sha256": "8deeb02a302d62f7d4139f78ae9ad759e6e1a6776b8b1934e1b1b52f1ea4685c",
+      "size_bytes": 533
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "p/pe-cublas64_13.dll.txt",
+      "sha256": "3bbf467771fadf79ee70729a87e1e91e24b4c4398a5acb98de9dcd2d48218f5f",
+      "size_bytes": 486
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "p/pe-cublasLt64_13.dll.txt",
+      "sha256": "57cca6b2afc92f04393a85fa5c30448b8f66b691552ca1486876547e4d4e0235",
+      "size_bytes": 488
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "p/abi.json",
+      "sha256": "872a6ffed8f985ecb47b2abe09c3c9515b212af094a68b46777a240353559637",
+      "size_bytes": 647
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "p/fixture.cpp",
+      "sha256": "ff6e9b06a31b9aca702889296c736741f703e1019d3789e02288837ba75ee286",
+      "size_bytes": 43930
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "p/fixture.ps1",
+      "sha256": "ddc2f71c85af1a9ba475f14fac61e9b34efb07d91172f0bc19efc147341b05b3",
+      "size_bytes": 10136
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "p/header.hpp",
+      "sha256": "148b2d3de4b3f62e8f5ebff9211d04a89d488bd00d9256cc26ef41cc5bfa2f55",
+      "size_bytes": 19433
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/receipt.json",
+      "sha256": "d942e7ff26662dffad5910b4eed87fa84b98bfab428aa20b007a0f6366e08db5",
+      "size_bytes": 26482
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/compiler-stdout.txt",
+      "sha256": "fb8168b0762c1f428b84fc517c6d16bb0af4d4c38df55a8c93a0810653f1b146",
+      "size_bytes": 18140
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/compiler-stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "adapter/strata_exec.py",
+      "sha256": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+      "size_bytes": 31075
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-success-memset-equivalent/stdout.txt",
+      "sha256": "e9a5287e2528efc956fc39f17df81d43d449277c85550c1a84ee827b1233705b",
+      "size_bytes": 157
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-success-memset-equivalent/native-frames.txt",
+      "sha256": "6c48129b60617d99854e0ec50bf102bc19fb7e25def7347ceb9dc5bd1cfcf049",
+      "size_bytes": 26193
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-success-memset-equivalent/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-failed-allocation/stdout.txt",
+      "sha256": "044db2a96d662a8866fe3db4853cda963c89ec273a66bcf7a66e25e4463c10e2",
+      "size_bytes": 149
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-failed-allocation/native-frames.txt",
+      "sha256": "feaa54f564dc74999deaad719efa8e67cf39dcd9abd167cd4fcbddc31275fd46",
+      "size_bytes": 26200
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-failed-allocation/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-failed-free/stdout.txt",
+      "sha256": "56d101dab16837ae14f2326832ed0b764e51efe1f1c4a60d4b4c84edf3bd17c5",
+      "size_bytes": 143
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-failed-free/native-frames.txt",
+      "sha256": "df14367661abac54b935c4fa199768503a401b26c16970153da38e016640ecd5",
+      "size_bytes": 26209
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-failed-free/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-same-owner/stdout.txt",
+      "sha256": "eea7a4304ce23a80c9a72037b4fe65f70f1f704205af418924b48e15fed42313",
+      "size_bytes": 142
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-same-owner/native-frames.txt",
+      "sha256": "8082efc6449c0cd4fb3daa8737c775af92419e05fd9d357dfe555a98348022ba",
+      "size_bytes": 26209
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-same-owner/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-registry-exhaustion/stdout.txt",
+      "sha256": "9d733693d5f1eff4dd4e14f7c2f8089a2a6df62876de93c510f3083d6f66487f",
+      "size_bytes": 151
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-registry-exhaustion/native-frames.txt",
+      "sha256": "4a740e64d090cbe0875e55661836622c38a9c8feda654b79bf0b47f4d531d6f0",
+      "size_bytes": 26221
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-registry-exhaustion/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-baseline-gauge/stdout.txt",
+      "sha256": "d49179f473c14401b6ebaf3c3e4b5e40814d6083a912c63f61caafef45293856",
+      "size_bytes": 146
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-baseline-gauge/native-frames.txt",
+      "sha256": "056905f4f1cb8f15d8fe2c1cc4a5145e844043e68b7a9547b9a25f3758bfb65d",
+      "size_bytes": 26199
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-baseline-gauge/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-request-transient/stdout.txt",
+      "sha256": "8d39e958c4927c8bbc9bcace5bfa3372889668d3395765c4b09420461a865c7e",
+      "size_bytes": 149
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-request-transient/native-frames.txt",
+      "sha256": "7d42e2fa447f4c47a352ca463c17433e273920db3c9c0fc9ace7880ce9f3b663",
+      "size_bytes": 26202
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-request-transient/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/allocator-untracked-families/stdout.txt",
+      "sha256": "79d9dceb3d809406178fe669fec2c518ac02d2f138f6f28ac60b08c7d9f1d0f5",
+      "size_bytes": 150
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/allocator-untracked-families/native-frames.txt",
+      "sha256": "1bbe9b282866e7515689c9651fd521e83a6331f09bf2d7f32cddd39b40b9df35",
+      "size_bytes": 26202
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/allocator-untracked-families/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cpu-counts/stdout.txt",
+      "sha256": "804d4284a2bf103beba81c9a0e63d94c38d71ee285fa977df614ed6116020038",
+      "size_bytes": 132
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cpu-counts/native-frames.txt",
+      "sha256": "37591c73d29878fe4dabe3aba2f02e76608a4fce9d8cde1806908127c669e223",
+      "size_bytes": 26202
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cpu-counts/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cpu-invalid-geometry/stdout.txt",
+      "sha256": "f0f5bd019576100b7181fd34c806155613eb09e4e85206cd64d32e607c0b9e58",
+      "size_bytes": 142
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cpu-invalid-geometry/native-frames.txt",
+      "sha256": "ce3a50181b8a5f8a193600a19976edeacbc6eda19d35dcc47d5f96ad424bf08c",
+      "size_bytes": 26203
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cpu-invalid-geometry/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cpu-stale-phase/stdout.txt",
+      "sha256": "5a2c8b6ae769d5872b5d9c8681febbc36ee4bc5ae94d2c1eb5de27b8b3fa8d3a",
+      "size_bytes": 137
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cpu-stale-phase/native-frames.txt",
+      "sha256": "fe413eec521618725469be53af9e183cfaf79419d34f6cc9fd7ea396756dd8f8",
+      "size_bytes": 26204
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cpu-stale-phase/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cpu-stale-sequence/stdout.txt",
+      "sha256": "59268cc69090f34a1da58ad243c58766b0e83f5c6dc38afe5ebf92436feceaff",
+      "size_bytes": 140
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cpu-stale-sequence/native-frames.txt",
+      "sha256": "1ea0cf49541fcb2d9d7b5d6d082dfdacc55fb53b6a75996c13616bdb36031148",
+      "size_bytes": 52410
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cpu-stale-sequence/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cuda-launch-error/stdout.txt",
+      "sha256": "a01a6dae626a941fcec4f084139ec263e34ca812763cad675e75fdf79e9ccea1",
+      "size_bytes": 139
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cuda-launch-error/native-frames.txt",
+      "sha256": "33fae932d06e166311f4c87b040e8239a37919bb3b15173c3063bc1817eeda4e",
+      "size_bytes": 26203
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cuda-launch-error/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cuda-successful-fence/stdout.txt",
+      "sha256": "1472ef2e77929b3d72bf382545d8e0f0f0388a4bc15e6533bac72aa420744093",
+      "size_bytes": 143
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cuda-successful-fence/native-frames.txt",
+      "sha256": "f83e6ad778fcacb093fca5736e3cfb7e2eb189a0a614b64d38cec401f685f18b",
+      "size_bytes": 26190
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cuda-successful-fence/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cuda-fence-error/stdout.txt",
+      "sha256": "d534d686c87ee27f80287e3217f071d4bb76cdac8c15641ad21985239b97a49c",
+      "size_bytes": 138
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cuda-fence-error/native-frames.txt",
+      "sha256": "15981bda538b3240762e83e6a44e8590c834ef4953ddb2f4cc4ac9a589d5ff39",
+      "size_bytes": 26197
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cuda-fence-error/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cuda-stale-phase/stdout.txt",
+      "sha256": "ff5017d9774425601b3af1b48afec933d7290ef74192f25508356f33bba70a78",
+      "size_bytes": 138
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cuda-stale-phase/native-frames.txt",
+      "sha256": "7afa56f29e8c70eacbfd829c542823d6e5600a5defc085309a6c88afcfe131a0",
+      "size_bytes": 26195
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cuda-stale-phase/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/boundary-labels/stdout.txt",
+      "sha256": "4057363670c5becd5705a9ad40236dc0950d9905a2be9b67db7b82ffa943540e",
+      "size_bytes": 137
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/boundary-labels/native-frames.txt",
+      "sha256": "f2fe80ea39807e7de3807b0548fba117748ae3ccc7cd941a85e2903813fd342f",
+      "size_bytes": 26203
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/boundary-labels/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/boundary-order/stdout.txt",
+      "sha256": "f01afdc049c17e3f8235c3bb96d745e6d26620a2d47e80942a31fdbf62d50fd2",
+      "size_bytes": 136
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/boundary-order/native-frames.txt",
+      "sha256": "f2fe80ea39807e7de3807b0548fba117748ae3ccc7cd941a85e2903813fd342f",
+      "size_bytes": 26203
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/boundary-order/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/clock-unavailable/stdout.txt",
+      "sha256": "d9c031910877b108cbd71273c6b05aaadd88b3f79b8f5a771401e050363e7549",
+      "size_bytes": 139
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/clock-unavailable/native-frames.txt",
+      "sha256": "90cdf5aa216c943c7e2b9583b7b4c1033fd2d87b940e7eaa8a0ad0ccb7783acf",
+      "size_bytes": 26213
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/clock-unavailable/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cancelled/stdout.txt",
+      "sha256": "b69bba65739dec170d9b03d535d12a9da529e77d4f13f728195c2a93da7f0f58",
+      "size_bytes": 131
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cancelled/native-frames.txt",
+      "sha256": "783c0e0ad4b05b4d081ae836149e38da1b323114e5282113174a1ce49324cc8b",
+      "size_bytes": 26203
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cancelled/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/cancelled-pending-fence/stdout.txt",
+      "sha256": "61b0e97a84872cdf7ce6b592a2e3d6d55be2ce4d041219027d2a4e129b930518",
+      "size_bytes": 145
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/cancelled-pending-fence/native-frames.txt",
+      "sha256": "8c646d906cb1a80e15b71406ce5d907f35e11d765363047d45b75e4011d5f18e",
+      "size_bytes": 26201
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/cancelled-pending-fence/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/missing-end/stdout.txt",
+      "sha256": "3114fa0a2cd2257425122a12ad4dab273a7b272ca92fe199494d6d0d3308cec7",
+      "size_bytes": 133
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/missing-end/native-frames.txt",
+      "sha256": "9e7c9daebdb0909872a3838a721c75889ebfa1b5457e386dfa2a25024f57cef8",
+      "size_bytes": 17469
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/missing-end/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/counter-overflow/stdout.txt",
+      "sha256": "4875fb36848463bb6bd1c7e88d45baf415d2fb27bde0458c623ea5fe29c3a249",
+      "size_bytes": 138
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/counter-overflow/native-frames.txt",
+      "sha256": "48ec943a0b17a956893760c91bdb68b076500ad9f519c3723a1ea6980e141651",
+      "size_bytes": 26260
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/counter-overflow/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/formatting-overflow/stdout.txt",
+      "sha256": "3d3f26f5094c6d7b55698afd4b36de99b5a505eb6edbc9f23abfbc84c522af18",
+      "size_bytes": 141
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/formatting-overflow/native-frames.txt",
+      "sha256": "a0c75e4c665dba8ac7def05defbe3ffca7a18847dc3bddfc5113022c299116c1",
+      "size_bytes": 26212
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/formatting-overflow/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/worst-case-frames/stdout.txt",
+      "sha256": "e4246b6ee850697f6fec9d2cc3d9562341ae70e00394dc832a0afd3acbadeb4a",
+      "size_bytes": 139
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/worst-case-frames/native-frames.txt",
+      "sha256": "09036848a43a026ec38f49baa2b661616abe05ae4722836316301f09d61e8844",
+      "size_bytes": 36354
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/worst-case-frames/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/disabled-unset/stdout.txt",
+      "sha256": "5a0777c63d0663a77f9ad0cd23e9118e9c7278b3e4124a1d0b52e831e701ef2b",
+      "size_bytes": 130
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/disabled-unset/native-frames.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/disabled-unset/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/disabled-0/stdout.txt",
+      "sha256": "5a0777c63d0663a77f9ad0cd23e9118e9c7278b3e4124a1d0b52e831e701ef2b",
+      "size_bytes": 130
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/disabled-0/native-frames.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/disabled-0/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/disabled-true/stdout.txt",
+      "sha256": "5a0777c63d0663a77f9ad0cd23e9118e9c7278b3e4124a1d0b52e831e701ef2b",
+      "size_bytes": 130
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/disabled-true/native-frames.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/disabled-true/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 2097152,
+      "path": "a/f/disabled-11/stdout.txt",
+      "sha256": "5a0777c63d0663a77f9ad0cd23e9118e9c7278b3e4124a1d0b52e831e701ef2b",
+      "size_bytes": 130
+    },
+    {
+      "limit_bytes": 196608,
+      "path": "a/f/disabled-11/native-frames.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "limit_bytes": 16777216,
+      "path": "a/f/disabled-11/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    }
+  ],
+  "selected_target_replay_receipt_sha256": "f85e81cfbbd8d3cfe4c359e59e30b1ebb3e38f9c9c2c1cea8a06420ac3597ed2",
+  "status": "selected_PE_and_standalone_ABI_reference_gates_passed",
+  "system_toolchain_inputs_pinned": false,
+  "verifier_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
+}

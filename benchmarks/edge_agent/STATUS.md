@@ -3,10 +3,10 @@
 2026-10-09 latest: combined I/O/execution observation is integrated into the Stage,
 runtime registrar, Agent route translation and result binding. Observer RAM, Windows commit
 and receipt storage are charged through the existing ledger.
-[Latest native Windows regression and raw logs](../edge_harness/results/strata_20261008/strata_execution_metadata_repairs_native_unit_validation.json)
-passed **360 tests and 161 subtests**, with three skips. This covers the strict-integer DONE fix,
+[Latest native Windows regression and raw logs](../edge_harness/results/strata_20261008/strata_execution_alias_native_unit_validation.json)
+passed **375 tests and 161 subtests**, with three skips. This covers the strict-integer DONE fix,
 LF/CRLF cache parsing and the scoped 4 MiB target compile-input record; generic JSON remains 2 MiB.
-Native vLLM is `0.29.0+cu134`, aligned with Omni 0.29. Stage and both new public tests pass repository Ruff.
+Native vLLM is `0.29.0+cu134`, aligned with Omni 0.29. Stage and all three new public tests pass repository Ruff.
 These are model-free checks; the historical Q2/IQ3/Q4 executions below retain their own frozen sources.
 
 The new native engine compiled/linked and its separate complete runtime assembled.
@@ -16,7 +16,10 @@ The cache and record-size repairs are integrated and tested. The latest full ext
 at `target_dependency_projection_differs`: Ninja records Windows short CUDA header names while the
 collector resolves long names. Actual Win32 checks established matching file identity and bytes for
 all **11 exact pairs**, including archived compiler inputs. This is current namespace/content evidence,
-not build-time execution attestation. Its narrow consumer and fresh matching runtime are in progress.
+not build-time execution attestation. The narrow consumer is integrated; selected actual-record diagnostics
+reconciled all 125 dependency records and passed subsequent PE/ABI reference checks. Those diagnostics
+skip full Bundle/Git/source prerequisites and authorize no registration or neural execution.
+A fresh matching runtime is being assembled separately.
 Old bundles/failures are retained; external diagnostics cannot authorize the unchanged old bundle.
 Combined-version full static verification, actual model parity, cancellation/recovery and Agent rerun
 remain pending. The existing Agent loop and historical 442-task scope below remain unchanged.

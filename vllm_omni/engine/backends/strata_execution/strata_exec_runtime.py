@@ -39,6 +39,10 @@ GRAPH_RECORDER_SHA = "119f281f304b1e8685e115b48b2cd426ed0c20efc5de157da95d7f5c56
 ORIGINAL_FAILED_BUILD_SHA = "60d12283b50c7786fcfeeda128e644fda1d4cffc7593fa1f38a32114e1adfede"
 BUILD_QUIESCENCE_SHA = "4bd1fee727852354b3ecaaf8a69c510a7d6f85ea20cc53dbfe232f0f58283201"
 SUPPLEMENT_DESCRIPTOR_KEYS = {"build_closure_supplement_file", "closure_supplement_recorder_file", "ninja_graph_recorder_file", "dependency_post_source_recorder_file"}
+ALIAS_DESCRIPTOR_KEYS = {"external_header_alias_witness_file", "external_header_alias_collector_file"}
+ALIAS_WITNESS_SHA = "483ca972a331c6017808d5bdb68bed6561fd601fb1a7859b7e1b9d68ca6f92d6"
+ALIAS_COLLECTOR_SHA = "248a2c877f32bf2626bd0410a5f280632a4cc0535277b23e7de894fdf2902344"
+ALIAS_DIAGNOSIS_SHA = "a4bf0d93f0be79cb36a724d00f6640dd9fa8dde17b569762dc830dfa85e57d6f"
 FIXTURE_SOURCE_SHA = "ff6e9b06a31b9aca702889296c736741f703e1019d3789e02288837ba75ee286"
 FIXTURE_RECORDER_SHA = "ddc2f71c85af1a9ba475f14fac61e9b34efb07d91172f0bc19efc147341b05b3"
 FIXTURE_CASES = (
@@ -901,6 +905,159 @@ def actual_target_dependencies(raw, build_root):
     return groups
 
 
+class _WitnessDecimal(str):
+    """A witness-only decimal token; never a generic JSON number allowance."""
+
+
+def alias_witness_json(raw):
+    require(type(raw) is bytes and len(raw) <= MAX_JSON, "alias_witness_json_bound")
+    def pairs(items):
+        out = {}
+        for key, value in items:
+            require(key not in out, "duplicate_json_key")
+            out[key] = value
+        return out
+    def reject(_):
+        raise EvidenceError("alias_witness_nonfinite")
+    try:
+        value = json.loads(raw.decode("utf-8"), object_pairs_hook=pairs,
+                           parse_float=_WitnessDecimal, parse_constant=reject)
+        bounded_json_structure(value)
+        require(type(value) is dict and "elapsed_s" in value, "alias_witness_elapsed_missing")
+        elapsed = value["elapsed_s"]
+        require(type(elapsed) in (int, _WitnessDecimal) and 0 <= float(elapsed) <= 60,
+                "alias_witness_elapsed_invalid")
+        # Keep the exact decimal lexeme as metadata, without admitting floats
+        # anywhere else or changing generic json_ / canonical number policy.
+        value["elapsed_s"] = str(elapsed)
+        pending = [value]
+        while pending:
+            item = pending.pop()
+            require(type(item) is not _WitnessDecimal, "alias_witness_unexpected_decimal")
+            if type(item) is dict: pending.extend(item.values())
+            elif type(item) is list: pending.extend(item)
+        return value
+    except EvidenceError:
+        raise
+    except (UnicodeError, ValueError, TypeError, RecursionError, OverflowError):
+        raise EvidenceError("invalid_alias_witness_json") from None
+
+
+def alias_descriptor_keys(descriptor):
+    present = ALIAS_DESCRIPTOR_KEYS & set(descriptor)
+    require(not present or present == ALIAS_DESCRIPTOR_KEYS, "alias_descriptor_pair_required")
+    require(not present or "build_closure_supplement_file" in descriptor, "alias_requires_target_supplement")
+    return present
+
+
+def verified_external_header_aliases(bundle, descriptor, original, compile_inputs, prefix):
+    """Validate an archived current-OS witness; never attest build-time reads."""
+    if not alias_descriptor_keys(descriptor):
+        return {}, None
+    member = relative(descriptor["external_header_alias_witness_file"])
+    folder = PurePosixPath(member).parent.as_posix()
+    collector = relative(descriptor["external_header_alias_collector_file"])
+    require(PurePosixPath(member).name == "receipt.json" and collector == folder + "/collect.py",
+            "alias_witness_member_paths")
+    collector_source = bundle.expected(collector, ALIAS_COLLECTOR_SHA).decode("utf-8")
+    captured_roots = re.findall(r'^RUNTIME = Path\("([^"\r\n]+)"\)$', collector_source, re.MULTILINE)
+    require(len(captured_roots) == 1, "alias_collector_captured_runtime_root")
+    captured_root = winpath(captured_roots[0])
+    witness = alias_witness_json(bundle.expected(member, ALIAS_WITNESS_SHA))
+    diagnosis = json_(bundle.expected(folder + "/diagnosis.json", ALIAS_DIAGNOSIS_SHA))
+    object_(witness, {"all_owned_file_handles_closed", "api_geometry", "build_execution_attested",
+        "collector_creation_filetime_100ns", "collector_pid", "collector_sha256", "compile_inputs_sha256",
+        "diagnosis_sha256", "elapsed_s", "finished_utc", "full_static_eligibility", "kernel32_loaded_module_path",
+        "models_loaded", "ninja_deps_sha256", "open_policy", "os_version", "pairs", "python_executable",
+        "python_version", "raw_preimage_bytes", "runtime_installed", "schema", "scope", "source_stable",
+        "started_utc", "status", "unique_header_bytes"}, "alias_witness_shape")
+    require(witness["schema"] == "omni-strata-current-Windows-CUDA-header-alias-witness-v1"
+            and witness["status"] == "current_exact_eleven_alias_pairs_and_archived_bytes_verified"
+            and witness["scope"] == "current Windows held-handle namespace and content witness; not build-time execution attestation"
+            and witness["collector_sha256"] == ALIAS_COLLECTOR_SHA and witness["diagnosis_sha256"] == ALIAS_DIAGNOSIS_SHA,
+            "alias_witness_identity")
+    require(all(witness[key] is False for key in ("build_execution_attested", "full_static_eligibility", "models_loaded", "runtime_installed"))
+            and witness["all_owned_file_handles_closed"] is True and witness["source_stable"] is True, "alias_witness_scope")
+    require(canonical(witness["api_geometry"]) == b'{"BY_HANDLE_FILE_INFORMATION_bytes":52,"FILE_ID_INFO_bytes":24}'
+            and canonical(witness["open_policy"]) == b'{"access":"GENERIC_READ","disposition":"OPEN_EXISTING","share":"FILE_SHARE_READ_only"}',
+            "alias_witness_api_policy")
+    uint(witness["collector_pid"], (1 << 32) - 1, positive=True)
+    uint(witness["collector_creation_filetime_100ns"], (1 << 64) - 1, positive=True)
+    require(type(witness["os_version"]) is list and len(witness["os_version"]) == 5
+            and all(type(x) is int and 0 <= x <= (1 << 32) - 1 for x in witness["os_version"][:4])
+            and type(witness["os_version"][4]) is str and len(witness["os_version"][4]) <= 256, "alias_witness_OS_record")
+    for key in ("python_version", "started_utc", "finished_utc"):
+        require(type(witness[key]) is str and 0 < len(witness[key]) <= 1024, "alias_witness_text_record")
+    winpath(witness["kernel32_loaded_module_path"])
+    python = object_(witness["python_executable"], {"path", "size_bytes", "sha256"}, "alias_python_record")
+    winpath(python["path"]); uint(python["size_bytes"], 8 << 20, positive=True); digest(python["sha256"])
+    require(diagnosis["schema"] == "omni-strata-selected-dependency-path-projection-diagnosis-v1"
+            and diagnosis["original_compile_inputs_sha256"] == witness["compile_inputs_sha256"]
+            == bundle.rows[prefix + "/compile-inputs.json"]["sha256"]
+            and diagnosis["original_ninja_deps_sha256"] == witness["ninja_deps_sha256"]
+            == bundle.rows[descriptor["build_evidence_dir"] + "/ninja_deps.txt"]["sha256"], "alias_original_preimages")
+    require(type(witness["pairs"]) is list and type(diagnosis["pairs"]) is list
+            and len(witness["pairs"]) == len(diagnosis["pairs"]) == 11, "alias_exact_eleven_pairs")
+    inputs = {row["archive_path"]: row for row in compile_inputs["inputs"]}
+    source_roots = [winpath(original["commands"][0][2]), winpath(original["commands"][1][2])]
+    source_roots += [winpath(x.split("=", 1)[1]) for x in original["commands"][0] if x.startswith("-DSTRATA_GGML_DIR=")]
+    aliases, total = {}, 0
+    def identity(row, size):
+        object_(row, {"creation_filetime_100ns", "file_id_128_hex", "last_write_filetime_100ns",
+            "legacy_file_index", "legacy_volume_serial_number", "size_bytes", "volume_serial_number"}, "alias_file_identity_shape")
+        for key in ("creation_filetime_100ns", "last_write_filetime_100ns", "legacy_file_index", "volume_serial_number"):
+            uint(row[key], (1 << 64) - 1)
+        uint(row["legacy_volume_serial_number"], (1 << 32) - 1)
+        require(uint(row["size_bytes"], 2 << 20, positive=True) == size and type(row["file_id_128_hex"]) is str
+                and re.fullmatch(r"[0-9a-f]{32}", row["file_id_128_hex"]) is not None, "alias_file_identity_values")
+    for index, (row, fixed) in enumerate(zip(witness["pairs"], diagnosis["pairs"])):
+        base_keys = {"raw_ninja_path", "resolved_supplement_path", "archive_path", "family", "size_bytes", "sha256"}
+        object_(fixed, base_keys, "alias_fixed_pair_shape")
+        object_(row, base_keys | {"GetFinalPathNameByHandleW", "GetLongPathNameW", "archived_input_identity_after",
+            "archived_input_identity_before", "preimages", "short_and_long_identity_after", "short_and_long_identity_before"}, "alias_pair_shape")
+        require(canonical({key: row[key] for key in base_keys}) == canonical(fixed), "alias_pair_not_reviewed")
+        short, long = winpath(row["raw_ninja_path"]), winpath(row["resolved_supplement_path"])
+        require(short == row["raw_ninja_path"] and long == row["resolved_supplement_path"] and short != long
+                and short not in aliases and long not in aliases.values()
+                and not any(path == root or path.startswith(root + "\\") for path in (short, long) for root in source_roots),
+                "alias_only_exact_external_paths")
+        original_input = inputs.get(row["archive_path"])
+        require(row["family"] == "external_toolchain_or_system_input" and type(original_input) is dict
+                and original_input["family"] == row["family"] and winpath(original_input["path"]) == long
+                and type(original_input["size_bytes"]) is int and original_input["size_bytes"] == row["size_bytes"]
+                and original_input["sha256"] == row["sha256"], "alias_original_input_binding")
+        size = uint(row["size_bytes"], 2 << 20, positive=True); total += size
+        require(total <= 2 << 20, "alias_unique_header_total")
+        for key in ("short_and_long_identity_before", "short_and_long_identity_after",
+                    "archived_input_identity_before", "archived_input_identity_after"):
+            identity(row[key], size)
+        require(canonical(row["short_and_long_identity_before"]) == canonical(row["short_and_long_identity_after"])
+                and canonical(row["archived_input_identity_before"]) == canonical(row["archived_input_identity_after"]), "alias_held_identity_changed")
+        for field, keys in (("GetFinalPathNameByHandleW", {"short", "long", "archived"}), ("GetLongPathNameW", {"short", "long"})):
+            names = object_(row[field], keys, "alias_resolution_shape")
+            for key in keys:
+                name = names[key]
+                require(type(name) is str, "alias_resolution_type")
+                expected_path = winpath(ntpath.join(captured_root, "c", row["archive_path"])) if key == "archived" else long
+                require(winpath(name[4:] if name.startswith("\\\\?\\") else name) == expected_path, "alias_resolution_value")
+        preimages = object_(row["preimages"], {"short", "long", "archived"}, "alias_preimage_shape")
+        reference = bundle.read(prefix + "/" + relative(row["archive_path"]), 2 << 20)
+        require(len(reference) == size and sha(reference) == digest(row["sha256"]), "alias_original_input_bytes")
+        for kind, image in preimages.items():
+            object_(image, {"path", "size_bytes", "sha256"}, "alias_preimage_record")
+            require(image["path"] == "evidence/pair-" + str(index).zfill(2) + "/" + kind + ".bin"
+                    and type(image["size_bytes"]) is int and image["size_bytes"] == size and image["sha256"] == row["sha256"], "alias_preimage_binding")
+            require(bundle.read(folder + "/" + relative(image["path"]), 2 << 20) == reference, "alias_preimage_bytes")
+        aliases[short] = long
+    require(type(witness["unique_header_bytes"]) is int and witness["unique_header_bytes"] == total
+            and type(witness["raw_preimage_bytes"]) is int and witness["raw_preimage_bytes"] == 3 * total, "alias_witness_byte_totals")
+    return aliases, {"schema": "omni-strata-archived-header-alias-reconciliation-v1", "witness_sha256": ALIAS_WITNESS_SHA,
+        "collector_sha256": ALIAS_COLLECTOR_SHA, "diagnosis_sha256": ALIAS_DIAGNOSIS_SHA, "exact_pair_count": 11,
+        "scope": "archived_current_Windows_namespace_and_equal_header_preimages_not_build_time_attestation",
+        "current_OS_identity_verified_by_static_verifier": False, "build_execution_attested_by_verifier": False,
+        "system_toolchain_inputs_pinned": False}
+
+
 def verify_target_compile_inputs(bundle, descriptor, original, supplement, graph, prefix):
     member = recorded_file(bundle, supplement["compile_closure"], prefix + "/compile-inputs.json", "target_closure_file")
     value = json_(bundle.read(member, MAX_TARGET_COMPILE_JSON), maximum=MAX_TARGET_COMPILE_JSON)
@@ -911,6 +1068,7 @@ def verify_target_compile_inputs(bundle, descriptor, original, supplement, graph
     require(value["schema"] == "omni-strata-native-target-compile-inputs-v2" and value["target"] == "strata"
             and value["independent_verification_required"] is True and value["system_toolchain_inputs_pinned"] is False
             and value["limits"] == {"max_file_bytes": 64 << 20, "max_total_bytes": 1 << 30, "max_files": 10000}, "target_compile_scope")
+    aliases, alias_identity = verified_external_header_aliases(bundle, descriptor, original, value, prefix)
     build_root = original["commands"][1][2]
     evidence = descriptor["build_evidence_dir"]
     configured = bundle.load(evidence + "/compile_commands.json")
@@ -922,6 +1080,11 @@ def verify_target_compile_inputs(bundle, descriptor, original, supplement, graph
         require(type(row) is dict and {"directory", "file", "output", "command"} <= set(row), "target_compdb_row")
         actual_outputs.setdefault(winpath(row["output"], build_root), []).append((index, row))
     groups = actual_target_dependencies(bundle.read(evidence + "/ninja_deps.txt"), build_root)
+    used_aliases = set()
+    for row in groups:
+        used_aliases.update(path for path in row["inputs"] if path in aliases)
+        row["inputs"] = [aliases.get(path, path) for path in row["inputs"]]
+    require(used_aliases == set(aliases), "alias_witness_pairs_not_all_in_actual_dependencies")
     declared_groups = value["dependency_records"]
     require(type(declared_groups) is list and len(declared_groups) == len(groups), "target_dependency_projection_count")
     by_output = {}
@@ -1023,7 +1186,8 @@ def verify_target_compile_inputs(bundle, descriptor, original, supplement, graph
     require(canonical(supplement["counts"]) == canonical(counts), "target_count_projection")
     return {"schema": "omni-strata-verified-target-compile-inputs-v3", **counts, "all_twelve_sources_covered": True,
             "scope": "strata_target_and_recursive_dependencies_all_configured_TUs_retained_outside_target_not_executed",
-            "system_toolchain_inputs_pinned": False, "source_receipt_sha256": bundle.rows[prefix + "/compile-inputs.json"]["sha256"]}
+            "system_toolchain_inputs_pinned": False, "source_receipt_sha256": bundle.rows[prefix + "/compile-inputs.json"]["sha256"],
+            **({"external_header_alias_witness": alias_identity} if alias_identity is not None else {})}
 
 
 def verify_failed_build_supplement(bundle, original, descriptor, stages):
@@ -1383,6 +1547,7 @@ def verify_combined_runtime(descriptor_file, runtime_root):
     descriptor = json_(raw)
     require(type(descriptor) is dict, "descriptor_shape")
     extra = SUPPLEMENT_DESCRIPTOR_KEYS if "build_closure_supplement_file" in descriptor else set()
+    extra = extra | alias_descriptor_keys(descriptor)
     descriptor = object_(
         descriptor,
         {
@@ -1481,36 +1646,6 @@ def verify_combined_runtime(descriptor_file, runtime_root):
         "aggregate_gpu_hard_cap_verified": False,
         "aggregate_ram_hard_cap_verified": False,
         "physical_ssd_read_bytes": None,
-    }
-    return identity | {"identity_sha256": sha(canonical(identity))}
-    base = git_source(bundle, descriptor["base_source_provenance"], BASE)
-    dependency = git_source(bundle, descriptor["dependency_source_provenance"], DEPENDENCY, DEPENDENCY_TREE)
-    states = source_chain(bundle, descriptor["source_states"], base)
-    verify_base_source_pins(base)
-    receipt = bundle.load(descriptor["build_receipt_file"])
-    build = validate_build(bundle, receipt, descriptor, base, dependency, states)
-    # Neither receipt Booleans nor their digests replace PE/emitted-frame bytes.
-    pe = verify_pe_evidence(bundle, descriptor["pe_receipt_file"], descriptor["engine_file"])
-    abi = verify_abi_evidence(bundle, descriptor["abi_receipt_file"], descriptor["engine_file"], descriptor["parser_file"], build)
-    identity = {
-        "schema": "omni-strata-combined-static-runtime-identity-v2",
-        "status": "static_archived_bytes_and_build_records_verified_not_live_runtime_eligible",
-        "base_revision": BASE, "base_tree": base["tree"], "dependency_revision": DEPENDENCY,
-        "dependency_tree": DEPENDENCY_TREE, "native_io_schema": "strata-omni-io-v1",
-        "native_execution_schema": "strata-omni-exec-v1", "patch_chain": copy.deepcopy(chain),
-        "combined_patch_manifest_sha256": PATCH_MANIFEST_SHA, "header_sha256": HEADER_V2,
-        "schema_sha256": SCHEMA_SHA, "parser_sha256": PARSER_SHA,
-        "runtime_manifest_sha256": bundle.manifest_sha256, "descriptor_sha256": sha(raw),
-        "native_executable_sha256": bundle.rows[descriptor["engine_file"]]["sha256"],
-        "source_hashes": states, "build": build, "pe": pe, "ABI_reference": abi,
-        "observer_layout": abi["observer_layout"],
-        "observer_layout_scope": "compiled_standalone_fixture_reference_only",
-        "compiled_engine_ABI_verified": False,
-        "runtime_binding": None, "live_loaded_module_paths_verified": False,
-        "current_OS_identity_verified": False, "owner_adapter_verified": False,
-        "build_execution_attested_by_verifier": False, "runtime_qualification": False,
-        "default_eligible": False, "aggregate_gpu_hard_cap_verified": False,
-        "aggregate_ram_hard_cap_verified": False, "physical_ssd_read_bytes": None,
     }
     return identity | {"identity_sha256": sha(canonical(identity))}
 
