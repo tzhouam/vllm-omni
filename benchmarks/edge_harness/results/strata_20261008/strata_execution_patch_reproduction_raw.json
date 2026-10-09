@@ -1,0 +1,575 @@
+{
+  "schema": "omni-private-published-Strata-patch-reproduction-v1",
+  "status": "selected_source_patch_reproduction_passed",
+  "scope": "twelve_touched_native_files_only_no_build_or_runtime_or_model",
+  "native_model_executed": false,
+  "native_build_executed": false,
+  "runtime_registered": false,
+  "runtime_qualification": false,
+  "started_unix": 1791508239.262535,
+  "steps": [
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "init",
+        "--quiet"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "config",
+        "core.autocrlf",
+        "true"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "config",
+        "core.safecrlf",
+        "false"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "add",
+        "--all"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "apply",
+        "--check",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_io_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "apply",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_io_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "apply",
+        "--check",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "apply",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "apply",
+        "--check",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_boundary_v2.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "README_windows_autocrlf_without_header_override",
+      "arguments": [
+        "apply",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_boundary_v2.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "init",
+        "--quiet"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "config",
+        "core.autocrlf",
+        "true"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "config",
+        "core.safecrlf",
+        "false"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "add",
+        "--all"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "apply",
+        "--check",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_io_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "apply",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_io_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "apply",
+        "--check",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "apply",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_v1.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "apply",
+        "--check",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_boundary_v2.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "fixture": "recorded_native_checkout_controls",
+      "arguments": [
+        "apply",
+        "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_omni_execution_boundary_v2.patch"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "fixtures": {
+    "README_windows_autocrlf_without_header_override": {
+      "core_autocrlf": true,
+      "header_info_attributes_LF_override": false,
+      "all_three_patches_applied": true,
+      "final_files": [
+        {
+          "path": "include/strata/core/expert_source.hpp",
+          "reproduced_sha256": "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081",
+          "frozen_actual_sha256": "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 856,
+          "frozen_CRLF": 856
+        },
+        {
+          "path": "include/strata/core/omni_execution_observer.hpp",
+          "reproduced_sha256": "75d490b3f6d81ee15be37725dae9f0c5ccd0760f5ae2f84430cd71c6f55de11d",
+          "frozen_actual_sha256": "148b2d3de4b3f62e8f5ebff9211d04a89d488bd00d9256cc26ef41cc5bfa2f55",
+          "raw_bytes_equal": false,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 343,
+          "frozen_CRLF": 0
+        },
+        {
+          "path": "include/strata/kernels/ngram.hpp",
+          "reproduced_sha256": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4",
+          "frozen_actual_sha256": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 256,
+          "frozen_CRLF": 256
+        },
+        {
+          "path": "include/strata/ngram/ple_reader.hpp",
+          "reproduced_sha256": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c",
+          "frozen_actual_sha256": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 103,
+          "frozen_CRLF": 103
+        },
+        {
+          "path": "src/core/expert_cache.cpp",
+          "reproduced_sha256": "84bfc1ae38cc8c8f9afe649613716ca397b506b656216a48a0d9781e3f32c387",
+          "frozen_actual_sha256": "84bfc1ae38cc8c8f9afe649613716ca397b506b656216a48a0d9781e3f32c387",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 787,
+          "frozen_CRLF": 787
+        },
+        {
+          "path": "src/core/expert_source.cpp",
+          "reproduced_sha256": "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0",
+          "frozen_actual_sha256": "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 4047,
+          "frozen_CRLF": 4047
+        },
+        {
+          "path": "src/core/session.cpp",
+          "reproduced_sha256": "761a324da5842095bd0d08b5cefab6cb8ba2256a5ace6dcd13f9a100b2f90035",
+          "frozen_actual_sha256": "761a324da5842095bd0d08b5cefab6cb8ba2256a5ace6dcd13f9a100b2f90035",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 981,
+          "frozen_CRLF": 981
+        },
+        {
+          "path": "src/core/verify.cpp",
+          "reproduced_sha256": "9d923524df6b4accba027f1476f12567bf81ee64a6e6f0c7f7680eb94352c312",
+          "frozen_actual_sha256": "9d923524df6b4accba027f1476f12567bf81ee64a6e6f0c7f7680eb94352c312",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 3132,
+          "frozen_CRLF": 3132
+        },
+        {
+          "path": "src/kernels/cpu/pool.cpp",
+          "reproduced_sha256": "0aea96e3f050b1e72563c9939224328422ecdec323b2a02ae6d5ff3fbdb32975",
+          "frozen_actual_sha256": "0aea96e3f050b1e72563c9939224328422ecdec323b2a02ae6d5ff3fbdb32975",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 861,
+          "frozen_CRLF": 861
+        },
+        {
+          "path": "src/kernels/ngram.cpp",
+          "reproduced_sha256": "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb",
+          "frozen_actual_sha256": "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 620,
+          "frozen_CRLF": 620
+        },
+        {
+          "path": "src/ngram/ple_reader.cpp",
+          "reproduced_sha256": "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c",
+          "frozen_actual_sha256": "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 556,
+          "frozen_CRLF": 556
+        },
+        {
+          "path": "src/program/generate.cpp",
+          "reproduced_sha256": "d0c92501d8fb57751b0f25aeffdaf8de4b9ce69b99f824e99ffc51dab49a204a",
+          "frozen_actual_sha256": "d0c92501d8fb57751b0f25aeffdaf8de4b9ce69b99f824e99ffc51dab49a204a",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 12010,
+          "frozen_CRLF": 12010
+        }
+      ],
+      "raw_equal_count": 11,
+      "LF_normalized_equal_count": 12
+    },
+    "recorded_native_checkout_controls": {
+      "core_autocrlf": true,
+      "header_info_attributes_LF_override": true,
+      "all_three_patches_applied": true,
+      "final_files": [
+        {
+          "path": "include/strata/core/expert_source.hpp",
+          "reproduced_sha256": "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081",
+          "frozen_actual_sha256": "b6e40e35eafa70c5a7affc44293b7d088516e4419a6d7c39d590221e7063c081",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 856,
+          "frozen_CRLF": 856
+        },
+        {
+          "path": "include/strata/core/omni_execution_observer.hpp",
+          "reproduced_sha256": "148b2d3de4b3f62e8f5ebff9211d04a89d488bd00d9256cc26ef41cc5bfa2f55",
+          "frozen_actual_sha256": "148b2d3de4b3f62e8f5ebff9211d04a89d488bd00d9256cc26ef41cc5bfa2f55",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 0,
+          "frozen_CRLF": 0
+        },
+        {
+          "path": "include/strata/kernels/ngram.hpp",
+          "reproduced_sha256": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4",
+          "frozen_actual_sha256": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 256,
+          "frozen_CRLF": 256
+        },
+        {
+          "path": "include/strata/ngram/ple_reader.hpp",
+          "reproduced_sha256": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c",
+          "frozen_actual_sha256": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 103,
+          "frozen_CRLF": 103
+        },
+        {
+          "path": "src/core/expert_cache.cpp",
+          "reproduced_sha256": "84bfc1ae38cc8c8f9afe649613716ca397b506b656216a48a0d9781e3f32c387",
+          "frozen_actual_sha256": "84bfc1ae38cc8c8f9afe649613716ca397b506b656216a48a0d9781e3f32c387",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 787,
+          "frozen_CRLF": 787
+        },
+        {
+          "path": "src/core/expert_source.cpp",
+          "reproduced_sha256": "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0",
+          "frozen_actual_sha256": "97ce82cc3ca476f0b647617ed73dee7f5791bd277401bc9640207db7c6942ad0",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 4047,
+          "frozen_CRLF": 4047
+        },
+        {
+          "path": "src/core/session.cpp",
+          "reproduced_sha256": "761a324da5842095bd0d08b5cefab6cb8ba2256a5ace6dcd13f9a100b2f90035",
+          "frozen_actual_sha256": "761a324da5842095bd0d08b5cefab6cb8ba2256a5ace6dcd13f9a100b2f90035",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 981,
+          "frozen_CRLF": 981
+        },
+        {
+          "path": "src/core/verify.cpp",
+          "reproduced_sha256": "9d923524df6b4accba027f1476f12567bf81ee64a6e6f0c7f7680eb94352c312",
+          "frozen_actual_sha256": "9d923524df6b4accba027f1476f12567bf81ee64a6e6f0c7f7680eb94352c312",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 3132,
+          "frozen_CRLF": 3132
+        },
+        {
+          "path": "src/kernels/cpu/pool.cpp",
+          "reproduced_sha256": "0aea96e3f050b1e72563c9939224328422ecdec323b2a02ae6d5ff3fbdb32975",
+          "frozen_actual_sha256": "0aea96e3f050b1e72563c9939224328422ecdec323b2a02ae6d5ff3fbdb32975",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 861,
+          "frozen_CRLF": 861
+        },
+        {
+          "path": "src/kernels/ngram.cpp",
+          "reproduced_sha256": "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb",
+          "frozen_actual_sha256": "cabe072a32d9499fb054c0438780ab68a1e05387f16452ff7dd09965cac584bb",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 620,
+          "frozen_CRLF": 620
+        },
+        {
+          "path": "src/ngram/ple_reader.cpp",
+          "reproduced_sha256": "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c",
+          "frozen_actual_sha256": "ca5d63ee37d739f6f08273577bde182987e2b3bb5da856e59cb8e54bec4d517c",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 556,
+          "frozen_CRLF": 556
+        },
+        {
+          "path": "src/program/generate.cpp",
+          "reproduced_sha256": "d0c92501d8fb57751b0f25aeffdaf8de4b9ce69b99f824e99ffc51dab49a204a",
+          "frozen_actual_sha256": "d0c92501d8fb57751b0f25aeffdaf8de4b9ce69b99f824e99ffc51dab49a204a",
+          "raw_bytes_equal": true,
+          "LF_normalized_equal": true,
+          "reproduced_CRLF": 12010,
+          "frozen_CRLF": 12010
+        }
+      ],
+      "raw_equal_count": 12,
+      "LF_normalized_equal_count": 12
+    }
+  },
+  "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "patch_order": [
+    {
+      "path": "strata_omni_io_v1.patch",
+      "size_bytes": 16183,
+      "sha256": "31b98e5e02e21a6289d0713097036334a59aef2d15ad9e951ded80f59f4bfdcc"
+    },
+    {
+      "path": "strata_omni_execution_v1.patch",
+      "size_bytes": 32244,
+      "sha256": "884ce375cfab94756834f1e97211bfbef6471674e50e24c0bfcc03a9eca96358"
+    },
+    {
+      "path": "strata_omni_execution_boundary_v2.patch",
+      "size_bytes": 1235,
+      "sha256": "4689571b0c15873dba9e232baf3834db925c1cfb6d9f5929ef70f95c773ab583"
+    }
+  ],
+  "base_preimages": {
+    "include/strata/core/expert_source.hpp": {
+      "canonical_git_blob_id": "1bbdb413085b5c6d832c93ab0ac058f588709af0",
+      "canonical_sha256": "32f9bc3e7e72c2713d9323dd7353ad70e6b58604daa4e4c18a7e20e1c9929f1f",
+      "checkout_sha256": "877756c3c1e048a31a0ff19977364515079acc8d31b31f5278c1b2ab4ff7e0c2",
+      "checkout_CRLF": 846,
+      "canonical_size_bytes": 57610,
+      "checkout_size_bytes": 58456
+    },
+    "include/strata/kernels/ngram.hpp": {
+      "canonical_git_blob_id": "207707d0eae654afb730290586a778e5a47432a4",
+      "canonical_sha256": "edc6d36eaf6062e8c377577de787ed9e5576ede19e04c5964dc7e6b83b8d01ac",
+      "checkout_sha256": "e5187d47d3f74b2ce5c9ecb5ad2104ad31db98e7207f00bdbdea2cc11c33b0b1",
+      "checkout_CRLF": 252,
+      "canonical_size_bytes": 15951,
+      "checkout_size_bytes": 16203
+    },
+    "include/strata/ngram/ple_reader.hpp": {
+      "canonical_git_blob_id": "2884817ef895f19deb7f40b22a20036c9fc0dafe",
+      "canonical_sha256": "d19b99a681a533f47144293bb170913c1496b5e0c344aed097ad1418375f7498",
+      "checkout_sha256": "41182d36990688b9c2aca737c9f7c05120e0bf1677f9435e9bc08a2603fea9be",
+      "checkout_CRLF": 100,
+      "canonical_size_bytes": 5338,
+      "checkout_size_bytes": 5438
+    },
+    "src/core/expert_cache.cpp": {
+      "canonical_git_blob_id": "9fe45205f2813acd67586ea6b7da5857177e4d75",
+      "canonical_sha256": "91eb2373d1893ff2e6fe88887a121f525549ad0d66184dee190e1ad8d07946d2",
+      "checkout_sha256": "583f090a5d013d5e52289d1c844f5a9877e7768886dc775aa575d5d333b95051",
+      "checkout_CRLF": 778,
+      "canonical_size_bytes": 33351,
+      "checkout_size_bytes": 34129
+    },
+    "src/core/expert_source.cpp": {
+      "canonical_git_blob_id": "fcf8b71e8887617025a9348f34e522b8fcce6a66",
+      "canonical_sha256": "2f0e14294ba463fd4fbcfb58829865c5f33712bcc72c6856ebbe2ff595b6e208",
+      "checkout_sha256": "4cfb12d5b45003fddb41f2bce38009228447c769243c081c4cb5cecc1f420f9b",
+      "checkout_CRLF": 4016,
+      "canonical_size_bytes": 198731,
+      "checkout_size_bytes": 202747
+    },
+    "src/core/session.cpp": {
+      "canonical_git_blob_id": "d87452d0ce3792a9b88b6bf9aef8e09c44f6b006",
+      "canonical_sha256": "b1479da93e913a0c944b1c61bb1fd623935cf68d7d02ae9ee1e32d7bb567625f",
+      "checkout_sha256": "9ce0156024e2a923df5baf913c7474f1b1462b8fec20e6d12775b2e0c992bb00",
+      "checkout_CRLF": 977,
+      "canonical_size_bytes": 50607,
+      "checkout_size_bytes": 51584
+    },
+    "src/core/verify.cpp": {
+      "canonical_git_blob_id": "6b805694a4dc1a824963b41e67bbfdd60b2dc9c4",
+      "canonical_sha256": "afd975cc5a8771219700d70c32cd47fc0d59b4c2d83f9bc62b4d535771da3f96",
+      "checkout_sha256": "8ad078d10468c28f95b29bb996e78b3600a61c9d5408219324db125c9b7a2472",
+      "checkout_CRLF": 3128,
+      "canonical_size_bytes": 175492,
+      "checkout_size_bytes": 178620
+    },
+    "src/kernels/cpu/pool.cpp": {
+      "canonical_git_blob_id": "16e3fb2d8f8beb4df064f2b469370d5d178c3a3c",
+      "canonical_sha256": "f789078f1e14b6cf72bec5cacc2802d358ad82cbd7bf890f344a4a4a32158611",
+      "checkout_sha256": "e54f0c2fe6a297c4aa49a3a9efabab3166d8644f05385b9f7e2fa5e5d34f8eff",
+      "checkout_CRLF": 849,
+      "canonical_size_bytes": 39145,
+      "checkout_size_bytes": 39994
+    },
+    "src/kernels/ngram.cpp": {
+      "canonical_git_blob_id": "90631b4edd69f8fcf38feb6766123bb3acddaae7",
+      "canonical_sha256": "e609caf1bb0812f366d96a5304c0f98e2864c1c0d22a0bef7b35d818e09debd5",
+      "checkout_sha256": "0553d98286f5852aa8eba96a37ae2efa9e42725aa8ac2f0449ea75a20a6bf5ae",
+      "checkout_CRLF": 615,
+      "canonical_size_bytes": 30260,
+      "checkout_size_bytes": 30875
+    },
+    "src/ngram/ple_reader.cpp": {
+      "canonical_git_blob_id": "a03e4c046c9b5e95f605a1c6593622706f094086",
+      "canonical_sha256": "ddec6dbcc8afd8186c724403d5aaa54b70b9fbd551fea733ce422974131ede9e",
+      "checkout_sha256": "23d4ca29c0d981855d1fee36957dca9de8a9f18b38dc084846ec5d9604176522",
+      "checkout_CRLF": 547,
+      "canonical_size_bytes": 21322,
+      "checkout_size_bytes": 21869
+    },
+    "src/program/generate.cpp": {
+      "canonical_git_blob_id": "ce8e004744352a182c99597ced8818de1f0d4ce9",
+      "canonical_sha256": "f4eda3a268133016a74b80d61dca99d6e4ce0df99dae4862fd3f6c1026a11d56",
+      "checkout_sha256": "cc057d4fe19f827a6119aba062594c9cceef20931a80908e55ee36b934e7a1d4",
+      "checkout_CRLF": 11936,
+      "canonical_size_bytes": 795668,
+      "checkout_size_bytes": 807604
+    }
+  },
+  "selected_tree_objects_verified": 12,
+  "header_base_absence_verified": true,
+  "source_files_touched": 12,
+  "README_windows_scope": "without the archived header-only eol=lf override, expected raw header may differ; LF semantic image is separately compared",
+  "actual_checkout_scope": "core.autocrlf=true plus exact archived header-only .git/info/attributes; all twelve frozen raw byte preimages match",
+  "complete_upstream_checkout_reconstructed": false,
+  "dependency_or_compiler_closure_verified": false,
+  "finished_unix": 1791508242.0780659,
+  "source_sha256": "883565d005bf838b82220634a14f9ed072bff810db8df7c0017877691930e22f"
+}

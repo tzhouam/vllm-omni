@@ -77,6 +77,23 @@ latencies do not qualify this CUDA 13.4 executable. See
 Two additional byte-pinned patches extend the same I/O build with scoped
 execution counters. Apply them in order after `strata_omni_io_v1.patch`:
 
+For the recorded Windows source bytes, create the fresh checkout with
+`git -c core.autocrlf=true clone https://github.com/Niko1221/Strata.git strata-observed`
+in the earlier clone step. Before applying the execution patch, add this
+LF-terminated line to that checkout's `.git/info/attributes`:
+
+```gitattributes
+include/strata/core/omni_execution_observer.hpp text eol=lf
+```
+
+This narrow override preserves LF for the new observer header while existing
+tracked source files use their archived Windows checkout endings. The
+[selected-source reproduction record](../results/strata_20261008/strata_execution_patch_reproduction_raw.json)
+verified the exact base Git objects and all three published patches: **12/12**
+final files matched the actual frozen native source bytes. Without the header
+override, **11/12** matched raw bytes and **12/12** matched after LF normalization.
+This small fixture did not rebuild the executable or run a model.
+
 ```text
 git -C strata-observed apply /absolute/path/strata_omni_execution_v1.patch
 git -C strata-observed apply /absolute/path/strata_omni_execution_boundary_v2.patch
