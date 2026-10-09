@@ -22,13 +22,16 @@ from urllib.parse import urlparse
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-
 from vllm_omni.edge.agent.consumer_trace import (
     consumer_trace_requested,
     validate_consumer_trace,
     validated_consumer_final,
 )
 from vllm_omni.edge.agent.fixed_suite import canonical_fixed_cases
+from vllm_omni.edge.agent.llamacpp_route import (
+    llamacpp_profile_identity,
+    validate_llamacpp_profile_binding,
+)
 from vllm_omni.edge.agent.placement import (
     STRATA_BACKEND,
     native_gpu_sample_summary,
@@ -809,6 +812,7 @@ def _identity(profile: Mapping[str, Any], conditions: Mapping[str, Any],
         "environment_fingerprint": conditions["environment_fingerprint"],
         "power_condition": conditions["power_condition"],
         "profile_raw_sha256": raw_sha256,
+        **llamacpp_profile_identity(profile),
     }
 
 
@@ -1133,6 +1137,7 @@ def load_reviewed_qualification(
             evidence = (row.get("result") or {}).get("placement_evidence", {})
             _verify_strata_release_observations(evidence)
     else:
+        validate_llamacpp_profile_binding(profile_route, current_route, provenance)
         expected_backend = ("external.llamacpp.multimodal.v1" if current_route.get("mmproj_file")
                             else "external.llamacpp.text.v1")
         if (current_route["artifact_id"] != identity["artifact_id"] or

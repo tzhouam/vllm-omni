@@ -46,6 +46,7 @@ from vllm_omni.edge.agent.consumer_trace import (
     validate_consumer_trace,
     validated_consumer_final,
 )
+from vllm_omni.edge.agent.llamacpp_route import llamacpp_route_binding
 from vllm_omni.edge.agent.placement import (
     STRATA_BACKEND,
     evidence_sha256,
@@ -227,6 +228,7 @@ def load_profile_routes(
     if not isinstance(metadata, dict):
         raise ValueError("lineage manifest must contain routes by route_id")
     for entry in entries:
+        llama_binding = llamacpp_route_binding(entry)
         route_id = str(entry["route_id"])
         if entry.get("model_output_contract") is not None and entry.get("backend") != STRATA_BACKEND:
             raise ValueError("explicit output consumers require the reviewed Strata text profile binding")
@@ -282,9 +284,11 @@ def load_profile_routes(
             precision=precision,
             backend=("external.llamacpp.multimodal.v1" if entry.get("mmproj_file") else "external.llamacpp.text.v1"),
             expected_placement=str(entry["placement"]),
+            **({"backend_identity": llama_binding} if llama_binding is not None else {}),
         )
         profiles.append(profile)
         provenance[route_id] = {
+            **(llama_binding or {}),
             "lineage_verified": item.get("lineage_verified") is True,
             "checkpoint_revision": revision,
             "model_sha256": model_sha,

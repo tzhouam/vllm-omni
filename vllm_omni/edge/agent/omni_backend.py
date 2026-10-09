@@ -13,6 +13,7 @@ import re
 import time
 from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any
 
 
@@ -59,8 +60,25 @@ class OmniLlamaConfig:
     gpu_memory_pool: str = "vram"
     artifact_root: str | None = None
     artifact_manifest: Mapping[str, Any] | None = None
+    launch_controls: Mapping[str, Any] | None = None
+    launch_controls_runtime_manifest: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
+        if (self.launch_controls is None) != (self.launch_controls_runtime_manifest is None):
+            raise ValueError("llama.cpp launch controls and runtime manifest must be paired")
+        if self.launch_controls is not None:
+            from vllm_omni.engine.backends.llamacpp_controls import normalized_launch_controls_bundle
+
+            controls, runtime = normalized_launch_controls_bundle(
+                self.launch_controls, self.launch_controls_runtime_manifest
+            )
+            if (any(type(value) is not int or value <= 0 for value in
+                    (self.context_tokens, self.max_new_tokens, self.max_io_bytes))
+                    or self.context_tokens <= self.max_new_tokens
+                    or type(self.disable_repack) is not bool):
+                raise ValueError("controlled llama.cpp context/output/I/O/repack values must be explicit typed bounds")
+            object.__setattr__(self, "launch_controls", MappingProxyType(controls))
+            object.__setattr__(self, "launch_controls_runtime_manifest", runtime)
         if not self.route_id or not self.model_sha256 or not self.server_sha256:
             raise ValueError("route and pinned GGUF/binary hashes are required")
         if not self.demands or any(type(n) is not int or n < 0 for n in self.demands.values()):
@@ -139,6 +157,45 @@ class OmniLlamaConfig:
             (self.mmproj_sha256, self.max_image_bytes, self.image_token_reserve)
         ):
             raise ValueError("multimodal stage needs projector hash and image bounds")
+
+
+def llama_config_from_entry(entry: Mapping[str, Any], *, capacities: Mapping[str, int]) -> OmniLlamaConfig:
+    """Keep native config translation shared with reproducible route identity."""
+    return OmniLlamaConfig(
+        route_id=entry["route_id"],
+        model_file=entry["model_file"],
+        model_sha256=entry["model_sha256"],
+        server_bin=entry["server_bin"],
+        server_sha256=entry["server_sha256"],
+        log_file=entry["log_file"],
+        placement=entry["placement"],
+        capacities=capacities,
+        demands=entry["memory_demands"],
+        memory_overhead_bytes=entry["memory_overhead_bytes"],
+        context_tokens=entry.get("context_tokens", 4096),
+        max_new_tokens=entry.get("max_new_tokens", 512),
+        max_io_bytes=entry.get("max_io_bytes", 1 << 20),
+        request_timeout_s=entry.get("request_timeout_s", 300),
+        start_timeout_s=entry.get("start_timeout_s", 300),
+        expected_device_name=entry.get("expected_device_name"),
+        ggml_vk_visible_devices=entry.get("ggml_vk_visible_devices"),
+        mmproj_file=entry.get("mmproj_file"),
+        mmproj_sha256=entry.get("mmproj_sha256"),
+        max_image_bytes=entry.get("max_image_bytes", 0),
+        image_token_reserve=entry.get("image_token_reserve", 0),
+        disable_repack=entry.get("disable_repack", False),
+        gpu_layers=entry.get("gpu_layers"),
+        cpu_moe_layers=entry.get("cpu_moe_layers", 0),
+        host_mapped_expert_layers=entry.get("host_mapped_expert_layers", 0),
+        cpu_weight_budget_bytes=entry.get("cpu_weight_budget_bytes"),
+        gpu_weight_budget_bytes=entry.get("gpu_weight_budget_bytes"),
+        vram_overhead_bytes=entry.get("vram_overhead_bytes", 0),
+        gpu_memory_pool=entry.get("gpu_memory_pool", "vram"),
+        artifact_root=entry.get("artifact_root"),
+        artifact_manifest=entry.get("artifact_manifest"),
+        launch_controls=entry.get("launch_controls"),
+        launch_controls_runtime_manifest=entry.get("launch_controls_runtime_manifest"),
+    )
 
 
 class OmniCompleteModelBackend:
@@ -520,6 +577,16 @@ class OmniCompleteModelBackend:
 class OmniLlamaBackend(OmniCompleteModelBackend):
     """Pinned llama.cpp stage using the shared complete-model lifecycle."""
 
+    def _validate_loaded_plan(self, plan: Mapping[str, Any]) -> None:
+        super()._validate_loaded_plan(plan)
+        if self.config.launch_controls is not None:
+            from vllm_omni.edge.agent.llamacpp_route import (
+                llamacpp_config_binding,
+                validate_llamacpp_launch_plan,
+            )
+
+            validate_llamacpp_launch_plan(plan, llamacpp_config_binding(self.config))
+
     def _stage_backend_config(self) -> dict[str, Any]:
         cfg = self.config
         multimodal = cfg.mmproj_file is not None
@@ -548,6 +615,13 @@ class OmniLlamaBackend(OmniCompleteModelBackend):
             "gpu_weight_budget_bytes": cfg.gpu_weight_budget_bytes,
             "vram_overhead_bytes": cfg.vram_overhead_bytes,
         }
+        if cfg.launch_controls is not None:
+            from vllm_omni.engine.backends.llamacpp_controls import normalized_launch_controls_bundle
+
+            controls, runtime = normalized_launch_controls_bundle(
+                cfg.launch_controls, cfg.launch_controls_runtime_manifest
+            )
+            backend.update(launch_controls=controls, launch_controls_runtime_manifest=runtime)
         if cfg.artifact_manifest is not None:
             backend.update(artifact_root=cfg.artifact_root, artifact_manifest=dict(cfg.artifact_manifest))
         if multimodal:

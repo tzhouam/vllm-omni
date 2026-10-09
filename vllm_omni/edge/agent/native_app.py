@@ -20,14 +20,15 @@ from typing import Any
 
 from vllm_omni.edge.agent.admission import HostMemoryCoordinator
 from vllm_omni.edge.agent.controller import AgentController, AgentLimits
+from vllm_omni.edge.agent.llamacpp_route import llamacpp_route_binding
 from vllm_omni.edge.agent.memory import EncryptedMemoryStore
 from vllm_omni.edge.agent.omni_backend import (
     OmniLlamaBackend,
-    OmniLlamaConfig,
     OmniStrataBackend,
     OmniStrataConfig,
     OmniStrataImageBackend,
     OmniStrataImageConfig,
+    llama_config_from_entry,
 )
 from vllm_omni.edge.agent.router import Qualification, Route
 from vllm_omni.edge.agent.tools import WindowsToolBoundary
@@ -392,6 +393,7 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
     from vllm_omni.edge.agent.model_output import validate_output_contract_entry
 
     for entry in data["routes"]:
+        llamacpp_route_binding(entry)
         output_contract = validate_output_contract_entry(entry)
         route = Route(
             route_id=entry["route_id"],
@@ -412,7 +414,6 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
         if route.requires_nvidia and not hardware["gpu_name"]:
             capacity_refusals[route.route_id] = "required NVIDIA GPU is not detected"
             continue
-        gpu_pool = entry.get("gpu_memory_pool", "vram")
         pool_refusal = _gpu_pool_refusal(entry, hardware)
         if pool_refusal is not None:
             capacity_refusals[route.route_id] = pool_refusal
@@ -470,39 +471,7 @@ def build_controller(config_path: str | Path) -> tuple[AgentController, dict[str
         if route.backend not in {"external.llamacpp.text.v1", "external.llamacpp.multimodal.v1"}:
             raise ValueError(f"unsupported complete Agent route backend: {route.backend}")
         backend = OmniLlamaBackend(
-            OmniLlamaConfig(
-                route_id=route.route_id,
-                model_file=entry["model_file"],
-                model_sha256=entry["model_sha256"],
-                server_bin=entry["server_bin"],
-                server_sha256=entry["server_sha256"],
-                log_file=entry["log_file"],
-                placement=route.placement,
-                capacities=capacities,
-                demands=route.memory_demands,
-                memory_overhead_bytes=entry["memory_overhead_bytes"],
-                context_tokens=entry.get("context_tokens", 4096),
-                max_new_tokens=entry.get("max_new_tokens", 512),
-                max_io_bytes=entry.get("max_io_bytes", 1 << 20),
-                request_timeout_s=entry.get("request_timeout_s", 300),
-                start_timeout_s=entry.get("start_timeout_s", 300),
-                expected_device_name=entry.get("expected_device_name"),
-                ggml_vk_visible_devices=entry.get("ggml_vk_visible_devices"),
-                mmproj_file=entry.get("mmproj_file"),
-                mmproj_sha256=entry.get("mmproj_sha256"),
-                max_image_bytes=entry.get("max_image_bytes", 0),
-                image_token_reserve=entry.get("image_token_reserve", 0),
-                disable_repack=entry.get("disable_repack", False),
-                gpu_layers=entry.get("gpu_layers"),
-                cpu_moe_layers=entry.get("cpu_moe_layers", 0),
-                host_mapped_expert_layers=entry.get("host_mapped_expert_layers", 0),
-                cpu_weight_budget_bytes=entry.get("cpu_weight_budget_bytes"),
-                gpu_weight_budget_bytes=entry.get("gpu_weight_budget_bytes"),
-                vram_overhead_bytes=entry.get("vram_overhead_bytes", 0),
-                gpu_memory_pool=gpu_pool,
-                artifact_root=entry.get("artifact_root"),
-                artifact_manifest=entry.get("artifact_manifest"),
-            )
+            llama_config_from_entry(entry, capacities=capacities)
         )
         stage_backends[route.route_id] = backend
 
@@ -600,7 +569,6 @@ def main() -> None:
                             output.write(json.dumps(event, ensure_ascii=False) + "\n")
         return
     from PySide6.QtWidgets import QApplication
-
     from vllm_omni.edge.agent.desktop import AgentWindow
 
     app = QApplication(sys.argv)

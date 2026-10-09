@@ -29,12 +29,18 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from omni_stage_contracts import StageEvent, StageRequest
 from vllm.outputs import CompletionOutput
 
-from omni_stage_contracts import StageEvent, StageRequest
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 from vllm_omni.engine.stage_client import StageClientBase
 from vllm_omni.outputs import OmniRequestOutput
+
+from .llamacpp_controls import (
+    isolated_launch_environment,
+    launch_controls_metadata,
+    parse_launch_controls,
+)
 
 _LAYER_ASSIGNMENT = re.compile(r"load_tensors: layer\s+\d+ assigned to device ([^,\s]+)")
 _OFFLOADED_LAYERS = re.compile(r"load_tensors: offloaded (\d+)/(\d+) layers to GPU")
@@ -485,6 +491,18 @@ class LlamaCppTextStageClient(StageClientBase):
         ):
             raise ValueError("invalid llama.cpp request, context, timeout or port bound")
         try:
+            launch_controls = (
+                parse_launch_controls(config["launch_controls"]) if "launch_controls" in config else None
+            )
+            runtime_manifest = None
+            control_identity = None
+            if launch_controls is not None:
+                from vllm_omni.engine.weight_tiers import ArtifactManifest
+
+                runtime_manifest = ArtifactManifest.from_dict(config["launch_controls_runtime_manifest"])
+                control_identity = launch_controls_metadata(launch_controls, runtime_manifest)
+            elif "launch_controls_runtime_manifest" in config:
+                raise ValueError("llama.cpp runtime control manifest requires explicit launch_controls")
             if self._memory_pool not in reservation.demands:
                 raise ResourceUnavailable("llama.cpp memory pool absent from stage reservation")
             if "host_ram" not in reservation.demands or self._max_io_bytes > reservation.demands["host_ram"]:
@@ -591,8 +609,13 @@ class LlamaCppTextStageClient(StageClientBase):
             if self._placement != "cpu" and not expected_device_name:
                 raise ValueError("Vulkan stage requires expected_device_name")
 
+            if runtime_manifest is not None and self._binary not in runtime_manifest.verify(self._binary.parent):
+                raise ValueError("selected llama-server must belong to the launch-controls runtime manifest")
             self._log_path.parent.mkdir(parents=True, exist_ok=True)
             env = os.environ.copy()
+            removed_environment_names = []
+            if launch_controls is not None:
+                env, removed_environment_names = isolated_launch_environment(env)
             if config.get("ggml_vk_visible_devices") is not None:
                 env["GGML_VK_VISIBLE_DEVICES"] = str(config["ggml_vk_visible_devices"])
             command = [
@@ -629,6 +652,8 @@ class LlamaCppTextStageClient(StageClientBase):
                 "-lv",
                 "5" if self._hybrid else "4",
             ]
+            if launch_controls is not None:
+                command.extend(launch_controls.arguments())
             if config.get("disable_repack", False):
                 command.append("--no-repack")
             expert_layers = self._host_mapped_expert_layers if self._host_mapped else self._cpu_moe_layers
@@ -784,6 +809,11 @@ class LlamaCppTextStageClient(StageClientBase):
                 "stateful_session": "llama.cpp-owned; reset for each complete request",
                 "evidence": "B",
             }
+            if control_identity is not None:
+                self.execution_plan["launch_controls"] = control_identity | {
+                    "removed_environment_variable_names": removed_environment_names,
+                    "environment_scope": "child-only LLAMA_ARG_* and inherited GPU visibility isolation",
+                }
         except BaseException:
             self.shutdown()
             raise

@@ -488,6 +488,20 @@ def result_placement_matches(result: Mapping[str, Any], route: Mapping[str, Any]
         # Image functional receipts do not inherit text-suite qualification.
         return False
     if route["backend"] != STRATA_BACKEND:
+        binding = route.get("backend_identity", {})
+        if isinstance(binding, Mapping) and (binding.get("schema") == "omni-llamacpp-agent-launch-identity-v1"
+                                             or "launch_controls" in binding
+                                             or "runtime_artifact_manifest_sha256" in binding):
+            from vllm_omni.edge.agent.llamacpp_route import validate_llamacpp_launch_plan
+
+            try:
+                evidence = result["placement_evidence"]
+                plan = evidence["execution_plan"]
+                if evidence.get("loaded_plan_sha256") != evidence_sha256(plan):
+                    return False
+                validate_llamacpp_launch_plan(plan, binding)
+            except (KeyError, TypeError, ValueError, AttributeError):
+                return False
         return result.get("actual_placement") == route["expected_placement"]
     try:
         if result.get("actual_placement") is not None:
@@ -504,6 +518,20 @@ def preparation_placement_matches(preparation: Mapping[str, Any], route: Mapping
     if route["backend"] == "external.strata.multimodal.v1":
         return False
     if route["backend"] != STRATA_BACKEND:
+        binding = route.get("backend_identity", {})
+        if isinstance(binding, Mapping) and (binding.get("schema") == "omni-llamacpp-agent-launch-identity-v1"
+                                             or "launch_controls" in binding
+                                             or "runtime_artifact_manifest_sha256" in binding):
+            from vllm_omni.edge.agent.llamacpp_route import validate_llamacpp_launch_plan
+
+            try:
+                details = preparation["details"]
+                plan = details["execution_plan"]
+                if details.get("loaded_plan_sha256") != evidence_sha256(plan):
+                    return False
+                validate_llamacpp_launch_plan(plan, binding)
+            except (KeyError, TypeError, ValueError, AttributeError):
+                return False
         return preparation.get("actual_placement") == route["expected_placement"]
     try:
         details = preparation["details"]
