@@ -21,7 +21,7 @@ from pathlib import Path, PurePosixPath
 import strata_exec as parser
 import strata_exec_runtime as static_verifier
 
-STATIC_VERIFIER_SHA = "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
+STATIC_VERIFIER_SHA = "273b81b115756988ef990d4a0ffde86104141787f1658bd0e90ec596f9753111"
 PARSER_SHA = "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf"
 BRIDGE_SHA = "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe"
 ENGINE_ROLE_IO_SHA = "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43"
@@ -156,7 +156,7 @@ class LiveExecutionBindingVerifier:
     integration must install stage._execution_bridge before attach_bridge().
     """
 
-    def __init__(self, stage, descriptor_file, runtime_root, source_context_file, receipt_directory):
+    def __init__(self, stage, descriptor_file, runtime_root, source_context_file, receipt_directory, *, verified_snapshot=None):
         require(os.name == "nt", "native_Windows_live_binding_required")
         require(digest(source_bytes(static_verifier.__file__)) == STATIC_VERIFIER_SHA
                 and digest(source_bytes(parser.__file__)) == PARSER_SHA, "live_verifier_import_preimages")
@@ -170,7 +170,16 @@ class LiveExecutionBindingVerifier:
         self._failed, self._closed, self._bridge = False, False, None
         self._runtime, self._first_frame = None, None
         self._receipt_count, self._checks, self._last_ns = 0, 0, 0
-        self._static = copy.deepcopy(static_verifier.verify_combined_runtime(descriptor_file, self._root))
+        self._verified_snapshot = verified_snapshot
+        self._bundle = None
+        if verified_snapshot is None:
+            self._static = copy.deepcopy(static_verifier.verify_combined_runtime(descriptor_file, self._root))
+        else:
+            require(type(verified_snapshot) is static_verifier._VerifiedCombinedRuntimeSnapshot
+                    and stage._verified_execution_snapshot is verified_snapshot,
+                    "actual_Stage_owned_verification_snapshot_required")
+            self._static, self._bundle = verified_snapshot.claim(
+                stage, descriptor_file, self._root, source_context_file)
         self._static_key = digest(canonical(self._static))
         require(self.static["runtime_binding"] is None and self.static["compiled_engine_ABI_verified"] is False
                 and self.static["observer_layout_scope"] == "compiled_standalone_fixture_reference_only", "no_static_engine_ABI_authority")
@@ -178,7 +187,8 @@ class LiveExecutionBindingVerifier:
         require(digest(descriptor_raw) == self.static["descriptor_sha256"], "live_descriptor_reread_changed")
         descriptor = static_verifier.json_(descriptor_raw)
         del descriptor_raw
-        self._bundle = _reopen_static_bundle(self._root, descriptor, self.static)
+        if verified_snapshot is None:
+            self._bundle = _reopen_static_bundle(self._root, descriptor, self.static)
         self._modules, self._sources, self._bootstrap = _module_preimages(self._bundle, source_context_file)
         engine_file, self._module_runtime, self._closure = _recursive_engine_closure(self.static)
         self._engine_file = engine_file
@@ -235,7 +245,10 @@ class LiveExecutionBindingVerifier:
     def verify_static_identity(self, descriptor_file, runtime_root):
         """Bridge constructor callback; reuse this exact already checked input."""
         with self._lock:
-            require(not self._failed and not self._closed
+            require((self._verified_snapshot is None
+                     or self._verified_snapshot._valid
+                     and self._stage._verified_execution_snapshot is self._verified_snapshot)
+                    and not self._failed and not self._closed
                     and static_verifier.relative(descriptor_file) == self._descriptor_file
                     and Path(runtime_root).resolve(strict=True) == self._root
                     and digest(canonical(self._static)) == self._static_key,
@@ -319,7 +332,10 @@ class LiveExecutionBindingVerifier:
     def __call__(self, static_identity, expected_owner, challenge, first_snapshot):
         with self._lock:
             try:
-                require(not self._failed and not self._closed and self._bridge is not None, "live_binding_retired_or_unattached")
+                require((self._verified_snapshot is None
+                     or self._verified_snapshot._valid
+                     and self._stage._verified_execution_snapshot is self._verified_snapshot)
+                    and not self._failed and not self._closed and self._bridge is not None, "live_binding_retired_or_unattached")
                 require(digest(canonical(self._static)) == self._static_key, "retained_static_identity_mutated")
                 require(type(challenge) is str and re.fullmatch(r"[0-9a-f]{32}", challenge), "fresh_bridge_challenge_shape")
                 require(canonical(static_identity) == canonical(self.static)
@@ -347,6 +363,8 @@ class LiveExecutionBindingVerifier:
                         "challenge": challenge, "monotonic_ns": stamp}
             except BaseException as error:
                 self._failed = True
+                if self._verified_snapshot is not None:
+                    self._verified_snapshot.invalidate()
                 self._runtime = None
                 code = str(error) if isinstance(error, LiveBindingError) else "live_verification_failed"
                 try:
@@ -400,6 +418,9 @@ class LiveExecutionBindingVerifier:
         """Retire this verifier only; the Stage remains responsible for OS drain."""
         with self._lock:
             self._closed = True
+            if self._verified_snapshot is not None:
+                self._verified_snapshot.invalidate()
+                self._verified_snapshot = None
             self._runtime = None
             self._bridge = None
             self._bundle = None
@@ -410,7 +431,8 @@ class LiveExecutionBindingVerifier:
             self._modules = {}
 
 
-def create_live_binding_verifier(stage, descriptor_file, runtime_root, source_context_file, receipt_directory):
+def create_live_binding_verifier(stage, descriptor_file, runtime_root, source_context_file, receipt_directory, *,
+                                 verified_snapshot=None):
     """Future trusted Stage factory; a failed preparation gets its own receipt."""
     root = Path(runtime_root).resolve(strict=True)
     directory = Path(receipt_directory).absolute()
@@ -418,8 +440,11 @@ def create_live_binding_verifier(stage, descriptor_file, runtime_root, source_co
             and not directory.resolve(strict=False).is_relative_to(root), "fresh_external_live_receipt_directory")
     directory.mkdir()
     try:
-        return LiveExecutionBindingVerifier(stage, descriptor_file, root, source_context_file, directory)
+        return LiveExecutionBindingVerifier(stage, descriptor_file, root, source_context_file, directory,
+                                            verified_snapshot=verified_snapshot)
     except BaseException as error:
+        if type(verified_snapshot) is static_verifier._VerifiedCombinedRuntimeSnapshot:
+            verified_snapshot.invalidate()
         code = str(error) if isinstance(error, LiveBindingError) else "live_binding_preparation_unavailable"
         failure = {"schema": "omni-strata-execution-live-binding-preparation-failure-v1", "reason_code": code,
                    "failure_type": type(error).__name__, "runtime_binding": None, "compiled_engine_ABI_verified": False,

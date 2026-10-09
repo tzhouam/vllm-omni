@@ -1,0 +1,15 @@
+........................................................................ [ 17%]
+........................s..s...........................................u [ 34%]
+uuu..uuuuu.uuuuuuuuuuuuuu...............uuuuuuuuuuuuu..uuuuu.uuuuuu..... [ 41%]
+........................................................................ [ 58%]
+........................................................................ [ 75%]
+..uuu.uuuuuuuuuuuuuuuu.uuuuuuuuuuuuuuuuu..uuuu..uu..uuuuuuuu..uuu.uu.uuu [ 79%]
+u.uuuuuuu.uuuuuuuuuuu.uuuuuuuuu.uuuuuuu.uuuuuuuu.uuuuuu.uuu...uuuu...... [ 83%]
+.................................................................s...    [100%]
+============================== warnings summary ===============================
+<site-packages>/torch/jit/_script.py:365: 14 warnings
+  <site-packages>/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+409 passed, 3 skipped, 14 warnings, 161 subtests passed in 133.79s (0:02:13)

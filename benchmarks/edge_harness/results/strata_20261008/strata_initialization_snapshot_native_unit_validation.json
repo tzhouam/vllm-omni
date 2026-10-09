@@ -1,0 +1,122 @@
+{
+  "schema": "omni-strata-initialization-snapshot-native-unit-validation-v1",
+  "status": "model_free_native_unit_regression_passed",
+  "scope": "production Stage, runtime snapshot, registrar and Agent metadata/loopback unit regressions",
+  "environment": {
+    "os": "native Windows",
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "packages": {
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "pytest": "9.1.1"
+    },
+    "package_identity_scope": "versions recorded by the actual regression producer; no independent wheel-byte provenance claim"
+  },
+  "results": {
+    "terminal_exit_code": 0,
+    "passed": 409,
+    "skipped": 3,
+    "failed": 0,
+    "errors": 0,
+    "subtests_passed": 161,
+    "warnings": 14,
+    "snapshot_testcases_passed": 34,
+    "junit_testcase_elements": 412,
+    "junit_aggregate_tests_including_subtests": 573,
+    "pytest_reported_elapsed_s": 133.79,
+    "junit_suite_elapsed_s": 132.974,
+    "producer_elapsed_s": 136.91083530010656,
+    "timing_scope": "regression execution only; no model startup or inference latency measurement"
+  },
+  "snapshot_validation": [
+    "same-process issuer, exact Stage/module/generation, one claim and invalid-capability refusal",
+    "distinct raw-member and canonical typed-manifest domains; fresh critical serve/tools byte reads",
+    "legacy absent-capability path and bounded Live constructor prefix before native owner/module/GPU/ABI audit",
+    "real ResourceLedger token retention/quarantine on failed repeated retirement and CancelledError cleanup",
+    "real tiny Bundle and synthetic normal/delay PE helper dict identity; dynamic/system proof flags remain false"
+  ],
+  "source_stability": {
+    "selected_sources": 26,
+    "recorded_pre_post_digests_equal": true,
+    "closed_source_snapshots_independently_rehashed": 26,
+    "current_selected_source_hashes_match": 26,
+    "scope": "selected files only; pre-run state is the producer-recorded digest map, not an independent temporal snapshot",
+    "source_sha256": {
+      "vllm_omni/engine/backends/strata.py": "2bd0c25ca87aea5bf19f008f1a6f8bb5023111db1a5ce9f1017035a35374db4e",
+      "vllm_omni/engine/backends/strata_io.py": "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43",
+      "vllm_omni/edge/agent/placement.py": "a6feb5895e81d26429d91d8720603b8d3c5f419df9453b06e403e676f77064b6",
+      "vllm_omni/edge/agent/strata_execution_evidence.py": "251dd72f915b69e20df54e1d9f5ff68103241b0d04421f55ba7a9fad1840d17f",
+      "vllm_omni/edge/agent/consumer_trace.py": "55b52ff12fddd575c731eb3624a16bbb65f0a2d5efd83c4187c6569e01558b40",
+      "vllm_omni/edge/agent/strata_route.py": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+      "benchmarks/edge_harness/strata_runtime.py": "beb4e0f8a42330523a0ec244f59c952fc0f378b68367f8100dd63561cb1df477",
+      "vllm_omni/engine/backends/strata_execution/__init__.py": "7599029f8a77a32659d021a8c9f18cce7403c637712c3674a7df8376cc68b6c1",
+      "vllm_omni/engine/backends/strata_execution/strata_exec.py": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+      "vllm_omni/engine/backends/strata_execution/strata_exec_bridge.py": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+      "vllm_omni/engine/backends/strata_execution/strata_exec_runtime.py": "273b81b115756988ef990d4a0ffde86104141787f1658bd0e90ec596f9753111",
+      "vllm_omni/engine/backends/strata_execution/strata_exec_live.py": "a9748c3a29852fc56bf64011f2434a4aeff8be74bd72a25a0b271386b251777b",
+      "tests/edge/test_strata_runtime_snapshot.py": "d6d9659f74f437282043c840507c5366b6c7b0da9f0abec22fbd2adfe51bf6d3",
+      "tests/edge/test_strata_backend.py": "036034ba020004ea8fa1eda609d55786ffc9bfc52d94d14e75155c9bf48c857e",
+      "tests/edge/test_strata_io.py": "fb4024023e1bb62d35cdbb429aaecb7c1451f11cbd6f04c95603b7b7dbca0ea3",
+      "tests/edge/test_strata_execution_lifecycle.py": "57e16b12cd058e73f124ecaf814754246f5d1ddcf3f44f3c0cae986f034bf1fa",
+      "tests/edge/test_strata_execution_parser.py": "b400485059bc4f4111b0c1de33e99cd9e23d4bb734b4cd8739a5feb0c032487f",
+      "tests/edge/test_strata_execution_cache_lines.py": "1e4e13d16249c894580f3120cfbd4e8650f5908eafc4dfbf7ec279460b1c5287",
+      "tests/edge/test_strata_execution_compile_inputs.py": "654fdfe4cda3c8acd636d6da5f551c8ad0b2c8f4a2923eeba8d32681066163a5",
+      "tests/edge/test_strata_execution_alias_envelope.py": "e41bb9e5672f71fc7334c033a3791352b145f9b8046ce4ee86401b1991f51120",
+      "tests/edge/test_agent_strata_profile.py": "e504d15c6a0f5f069ac6f85cd937d73d5817a143cb54eba4ab2601d8d0059911",
+      "tests/edge/test_agent_strata_execution.py": "c7f3ca20ad056913365bf5556b45a35c8ba7f843e251f37431f33e0e8fe20f66",
+      "tests/edge/test_agent_consumer_trace.py": "de2e479f91533e55421e4c280c9cca17e3e689f8737f5657b50b29ce35a7910f",
+      "tests/edge/test_agent_strata_route.py": "465dec60487ce2a536a69b216a689e6beb0ce0ae74063da5effba3078ab49fdc",
+      "benchmarks/edge_harness/test_strata_runtime.py": "97ff053b5ee6270b56a554b561cb860789b845dbe8d2c634e43b63569667c815",
+      "benchmarks/edge_harness/test_strata_prepare.py": "dc04dd8cf7a8e4971309d6c65c0632ad5941bbfc0090eb67a1f2ce32b9c3c466"
+    }
+  },
+  "private_originals": [
+    {
+      "file": "receipt.json",
+      "size_bytes": 10007,
+      "sha256": "6c6908a933bb8ffbee5caa81d44067e1596d2438955ff09ba16352d2f4a2311d"
+    },
+    {
+      "file": "junit.xml",
+      "size_bytes": 67494,
+      "sha256": "9eb9a8f55e9c85e85f227c5c505dd36a9eea3ecd782234b9cc355e134fc8dea8"
+    },
+    {
+      "file": "pytest.log",
+      "size_bytes": 1164,
+      "sha256": "9c14f5e39da18b65e38d2ecb1744158d936ca6c00ea26d9c09e6b32546dec941"
+    }
+  ],
+  "public_display_projections": [
+    {
+      "file": "strata_initialization_snapshot_native_unit_validation_pytest.redacted.log",
+      "size_bytes": 1100,
+      "sha256": "c1b7a37f9d11e324e47d4c6786495599d28f3eb8b2df54d04903c2ae8fc68bf6",
+      "original_private_file": "pytest.log",
+      "original_sha256": "9c14f5e39da18b65e38d2ecb1744158d936ca6c00ea26d9c09e6b32546dec941",
+      "byte_identical_to_original": false,
+      "transformation": "private site-packages prefix replaced with a neutral placeholder"
+    },
+    {
+      "file": "strata_initialization_snapshot_native_unit_validation_junit.redacted.xml",
+      "size_bytes": 39335,
+      "sha256": "2d4e08f05e1d90f336c919eafeccd8414c284f4080eb4401eb0d932071753be2",
+      "original_private_file": "junit.xml",
+      "original_sha256": "9eb9a8f55e9c85e85f227c5c505dd36a9eea3ecd782234b9cc355e134fc8dea8",
+      "byte_identical_to_original": false,
+      "transformation": "hostname/timestamp and skipped text omitted; every testcase name replaced by an ordinal; class/time/status retained"
+    }
+  ],
+  "limitations": {
+    "native_model_executed": false,
+    "complete_runtime_verified_by_this_suite": false,
+    "actual_owned_engine_ABI_verified": false,
+    "new_runtime_neural_lifecycle_verified": false,
+    "new_runtime_Agent_verified": false,
+    "startup_saving_measured": false,
+    "performance_qualified": false,
+    "runtime_qualification": false,
+    "default_qualified": false,
+    "physical_ssd_or_total_memory_hard_cap_verified": false
+  }
+}

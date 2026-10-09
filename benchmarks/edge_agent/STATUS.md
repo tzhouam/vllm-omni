@@ -1,16 +1,20 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
-2026-10-09 latest: the new Strata Q2 whole-model backend completed [three actual text references and a bounded cancellation review](../edge_harness/results/strata_20261008/strata_execution_lifecycle_partial_progress.json).
-English, Chinese arithmetic and whole-JSON references independently passed in **2.111 / 4.385 / 2.863 s** per complete API request. These three smoke samples grant no percentile or performance qualification.
-Initial integrity verification plus startup took **2,466.189 s**, not pure model loading. The initial worker records positive scoped CPU-expert/CUDA execution and logical-file/OS-completion counters; these do not establish whole-model placement or physical SSD bytes.
-Cancellation after two real deltas drained in **1.006 s** with all four reservations zero and no owners/quarantine. Cancellation-time memory observation remains unknown.
-**Fresh-worker recovery is still running; final lifecycle/source/independent owner closure and the new Agent rerun remain unaccepted.** The partial review covers only 14 completed initial/cancel files, with no default/release, physical SSD or aggregate memory-cap qualification.
-The matching runtime previously passed [complete static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json) and [registration](../edge_harness/results/strata_20261008/strata_execution_registration_v2_raw.json). Registration itself remains `registered_not_executed`; the new separate neural record above establishes actual execution.
+2026-10-09 latest: the execution-observed Strata Q2 backend completed [four reference requests, real cancellation and fresh-worker recovery](../edge_harness/results/strata_20261008/native_ista_q2_execution_lifecycle.json).
+English, Chinese arithmetic and whole-JSON references passed in **2.111 / 4.385 / 2.863 s**; the recovery reference passed in **4.442 s**. All five request IDs, including cancellation, are distinct.
+Cancellation after two real deltas drained in **1.006 s**. The complete run exited with code 0, unchanged sources, a stopped sampler and four empty resource pools without owners/quarantine.
+A separate read-only observer retained five exact fresh-worker/parent process objects through their exits and closed its handles. This does not independently prove initial-process or all-descendant retirement.
+Initial/recovery integrity verification plus startup took **2,466.189 / 3,154.269 s**, not pure model loading. Scoped CPU-expert/CUDA execution and logical-file/OS-completion counters do not establish whole-model placement, physical SSD bytes or aggregate memory hard caps. Cancellation-time memory remains unknown.
+This is experimental fixed-input engine evidence, with no Agent rerun, percentiles, default or release qualification. The [prior partial review](../edge_harness/results/strata_20261008/strata_execution_lifecycle_partial_progress.json) is retained.
+
+2026-10-09: same-Stage/generation initialization snapshot reuse is now integrated, including fresh critical-file checks and failure-safe invalidation.
+[Native Windows model-free regression](../edge_harness/results/strata_20261008/strata_initialization_snapshot_native_unit_validation.json) passed **409 tests and 161 subtests**, with three skips, including 34 new snapshot/PE cases. Sources remained stable and repository Ruff passed.
+**The matching optimized runtime is being assembled; its neural lifecycle, measured startup benefit and basic/browser/memory Agent rerun remain pending.** The four requests above used the preceding frozen source and do not qualify the optimization.
 
 2026-10-09 integration regression: combined I/O/execution observation is integrated into the Stage,
 runtime registrar, Agent route translation and result binding. Observer RAM, Windows commit
 and receipt storage are charged through the existing ledger.
-[Latest native Windows regression and raw logs](../edge_harness/results/strata_20261008/strata_execution_alias_native_unit_validation.json)
+[Earlier native Windows regression and raw logs](../edge_harness/results/strata_20261008/strata_execution_alias_native_unit_validation.json)
 passed **375 tests and 161 subtests**, with three skips. This covers the strict-integer DONE fix,
 LF/CRLF cache parsing and the scoped 4 MiB target compile-input record; generic JSON remains 2 MiB.
 Native vLLM is `0.29.0+cu134`, aligned with Omni 0.29. Stage and all three new public tests pass repository Ruff.
@@ -26,12 +30,12 @@ all **11 exact pairs**, including archived compiler inputs. This is current name
 not build-time execution attestation. The narrow consumer is integrated; selected actual-record diagnostics
 reconciled all 125 dependency records and passed subsequent PE/ABI reference checks. Those diagnostics
 skip full Bundle/Git/source prerequisites and authorize no registration or neural execution.
-The fresh matching runtime assembled successfully: 42,649 files, 2,231,664,083 bytes,
+The pre-snapshot frozen runtime assembled successfully: 42,649 files, 2,231,664,083 bytes,
 maximum Windows path length 218. [Matching full static verification](../edge_harness/results/strata_20261008/strata_execution_static_verification_v2_raw.json)
 completed with **EXIT 0 in 668.004 s**, covering archived members/source/build/target closure/PE and standalone fixture ABI records.
 This is static-check wall time, not model loading or inference. This static receipt verifies no owned engine ABI/native module eligibility and retains `runtime_binding: null`; the initial native records reviewed above carry separate scoped bindings.
 Runtime registration subsequently completed. The raw member manifest and outer ArtifactManifest retain distinct hash domains.
-The initial three reference requests and cancellation have the partial review above; fresh-worker recovery, final lifecycle closure and the new Agent rerun remain pending.
+That frozen runtime subsequently completed the four-reference cancellation/recovery lifecycle above. The snapshot-optimized source requires a separate matching runtime, lifecycle and Agent rerun.
 Old bundles/failures are retained. No default, memory-cap or physical SSD qualification is granted; historical 442-task results retain their sources.
 
 2026-10-09 **CURRENT-CAPACITY**: the [Q4 capacity projection](../edge_harness/results/strata_20261008/strata_q4_current_capacity_preflight.json) records UTC 02:26:45 availability of **20.16 GiB RAM / 68.16 GiB commit / 19.81 GiB GPU**.

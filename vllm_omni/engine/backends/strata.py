@@ -55,8 +55,8 @@ _CACHE_CONTROL_SCHEMA = "omni-strata-explicit-cache-v2"
 _EXECUTION_ADAPTER_SHA256 = {
     "strata_exec": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
     "strata_exec_bridge": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
-    "strata_exec_runtime": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2",
-    "strata_exec_live": "de6c036b83092ab1782c61a56481df21b4ad9bd0938745d4db30527e026766fe",
+    "strata_exec_runtime": "273b81b115756988ef990d4a0ffde86104141787f1658bd0e90ec596f9753111",
+    "strata_exec_live": "a9748c3a29852fc56bf64011f2434a4aeff8be74bd72a25a0b271386b251777b",
 }
 _EXECUTION_MODULE_LOCK = threading.RLock()
 _EXECUTION_LOADED_MODULES = {}
@@ -1456,6 +1456,9 @@ class StrataTextStageClient(StageClientBase):
         self._execution_modules = None
         self._execution_bridge = None
         self._execution_verifier = None
+        self._verified_execution_snapshot = None
+        self._execution_snapshot_retirement_failed = False
+        self._execution_runtime_manifest = None
         self._execution_token = None
         self._execution_report_lock = threading.RLock()
         self._execution_report_request = None
@@ -1545,9 +1548,18 @@ class StrataTextStageClient(StageClientBase):
             if minimum_host > self._reservation.demands.get("host_ram", 0):
                 raise ResourceUnavailable("execution observer workspace is not admitted before verification")
             self._execution_modules = _load_execution_adapters(runtime, runtime_files)
-            self._observation_runtime = self._execution_modules["strata_exec_runtime"].verify_combined_runtime(
-                self._execution_settings["descriptor_file"], runtime
+            self._execution_runtime_manifest = runtime_manifest
+            self._verified_execution_snapshot = self._execution_modules[
+                "strata_exec_runtime"
+            ]._verify_combined_runtime_snapshot(
+                self._execution_settings["descriptor_file"],
+                runtime,
+                owner_stage=self,
+                worker_generation=self._generation,
+                typed_runtime_manifest_sha256=runtime_manifest.manifest_sha256,
+                source_context_file=self._execution_settings["source_context_file"],
             )
+            self._observation_runtime = self._verified_execution_snapshot.detached_identity()
             if self._observation_runtime["identity_sha256"] != self._execution_settings["static_identity_sha256"]:
                 raise ValueError("execution runtime changed after route registration")
         elif config.get("observation_runtime") is not None:
@@ -2079,6 +2091,7 @@ class StrataTextStageClient(StageClientBase):
                 runtime,
                 settings["source_context_file"],
                 Path(settings["receipt_root"]) / ("generation-" + self._generation),
+                verified_snapshot=self._verified_execution_snapshot,
             )
             self._execution_verifier = verifier
             bridge = self._execution_modules["strata_exec_bridge"].ParentExecutionBridge(
@@ -2217,6 +2230,28 @@ class StrataTextStageClient(StageClientBase):
                 # observation channel cannot silently authorize the next turn.
                 raise RuntimeError("Strata execution report could not be detached") from failure
             return report
+
+    def _invalidate_execution_snapshot(self) -> bool:
+        snapshot = self._verified_execution_snapshot
+        if snapshot is None:
+            # A missing reference cannot erase an earlier uncertain retirement.
+            if getattr(self, "_execution_snapshot_retirement_failed", False):
+                return False
+            self._execution_runtime_manifest = None
+            return True
+        try:
+            if type(snapshot) is not self._execution_modules["strata_exec_runtime"]._VerifiedCombinedRuntimeSnapshot:
+                self._execution_snapshot_retirement_failed = True
+                return False
+            snapshot.invalidate()  # No I/O and no native/process cleanup.
+        except Exception:
+            self._execution_snapshot_retirement_failed = True
+            return False  # Retain metadata ownership and continue OS drain.
+        # Clear ownership/uncertainty only after verified invalidation succeeds.
+        self._verified_execution_snapshot = None
+        self._execution_runtime_manifest = None
+        self._execution_snapshot_retirement_failed = False
+        return True
 
     def _retire_execution_observer(self, drained):
         # Reader/process drain is proved by the existing retained-handle path.
@@ -2539,13 +2574,17 @@ class StrataTextStageClient(StageClientBase):
                 telemetry["native_execution_observation"] = execution_report
                 output.metrics["strata_wall_s"] = time.perf_counter() - started
         except asyncio.CancelledError:
+            if not self._invalidate_execution_snapshot():
+                self._closed = True  # Unknown retirement cannot keep authorizing live callbacks.
             raise
         except Exception as exc:
             # A truncated stream/error might leave native work active. Retire
             # the route before its reservation can be reused.
             self._cancel.set()
             self._closed = True
+            snapshot_retired = self._invalidate_execution_snapshot()
             drained = await asyncio.to_thread(self._terminate)
+            drained = snapshot_retired and drained
             io_report, execution_report, drained = self._finish_failure_observations(
                 request, reason="request_failed", lifecycle_outcome="error", drained=drained
             )
@@ -2609,6 +2648,7 @@ class StrataTextStageClient(StageClientBase):
             return
         self._cancel.set()
         self._closed = True
+        snapshot_retired = self._invalidate_execution_snapshot()
         self._epoch += 1
         self._output = None
         if self._agent_stream is not None:
@@ -2616,6 +2656,7 @@ class StrataTextStageClient(StageClientBase):
                 self._agent_stream.get_nowait()
             self._agent_stream.put_nowait(None)
         drained = await asyncio.to_thread(self._terminate)
+        drained = snapshot_retired and drained
         _, _, drained = self._finish_failure_observations(
             self._io_request, reason="request_cancelled", lifecycle_outcome="cancelled", drained=drained
         )
@@ -2728,6 +2769,7 @@ class StrataTextStageClient(StageClientBase):
 
     def shutdown(self) -> None:
         self._closed = True
+        snapshot_retired = self._invalidate_execution_snapshot()
         self._cancel.set()
         self._epoch += 1
         self._output = None
@@ -2736,6 +2778,7 @@ class StrataTextStageClient(StageClientBase):
                 self._agent_stream.get_nowait()
             self._agent_stream.put_nowait(None)
         drained = self._terminate()
+        drained = snapshot_retired and drained
         _, _, drained = self._finish_failure_observations(
             self._io_request, reason="route_shutdown", lifecycle_outcome="drained", drained=drained
         )

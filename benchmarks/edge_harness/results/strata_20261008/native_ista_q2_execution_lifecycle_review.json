@@ -1,0 +1,46 @@
+{
+  "all_named_projection_inputs_unchanged_before_after": true,
+  "checks": {
+    "all_36_inventory_records_preserved": true,
+    "cancel_partial_not_promoted": true,
+    "exact_four_reference_rows_preserved": true,
+    "five_request_ids_unique": true,
+    "five_retained_objects_signaled_birth_unchanged_handles_closed": true,
+    "no_Agent_performance_optimization_or_default_claim": true,
+    "no_private_payload_paths_urls_GPU_UUID": true,
+    "producer_and_independent_retained_object_scopes_separate": true,
+    "receipt_rows_match_final_review": true,
+    "recovery_native_matches_fresh_held_object_birth": true,
+    "startup_scope_not_pure_model_load": true
+  },
+  "independent_closed_review_sha256": "26b15f5cbefe0dc111d20ac69ee6939c691c4b544293ae3a967b86daff58bbca",
+  "inputs": {
+    "final_review": {
+      "sha256": "26b15f5cbefe0dc111d20ac69ee6939c691c4b544293ae3a967b86daff58bbca",
+      "size_bytes": 27030
+    },
+    "lifecycle_receipt": {
+      "sha256": "f6df28b6ae92a3ee72d6eb0083880eed4d1e73da651eb18f5d4d1a1d1414b91b",
+      "size_bytes": 661979
+    },
+    "partial_projection": {
+      "sha256": "4c30e1a579577cc5a967711a227ffa1f483438712b18a818b05e67b6ad65e7a0",
+      "size_bytes": 19716
+    },
+    "retained_terminal": {
+      "sha256": "f8baed24afc75a8e0f96e1cb231a8a2220175c6795d94a9fb7bd288c7ec7a343",
+      "size_bytes": 6291
+    }
+  },
+  "projection": {
+    "file": "native_ista_q2_execution_lifecycle.json",
+    "sha256": "ef46abe665eb32b3f53aedbd0dfa446d2c5f361a3299b04a09ea721d70548f05",
+    "size_bytes": 32613
+  },
+  "projection_source_sha256": "30a76aa5ed4207223798ef4deb463ddf4beb9f6607002792a6421309d544ca4b",
+  "publication_authorized_by_this_review": false,
+  "review_scope": "Author metadata projection validation; independent final lifecycle review and retained process observer remain separately identified evidence. This is not an independent raw/runtime/model audit.",
+  "schema": "omni-public-combined-lifecycle-author-projection-review-v1",
+  "separate_retained_handle_terminal_sha256": "f8baed24afc75a8e0f96e1cb231a8a2220175c6795d94a9fb7bd288c7ec7a343",
+  "status": "author_projection_checked_pending_independent_and_root_publication_review"
+}

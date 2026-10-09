@@ -14,6 +14,9 @@ import os
 import re
 import stat
 import struct
+import sys
+import threading
+import weakref
 import types
 from pathlib import Path, PurePosixPath
 
@@ -1539,7 +1542,7 @@ def validate_build(bundle, receipt, descriptor, base, dependency, states):
             "compiler_process_retirement_independently_verified": False, "system_toolchain_inputs_pinned": False}
 
 
-def verify_combined_runtime(descriptor_file, runtime_root):
+def _verify_combined_runtime_strict(descriptor_file, runtime_root):
     """Check static bytes only. Missing ABI/PE/build preimages refuse, never opt in."""
     root = Path(runtime_root).resolve(strict=True)
     name = relative(descriptor_file)
@@ -1647,9 +1650,165 @@ def verify_combined_runtime(descriptor_file, runtime_root):
         "aggregate_ram_hard_cap_verified": False,
         "physical_ssd_read_bytes": None,
     }
-    return identity | {"identity_sha256": sha(canonical(identity))}
+    return identity | {"identity_sha256": sha(canonical(identity))}, bundle
 
 
+
+# Same-process capabilities are issued only by this loaded reviewed module.
+# They are neither installation receipts nor persistent verification caches.
+_SNAPSHOT_ISSUER = object()
+_ISSUED_SNAPSHOTS = weakref.WeakSet()
+_SNAPSHOT_REGISTRY_LOCK = threading.RLock()
+
+
+def _snapshot_loaded_sources(owner_stage):
+    module = sys.modules.get(__name__)
+    adapters = getattr(owner_stage, "_execution_modules", None)
+    require(type(module) is types.ModuleType and type(adapters) is dict
+            and adapters.get("strata_exec_runtime") is module
+            and sys.modules.get("strata_exec_runtime") is module,
+            "snapshot_actual_Stage_verifier_module_required")
+    parser_module = adapters.get("strata_exec")
+    require(type(parser_module) is types.ModuleType
+            and sys.modules.get("strata_exec") is parser_module,
+            "snapshot_actual_Stage_parser_module_required")
+    result = []
+    for role, current in (("static", module), ("parser", parser_module)):
+        path = Path(current.__file__).resolve(strict=True)
+        key = sha(file_bytes(path, 256 << 10))
+        require(role != "parser" or key == PARSER_SHA, "snapshot_loaded_parser_source_pin")
+        result.append((role, current, path, key))
+    return tuple(result)
+
+
+def _typed_outer_manifest_bytes(manifest):
+    # ArtifactManifest is already typed/frozen and fully verified by the Stage.
+    # Keep its UTF-8 canonical domain separate from raw members.json.
+    value = manifest.to_dict()
+    require(type(value) is dict and value.get("schema") == "omni-weight-artifacts-v1",
+            "snapshot_typed_outer_manifest_required")
+    return json.dumps(value, sort_keys=True, separators=(",", ":"),
+                      ensure_ascii=False, allow_nan=False).encode("utf-8")
+
+
+class _VerifiedCombinedRuntimeSnapshot:
+    """Opaque, one-claim capability for one exact Stage worker generation."""
+
+    __slots__ = ("_issuer", "_owner", "_generation", "_root", "_descriptor", "_context",
+                 "_typed_manifest", "_typed_key", "_identity", "_identity_key", "_bundle",
+                 "_rows_key", "_sources", "_context_key", "_lock", "_valid", "_claimed", "__weakref__")
+
+    def __init__(self, issuer, owner_stage, generation, root, descriptor, context,
+                 typed_key, identity, bundle, sources):
+        require(issuer is _SNAPSHOT_ISSUER, "snapshot_private_issuer_required")
+        self._issuer = issuer
+        self._owner = weakref.ref(owner_stage)
+        self._generation, self._root = generation, root
+        self._descriptor, self._context = descriptor, context
+        self._typed_manifest, self._typed_key = owner_stage._execution_runtime_manifest, typed_key
+        self._identity, self._bundle = identity, bundle
+        self._identity_key, self._rows_key = sha(canonical(identity)), sha(canonical(bundle.rows))
+        self._sources = sources
+        self._context_key = sha(bundle.read(context, 65536))
+        self._lock = threading.RLock()
+        self._valid, self._claimed = True, False
+        with _SNAPSHOT_REGISTRY_LOCK:
+            _ISSUED_SNAPSHOTS.add(self)
+
+    def __copy__(self):
+        raise TypeError("verification snapshots cannot be copied")
+
+    def __deepcopy__(self, memo):
+        raise TypeError("verification snapshots cannot be copied")
+
+    def __reduce_ex__(self, protocol):
+        raise TypeError("verification snapshots cannot be serialized")
+
+    def invalidate(self):
+        """No I/O; release this capability without closing a live reader."""
+        with self._lock:
+            self._valid = False
+            self._bundle = self._identity = self._typed_manifest = None
+            self._sources = ()
+
+    def _validate_owner(self, stage):
+        with _SNAPSHOT_REGISTRY_LOCK:
+            issued = self in _ISSUED_SNAPSHOTS
+        require(self._issuer is _SNAPSHOT_ISSUER and issued and self._valid
+                and self._owner() is stage and getattr(stage, "_verified_execution_snapshot", None) is self
+                and stage._generation == self._generation and not stage._closed,
+                "snapshot_owner_generation_or_lifetime_changed")
+        require(stage._execution_runtime_manifest is self._typed_manifest
+                and sha(_typed_outer_manifest_bytes(self._typed_manifest)) == self._typed_key
+                and self._typed_manifest.manifest_sha256 == self._typed_key,
+                "snapshot_typed_outer_manifest_changed")
+        require(_snapshot_loaded_sources(stage) == self._sources, "snapshot_loaded_source_or_issuer_changed")
+        require(sha(canonical(self._identity)) == self._identity_key,
+                "snapshot_retained_static_identity_changed")
+
+    def detached_identity(self):
+        with self._lock:
+            self._validate_owner(self._owner())
+            return copy.deepcopy(self._identity)
+
+    def claim(self, stage, descriptor_file, runtime_root, source_context_file):
+        with self._lock:
+            try:
+                self._validate_owner(stage)
+                require(not self._claimed, "snapshot_already_claimed")
+                require(Path(runtime_root).resolve(strict=True) == self._root
+                        and relative(descriptor_file) == self._descriptor
+                        and relative(source_context_file) == self._context
+                        and self._bundle.root == self._root
+                        and sha(canonical(self._bundle.rows)) == self._rows_key,
+                        "snapshot_input_or_retained_members_changed")
+                require(stage.execution_plan.get("runtime_manifest_sha256") == self._typed_key,
+                        "snapshot_loaded_outer_manifest_binding_changed")
+                raw_manifest = file_bytes(contained_file(self._root, self._bundle.manifest_file), MAX_MANIFEST_BYTES)
+                require(sha(raw_manifest) == self._bundle.manifest_sha256
+                        == self._identity["runtime_manifest_sha256"], "snapshot_raw_member_manifest_changed")
+                outer_rows = [row for row in self._typed_manifest.files if row.path == self._bundle.manifest_file]
+                require(len(outer_rows) == 1 and outer_rows[0].sha256 == sha(raw_manifest)
+                        and outer_rows[0].size_bytes == len(raw_manifest), "snapshot_outer_raw_manifest_binding_changed")
+                require(sha(self._bundle.read(self._descriptor, MAX_JSON)) == self._identity["descriptor_sha256"]
+                        and sha(self._bundle.read(self._context, 65536)) == self._context_key,
+                        "snapshot_critical_metadata_changed")
+                # Finite manifest selection, not another runtime enumeration.
+                # This proves current selected bytes, not child in-memory imports.
+                for name in self._bundle.rows:
+                    if name.startswith(("serve/", "tools/")) and Path(name).suffix.lower() in (".py", ".pyc"):
+                        self._bundle.read(name, MAX_TEXT)
+                self._claimed = True
+                return copy.deepcopy(self._identity), self._bundle
+            except BaseException:
+                self.invalidate()
+                raise
+
+
+def _verify_combined_runtime_snapshot(descriptor_file, runtime_root, *, owner_stage,
+                                      worker_generation, typed_runtime_manifest_sha256,
+                                      source_context_file):
+    """Run the complete strict body once; issue no authority from caller digests."""
+    require(type(worker_generation) is str and worker_generation
+            and owner_stage._generation == worker_generation and not owner_stage._closed
+            and getattr(owner_stage, "_verified_execution_snapshot", None) is None
+            and not getattr(owner_stage, "_execution_snapshot_retirement_failed", False),
+            "snapshot_fresh_Stage_generation_required")
+    typed_key = digest(typed_runtime_manifest_sha256)
+    typed = owner_stage._execution_runtime_manifest
+    require(typed.manifest_sha256 == typed_key and sha(_typed_outer_manifest_bytes(typed)) == typed_key,
+            "snapshot_typed_outer_manifest_binding")
+    sources = _snapshot_loaded_sources(owner_stage)
+    identity, bundle = _verify_combined_runtime_strict(descriptor_file, runtime_root)
+    return _VerifiedCombinedRuntimeSnapshot(_SNAPSHOT_ISSUER, owner_stage, worker_generation,
+        Path(runtime_root).resolve(strict=True), relative(descriptor_file), relative(source_context_file),
+        typed_key, identity, bundle, sources)
+
+
+def verify_combined_runtime(descriptor_file, runtime_root):
+    """Unchanged public static-byte contract; no snapshot or reuse authority."""
+    identity, _ = _verify_combined_runtime_strict(descriptor_file, runtime_root)
+    return identity
 def pe_imports(path):
     """Read-only normal/delay x64 PE scan, adapted from current strata_vision.py.
 

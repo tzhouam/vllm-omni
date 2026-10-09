@@ -6,9 +6,12 @@ the process lifetime. Strata owns expert routing, CPU/GPU execution, caches and
 SSD reads. No new expert scheduler or inference kernel is introduced here.
 
 The initial registered adapter is `external.strata.text.v1`. Its existence and
-offline tests do **not** qualify a model or hardware route. The initial image
-path is deliberately refused until its separate artifact and quality work is
-complete. AI Hub replay remains distinct from resident Android qualification.
+offline tests do **not** qualify a model or hardware route. Image requests use
+the separate experimental [`external.strata.multimodal.v1` stage](STRATA_IMAGE.md),
+with its own CPU encoder, projector, artifact and quality checks. Its historical
+Q2 image runs retain their frozen runtime identities; text registration does not
+grant image qualification. AI Hub replay remains distinct from resident Android
+qualification.
 
 ```mermaid
 flowchart TB
@@ -39,7 +42,7 @@ unverified local download. Their complete split sets include the PLE table.
 | `configs/strata/ista_iq3_xxs.json` | same ISTA revision | 75,839,998,528 | Higher-quality RAM candidate |
 | `configs/strata/unsloth_ud_q4_k_xl.json` | `38bb39ee97821de2c9009abb7e93950eec396e66` | 111,334,654,784 | Bounded RAM plus SSD expert reads |
 
-Each config also pins its BF16 projector for future image experiments. A
+Each config also pins its BF16 projector for the separate image route. A
 text-only launch may omit that projector from its actual loaded manifest; it
 must still declare and verify **every weight shard**. The Q4 first shard is
 only 10,946,624 bytes. Checking that file alone misses almost the entire model.

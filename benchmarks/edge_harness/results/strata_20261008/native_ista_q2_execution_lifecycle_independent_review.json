@@ -1,0 +1,35 @@
+{
+  "accepted_final_review_sha256": "26b15f5cbefe0dc111d20ac69ee6939c691c4b544293ae3a967b86daff58bbca",
+  "author_projection_review_sha256": "53468272c909af3c170a4d54be354a784cc269fed9f9c030d2f9ac458ad0cfb7",
+  "checks": {
+    "actual_recovery_owner_birth_matches_capture": true,
+    "all_36_accepted_inventory_records_equal": true,
+    "all_named_pins_unchanged": true,
+    "five_unique_request_ids_two_generations": true,
+    "four_reference_metadata_and_scoped_counters_equal": true,
+    "no_Agent_percentile_default_release_memory_or_physical_IO_promotion": true,
+    "partial_cancel_preserved": true,
+    "privacy_recursive_key_and_value_scan_passed": true,
+    "producer_held_handle_limit_preserved": true,
+    "separate_five_exact_retained_object_closure_consistent": true,
+    "source_before_after_and_four_executed_pins_equal": true,
+    "startup_not_inference_or_optimization_time": true
+  },
+  "closed_receipt_sha256": "f6df28b6ae92a3ee72d6eb0083880eed4d1e73da651eb18f5d4d1a1d1414b91b",
+  "limits": [
+    "Four functional reference samples; no percentile or broad task quality.",
+    "Whole-model placement, physical SSD attribution and aggregate memory hard caps remain unknown.",
+    "Five retained objects only from capture onward; excludes prior initial roles and other descendants.",
+    "Initial and recovery initialization use the old full-scan source; snapshot optimization and new Agent execution remain untested.",
+    "Hardware metadata is the captured loaded-plan admission snapshot and hash, without inferred CPU/GPU marketing names or OS/driver versions.",
+    "No power or thermal qualification is established by this projection."
+  ],
+  "primary_sha256": "ef46abe665eb32b3f53aedbd0dfa446d2c5f361a3299b04a09ea721d70548f05",
+  "projector_sha256": "30a76aa5ed4207223798ef4deb463ddf4beb9f6607002792a6421309d544ca4b",
+  "publication_authorized_by_this_review": false,
+  "reviewer_source_sha256": "4f58fc14b6a4b681482686b4b9b640dd5654aaea26591994b18f17851d830df3",
+  "schema": "omni-private-independent-closed-lifecycle-public-projection-review-v1",
+  "scope": "Independent review of pinned small closed metadata, saved recovery owner projection, accepted final review and separate retained-handle terminal. No runtime/model/current-source tree scans, native probes, framework imports, neural execution or raw task content publication.",
+  "separate_retained_process_observer_terminal_sha256": "f8baed24afc75a8e0f96e1cb231a8a2220175c6795d94a9fb7bd288c7ec7a343",
+  "status": "accepted_specified_metadata_projection"
+}

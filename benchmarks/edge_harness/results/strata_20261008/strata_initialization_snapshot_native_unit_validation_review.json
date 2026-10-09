@@ -1,0 +1,31 @@
+{
+  "author_audit_sha256": "f8e78920a9cc158a0a45bc9e7c3e60a8e6b60b11bb021a866dab0e12b7d3d586",
+  "checks": {
+    "actual_testcase_nodes_412": true,
+    "aggregate_JUnit_count_573_includes_161_subtests": true,
+    "all_neural_runtime_ABI_Agent_startup_gain_and_qualification_flags_false": true,
+    "counts_and_three_timing_scopes_match": true,
+    "display_projection_hashes_statuses_and_redaction_labels_match": true,
+    "no_private_paths_or_task_content_in_public_primary_display_files": true,
+    "package_versions_producer_recorded_only": true,
+    "raw_log_and_JUnit_hashes_match": true,
+    "selected_26_recorded_source_maps_and_author_audit_equal": true,
+    "snapshot_nodes_34_all_pass": true
+  },
+  "limits": [
+    "Independent closed receipt/log/XML/candidate review only; source contents and framework were not imported.",
+    "Source-file byte rehash claims are delegated to the pinned author audit; this review crosschecks all 26 recorded maps, not another source-tree scan.",
+    "412 testcase nodes and 573 aggregate suite count are distinct; the 161 successful subtests are separately reported by pytest.",
+    "Display files are explicitly transformed projections; original raw hashes remain separately bound.",
+    "No new runtime, native model, Agent run, actual owned ABI or startup-saving conclusion."
+  ],
+  "models_executed": false,
+  "original_receipt_sha256": "6c6908a933bb8ffbee5caa81d44067e1596d2438955ff09ba16352d2f4a2311d",
+  "primary_sha256": "916db9f952673dc7b9d93b4b42b99a48a9827bc62cf88754d8c2a34d119fdd8b",
+  "publication_authorized_by_this_review": false,
+  "reviewer_source_sha256": "23207811ba5bfb943e9d699483a88aaeaa73bbb03fff62ce0898526153a17a4f",
+  "runtime_scanned": false,
+  "schema": "omni-private-independent-snapshot-regression-projection-review-v1",
+  "status": "accepted_model_free_metadata_and_labeled_display_projections",
+  "tests_executed": false
+}

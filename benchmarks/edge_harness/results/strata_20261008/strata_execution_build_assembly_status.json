@@ -1,8 +1,8 @@
 {
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
-  "scope": "native_build_assembly_matching_static_registration_and_partial_native_lifecycle",
-  "status": "initial_native_reference_cases_passed_fresh_recovery_in_progress",
+  "scope": "frozen_native_build_static_registration_closed_lifecycle_and_model_free_snapshot_integration",
+  "status": "frozen_source_lifecycle_completed_snapshot_integrated_unit_regression_passed",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -184,7 +184,7 @@
     "static_runtime_eligibility": false,
     "static_consumer_sha256": "f586059136a9029d2a83bac2ebb15b8a611d3f52cfd099267fd67505fa9ee7b2"
   },
-  "next_action": "finish current fresh-worker recovery and final source/owner closure, then separately execute the prepared three-class Agent rerun",
+  "next_action": "finish new matching runtime assembly and static verification, register it, then run its complete cancellation/recovery lifecycle and three-class Agent validation",
   "alias_native_regression": {
     "path": "strata_execution_alias_native_unit_validation.json",
     "sha256": "61374f5ed9db8cbc9f8684c8d5f5c611dd03ccac6e6739f4a25cac7a4a149b37",
@@ -263,6 +263,42 @@
     "qualification_created": false
   },
   "actual_lifecycle_validation": {
+    "status": "four_reference_requests_cancel_and_fresh_generation_recovery_verified",
+    "producer_source_sha256": "2b317236675ce8d6bc84bcc72bd4326d825bfe88f5456a90f5f32c5d206806f8",
+    "batch_size": 1,
+    "max_active_requests": 1,
+    "stage_init_timeout_s": 900,
+    "backend_start_timeout_s": 900,
+    "request_timeout_s": 600,
+    "timeout_scope": "Recorded launch/config values; no overall StageRuntime GRAPH initialization deadline is claimed.",
+    "native_model_execution_confirmed": true,
+    "qualification_created": false,
+    "completed_reference_requests": 4,
+    "initial_integrity_and_startup_s": 2466.1888096,
+    "partial_progress": {
+      "path": "strata_execution_lifecycle_partial_progress.json",
+      "size_bytes": 19716,
+      "sha256": "4c30e1a579577cc5a967711a227ffa1f483438712b18a818b05e67b6ad65e7a0"
+    },
+    "partial_review_sha256": "1586d5a2df126205c454f37ac7b68f90f38758951cffce3ad85722b33be7638e",
+    "fresh_worker_recovery_verified": true,
+    "lifecycle_terminal": true,
+    "Agent_rerun_performed": false,
+    "recovery_integrity_and_startup_s": 3154.2693655998446,
+    "recovery_full_response_s": 4.442073700018227,
+    "final_projection": {
+      "path": "native_ista_q2_execution_lifecycle.json",
+      "sha256": "ef46abe665eb32b3f53aedbd0dfa446d2c5f361a3299b04a09ea721d70548f05"
+    },
+    "independent_projection_review": {
+      "path": "native_ista_q2_execution_lifecycle_independent_review.json",
+      "sha256": "abae72fb45eefbabcb06ce6997283ca19404f1ab0712d7ad95fc27a683c0ed6d"
+    },
+    "separate_retained_process_objects_verified": 5,
+    "retained_process_scope": "Fresh worker/parent objects only from capture; excludes initial roles and all other descendants."
+  },
+  "native_model_execution_scope": "Four reference requests across two workers and actual cancellation on frozen pre-snapshot sources; no optimized-source or Agent neural qualification.",
+  "prior_partial_lifecycle_validation": {
     "status": "initial_three_reference_cases_and_cancel_partially_reviewed_recovery_pending",
     "producer_source_sha256": "2b317236675ce8d6bc84bcc72bd4326d825bfe88f5456a90f5f32c5d206806f8",
     "batch_size": 1,
@@ -285,5 +321,22 @@
     "lifecycle_terminal": false,
     "Agent_rerun_performed": false
   },
-  "native_model_execution_scope": "Three independently reviewed initial text requests only; final lifecycle and source/owner closure remain pending."
+  "initialization_snapshot_integration": {
+    "status": "integrated_native_model_free_regression_passed_new_runtime_assembly_pending",
+    "validation_path": "strata_initialization_snapshot_native_unit_validation.json",
+    "validation_sha256": "916db9f952673dc7b9d93b4b42b99a48a9827bc62cf88754d8c2a34d119fdd8b",
+    "passed": 409,
+    "skipped": 3,
+    "subtests_passed": 161,
+    "source_pre_post_unchanged": true,
+    "stage_sha256": "2bd0c25ca87aea5bf19f008f1a6f8bb5023111db1a5ce9f1017035a35374db4e",
+    "static_sha256": "273b81b115756988ef990d4a0ffde86104141787f1658bd0e90ec596f9753111",
+    "live_sha256": "a9748c3a29852fc56bf64011f2434a4aeff8be74bd72a25a0b271386b251777b",
+    "new_registry_sha256": "943f270c01679bed68d5778e031e3502dd68f4d08b086c266433e93f41fa4d28",
+    "new_matching_runtime_complete": false,
+    "new_neural_lifecycle_complete": false,
+    "new_Agent_rerun_performed": false,
+    "startup_benefit_measured": false,
+    "default_or_release_qualification": false
+  }
 }
