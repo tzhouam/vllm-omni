@@ -1,0 +1,366 @@
+{
+  "schema": "omni-native-browser-characterization-public-audit-v1",
+  "qualification": false,
+  "scope": "Actual normal-app native browser factory, two cold headless read-only loopback generations; no neural execution, default route, or measured allowance qualification.",
+  "actual_results": {
+    "test_count": 1,
+    "passed": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "controlled_process_cohort_passed": true,
+    "cold_generations": 2,
+    "read_only_open_read_cycles": 18,
+    "completed_tool_results": 36,
+    "unique_requests": 18,
+    "warmups": 6,
+    "measured_cycles": 12,
+    "reference_substring_checks_passed": 18,
+    "completed_side_effect_retries": 0,
+    "successful_Node_CreateProcess_count": 2,
+    "allowed_process_audit_row_count": 4,
+    "async_execution_violations": 0,
+    "normal_origin_violations": 0,
+    "private_registry_or_provider_factory_override": false,
+    "exit_code": 0
+  },
+  "measurement_scope": {
+    "single_active_request": true,
+    "neural_model_execution": false,
+    "neural_operator_placement_verified": false,
+    "neural_batch_performance_measured": false,
+    "canonical_input_bucket_labels": [
+      "short",
+      "medium",
+      "long"
+    ],
+    "same_tiny_fixture_pages": true,
+    "long_context_browser_qualification": false,
+    "total_raw_sample_rows": 133,
+    "requested_sample_interval_seconds": 0.2,
+    "sampled_peaks_are_lower_bounds": true,
+    "process_samples_are_not_simultaneous": true,
+    "working_set_may_include_shared_pages": true,
+    "private_commit_is_not_physical_residency": true,
+    "local_nonlocal_GPU_and_CPU_counters_are_not_additive": true,
+    "unavailable_measurements_are_not_zero": true
+  },
+  "sample_coverage": [
+    {
+      "generation": "abd91364e280453ca1b3623eeeb5f62d",
+      "sample_count": 65,
+      "complete_live_distinct_timestamps": 58,
+      "complete_live_minimum_0_2s_spaced_samples": 31,
+      "whole_browser_peak_or_allowance_verified": false
+    },
+    {
+      "generation": "a3fe3e37ac8549578eda4b3f60dee2ff",
+      "sample_count": 63,
+      "complete_live_distinct_timestamps": 55,
+      "complete_live_minimum_0_2s_spaced_samples": 31,
+      "whole_browser_peak_or_allowance_verified": false
+    }
+  ],
+  "generations": [
+    {
+      "generation": "abd91364e280453ca1b3623eeeb5f62d",
+      "known_retained_processes": 10,
+      "unknown_count": 0,
+      "known_bound_set_retired_and_handles_closed": true,
+      "helper_exact_retirement_observed": true,
+      "helper_exit_code": 0,
+      "helper_observer_handle_closed": true,
+      "helper_termination_authority": false,
+      "required_observed_dependency_policy_verified": true,
+      "observed_dependency_ownership_verified": false,
+      "browser_worker_joined": true,
+      "observer_callback_error_count": 0,
+      "provider_drained": true,
+      "adapter_handles_closed": true,
+      "verified_adapter_close_count": 2,
+      "process_handles_closed_by_provider": 0,
+      "provider_borrowed_handles_retained": false,
+      "failed_provider_count": 0,
+      "failed_registry_count": 0,
+      "gpu_join": {
+        "source_scope": "target_only_characterization",
+        "route_identity": null,
+        "gpu_identity": {
+          "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+          "pci_bus_id": "00000000:64:00.0",
+          "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+        },
+        "cuda_ordinal": 0,
+        "adapter_luid_hex": "4c5d010000000000",
+        "physical_adapter_index": 0,
+        "ledger_pool": "vram",
+        "canonical_pool": "vram:0",
+        "provider_capability_sha256": "154b325efaa1cd6a7b26b98df76ae2d90c5455950e2a354cbe698f6d4aef285b",
+        "native_execution_placement_verified": false,
+        "nonlocal_physical_pool_alias": "host_ram"
+      }
+    },
+    {
+      "generation": "a3fe3e37ac8549578eda4b3f60dee2ff",
+      "known_retained_processes": 11,
+      "unknown_count": 0,
+      "known_bound_set_retired_and_handles_closed": true,
+      "helper_exact_retirement_observed": true,
+      "helper_exit_code": 0,
+      "helper_observer_handle_closed": true,
+      "helper_termination_authority": false,
+      "required_observed_dependency_policy_verified": true,
+      "observed_dependency_ownership_verified": false,
+      "browser_worker_joined": true,
+      "observer_callback_error_count": 0,
+      "provider_drained": true,
+      "adapter_handles_closed": true,
+      "verified_adapter_close_count": 2,
+      "process_handles_closed_by_provider": 0,
+      "provider_borrowed_handles_retained": false,
+      "failed_provider_count": 0,
+      "failed_registry_count": 0,
+      "gpu_join": {
+        "source_scope": "target_only_characterization",
+        "route_identity": null,
+        "gpu_identity": {
+          "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+          "pci_bus_id": "00000000:64:00.0",
+          "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+        },
+        "cuda_ordinal": 0,
+        "adapter_luid_hex": "4c5d010000000000",
+        "physical_adapter_index": 0,
+        "ledger_pool": "vram",
+        "canonical_pool": "vram:0",
+        "provider_capability_sha256": "154b325efaa1cd6a7b26b98df76ae2d90c5455950e2a354cbe698f6d4aef285b",
+        "native_execution_placement_verified": false,
+        "nonlocal_physical_pool_alias": "host_ram"
+      }
+    }
+  ],
+  "resource_accounting": {
+    "physical_byte_ledger": true,
+    "zero_model_claim_bytes": true,
+    "provisional_diagnostic_budget_bytes": {
+      "host_ram": 4294967296,
+      "windows_commit": 4294967296,
+      "vram": 1073741824
+    },
+    "budget_basis": "provisional_diagnostic_estimate_not_measured_envelope",
+    "evidence_grade_for_budget": "E",
+    "atomic_model_and_tool_tokens_from_same_fresh_snapshot": true,
+    "protected_floor_policy": "unchanged_startup_free_minus_combined_claims",
+    "additional_common_free_floor_bytes": 0,
+    "budget_discount_or_floor_lowering": false,
+    "exact_model_token_release_while_tool_token_retained_tested": true,
+    "exact_tool_token_release_after_finite_close": true,
+    "final_reserved_bytes": {
+      "host_ram": 0,
+      "windows_commit": 0,
+      "vram": 0
+    },
+    "final_owner_count": 0,
+    "final_quarantine_count": 0,
+    "memory_allowance_qualified": false,
+    "hard_process_cap": false
+  },
+  "cleanup": {
+    "sampler_retired": true,
+    "fixture_server_thread_stopped": true,
+    "fixture_server_socket_closed": true,
+    "Agent_observer_handles_closed": true,
+    "Agent_alive_observed_at_observer_close": true,
+    "absent_model_retirement_claimed": false,
+    "cleanup_error_count": 0,
+    "sample_error_count": 0,
+    "known_browser_workers_joined": true,
+    "provider_drain_precedes_process_handle_close": true,
+    "helper_has_no_termination_authority": true,
+    "helper_exact_retirement_required": true,
+    "all_descendants_covered": false
+  },
+  "owned_job_accounting": {
+    "total_processes": 28,
+    "final_active_processes": 0,
+    "terminated_processes": 0,
+    "retained_signaled_process_objects": 26,
+    "short_lived_Win87_notification_identity_gaps": 2,
+    "owned_job_drained": true,
+    "owned_processes_drained": false,
+    "forced_cleanup": false,
+    "all_process_identities_covered": false,
+    "scope": "Owned Job zero plus exact retained-object waits; unretained notification identities remain gaps."
+  },
+  "identities": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "gpu_name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+    "gpu_driver": "610.71",
+    "physical_RAM_bytes": 67773509632,
+    "physical_VRAM_bytes": 25651314688,
+    "power_condition": "AC",
+    "runtime_versions": {
+      "pytest": "9.1.1",
+      "pytest-asyncio": "1.4.0",
+      "playwright": "1.63.0",
+      "psutil": "7.2.2",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "torch": "2.13.0+cu130",
+      "triton": null,
+      "PySide6": "6.11.2",
+      "cryptography": "50.0.1"
+    },
+    "installed_artifacts": {
+      "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe": {
+        "bytes": 274424,
+        "mtime_ns": 1789545008071026200,
+        "sha256": "0b471133e110cfb53a061cad528ce8e517d7b9ac41a0a396c39ad795a487fc14"
+      },
+      "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\python.exe": {
+        "bytes": 104952,
+        "mtime_ns": 1744088256000000000,
+        "sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"
+      },
+      "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\node.exe": {
+        "bytes": 93580104,
+        "mtime_ns": 1791188229735499300,
+        "sha256": "ba4e6d110e8c1592a1ecd390f6b05f3da124b13871a5be62b341a07a853c6c32"
+      },
+      "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\playwright\\driver\\package\\cli.js": {
+        "bytes": 839,
+        "mtime_ns": 1791188229738503700,
+        "sha256": "f1c4075aef116c766092250d7f37b3249a7cee6465d953207fc38c8f6145becd"
+      },
+      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe": {
+        "bytes": 5403976,
+        "mtime_ns": 1791146882255488500,
+        "sha256": "d366716ba3cd2cc67d92d9b712b129fea4c8df769961d1e04b037ce034780ad0"
+      },
+      "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\154.0.4258.62\\identity_helper.exe": {
+        "bytes": 2580296,
+        "mtime_ns": 1791146915780706600,
+        "sha256": "cdb95c83d6206949ed5450c02d39d48a5af56178fb43cf979303cb4a11a5fa50"
+      },
+      "C:\\Windows\\System32\\conhost.exe": {
+        "bytes": 1003520,
+        "mtime_ns": 1788982105817070000,
+        "sha256": "e449bce01f275cd08f3d4e64bb73b3b43ae845a0dbdb3e6131426e66537705e5"
+      }
+    },
+    "normal_app_config": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\browser-native-characterization-v2\\harness\\config.json",
+      "sha256": "3f37b29119b8496874f1d1be989d0c1bbc0fc15ccbc774953a57d5cd7ae58492"
+    },
+    "source_review_seal": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\browser-native-characterization-v2\\harness\\source-pins.json",
+      "sha256": "428066655ed690b82acd105d245e39459331472359e38f86d970c41292435674"
+    }
+  },
+  "stability": {
+    "production_source_count": 54,
+    "production_before_after_current_equal": true,
+    "private_harness_file_count": 10,
+    "private_before_after_equal": true,
+    "installed_artifact_count": 7,
+    "installed_before_after_equal": true,
+    "sealed_manifest_before_after_equal": true,
+    "runtime_before_after_and_exact_v16_comparison_equal": true
+  },
+  "raw_evidence": {
+    "receipt.json": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-characterization-20261009-v2\\receipt.json",
+      "bytes": 50457,
+      "sha256": "d81b574683f2bd14e88cec36941598e69f5998a977ff8b1600648abfef17f509"
+    },
+    "child-receipt.json": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-characterization-20261009-v2\\child-receipt.json",
+      "bytes": 76913,
+      "sha256": "e1b689c5959e00ca476d76bc7d2cc783327e7a0193e08b24f59e431f4cce78ef"
+    },
+    "junit.xml": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-characterization-20261009-v2\\junit.xml",
+      "bytes": 403,
+      "sha256": "87bd81f17be5b424c649e08440d6c187efc9e06e1acd8a6b90e4124436aadda6"
+    },
+    "launch.json": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-characterization-20261009-v2\\launch.json",
+      "bytes": 10706,
+      "sha256": "c868956c99fef4ca61a2f738a998154be942f47d8f5732f08620c7bbfb84ad46"
+    },
+    "characterization_receipt": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-characterization-20261009-v2\\pytest-tmp\\test_native_normal_app_browser0\\characterization-receipt.json",
+      "bytes": 933957,
+      "sha256": "74aa7d309538df14617d05f1715b9d3441744d02de19dbbf27ffbea22d88a036"
+    },
+    "journal": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-characterization-20261009-v2\\pytest-tmp\\test_native_normal_app_browser0\\characterization-journal.jsonl",
+      "bytes": 12425,
+      "sha256": "6481dcc1fed38f34d33aaee526ca72c2f08622acc4a34aa83a0eb5264e0ff983"
+    },
+    "samples": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-characterization-20261009-v2\\pytest-tmp\\test_native_normal_app_browser0\\characterization-samples.jsonl",
+      "bytes": 10380141,
+      "sha256": "747bd0282646bb933974b5b71e95b0b4c497ad8ff8b1c971eece65337dba7742"
+    }
+  },
+  "closed_model_free_prerequisite": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-browser-gpu-factory-focused-20261009-v16\\receipt.json",
+    "sha256": "13c15a7ab33dbe4e451f607b2e8b4d9f033b7dde9f403e4a629930464e8f76b2",
+    "schema": "omni-private-native-browser-gpu-factory-focused-tests-v16",
+    "tests": 414,
+    "qualification": false
+  },
+  "preserved_failed_predecessor": {
+    "receipt": {
+      "path": "C:/Users/zhout/w2/strata-omni/runs/native-browser-characterization-20261009-v1/receipt.json",
+      "bytes": 33578,
+      "sha256": "15d93271936d5ed9de7b7e78c579039b06c46850038a41f5cc984b8f592d6d32"
+    },
+    "raw_characterization": {
+      "path": "C:/Users/zhout/w2/strata-omni/runs/native-browser-characterization-20261009-v1/pytest-tmp/test_native_normal_app_browser0/characterization-receipt.json",
+      "bytes": 18248,
+      "sha256": "99df2b8cad5ab14f6257afdae214f7059652d509da4785b2a2b0a6c88589f135"
+    },
+    "exit_code": 1,
+    "browser_or_Node_launches": 0,
+    "reason": "Zero-byte synthetic fixture omitted required requested/observed placement metadata; unchanged production validator refused it.",
+    "raw_owned_processes_drained": false,
+    "production_validator_weakened": false,
+    "reclassified_as_pass": false
+  },
+  "limits": [
+    "Target-only native GPU identity join does not authorize a current loaded model route.",
+    "Zero-byte model lifetime fixture is not neural execution, CPU operator-placement proof, or model memory admission evidence.",
+    "Three canonical prompt labels use the same tiny read-only pages; no long page, general browsing, headed UI or neural context qualification.",
+    "Finite retained process coverage excludes unobserved/short-lived identities and sub-cadence/startup peaks.",
+    "Working set, Windows commit, GPU LOCAL and GPU NONLOCAL remain separate counters; shared pages and UMA are not extra independent RAM.",
+    "The 4/4/1 GiB reservation remains an explicitly configured provisional diagnostic estimate. No numeric allowance selection follows from this projection.",
+    "Current-source model→browser→model smoke, 20-request performance samples and 30-minute stability qualification remain pending."
+  ],
+  "independent_raw_audit": {
+    "closed": true,
+    "scope": "Bounded read/hash/projection only; no imports, tests, native queries, process launches or raw-file mutations by auditors.",
+    "raw_hashes_rechecked": true,
+    "case_result_journal_joins_verified": true,
+    "journal_event_count": 45,
+    "serialized_sample_sequence_and_time_windows_verified": true,
+    "max_sample_line_bytes": 228212,
+    "same_generation_native_join_and_provider_capability_verified": true,
+    "current_54_10_7_hashes_verified": true,
+    "detailed_numeric_sample_maxima_deferred": true
+  },
+  "started_unix": 1791555310.2508397,
+  "finished_unix": 1791555372.652738,
+  "finished_utc": "2026-10-09T14:16:12.652738+00:00",
+  "root_review": {
+    "private_projection_sha256": "f449c04377f3e22c75e7329551dd84f032c8a2466cae04eb7086fe100c8bd380",
+    "projection_read_in_full": true,
+    "referenced_raw_files_rehashed": 11,
+    "current_production_source_rehash_count": 54,
+    "current_sources_match_frozen_run": true,
+    "independent_closed_raw_audit_received": true,
+    "new_neural_execution_or_qualification_granted": false
+  }
+}
