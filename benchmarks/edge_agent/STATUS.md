@@ -1,25 +1,25 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-09)
 
-2026-10-09 latest: the combined I/O/execution-observation adapters are now integrated into
-the Stage, runtime registrar, Agent route translation and result binding. Observer RAM,
-Windows commit and receipt storage are charged separately through the existing ledger.
-[Native Windows regression and raw logs](../edge_harness/results/strata_20261008/strata_execution_combined_native_unit_validation.json)
-passed **297 tests and 161 subtests**, with three skips. A subsequent strict-integer DONE
-sequence fix passed **24 focused native tests**; the overlapping runs are not added together.
-Native vLLM is `0.29.0+cu134`, aligned with Omni 0.29; nine changed non-pinned integration
-files passed the repository Ruff configuration. The new native engine compiled and linked,
-and its separate complete runtime assembled successfully. The
-[first actual static attempt](../edge_harness/results/strata_20261008/strata_execution_build_assembly_status.json)
-refused an unregistered 483,520-byte experimental projection GGUF from the fixed base
-repository. The failure is retained. Exact Git and copy membership checks are now frozen
-and independently source-reviewed. The follow-up external static diagnostic passed member
-checks, then failed at `build_cache_flags`: all eight actual controls match, but the parser
-retains the CR from Windows CRLF. A strict line-ending repair is being checked; the external
-diagnostic cannot authorize registration of the unchanged old bundle.
-Actual model parity, observed execution, cancellation/recovery and Agent reruns on this
-combined version are still pending.
-These are model-free integration checks. Prior Q2/IQ3/Q4 actual results keep their own
-frozen source identities and do not qualify the new observer path.
+2026-10-09 latest: combined I/O/execution observation is integrated into the Stage,
+runtime registrar, Agent route translation and result binding. Observer RAM, Windows commit
+and receipt storage are charged through the existing ledger.
+[Latest native Windows regression and raw logs](../edge_harness/results/strata_20261008/strata_execution_metadata_repairs_native_unit_validation.json)
+passed **360 tests and 161 subtests**, with three skips. This covers the strict-integer DONE fix,
+LF/CRLF cache parsing and the scoped 4 MiB target compile-input record; generic JSON remains 2 MiB.
+Native vLLM is `0.29.0+cu134`, aligned with Omni 0.29. Stage and both new public tests pass repository Ruff.
+These are model-free checks; the historical Q2/IQ3/Q4 executions below retain their own frozen sources.
+
+The new native engine compiled/linked and its separate complete runtime assembled.
+[Retained actual static failures](../edge_harness/results/strata_20261008/strata_execution_build_assembly_status.json)
+include the base experimental GGUF, CRLF, compile-record size and CUDA dependency-path projection.
+The cache and record-size repairs are integrated and tested. The latest full external diagnostic failed
+at `target_dependency_projection_differs`: Ninja records Windows short CUDA header names while the
+collector resolves long names. Actual Win32 checks established matching file identity and bytes for
+all **11 exact pairs**, including archived compiler inputs. This is current namespace/content evidence,
+not build-time execution attestation. Its narrow consumer and fresh matching runtime are in progress.
+Old bundles/failures are retained; external diagnostics cannot authorize the unchanged old bundle.
+Combined-version full static verification, actual model parity, cancellation/recovery and Agent rerun
+remain pending. The existing Agent loop and historical 442-task scope below remain unchanged.
 
 2026-10-09: the engine now includes optional execution-observation Stage lifecycle integration.
 [Model-free regression](../edge_harness/results/strata_20261008/strata_execution_stage_unit_validation.json)

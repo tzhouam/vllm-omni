@@ -21,7 +21,7 @@ from pathlib import Path, PurePosixPath
 import strata_exec as parser
 import strata_exec_runtime as static_verifier
 
-STATIC_VERIFIER_SHA = "458db0a601ff3a69bdc765e26cc98c168adaf6970af9d5b90e589ad09259b213"
+STATIC_VERIFIER_SHA = "101a856d61903c460f6c241325c604f560c63bb37ba5355f5bb0a781be5fddd7"
 PARSER_SHA = "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf"
 BRIDGE_SHA = "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe"
 ENGINE_ROLE_IO_SHA = "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43"
@@ -64,6 +64,15 @@ def live_clock_identity():
     return {"source": "time.perf_counter_ns", "implementation": info.implementation,
             "monotonic": info.monotonic, "adjustable": info.adjustable, "resolution_s": info.resolution,
             "scope": "fresh_verifier_callback_timestamp_not_native_compute_or_latency_measurement"}
+
+
+def _reopen_static_bundle(root, descriptor, static):
+    """Reuse the exact descriptor-bound source exceptions, never arbitrary roots."""
+    bundle = static_verifier.Bundle(root, descriptor["manifest_file"],
+        dependency_source_roots=static_verifier.dependency_source_roots(descriptor),
+        strata_source_roots=static_verifier.strata_source_roots(descriptor))
+    require(bundle.manifest_sha256 == static["runtime_manifest_sha256"], "live_static_manifest_binding")
+    return bundle
 
 
 def _module_preimages(bundle, context_file):
@@ -169,9 +178,7 @@ class LiveExecutionBindingVerifier:
         require(digest(descriptor_raw) == self.static["descriptor_sha256"], "live_descriptor_reread_changed")
         descriptor = static_verifier.json_(descriptor_raw)
         del descriptor_raw
-        self._bundle = static_verifier.Bundle(self._root, descriptor["manifest_file"],
-            dependency_source_roots=static_verifier.dependency_source_roots(descriptor))
-        require(self._bundle.manifest_sha256 == self.static["runtime_manifest_sha256"], "live_static_manifest_binding")
+        self._bundle = _reopen_static_bundle(self._root, descriptor, self.static)
         self._modules, self._sources, self._bootstrap = _module_preimages(self._bundle, source_context_file)
         engine_file, self._module_runtime, self._closure = _recursive_engine_closure(self.static)
         self._engine_file = engine_file

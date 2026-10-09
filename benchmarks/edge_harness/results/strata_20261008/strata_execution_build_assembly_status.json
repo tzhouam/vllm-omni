@@ -2,7 +2,7 @@
   "schema": "omni-strata-execution-build-assembly-status-v1",
   "date": "2026-10-09",
   "scope": "native_build_and_complete_assembly_no_model_execution",
-  "status": "assembled_followup_external_static_diagnostic_failed_on_cache_line_parsing",
+  "status": "assembled_external_static_failed_exact_CUDA_header_alias_witness_ready_consumer_pending",
   "base_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
   "dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
   "dependency_tree": "d255198f04f9b8349f1dff24501d513f83cbfeda",
@@ -79,20 +79,21 @@
   "native_model_executed": false,
   "followup_external_static_diagnostic": {
     "terminal_exit_code": 1,
-    "verifier_source_sha256": "fa44069147b45e6bc9672b17f678d5484dfcfceed1fc9f99581a8e181627dae8",
+    "verifier_source_sha256": "101a856d61903c460f6c241325c604f560c63bb37ba5355f5bb0a781be5fddd7",
+    "reason_code": "target_dependency_projection_differs",
     "raw_receipt": {
-      "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_static_diagnostic_v6_raw.json",
-      "size_bytes": 343,
-      "sha256": "20f538b85edecbc9c8ff37c2808e459e2abf40747448a66123f517a676dbdb96"
+      "path": "strata_execution_static_diagnostic_v8_raw.json",
+      "sha256": "89b8c55eff1185a9bfaee801888bd4449ff8eb80445a9ed7922e015ea7ae23ad",
+      "size_bytes": 362
     },
     "raw_context": {
-      "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_static_diagnostic_v6_context_raw.json",
-      "size_bytes": 550,
-      "sha256": "eb8ea1b399bcac40431eb88278c2484136077e95557ac54a43bc7b37e2c714fd"
+      "path": "strata_execution_static_diagnostic_v8_context_raw.json",
+      "sha256": "62e128eff75b34cafc6fa390c74fd4580a831bab79a928aed911d00bf4d849b2",
+      "size_bytes": 550
     },
-    "reason_code": "build_cache_flags",
+    "diagnostic_elapsed_s": 587.5635032998398,
+    "elapsed_scope": "wrapper wall time for external static verification; not neural or model loading latency",
     "scope": "external successor against unchanged original assembly; archived adapter/context differ, no registration authority",
-    "next_action": "repair strict Windows CRLF cache parsing after selected-record proof; repeat full static verification before final matching runtime assembly",
     "registration_authorized": false,
     "native_model_executed": false
   },
@@ -102,5 +103,85 @@
   "default_eligible": false,
   "release_qualified": false,
   "physical_ssd_read_bytes": null,
-  "aggregate_memory_hard_caps_verified": false
+  "aggregate_memory_hard_caps_verified": false,
+  "external_static_diagnostic_history": [
+    {
+      "terminal_exit_code": 1,
+      "verifier_source_sha256": "fa44069147b45e6bc9672b17f678d5484dfcfceed1fc9f99581a8e181627dae8",
+      "raw_receipt": {
+        "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_static_diagnostic_v6_raw.json",
+        "size_bytes": 343,
+        "sha256": "20f538b85edecbc9c8ff37c2808e459e2abf40747448a66123f517a676dbdb96"
+      },
+      "raw_context": {
+        "path": "benchmarks/edge_harness/results/strata_20261008/strata_execution_static_diagnostic_v6_context_raw.json",
+        "size_bytes": 550,
+        "sha256": "eb8ea1b399bcac40431eb88278c2484136077e95557ac54a43bc7b37e2c714fd"
+      },
+      "reason_code": "build_cache_flags",
+      "scope": "external successor against unchanged original assembly; archived adapter/context differ, no registration authority",
+      "next_action": "repair strict Windows CRLF cache parsing after selected-record proof; repeat full static verification before final matching runtime assembly",
+      "registration_authorized": false,
+      "native_model_executed": false
+    },
+    {
+      "terminal_exit_code": 1,
+      "verifier_source_sha256": "27df19f53b941844121bc6bb1cb3179c47b8c660cca81a422795851119b1d21f",
+      "reason_code": "file_bound",
+      "raw_receipt": {
+        "path": "strata_execution_static_diagnostic_v7_raw.json",
+        "sha256": "e955bf1204654aee77f5be8985a8cdabff0263e719249e2fd7fc1660c2aaffa6",
+        "size_bytes": 336
+      },
+      "raw_context": {
+        "path": "strata_execution_static_diagnostic_v7_context_raw.json",
+        "sha256": "186a7c3e071f8ba136937a09b84f217109de491d8d601cb473da0b6535d6c531",
+        "size_bytes": 550
+      },
+      "diagnostic_elapsed_s": 484.6949312998913,
+      "elapsed_scope": "wrapper wall time for external static verification; not neural or model loading latency",
+      "scope": "external successor against unchanged original assembly; archived adapter/context differ, no registration authority",
+      "registration_authorized": false,
+      "native_model_executed": false
+    },
+    {
+      "terminal_exit_code": 1,
+      "verifier_source_sha256": "101a856d61903c460f6c241325c604f560c63bb37ba5355f5bb0a781be5fddd7",
+      "reason_code": "target_dependency_projection_differs",
+      "raw_receipt": {
+        "path": "strata_execution_static_diagnostic_v8_raw.json",
+        "sha256": "89b8c55eff1185a9bfaee801888bd4449ff8eb80445a9ed7922e015ea7ae23ad",
+        "size_bytes": 362
+      },
+      "raw_context": {
+        "path": "strata_execution_static_diagnostic_v8_context_raw.json",
+        "sha256": "62e128eff75b34cafc6fa390c74fd4580a831bab79a928aed911d00bf4d849b2",
+        "size_bytes": 550
+      },
+      "diagnostic_elapsed_s": 587.5635032998398,
+      "elapsed_scope": "wrapper wall time for external static verification; not neural or model loading latency",
+      "scope": "external successor against unchanged original assembly; archived adapter/context differ, no registration authority",
+      "registration_authorized": false,
+      "native_model_executed": false
+    }
+  ],
+  "metadata_repairs_native_regression": {
+    "path": "strata_execution_metadata_repairs_native_unit_validation.json",
+    "sha256": "37ff55df72874fad907f3b20b1b9841cdab6f998b67794b631cd2a443f0fe99b",
+    "size_bytes": 5420
+  },
+  "current_CUDA_header_alias_witness": {
+    "status": "actual_current_Windows_witness_passed_static_consumer_and_matching_runtime_pending",
+    "receipt_sha256": "483ca972a331c6017808d5bdb68bed6561fd601fb1a7859b7e1b9d68ca6f92d6",
+    "collector_sha256": "248a2c877f32bf2626bd0410a5f280632a4cc0535277b23e7de894fdf2902344",
+    "diagnosis_sha256": "a4bf0d93f0be79cb36a724d00f6640dd9fa8dde17b569762dc830dfa85e57d6f",
+    "exact_external_CUDA_header_pairs": 11,
+    "raw_preimages": 33,
+    "unique_header_bytes": 1929906,
+    "raw_preimage_bytes": 5789718,
+    "observed_identity": "same held Win32 file IDs and exact bytes for short path, long path and archived compiler input",
+    "build_time_execution_attested": false,
+    "static_runtime_eligibility": false
+  },
+  "next_action": "consume only the exact witnessed external CUDA aliases, assemble a fresh source-aligned runtime, then full static verification and actual model/cancellation/Agent replay"
 }

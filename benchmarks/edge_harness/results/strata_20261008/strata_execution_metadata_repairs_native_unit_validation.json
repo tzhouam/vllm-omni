@@ -1,0 +1,96 @@
+{
+  "schema": "omni-strata-metadata-repairs-native-unit-validation-v1",
+  "date": "2026-10-09",
+  "scope": "production_Stage_registrar_Agent_metadata_and_loopback_no_neural_execution",
+  "status": "native_unit_passed_combined_model_and_Agent_rerun_pending",
+  "passed": 360,
+  "skipped": 3,
+  "subtests_passed": 161,
+  "pytest_reported_s": 76.68,
+  "runner_elapsed_s": 78.41670190007426,
+  "terminal_exit_code": 0,
+  "junit_suites": [
+    {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "3",
+      "tests": "524",
+      "time": "76.404",
+      "timestamp": "2026-10-09T09:42:41.910502+08:00",
+      "hostname": "LAPTOP-07175OF9"
+    }
+  ],
+  "junit_count_scope": "524 includes 360 successful items, 161 successful subtests and 3 skips; do not add overlapping earlier runs",
+  "raw_files": {
+    "junit": {
+      "path": "strata_execution_metadata_repairs_native_unit/v3-junit.xml",
+      "sha256": "9084ffdafa88beeb4cc18fac28e3e83966f0dd10e23cffed86a74e59ea945166",
+      "size_bytes": 59512
+    },
+    "log": {
+      "path": "strata_execution_metadata_repairs_native_unit/v3-pytest.log",
+      "sha256": "a5113bfa26eb7c85af25968301ab03fbc86f146206788beb0d0fd2a7a571cf4a",
+      "size_bytes": 1163
+    },
+    "receipt": {
+      "path": "strata_execution_metadata_repairs_native_unit/v3-receipt.json",
+      "sha256": "9d79355ecbcee5f634e48b5fa7e05ef1a09a7fccbb636119048f0895891ea357",
+      "size_bytes": 9294
+    }
+  },
+  "source_preimages": {
+    "vllm_omni/engine/backends/strata.py": "65c37503a61e652a0155557d624a6920fa38b416b10c13adf3ec67b0264b9622",
+    "vllm_omni/engine/backends/strata_io.py": "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43",
+    "vllm_omni/edge/agent/placement.py": "a6feb5895e81d26429d91d8720603b8d3c5f419df9453b06e403e676f77064b6",
+    "vllm_omni/edge/agent/strata_execution_evidence.py": "251dd72f915b69e20df54e1d9f5ff68103241b0d04421f55ba7a9fad1840d17f",
+    "vllm_omni/edge/agent/consumer_trace.py": "55b52ff12fddd575c731eb3624a16bbb65f0a2d5efd83c4187c6569e01558b40",
+    "vllm_omni/edge/agent/strata_route.py": "fe9996aa35366859f6dcf133e6107a5ea7b64faeb3aeb799eedd1ca7d11fd23f",
+    "benchmarks/edge_harness/strata_runtime.py": "beb4e0f8a42330523a0ec244f59c952fc0f378b68367f8100dd63561cb1df477",
+    "vllm_omni/engine/backends/strata_execution/__init__.py": "7599029f8a77a32659d021a8c9f18cce7403c637712c3674a7df8376cc68b6c1",
+    "vllm_omni/engine/backends/strata_execution/strata_exec.py": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_bridge.py": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_runtime.py": "101a856d61903c460f6c241325c604f560c63bb37ba5355f5bb0a781be5fddd7",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_live.py": "08175a82a9cfc4bf0f012fa43bd77096a8175452e76bbf24ee56e79f2fa083ca",
+    "tests/edge/test_strata_backend.py": "036034ba020004ea8fa1eda609d55786ffc9bfc52d94d14e75155c9bf48c857e",
+    "tests/edge/test_strata_io.py": "fb4024023e1bb62d35cdbb429aaecb7c1451f11cbd6f04c95603b7b7dbca0ea3",
+    "tests/edge/test_strata_execution_lifecycle.py": "57e16b12cd058e73f124ecaf814754246f5d1ddcf3f44f3c0cae986f034bf1fa",
+    "tests/edge/test_strata_execution_parser.py": "b400485059bc4f4111b0c1de33e99cd9e23d4bb734b4cd8739a5feb0c032487f",
+    "tests/edge/test_strata_execution_cache_lines.py": "1e4e13d16249c894580f3120cfbd4e8650f5908eafc4dfbf7ec279460b1c5287",
+    "tests/edge/test_strata_execution_compile_inputs.py": "654fdfe4cda3c8acd636d6da5f551c8ad0b2c8f4a2923eeba8d32681066163a5",
+    "tests/edge/test_agent_strata_profile.py": "e504d15c6a0f5f069ac6f85cd937d73d5817a143cb54eba4ab2601d8d0059911",
+    "tests/edge/test_agent_strata_execution.py": "c7f3ca20ad056913365bf5556b45a35c8ba7f843e251f37431f33e0e8fe20f66",
+    "tests/edge/test_agent_consumer_trace.py": "de2e479f91533e55421e4c280c9cca17e3e689f8737f5657b50b29ce35a7910f",
+    "tests/edge/test_agent_strata_route.py": "465dec60487ce2a536a69b216a689e6beb0ce0ae74063da5effba3078ab49fdc",
+    "benchmarks/edge_harness/test_strata_runtime.py": "97ff053b5ee6270b56a554b561cb860789b845dbe8d2c634e43b63569667c815",
+    "benchmarks/edge_harness/test_strata_prepare.py": "dc04dd8cf7a8e4971309d6c65c0632ad5941bbfc0090eb67a1f2ce32b9c3c466"
+  },
+  "source_pre_post_and_publication_unchanged": true,
+  "environment": {
+    "OS": "native Windows",
+    "Python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "packages": {
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "pytest": "9.1.1"
+    }
+  },
+  "repairs": [
+    "exact base Git experimental auxiliary and all retained copies",
+    "strict LF/CRLF CMake cache values; bare CR remains rejected",
+    "4 MiB bound for descriptor-bound target compile-inputs only; generic JSON remains 2 MiB"
+  ],
+  "Ruff_check": {
+    "passed": true,
+    "config": "pyproject.toml",
+    "scope": "Stage and two new public tests; default repository cwd"
+  },
+  "native_model_executed": false,
+  "complete_runtime_verified": false,
+  "actual_owned_engine_ABI_verified": false,
+  "physical_model_ssd_bytes_verified": false,
+  "aggregate_memory_hard_caps_verified": false,
+  "runtime_qualification": false,
+  "default_eligible": false,
+  "release_qualified": false
+}

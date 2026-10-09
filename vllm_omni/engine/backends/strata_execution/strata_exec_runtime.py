@@ -50,6 +50,8 @@ FIXTURE_CASES = (
     "cancelled-pending-fence", "missing-end", "counter-overflow", "formatting-overflow", "worst-case-frames",
 )
 MAX_JSON = 2 << 20
+# Only the receipt-bound target compile metadata has a separate byte envelope.
+MAX_TARGET_COMPILE_JSON = 4 << 20
 MAX_MANIFEST_BYTES = 16 << 20
 MAX_MANIFEST_NODES = 300000
 MAX_JSON_DEPTH = 64
@@ -60,6 +62,13 @@ MAX_TOTAL = 4 << 30
 MAX_FILES = 65536
 MAX_DIRS = 8192
 MAX_GIT_OBJECT = 64 << 20
+STRATA_SOURCE_AUXILIARY = {
+    "path": "data/experimental-speed-projection/Qwen3.8-Flash-Next-experimental-speed-projection.gguf",
+    "size_bytes": 483520,
+    "sha256": "ef0724c5b79297e481017be85769832bc26eb220c984ecba2b0e1b0c8426312b",
+    "git_blob_id": "5c10294a9981a76ea83f51aadd15816d3911285f",
+    "mode": "100644",
+}
 # Exact tokenizer fixtures from the separately pinned dependency Git tree.
 # Only the two descriptor-bound dependency source snapshots may contain them.
 DEPENDENCY_VOCABULARY = {'models/ggml-vocab-aquila.gguf': {'size_bytes': 4825676, 'sha256': '7c53c3c516ac67c7ca12977b9690fdea3d2ef13bbaed6378f98191a13ef5ca00'}, 'models/ggml-vocab-baichuan.gguf': {'size_bytes': 1340998, 'sha256': '4f5b955697f3bd3108070b1d5936c7eb9fc542b81c6932e59abddec75bca1963'}, 'models/ggml-vocab-bert-bge.gguf': {'size_bytes': 627549, 'sha256': 'fbcbe22278fb302694d5f4a41bfe48c5f90e8e3554eab1c0435387dff654a854'}, 'models/ggml-vocab-command-r.gguf': {'size_bytes': 10874545, 'sha256': 'a2f8cfea952ef7c391a6d92a1c309d0bd32e36384d9b9230569a7425732f27d9'}, 'models/ggml-vocab-deepseek-coder.gguf': {'size_bytes': 1156067, 'sha256': '91cb1379f2e33af1c4866b194622b7a0e12e8f0c9dba7ba2f10d55978730bec1'}, 'models/ggml-vocab-deepseek-llm.gguf': {'size_bytes': 3970167, 'sha256': '867f77537b54565f0d81d508c04edc41aa1d4ffc1a92745f225b4c1b02755f76'}, 'models/ggml-vocab-falcon.gguf': {'size_bytes': 2287728, 'sha256': '9f0bf8b0733680398b72e652e90f260f43782f326e75545fc0e49611a5ba35ad'}, 'models/ggml-vocab-gemma-4.gguf': {'size_bytes': 15776467, 'sha256': '58b1ba0b57f3b4d7c468ba4ffd91ad85190346a3d7ad7e71d1cabaae8a14bb65'}, 'models/ggml-vocab-gpt-2.gguf': {'size_bytes': 1766807, 'sha256': 'cedc56ca6e2e89f63e781696d1fd76b4b1d49e6720dee86463e915f6e90016ac'}, 'models/ggml-vocab-gpt-neox.gguf': {'size_bytes': 1771431, 'sha256': 'ae593a7f9b8bb174ed4f5019e41530463e4dac7aa06e42dee8aa650d2bdac53d'}, 'models/ggml-vocab-llama-bpe.gguf': {'size_bytes': 7818140, 'sha256': '97272e430d53bc7688f52d5e0ad8ea8f163ede9f1bbd1694feaa504797d5d96e'}, 'models/ggml-vocab-llama-spm.gguf': {'size_bytes': 723869, 'sha256': '16c3724582d59aa8bf84711894e833f916ee46a31d80e21312759c48bf8d0e69'}, 'models/ggml-vocab-mpt.gguf': {'size_bytes': 1771393, 'sha256': '59dc382612866d1fc6c11ea531318d327598f3412d9c8f8600607cdf3030898f'}, 'models/ggml-vocab-nomic-bert-moe.gguf': {'size_bytes': 6821877, 'sha256': '90a6746926454784a98389ad36a36d89bc9cfc81db9cb0f33c941bcc959fe5f9'}, 'models/ggml-vocab-phi-3.gguf': {'size_bytes': 726019, 'sha256': '967d7190d11c4842eab697079d98d56c2116e10eb617be355a2733bfc132e326'}, 'models/ggml-vocab-qwen2.gguf': {'size_bytes': 5928681, 'sha256': '44c2f46b715f585c6ab513970e8a006bfa5badd6108560054921cf598d154d8c'}, 'models/ggml-vocab-qwen35.gguf': {'size_bytes': 5928682, 'sha256': '63ed952ff338996cf0bdf24a7b10015124273f75c6dc9bb427356aa3f67ec62c'}, 'models/ggml-vocab-refact.gguf': {'size_bytes': 1720710, 'sha256': 'ac3ceda902fed91ccf74312b305d9b86c37e4f8e35fa9cc6ef3ce34fca7d4678'}, 'models/ggml-vocab-starcoder.gguf': {'size_bytes': 1719346, 'sha256': 'fedb892b4e1bd3c1f2fcdae356440b14fb458f4264d586e5c987ed93df4e174d'}}
@@ -251,15 +260,65 @@ def dependency_vocabulary_member(name, row, roots):
     return False
 
 
+def strata_source_roots(descriptor):
+    stages = object_(
+        descriptor["source_stage_dirs"],
+        {
+            "base",
+            "after_io",
+            "after_exec_v1",
+            "after_boundary_v2",
+            "post_build",
+            "dependency-base",
+            "dependency-post_build",
+        },
+        "stage_roots",
+    )
+    roots = tuple(
+        relative(stages[key]) + "/source"
+        for key in ("base", "after_io", "after_exec_v1", "after_boundary_v2", "post_build")
+    )
+    all_roots = roots + dependency_source_roots(descriptor)
+    require(
+        len(set(all_roots)) == 7 and all(not a.startswith(b + "/") for a in all_roots for b in all_roots if a != b),
+        "strata_source_root_alias",
+    )
+    return roots
+
+def strata_source_auxiliary_member(name, row, roots):
+    # Preliminary manifest admission only. Full Git closure and all six actual
+    # byte preimages are independently required before static identity returns.
+    allowed = {STRATA_SOURCE_AUXILIARY["path"]} | {root + "/" + STRATA_SOURCE_AUXILIARY["path"] for root in roots}
+    return (
+        len(roots) == 5
+        and name in allowed
+        and type(row["size_bytes"]) is int
+        and row["size_bytes"] == STRATA_SOURCE_AUXILIARY["size_bytes"]
+        and row["sha256"] == STRATA_SOURCE_AUXILIARY["sha256"]
+    )
+
+
 class Bundle:
     """No caller supplied verified Boolean or verified-files set is trusted."""
-    def __init__(self, root, manifest_file, *, dependency_source_roots=()):
+
+    def __init__(self, root, manifest_file, *, dependency_source_roots=(), strata_source_roots=()):
         self.root = Path(root).resolve(strict=True)
         require(self.root.is_dir(), "runtime_root")
         self.manifest_file = relative(manifest_file)
-        require(type(dependency_source_roots) is tuple and len(dependency_source_roots) in (0, 2)
-                and len(set(dependency_source_roots)) == len(dependency_source_roots), "dependency_source_roots_shape")
+        require(
+            type(dependency_source_roots) is tuple
+            and len(dependency_source_roots) in (0, 2)
+            and len(set(dependency_source_roots)) == len(dependency_source_roots),
+            "dependency_source_roots_shape",
+        )
         roots = tuple(relative(root) for root in dependency_source_roots)
+        require(
+            type(strata_source_roots) is tuple
+            and len(strata_source_roots) in (0, 5)
+            and len(set(strata_source_roots)) == len(strata_source_roots),
+            "strata_source_roots_shape",
+        )
+        strata_roots = tuple(relative(root) for root in strata_source_roots)
         raw = file_bytes(self.path(manifest_file, listed=False), MAX_MANIFEST_BYTES)
         manifest = member_manifest_json(raw)
         rows = manifest["files"]
@@ -270,10 +329,18 @@ class Bundle:
         for row in rows:
             object_(row, {"path", "size_bytes", "sha256"}, "manifest_row")
             name = relative(row["path"])
-            require(name not in self.rows and name.casefold() not in folded and name != manifest_file, "manifest_duplicate")
-            require(Path(name).suffix.lower() not in (".gguf", ".safetensors")
-                    or Path(name).suffix.lower() == ".gguf" and dependency_vocabulary_member(name, row, roots),
-                    "model_member_forbidden")
+            require(
+                name not in self.rows and name.casefold() not in folded and name != manifest_file, "manifest_duplicate"
+            )
+            require(
+                Path(name).suffix.lower() not in (".gguf", ".safetensors")
+                or Path(name).suffix.lower() == ".gguf"
+                and (
+                    dependency_vocabulary_member(name, row, roots)
+                    or strata_source_auxiliary_member(name, row, strata_roots)
+                ),
+                "model_member_forbidden",
+            )
             size = uint(row["size_bytes"], MAX_MEMBER)
             digest(row["sha256"])
             total += size
@@ -291,7 +358,9 @@ class Bundle:
             with os.scandir(directory) as entries:
                 for entry in entries:
                     path = Path(entry.path)
-                    require(not entry.is_symlink() and not getattr(path, "is_junction", lambda: False)(), "reparse_member")
+                    require(
+                        not entry.is_symlink() and not getattr(path, "is_junction", lambda: False)(), "reparse_member"
+                    )
                     if entry.is_dir(follow_symlinks=False):
                         pending.append(path)
                     else:
@@ -311,9 +380,13 @@ class Bundle:
                     require(count <= row["size_bytes"], "member_changed")
                     h.update(block)
                 after = os.fstat(stream.fileno())
-            require(count == row["size_bytes"] and h.hexdigest() == row["sha256"]
-                    and (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
-                    == (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns), "member_hash_or_change")
+            require(
+                count == row["size_bytes"]
+                and h.hexdigest() == row["sha256"]
+                and (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+                == (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns),
+                "member_hash_or_change",
+            )
 
     def path(self, name, listed=True):
         relative(name)
@@ -324,8 +397,12 @@ class Bundle:
     def read(self, name, maximum=MAX_TEXT):
         path = self.path(name)
         data = file_bytes(path, maximum)
-        require(self.path(name) == path and len(data) == self.rows[name]["size_bytes"]
-                and sha(data) == self.rows[name]["sha256"], "member_reread_changed")
+        require(
+            self.path(name) == path
+            and len(data) == self.rows[name]["size_bytes"]
+            and sha(data) == self.rows[name]["sha256"],
+            "member_reread_changed",
+        )
         return data
 
     def load(self, name):
@@ -825,7 +902,8 @@ def actual_target_dependencies(raw, build_root):
 
 
 def verify_target_compile_inputs(bundle, descriptor, original, supplement, graph, prefix):
-    value = bundle.load(recorded_file(bundle, supplement["compile_closure"], prefix + "/compile-inputs.json", "target_closure_file"))
+    member = recorded_file(bundle, supplement["compile_closure"], prefix + "/compile-inputs.json", "target_closure_file")
+    value = json_(bundle.read(member, MAX_TARGET_COMPILE_JSON), maximum=MAX_TARGET_COMPILE_JSON)
     object_(value, {"schema", "target", "translation_units", "outside_target_translation_units", "dependency_records", "inputs",
         "phony_target_inputs", "original_physical_target_inputs", "directory_order_dependencies", "observer_sources_covered",
         "candidate_closure_complete", "independent_verification_required", "system_toolchain_inputs_pinned", "scope_change",
@@ -1171,6 +1249,13 @@ def verify_recipe_compile_closure(bundle, descriptor, receipt, commands_file):
             "system_toolchain_inputs_pinned": False, "source_receipt_sha256": bundle.rows[name]["sha256"]}
 
 
+def cmake_cache_values(cache, key):
+    """Read exact values; accept LF/CRLF without stripping value characters."""
+    require(type(cache) is str and len(cache) <= MAX_TEXT, "build_cache_text_bound")
+    require(re.search(r"\r(?!\n)", cache) is None, "build_cache_line_endings")
+    return re.findall(r"(?m)^" + re.escape(key) + r":[^=\r\n]+=([^\r\n]*)(?:\r?\n|\Z)", cache)
+
+
 def validate_build(bundle, receipt, descriptor, base, dependency, states):
     """Accept the frozen recorder's raw schema, never a hand-written normalized grant."""
     required = {"schema", "status", "started_utc", "finished_utc", "base_revision", "dependency_revision", "dependency_tree",
@@ -1233,7 +1318,7 @@ def validate_build(bundle, receipt, descriptor, base, dependency, states):
             and bundle.rows[descriptor["engine_file"]]["size_bytes"] == files["strata.exe"]["size_bytes"], "installed_member_is_actual_build_output")
     cache = bundle.read(evidence + "/CMakeCache.txt").decode("utf-8")
     for key, value in REQUIRED_CACHE.items():
-        require(re.findall(r"(?m)^" + re.escape(key) + r":[^=\r\n]+=(.*)$", cache) == [value], "build_cache_flags")
+        require(cmake_cache_values(cache, key) == [value], "build_cache_flags")
     tools = object_(receipt["tools"], set(VERSIONS), "compiler_tools")
     object_(descriptor["tool_binary_files"], set(VERSIONS) | {"git"}, "archived_tool_binary_map")
     for name, version in VERSIONS.items():
@@ -1260,7 +1345,7 @@ def validate_build(bundle, receipt, descriptor, base, dependency, states):
     require(dict(definitions) == expected_definitions and winpath(configure[2]) == stages["after_boundary_v2"]["source_root"], "actual_configure_controls")
     for key, expected_path in (("CMAKE_HOME_DIRECTORY", configure[2]), ("CMAKE_MAKE_PROGRAM", tools["ninja"]["binary"]["path"]),
                                ("CMAKE_CUDA_COMPILER", tools["nvcc"]["binary"]["path"]), ("STRATA_GGML_DIR", expected_definitions["STRATA_GGML_DIR"])):
-        values = re.findall(r"(?m)^" + re.escape(key) + r":[^=\r\n]+=(.*)$", cache)
+        values = cmake_cache_values(cache, key)
         require(len(values) == 1 and winpath(values[0]) == winpath(expected_path), "actual_cache_source_tool_paths")
     require(build == [tools["cmake"]["binary"]["path"], "--build", configure[4], "--target", "strata", "--parallel", "2"], "actual_build_controls")
     for index, step in enumerate(steps):
@@ -1298,15 +1383,47 @@ def verify_combined_runtime(descriptor_file, runtime_root):
     descriptor = json_(raw)
     require(type(descriptor) is dict, "descriptor_shape")
     extra = SUPPLEMENT_DESCRIPTOR_KEYS if "build_closure_supplement_file" in descriptor else set()
-    descriptor = object_(descriptor, {"schema", "base_revision", "dependency_revision", "dependency_tree", "manifest_file",
-             "engine_file", "patch_chain", "combined_patch_manifest_file", "native_schema_file", "parser_file",
-             "base_source_provenance", "dependency_source_provenance", "source_states", "final_sources_dir",
-             "build_receipt_file", "build_evidence_dir", "build_recorder_file", "source_recorder_file", "source_stage_dirs",
-             "tool_binary_files", "pe_receipt_file", "abi_receipt_file"} | extra, "descriptor_shape")
+    descriptor = object_(
+        descriptor,
+        {
+            "schema",
+            "base_revision",
+            "dependency_revision",
+            "dependency_tree",
+            "manifest_file",
+            "engine_file",
+            "patch_chain",
+            "combined_patch_manifest_file",
+            "native_schema_file",
+            "parser_file",
+            "base_source_provenance",
+            "dependency_source_provenance",
+            "source_states",
+            "final_sources_dir",
+            "build_receipt_file",
+            "build_evidence_dir",
+            "build_recorder_file",
+            "source_recorder_file",
+            "source_stage_dirs",
+            "tool_binary_files",
+            "pe_receipt_file",
+            "abi_receipt_file",
+        }
+        | extra,
+        "descriptor_shape",
+    )
     require(descriptor["schema"] == "omni-strata-combined-observation-runtime-v2", "combined_descriptor_required")
-    require((descriptor["base_revision"], descriptor["dependency_revision"], descriptor["dependency_tree"])
-            == (BASE, DEPENDENCY, DEPENDENCY_TREE), "combined_revision")
-    bundle = Bundle(root, descriptor["manifest_file"], dependency_source_roots=dependency_source_roots(descriptor))
+    require(
+        (descriptor["base_revision"], descriptor["dependency_revision"], descriptor["dependency_tree"])
+        == (BASE, DEPENDENCY, DEPENDENCY_TREE),
+        "combined_revision",
+    )
+    bundle = Bundle(
+        root,
+        descriptor["manifest_file"],
+        dependency_source_roots=dependency_source_roots(descriptor),
+        strata_source_roots=strata_source_roots(descriptor),
+    )
     require(bundle.read(name, MAX_JSON) == raw, "descriptor_member_binding")
     object_(descriptor["tool_binary_files"], set(VERSIONS) | {"git"}, "archived_tool_binary_map")
     chain = descriptor["patch_chain"]
@@ -1318,6 +1435,54 @@ def verify_combined_runtime(descriptor_file, runtime_root):
     bundle.expected(descriptor["combined_patch_manifest_file"], PATCH_MANIFEST_SHA)
     bundle.expected(descriptor["native_schema_file"], SCHEMA_SHA)
     bundle.expected(descriptor["parser_file"], PARSER_SHA)
+    base = git_source(bundle, descriptor["base_source_provenance"], BASE)
+    dependency = git_source(bundle, descriptor["dependency_source_provenance"], DEPENDENCY, DEPENDENCY_TREE)
+    states = source_chain(bundle, descriptor["source_states"], base)
+    verify_base_source_pins(base)
+    receipt = bundle.load(descriptor["build_receipt_file"])
+    build = validate_build(bundle, receipt, descriptor, base, dependency, states)
+    verify_strata_source_auxiliary(bundle, descriptor, base)
+    # Neither receipt Booleans nor their digests replace PE/emitted-frame bytes.
+    pe = verify_pe_evidence(bundle, descriptor["pe_receipt_file"], descriptor["engine_file"])
+    abi = verify_abi_evidence(
+        bundle, descriptor["abi_receipt_file"], descriptor["engine_file"], descriptor["parser_file"], build
+    )
+    identity = {
+        "schema": "omni-strata-combined-static-runtime-identity-v2",
+        "status": "static_archived_bytes_and_build_records_verified_not_live_runtime_eligible",
+        "base_revision": BASE,
+        "base_tree": base["tree"],
+        "dependency_revision": DEPENDENCY,
+        "dependency_tree": DEPENDENCY_TREE,
+        "native_io_schema": "strata-omni-io-v1",
+        "native_execution_schema": "strata-omni-exec-v1",
+        "patch_chain": copy.deepcopy(chain),
+        "combined_patch_manifest_sha256": PATCH_MANIFEST_SHA,
+        "header_sha256": HEADER_V2,
+        "schema_sha256": SCHEMA_SHA,
+        "parser_sha256": PARSER_SHA,
+        "runtime_manifest_sha256": bundle.manifest_sha256,
+        "descriptor_sha256": sha(raw),
+        "native_executable_sha256": bundle.rows[descriptor["engine_file"]]["sha256"],
+        "source_hashes": states,
+        "build": build,
+        "pe": pe,
+        "ABI_reference": abi,
+        "observer_layout": abi["observer_layout"],
+        "observer_layout_scope": "compiled_standalone_fixture_reference_only",
+        "compiled_engine_ABI_verified": False,
+        "runtime_binding": None,
+        "live_loaded_module_paths_verified": False,
+        "current_OS_identity_verified": False,
+        "owner_adapter_verified": False,
+        "build_execution_attested_by_verifier": False,
+        "runtime_qualification": False,
+        "default_eligible": False,
+        "aggregate_gpu_hard_cap_verified": False,
+        "aggregate_ram_hard_cap_verified": False,
+        "physical_ssd_read_bytes": None,
+    }
+    return identity | {"identity_sha256": sha(canonical(identity))}
     base = git_source(bundle, descriptor["base_source_provenance"], BASE)
     dependency = git_source(bundle, descriptor["dependency_source_provenance"], DEPENDENCY, DEPENDENCY_TREE)
     states = source_chain(bundle, descriptor["source_states"], base)
@@ -1427,6 +1592,61 @@ def pe_imports(path):
                 raise EvidenceError("PE_import_terminator")
             result[kind] = sorted(names)
         return result
+
+
+def verify_strata_source_auxiliary(bundle, descriptor, base):
+    """Reconcile retained runtime bytes only after all source Git closures pass."""
+    pin = STRATA_SOURCE_AUXILIARY
+    require(
+        base.get("revision") == BASE and base.get("tree") == "332979d72ea7c5fae7f00bec6f2c79234292bc3b",
+        "strata_auxiliary_base_git_identity",
+    )
+    record = base.get("canonical_source_hashes", {}).get(pin["path"])
+    require(
+        type(record) is dict
+        and canonical(record)
+        == canonical(
+            {
+                "git_blob_id": pin["git_blob_id"],
+                "mode": pin["mode"],
+                "canonical_size_bytes": pin["size_bytes"],
+                "canonical_sha256": pin["sha256"],
+                "checkout_sha256": pin["sha256"],
+                "checkout_matches_canonical": True,
+            }
+        ),
+        "strata_auxiliary_canonical_git_record",
+    )
+    require(
+        canonical(base.get("files", {}).get(pin["path"]))
+        == canonical({"path": pin["path"], "size_bytes": pin["size_bytes"], "sha256": pin["sha256"]}),
+        "strata_auxiliary_base_checkout",
+    )
+    blob_name = (
+        PurePosixPath(descriptor["base_source_provenance"]["commit_file"]).parent / (pin["git_blob_id"] + ".blob")
+    ).as_posix()
+    canonical_blob = bundle.read(blob_name, MAX_GIT_OBJECT)
+    require(
+        len(canonical_blob) == pin["size_bytes"]
+        and sha(canonical_blob) == pin["sha256"]
+        and hashlib.sha1(b"blob " + str(len(canonical_blob)).encode() + b"\0" + canonical_blob).hexdigest()
+        == pin["git_blob_id"],
+        "strata_auxiliary_git_blob_preimage",
+    )
+    names = [pin["path"], *(root + "/" + pin["path"] for root in strata_source_roots(descriptor))]
+    for name in names:
+        require(
+            canonical(bundle.rows.get(name))
+            == canonical({"path": name, "size_bytes": pin["size_bytes"], "sha256": pin["sha256"]}),
+            "strata_auxiliary_six_required_members",
+        )
+        require(bundle.read(name, MAX_TEXT) == canonical_blob, "strata_auxiliary_actual_copy_differs")
+    return {
+        "path": pin["path"],
+        "git_blob_id": pin["git_blob_id"],
+        "copies": names,
+        "scope": "base_Git_bound_source_auxiliary_only_not_a_deployed_model_or_neural_result",
+    }
 
 
 def verify_pe_evidence(bundle, receipt_file, engine_file):

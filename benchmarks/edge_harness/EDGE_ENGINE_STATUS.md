@@ -1,19 +1,22 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-09）
 
-2026-10-09 最新进展：完整 I/O／执行观测适配器已对齐并接入 Stage、运行时登记、
-Agent 路由和结果校验；观测工作区、Windows commit 与证据磁盘预算分别计入现有账本。
-[原生 Windows 集成回归及原始日志](results/strata_20261008/strata_execution_combined_native_unit_validation.json)
-为 **297 通过、3 跳过、161 个子测试通过**，随后实际 DONE 序号的严格整数校验修补
-通过独立 **24 项**原生测试；两个重叠范围不相加。原生 vLLM 为 `0.29.0+cu134`，
-与 Omni 0.29 主次版本一致；九个改动的非固定源码文件通过仓库配置的 Ruff 检查。
-新增原生引擎已完成编译／链接及独立完整运行时打包。
-[首次实际静态校验](results/strata_20261008/strata_execution_build_assembly_status.json)
-拒绝了基础仓库自带、尚未登记的 483,520 字节实验性投影 GGUF；原始失败保留，
-固定 Git 版本与全部副本的精确校验修补已冻结并通过独立评审。
-后续外部静态诊断通过运行包成员检查，在 `build_cache_flags` 处终止；八个实际构建开关均与预期一致，
-问题是校验器将 Windows CRLF 行尾回车读入参数值，正在修补并复测；该诊断不能授权旧包登记。
-实际模型的新执行观测、取消恢复与
-Agent 复测仍待完成。这里是无神经执行的集成证据；
+2026-10-09 最新进展：完整 I/O／执行观测已接入 Stage、运行时登记、Agent 路由和结果校验；
+观测工作区、Windows commit 与证据磁盘预算分别计入现有账本。
+[最新原生 Windows 回归及原始日志](results/strata_20261008/strata_execution_metadata_repairs_native_unit_validation.json)
+为 **360 通过、3 跳过、161 个子测试通过**，覆盖实际 DONE 严格整数校验、Windows LF/CRLF
+构建参数解析，以及仅绑定目标编译记录的 4 MiB 上限；通用 JSON 上限仍为 2 MiB。
+原生 vLLM 为 `0.29.0+cu134`，与 Omni 0.29 主次版本一致；Stage 与两个新增公开测试通过仓库 Ruff 检查。
+这是无神经执行的集成证据，不能作为新版模型或 Agent 实跑资格。
+
+新增原生引擎已完成编译／链接与独立完整运行时打包。
+[三次外部静态诊断及首次失败](results/strata_20261008/strata_execution_build_assembly_status.json)
+分别保留基础仓库实验性 GGUF、CRLF、编译记录大小与 CUDA 路径投影的具体失败。
+CRLF 和编译记录大小修补已接入生产代码并通过上述回归；最新完整诊断在
+`target_dependency_projection_differs` 处终止。原因是 Ninja 保存 CUDA 头文件的 Windows 短名称，
+而采集器保存长名称。实际 Win32 检查已确认 **11 对**路径具有相同文件身份，且内容与归档输入逐字节一致；
+这仅证明当前路径／内容对应，不证明历史编译执行。精确证据消费与新运行包打包正在进行。
+旧运行包和全部失败均保留；外部诊断不能授权旧包登记。
+下一步是完整校验新包，实际运行模型参考比较、取消恢复和 Agent 复测。
 下面 Q2／IQ3／Q4 的历史实跑继续绑定各自源码，不继承为新版资格。
 
 2026-10-09：新增执行观测的 Stage 生命周期已接入现有完整模型后端，

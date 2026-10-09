@@ -35,9 +35,9 @@ from pathlib import Path
 from typing import Any
 
 from omegaconf import OmegaConf
-from omni_stage_contracts import StageEvent, StageRequest
 from vllm.outputs import CompletionOutput
 
+from omni_stage_contracts import StageEvent, StageRequest
 from vllm_omni.engine.backends import strata_io
 from vllm_omni.engine.resource_ledger import ResourceUnavailable
 from vllm_omni.engine.stage_client import StageClientBase
@@ -55,8 +55,8 @@ _CACHE_CONTROL_SCHEMA = "omni-strata-explicit-cache-v2"
 _EXECUTION_ADAPTER_SHA256 = {
     "strata_exec": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
     "strata_exec_bridge": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
-    "strata_exec_runtime": "458db0a601ff3a69bdc765e26cc98c168adaf6970af9d5b90e589ad09259b213",
-    "strata_exec_live": "2978cfee6d4adf2e17683a988bd023c24df0aa59c33a658c4ed451d5888a876d",
+    "strata_exec_runtime": "101a856d61903c460f6c241325c604f560c63bb37ba5355f5bb0a781be5fddd7",
+    "strata_exec_live": "08175a82a9cfc4bf0f012fa43bd77096a8175452e76bbf24ee56e79f2fa083ca",
 }
 _EXECUTION_MODULE_LOCK = threading.RLock()
 _EXECUTION_LOADED_MODULES = {}
