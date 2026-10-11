@@ -24,6 +24,11 @@ DiT caching are rejected. Four GPUs with Ulysses degree 4 are a useful starting
 configuration for the full 768×1344 workload; memory and speed depend on the
 hardware and require workload-specific measurement.
 
+Ulysses replicates the DiT weights. Rank 0 also holds the Qwen encoder during
+conditioning, so each device must have sufficient memory independently.
+Published-checkpoint validation used NVIDIA L20X devices with approximately
+140 GiB of memory; full-resolution memory requirements have not been measured.
+
 Use the shared image-to-video runner with the published model root. It discovers
 `SolarWM-h3-33B-sgf-stage2-158f-fix/` alongside the base components. Create
 the complete camera inputs shown below, then run:
