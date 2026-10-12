@@ -1,0 +1,50 @@
+{
+  "schema": "omni-q4-image-v5-startup-refusal-v1",
+  "date": "2026-10-12",
+  "exit_code": 1,
+  "failure": "Strata fresh admission refused: windows_commit: required=48392830976, windows_commit_available_bytes=44628508672; snapshot={\"captured_unix_s\": 1791801190.5713718, \"gpu_free_bytes\": 19120263168, \"gpu_name_sha256\": \"5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d\", \"gpu_pci_bus_id\": \"00000000:64:00.0\", \"gpu_source\": \"NVML exact bytes\", \"gpu_total_bytes\": 25651314688, \"gpu_uuid\": \"GPU-bf6e910e-657c-15d7-c558-f169df134d8a\", \"host_ram_available_bytes\": 16478482432, \"host_ram_source\": \"GlobalMemoryStatusEx.ullAvailPhys\", \"is_wsl\": false, \"windows_commit_available_bytes\": 44628508672, \"windows_host_available_bytes\": 16478482432, \"windows_host_verification\": \"measured\", \"wsl_ram_available_bytes\": null}",
+  "phase": "failed",
+  "source_stable": true,
+  "input_stable": true,
+  "completed_requests": 0,
+  "resource_drain_verified": false,
+  "close_error": {
+    "error_type": "ValueError",
+    "error": "both exact roles lack authoritative retirement"
+  },
+  "sampling_thread_stopped": true,
+  "qualification_created": false,
+  "scope": "actual startup refused at fresh Windows commit admission; no generated image output; absent bound native role handles do not establish retirement",
+  "files": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5\\effective-launch.json",
+      "size_bytes": 13392336,
+      "sha256": "e40ce55cde1257fb939005b4c22ae5e4b693b0825fbb7ec47d7ccfff8141be8e"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5\\initial-close-error.json",
+      "size_bytes": 94,
+      "sha256": "07facb449ef336d3b7628cd63d3cf37459d8175be80dcaee9d4431c1fa672f88"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5\\input.png",
+      "size_bytes": 59775,
+      "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5\\receipt.json",
+      "size_bytes": 992880,
+      "sha256": "1869e7af797e84c0014402a3c2c569eb0648401cf56aa54418720a1ab498596b"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5\\reference.json",
+      "size_bytes": 1058,
+      "sha256": "ae90056198d16d861d4cc9139e4df68684533c74a38b55606f2ed267af19f3ed"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5\\telemetry.jsonl",
+      "size_bytes": 1411461,
+      "sha256": "335c3c2fc7b6f6e2c098d709b59a793a9618ca323a9c0a0d314511ea2aa6b9b7"
+    }
+  ]
+}
