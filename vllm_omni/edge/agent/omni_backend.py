@@ -803,13 +803,16 @@ class OmniStrataImageBackend(OmniStrataBackend):
             raise RuntimeError("image stage does not hold the Agent's exact shared resource lease")
 
     def _validate_terminal_output(self, output: Any, *, image_data_url: str | None) -> dict[str, Any]:
-        from vllm_omni.edge.agent.strata_image_evidence import image_input_identity, validate_image_terminal
+        from vllm_omni.edge.agent.strata_image_evidence import (
+            image_execution_binding, image_input_identity, validate_image_terminal,
+        )
 
         identity = (image_input_identity(image_data_url, self.config.image_capability)
                     if image_data_url is not None else None)
         proof = validate_image_terminal(self.execution_plan, output.metrics, output.custom_output["stage_event"],
                                         request_id=output.request_id, input_identity=identity,
-                                        seen_states=self._image_seen_states)
+                                        seen_states=self._image_seen_states,
+                                        execution_binding=image_execution_binding(self.config.backend_config))
         return {"image_chain_evidence": proof}
 
 

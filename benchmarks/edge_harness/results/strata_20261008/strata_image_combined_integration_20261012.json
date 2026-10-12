@@ -1,0 +1,76 @@
+{
+  "schema": "omni-strata-image-combined-integration-checkpoint-v1",
+  "date": "2026-10-12",
+  "static_status": "static_records_and_both_source_contexts_verified_live_pending",
+  "static_identity_sha256": "3eba2c7b91ecfaeb4c6e8bd52717849e825fd1cf3b9d482860ced1c6eac641dc",
+  "runtime": "e39-v5",
+  "native_model_executed": false,
+  "qualification_created": false,
+  "regressions": [
+    {
+      "scope": "image Stage, runtime context, registration and existing Agent/lifecycle",
+      "passed": 224,
+      "subtests_passed": 4,
+      "skipped": 1
+    },
+    {
+      "scope": "Agent image/execution/route, including combined paired reports and negative replay-state cases",
+      "passed": 119,
+      "skipped": 0
+    },
+    {
+      "scope": "execution/image evidence and independent observer/encoder resource budgets",
+      "passed": 51,
+      "skipped": 0
+    }
+  ],
+  "files": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\patches\\image-combined-runtime-v5-20261012\\assembly.json",
+      "size_bytes": 1419,
+      "sha256": "fc5fc9578f2f1e2aafbec48a40e68a48b61512462a0ba2c8e6404f50047438fa"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\patches\\image-combined-runtime-v5-20261012\\verification.json",
+      "size_bytes": 28946,
+      "sha256": "914818963f7c24640f5983cc9b6277fc6a17d655045103721c7a09d445d71a7d"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\image-combined-regression-v5-20261012.xml",
+      "size_bytes": 36745,
+      "sha256": "87b27f8a16413cc84ab1ea5a606699c85fbd83257df9439774a73bc4ade47a3e"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\image-agent-combined-regression-v2-20261012.xml",
+      "size_bytes": 18582,
+      "sha256": "5ce1cea8372c75c89a7eb1da5e978ed3e69366c8333e52266f72e92813c8f4f6"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\image-agent-budget-regression-20261012.xml",
+      "size_bytes": 8513,
+      "sha256": "8a0cc095093ee34b3bc9a12db3e23c3e6c6c09a920b3667f7c8ff5bde18b02ab"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\q4-projector-identity-20261012\\identity.json",
+      "size_bytes": 628,
+      "sha256": "cd12a52a682db534e19f05618539d638d74debbf443b3c88f58bc1da37adbd37"
+    }
+  ],
+  "remaining": [
+    "fresh Q4 text and image registration",
+    "actual current-runtime Q4 image request and cancellation/recovery",
+    "actual Agent image loop",
+    "task quality and performance qualification"
+  ],
+  "projector_identity": {
+    "status": "local_bytes_match_pinned_hub_lfs",
+    "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+    "revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+    "size_bytes": 907542944,
+    "sha256": "2e788f8c511d8093c7b43cb87b2fd7e14228340318057f8fb20c86df2efe2355",
+    "url": "https://huggingface.co/api/models/unsloth/Qwen3.8-Flash-Next-GGUF/tree/38bb39ee97821de2c9009abb7e93950eec396e66?recursive=false&expand=false",
+    "hub_response_sha256": "774c5be7d23596bc70f07d252da96904677512a7064c37ca37a1e79a19e30979",
+    "model_executed": false
+  }
+}

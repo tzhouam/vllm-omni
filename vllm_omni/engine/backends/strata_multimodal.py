@@ -18,6 +18,14 @@ from vllm_omni.engine.backends import strata, strata_vision
 BACKEND_NAME = "external.strata.multimodal.v1"
 
 
+def _text_bootstrap(observation):
+    if observation.get("schema") == "omni-strata-combined-static-runtime-identity-v2":
+        return strata._EXECUTION_BOOTSTRAP
+    if observation.get("schema") == "omni-strata-observed-runtime-v1":
+        return strata._BOOTSTRAP
+    raise ValueError("unknown image observation runtime schema")
+
+
 def _typed_tier_plan(value):
     from vllm_omni.engine.weight_tiers import WeightTierPlan
 
@@ -30,6 +38,8 @@ def validate_strata_multimodal_load_plan(plan, requested):
         strata._validate_strata_loaded_config(plan, requested, expected_backend=BACKEND_NAME)
         image = plan["image_route"]
         controls = plan["route_controls"]
+        observation = plan["observation_runtime"]
+        text_bootstrap = _text_bootstrap(observation)
         preimage = dict(image)
         image_sha = preimage.pop("identity_sha256")
         if (
@@ -44,8 +54,8 @@ def validate_strata_multimodal_load_plan(plan, requested):
             or controls.get("artifact_manifest_sha256") != plan["artifact_manifest_sha256"]
             or image.get("vision_bootstrap_sha256") != plan["supervisor_bootstrap_sha256"]
             or image.get("vision_bootstrap_sha256")
-            != hashlib.sha256(strata_vision.bootstrap_source(strata._BOOTSTRAP).encode()).hexdigest()
-            or image.get("base_text_bootstrap_sha256") != hashlib.sha256(strata._BOOTSTRAP.encode()).hexdigest()
+            != hashlib.sha256(strata_vision.bootstrap_source(text_bootstrap).encode()).hexdigest()
+            or image.get("base_text_bootstrap_sha256") != hashlib.sha256(text_bootstrap.encode()).hexdigest()
             or image.get("vision_adapter_sha256") != strata_vision.digest(Path(strata_vision.__file__))
             or image.get("encoder_device") != "cpu"
             or image.get("allow_cpu_fallback") is not False
@@ -53,10 +63,23 @@ def validate_strata_multimodal_load_plan(plan, requested):
             or image.get("encoder_physical_gpu_identity") is not None
         ):
             raise ValueError("image route/source/control identity is incomplete or mismatched")
-        observation = plan["observation_runtime"]
         observation_preimage = dict(observation)
         observation_sha = observation_preimage.pop("identity_sha256")
-        if (
+        if observation.get("schema") == "omni-strata-combined-static-runtime-identity-v2":
+            strata.strata_io.validate_combined_io_identity(observation)
+            execution = controls.get("execution_observation", {})
+            if (
+                controls.get("observation_runtime") != observation
+                or execution.get("static_identity_sha256") != observation["identity_sha256"]
+                or execution.get("schema") != strata._EXECUTION_CONFIG_SCHEMA
+                or execution.get("adapter_sha256") != strata._EXECUTION_ADAPTER_SHA256
+                or type(execution.get("workspace_bytes")) is not int
+                or not strata._EXECUTION_WORKSPACE_MIN <= execution["workspace_bytes"] <= 2 << 30
+                or type(execution.get("receipt_storage_bytes")) is not int
+                or not strata._EXECUTION_RECEIPT_MIN <= execution["receipt_storage_bytes"] <= 64 << 20
+            ):
+                raise ValueError("image combined execution controls are not bound to the runtime")
+        elif (
             observation.get("schema") != "omni-strata-observed-runtime-v1"
             or observation_sha != hashlib.sha256(strata_vision.canonical(observation_preimage).encode()).hexdigest()
             or controls.get("observation_runtime") != observation
@@ -267,7 +290,7 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
         }
 
     def _bootstrap_source(self):
-        return strata_vision.bootstrap_source(strata._BOOTSTRAP)
+        return strata_vision.bootstrap_source(super()._bootstrap_source())
 
     def _extension_environment(self, env):
         cfg = self._vision["config"]
@@ -330,7 +353,7 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
         image_identity = self._vision["identity"] | {
             "vision_bootstrap_sha256": self._vision["bootstrap_sha256"],
             "vision_adapter_sha256": self._vision["adapter_sha256"],
-            "base_text_bootstrap_sha256": hashlib.sha256(strata._BOOTSTRAP.encode()).hexdigest(),
+            "base_text_bootstrap_sha256": hashlib.sha256(super()._bootstrap_source().encode()).hexdigest(),
             "prepared_artifact_size_bytes": self._vision["prepared_artifact_size_bytes"],
         }
         image_identity.pop("identity_sha256")
@@ -365,6 +388,25 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
         self.execution_plan["qualified_modalities"] = []
         self.execution_plan["qualification"] = "experimental_image_backend_loaded_not_neural_qualified"
         self.execution_plan["image_resource_budget_scope"] = "declared_encoder_and_text_coexistence_not_hard_caps"
+        if self._execution_settings is not None:
+            # Include the actual language module audit before the live verifier
+            # freezes the complete image plan. It independently repeats this
+            # audit against its fresh owner/GPU binding before accepting frames.
+            engine, runtime, closure = self._execution_modules["strata_exec_live"]._recursive_engine_closure(
+                self._observation_runtime
+            )
+            language_audit = strata.strata_io.audit_selected_loaded_modules(
+                self._diagnostics.owned_native_identity(),
+                Path(self._vision["runtime_root"]),
+                runtime,
+                native_file=engine,
+                include_cuda_driver=True,
+                role="engine",
+                non_system_pe_closure=closure,
+            )
+            if language_audit.get("status") != "verified":
+                raise RuntimeError("combined image language module audit is unverified")
+            self.execution_plan["selected_native_module_audit_at_load"] = language_audit
 
     def _prompt_fields(self):
         return super()._prompt_fields() | {"image_data_url"}

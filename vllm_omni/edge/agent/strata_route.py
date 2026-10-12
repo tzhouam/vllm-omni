@@ -146,11 +146,24 @@ def agent_entry_from_launch(launch: Mapping[str, Any], *, expected_device_name: 
 
     execution = execution_route_binding(backend, runtime, plan)
     observer_workspace = execution["workspace_bytes"] if execution is not None else 0
-    if execution is not None and (
-        selected_backend != BACKEND
-        or budget.ssd_artifact_bytes < source.total_size_bytes + prepared.total_size_bytes + runtime.total_size_bytes
-    ):
-        raise ValueError("combined execution observation requires the text Stage and complete runtime SSD allowance")
+    if execution is not None:
+        projector_bytes = 0
+        image_workspace = 0
+        image_scratch = 0
+        if capability is not None:
+            image = backend["image_route"]
+            projector_bytes = ArtifactManifest.from_dict(image["projector_manifest"]).total_size_bytes
+            image_workspace = image["vision_host_bytes"] + image["vision_scratch_bytes"]
+            image_scratch = image["vision_scratch_bytes"]
+        if (
+            budget.ssd_artifact_bytes
+            < source.total_size_bytes + prepared.total_size_bytes + runtime.total_size_bytes + projector_bytes
+            or budget.host_workspace_bytes < observer_workspace + image_workspace
+            or budget.ssd_temporary_bytes < execution["receipt_storage_bytes"] + image_scratch
+        ):
+            raise ValueError(
+                "combined execution route omits runtime/projector storage or independent observer/image space"
+            )
     if demands["host_ram"] != budget.cpu_expert_cache_bytes + host_overhead + io_bytes + observer_workspace:
         raise ValueError("host claim omits cache, loading/state/workspace overhead or I/O")
     for key in ("request_timeout_s", "start_timeout_s"):

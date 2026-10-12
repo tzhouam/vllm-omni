@@ -35,6 +35,10 @@ MODULE_NAMES = {
     "bridge": "strata_exec_bridge", "parser": "strata_exec",
     "static": "strata_exec_runtime", "live": "strata_exec_live",
 }
+IMAGE_MODULE_NAMES = {
+    "vision": "vllm_omni.engine.backends.strata_vision",
+    "multimodal": "vllm_omni.engine.backends.strata_multimodal",
+}
 
 
 class LiveBindingError(ValueError):
@@ -79,15 +83,18 @@ def _module_preimages(bundle, context_file):
     """Read actual archived source bytes and the actual loaded module locations."""
     context = static_verifier.object_(static_verifier.json_(bundle.read(context_file, MAX_CONTEXT_BYTES)),
         {"schema", "modules", "bootstrap_member", "bootstrap_sha256", "scope"}, "live_source_context_shape")
-    require(context["schema"] == "omni-strata-execution-live-source-context-v1"
-            and context["scope"] == "reviewed_stage_adapter_preimages_not_native_execution_proof", "live_source_context_scope")
+    image_context = context["schema"] == "omni-strata-execution-image-source-context-v1"
+    require((image_context or context["schema"] == "omni-strata-execution-live-source-context-v1")
+            and context["scope"] == "reviewed_stage_adapter_preimages_not_native_execution_proof",
+            "live_source_context_scope")
+    names = MODULE_NAMES | IMAGE_MODULE_NAMES if image_context else MODULE_NAMES
     rows = context["modules"]
-    require(type(rows) is list and len(rows) == len(MODULE_NAMES), "live_source_module_count")
+    require(type(rows) is list and len(rows) == len(names), "live_source_module_count")
     modules, evidence = {}, {}
     for row in rows:
         static_verifier.object_(row, {"role", "module", "member", "sha256"}, "live_source_module_record")
         role = row["role"]
-        require(role in MODULE_NAMES and role not in modules and row["module"] == MODULE_NAMES[role], "live_source_module_role")
+        require(role in names and role not in modules and row["module"] == names[role], "live_source_module_role")
         expected = static_verifier.digest(row["sha256"])
         bundle.expected(row["member"], expected, read=False)
         archived = bundle.read(row["member"], MAX_SOURCE_BYTES)
@@ -193,9 +200,11 @@ class LiveExecutionBindingVerifier:
         engine_file, self._module_runtime, self._closure = _recursive_engine_closure(self.static)
         self._engine_file = engine_file
         self._stage_module, self._io_module = self._modules["stage"], self._modules["io"]
-        require(type(stage) is self._stage_module.StrataTextStageClient
+        expected_stage = (self._modules["multimodal"].StrataMultimodalStageClient
+                          if "multimodal" in self._modules else self._stage_module.StrataTextStageClient)
+        require(type(stage) is expected_stage
                 and type(stage._diagnostics) is self._stage_module._DiagnosticLog,
-                "actual_text_Stage_and_owned_diagnostics_required")
+                "actual_bound_Stage_and_owned_diagnostics_required")
         self._stage = stage
         require(isinstance(stage._proc, subprocess.Popen) and stage._proc.poll() is None, "actual_retained_supervisor_required")
         self._supervisor = stage._proc

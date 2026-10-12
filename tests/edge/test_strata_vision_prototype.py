@@ -525,6 +525,10 @@ def test_stage_cancel_retires_real_mock_encoder_and_preserves_incomplete_observa
     stage._known_children, stage._temporary, stage._diagnostics = {}, None, None
     stage._agent_stream, stage._task, stage._output, stage._ack_pending = None, None, None, None
     stage._observation_runtime = None
+    stage._execution_settings = stage._execution_bridge = stage._execution_verifier = None
+    stage._verified_execution_snapshot = stage._execution_runtime_manifest = None
+    stage._execution_snapshot_retirement_failed = False
+    stage._execution_report_lock = threading.RLock()
     stage._io_request = StageRequest("cancel", 0, 1, GENERATION)
     stage._io_report_lock = threading.RLock()
     stage._last_io_report = None
@@ -566,8 +570,27 @@ def test_composite_bootstrap_preserves_text_literal_and_has_separate_identity():
     assert hashlib.sha256(combined.encode()).hexdigest() != hashlib.sha256(original.encode()).hexdigest()
 
 
+def test_execution_image_bootstrap_preserves_both_observation_channels():
+    original = base._EXECUTION_BOOTSTRAP
+    combined = vision.bootstrap_source(original)
+    ast.parse(combined)
+    assert original == base._EXECUTION_BOOTSTRAP
+    assert combined.count("owned_io.observe_input(text)") == 1
+    assert combined.count("_v_owned_encoder.observe_language_input(text, p.pid, created)") == 1
+    assert "exec_module.take_bootstrap_configuration(exec_values)" in combined
+    assert "exec_module.SerializedDiagnosticSink(sys.stderr)" in combined
+    assert "sys.exit(_v_server['main']())" in combined
+    assert "runpy.run_path(server, run_name='__main__')" not in combined
+    stage = object.__new__(multimodal.StrataMultimodalStageClient)
+    stage._execution_settings = {"configured": True}
+    assert stage._bootstrap_source() == combined
+    stage._execution_settings = None
+    assert stage._bootstrap_source() == vision.bootstrap_source(base._BOOTSTRAP)
+
+
 def test_text_route_controls_and_payload_hooks_remain_identical():
     stage = object.__new__(base.StrataTextStageClient)
+    stage._execution_settings = None
     assert stage._backend_name == "external.strata.text.v1" and stage._supports_images is False
     assert stage._bootstrap_source() == base._BOOTSTRAP
     assert stage._http_content("text") == "text" and stage._extension_drained() is True
@@ -1181,6 +1204,48 @@ def test_distinct_multimodal_load_gate_and_strict_public_text_gate(loaded_image_
     loaded_image_plan["declared_modalities"] = ["text"]
     loaded_image_plan["route_controls"].pop("image_route")
     base.validate_strata_load_plan(loaded_image_plan, "cpu+cuda:0")
+
+
+@pytest.mark.parametrize("damage", [None, "old_bootstrap", "wrong_identity", "wrong_adapter", "missing_budget"])
+def test_combined_image_load_gate_keeps_runtime_and_bootstrap_binding(loaded_image_plan, monkeypatch, damage):
+    from tests.edge.test_agent_strata_execution import synthetic_static
+    from vllm_omni.engine.backends import strata_io
+
+    monkeypatch.setattr(base, "strata_io", strata_io)
+    plan = loaded_image_plan
+    old = plan["observation_runtime"]
+    observation = synthetic_static("a" * 64, old["native_executable_sha256"])
+    plan["observation_runtime"] = observation
+    controls = plan["route_controls"]
+    controls["observation_runtime"] = observation
+    controls["execution_observation"] = {
+        "schema": base._EXECUTION_CONFIG_SCHEMA,
+        "static_identity_sha256": observation["identity_sha256"],
+        "adapter_sha256": dict(base._EXECUTION_ADAPTER_SHA256),
+        "workspace_bytes": base._EXECUTION_WORKSPACE_MIN,
+        "receipt_storage_bytes": base._EXECUTION_RECEIPT_MIN,
+    }
+    image = plan["image_route"]
+    image["base_text_bootstrap_sha256"] = hashlib.sha256(base._EXECUTION_BOOTSTRAP.encode()).hexdigest()
+    image["vision_bootstrap_sha256"] = hashlib.sha256(vision.bootstrap_source(base._EXECUTION_BOOTSTRAP).encode()).hexdigest()
+    plan["supervisor_bootstrap_sha256"] = image["vision_bootstrap_sha256"]
+    if damage == "old_bootstrap":
+        image["base_text_bootstrap_sha256"] = hashlib.sha256(base._BOOTSTRAP.encode()).hexdigest()
+    elif damage == "wrong_identity":
+        controls["execution_observation"]["static_identity_sha256"] = "0" * 64
+    elif damage == "wrong_adapter":
+        controls["execution_observation"]["adapter_sha256"]["strata_exec_live"] = "0" * 64
+    elif damage == "missing_budget":
+        controls["execution_observation"].pop("workspace_bytes")
+    image.pop("identity_sha256")
+    image["identity_sha256"] = hashlib.sha256(vision.canonical(image).encode()).hexdigest()
+    controls["image_route"] = image
+    plan["route_controls_sha256"] = hashlib.sha256(vision.canonical(controls).encode()).hexdigest()
+    if damage:
+        with pytest.raises(RuntimeError):
+            multimodal.validate_strata_multimodal_load_plan(plan, "cpu+cuda:0")
+    else:
+        multimodal.validate_strata_multimodal_load_plan(plan, "cpu+cuda:0")
 
 
 @pytest.mark.parametrize(

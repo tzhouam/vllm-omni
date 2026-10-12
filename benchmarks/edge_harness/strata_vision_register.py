@@ -33,11 +33,29 @@ def _helpers():
     return strata, strata_io, strata_vision, ArtifactManifest, WeightTierPlan
 
 
-def _object(path):
+def _object(path, *, max_bytes=8 << 20):
     path = Path(path).resolve(strict=True)
-    if path.stat().st_size > 8 << 20:
+    with path.open("rb") as stream:
+        raw = stream.read(max_bytes + 1)
+    if len(raw) > max_bytes:
         raise ValueError("image registration JSON exceeds bounded metadata size")
-    return strata_runtime._object(path)
+
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate registration JSON key")
+            result[key] = value
+        return result
+
+    value = json.loads(
+        raw.decode("utf-8"),
+        object_pairs_hook=unique,
+        parse_constant=lambda _: (_ for _ in ()).throw(ValueError("nonfinite registration JSON")),
+    )
+    if not isinstance(value, dict):
+        raise ValueError("registration input must be a JSON object")
+    return value
 
 
 def _positive(value, name):
@@ -101,8 +119,10 @@ def _verified_text_intermediate(text_path, receipt_path, *, manifest_type):
     The metadata-only temporary output avoids modifying the existing intermediate
     and uses the exact existing route ID. Only its destination path may differ.
     """
-    launch, receipt = _object(text_path), _object(receipt_path)
+    launch, receipt = _object(text_path, max_bytes=16 << 20), _object(receipt_path)
     backend = launch.get("backend", {})
+    combined = isinstance(backend.get("execution_observation"), dict) and bool(backend["execution_observation"])
+    legacy = isinstance(backend.get("observation_runtime"), dict) and bool(backend["observation_runtime"])
     if (
         launch.get("schema") != "omni-strata-launch-v1"
         or backend.get("name") != TEXT_BACKEND
@@ -114,8 +134,15 @@ def _verified_text_intermediate(text_path, receipt_path, *, manifest_type):
         or receipt.get("launch_sha256") != canonical_hash(launch)
         or Path(receipt.get("launch_out", "")).resolve() != text_path
         or receipt.get("route_id") != backend.get("route_id")
-        or not isinstance(backend.get("observation_runtime"), dict)
-        or not backend["observation_runtime"]
+        or combined == legacy
+        or (
+            combined
+            and (
+                backend.get("observation_runtime") is not None
+                or backend.get("observation_runtime_identity_sha256") is not None
+            )
+        )
+        or (legacy and backend.get("execution_observation") is not None)
     ):
         raise ValueError("text intermediate/registration receipt is incomplete or mismatched")
     parent = Path(receipt["parent_launch"]).resolve(strict=True)
@@ -130,11 +157,15 @@ def _verified_text_intermediate(text_path, receipt_path, *, manifest_type):
             parent,
             runtime_root=Path(backend["runtime_root"]),
             runtime_manifest_path=manifest_path,
-            observation_runtime=backend["observation_runtime"],
+            **(
+                {"execution_observation": backend["execution_observation"]}
+                if combined
+                else {"observation_runtime": backend["observation_runtime"]}
+            ),
             launch_out=output,
             route_id=backend["route_id"],
         )
-        if canonical_hash(_object(output)) != canonical_hash(launch):
+        if canonical_hash(_object(output, max_bytes=16 << 20)) != canonical_hash(launch):
             raise ValueError("text intermediate differs from freshly verified original preparation/runtime")
         normalized = copy.deepcopy(receipt)
         normalized["launch_out"] = fresh["launch_out"]
@@ -152,6 +183,30 @@ def _verified_text_intermediate(text_path, receipt_path, *, manifest_type):
     return launch, receipt, parent
 
 
+def _image_execution_context(strata, runtime_root, runtime_files, backend, context_file, bootstrap):
+    """Verify both image modules and the composite against archived actual bytes."""
+    settings = copy.deepcopy(backend["execution_observation"])
+    if not context_file:
+        raise ValueError("combined image registration requires an explicit image source context")
+    settings["source_context_file"] = context_file
+    settings = strata._execution_settings(settings, runtime_root)
+    modules = strata._load_execution_adapters(runtime_root, runtime_files)
+    static, live = modules["strata_exec_runtime"], modules["strata_exec_live"]
+    descriptor = _object(runtime_root / settings["descriptor_file"])
+    bundle = static.Bundle(
+        runtime_root,
+        descriptor["manifest_file"],
+        dependency_source_roots=static.dependency_source_roots(descriptor),
+        strata_source_roots=static.strata_source_roots(descriptor),
+    )
+    bound_modules, _, archived_bootstrap = live._module_preimages(bundle, context_file)
+    if set(bound_modules) != set(live.MODULE_NAMES) | set(
+        live.IMAGE_MODULE_NAMES
+    ) or archived_bootstrap != bootstrap.encode("utf-8"):
+        raise ValueError("combined image modules/bootstrap are not bound by the image context")
+    return settings
+
+
 def register_cpu_image_route(
     text_launch_path: Path,
     *,
@@ -160,6 +215,7 @@ def register_cpu_image_route(
     launch_out: Path,
     route_id: str,
     max_io_bytes: int | None = None,
+    execution_source_context_file: str | None = None,
 ):
     """Verify and derive an exclusive CPU-encoder/CUDA-language launch.
 
@@ -182,7 +238,7 @@ def register_cpu_image_route(
     config = copy.deepcopy(dict(image_route))
     if config.get("encoder_device") != "cpu" or config.get("allow_cpu_fallback") is not False:
         raise ValueError("only an explicit CPU image encoder can be registered")
-    initial = _object(text_path)
+    initial = _object(text_path, max_bytes=16 << 20)
     backend = initial["backend"]
     roots = [Path(backend[key]).resolve(strict=True) for key in ("runtime_root", "artifact_root", "prepared_model_dir")]
     projector_root = Path(config["projector_root"]).resolve(strict=True)
@@ -209,6 +265,16 @@ def register_cpu_image_route(
         source,
         manifest_type=ArtifactManifest,
     )
+    combined = backend.get("execution_observation") is not None
+    text_bootstrap = strata._EXECUTION_BOOTSTRAP if combined else strata._BOOTSTRAP
+    image_bootstrap = vision.bootstrap_source(text_bootstrap)
+    execution_settings = None
+    if combined:
+        execution_settings = _image_execution_context(
+            strata, roots[0], runtime_files, backend, execution_source_context_file, image_bootstrap
+        )
+    elif execution_source_context_file is not None:
+        raise ValueError("legacy image route cannot carry a combined execution source context")
     if (
         backend.get("spec_tokens") != 0
         or config["max_image_tokens"] + backend["max_new_tokens"] + 8 >= backend["context_tokens"]
@@ -260,9 +326,9 @@ def register_cpu_image_route(
     image_identity = copy.deepcopy(verified_vision["identity"])
     image_identity.pop("identity_sha256")
     image_identity.update(
-        vision_bootstrap_sha256=hashlib.sha256(vision.bootstrap_source(strata._BOOTSTRAP).encode()).hexdigest(),
+        vision_bootstrap_sha256=hashlib.sha256(image_bootstrap.encode()).hexdigest(),
         vision_adapter_sha256=file_hash(Path(vision.__file__)),
-        base_text_bootstrap_sha256=hashlib.sha256(strata._BOOTSTRAP.encode()).hexdigest(),
+        base_text_bootstrap_sha256=hashlib.sha256(text_bootstrap.encode()).hexdigest(),
         prepared_artifact_size_bytes=prepared.total_size_bytes,
     )
     image_identity["identity_sha256"] = canonical_hash(image_identity)
@@ -307,7 +373,10 @@ def register_cpu_image_route(
         "runtime_manifest_sha256": runtime.manifest_sha256,
         "projector_manifest_sha256": projector.manifest_sha256,
         "projector_manifest_input_canonical_sha256": canonical_hash(config["projector_manifest"]),
-        "observation_runtime_identity_sha256": backend["observation_runtime_identity_sha256"],
+        "observation_runtime_identity_sha256": (
+            execution_settings["static_identity_sha256"] if combined else backend["observation_runtime_identity_sha256"]
+        ),
+        "execution_source_context_file": execution_source_context_file,
         "image_identity_sha256": image_identity["identity_sha256"],
         "source_code_sha256": sources_before,
         "additional_encoder_and_scratch_host_bytes": extra_host,
@@ -335,6 +404,8 @@ def register_cpu_image_route(
         host_overhead_bytes=backend["host_overhead_bytes"] + extra_host,
         max_io_bytes=transport,
     )
+    if execution_settings is not None:
+        target["execution_observation"] = execution_settings
     derived["resource_budget"] = {"capacities": capacities, "demands": demands}
     derived["image_registration"] = provenance
     derived["admission_preflight"] = {
@@ -374,6 +445,7 @@ def main():
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--route-id", required=True)
     parser.add_argument("--max-io-bytes", type=int)
+    parser.add_argument("--execution-source-context-file")
     args = parser.parse_args()
     receipt = register_cpu_image_route(
         args.text_launch,
@@ -382,6 +454,7 @@ def main():
         launch_out=args.launch_out,
         route_id=args.route_id,
         max_io_bytes=args.max_io_bytes,
+        execution_source_context_file=args.execution_source_context_file,
     )
     print(json.dumps({key: receipt[key] for key in ("status", "route_id", "launch_canonical_sha256")}))
     return 0

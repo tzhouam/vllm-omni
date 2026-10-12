@@ -143,12 +143,37 @@ def image_capability_from_config(config: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def image_execution_binding(config: Mapping[str, Any]) -> dict[str, Any] | None:
+    """Bind the observer and engine to the image route's declared artifacts."""
+    from vllm_omni.edge.agent.strata_execution_evidence import execution_route_binding
+    from vllm_omni.engine.weight_tiers import ArtifactManifest, WeightTierPlan
+
+    image_capability_from_config(config)
+    runtime = ArtifactManifest.from_dict(config["runtime_manifest"])
+    tier = WeightTierPlan.from_dict(config["weight_tier_plan"])
+    execution = execution_route_binding(config, runtime, tier)
+    if execution is None:
+        return None
+    records = {row.path: row for row in runtime.files}
+    engine = records.get(config.get("engine_file"))
+    if engine is None:
+        raise ValueError("combined image route lacks its manifest-bound language engine")
+    return {"engine_sha256": engine.sha256, "execution_observation": execution}
+
+
 def validate_image_load_plan_for_config(plan: Mapping[str, Any], config: Mapping[str, Any], requested: str) -> None:
     """Use the actual image gate, then compare it to the selected Agent config."""
     from vllm_omni.engine.backends.strata_multimodal import validate_strata_multimodal_load_plan
     from vllm_omni.engine.weight_tiers import ArtifactManifest
 
     validate_strata_multimodal_load_plan(plan, requested)
+    binding = image_execution_binding(config)
+    if binding is not None:
+        from vllm_omni.edge.agent.strata_execution_evidence import validate_execution_plan
+
+        validate_execution_plan(plan, binding)
+    elif plan.get("route_controls", {}).get("execution_observation") is not None:
+        raise ValueError("image plan contains an undeclared execution observer")
     capability = image_capability_from_config(config)
     declared = config["image_route"]
     loaded = plan["image_route"]
@@ -242,6 +267,7 @@ def validate_image_terminal(
     request_id: str,
     input_identity: Mapping[str, Any] | None,
     seen_states: set[tuple[Any, ...]],
+    execution_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Validate one real inner request; update replay protection only on success.
 
@@ -249,6 +275,38 @@ def validate_image_terminal(
     satisfy image proof. Incomplete/cancelled evidence is diagnostic, never pass.
     """
     telemetry = metrics["runtime_telemetry"]
+    combined = plan.get("route_controls", {}).get("execution_observation") is not None
+    if combined != (execution_binding is not None):
+        raise ValueError("image terminal execution observer is not bound to the selected route")
+    if combined:
+        from vllm_omni.edge.agent.strata_execution_evidence import (
+            validate_combined_io_report,
+            validate_execution_plan,
+            validate_execution_report,
+        )
+
+        validate_execution_plan(plan, execution_binding)
+        io_report = telemetry.get("native_io_observation")
+        validate_combined_io_report(io_report, plan, execution_binding)
+        if (
+            stage.get("terminal") is not True
+            or stage.get("kind") != "text"
+            or stage.get("request_id") != request_id
+            or stage.get("stage_id") != plan["stage_id"]
+            or stage.get("worker_generation") != plan["worker_generation"]
+            or not _positive(stage.get("epoch"))
+            or not _positive(stage.get("seq"))
+            or io_report.get("request_id") != request_id
+            or io_report.get("epoch") != stage["epoch"]
+            or io_report.get("generation") != stage["worker_generation"]
+        ):
+            raise ValueError("combined image/text terminal belongs to another request or state")
+        validate_execution_report(
+            telemetry.get("native_execution_observation"), stage, plan, execution_binding, io_report,
+            expected_command="GENI" if input_identity is not None else "GEN",
+        )
+    elif telemetry.get("native_execution_observation") is not None:
+        raise ValueError("legacy image request contains undeclared execution evidence")
     report = telemetry.get("image_observation")
     if input_identity is None:
         if report is not None:
@@ -323,7 +381,10 @@ def validate_image_terminal(
         or dispatch.get("language_pid") != language["pid"]
         or dispatch.get("language_creation_filetime_100ns") != language["creation_filetime_100ns"]
         or not isinstance(io, Mapping)
-        or io.get("schema") != "omni-strata-request-io-observation-v1"
+        or io.get("schema") != (
+            "omni-strata-combined-request-io-observation-v1" if combined
+            else "omni-strata-request-io-observation-v1"
+        )
         or io.get("status") != "complete"
         or io.get("request_id") != request_id
         or io.get("epoch") != stage["epoch"]
@@ -368,6 +429,8 @@ def validate_image_terminal(
         "stage_event": copy.deepcopy(dict(stage)),
         "image_observation": copy.deepcopy(dict(report)),
         "native_io_observation": copy.deepcopy(dict(io)),
+        **({"native_execution_observation": copy.deepcopy(dict(telemetry["native_execution_observation"]))}
+           if combined else {}),
         "whole_model_placement": None,
         "physical_ssd_read_bytes": None,
         "release_qualified": False,

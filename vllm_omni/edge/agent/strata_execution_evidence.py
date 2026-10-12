@@ -143,8 +143,12 @@ def validate_combined_io_report(report, plan, binding):
         raise ValueError("combined I/O report has a different runtime or adapter identity")
 
 
-def validate_execution_report(report, stage, plan, binding, io_report):
+def validate_execution_report(report, stage, plan, binding, io_report, *, expected_command="GEN"):
     """Validate the reported scope/identity; this is no new device attestation."""
+    # The caller selects from its submitted input, never from the report being
+    # validated. Existing text consumers remain GEN-only by default.
+    if type(expected_command) is not str or expected_command not in {"GEN", "GENI"}:
+        raise ValueError("execution observation requires an explicit supported request command")
     execution = binding["execution_observation"]
     if (
         not isinstance(report, Mapping)
@@ -213,7 +217,7 @@ def validate_execution_report(report, stage, plan, binding, io_report):
     dispatch, done = native.get("dispatch"), native.get("native_done")
     if (
         not isinstance(dispatch, Mapping)
-        or dispatch.get("command") != "GEN"
+        or dispatch.get("command") != expected_command
         or type(dispatch.get("native_request_seq")) is not int
         or dispatch["native_request_seq"] <= 0
         or not isinstance(done, Mapping)

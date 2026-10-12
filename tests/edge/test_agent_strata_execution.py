@@ -225,6 +225,164 @@ def test_combined_route_accepts_separate_runtime_without_legacy_conversion(combi
     assert evidence["execution_plan"]["observation_runtime"]["compiled_engine_ABI_verified"] is False
 
 
+@pytest.mark.parametrize("actual", ["GEN", "GENI"])
+@pytest.mark.parametrize("expected", ["GEN", "GENI", "BGEN", "", None, True])
+def test_execution_command_is_selected_by_caller_not_report(combined, actual, expected):
+    from vllm_omni.edge.agent.strata_execution_evidence import validate_execution_report
+
+    _, route, evidence, telemetry = combined
+    report = telemetry["native_execution_observation"]
+    report["native_observation"]["dispatch"]["command"] = actual
+    args = (
+        report,
+        evidence["terminal_model_metrics"][0]["metrics"]["stage_event"],
+        evidence["execution_plan"],
+        route["backend_identity"],
+        telemetry["native_io_observation"],
+    )
+    if expected == actual:
+        validate_execution_report(*args, expected_command=expected)
+    else:
+        with pytest.raises(ValueError):
+            validate_execution_report(*args, expected_command=expected)
+    if actual == "GENI":
+        with pytest.raises(ValueError):
+            validate_execution_report(*args)
+        # The public text qualification consumer cannot acquire image support
+        # just because the shared report validator understands GENI.
+        with pytest.raises(ValueError):
+            validate_strata_request_evidence(evidence, route)
+
+
+@pytest.mark.parametrize(
+    "mutation", [None, "missing_binding", "missing_report", "wrong_command", "io_request", "stage_request"]
+)
+def test_image_stage_text_followup_requires_combined_execution_proof(combined, mutation):
+    from vllm_omni.edge.agent.strata_image_evidence import validate_image_terminal
+
+    _, route, evidence, telemetry = combined
+    stage = evidence["terminal_model_metrics"][0]["metrics"]["stage_event"]
+    request_id = stage["request_id"]
+    binding = route["backend_identity"]
+    if mutation == "missing_binding":
+        binding = None
+    elif mutation == "missing_report":
+        telemetry.pop("native_execution_observation")
+    elif mutation == "wrong_command":
+        telemetry["native_execution_observation"]["native_observation"]["dispatch"]["command"] = "GENI"
+    elif mutation == "io_request":
+        telemetry["native_io_observation"]["request_id"] = "other"
+    elif mutation == "stage_request":
+        stage["request_id"] = "other"
+    seen = set()
+    args = (evidence["execution_plan"], {"runtime_telemetry": telemetry}, stage)
+    kwargs = dict(request_id=request_id, input_identity=None, seen_states=seen, execution_binding=binding)
+    if mutation is None:
+        assert validate_image_terminal(*args, **kwargs) is None
+    else:
+        with pytest.raises(ValueError):
+            validate_image_terminal(*args, **kwargs)
+    assert seen == set()
+
+
+@pytest.mark.parametrize("mutation", [None, "command", "missing_execution", "image_input", "io_sequence"])
+def test_combined_image_chain_checks_both_reports_before_consuming_state(combined, mutation):
+    from tests.edge import test_agent_strata_image as images
+    from vllm_omni.edge.agent.strata_image_evidence import validate_image_terminal
+
+    _, route, evidence, telemetry = combined
+    _, image_plan, image_metrics, _, identity = images.proof_fixture(images.launch.__wrapped__())
+    plan = evidence["execution_plan"]
+    for key in ("image_route", "owned_encoder_at_load", "encoder_backend_selection_at_load"):
+        plan[key] = image_plan[key]
+    stage = evidence["terminal_model_metrics"][0]["metrics"]["stage_event"]
+    native_io = telemetry["native_io_observation"]
+    plan["selected_native_module_audit_at_load"] = {
+        "pid": native_io["native_pid"], "creation_filetime_100ns": native_io["creation_filetime_100ns"]
+    }
+    image_report = image_metrics["runtime_telemetry"]["image_observation"]
+    image_report.update(request_id=stage["request_id"], epoch=stage["epoch"], generation=stage["worker_generation"])
+    image_report["language_dispatch"].update(
+        language_pid=native_io["native_pid"], language_creation_filetime_100ns=native_io["creation_filetime_100ns"]
+    )
+    telemetry.update(image_observation=image_report, native_io_excludes_encoder=True,
+                     encoder_all_operators_placement=None)
+    report = telemetry["native_execution_observation"]
+    report["native_observation"]["dispatch"]["command"] = "GENI"
+    if mutation == "command":
+        report["native_observation"]["dispatch"]["command"] = "GEN"
+    elif mutation == "missing_execution":
+        telemetry.pop("native_execution_observation")
+    elif mutation == "image_input":
+        image_report["input_sha256"] = "0" * 64
+    elif mutation == "io_sequence":
+        native_io["native_request_seq"] += 1
+    seen = set()
+    args = (plan, {"runtime_telemetry": telemetry}, stage)
+    kwargs = dict(request_id=stage["request_id"], input_identity=identity, seen_states=seen,
+                  execution_binding=route["backend_identity"])
+    if mutation is not None:
+        with pytest.raises(ValueError):
+            validate_image_terminal(*args, **kwargs)
+        assert seen == set()
+    else:
+        proof = validate_image_terminal(*args, **kwargs)
+        assert len(seen) == 4
+        assert proof["native_execution_observation"] == report
+        report["complete"] = False
+        assert proof["native_execution_observation"]["complete"] is True
+        report["complete"] = True
+        with pytest.raises(ValueError, match="reuses"):
+            validate_image_terminal(*args, **kwargs)
+
+
+@pytest.mark.parametrize("mutation", [None, "shared_workspace", "shared_scratch", "missing_projector_disk"])
+def test_combined_image_route_adds_independent_observer_and_encoder_budgets(combined, mutation):
+    from dataclasses import replace
+
+    from tests.edge import test_agent_strata_image as images
+
+    launch = images.launch.__wrapped__()
+    config = launch["backend"]
+    combined_config = combined[0]["backend_config"]
+    old_runtime = ArtifactManifest.from_dict(config["runtime_manifest"])
+    combined_runtime = ArtifactManifest.from_dict(combined_config["runtime_manifest"])
+    old_paths = {row.path for row in old_runtime.files}
+    runtime = replace(old_runtime, files=old_runtime.files + tuple(
+        row for row in combined_runtime.files if row.path not in old_paths
+    ))
+    config["runtime_manifest"] = runtime.to_dict()
+    for key in ("execution_observation", "runtime_provenance"):
+        config[key] = copy.deepcopy(combined_config[key])
+    image = config["image_route"]
+    observer = config["execution_observation"]
+    tier = WeightTierPlan.from_dict(config["weight_tier_plan"])
+    disk = sum(ArtifactManifest.from_dict(config[key]).total_size_bytes
+               for key in ("artifact_manifest", "prepared_pack_manifest", "runtime_manifest"))
+    projector_bytes = ArtifactManifest.from_dict(image["projector_manifest"]).total_size_bytes
+    workspace = image["vision_host_bytes"] + image["vision_scratch_bytes"] + observer["workspace_bytes"]
+    budget = replace(tier.budget, host_workspace_bytes=workspace,
+                     ssd_temporary_bytes=image["vision_scratch_bytes"] + observer["receipt_storage_bytes"],
+                     ssd_artifact_bytes=disk + projector_bytes, windows_commit_peak_bytes=1 << 30)
+    if mutation == "shared_workspace":
+        budget = replace(budget, host_workspace_bytes=observer["workspace_bytes"])
+    elif mutation == "shared_scratch":
+        budget = replace(budget, ssd_temporary_bytes=observer["receipt_storage_bytes"])
+    elif mutation == "missing_projector_disk":
+        budget = replace(budget, ssd_artifact_bytes=disk)
+    config["weight_tier_plan"] = replace(tier, budget=budget).to_dict()
+    config["host_overhead_bytes"] = budget.host_workspace_bytes - observer["workspace_bytes"]
+    demands = budget.resource_demands(include_windows_commit=True)
+    launch["resource_budget"] = {"demands": demands, "capacities": {key: 2 << 30 for key in demands}}
+    if mutation is None:
+        route = images.entry(launch)
+        assert route["modalities"] == ["text", "image"]
+        assert route["memory_demands"]["host_ram"] == demands["host_ram"]
+    else:
+        with pytest.raises(ValueError):
+            images.entry(launch)
+
+
 @pytest.mark.parametrize("mutation", ["missing_adapter", "alias", "unbudgeted", "legacy_mixed", "raw_manifest"])
 def test_combined_route_rejects_unbound_or_unadmitted_metadata(combined, mutation):
     entry, _, _, _ = combined

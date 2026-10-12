@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import hashlib
+import importlib
 import json
 import pickle
 import shutil
@@ -92,6 +93,63 @@ def adapters(tmp_path):
         finally:
             for name in names:
                 sys.modules.pop(name, None)
+
+
+@pytest.mark.parametrize("image", [False, True])
+@pytest.mark.parametrize("damage", [None, "missing_role", "wrong_module", "changed_source", "wrong_bootstrap_hash"])
+def test_archived_image_context_binds_actual_loaded_modules(tmp_path, adapters, image, damage):
+    """Real Bundle and import preimages; no native process or model is started."""
+    from vllm_omni.engine.backends import strata_vision
+
+    live = adapters["strata_exec_live"]
+    static = adapters["strata_exec_runtime"]
+    names = live.MODULE_NAMES | live.IMAGE_MODULE_NAMES if image else live.MODULE_NAMES
+    members, rows = {}, []
+    for role, name in names.items():
+        raw = Path(importlib.import_module(name).__file__).read_bytes()
+        if damage == "changed_source" and role == ("vision" if image else "stage"):
+            raw += b"\n# independently re-signed different source\n"
+        member = "adapter/" + role + ".py"
+        members[member] = raw
+        rows.append({"role": role, "module": name, "member": member, "sha256": static.sha(raw)})
+    if damage == "missing_role":
+        rows.pop()
+    if damage == "wrong_module":
+        rows[-1]["module"] = "unreviewed.arbitrary_module"
+    bootstrap = (
+        strata_vision.bootstrap_source(strata._EXECUTION_BOOTSTRAP) if image else strata._EXECUTION_BOOTSTRAP
+    ).encode()
+    members["adapter/bootstrap.py"] = bootstrap
+    members["context.json"] = encoded(
+        {
+            "schema": (
+                "omni-strata-execution-image-source-context-v1"
+                if image
+                else "omni-strata-execution-live-source-context-v1"
+            ),
+            "scope": "reviewed_stage_adapter_preimages_not_native_execution_proof",
+            "modules": rows,
+            "bootstrap_member": "adapter/bootstrap.py",
+            "bootstrap_sha256": "0" * 64 if damage == "wrong_bootstrap_hash" else static.sha(bootstrap),
+        }
+    )
+    root = tmp_path / "source-context"
+    root.mkdir()
+    records = []
+    for name, raw in members.items():
+        target = root / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(raw)
+        records.append({"path": name, "size_bytes": len(raw), "sha256": static.sha(raw)})
+    (root / "members.json").write_bytes(encoded({"schema": "omni-strata-combined-members-v2", "files": records}))
+    bundle = static.Bundle(root, "members.json")
+    if damage:
+        with pytest.raises(ValueError):
+            live._module_preimages(bundle, "context.json")
+    else:
+        modules, evidence, actual_bootstrap = live._module_preimages(bundle, "context.json")
+        assert set(modules) == set(names) == set(evidence)
+        assert actual_bootstrap == bootstrap
 
 
 @pytest.fixture

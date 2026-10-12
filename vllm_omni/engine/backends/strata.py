@@ -56,7 +56,7 @@ _EXECUTION_ADAPTER_SHA256 = {
     "strata_exec": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
     "strata_exec_bridge": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
     "strata_exec_runtime": "0a032642a55c3bd7f40b86a2c73076ba1cac91058500cd5f11b16135fd78de39",
-    "strata_exec_live": "717eb955f580027f84c17531283082f96ca4ead4cb63a7902c1c3c25fc8966b9",
+    "strata_exec_live": "8a80081cc9890d134de0125b0fd4352111091173b240d2b7c12695a8269ba3cb",
 }
 _EXECUTION_MODULE_LOCK = threading.RLock()
 _EXECUTION_LOADED_MODULES = {}
@@ -1529,8 +1529,13 @@ class StrataTextStageClient(StageClientBase):
                         if path.resolve() not in runtime_files:
                             raise ValueError("Strata runtime has an unpinned code/dependency file")
         if config.get("execution_observation") is not None:
-            if os.name != "nt" or type(self) is not StrataTextStageClient:
-                raise ValueError("execution observation currently requires the native Windows text Stage")
+            exact_stage = type(self) is StrataTextStageClient
+            if not exact_stage:
+                from vllm_omni.engine.backends.strata_multimodal import StrataMultimodalStageClient
+
+                exact_stage = type(self) is StrataMultimodalStageClient
+            if os.name != "nt" or not exact_stage:
+                raise ValueError("execution observation requires an exact native Windows Strata Stage")
             if (
                 config.get("observation_runtime") is not None
                 or config.get("observation_runtime_identity_sha256") is not None

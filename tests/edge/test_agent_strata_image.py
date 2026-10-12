@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import ast
 import asyncio
 import base64
 import copy
@@ -11,7 +10,6 @@ import io
 import json
 import os
 import sys
-import types
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -632,27 +630,17 @@ def test_controller_dispatches_distinct_image_gate_and_keeps_actual_placement_un
 
 
 def test_formal_profile_refuses_image_backend_before_llama_or_nullable_placement_fallback():
-    # Execute only the actual small functions, excluding profiler imports/sensors.
-    path = PATCH_ROOT / "benchmarks/edge_agent/native_profile.py"
-    tree = ast.parse(path.read_text())
-    functions = [
-        node
-        for node in tree.body
-        if isinstance(node, ast.FunctionDef) and node.name in {"load_profile_routes", "_trace_complete"}
-    ]
-    module = types.ModuleType("private_image_profile_guard")
-    module.__dict__.update(STRATA_BACKEND="external.strata.text.v1")
-    code = ast.Module(
-        body=[ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0), *functions],
-        type_ignores=[],
-    )
-    exec(compile(ast.fix_missing_locations(code), str(path), "exec"), module.__dict__)
+    from benchmarks.edge_agent import native_profile as module
+    from benchmarks.edge_agent.profile import ProfileRoute
+
     with pytest.raises(ValueError, match="dedicated reviewed image"):
         module.load_profile_routes(
             {"routes": [{"route_id": "image", "backend": IMAGE_BACKEND}]}, {"routes": {"image": {}}}
         )
-    profile = SimpleNamespace(
-        route_id="image", model_id="model", artifact_id="artifact", backend=IMAGE_BACKEND, expected_placement=None
+    profile = ProfileRoute(
+        route_id="image", model_id="model", artifact_id="artifact", backend=IMAGE_BACKEND,
+        checkpoint_revision="fixture", artifact_sha256="a" * 64, precision="fixture",
+        expected_placement="cpu+cuda:0",
     )
     events = [
         {"seq": 1, "epoch": 1, "request_id": "r", "kind": "user_observation"},

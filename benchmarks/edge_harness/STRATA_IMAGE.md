@@ -1,5 +1,28 @@
 # Experimental Strata image stage
 
+2026-10-12 integration checkpoint: the combined image/bootstrap/source-context
+changes passed 224 tests and four subtests (one upstream fixture skipped) on
+native Windows. The shared Agent execution validator now accepts an explicit
+caller-selected `GEN` or `GENI`, retaining `GEN` as the text-only default;
+36 report-validation tests passed, including command substitution refusals.
+These are model-free checks, not Q4 image or Agent qualification. The separate
+e39-v5 runtime assembly and both source-context static checks subsequently
+completed successfully (identity
+`3eba2c7b91ecfaeb4c6e8bd52717849e825fd1cf3b9d482860ced1c6eac641dc`).
+Agent image route admission now accounts separately for the observer, encoder,
+scratch and projector; combined terminal validation binds the engine and runtime,
+request/state, native execution and I/O before consuming image replay state.
+The image Stage's text-only followups also require GEN execution evidence.
+The first Agent integration regression passed 108 tests; the subsequent focused
+execution suite passed 42, including six added negative/text-followup cases.
+The subsequent combined image fixture suite passed 119 tests across the image,
+execution and route consumers, including complete paired image/execution reports,
+detached retained evidence and rejection before replay-state mutation for wrong
+commands, absent execution evidence, changed input hashes and native sequences.
+Fresh Q4 registration and real image/cancellation and Agent runs remain pending;
+neither static verification nor these synthetic tests grants runtime or task
+qualification.
+
 `external.strata.multimodal.v1` extends the existing complete-model Strata
 stage. It uses the same Omni `StageRuntime`, shared resource lease, bounded
 stream, acknowledgements, cancellation and quarantine path as the text stage.
@@ -39,6 +62,25 @@ Inherited ceilings are never raised, and registration snapshots do not replace
 the fresh startup probes and shared resource lease.
 
 ## Registration sequence
+
+The combined execution-observer route uses a separate image source context:
+`omni-strata-execution-image-source-context-v1`. It binds the six text observer
+modules plus the exact `strata_vision` and `strata_multimodal` source bytes and
+the composite execution/image bootstrap. Pass its archived relative filename
+with `--execution-source-context-file`. A text-only context cannot authorize
+the image Stage. The legacy I/O descriptor and combined execution descriptor
+remain mutually exclusive.
+
+The text launch/replayed launch metadata limit is 16 MiB to accommodate the
+complete runtime file manifest; image descriptors and receipts retain their
+8 MiB limit. Reads are bounded and duplicate keys/nonfinite JSON still refuse.
+Registration includes a separate encoder coexistence budget and does not
+create a model session or an Agent qualification.
+
+This combined-image integration is currently under validation. The historical
+image results below belong to their original runtime. A fresh runtime bundle,
+real image requests, cancellation/recovery, and the Agent's combined image
+evidence adapter are still required before claiming the new route works E2E.
 
 Keep the original prepared launch, preparation receipt and pack binding
 immutable. Use new, exclusive destinations for each registration attempt.
