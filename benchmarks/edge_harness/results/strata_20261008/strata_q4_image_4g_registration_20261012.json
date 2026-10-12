@@ -1,0 +1,124 @@
+{
+  "schema": "omni-q4-image-4g-registration-and-lifecycle-launch-v1",
+  "date": "2026-10-12",
+  "eight_gib_failure": {
+    "status": "failed",
+    "model_executed": false,
+    "started_unix": 1791799254.9421153,
+    "text_launch_sha256": "d965202f1b1f80c86d0b14819f2ed25f3f75da25fbcce46b56f01ee75b658d68",
+    "script_sha256": "ab53daae4c9d68208cb995a3a451e7e52dbd94b15d9d451d51631be2e95a42c4",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\register_q4_image_v5_20261012.py\", line 16, in <module>\n    result=register_cpu_image_route(parent/'launch.json',text_registration_path=parent/'launch.registration.json',image_route=json.loads((R/'prototypes/q4-image-v5-20261012/image-route.json').read_bytes()),launch_out=out/'launch.json',route_id='unsloth-q4-8g-image-execution-e39-v5',max_io_bytes=8<<20,execution_source_context_file='adapter/image-source-context.json')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\strata_vision_register.py\", line 351, in register_cpu_image_route\n    strata._check_live_memory(memory, demands, backend[\"gpu_pool\"], backend[\"gpu_total_bytes\"])\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\backends\\strata.py\", line 405, in _check_live_memory\n    raise ResourceUnavailable(\nvllm_omni.engine.resource_ledger.ResourceUnavailable: Strata fresh admission refused: host_ram: required=20476592128, host_ram_available_bytes=19704938496; windows_commit: required=48392830976, windows_commit_available_bytes=47963463680; host_ram: required=20476592128, windows_host_available_bytes=19704938496; snapshot={\"captured_unix_s\": 1791799731.7278962, \"gpu_free_bytes\": 19555450880, \"gpu_name_sha256\": \"5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d\", \"gpu_pci_bus_id\": \"00000000:64:00.0\", \"gpu_source\": \"NVML exact bytes\", \"gpu_total_bytes\": 25651314688, \"gpu_uuid\": \"GPU-bf6e910e-657c-15d7-c558-f169df134d8a\", \"host_ram_available_bytes\": 19704938496, \"host_ram_source\": \"GlobalMemoryStatusEx.ullAvailPhys\", \"is_wsl\": false, \"windows_commit_available_bytes\": 47963463680, \"windows_host_available_bytes\": 19704938496, \"windows_host_verification\": \"measured\", \"wsl_ram_available_bytes\": null}\n",
+    "finished_unix": 1791799731.7761023
+  },
+  "four_gib_registration": {
+    "status": "registered_experimental_image_not_executed",
+    "route_id": "unsloth-q4-4g-image-execution-e39-v5",
+    "explicit_cache_derivation": {
+      "old_expert_ram_budget_bytes": 8589934592,
+      "new_expert_ram_budget_bytes": 4294967296,
+      "host_loading_bytes_removed": 4294967296,
+      "windows_commit_peak_bytes_retained": 45097156608,
+      "scope": "explicit alternate; no inherited quality or performance; fresh admission required"
+    },
+    "fresh_admission": {
+      "admitted": true,
+      "over_budget_pools": [],
+      "probe_started_utc": "2026-10-12T10:24:38.513883+00:00",
+      "memory": {
+        "host_ram_available_bytes": 19567607808,
+        "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+        "gpu_total_bytes": 25651314688,
+        "gpu_free_bytes": 19548340224,
+        "gpu_source": "NVML exact bytes",
+        "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+        "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+        "gpu_pci_bus_id": "00000000:64:00.0",
+        "windows_commit_available_bytes": 48632868864,
+        "windows_host_available_bytes": 19567607808,
+        "wsl_ram_available_bytes": null,
+        "is_wsl": false,
+        "windows_host_verification": "measured",
+        "captured_unix_s": 1791800678.513883
+      },
+      "disk_capacity": [
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v5",
+          "filesystem_device": 9817999866247958652,
+          "total_bytes": 2013912174592,
+          "free_bytes": 736957579264,
+          "used_bytes": 1276954595328
+        },
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4",
+          "filesystem_device": 9817999866247958652,
+          "total_bytes": 2013912174592,
+          "free_bytes": 736957579264,
+          "used_bytes": 1276954595328
+        },
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\packs\\q4-compat-20261008-1840",
+          "filesystem_device": 9817999866247958652,
+          "total_bytes": 2013912174592,
+          "free_bytes": 736957579264,
+          "used_bytes": 1276954595328
+        },
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4",
+          "filesystem_device": 9817999866247958652,
+          "total_bytes": 2013912174592,
+          "free_bytes": 736957579264,
+          "used_bytes": 1276954595328
+        },
+        {
+          "path": "C:\\Users\\zhout\\AppData\\Local\\Temp",
+          "filesystem_device": 9817999866247958652,
+          "total_bytes": 2013912174592,
+          "free_bytes": 736957579264,
+          "used_bytes": 1276954595328
+        }
+      ],
+      "scope": "fresh registration snapshot only; startup requires new probes and shared resource lease"
+    }
+  },
+  "cache_change_tests_passed": 20,
+  "lifecycle": {
+    "status": "invoked_no_generation_result_yet",
+    "output_dir": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5",
+    "batch_size": 1,
+    "concurrency": 1,
+    "scope": "two screenshot references; encoder-phase cancellation; fresh generation recovery"
+  },
+  "qualification_created": false,
+  "files": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-20261012-v5\\attempt.json",
+      "size_bytes": 2660,
+      "sha256": "97ad7379f91e7dfacd047f408f1985c16771ccadbd9aa1b9b58e73b6f34fa4cd"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-4g-20261012-v5\\attempt.json",
+      "size_bytes": 439,
+      "sha256": "980a31750c8fa17f5a0fcadb4d91285757cead84eda5d8b3117f8cd9a8091c50"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-4g-20261012-v5\\launch.json",
+      "size_bytes": 13392336,
+      "sha256": "e40ce55cde1257fb939005b4c22ae5e4b693b0825fbb7ec47d7ccfff8141be8e"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-4g-20261012-v5\\launch.image-registration.json",
+      "size_bytes": 8015,
+      "sha256": "2c3a640790e8cd70057c2328972e591e148efc6db4d548f91e8b3041d1a5cbaf"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-4g-20261012-v5\\lifecycle-freeze.json",
+      "size_bytes": 330700,
+      "sha256": "46db44f7524bd521813f17a2c1c36696d911e79acd9e25e88b256e8a8cb894a2"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\image-cache-alternate-tests-20261012.xml",
+      "size_bytes": 3500,
+      "sha256": "3c4444f4d87a6eac77e444501c8a62abd39bfefa5348ae1f063c4089cb404c7a"
+    }
+  ]
+}
