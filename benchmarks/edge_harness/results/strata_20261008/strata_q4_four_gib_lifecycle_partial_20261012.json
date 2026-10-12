@@ -1,0 +1,295 @@
+{
+  "schema": "omni-strata-q4-four-gib-lifecycle-partial-v1",
+  "captured_utc": "2026-10-12T05:16:28.221876+00:00",
+  "status": "three_references_and_cancel_recorded_recovery_loading",
+  "scope": "Partial ongoing lifecycle; independent fixed-output/hash checks only; no whole-protocol or Agent/default qualification.",
+  "launch_sha256": "b5f91e3b40fae26d8e1d8c161665113668dc93189f77e60dfda06982ebcf1588",
+  "batch_size": 1,
+  "concurrency": 1,
+  "initial_integrity_and_start_seconds": 1637.1018949998543,
+  "requests": [
+    {
+      "case_id": "english_ready",
+      "request_id": "strata-0f1d3c3831aa4075b5f15d21a255be4a",
+      "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+      "full_response_s": 11.838322000112385,
+      "first_output_s": 11.192771899979562,
+      "input_tokens": 20,
+      "output_tokens": 2,
+      "quality": {
+        "passed": true,
+        "kind": "exact_text",
+        "reference": null
+      }
+    },
+    {
+      "case_id": "chinese_arithmetic",
+      "request_id": "strata-4ae232e616ad4d68b3e9b6337e62e2a0",
+      "input_sha256": "c39a4420f1236500989d1a6bf890854cb1cc4ff83ffcde690a3b2e6f3b9cc5ea",
+      "output_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+      "full_response_s": 17.427893299609423,
+      "first_output_s": 15.963578299619257,
+      "input_tokens": 30,
+      "output_tokens": 3,
+      "quality": {
+        "passed": true,
+        "kind": "exact_text",
+        "reference": null
+      }
+    },
+    {
+      "case_id": "json_tool_format",
+      "request_id": "strata-aa00b815d1fc4ff68eb1cf65ee390647",
+      "input_sha256": "48c39e3aeab00b081c0e550c8e65121f8f696ec8f2add4ad31521b70f73cf288",
+      "output_sha256": "22cdd6496b02d06a4cd71fa0b3e85fbda10206b7b268ded96746e6b7a10cfbe4",
+      "full_response_s": 16.40565609978512,
+      "first_output_s": 12.409226200077683,
+      "input_tokens": 27,
+      "output_tokens": 7,
+      "quality": {
+        "passed": true,
+        "kind": "json_equal",
+        "reference": null
+      }
+    }
+  ],
+  "cancellation": {
+    "request_id": "strata-cancel-cf747524bdf641c3abf8f18c277e1763",
+    "status": "cancelled",
+    "deltas_before_cancel": 2,
+    "input_sha256": "028ac251637597bf6f316ccda6019c01c1b0405a91531fcd747ff3a62ae9f18a",
+    "cancel": {
+      "wall_s": 1.2785096000880003,
+      "requires_route_reload": true,
+      "drained": true,
+      "close": {
+        "ledger_after_shutdown": {
+          "capacities": {
+            "host_ram": 22930124800,
+            "vram:0": 25651314688,
+            "ssd": 861586432140,
+            "windows_commit": 68113162240
+          },
+          "reserved": {
+            "host_ram": 0,
+            "vram:0": 0,
+            "ssd": 0,
+            "windows_commit": 0
+          },
+          "owners": [],
+          "quarantined": []
+        },
+        "process_gpu_before_shutdown": {
+          "schema": "omni-windows-process-gpu-memory-v1",
+          "status": "unknown",
+          "reason": "AttributeError: 'NoneType' object has no attribute 'get'",
+          "unix_s": 1791781820.6044834,
+          "owner_identity": null,
+          "local_current_usage_bytes": null,
+          "nonlocal_current_usage_bytes": null,
+          "local_budget_bytes": null,
+          "nonlocal_budget_bytes": null,
+          "scope": "sampled WDDM process accounting; nonlocal memory shares host RAM",
+          "hard_cap_verified": false
+        }
+      },
+      "ledger": {
+        "capacities": {
+          "host_ram": 22930124800,
+          "vram:0": 25651314688,
+          "ssd": 861586432140,
+          "windows_commit": 68113162240
+        },
+        "reserved": {
+          "host_ram": 0,
+          "vram:0": 0,
+          "ssd": 0,
+          "windows_commit": 0
+        },
+        "owners": [],
+        "quarantined": []
+      }
+    }
+  },
+  "after_cancel_ledger": {
+    "capacities": {
+      "host_ram": 22930124800,
+      "vram:0": 25651314688,
+      "ssd": 861586432140,
+      "windows_commit": 68113162240
+    },
+    "reserved": {
+      "host_ram": 0,
+      "vram:0": 0,
+      "ssd": 0,
+      "windows_commit": 0
+    },
+    "owners": [],
+    "quarantined": []
+  },
+  "producer_request_evidence": [
+    {
+      "case_id": "english_ready",
+      "request_id": "strata-0f1d3c3831aa4075b5f15d21a255be4a",
+      "quality_passed": true,
+      "native_seq": 1,
+      "epoch": 1,
+      "full_response_s": 11.838322000112385,
+      "io_complete": true,
+      "execution_complete_scoped": true,
+      "input_sha256": "509efa3e3660ee7511d68bbf55fab1e3b0d018be425f29601caeee994457bab0",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526"
+    },
+    {
+      "case_id": "chinese_arithmetic",
+      "request_id": "strata-4ae232e616ad4d68b3e9b6337e62e2a0",
+      "quality_passed": true,
+      "native_seq": 2,
+      "epoch": 2,
+      "full_response_s": 17.427893299609423,
+      "io_complete": true,
+      "execution_complete_scoped": true,
+      "input_sha256": "c39a4420f1236500989d1a6bf890854cb1cc4ff83ffcde690a3b2e6f3b9cc5ea",
+      "output_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049"
+    },
+    {
+      "case_id": "json_tool_format",
+      "request_id": "strata-aa00b815d1fc4ff68eb1cf65ee390647",
+      "quality_passed": true,
+      "native_seq": 3,
+      "epoch": 3,
+      "full_response_s": 16.40565609978512,
+      "io_complete": true,
+      "execution_complete_scoped": true,
+      "input_sha256": "48c39e3aeab00b081c0e550c8e65121f8f696ec8f2add4ad31521b70f73cf288",
+      "output_sha256": "22cdd6496b02d06a4cd71fa0b3e85fbda10206b7b268ded96746e6b7a10cfbe4"
+    }
+  ],
+  "raw_records": [
+    {
+      "file": "english_ready.json",
+      "size_bytes": 203699,
+      "sha256": "d774a0db1a4217a76d01e228c09310416b929205593aa6e4b92780835f32c6cb"
+    },
+    {
+      "file": "english_ready-io.json",
+      "size_bytes": 10151,
+      "sha256": "2ac2f999542e7b25e0a70df77e907fb1fea89d0140344689ad0325448f8a4394"
+    },
+    {
+      "file": "english_ready-execution.json",
+      "size_bytes": 75943,
+      "sha256": "4dfc023ae6dd2dd357a7b353a1ea85a608070fa3800908f72a702bb8a7b59464"
+    },
+    {
+      "file": "chinese_arithmetic.json",
+      "size_bytes": 205619,
+      "sha256": "8b1b05ac9535a6c5fb93412f367c0a7afdd5dd87f78bd2c0ccb29a6194a7ac1f"
+    },
+    {
+      "file": "chinese_arithmetic-io.json",
+      "size_bytes": 10245,
+      "sha256": "67a7111b86fecc5e8607643f356e2a8ddac84fc491e821f67634beb734777e8b"
+    },
+    {
+      "file": "chinese_arithmetic-execution.json",
+      "size_bytes": 76063,
+      "sha256": "3ea7405410895e456cfce03e9741b3dcce6634450f937c3f0e6fb57c5fa58459"
+    },
+    {
+      "file": "json_tool_format.json",
+      "size_bytes": 211679,
+      "sha256": "51baf045652251d5f058444f7266e6a334eb18c930a20cba91180a985797b9cb"
+    },
+    {
+      "file": "json_tool_format-io.json",
+      "size_bytes": 10281,
+      "sha256": "9f0b6808b8a9f893a72036a117d52e58db9d613050a1d85608fb9af40cbb04da"
+    },
+    {
+      "file": "json_tool_format-execution.json",
+      "size_bytes": 76098,
+      "sha256": "f6904d4cc84b21179c097c0c836f18ef7a39468beafa54a4a64183e40ab02115"
+    },
+    {
+      "file": "cancellation.json",
+      "size_bytes": 6662,
+      "sha256": "8730783bc94cb8dddf50158c53fbae94b0d2b40f2b3a0398e9c0a57b8d579222"
+    },
+    {
+      "file": "cancelled-io.json",
+      "size_bytes": 5306,
+      "sha256": "ce2a1c9dd637765160fb796a3794d590b1089da2d90609aa3f8be0fec853644a"
+    },
+    {
+      "file": "cancelled-execution.json",
+      "size_bytes": 49208,
+      "sha256": "9ae6ae13623e407359ccc2b66c2ebd97e4a21959dc0d2341c6feef2c60ccabdf"
+    },
+    {
+      "file": "after-cancel-ledger.json",
+      "size_bytes": 289,
+      "sha256": "c5ae799ef334d319cd506b861d3bdb44144fc9ae99308e737d26571a76854adc"
+    },
+    {
+      "file": "initial-loaded-plan.json",
+      "size_bytes": 306276,
+      "sha256": "258905b77b55627cc58a785e19f45becdd88b82b4433f97e4e0ea62552ec3f57"
+    }
+  ],
+  "observer_initial_sample_snapshot": {
+    "bytes_via_open_handle": 323664,
+    "sha256": "11c2e445ec6fbc3e51f9c11bbcf6e971d65029c0eee42a38991bdc6dc2debd7c",
+    "rows": 315,
+    "observed_rows": 315,
+    "closed_receipt_available": false,
+    "note": "Directory enumeration reported zero bytes while the open handle exposed these flushed rows. Final observer closure remains pending."
+  },
+  "limits": [
+    "Recovery request and final source stability/cleanup audit pending.",
+    "Cancellation GPU memory unavailable; unknown is not zero.",
+    "No physical SSD I/O or aggregate RAM/VRAM hard-cap claim.",
+    "Not a paired cold-start benchmark, percentile protocol, or broad task-quality result."
+  ],
+  "conditions": {
+    "os_observed_after_reference_requests": "Windows-11-10.0.26200-SP0",
+    "observation_utc": "2026-10-12T05:18:18.859381+00:00",
+    "gpu_query_after_references": "0, NVIDIA GeForce RTX 5090 Laptop GPU, GPU-bf6e910e-657c-15d7-c558-f169df134d8a, 610.71, 24463",
+    "gpu_query_total_memory_unit": "MiB",
+    "native_owner_and_gpu_at_load": {
+      "creation_filetime_100ns": 134362553242349728,
+      "pid": 4400,
+      "status": "verified",
+      "worker_generation": "22b698a346014d7f81cd05dc4d14057f",
+      "gpu": {
+        "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+        "pci_bus_id": "00000000:64:00.0",
+        "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+      }
+    },
+    "backend_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+    "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+    "precision": [
+      "Unsloth UD-Q4_K_XL mixed"
+    ],
+    "declared_python_sys_version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+    "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+    "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+    "controls": {
+      "context_tokens": 4096,
+      "max_new_tokens": 512,
+      "kv_type": "fp16",
+      "spec_tokens": 0,
+      "ple_prefetch": false,
+      "routing_prefetch": false,
+      "io_prefetch": false,
+      "gpu_budget_bytes": 17179869184,
+      "expert_ram_budget_bytes": 4294967296
+    },
+    "power_condition": "Uncontrolled current desktop condition; no fixed power or thermal claim. Dynamic telemetry is retained in the ongoing private run.",
+    "timing_scope": "Single samples of fixed functional requests, not a percentile benchmark or paired speed comparison."
+  }
+}
