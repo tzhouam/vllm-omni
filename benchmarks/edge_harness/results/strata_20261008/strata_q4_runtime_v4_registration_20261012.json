@@ -1,0 +1,187 @@
+{
+  "schema": "omni-strata-q4-runtime-v4-registration-and-agent-launch-v1",
+  "registration_exit_code": 0,
+  "cache_derivation_exit_code": 0,
+  "agent_preparation_exit_code": 0,
+  "sources": {
+    "registration": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-execution-combined-20261012-v2\\registration-attempt.json",
+      "sha256": "62cb2d2ca05df083b45c6ad7c4cfe102b781ce15f44bdfe831aeb9310489e395",
+      "record": {
+        "schema": "omni-private-actual-combined-registration-attempt-v1",
+        "status": "registered_not_executed",
+        "parent_launch_file_sha256": "cb2fbfb2cdb6fefdb342c7429fa6075ae8475d03fbf548f2e752f0a06a62c314",
+        "static_receipt_sha256": "2307ffea38859b99ae9d742dc8d17912c2730ad4c7b94b8ddb3a6888ea41f7b8",
+        "static_identity_sha256": "ca41a2ff7ab1be7009118c97caf2eb33db564507c34bb02f05569cbd2e2017ff",
+        "raw_member_manifest_sha256": "ecf57443efe134f90cc105ecfd0ad634d99221e84b7aa157e204ef733dc85ec0",
+        "outer_runtime_manifest_sha256": "11a64ca8fbf3badc080bb31a57b4b55b258f2ac407ccbe599c3808ddf4355ba3",
+        "runtime_files_including_raw_manifest": 42649,
+        "runtime_bytes": 2231676831,
+        "native_model_executed": false,
+        "qualification_created": false,
+        "launch_sha256": "09aad6e58f702f2faf1cf7e6f6da78039a315fe7d6421a00d3bc398c7dd24e43",
+        "registration_receipt_sha256": "33f896c015be59245d1beda41b8dd33e1f370fa57264a072335d388de6fc991b",
+        "producer_source_sha256": "3d04757845de0222364a95ac983ea63c12fb47833f698bf2b389ef741e068bb5"
+      }
+    },
+    "cache_derivation": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\strata-q4-four-gib-input-20261012-v2\\receipt.json",
+      "sha256": "bd6a09b78f6f9ef561aed99ae33443c613d83772cf7f125abae34fb8713f7638",
+      "record": {
+        "schema": "omni-private-explicit-four-gib-cache-alternate-v1",
+        "parent_launch_content_sha256": "7a796fc202c2cbf9bf4dc48a201a785f138582aca0cb23781dec353edcc2a76d",
+        "derived_launch_content_sha256": "2b2a98f9ff3aa653ba1353b35c5570a272a8dfd385b0f21a5bd4c5ef07a0d85e",
+        "parent_route_id": "unsloth-q4-8g-execution-e39-v4",
+        "route_id": "unsloth-q4-4g-execution-e39-v4-experimental",
+        "old_cpu_expert_cache_bytes": 8589934592,
+        "new_cpu_expert_cache_bytes": 4294967296,
+        "host_loading_formula": "CPU_cache+unchanged_host_overhead+max_IO+independent_execution_observer_workspace",
+        "independent_execution_observer_workspace_bytes": 2147483648,
+        "retained_windows_commit_peak_bytes": 45097156608,
+        "windows_commit_peak_policy": "unchanged_conservative_parent_peak_revalidated_by_production_planner",
+        "original_model_demands": {
+          "host_ram": 17180917760,
+          "vram": 17179869184,
+          "windows_commit": 45097156608,
+          "ssd": 119374151723
+        },
+        "derived_model_demands_before_output_workspace": {
+          "host_ram": 12885950464,
+          "vram": 17179869184,
+          "windows_commit": 45097156608,
+          "ssd": 119374151723
+        },
+        "checkpoint_precision_context_runtime_and_pack_unchanged": true,
+        "fresh_capacity_admission_required": true,
+        "closed_parent_lifecycle_inherited": false,
+        "numerical_or_task_quality_inherited": false,
+        "default_qualified": false,
+        "helper_sha256": "6ce72b48712a634529b2bdf1888ce8dd5182a330ab15a825615b07a88b0456c8",
+        "parent_launch_sha256": "09aad6e58f702f2faf1cf7e6f6da78039a315fe7d6421a00d3bc398c7dd24e43",
+        "capacity_scope": "Fresh Stage admission still required; historical parent ceilings grant no available memory.",
+        "reproduction_scope": "4 GiB cache experiment; not the 24/32/40 GiB comparison or external 40 GiB reproduction.",
+        "launch_sha256": "c34c5bc15a09eb69bcbfc0eef936015afba2479c79ca9bf4feff6bf32e2794c9"
+      }
+    },
+    "agent_preparation": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-four-gib-agent-input-20261012-v2\\preparation.json",
+      "sha256": "1cacd9f7e989951ca528f67fc66182e6e323923465cee866583d4470ad408e7a",
+      "record": {
+        "scope": "metadata preparation only, no model or Agent execution",
+        "launch_sha256": "c34c5bc15a09eb69bcbfc0eef936015afba2479c79ca9bf4feff6bf32e2794c9",
+        "config_sha256": "198efc002bd066216eac95e37e46524f23787b6189c93829baee076ecf0d1c4f",
+        "lineage_sha256": "fd16f6c8c052f6e9821479f4f350428810e7e855c4613b02943fbe8911436d6d",
+        "qualification_created": false,
+        "memory_demands": {
+          "host_ram": 12888047616,
+          "vram": 17179869184,
+          "windows_commit": 45099253760,
+          "ssd": 119374151723
+        },
+        "provenance": {
+          "q4-four-gib-agent-experimental": {
+            "schema": "omni-strata-profile-binding-v1",
+            "backend_config_sha256": "f02defcc849e452eb340e4875408c43092b50b4e1e76ac83ff87ecc8ede34be7",
+            "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+            "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+            "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+            "runtime_manifest_sha256": "11a64ca8fbf3badc080bb31a57b4b55b258f2ac407ccbe599c3808ddf4355ba3",
+            "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+            "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+            "engine_sha256": "39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177",
+            "conversion_manifest_sha256": "8d3b87923fd727ef46057c7bf66213576ecfe1c52b8a912daae6c51a6e2b0954",
+            "declared_python_environment_sha256": "aafee115a0b7d649557038a301582ce2ea4e80589a7c01a1d7264442a7288fb1",
+            "python_environment_sha256": "21fe86c9aec753b083449eb069f479af82d778e21e7bc383c787159bbc66d32c",
+            "weight_tier_plan_sha256": "ae44d369376288c449320f766618f0a5db78d64f08caeebb58be51abbf990ff2",
+            "native_layout_sha256": "5ed2c4a55910616db1efe16f0c989e9bec80cc8b9e95bf1c42f886aadfffd2d6",
+            "gpu_expert_cache_budget_bytes": 8053063680,
+            "expected_controls": {
+              "schema": "omni-strata-explicit-cache-v2",
+              "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+              "runtime_manifest_sha256": "11a64ca8fbf3badc080bb31a57b4b55b258f2ac407ccbe599c3808ddf4355ba3",
+              "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+              "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+              "ram_expert_cache_budget_bytes": 4294967296,
+              "gpu_budget_bytes": 17179869184,
+              "vram_reserve_mib": 8079,
+              "context_tokens": 4096,
+              "kv_type": "fp16",
+              "spec_tokens": 0,
+              "native_verify_window": 2,
+              "prefetch": {
+                "ple": false,
+                "routing": false,
+                "io": false
+              },
+              "io_mode": "auto",
+              "ple_io": "direct",
+              "expert_profile_file": "data/expert-profile.bin"
+            },
+            "observation_runtime": null,
+            "execution_observation": {
+              "schema": "omni-strata-execution-route-binding-v1",
+              "static_identity_sha256": "ca41a2ff7ab1be7009118c97caf2eb33db564507c34bb02f05569cbd2e2017ff",
+              "descriptor_sha256": "21cff9e1450593c63aa8a4163f84f512f54fd37abcfdeb866204a5443b66307a",
+              "source_context_sha256": "74b385e33dca96b2c0b2250ac207a1359087b86c2e7e9b0807d20eb41a71243e",
+              "member_manifest_file": "members.json",
+              "member_manifest_sha256": "ecf57443efe134f90cc105ecfd0ad634d99221e84b7aa157e204ef733dc85ec0",
+              "adapter_sha256": {
+                "strata_exec": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+                "strata_exec_bridge": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+                "strata_exec_runtime": "0a032642a55c3bd7f40b86a2c73076ba1cac91058500cd5f11b16135fd78de39",
+                "strata_exec_live": "717eb955f580027f84c17531283082f96ca4ead4cb63a7902c1c3c25fc8966b9"
+              },
+              "io_adapter_sha256": "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43",
+              "workspace_bytes": 2147483648,
+              "receipt_storage_bytes": 16777216
+            },
+            "base_engine_artifact_id": "strata:f02defcc849e452eb340e4875408c43092b50b4e1e76ac83ff87ecc8ede34be7",
+            "model_output_consumer_identity": {
+              "schema": "omni-agent-output-consumer-v1",
+              "base_artifact_id": "strata:f02defcc849e452eb340e4875408c43092b50b4e1e76ac83ff87ecc8ede34be7",
+              "contract": {
+                "mode": "strict_outer_json_fence_agent_v1",
+                "max_response_bytes": 65536,
+                "max_depth": 16,
+                "max_nodes": 2048,
+                "max_directive_bytes": 8192,
+                "workspace_budget_bytes": 2097152,
+                "schema": "omni-agent-output-contract-v1"
+              },
+              "adapter_source_sha256": "72339e1d5a4a39e8f0db0a6f9cec1ca8039258832afbc72b7136d1d148f10f90",
+              "identity_sha256": "9c4a857e28a9dbd5288dbba6f7e1b301f9a9d24ea2fdb8fdf7d0f71931126087"
+            },
+            "lineage_verified": false,
+            "precision": "Unsloth UD-Q4_K_XL mixed",
+            "artifact_hash_scope": "complete_source_manifest_all_shards"
+          }
+        }
+      }
+    },
+    "successor_race": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-successor-20261012-v1\\failure.json",
+      "sha256": "627cdf7626e2c449bc27f43c170373a65e671c143587d6ffdc0fc8fec72fc696",
+      "record": {
+        "type": "OSError",
+        "error": "[WinError 87] 参数错误。"
+      }
+    }
+  },
+  "agent_run": {
+    "session_id": 96681,
+    "directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-agent-multiclass-smoke-20261012-v1",
+    "task_classes": [
+      "basic",
+      "memory",
+      "code_tools",
+      "long_reasoning"
+    ],
+    "batch_size": 1,
+    "concurrency": 1,
+    "mode": "smoke",
+    "status": "launched_results_pending",
+    "code_scope": "code result reasoning only; no execution tool"
+  },
+  "race_resolution": "Exact-process successor attachment saw WinError 87 after registration exited. Original registration session then returned EXIT 0; derivation and preparation were run once separately. Registration was not restarted.",
+  "qualification_created": false
+}

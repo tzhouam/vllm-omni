@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-12 e39-v4 Q4 注册与独立 4 GiB 缓存配置、Agent 配置准备均已 **EXIT 0**。[注册回执与启动范围](../edge_harness/results/strata_20261008/strata_q4_runtime_v4_registration_20261012.json)。新版公共 Agent 四类 smoke 已启动：基础回答、带来源的记忆召回、代码结果推理（无执行工具）、约束推理；固定 batch=1／单请求，记录源码前后哈希与绑定进程资源观测。当前结果待完成，不授予性能或发布资格；4 GiB 配置仍不替代 24／32／40 GiB 对照。
+
 2026-10-12 新运行时与关闭检查更新：e39-v4 已完成组装及独立完整静态核验，EXIT 0，耗时 **86.817 s**，身份 `ca41a2ff7ab1be7009118c97caf2eb33db564507c34bb02f05569cbd2e2017ff`；这不是模型加载或推理性能。普通 Agent 路线现与浏览器联合路线一样绑定现有共享账本的最终关闭检查，并暴露资源快照；残留后端不能通过关闭检查。原生 Windows **133 项回归通过**，Ruff 通过。[验证记录](../edge_harness/results/strata_20261008/strata_runtime_v4_agent_close_20261012.json)。新 Q4 运行时注册正在进行，尚无新版本神经执行结论；旧 Agent 运行的资源证据缺口不会被本次代码修复追溯补齐。
 
 2026-10-12 Q4 **basic Agent 完整协议已结束，EXIT 0**：[原始哈希与独立逐行复核](../edge_harness/results/strata_20261008/agent_q4_basic_full_protocol_20261012.json)。6 条预热、60 条正式测量、89 条耐久，共 **155 条固定中英文算术请求**的最终答案均匹配参考；无错误，生产整链／放置检查均通过。耐久实际请求时间 **1,802.349 s**，墙钟 **1,806.544 s**。三档完整回答 p95 保持 **20.446／20.295／22.833 s**，未达到普通回答 10 s 目标。
