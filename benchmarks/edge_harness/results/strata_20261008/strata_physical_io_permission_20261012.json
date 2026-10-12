@@ -1,0 +1,10 @@
+{
+  "schema": "omni-physical-io-permission-test-v1",
+  "captured_at": "2026-10-12T15:03:18.3983609+08:00",
+  "instance": "OmniStrataPermission20261012",
+  "start_exit_code": -2147024891,
+  "start_output": "\r\n\tAccess is denied.\r\n\r\n\r\n\tProfile Id: DiskIO.Verbose.Memory, FileIO.Verbose.Memory\r\n\t\r\n\tError code: 0x80070005\r\n\t\r\n\tAccess is denied.\r\n\r\n\t\r\n\t\r\n",
+  "stop_exit_code": null,
+  "stop_output": null,
+  "scope": "Permission/readiness test only, no model physical SSD attribution or performance qualification"
+}
