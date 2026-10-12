@@ -1,0 +1,52 @@
+{
+  "schema": "omni-q4-image-v5-preparation-checkpoint-v1",
+  "date": "2026-10-12",
+  "text_registration": {
+    "status": "registered_not_executed",
+    "native_model_executed": false,
+    "qualification_created": false,
+    "static_receipt_sha256": "914818963f7c24640f5983cc9b6277fc6a17d655045103721c7a09d445d71a7d",
+    "producer_source_sha256": "d370d853f0912a5fa8117cd3b3a9323701450f3fd84b235b16c53a573c54e14f",
+    "launch_sha256": "d965202f1b1f80c86d0b14819f2ed25f3f75da25fbcce46b56f01ee75b658d68"
+  },
+  "lifecycle_runner_contract_tests": {
+    "passed": 54,
+    "failed": 0,
+    "scope": "synthetic; includes legacy and combined native I/O schema selection"
+  },
+  "image_registration": "running_at_recording_not_model_execution",
+  "image_reference": {
+    "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+    "review": "pixels inspected; right-panel English heading and bottom-right bilingual button match stored references",
+    "scope": "closed real application screenshot; prompts exclude reference answers"
+  },
+  "model_executed": false,
+  "qualification_created": false,
+  "files": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-execution-combined-20261012-v5\\registration-attempt.json",
+      "size_bytes": 396,
+      "sha256": "f0ae28aa855f71ce1b9df082bf4a5c96e965636efd3c9b0f97baccc947fdd886"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-execution-combined-20261012-v5\\launch.json",
+      "size_bytes": 13385915,
+      "sha256": "d965202f1b1f80c86d0b14819f2ed25f3f75da25fbcce46b56f01ee75b658d68"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-execution-combined-20261012-v5\\launch.registration.json",
+      "size_bytes": 31141,
+      "sha256": "7cda0fe621b3689d73a12907b006fa5f012d05d55d55216371d365ad32abcdd6"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\image-lifecycle-combined-v2-contract-tests-final.xml",
+      "size_bytes": 6295,
+      "sha256": "7b2e90a4672703c7404af03be925187599dbab5ffb5c75ac37df81a01bce80f7"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-lifecycle-combined-v2-20261012\\run_strata_image_lifecycle.py",
+      "size_bytes": 51576,
+      "sha256": "25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9"
+    }
+  ]
+}
