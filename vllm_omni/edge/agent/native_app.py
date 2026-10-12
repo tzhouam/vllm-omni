@@ -726,11 +726,12 @@ def build_controller(
         qualification_suite_id=data.get("qualification_suite_id", "edge-agent-paired-v1"),
         bootstrap_route_id=data.get("experimental_bootstrap_route_id"),
         limits=AgentLimits(**data.get("limits", {})),
-        **({"resource_finalize": coordinator.finalize_close} if companion is not None else {}),
+        resource_finalize=coordinator.finalize_close,
     )
     # Application/profiler ownership handle, never exposed as a model tool.
     # Its presence does not claim route qualification or a hard process cap.
     controller.browser_resource_companion = companion
+    controller.resource_snapshot = coordinator.snapshot
     if companion is not None:
         if companion.native_gpu_accounting_snapshot() is not None:
             controller.resource_snapshot = lambda: {

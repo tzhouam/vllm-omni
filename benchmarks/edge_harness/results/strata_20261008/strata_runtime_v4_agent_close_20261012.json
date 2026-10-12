@@ -1,0 +1,40 @@
+{
+  "schema": "omni-strata-runtime-and-agent-close-progress-v1",
+  "scope": "static runtime verification and model-free Agent close wiring; no new neural qualification",
+  "static": {
+    "status": "static_records_verified_live_eligibility_unavailable",
+    "identity_sha256": "ca41a2ff7ab1be7009118c97caf2eb33db564507c34bb02f05569cbd2e2017ff",
+    "receipt_path": "C:\\Users\\zhout\\w2\\strata-omni\\patches\\execution-runtime-static-verification-v4.json",
+    "receipt_sha256": "2307ffea38859b99ae9d742dc8d17912c2730ad4c7b94b8ddb3a6888ea41f7b8",
+    "elapsed_s": 86.81714690010995,
+    "native_execution": false
+  },
+  "agent_close": {
+    "change": "Always bind existing LocalPlanManager finalize_close and resource_snapshot, including routes without a browser companion",
+    "tests": [
+      "tests/edge/test_agent_browser_joint_wiring.py",
+      "tests/edge/test_agent_joint_resource_release.py",
+      "tests/edge/test_agent_controller.py"
+    ],
+    "command_arguments": [
+      "-o",
+      "addopts=",
+      "-q"
+    ],
+    "passed": 133,
+    "warnings": 14,
+    "elapsed_test_s": 16.94,
+    "exit_code": 0,
+    "ruff": "passed",
+    "coverage": "Both companion and plain production factories expose the same ledger and reject finalization with a resident backend; existing controller/release tests retained",
+    "sources": {
+      "vllm_omni/edge/agent/native_app.py": "c8d0c7d4f2a51aa10767ec259470e5cffa6f3bd6c0362e4e49b8dfcd9656bf6d",
+      "tests/edge/test_agent_browser_joint_wiring.py": "705208644e756dcab1b714c22d9c518368132c5147ffd020a41e8bf32a67e231"
+    }
+  },
+  "remaining": [
+    "Register new Q4 runtime and execute fresh model/Agent requests",
+    "Agent release qualification is not inherited from model-free tests",
+    "Physical SSD attribution, large-cache comparisons and broad task quality remain incomplete"
+  ]
+}

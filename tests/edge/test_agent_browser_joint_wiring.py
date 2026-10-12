@@ -69,11 +69,16 @@ def test_native_resolves_exact_relative_envelope_without_starting_registry(tmp_p
         native_app._browser_companion_from_config({"browser_resource_envelope": declaration}, config_dir=tmp_path)
 
 
-def test_native_build_attaches_companion_before_route_admission_and_final_close(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("with_companion", [False, True])
+def test_native_build_attaches_resource_checks_before_route_admission_and_final_close(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, with_companion: bool,
+) -> None:
     entry = {"route_id": "r", "artifact_id": "artifact", "model": "fixture-model",
              "backend": "external.llamacpp.text.v1", "placement": "cpu",
              "memory_demands": {"host_ram": 50, "windows_commit": 40}}
-    config = {"routes": [entry], "browser_resource_envelope": envelope_file(tmp_path)}
+    config = {"routes": [entry]}
+    if with_companion:
+        config["browser_resource_envelope"] = envelope_file(tmp_path)
     path = tmp_path / "native.json"
     path.write_text(json.dumps(config), encoding="utf-8")
     hardware = {"host_ram_available_bytes": 100, "vram_available_bytes": None,
@@ -92,13 +97,22 @@ def test_native_build_attaches_companion_before_route_admission_and_final_close(
     monkeypatch.setattr(native_app, "AgentController", Controller)
     controller, _ = native_app.build_controller(path)
     companion = controller.browser_resource_companion
-    assert isinstance(companion, br.WindowsBrowserResourceCompanion) and companion.is_cold()
-    assert captured["tools"] is companion._tool_boundary
-    assert captured["tools"]._browser is None
+    if with_companion:
+        assert isinstance(companion, br.WindowsBrowserResourceCompanion) and companion.is_cold()
+        assert captured["tools"] is companion._tool_boundary
+        assert captured["tools"]._browser is None
+    else:
+        assert companion is None
     assert captured["admit"].__self__._companion is companion
     assert captured["resource_finalize"].__self__ is captured["admit"].__self__
     assert captured["backends"]["r"]._coordinator._companion is companion
     assert captured["routes"][0].route_id == "r" and captured["routes"][0].artifact_id == "artifact"
+    manager = captured["admit"].__self__
+    assert controller.resource_snapshot() == manager.snapshot()
+    manager._backends["r"].resident = True
+    with pytest.raises(ResourceUnavailable, match="resident backend"):
+        captured["resource_finalize"]()
+    manager._backends["r"].resident = False
     assert captured["resource_finalize"]()["ledger"]["owners"] == []
 
 
