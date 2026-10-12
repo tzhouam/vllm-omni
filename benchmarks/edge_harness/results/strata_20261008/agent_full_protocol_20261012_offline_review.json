@@ -1,0 +1,400 @@
+{
+  "schema": "omni-strata-agent-full-protocol-offline-review-v1",
+  "date": "2026-10-12",
+  "scope": "Windows native fixed read-only loopback browser_text model-selected tool chain; no general Agent qualification",
+  "original_run": {
+    "exit_code": 1,
+    "failure": "malformed_relevant_process_liveness_or_identity",
+    "cause": "WinError 31 during retained Edge helper query produced explicit unavailable counters with missing liveness; original auditor rejected it",
+    "receipt": {
+      "sha256": "f93fb3616653c3d493ecaae1095d8e912d17803220516025bfaa420940915283",
+      "bytes": 1573042
+    },
+    "terminal": {
+      "sha256": "7a4dc7781470b65addfe4cdb9b5d5674e2f436f2152d32503188fbf52e36f310",
+      "bytes": 21040
+    },
+    "raw_evidence_unchanged": true
+  },
+  "offline_review": {
+    "exit_code": 0,
+    "status": "passed",
+    "review": {
+      "sha256": "7aa0bff30e9e4b2ac5ca13352b8e2abb00781e7cc20f9402f62b683501800c40",
+      "bytes": 603
+    },
+    "audit": {
+      "sha256": "b7fb4852219432c162bad52e312202b83fa3cfdbf928205e72c5c0ebd292ed6e",
+      "bytes": 1724428
+    },
+    "candidate_contract": {
+      "sha256": "74ff26685b98ab5e780f195357097d0fdfac764899bac197a7d1af4b81c3857a",
+      "bytes": 21753
+    },
+    "tests": {
+      "methods_passed": 4,
+      "malformed_subcases_passed": 15,
+      "test_source": {
+        "sha256": "4b2f72f99b3a50a6d2ac3ffe46a31a605e68a4e03e6f86329f5edd6871a5618e",
+        "bytes": 3343
+      },
+      "scope": "isolated sample validation; report validation mocked in unit tests; actual full closed audit uses unmocked report/route validation"
+    },
+    "unavailable_sample_projections_preserved": 28855,
+    "projection_count_is_not_unique_sample_count": true,
+    "initial_encoding_failure_preserved": {
+      "sha256": "30591b0ffc5ad8d8df1d0b0e6261230476d84d5ac76136ea5f9fe65ba2df147f",
+      "bytes": 3503
+    }
+  },
+  "conditions": {
+    "hardware_id": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD | NVIDIA GeForce RTX 5090 Laptop GPU | RAM 67773509632 bytes",
+    "os_version": "Windows-11-10.0.26200-SP0",
+    "driver_versions": {
+      "nvidia": "610.71"
+    },
+    "power_condition": "AC",
+    "suite_id": "edge-agent-fixed-local-fixtures-v1"
+  },
+  "backend": {
+    "model_id": "ISTA-DASLab/Qwen3.8-Flash-Next-GSQ-RCO-GGUF",
+    "checkpoint_revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+    "precision": "GSQ-RCO Q2_0 mixed; lookup table IQ4_NL",
+    "expected_placement": "cpu+cuda:0",
+    "artifact_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098"
+  },
+  "controls": {
+    "artifact_manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098",
+    "context_tokens": 4096,
+    "expert_profile_file": "data/expert-profile.bin",
+    "gpu_budget_bytes": 17179869184,
+    "io_mode": "auto",
+    "kv_type": "fp16",
+    "native_verify_window": 2,
+    "ple_io": "direct",
+    "prefetch": {
+      "io": false,
+      "ple": false,
+      "routing": false
+    },
+    "prepared_manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900",
+    "ram_expert_cache_budget_bytes": 4294967296,
+    "runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+    "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+    "schema": "omni-strata-explicit-cache-v2",
+    "spec_tokens": 0,
+    "vram_reserve_mib": 8079
+  },
+  "protocol": {
+    "protocol": {
+      "protocol": "browser_memory_full_batch1_60_measured_and_1800_active_seconds_not_qualification",
+      "full_protocol_requested": true,
+      "browser_headless": true,
+      "warmups_per_length": 2,
+      "measured_per_length": 20,
+      "fixed_request_rows": 66,
+      "active_endurance_seconds": 1800,
+      "batch_size": 1,
+      "concurrency": 1,
+      "qualification_created": false
+    },
+    "outer_requests": 149,
+    "warmups_per_length": {
+      "short": 2,
+      "medium": 2,
+      "long": 2
+    },
+    "measured_per_length": {
+      "short": 20,
+      "medium": 20,
+      "long": 20
+    },
+    "endurance_requests": 83,
+    "active_endurance_seconds": 1804.4992415000004,
+    "model_calls": 298,
+    "count_scope": "actual saved outer Agent attempts and captured inner model steps; not inferred from task count"
+  },
+  "measurements": {
+    "answer_latency_s": {
+      "long": [
+        25.4700842,
+        26.3793745,
+        25.378651,
+        26.219417,
+        25.4741142,
+        26.116575,
+        25.4335249,
+        26.3956157,
+        25.4582371,
+        26.1649826,
+        25.4262696,
+        26.3161438,
+        25.3512468,
+        26.120166,
+        25.4188637,
+        26.3132495,
+        25.3380394,
+        26.5207719,
+        25.3058582,
+        26.1869483
+      ],
+      "medium": [
+        19.0128467,
+        19.8969945,
+        19.1596557,
+        20.0585684,
+        18.9594429,
+        19.9817465,
+        19.0702315,
+        19.9844436,
+        19.2526864,
+        20.0192943,
+        19.0589415,
+        19.9770401,
+        18.9321719,
+        19.8723934,
+        19.0134314,
+        20.0336,
+        18.9435504,
+        19.9857451,
+        19.0560413,
+        19.9904958
+      ],
+      "short": [
+        18.5795594,
+        18.7599949,
+        17.9483118,
+        18.6652794,
+        18.0493477,
+        19.2764636,
+        19.2515433,
+        19.7082533,
+        19.2527549,
+        18.6422713,
+        18.118655,
+        18.5114922,
+        17.993726,
+        18.7501229,
+        17.8689564,
+        18.5560196,
+        17.8762098,
+        18.5537088,
+        17.9926136,
+        18.4453159
+      ]
+    },
+    "ttft_s": {
+      "long": [
+        25.4157491,
+        26.3209952,
+        25.3269824,
+        26.1627689,
+        25.4213576,
+        26.0646594,
+        25.3783155,
+        26.3446733,
+        25.40557,
+        26.1127968,
+        25.3737264,
+        26.2635977,
+        25.2991329,
+        26.0694503,
+        25.3679076,
+        26.2627234,
+        25.2866824,
+        26.4703303,
+        25.2555957,
+        26.137222
+      ],
+      "medium": [
+        18.9632111,
+        19.8435086,
+        19.1112549,
+        20.0025066,
+        18.9056856,
+        19.9299981,
+        19.0191969,
+        19.9330073,
+        19.2007148,
+        19.9695146,
+        19.0086713,
+        19.9268597,
+        18.8769984,
+        19.8219297,
+        18.9615358,
+        19.9830601,
+        18.8926088,
+        19.9344168,
+        19.0051015,
+        19.9381152
+      ],
+      "short": [
+        18.5306905,
+        18.7097082,
+        17.8938966,
+        18.6134988,
+        17.9948085,
+        19.2158862,
+        19.1944234,
+        19.6460503,
+        19.2006583,
+        18.5885749,
+        18.0640543,
+        18.4599214,
+        17.9413626,
+        18.6999492,
+        17.8172793,
+        18.5021368,
+        17.8251398,
+        18.5025598,
+        17.9423442,
+        18.3935193
+      ]
+    },
+    "answer_p50_s": {
+      "long": 25.4741142,
+      "medium": 19.2526864,
+      "short": 18.5537088
+    },
+    "answer_p95_s": {
+      "long": 26.3956157,
+      "medium": 20.0336,
+      "short": 19.2764636
+    },
+    "ttft_p50_s": {
+      "long": 25.4213576,
+      "medium": 19.2007148,
+      "short": 18.5021368
+    },
+    "ttft_p95_s": {
+      "long": 26.3446733,
+      "medium": 19.9830601,
+      "short": 19.2158862
+    },
+    "cold_start_s": 786.7865872,
+    "sustained_seconds": 1804.4992415000004,
+    "endurance_wall_seconds": 1831.1457642000169
+  },
+  "timing_scope": {
+    "cold_start": "integrity verification plus controller preparation and loading; not pure model loading",
+    "answer": "complete instrumented Agent answer including evidence capture overhead",
+    "ttft": "first visible Agent output, not inner model first token",
+    "percentile": "nearest rank; 20 measured requests per length"
+  },
+  "closed_evidence": {
+    "source_stable": true,
+    "all_controller_blocks_closed": true,
+    "all_known_writers_quiesced": true,
+    "resource_drain_verified": true,
+    "ledger": {
+      "capacities": {
+        "host_ram": 19785416704,
+        "ssd": 813707882651,
+        "vram": 20863545344,
+        "windows_commit": 58518507520
+      },
+      "owners": [],
+      "quarantined": [],
+      "reserved": {
+        "host_ram": 0,
+        "ssd": 0,
+        "vram": 0,
+        "windows_commit": 0
+      }
+    },
+    "retired_processes": [
+      {
+        "creation_filetime_100ns": 134362464563489937,
+        "exit_code": 15,
+        "exit_code_observed": true,
+        "original_process_retired": true,
+        "pid": 107760,
+        "retained_handle_signaled": true,
+        "role": "native_model",
+        "wait_result": 0
+      },
+      {
+        "creation_filetime_100ns": 134362464538195210,
+        "exit_code": 1,
+        "exit_code_observed": true,
+        "original_process_retired": true,
+        "pid": 153168,
+        "retained_handle_signaled": true,
+        "role": "stage_supervisor",
+        "wait_result": 0
+      }
+    ],
+    "summary": {
+      "sha256": "bb3a0b47a917e85f4c97d500909012ea040645b9c3413a1cdfa9807857482d2d",
+      "bytes": 11631
+    },
+    "raw": [
+      {
+        "path": "profiler/native_dd27da62824d41c49acf9432363cf724/index.json",
+        "sha256": "91d1027099a41fb4b7113ecf94141fa3f012bfa03bc543ed64f7154c4c4e5823",
+        "size_bytes": 740561,
+        "evidence_type": "actual_native_profile_index"
+      },
+      {
+        "path": "profiler/native_dd27da62824d41c49acf9432363cf724/startup-samples/4be7826077734a6892c77f169302d268.jsonl",
+        "sha256": "1ec4213f0278dd1c179345370645dc8d91b03f59779d9bc36fadac8439367f61",
+        "size_bytes": 21636134,
+        "evidence_type": "native_startup_telemetry_jsonl",
+        "complete": true,
+        "hash_verified": true,
+        "validated_complete": true,
+        "binding": {
+          "artifact_id": "strata-agent:b8303e9532a5b2b8cddffac089e450fbbc03706e5be44de140cc36b8d7b225df",
+          "checkpoint_revision": "ed59f92082b1e93c0e96d60a8b11aab089b52f09",
+          "load_id": "4be7826077734a6892c77f169302d268",
+          "preparation_sequence": 1,
+          "route_id": "ista-q2-browser-full-20261012-v2"
+        },
+        "read_bytes": 21636134
+      },
+      {
+        "path": "profiler/native_dd27da62824d41c49acf9432363cf724/raw/20261012T022806Z_348bd2f4/samples.jsonl",
+        "sha256": "b34c538bed0d54861b0cbb107365ce9b2b60c9a725b5097197ea449c4496fe5b",
+        "size_bytes": 1521788214
+      }
+    ]
+  },
+  "paired_current_lifecycle": {
+    "schema": "omni-private-four-gib-lifecycle-closed-review-v1",
+    "lifecycle_receipt_sha256": "40054cad460e6602f1576dc482668e9cefcbc8e6e3520293543e30e482c1edbf",
+    "observer_receipt_sha256": "fa886a210ff00c793f90ca1c3284d49af3c9241c7437610ba5b35c5afa95d942",
+    "all_raw_files_verified": 36,
+    "actual_sessions": {
+      "lifecycle": 94255,
+      "observer": 6915,
+      "both_exit_code": 0
+    },
+    "three_reference_requests_passed": true,
+    "fresh_generation_recovery_passed": true,
+    "cancel_after_deltas": 2,
+    "initial_start_s": 1434.2241413998418,
+    "recovery_start_s": 991.1280104997568,
+    "recovery_full_response_s": 3.2718805000185966,
+    "final_ledger_empty": true,
+    "both_native_retained_handles_signaled": true,
+    "source_stable": true,
+    "configuration_comparison": "lifecycle-control-comparison.json",
+    "performance_qualified": false,
+    "whole_agent_qualified": false,
+    "aggregate_memory_hardcap_verified": false
+  },
+  "qualification": {
+    "default_route_qualified": false,
+    "release_qualified": false,
+    "physical_ssd_io_qualified": false,
+    "aggregate_memory_hardcap_verified": false,
+    "general_agent_quality_qualified": false,
+    "original_failed_run_reclassified": false
+  },
+  "next": [
+    "Integrate and regression-test unavailable-observation handling in successor audit tooling; keep original EXIT 1",
+    "Measure and reduce startup overhead without weakening integrity checks",
+    "Continue Q4 controlled SSD/cache-budget and same-artifact backend comparisons",
+    "Retain separate DeepSeek and device-resident Android workstreams"
+  ]
+}
