@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -23,6 +25,110 @@ BATCH1_TIMING_EVIDENCE = {
         "analysis": "../../../e2e_expansion_20261002/evidence/batch1_tts_sustained/analysis.json",
     },
 }
+
+# These are exact AI Hub registrations, not interchangeable device families.
+HOSTED_TARGET_NAMES = {
+    "PC Snapdragon X Elite CRD / AI Hub": "Snapdragon X Elite CRD",
+    "Mobile Galaxy S25 / Snapdragon 8 Elite for Galaxy": "Samsung Galaxy S25",
+    "Mobile Galaxy S24 / Snapdragon 8 Gen 3": "Samsung Galaxy S24",
+    "Embedded SA8775P ADP / AI Hub": "SA8775P ADP",
+    "Embedded RB3 Gen 2 / QCS6490 / AI Hub": "Dragonwing RB3 Gen 2 Vision Kit",
+}
+
+# A successful runner journal is necessary but not sufficient: a one-layer
+# component can supply its own tiny topology. These checks are the per-model
+# acceptance contract for promoting a hosted matrix cell to full replay.
+HOSTED_REQUIRED_CHECKS = {
+    "Spark-X2.5": {"real_prompt", "full_neural_coverage", "continuous_128",
+                   "cache_512", "cache_1024", "reference_quality", "state_order"},
+    "Qwen3-TTS 0.6B CustomVoice": {"real_text", "talker_predictor_vocoder",
+                                  "pcm_tail", "reference_audio_quality", "state_order"},
+    "Qwen3.8-27B": {"real_image", "complete_vision_language_chain",
+                     "language_state", "reference_quality", "peak_memory_admission"},
+    "MiniCPM-o 4.5": {"real_image_and_speech", "complete_multimodal_chain",
+                       "text_and_audio_quality", "state_order"},
+    "InternVLA-A1": {"real_observation", "complete_policy_and_action",
+                      "matching_action_reference", "action_units_timing_order"},
+}
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _checked_replay_file(root: Path, name: object, digest: object) -> Path:
+    if (not isinstance(name, str) or not name or Path(name).is_absolute()
+            or not isinstance(digest, str) or re.fullmatch(r"[0-9a-f]{64}", digest) is None):
+        raise ValueError("hosted replay evidence needs a relative file and SHA-256")
+    path = (root / name).resolve(strict=True)
+    if not path.is_relative_to(root) or not path.is_file() or _file_sha256(path) != digest:
+        raise ValueError("hosted replay evidence file is missing or changed")
+    return path
+
+
+def verify_hosted_model_acceptance(record: dict, root: Path) -> None:
+    """Reject a complete-looking component journal lacking whole-model gates."""
+    identity = record["identity"]
+    model = identity["model"]
+    required = HOSTED_REQUIRED_CHECKS[model]
+    completion = record["completion"]
+    quality = completion["quality"]
+    if identity["revision"] not in quality.get("reference", ""):
+        raise ValueError("hosted replay reference is not pinned to checkpoint revision")
+    checks = quality.get("checks")
+    if not isinstance(checks, list) or any(not isinstance(check, dict) for check in checks):
+        raise ValueError("hosted replay lacks model-specific checks")
+    by_name = {check.get("name"): check for check in checks}
+    if len(by_name) != len(checks) or not required.issubset(by_name):
+        raise ValueError("hosted replay omits whole-model acceptance checks")
+    for name in required:
+        check = by_name[name]
+        if check.get("passed") is not True:
+            raise ValueError(f"hosted replay quality gate {name} did not pass")
+        _checked_replay_file(root, check.get("evidence_path"), check.get("sha256"))
+    output_path = _checked_replay_file(
+        root, completion["final_output_path"], completion["final_output_sha256"])
+    output = json.loads(output_path.read_text(encoding="utf-8"))
+    if model == "Spark-X2.5":
+        tokens = output.get("token_ids")
+        if (not isinstance(tokens, list) or len(tokens) < 128
+                or any(type(token) is not int or token < 0 for token in tokens)
+                or output.get("generated_tokens") != len(tokens)
+                or output.get("cache_boundaries_verified") != [512, 1024]
+                or not isinstance(output.get("prompt_length"), int)):
+            raise ValueError("Spark hosted replay lacks 128 tokens or 512/1024 state evidence")
+        if sum("decode" in step["stage_name"] for step in record["steps"]) < 128:
+            raise ValueError("Spark hosted replay lacks 128 dependent decode jobs")
+    elif model in {"Qwen3-TTS 0.6B CustomVoice", "MiniCPM-o 4.5"}:
+        _checked_replay_file(root, output.get("pcm_path"), output.get("pcm_sha256"))
+        if (not isinstance(output.get("sample_rate"), int) or output["sample_rate"] <= 0
+                or not isinstance(output.get("samples"), int) or output["samples"] <= 0
+                or output.get("tail_flushed") is not True):
+            raise ValueError("hosted audio replay lacks complete PCM with tail")
+        if model == "MiniCPM-o 4.5" and (not output.get("text")
+                                            or not output.get("image_sha256")
+                                            or not output.get("speech_input_sha256")):
+            raise ValueError("MiniCPM-o hosted replay lacks real multimodal input and text")
+    elif model == "Qwen3.8-27B":
+        if (not output.get("text") or not output.get("image_sha256")
+                or not output.get("token_ids")
+                or not isinstance(output.get("peak_memory_bytes"), int)
+                or not isinstance(output.get("usable_ram_bytes"), int)
+                or output["peak_memory_bytes"] <= 0 or output["usable_ram_bytes"] <= 0):
+            raise ValueError("27B hosted replay lacks image, text, state or RAM evidence")
+    elif model == "InternVLA-A1":
+        actions = output.get("actions")
+        times = output.get("timestamps_ms")
+        if (not isinstance(actions, list) or not actions
+                or not isinstance(times, list) or len(actions) != len(times)
+                or any(not _finite_number(value) for value in times)
+                or any(b <= a for a, b in zip(times, times[1:]))
+                or not output.get("units") or not output.get("observation_sha256")):
+            raise ValueError("VLA hosted replay lacks ordered, unit-tagged actions")
 
 
 def _finite_number(value: object) -> bool:
@@ -142,6 +248,105 @@ def verify(text: str) -> dict:
         },
         "cases": cases,
     }
+
+
+def apply_hosted_evidence(ledger: dict, index_path: Path) -> None:
+    """Promote hosted cells only from an audited full-chain run or named evidence.
+
+    The index may omit unfinished cells. In particular, a component job or a
+    synthetic host policy is never promoted by its mere presence in the matrix.
+    """
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    if index.get("schema_version") != 1 or not isinstance(index.get("entries"), list):
+        raise ValueError("hosted evidence index must contain schema_version=1 and entries")
+    cases = {(case["device_configuration"], case["model"]): case
+             for case in ledger["cases"]}
+    seen: set[tuple[str, str]] = set()
+    repository_root = Path(__file__).resolve().parents[3]
+    for entry in index["entries"]:
+        if not isinstance(entry, dict):
+            raise ValueError("hosted evidence entry must be an object")
+        key = entry.get("device_configuration"), entry.get("model")
+        if key in seen or key not in cases or key[0] not in HOSTED_TARGET_NAMES:
+            raise ValueError(f"duplicate, unknown or non-hosted evidence cell: {key}")
+        seen.add(key)
+        path_value = entry.get("evidence_path")
+        if not isinstance(path_value, str) or not path_value or Path(path_value).is_absolute():
+            raise ValueError(f"{key}: evidence_path must be a relative file path")
+        evidence_path = (index_path.parent / path_value).resolve(strict=True)
+        if not evidence_path.is_relative_to(repository_root) or not evidence_path.is_file():
+            raise ValueError(f"{key}: hosted evidence must be a repository file")
+        outcome = entry.get("outcome")
+        case = cases[key]
+        target = HOSTED_TARGET_NAMES[key[0]]
+        if outcome == "hosted_functional_replay_pending_device":
+            if evidence_path.name != "run.json":
+                raise ValueError(f"{key}: full replay evidence must be run.json")
+            runner_root = Path(__file__).resolve().parents[1]
+            if str(runner_root) not in sys.path:
+                sys.path.insert(0, str(runner_root))
+            from aihub_replay import audit_run
+
+            audit = audit_run(evidence_path.parent)
+            record = json.loads(evidence_path.read_text(encoding="utf-8"))
+            if (audit["status"] != "complete" or audit["model"] != key[1]
+                    or audit["target_name"] != target or not audit["job_ids"]
+                    or record.get("tier") != "aihub_hosted_functional_replay"
+                    or record.get("facility") != "Qualcomm AI Hub Workbench"
+                    or record.get("target_registration", {}).get("name") != target):
+                raise ValueError(f"{key}: incomplete, wrong-target or unaudited hosted replay")
+            verify_hosted_model_acceptance(record, evidence_path.parent)
+            case["hosted_full_replay"] = "verified_functional_replay"
+            case["qualification_outcome"] = outcome
+            case["hosted_replay_job_ids"] = audit["job_ids"]
+        elif outcome in {"measured_unsupported", "external_blocker"}:
+            report = json.loads(evidence_path.read_text(encoding="utf-8"))
+            if (report.get("status") != outcome or report.get("model") != key[1]
+                    or report.get("target_name") != target
+                    or not isinstance(report.get("reason"), str) or not report["reason"]
+                    or not isinstance(report.get("next_step"), str) or not report["next_step"]):
+                raise ValueError(f"{key}: failure or blocker report lacks exact scope")
+            if outcome == "measured_unsupported" and (
+                    not report.get("job_id") or not report.get("artifact_sha256")
+                    or not report.get("raw_failure_path")):
+                raise ValueError(f"{key}: unsupported verdict lacks an exact failed artifact/job")
+            if outcome == "external_blocker" and not report.get("source_evidence"):
+                raise ValueError(f"{key}: external blocker lacks source evidence")
+            source_name = ("raw_failure_path" if outcome == "measured_unsupported"
+                           else "source_evidence")
+            source_value = report[source_name]
+            if not isinstance(source_value, str) or Path(source_value).is_absolute():
+                raise ValueError(f"{key}: {source_name} must name a relative raw evidence file")
+            source_path = (evidence_path.parent / source_value).resolve(strict=True)
+            if (not source_path.is_relative_to(repository_root)
+                    or not source_path.is_file() or source_path.stat().st_size == 0):
+                raise ValueError(f"{key}: {source_name} is missing or empty")
+            hash_name = ("raw_failure_sha256" if outcome == "measured_unsupported"
+                         else "source_sha256")
+            if (not isinstance(report.get(hash_name), str)
+                    or re.fullmatch(r"[0-9a-f]{64}", report[hash_name]) is None
+                    or _file_sha256(source_path) != report[hash_name]):
+                raise ValueError(f"{key}: {source_name} hash is missing or changed")
+            if outcome == "measured_unsupported" and (
+                    re.fullmatch(r"[0-9a-f]{64}", report["artifact_sha256"]) is None
+                    or re.fullmatch(r"j[a-z0-9]+", report["job_id"]) is None):
+                raise ValueError(f"{key}: failed artifact or job identity is malformed")
+            case["hosted_full_replay"] = outcome
+            case["qualification_outcome"] = outcome
+        else:
+            raise ValueError(f"{key}: unknown hosted outcome {outcome!r}")
+        case["hosted_evidence_path"] = str(evidence_path.relative_to(repository_root))
+        case["release_qualification"] = "not_qualified"
+
+    ledger["counts"].update({
+        "hosted_replay_verified": sum(case["hosted_full_replay"] == "verified_functional_replay"
+                                      for case in ledger["cases"]),
+        "hosted_artifact_unsupported": sum(case["hosted_full_replay"] == "measured_unsupported"
+                                            for case in ledger["cases"]),
+        "hosted_external_blocker": sum(case["hosted_full_replay"] == "external_blocker"
+                                       for case in ledger["cases"]),
+        "open": sum(case["qualification_outcome"] == "open" for case in ledger["cases"]),
+    })
 
 
 def verify_timing_evidence(ledger: dict, readme: Path) -> None:
@@ -282,15 +487,22 @@ def main() -> None:
     parser.add_argument("readme", type=Path)
     parser.add_argument("--json-out", type=Path,
                         help="Write a conservative machine-readable ledger after validation.")
+    parser.add_argument("--hosted-index", type=Path,
+                        help="Evidence index for AI Hub full-chain outcomes; defaults to the sibling index.")
     args = parser.parse_args()
     result = verify(args.readme.read_text(encoding="utf-8"))
     verify_timing_evidence(result, args.readme)
+    hosted_index = args.hosted_index or args.readme.parent / "hosted_e2e_index.json"
+    if hosted_index.is_file():
+        apply_hosted_evidence(result, hosted_index)
     if args.json_out:
         args.json_out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     counts = result["counts"]
     print(f"verified {len(result['cases'])} cells: {counts['scoped_complete_request']} scoped E2E, "
           f"{counts['synthetic_policy_only']} synthetic policy-only, "
-          f"{counts['no_complete_workload']} without E2E")
+          f"{counts['no_complete_workload']} without E2E; "
+          f"hosted full replay {counts.get('hosted_replay_verified', 0)}/25, "
+          f"external blocker {counts.get('hosted_external_blocker', 0)}/25")
 
 
 if __name__ == "__main__":

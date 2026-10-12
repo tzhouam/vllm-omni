@@ -1,0 +1,10 @@
+{
+  "first_token_id": 0,
+  "hf_bf16_vs_fp32_export_hidden_relative_l2": 0.003093112448105105,
+  "shape": [
+    1,
+    1,
+    2048
+  ],
+  "checkpoint_revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8"
+}

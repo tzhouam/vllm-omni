@@ -37,6 +37,7 @@ from vllm_omni.edge.qnn_export import sanitize_onnx
 __all__ = [
     "SparkStepConfig",
     "SparkDecodeStep",
+    "SparkTokenDecodeBlock",
     "SparkDecodeCache",
     "config_from_spark",
     "example_inputs",
@@ -350,6 +351,30 @@ class SparkDecodeStep(nn.Module):
         return (logits, *new)
 
 
+class SparkTokenDecodeBlock(nn.Module):
+    """First decode block with the checkpoint's token embedding on target.
+
+    A mobile replay must not silently calculate the embedding on the host.
+    Splitting a 28-layer graph into contiguous blocks also keeps each ONNX
+    protobuf below the format's 2 GiB size limit. The first block consumes a
+    token ID; subsequent blocks consume the preceding target job's hidden
+    output. The final block includes the tied output head.
+    """
+
+    def __init__(self, cfg: SparkStepConfig):
+        super().__init__()
+        if cfg.first_layer != 0:
+            raise ValueError("token embedding belongs only on the first block")
+        self.cfg = cfg
+        self.embedding = nn.Embedding(cfg.vocab_size, cfg.hidden_size)
+        self.decode = SparkDecodeStep(cfg)
+
+    def forward(self, token_id, *args):
+        if token_id.dtype != torch.int64 or token_id.shape != (1, 1):
+            raise ValueError("token_id must be one int64 token at batch size 1")
+        return self.decode(self.embedding(token_id).float(), *args)
+
+
 class SparkDecodeCache:
     """CPU reference for the fixed-shape KV contract of ``SparkDecodeStep``.
 
@@ -647,29 +672,43 @@ def kv_cache_bytes(cfg: SparkStepConfig, context: int, bytes_per_elem: int = 2) 
 
 
 def load_spark_weights(
-    module: SparkDecodeStep, weights_dir: str | Path, dtype: torch.dtype = torch.float32
+    module: SparkDecodeStep | SparkTokenDecodeBlock,
+    weights_dir: str | Path,
+    dtype: torch.dtype = torch.float32,
 ) -> int:
-    """Load real Spark weights into the exported step. Returns tensors copied."""
-    from safetensors.torch import load_file
+    """Load only this block's real checkpoint tensors. Returns tensors copied.
+
+    A complete checkpoint is over 3 GiB; loading all shards for each of seven
+    four-layer exports needlessly multiplies both peak RAM and disk traffic.
+    The safetensors index gives exact shard ownership for each required key.
+    """
+    from safetensors import safe_open
 
     weights_dir = Path(weights_dir)
-    shards = sorted(weights_dir.glob("*.safetensors"))
-    if not shards:
-        raise FileNotFoundError(f"no safetensors under {weights_dir}")
-    state: dict[str, torch.Tensor] = {}
-    for shard in shards:
-        state.update(load_file(str(shard)))
+    index_path = weights_dir / "model.safetensors.index.json"
+    if not index_path.is_file():
+        raise FileNotFoundError(f"missing safetensors index under {weights_dir}")
+    weight_map = json.loads(index_path.read_text())["weight_map"]
 
-    cfg = module.cfg
+    def tensor(key: str) -> torch.Tensor:
+        shard = weight_map[key]
+        with safe_open(str(weights_dir / shard), framework="pt", device="cpu") as source:
+            return source.get_tensor(key)
+
+    step = module.decode if isinstance(module, SparkTokenDecodeBlock) else module
+    cfg = step.cfg
     copied = 0
     with torch.no_grad():
-        for i, layer in enumerate(module.layers):
+        if isinstance(module, SparkTokenDecodeBlock):
+            module.embedding.weight.copy_(tensor("model.embedding.weight").to(dtype))
+            copied += 1
+        for i, layer in enumerate(step.layers):
             src = f"model.layers.{cfg.first_layer + i}."
             for dst_name, key in (
                 ("input_layernorm", "input_layernorm.weight"),
                 ("post_attention_layernorm", "post_attention_layernorm.weight"),
             ):
-                getattr(layer, dst_name).copy_(state[src + key].to(dtype))
+                getattr(layer, dst_name).copy_(tensor(src + key).to(dtype))
                 copied += 1
             for mod, key in (
                 (layer.q_k_v_proj, "self_attn.q_k_v_proj.weight"),
@@ -679,19 +718,23 @@ def load_spark_weights(
                 (layer.up_proj, "mlp.up_proj.weight"),
                 (layer.down_proj, "mlp.down_proj.weight"),
             ):
-                mod.weight.copy_(state[src + key].to(dtype))
+                mod.weight.copy_(tensor(src + key).to(dtype))
                 copied += 1
         if cfg.include_lm_head:
-            module.norm.copy_(state["model.norm.weight"].to(dtype))
+            step.norm.copy_(tensor("model.norm.weight").to(dtype))
             # Spark ties the output projection to the input embedding.
-            emb = state.get("lm_head.weight", state["model.embedding.weight"])
-            module.lm_head.weight.copy_(emb.to(dtype))
+            emb_key = ("lm_head.weight" if "lm_head.weight" in weight_map
+                       else "model.embedding.weight")
+            step.lm_head.weight.copy_(tensor(emb_key).to(dtype))
             copied += 2
     return copied
 
 
 def export_onnx(
-    module: SparkDecodeStep, context: int, path: str | Path, opset: int = 18
+    module: SparkDecodeStep | SparkTokenDecodeBlock,
+    context: int,
+    path: str | Path,
+    opset: int = 18,
 ) -> dict[str, Any]:
     """Trace to ONNX at a fixed context length and sanitize for Qualcomm tools."""
     cfg = module.cfg
@@ -699,14 +742,18 @@ def export_onnx(
         raise ValueError("HF BF16 reference arithmetic is not a qualified mobile export")
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    args = example_inputs(cfg, context)
+    args = list(example_inputs(cfg, context))
+    names = input_names(cfg)
+    if isinstance(module, SparkTokenDecodeBlock):
+        args[0] = torch.tensor([[0]], dtype=torch.int64)
+        names[0] = "token_id"
     module.eval()
     with torch.no_grad():
         torch.onnx.export(
             module,
-            args,
+            tuple(args),
             str(path),
-            input_names=input_names(cfg),
+            input_names=names,
             output_names=output_names(cfg),
             opset_version=opset,
             dynamo=False,

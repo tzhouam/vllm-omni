@@ -1,0 +1,15 @@
+{
+  "status": "external_blocker",
+  "model": "Qwen3.8-27B",
+  "target_name": "Snapdragon X Elite CRD",
+  "batch_size": 1,
+  "max_active_requests": 1,
+  "reason": "The exact registered target's installed and usable RAM are absent from the AI Hub Device response; a same-checkpoint image+generation memory-admission or capacity refusal cannot be substantiated. Target-specific full-model artifacts are not yet compiled, so no functional-replay or unsupported conclusion follows.",
+  "next_step": "Obtain this registration's exact installed/usable RAM and runtime limit, pin a full image+language artifact, measure its loading peak and state/workspace budget, then submit a real-image batch-1 inference chain or record the concrete target job failure.",
+  "source_evidence": "../aihub_device_inventory/device_inventory_sdk056.json",
+  "source_sha256": "20c7e34762986822efb194262a1285911c444801852feb5b0d8aaba989fbdd93",
+  "checkpoint": "Qwen/Qwen3.8-27B-FP8",
+  "checkpoint_weight_bytes": 30866866928,
+  "hosted_job_ids": [],
+  "scope": "capacity-information blocker; no full AI Hub replay"
+}

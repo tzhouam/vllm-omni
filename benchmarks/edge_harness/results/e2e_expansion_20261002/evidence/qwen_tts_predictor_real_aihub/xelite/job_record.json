@@ -1,0 +1,62 @@
+{
+  "scope": "AI Hub predictor-body component on real generated input; not TTS E2E",
+  "checkpoint": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "device": "Snapdragon X Elite CRD",
+  "precision": "float32 source; onnx CPU-requested target",
+  "runtime": "onnx",
+  "source_sha256": "c0eb88559bbcafdea66de164f8d17ec0100407e5aa8f84bbf29628634c0b97c2",
+  "fixture_sha256": "97b2366cca628e6293e2d6edf5a6cd792f28878fb7a6c1e1f9c3161893a5a16b",
+  "batch_size": 1,
+  "concurrency": 1,
+  "qai_hub_version": "0.56.0",
+  "source_model_id": "mq9y2ovrn",
+  "compile_job_id": "jgk2nq4yg",
+  "compile_status": "SUCCESS",
+  "compile_message": "",
+  "target_model_id": "mq807j03n",
+  "target_sha256": "e435606ea13594344c0fecfe10edbe61bb8586760553cd3975c14b7667202b19",
+  "target_artifact_path": "/home/zhout/project/edge_infer/models/qwen3tts_predictor_real_20261002/predictor_snapdragon_x_elite_crd_mq807j03n.onnx.onnx.zip",
+  "inference_job_id": "jgjrm277p",
+  "inference_input_sha256": "e2e33761a56b8cafc658296c17d58251bdc3740a1a1b2d4edb6a4a853aea5d33",
+  "inference_status": "SUCCESS",
+  "inference_message": "",
+  "updated_utc": "2026-10-02T10:57:28.847815+00:00",
+  "output_sha256": "f4d7b9ba00f31b39833717522273e351390ca03a55cff0c5390bf999bb55dc0d",
+  "output_tensor_sha256": "863f98b9da6d6cf09e60e8c669ad8ae33625a01bd5672cf45c2846af6c91f798",
+  "reference_relative_l2": 4.0472523343952945e-06,
+  "output_shape": [
+    1,
+    17,
+    1024
+  ],
+  "input_dataset_id": "d9kvrv8d2",
+  "target_registration": {
+    "name": "Snapdragon X Elite CRD",
+    "os": "11",
+    "attributes": [
+      "os:windows",
+      "format:compute",
+      "framework:onnx",
+      "vendor:qualcomm",
+      "abi:aarch64-windows",
+      "chipset:qualcomm-snapdragon-x-elite",
+      "chipset:sc8380xp",
+      "hexagon:v73",
+      "soc-model:60",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "numerical_pass": true,
+  "profile_job_id": "j568jz8vg",
+  "profile_status": "SUCCESS",
+  "profile_message": "",
+  "profile_compute_unit_rows": {
+    "CPU": 357
+  },
+  "profile_sha256": "8a5fc25604a9212217104fce77c514dd9442d9a0fadef8619c634402f7f79fe2",
+  "inference_profile": false,
+  "placement_profile_separate": true
+}

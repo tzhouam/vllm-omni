@@ -14,6 +14,8 @@ compile, inference or profile job. Reproduce with:
 This is **D (hosted registration)** evidence. Each target has one exact name
 match and reports OS, chipset and supported framework attributes. The SDK's
 `Device` fields and attributes report **no RAM capacity or usable-RAM budget**.
+The same [five-name query with SDK 0.56.0](device_inventory_sdk056.json) on
+2026-10-02 again returned one exact registration per target and no RAM field.
 Consequently, neither a Qwen3.8-27B capacity refusal nor a claim that the
 checkpoint fits can be made for these exact leased SKUs from this inventory.
 It contains no batch-size or request measurements and no device-resident Omni

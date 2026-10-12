@@ -1,0 +1,8 @@
+{
+  "timestamp_utc": "2026-10-02T11:16:29.209071+00:00",
+  "sdk_version": "0.56.0",
+  "model_id": "mng2xp16m",
+  "onnx_sha256": "606439f7b8855f776c1de32b47c9cc8a269fb5d90ef99f73a440b19459a9822d",
+  "checkpoint_revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+  "manifest": "/tmp/omni_spark_hub_20261002/spark_block3_10_14_ctx256.json"
+}

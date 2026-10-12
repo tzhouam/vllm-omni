@@ -1,0 +1,10 @@
+{
+  "timestamp_utc": "2026-10-02T10:48:08.424175+00:00",
+  "sdk_version": "0.56.0",
+  "job_id": "jgzl9jlz5",
+  "job_url": "https://workbench.aihub.qualcomm.com/jobs/jgzl9jlz5/",
+  "device": "Samsung Galaxy S25",
+  "source_model_id": "mmxjk4dkq",
+  "options": "--target_runtime qnn_dlc --quantize_full_type float16",
+  "onnx_sha256": "50bb950418a54549083c237f6aa166bfdbe4a28bdc0d26b225ca4424cdc55222"
+}

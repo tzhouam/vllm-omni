@@ -245,6 +245,7 @@ datasets/
 !recipes/cosmos3/negative_prompt.json
 !tests/dfx/perf/tests/*.json
 !apps/ComfyUI-vLLM-Omni/example_workflows/*.json
+!benchmarks/edge_agent/configs/gemma4_31b_qat_q4_download.json
 *.jsonl
 *.parquet
 

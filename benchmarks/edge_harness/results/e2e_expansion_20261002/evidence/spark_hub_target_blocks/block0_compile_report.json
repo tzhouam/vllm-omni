@@ -1,0 +1,7 @@
+{
+  "timestamp_utc": "2026-10-02T10:23:51.278782+00:00",
+  "job_id": "j5qlkry7p",
+  "status": "FAILED",
+  "message": "Must use --truncate_64bit_io when input tensors have type int64.",
+  "target_model_id": null
+}

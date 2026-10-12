@@ -1,0 +1,63 @@
+{
+  "scope": "AI Hub predictor-body component on real generated input; not TTS E2E",
+  "checkpoint": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "device": "Samsung Galaxy S25",
+  "precision": "float32 source; TFLite CPU-requested target",
+  "source_sha256": "c0eb88559bbcafdea66de164f8d17ec0100407e5aa8f84bbf29628634c0b97c2",
+  "fixture_sha256": "97b2366cca628e6293e2d6edf5a6cd792f28878fb7a6c1e1f9c3161893a5a16b",
+  "batch_size": 1,
+  "concurrency": 1,
+  "qai_hub_version": "0.56.0",
+  "source_model_id": "mq9y2ovrn",
+  "compile_job_id": "j57ewl9qp",
+  "compile_status": "SUCCESS",
+  "compile_message": "",
+  "target_model_id": "mng2xo7om",
+  "inference_job_id": "jp4yod3qp",
+  "inference_input_sha256": "e2e33761a56b8cafc658296c17d58251bdc3740a1a1b2d4edb6a4a853aea5d33",
+  "inference_status": "SUCCESS",
+  "inference_message": "",
+  "updated_utc": "2026-10-02T10:57:28.873857+00:00",
+  "output_sha256": "334b892937fd911a1584d147790fefe6741e50ece891a26547cd4fdd2e2ba182",
+  "output_tensor_sha256": "f7a32715f46b208bee7c2ba320d834cadea2187facb3251fcf762800de052589",
+  "reference_relative_l2": 5.907473016735685e-06,
+  "output_shape": [
+    1,
+    17,
+    1024
+  ],
+  "input_dataset_id": "d9yz1zdv7",
+  "runtime": "tflite",
+  "target_sha256": "666b0649034e9fcffa4a45f4d852ff5c4a687ad76926123a0300182c768ab7c0",
+  "target_artifact_path": "/home/zhout/project/edge_infer/models/qwen3tts_predictor_real_20261002/predictor_samsung_galaxy_s25_mng2xo7om.tflite",
+  "profile_job_id": "j568jz7vg",
+  "profile_status": "SUCCESS",
+  "profile_message": "",
+  "profile_compute_unit_rows": {
+    "CPU": 367
+  },
+  "profile_sha256": "35e3f01195f1a001de8c13921465521eadfe103f3aad89d0bb0073c0e2de99c1",
+  "target_registration": {
+    "name": "Samsung Galaxy S25",
+    "os": "15",
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8-elite-for-galaxy",
+      "chipset:sm8750-ac",
+      "hexagon:v79",
+      "soc-model:69",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ]
+  },
+  "numerical_pass": true,
+  "inference_profile": false,
+  "placement_profile_separate": true
+}

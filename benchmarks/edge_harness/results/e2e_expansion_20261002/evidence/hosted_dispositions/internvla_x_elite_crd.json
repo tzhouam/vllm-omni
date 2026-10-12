@@ -1,0 +1,14 @@
+{
+  "status": "external_blocker",
+  "model": "InternVLA-A1",
+  "target_name": "Snapdragon X Elite CRD",
+  "batch_size": 1,
+  "max_active_requests": 1,
+  "reason": "Checkpoint-matched Place_Markpen real observation/action reference archive is gated; Hugging Face access probe returned approval required. No true task-quality acceptance can be recorded. Target vision+policy+action artifacts are also incomplete; this blocker does not certify those stages.",
+  "next_step": "Obtain approval for InternRobotics/InternData-A1, pin the matching archive, export and execute each neural stage on this target, then compare ordered actions, units and timing with its real references.",
+  "source_evidence": "../internvla_dataset_access/access_probe.json",
+  "source_sha256": "387469039dbd3c802e0c91b17563a2dabd0f4f5efa62cbd417666a0025401daa",
+  "reproducibility_command": "hf download InternRobotics/InternData-A1 real_lerobotv30/genie1/Genie1-Place_Markpen.tar.gz --repo-type dataset --dry-run",
+  "hosted_job_ids": [],
+  "scope": "data-access blocker; no full AI Hub replay"
+}

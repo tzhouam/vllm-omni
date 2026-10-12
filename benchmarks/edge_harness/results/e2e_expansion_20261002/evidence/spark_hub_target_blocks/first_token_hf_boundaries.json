@@ -1,0 +1,53 @@
+{
+  "checkpoint": "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+  "checkpoint_revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+  "config_sha256": "16aa5d3619d0d893e7157f2499675430844eb7b383c80ecc1b3e8e8928a75d52",
+  "index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "token_id": 0,
+  "torch": "2.13.0+cpu",
+  "transformers": "5.14.1",
+  "dtype": "BF16 model; saved FP32 boundary tensors",
+  "output_file_sha256": "813219e1e672dc23ebb98434696767e24f2c8d3d30aaf934848c0e68c8cb2aa1",
+  "output_shapes": {
+    "block0": [
+      1,
+      1,
+      2048
+    ],
+    "block1": [
+      1,
+      1,
+      2048
+    ],
+    "block2": [
+      1,
+      1,
+      2048
+    ],
+    "block3": [
+      1,
+      1,
+      2048
+    ],
+    "block4": [
+      1,
+      1,
+      2048
+    ],
+    "block5": [
+      1,
+      1,
+      2048
+    ],
+    "block6": [
+      1,
+      1,
+      2048
+    ],
+    "logits": [
+      1,
+      131072
+    ]
+  },
+  "reference_top1": 787
+}

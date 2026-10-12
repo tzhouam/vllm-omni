@@ -1,0 +1,36 @@
+{
+  "path": "/tmp/omni_spark_hub_20261002/spark_block2_6_10_ctx128.onnx",
+  "context": 128,
+  "layers": 4,
+  "layer_types": [
+    "sliding_attention",
+    "full_attention",
+    "sliding_attention",
+    "sliding_attention"
+  ],
+  "include_lm_head": false,
+  "sanitized": {
+    "nan_guards_removed": 0,
+    "allowzero_cleared": 0,
+    "scalar_axes_fixed": 0
+  },
+  "kv_bytes": {
+    "hybrid": 1048576,
+    "uniform": 1048576,
+    "saved": 0
+  },
+  "block": 2,
+  "first_layer": 6,
+  "last_layer_exclusive": 10,
+  "on_target_embedding": false,
+  "on_target_lm_head": false,
+  "weights_copied": 32,
+  "sha256": "1afc55a8f934ca34073f0e1dbf322e1b2de1c5aec11203b6a9e13101c5d7a894",
+  "size_bytes": 822464141,
+  "checkpoint": "/home/zhout/project/edge_infer/models/Spark-X2.5-1.7B-BF16",
+  "checkpoint_revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+  "checkpoint_config_sha256": "16aa5d3619d0d893e7157f2499675430844eb7b383c80ecc1b3e8e8928a75d52",
+  "checkpoint_index_sha256": "cc2b212985f5d0469bf926903e4bd7ee81856687baa0c6c6b55ff200d4cdc63f",
+  "precision": "fp32_export; target quantization must be recorded separately",
+  "batch_size": 1
+}

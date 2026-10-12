@@ -1,0 +1,2724 @@
+{
+  "execution_summary": {
+    "estimated_inference_time": 16240,
+    "estimated_inference_peak_memory": 394719232,
+    "first_load_time": 185664,
+    "first_load_peak_memory": 391507968,
+    "warm_load_time": 224822,
+    "warm_load_peak_memory": 417218560,
+    "compile_time": 0,
+    "compile_peak_memory": 0,
+    "compile_memory_increase_range": [
+      0,
+      0
+    ],
+    "compile_memory_peak_range": [
+      0,
+      0
+    ],
+    "first_load_memory_increase_range": [
+      317170976,
+      324382240
+    ],
+    "first_load_memory_peak_range": [
+      302624768,
+      309836032
+    ],
+    "warm_load_memory_increase_range": [
+      0,
+      1477360
+    ],
+    "warm_load_memory_peak_range": [
+      1064960,
+      9132944
+    ],
+    "inference_memory_increase_range": [
+      0,
+      559200
+    ],
+    "inference_memory_peak_range": [
+      516096,
+      14607664
+    ],
+    "all_compile_times": [],
+    "all_first_load_times": [
+      185664
+    ],
+    "all_warm_load_times": [
+      224822
+    ],
+    "all_inference_times": [
+      22464,
+      16249,
+      16354,
+      17189,
+      16414,
+      16333,
+      16240,
+      16468,
+      16323,
+      16298,
+      16288,
+      24021,
+      16626,
+      16675,
+      16378,
+      16379,
+      16730,
+      17693,
+      16855,
+      16830,
+      17033,
+      16609,
+      16647,
+      17259,
+      16618,
+      16980,
+      17119,
+      17172,
+      16870,
+      17224,
+      17328,
+      17312,
+      17416,
+      17439,
+      17568,
+      18162,
+      17715,
+      17566,
+      17756,
+      18102,
+      17790,
+      17972,
+      17835,
+      17382,
+      17699,
+      18489,
+      19749,
+      18686,
+      18682,
+      17948,
+      18096,
+      18159,
+      18145,
+      18011,
+      18157,
+      18245,
+      18087,
+      18544,
+      18074,
+      17760,
+      17811,
+      18061,
+      17804,
+      17768,
+      17918,
+      17906,
+      17921,
+      17842,
+      18733,
+      17929,
+      18123,
+      18384,
+      18539,
+      19289,
+      18837,
+      18829,
+      18657,
+      18747,
+      18638,
+      18702,
+      18839,
+      18698,
+      18905,
+      17773,
+      18918,
+      18789,
+      18822,
+      18744,
+      18993,
+      18248,
+      19376,
+      17685,
+      18694,
+      18783,
+      18946,
+      18975,
+      17884,
+      18701,
+      19018,
+      18965
+    ]
+  },
+  "execution_detail": [
+    {
+      "name": "model/tf.math.multiply/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_1/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 397,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_3/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_1/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_1/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_1/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_1/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_4/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_5/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_9/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_1/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat/node_cat_1",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_10/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 206,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_3/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_1/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_1/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_6/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_2/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_2/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_2/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_2/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_7/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_8/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_1/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_11/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_2/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_3/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_1/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_1/node_cat_2",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_12/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_4/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_2/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_5/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_5/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_3/transpose",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 4,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_13/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 200,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_7/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.nn.softmax/Softmax",
+      "type": "SOFTMAX",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.is_nan/IsNan",
+      "type": "NOT_EQUAL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.where/SelectV2",
+      "type": "SELECT_V2",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_2/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_3/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_2/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_6/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_4/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_4/MatMul",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 11,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_4/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_6/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_5/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 414,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_8/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_14/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_3/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_9/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_3/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_3/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_15/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 616,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_6/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sigmoid/Sigmoid",
+      "type": "LOGISTIC",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_17/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 611,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_7/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 4,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_18/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 623,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_8/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_10/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_19/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_4/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_11/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_4/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_4/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 205,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_20/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_10/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_8/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_25/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_6/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_13/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_6/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_6/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_26/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_27/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_6/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_30/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_6/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_7/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_3/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_3/node_cat_4",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_31/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_15/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_9/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 203,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_16/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_12/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_11/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_10/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_7/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 399,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_17/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_11/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_9/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_7/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_22/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_5/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_12/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_5/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_5/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_23/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_24/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_5/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_28/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_4/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_5/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_2/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 18,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_2/node_cat_3",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_29/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_14/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 4,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_8/transpose",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_32/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_18/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.nn.softmax_1/Softmax",
+      "type": "SOFTMAX",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.is_nan_1/IsNan",
+      "type": "NOT_EQUAL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.where_1/SelectV2",
+      "type": "SELECT_V2",
+      "compute_unit": "CPU",
+      "execution_time": 4,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_13/MatMul",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 12,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_9/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_13/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_14/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 430,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_19/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_33/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_7/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_20/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_7/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_7/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_34/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 607,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_15/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sigmoid_1/Sigmoid",
+      "type": "LOGISTIC",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_36/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 611,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_16/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 5,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_37/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 618,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_17/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_21/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_38/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_8/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_22/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_8/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_8/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 407,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_39/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_18/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_14/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_41/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_9/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_23/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_9/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_9/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_42/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_43/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_10/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_47/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_8/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_9/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_4/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_4/node_cat_5",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 203,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_48/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_25/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_19/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_15/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_44/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_10/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_24/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_10/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_10/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_45/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_46/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_11/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_49/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_10/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_11/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_5/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_5/node_cat_6",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_50/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_26/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_16/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_27/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_19/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 4,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_13/transpose",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 203,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_51/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_29/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.nn.softmax_2/Softmax",
+      "type": "SOFTMAX",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.is_nan_2/IsNan",
+      "type": "NOT_EQUAL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.where_2/SelectV2",
+      "type": "SELECT_V2",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_20/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_17/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_12/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_28/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_18/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_22/MatMul",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 11,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_14/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_20/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_23/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 412,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_30/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_52/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_11/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_31/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_11/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_11/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_53/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 618,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_24/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sigmoid_2/Sigmoid",
+      "type": "LOGISTIC",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_55/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 605,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_25/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 5,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_56/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 608,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_26/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_32/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_57/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_12/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_33/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_12/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_12/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 397,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_58/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_27/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_21/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_60/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_13/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_34/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_13/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_13/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_61/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_62/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_15/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_66/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_12/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_13/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_6/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_6/node_cat_7",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 204,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_67/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_36/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_28/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_22/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_63/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_14/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_35/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_14/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_14/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_64/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_65/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_16/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_68/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_14/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_15/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_7/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_7/node_cat_8",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_69/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_37/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_23/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_38/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_26/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 4,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_18/transpose",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 211,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_70/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_40/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.nn.softmax_3/Softmax",
+      "type": "SOFTMAX",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.is_nan_3/IsNan",
+      "type": "NOT_EQUAL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.where_3/SelectV2",
+      "type": "SELECT_V2",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_29/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_24/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_17/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_39/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_25/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_31/MatMul",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 11,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_19/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_27/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_32/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 414,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_41/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_71/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_15/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_42/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_15/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_15/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_72/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 614,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_33/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sigmoid_3/Sigmoid",
+      "type": "LOGISTIC",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_74/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 601,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_34/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 5,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_75/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 617,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_35/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_43/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_76/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_16/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_44/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_16/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_16/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 398,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_77/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_36/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_28/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_79/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_17/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_45/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_17/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_17/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_80/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_81/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_20/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_85/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_16/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_17/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_8/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_8/node_cat_9",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 205,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_86/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_47/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_37/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_29/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_82/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_18/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_46/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_18/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_18/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_83/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_84/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_21/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_87/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_18/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.strided_slice_19/StridedSlice",
+      "type": "STRIDED_SLICE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.negative_9/Neg",
+      "type": "NEG",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.concat_9/node_cat_10",
+      "type": "CONCATENATION",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_88/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_48/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_30/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_49/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_33/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 4,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_23/transpose",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 205,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_89/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_51/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.nn.softmax_4/Softmax",
+      "type": "SOFTMAX",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.is_nan_4/IsNan",
+      "type": "NOT_EQUAL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.where_4/SelectV2",
+      "type": "SELECT_V2",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_38/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_31/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_22/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_50/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_32/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_40/MatMul",
+      "type": "BATCH_MATMUL",
+      "compute_unit": "CPU",
+      "execution_time": 11,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.compat.v1.transpose_24/transpose",
+      "type": "TRANSPOSE",
+      "compute_unit": "CPU",
+      "execution_time": 3,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.reshape_34/Reshape",
+      "type": "RESHAPE",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_41/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 413,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_52/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_90/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_19/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_53/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_19/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_19/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_91/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 608,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_42/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 17,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sigmoid_4/Sigmoid",
+      "type": "LOGISTIC",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_93/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 604,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_43/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 5,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_94/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 612,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.linalg.matmul_44/MatMul",
+      "type": "FULLY_CONNECTED",
+      "compute_unit": "CPU",
+      "execution_time": 2,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_54/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_95/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reduce_mean_20/Mean",
+      "type": "MEAN",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.add_55/Add",
+      "type": "ADD",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.sqrt_20/Sqrt",
+      "type": "SQRT",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.reciprocal_20/Reciprocal",
+      "type": "DIV",
+      "compute_unit": "CPU",
+      "execution_time": 1,
+      "execution_cycles": 0
+    },
+    {
+      "name": "model/tf.math.multiply_96/Mul",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    },
+    {
+      "name": "output_0",
+      "type": "MUL",
+      "compute_unit": "CPU",
+      "execution_time": 0,
+      "execution_cycles": 0
+    }
+  ]
+}

@@ -2,16 +2,118 @@
 """The rolling ledger records timing depth without promoting release support."""
 
 import copy
+import hashlib
 import json
 import shutil
 import tempfile
 import unittest
 from pathlib import Path
 
-from experiments.verify_e2e_summary_table import verify, verify_timing_evidence
+from experiments.verify_e2e_summary_table import (
+    HOSTED_REQUIRED_CHECKS, apply_hosted_evidence, verify,
+    verify_hosted_model_acceptance, verify_timing_evidence,
+)
 
 
 class RollingBatch1EvidenceTests(unittest.TestCase):
+    def test_hosted_acceptance_rejects_missing_stage_or_changed_audio(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            proof = root / "quality.json"
+            proof.write_text('{"comparison":"pinned"}', encoding="utf-8")
+            pcm = root / "speech.pcm"
+            pcm.write_bytes(b"\x00\x01\x02\x03")
+            sha = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+            final = root / "final_output.json"
+            final.write_text(json.dumps({
+                "pcm_path": "speech.pcm", "pcm_sha256": sha(pcm),
+                "sample_rate": 24000, "samples": 2, "tail_flushed": True,
+            }), encoding="utf-8")
+            model = "Qwen3-TTS 0.6B CustomVoice"
+            record = {
+                "identity": {"model": model, "revision": "pinned-revision"},
+                "completion": {
+                    "final_output_path": "final_output.json",
+                    "final_output_sha256": sha(final),
+                    "quality": {"reference": "checkpoint@pinned-revision", "checks": [
+                        {"name": name, "passed": True, "evidence_path": "quality.json",
+                         "sha256": sha(proof)} for name in HOSTED_REQUIRED_CHECKS[model]
+                    ]},
+                },
+            }
+            verify_hosted_model_acceptance(record, root)
+            missing = copy.deepcopy(record)
+            missing["completion"]["quality"]["checks"].pop()
+            with self.assertRaisesRegex(ValueError, "omits whole-model"):
+                verify_hosted_model_acceptance(missing, root)
+            pcm.write_bytes(b"tampered")
+            with self.assertRaisesRegex(ValueError, "missing or changed"):
+                verify_hosted_model_acceptance(record, root)
+
+    def test_hosted_index_never_promotes_a_component_report(self):
+        summary = Path(__file__).parent / "results/e2e_profiling_20260922/evidence/summary"
+        ledger = verify((summary / "README.md").read_text(encoding="utf-8"))
+        apply_hosted_evidence(ledger, summary / "hosted_e2e_index.json")
+        self.assertEqual(ledger["counts"]["hosted_replay_verified"], 0)
+        self.assertEqual(ledger["counts"]["hosted_external_blocker"], 10)
+        self.assertEqual(sum(case["hosted_full_replay"] == "not_yet_verified"
+                             for case in ledger["cases"]), 15)
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as tmp:
+            root = Path(tmp)
+            (root / "component.json").write_text('{"status":"SUCCESS"}', encoding="utf-8")
+            index = root / "index.json"
+            index.write_text(json.dumps({
+                "schema_version": 1,
+                "entries": [{
+                    "device_configuration": "Mobile Galaxy S25 / Snapdragon 8 Elite for Galaxy",
+                    "model": "Spark-X2.5",
+                    "outcome": "hosted_functional_replay_pending_device",
+                    "evidence_path": "component.json",
+                }],
+            }), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "must be run.json"):
+                apply_hosted_evidence(verify((summary / "README.md").read_text(encoding="utf-8")),
+                                      index)
+
+    def test_named_external_blocker_keeps_release_unqualified(self):
+        summary = Path(__file__).parent / "results/e2e_profiling_20260922/evidence/summary"
+        with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as tmp:
+            root = Path(tmp)
+            report = {
+                "status": "external_blocker", "model": "InternVLA-A1",
+                "target_name": "Samsung Galaxy S25",
+                "reason": "matching Place_Markpen reference data requires approval",
+                "next_step": "retry the pinned dataset access probe after approval",
+                "source_evidence": "access_denial.json",
+            }
+            (root / "access_denial.json").write_text(
+                '{"status":"HTTP 403","repository":"InternRobotics/InternData-A1"}',
+                encoding="utf-8")
+            report["source_sha256"] = hashlib.sha256(
+                (root / "access_denial.json").read_bytes()).hexdigest()
+            (root / "blocker.json").write_text(json.dumps(report), encoding="utf-8")
+            index = root / "index.json"
+            index.write_text(json.dumps({
+                "schema_version": 1,
+                "entries": [{
+                    "device_configuration": "Mobile Galaxy S25 / Snapdragon 8 Elite for Galaxy",
+                    "model": "InternVLA-A1", "outcome": "external_blocker",
+                    "evidence_path": "blocker.json",
+                }],
+            }), encoding="utf-8")
+            ledger = verify((summary / "README.md").read_text(encoding="utf-8"))
+            apply_hosted_evidence(ledger, index)
+            case = next(case for case in ledger["cases"] if
+                        case["device_configuration"].startswith("Mobile Galaxy S25")
+                        and case["model"] == "InternVLA-A1")
+            self.assertEqual(case["qualification_outcome"], "external_blocker")
+            self.assertEqual(case["release_qualification"], "not_qualified")
+            self.assertEqual(ledger["counts"]["hosted_external_blocker"], 1)
+            (root / "access_denial.json").write_text('{"status":"approved"}', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "hash is missing or changed"):
+                apply_hosted_evidence(verify((summary / "README.md").read_text(encoding="utf-8")),
+                                      index)
+
     def test_spark_and_tts_timing_sources_are_raw_and_release_stays_open(self):
         summary = Path(__file__).parent / "results/e2e_profiling_20260922/evidence/summary"
         result = verify((summary / "README.md").read_text(encoding="utf-8"))

@@ -1,0 +1,11 @@
+{
+  "token_id": 0,
+  "reference_top1": 787,
+  "reference_logits_sha256": "03278b8f1d7f8cda2e140f6398d0d4241a21cc5aacb5f285e79bfaf587232f9e",
+  "shape": [
+    1,
+    131072
+  ],
+  "dtype": "float32",
+  "revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8"
+}

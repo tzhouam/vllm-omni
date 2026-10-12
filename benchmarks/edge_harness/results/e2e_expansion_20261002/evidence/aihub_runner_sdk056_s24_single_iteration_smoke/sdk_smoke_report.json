@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2026-10-02T11:06:13.439101+00:00",
+  "scope": "one Spark attention component; not model E2E",
+  "source_job_id": "j57e4k9lp",
+  "new_job_id": "jglyz2we5",
+  "target_registration": "Samsung Galaxy S24",
+  "target_model_id": "mq9y70k0n",
+  "compiled_artifact_sha256": "8f1518f1f392434306dba11fd7115fe7629657ab7bfc834c0f78ee6b684e5154",
+  "qai_hub_version": "0.56.0",
+  "profile_requested": false,
+  "profile_enabled_on_service": false,
+  "profile_detail_rows": 0,
+  "profile_iteration_samples": 1,
+  "comparison": {
+    "output_0": {
+      "shape_equal": true,
+      "max_abs": 6.589293479919434e-05
+    },
+    "output_1": {
+      "shape_equal": true,
+      "max_abs": 0.0003381967544555664
+    },
+    "output_2": {
+      "shape_equal": true,
+      "max_abs": 0.0
+    }
+  },
+  "journal_audit": {
+    "run_id": "60e456a0d8794593ef41795246a8e300495a9a6a05fa82aa64c9b9b11719ff02",
+    "status": "running",
+    "model": "Spark-X2.5-attention-component-only",
+    "target_name": "Samsung Galaxy S24",
+    "step_count": 1,
+    "job_ids": [
+      "jglyz2we5"
+    ]
+  }
+}

@@ -16,6 +16,7 @@ from vllm_omni.edge.spark_export import (
     SLIDING,
     SparkDecodeCache,
     SparkDecodeStep,
+    SparkTokenDecodeBlock,
     SparkStepConfig,
     config_from_spark,
     example_inputs,
@@ -89,6 +90,52 @@ def test_example_inputs_match_the_declared_signature():
         expected = cfg.cache_len(layer_type, 1024)
         assert caches[2 * i].shape == (1, cfg.num_key_value_heads, expected, cfg.head_dim)
     assert len(output_names(cfg)) == 1 + 2 * cfg.num_layers
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+def test_first_target_block_owns_token_embedding():
+    cfg = _cfg(layer_slice=slice(0, 2), include_lm_head=False)
+    module = SparkTokenDecodeBlock(cfg).eval()
+    args = list(example_inputs(cfg, context=4))
+    token = torch.tensor([[3]], dtype=torch.int64)
+    with torch.no_grad():
+        target = module(token, *args[1:])
+        reference = module.decode(module.embedding(token).float(), *args[1:])
+    assert all(torch.equal(actual, expected)
+               for actual, expected in zip(target, reference))
+    with pytest.raises(ValueError, match="first block"):
+        SparkTokenDecodeBlock(_cfg(layer_slice=slice(1, 2)))
+
+
+@pytest.mark.core_model
+@pytest.mark.cpu
+def test_contiguous_target_blocks_equal_one_full_decode_step():
+    torch.manual_seed(4)
+    full_cfg = _cfg()
+    first_cfg = _cfg(layer_slice=slice(0, 2), include_lm_head=False)
+    last_cfg = _cfg(layer_slice=slice(2, 4), include_lm_head=True)
+    full = SparkDecodeStep(full_cfg).eval()
+    first = SparkTokenDecodeBlock(first_cfg).eval()
+    last = SparkDecodeStep(last_cfg).eval()
+    embedding = torch.nn.Embedding(full_cfg.vocab_size, full_cfg.hidden_size)
+    first.embedding.load_state_dict(embedding.state_dict())
+    for offset in range(2):
+        first.decode.layers[offset].load_state_dict(full.layers[offset].state_dict())
+        last.layers[offset].load_state_dict(full.layers[offset + 2].state_dict())
+    last.norm.data.copy_(full.norm.data)
+    last.lm_head.load_state_dict(full.lm_head.state_dict())
+    token = torch.tensor([[9]], dtype=torch.int64)
+    args = list(example_inputs(full_cfg, context=4))
+    args[0] = embedding(token)
+    with torch.no_grad():
+        expected = full(*args)
+        first_outputs = first(token, *args[1:7], *args[7:11])
+        last_outputs = last(first_outputs[0], *args[1:7], *args[11:15])
+    actual = (last_outputs[0], *first_outputs[1:], *last_outputs[1:])
+    assert len(actual) == len(expected)
+    assert all(torch.allclose(got, ref, atol=1e-5, rtol=1e-5)
+               for got, ref in zip(actual, expected))
 
 
 @pytest.mark.core_model

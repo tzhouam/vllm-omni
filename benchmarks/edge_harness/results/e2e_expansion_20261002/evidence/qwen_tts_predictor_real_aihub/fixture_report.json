@@ -1,0 +1,40 @@
+{
+  "scope": "real-input predictor body component only; talker and vocoder ran on local CPU",
+  "checkpoint": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "revision": "85e237c12c027371202489a0ec509ded67b5e4b5",
+  "text": "Hello from the edge device.",
+  "speaker": "Ryan",
+  "sample_rate": 24000,
+  "talker_do_sample": false,
+  "subtalker_dosample": true,
+  "reference_audio_samples": 44160,
+  "code_groups": [
+    [
+      117,
+      1114,
+      854,
+      203,
+      90,
+      1751,
+      1389,
+      1533,
+      386,
+      743,
+      903,
+      914,
+      2027,
+      1213,
+      1645
+    ]
+  ],
+  "source_sha256": "bc3c7e785eb961179c25450d1acff03f839e0002f2f3a5aeb67b5735c0fa2adb",
+  "qwen_tts_source_sha256": "e1da450732857c1f5fe3e36ebab85db2f6dc6a48caaff6973f463384e30275e4",
+  "artifacts": {
+    "real_predictor_input.npz": "97b2366cca628e6293e2d6edf5a6cd792f28878fb7a6c1e1f9c3161893a5a16b",
+    "reference_output.npz": "0bbb4460815fc9608ad7239eae8c356e9fefa9f0b922b0792dabec0d2252324a",
+    "predictor_body.onnx": "c0eb88559bbcafdea66de164f8d17ec0100407e5aa8f84bbf29628634c0b97c2"
+  },
+  "onnx_vs_eager_relative_l2": 3.3352352287726755e-06,
+  "batch_size": 1,
+  "concurrency": 1
+}

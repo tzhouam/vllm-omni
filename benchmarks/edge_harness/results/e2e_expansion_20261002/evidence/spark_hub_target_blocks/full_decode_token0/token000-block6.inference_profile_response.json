@@ -1,0 +1,55 @@
+{
+  "execution_detail": [],
+  "execution_summary": {
+    "all_compile_times": [],
+    "all_first_load_times": [
+      2579027
+    ],
+    "all_inference_times": [
+      7615
+    ],
+    "all_warm_load_times": [
+      177492
+    ],
+    "compile_memory_increase_range": [
+      0,
+      0
+    ],
+    "compile_memory_peak_range": [
+      0,
+      0
+    ],
+    "compile_peak_memory": 0,
+    "compile_time": 0,
+    "estimated_inference_peak_memory": 122036224,
+    "estimated_inference_time": 7615,
+    "first_load_memory_increase_range": [
+      832322608,
+      841680224
+    ],
+    "first_load_memory_peak_range": [
+      1326395392,
+      1335753008
+    ],
+    "first_load_peak_memory": 1403170816,
+    "first_load_time": 2579027,
+    "inference_memory_increase_range": [
+      0,
+      164416
+    ],
+    "inference_memory_peak_range": [
+      45056,
+      77953680
+    ],
+    "warm_load_memory_increase_range": [
+      0,
+      25188864
+    ],
+    "warm_load_memory_peak_range": [
+      24178688,
+      103925120
+    ],
+    "warm_load_peak_memory": 117657600,
+    "warm_load_time": 177492
+  }
+}

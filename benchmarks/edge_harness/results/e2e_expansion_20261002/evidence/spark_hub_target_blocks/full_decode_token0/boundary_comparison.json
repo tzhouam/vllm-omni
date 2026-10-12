@@ -1,0 +1,36 @@
+{
+  "depth": "C; first prompt token, 28-layer dependent hosted decode only",
+  "not_e2e": true,
+  "reference_sha256": "813219e1e672dc23ebb98434696767e24f2c8d3d30aaf934848c0e68c8cb2aa1",
+  "completed_blocks": 4,
+  "blocks": [
+    {
+      "block": 0,
+      "job_id": "jgol0nd4g",
+      "target_model_id": "mqkp56pwm",
+      "relative_l2_vs_hf_bf16": 0.016075128357792765,
+      "max_abs_vs_hf_bf16": 0.0537109375
+    },
+    {
+      "block": 1,
+      "job_id": "j5wlv3yzp",
+      "target_model_id": "mn75yo3jm",
+      "relative_l2_vs_hf_bf16": 0.007117163190374101,
+      "max_abs_vs_hf_bf16": 0.1064453125
+    },
+    {
+      "block": 2,
+      "job_id": "j57ewloqp",
+      "target_model_id": "mq807jvgn",
+      "relative_l2_vs_hf_bf16": 0.002391698515275611,
+      "max_abs_vs_hf_bf16": 0.09375
+    },
+    {
+      "block": 3,
+      "job_id": "jp0mq292g",
+      "target_model_id": "mmd0w6lkn",
+      "relative_l2_vs_hf_bf16": 0.0022669423495129547,
+      "max_abs_vs_hf_bf16": 0.08306884765625
+    }
+  ]
+}

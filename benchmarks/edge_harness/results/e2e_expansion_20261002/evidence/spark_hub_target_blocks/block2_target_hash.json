@@ -1,0 +1,11 @@
+{
+  "block": 2,
+  "compile_job_id": "jgol0nl4g",
+  "target_model_id": "mq807jvgn",
+  "source_onnx_sha256": "1afc55a8f934ca34073f0e1dbf322e1b2de1c5aec11203b6a9e13101c5d7a894",
+  "compile_options": "--target_runtime qnn_dlc --quantize_full_type float16",
+  "device": "Samsung Galaxy S25",
+  "sha256": "45396c0b9371b7a20606718a4534c96c72438895ffbf14bed20573d1194ed1d3",
+  "size_bytes": 411386040,
+  "artifact_path": "/tmp/omni_spark_hub_20261002/compiled/spark_block2_s25_qnn.dlc"
+}

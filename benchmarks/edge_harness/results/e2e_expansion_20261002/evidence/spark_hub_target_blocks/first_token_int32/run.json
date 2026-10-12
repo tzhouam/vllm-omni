@@ -1,0 +1,256 @@
+{
+  "active_requests": 1,
+  "batch_size": 1,
+  "completion": null,
+  "created_utc": "2026-10-02T10:55:52.850085+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "identity": {
+    "checkpoint": "XHToken/Spark-X2.5-1.7B",
+    "epoch": 0,
+    "model": "Spark-X2.5",
+    "request_id": "spark-first-real-prompt-token-block0",
+    "revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+    "target_name": "Samsung Galaxy S25"
+  },
+  "profile": false,
+  "qai_hub_version": "0.56.0",
+  "run_id": "b23f69202db03d148b4952ad890e7f2c7f855b99b7444a9809ac7cb2e86d14b2",
+  "same_physical_device_across_jobs": false,
+  "schema_version": 1,
+  "stage_topology": {
+    "embedding_layers_0_1": []
+  },
+  "state_location": "versioned_host_snapshots_between_jobs",
+  "status": "running",
+  "steps": [
+    {
+      "active_requests": 1,
+      "artifact": {
+        "artifact_id": "spark-block0-jpvlord75",
+        "checkpoint": "XHToken/Spark-X2.5-1.7B",
+        "hash_source": "compiled_manifest",
+        "layout_version": 1,
+        "precision": "QNN float16 from FP32 ONNX",
+        "revision": "14d6e83c13c7add2b62a7c39b2131f4ed1cddcf8",
+        "runtime": "qnn_dlc",
+        "sha256": "bccd28efd0e04b0fbcc519666773b34d57d07e2c455e3d72cbc2eb1527f1be72",
+        "shape_bucket": "context-128",
+        "target_model_id": "mqkp56pwm",
+        "target_name": "Samsung Galaxy S25"
+      },
+      "batch_size": 1,
+      "completed_utc": "2026-10-02T10:59:28.948773+00:00",
+      "input_dataset_id": "d7x8z8k69",
+      "input_file_sha256": "ee0efa3716f25bbf7f6662233c68e20816a9ae1a86384c67931c4b99a6d86514",
+      "input_npz": "token000-block0.inputs.npz",
+      "input_provenance": {
+        "cos_sw": "host:position:request:chat_prompt",
+        "k_cache_0": "request:zero_initial_kv",
+        "k_cache_1": "request:zero_initial_kv",
+        "mask_sw": "host:mask:request:chat_prompt",
+        "sin_sw": "host:position:request:chat_prompt",
+        "token_id": "host:cast:host:tokenize:request:chat_prompt",
+        "v_cache_0": "request:zero_initial_kv",
+        "v_cache_1": "request:zero_initial_kv"
+      },
+      "input_records": {
+        "cos_sw": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 1024,
+          "sha256": "4b1fb74513c4a1d9cafa21dd9893bc79777dc24d111be52e1c03671cc4955d3a",
+          "shape": [
+            1,
+            1,
+            1,
+            256
+          ]
+        },
+        "k_cache_0": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 262144,
+          "sha256": "86ab8028beae31ee8c1b8da99a901a353a3a1eb06143e39ed5c34d793f62fed3",
+          "shape": [
+            1,
+            2,
+            128,
+            256
+          ]
+        },
+        "k_cache_1": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 262144,
+          "sha256": "86ab8028beae31ee8c1b8da99a901a353a3a1eb06143e39ed5c34d793f62fed3",
+          "shape": [
+            1,
+            2,
+            128,
+            256
+          ]
+        },
+        "mask_sw": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 516,
+          "sha256": "5cba47897dc6246e017c3e3bd65eb4f2f26904a510fabf3774a688bd93f881bf",
+          "shape": [
+            1,
+            1,
+            1,
+            129
+          ]
+        },
+        "sin_sw": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 1024,
+          "sha256": "67781d94f22c76cfe6a79e751c226d2743dd3e7416855cdf67fba1f01fc998e0",
+          "shape": [
+            1,
+            1,
+            1,
+            256
+          ]
+        },
+        "token_id": {
+          "dtype": "int32",
+          "layout": "C",
+          "nbytes": 4,
+          "sha256": "9281ad25484f894e7a29ca20f7cf416e376b43b35ac6946a0f042d3284dca0c1",
+          "shape": [
+            1,
+            1
+          ]
+        },
+        "v_cache_0": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 262144,
+          "sha256": "86ab8028beae31ee8c1b8da99a901a353a3a1eb06143e39ed5c34d793f62fed3",
+          "shape": [
+            1,
+            2,
+            128,
+            256
+          ]
+        },
+        "v_cache_1": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 262144,
+          "sha256": "86ab8028beae31ee8c1b8da99a901a353a3a1eb06143e39ed5c34d793f62fed3",
+          "shape": [
+            1,
+            2,
+            128,
+            256
+          ]
+        }
+      },
+      "job_id": "jgnzym1vg",
+      "job_status": "SUCCESS",
+      "job_status_message": "",
+      "options": "--compute_unit npu",
+      "output_file_sha256": "ce7bc7d1fb3d359a247a4e33cf844ea3659685ffe99baef25fa3bc6e3670facc",
+      "output_npz": "token000-block0.outputs.npz",
+      "output_records": {
+        "output_0": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 8192,
+          "sha256": "8b4196039b99bb83601b516361f54206a2d5882709209e771f6e8c2ef8de6383",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        },
+        "output_1": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2048,
+          "sha256": "9fa1744cefdc792a5f8a31cd5f3c3680a8e703ed5d2446034dded83eb846b378",
+          "shape": [
+            1,
+            2,
+            1,
+            256
+          ]
+        },
+        "output_2": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2048,
+          "sha256": "025e45ac41f5fa74adce351058cca59d0bebd98b886d8a6bbd0443a1c8db1ea8",
+          "shape": [
+            1,
+            2,
+            1,
+            256
+          ]
+        },
+        "output_3": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2048,
+          "sha256": "e49a730481c7f8495918d69196d9d1d6e2e289ebb78f77766749a5f0c8a3eed8",
+          "shape": [
+            1,
+            2,
+            1,
+            256
+          ]
+        },
+        "output_4": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2048,
+          "sha256": "8086fa06637f08bae8ea7110bbd862ccf35e62e4aa927b1255353f6eee1a3946",
+          "shape": [
+            1,
+            2,
+            1,
+            256
+          ]
+        }
+      },
+      "placement": {
+        "actual_compute_units": null,
+        "requested_options": "--compute_unit npu",
+        "source": "not verified by inference job"
+      },
+      "profile": false,
+      "remote_profiling_enabled": false,
+      "sequence": 0,
+      "stage_id": 0,
+      "stage_name": "embedding_layers_0_1",
+      "status": "completed",
+      "step_id": "token000-block0",
+      "submitted_utc": "2026-10-02T10:55:58.020334+00:00"
+    }
+  ],
+  "target_registration": {
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8-elite-for-galaxy",
+      "chipset:sm8750-ac",
+      "hexagon:v79",
+      "soc-model:69",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ],
+    "name": "Samsung Galaxy S25",
+    "os": "15"
+  },
+  "tier": "aihub_hosted_functional_replay",
+  "updated_utc": "2026-10-02T10:59:28.948795+00:00",
+  "whole_request_device_latency_measured": false
+}

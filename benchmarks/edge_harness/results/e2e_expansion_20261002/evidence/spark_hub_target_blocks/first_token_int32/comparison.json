@@ -1,0 +1,45 @@
+{
+  "depth": "C; first real-weight embedding plus two decoder layers only",
+  "not_e2e": true,
+  "inference_job_id": "jgnzym1vg",
+  "compile_job_id": "jpvlord75",
+  "compiled_identity": {
+    "source_onnx_sha256": "62406ccb79d65d7a879b98118aea26ecab9a4b057980ad272b8c5037b3e44cb9",
+    "compile_job_id": "jpvlord75",
+    "compile_options": "--target_runtime qnn_dlc --quantize_full_type float16 --truncate_64bit_io",
+    "target_model_id": "mqkp56pwm",
+    "device": "Samsung Galaxy S25"
+  },
+  "comparison": {
+    "output_0": {
+      "source_output": "hidden",
+      "relative_l2_vs_fp32_export": 0.01573382090842344,
+      "max_abs_vs_fp32_export": 0.05660271644592285,
+      "finite": true
+    },
+    "output_1": {
+      "source_output": "k_new_0",
+      "relative_l2_vs_fp32_export": 0.0002735507291125481,
+      "max_abs_vs_fp32_export": 0.0009789466857910156,
+      "finite": true
+    },
+    "output_2": {
+      "source_output": "v_new_0",
+      "relative_l2_vs_fp32_export": 0.0003202262830665923,
+      "max_abs_vs_fp32_export": 0.0005056858062744141,
+      "finite": true
+    },
+    "output_3": {
+      "source_output": "k_new_1",
+      "relative_l2_vs_fp32_export": 0.013424369883414874,
+      "max_abs_vs_fp32_export": 0.03421664237976074,
+      "finite": true
+    },
+    "output_4": {
+      "source_output": "v_new_1",
+      "relative_l2_vs_fp32_export": 0.016827269668546117,
+      "max_abs_vs_fp32_export": 0.01853908598423004,
+      "finite": true
+    }
+  }
+}

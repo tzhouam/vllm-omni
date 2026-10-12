@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "device_configuration": "PC Snapdragon X Elite CRD / AI Hub",
+      "model": "InternVLA-A1",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/internvla_x_elite_crd.json"
+    },
+    {
+      "device_configuration": "PC Snapdragon X Elite CRD / AI Hub",
+      "model": "Qwen3.8-27B",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/qwen38_27b_x_elite_crd.json"
+    },
+    {
+      "device_configuration": "Mobile Galaxy S25 / Snapdragon 8 Elite for Galaxy",
+      "model": "InternVLA-A1",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/internvla_s25.json"
+    },
+    {
+      "device_configuration": "Mobile Galaxy S25 / Snapdragon 8 Elite for Galaxy",
+      "model": "Qwen3.8-27B",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/qwen38_27b_s25.json"
+    },
+    {
+      "device_configuration": "Mobile Galaxy S24 / Snapdragon 8 Gen 3",
+      "model": "InternVLA-A1",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/internvla_s24.json"
+    },
+    {
+      "device_configuration": "Mobile Galaxy S24 / Snapdragon 8 Gen 3",
+      "model": "Qwen3.8-27B",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/qwen38_27b_s24.json"
+    },
+    {
+      "device_configuration": "Embedded SA8775P ADP / AI Hub",
+      "model": "InternVLA-A1",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/internvla_sa8775p.json"
+    },
+    {
+      "device_configuration": "Embedded SA8775P ADP / AI Hub",
+      "model": "Qwen3.8-27B",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/qwen38_27b_sa8775p.json"
+    },
+    {
+      "device_configuration": "Embedded RB3 Gen 2 / QCS6490 / AI Hub",
+      "model": "InternVLA-A1",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/internvla_rb3_gen2.json"
+    },
+    {
+      "device_configuration": "Embedded RB3 Gen 2 / QCS6490 / AI Hub",
+      "model": "Qwen3.8-27B",
+      "outcome": "external_blocker",
+      "evidence_path": "../../../e2e_expansion_20261002/evidence/hosted_dispositions/qwen38_27b_rb3_gen2.json"
+    }
+  ]
+}

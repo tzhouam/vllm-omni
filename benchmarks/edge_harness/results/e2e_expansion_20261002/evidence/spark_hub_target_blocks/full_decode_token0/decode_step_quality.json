@@ -1,0 +1,24 @@
+{
+  "depth": "C: one 28-layer decode step from the first real prompt token",
+  "not_e2e": true,
+  "not_128_generated_tokens": true,
+  "context_capacity": 128,
+  "token_id": 0,
+  "job_ids": [
+    "jgol0nd4g",
+    "j5wlv3yzp",
+    "j57ewloqp",
+    "jp0mq292g",
+    "jp3z317x5",
+    "jgdd9q4kg",
+    "j57ewl8rp",
+    "jp0mq2xeg"
+  ],
+  "quality": {
+    "top1_token_id": 787,
+    "finite": true,
+    "reference_top1_token_id": 787,
+    "top1_match": true,
+    "logits_relative_l2": 0.01810950061329001
+  }
+}

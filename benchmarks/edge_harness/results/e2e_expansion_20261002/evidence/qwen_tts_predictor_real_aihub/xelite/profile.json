@@ -1,0 +1,2654 @@
+{
+  "execution_summary": {
+    "estimated_inference_time": 53264,
+    "estimated_inference_peak_memory": 344571904,
+    "first_load_time": 470413,
+    "first_load_peak_memory": 336490496,
+    "warm_load_time": 449743,
+    "warm_load_peak_memory": 336424960,
+    "compile_time": 0,
+    "compile_peak_memory": 0,
+    "compile_memory_increase_range": [
+      0,
+      0
+    ],
+    "compile_memory_peak_range": [
+      0,
+      0
+    ],
+    "first_load_memory_increase_range": [
+      331509760,
+      331509760
+    ],
+    "first_load_memory_peak_range": [
+      331538432,
+      331538432
+    ],
+    "warm_load_memory_increase_range": [
+      331403264,
+      331403264
+    ],
+    "warm_load_memory_peak_range": [
+      331431936,
+      331431936
+    ],
+    "inference_memory_increase_range": [
+      6938624,
+      6938624
+    ],
+    "inference_memory_peak_range": [
+      8052736,
+      8052736
+    ],
+    "all_compile_times": [],
+    "all_first_load_times": [
+      470413
+    ],
+    "all_warm_load_times": [
+      449743
+    ],
+    "all_inference_times": [
+      177961,
+      144414,
+      113682,
+      145192,
+      107213,
+      99468,
+      139785,
+      113581,
+      88612,
+      85079,
+      95466,
+      98083,
+      144639,
+      143292,
+      151241,
+      114213,
+      186650,
+      153091,
+      143441,
+      145907,
+      143398,
+      113573,
+      144238,
+      145112,
+      109749,
+      147558,
+      143541,
+      111715,
+      149435,
+      146467,
+      145426,
+      110213,
+      143129,
+      150618,
+      110252,
+      53264,
+      172585,
+      111890,
+      192326,
+      195275,
+      143012,
+      112446,
+      145937,
+      147632,
+      148636,
+      116033,
+      145494,
+      146880,
+      141665,
+      111560,
+      99900,
+      96193,
+      103950,
+      146006,
+      111502,
+      235062,
+      87601,
+      73653,
+      121426,
+      97294,
+      128470,
+      142942,
+      152459,
+      139014,
+      147759,
+      111241,
+      140628,
+      142330,
+      112731,
+      144955,
+      145989,
+      108653,
+      145442,
+      170212,
+      142480,
+      145607,
+      151205,
+      143913,
+      114388,
+      144547,
+      146224,
+      142714,
+      115708,
+      135754,
+      149460,
+      114249,
+      148433,
+      145410,
+      92835,
+      146831,
+      172730,
+      199878,
+      61875,
+      104610,
+      143777,
+      98699,
+      55026,
+      93996,
+      55500,
+      92573
+    ]
+  },
+  "execution_detail": [
+    {
+      "name": "node_Mul_0",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 60,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 47,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_1",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_35",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_2",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_3",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 46,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_1",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 279,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_2",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_2",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 44,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_2",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 39,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_3",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_57",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_2",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_6",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_7",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 48,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_2",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 48,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_79",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 55,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_1",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_2",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 57,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_11",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 45,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_10",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_5",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_unsqueeze_6",
+      "type": "Unsqueeze",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_5",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 64,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_99",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 422,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_1",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_1",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 73,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_1",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 37,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_2",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_46",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_1",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_4",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_5",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 69,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_1",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 69,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_77",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 64,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 42,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_1",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 65,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_9",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 58,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_8",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_4",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_MatMul_21/MatmulTransposeFusion//MatMulScaleFusion/",
+      "type": "FusedMatMul",
+      "compute_unit": "CPU",
+      "execution_time": 73,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Add_157",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Softmax_158",
+      "type": "Softmax",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_IsNaN_159",
+      "type": "IsNaN",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Where_160",
+      "type": "Where",
+      "compute_unit": "CPU",
+      "execution_time": 40,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_2",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 198,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_97",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Transpose_59",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 44,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_6",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node__unsafe_view_1",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_scaled_dot_product_attention",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 37,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_4",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_4",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_3",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 332,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_6",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_3",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 36,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_3",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_7",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_170",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_3",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_12",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_13",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 45,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_4",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 576,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_silu/QuickGeluFusion/",
+      "type": "QuickGelu",
+      "compute_unit": "CPU",
+      "execution_time": 75,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_5",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 485,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_14",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 81,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_6",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 496,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_8",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_4",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_4",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 36,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_9",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_178",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_4",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_15",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_16",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_8",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 194,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_6",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_6",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_6",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_11",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_200",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_6",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_19",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_20",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_6",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_83",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_3",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_4",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_24",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_23",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_13",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_unsqueeze_10",
+      "type": "Unsqueeze",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_7",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_103",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_7",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 380,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_5",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_5",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_5",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_10",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_189",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_5",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_17",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 43,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_18",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 36,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_5",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 36,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_81",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_2",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_3",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 39,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_22",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_21",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_12",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_MatMul_24/MatmulTransposeFusion//MatMulScaleFusion/",
+      "type": "FusedMatMul",
+      "compute_unit": "CPU",
+      "execution_time": 43,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Add_295",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Softmax_296",
+      "type": "Softmax",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_IsNaN_297",
+      "type": "IsNaN",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Where_298",
+      "type": "Where",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_9",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 210,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_101",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Transpose_63",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_8",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node__unsafe_view_3",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_scaled_dot_product_attention_1",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_8",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_8",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_10",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 336,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_14",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_7",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_7",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_15",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_308",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_7",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_25",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_26",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_11",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 534,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_silu_1/QuickGeluFusion/",
+      "type": "QuickGelu",
+      "compute_unit": "CPU",
+      "execution_time": 40,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_12",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 544,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_27",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 45,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_13",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 503,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_16",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_8",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_8",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_17",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_316",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_8",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_28",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_29",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_15",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 195,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_10",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_10",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_10",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_19",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_338",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_10",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_32",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_33",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_10",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_87",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_5",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_6",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_37",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_36",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_21",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_unsqueeze_14",
+      "type": "Unsqueeze",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_9",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_107",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_14",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 1153,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_9",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_9",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_9",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 47,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_18",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_327",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_9",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_30",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 39,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_31",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_9",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_85",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_4",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_5",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_35",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_34",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_20",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_MatMul_27/MatmulTransposeFusion//MatMulScaleFusion/",
+      "type": "FusedMatMul",
+      "compute_unit": "CPU",
+      "execution_time": 76,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Add_433",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Softmax_434",
+      "type": "Softmax",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_IsNaN_435",
+      "type": "IsNaN",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Where_436",
+      "type": "Where",
+      "compute_unit": "CPU",
+      "execution_time": 39,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_16",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 568,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_105",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Transpose_67",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_10",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node__unsafe_view_5",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_scaled_dot_product_attention_2",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 53,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_12",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_12",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_17",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 1129,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_22",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_11",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_11",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 47,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_23",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_446",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_11",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_38",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_39",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_18",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 1586,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_silu_2/QuickGeluFusion/",
+      "type": "QuickGelu",
+      "compute_unit": "CPU",
+      "execution_time": 42,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_19",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 497,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_40",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 45,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_20",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 538,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_24",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_12",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_12",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 40,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_25",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_454",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_12",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_41",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 36,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_42",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 36,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_22",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 196,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_14",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_14",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_14",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_27",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_476",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_14",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_45",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_46",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_14",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_91",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_7",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_8",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_50",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_49",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_29",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_unsqueeze_18",
+      "type": "Unsqueeze",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_11",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_111",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_21",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 376,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_13",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_13",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 36,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_13",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_26",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_465",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_13",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_43",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 43,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_44",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 40,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_13",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 40,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_89",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_6",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_7",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 37,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_48",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_47",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_28",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_MatMul_30/MatmulTransposeFusion//MatMulScaleFusion/",
+      "type": "FusedMatMul",
+      "compute_unit": "CPU",
+      "execution_time": 45,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Add_571",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Softmax_572",
+      "type": "Softmax",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_IsNaN_573",
+      "type": "IsNaN",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Where_574",
+      "type": "Where",
+      "compute_unit": "CPU",
+      "execution_time": 40,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_23",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 186,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_109",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Transpose_71",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_12",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node__unsafe_view_7",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_scaled_dot_product_attention_3",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_16",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_16",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_24",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 327,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_30",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_15",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_15",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_31",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_584",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_15",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_51",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_52",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_25",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 526,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_silu_3/QuickGeluFusion/",
+      "type": "QuickGelu",
+      "compute_unit": "CPU",
+      "execution_time": 43,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_26",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 527,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_53",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 40,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_27",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 528,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_32",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_16",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_16",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_33",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_592",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_16",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_54",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_55",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_29",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 190,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_18",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_18",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_18",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_35",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_614",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_18",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_58",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_59",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_18",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_95",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_9",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_10",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_63",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 30,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_62",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_37",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_unsqueeze_22",
+      "type": "Unsqueeze",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_13",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_115",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_28",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 393,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_17",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_17",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_17",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_34",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_603",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_17",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_56",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_57",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_17",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 35,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Split_93",
+      "type": "Split",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_neg_8",
+      "type": "Neg",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_cat_9",
+      "type": "Concat",
+      "compute_unit": "CPU",
+      "execution_time": 37,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_61",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_60",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_36",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_MatMul_33/MatmulTransposeFusion//MatMulScaleFusion/",
+      "type": "FusedMatMul",
+      "compute_unit": "CPU",
+      "execution_time": 44,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Add_709",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 28,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Softmax_710",
+      "type": "Softmax",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_IsNaN_711",
+      "type": "IsNaN",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Where_712",
+      "type": "Where",
+      "compute_unit": "CPU",
+      "execution_time": 37,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_30",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 200,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Reshape_113",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Transpose_75",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_expand_14",
+      "type": "Expand",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node__unsafe_view_9",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_scaled_dot_product_attention_4",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 37,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_transpose_20",
+      "type": "Transpose",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_view_20",
+      "type": "Reshape",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_31",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 325,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_38",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 44,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_19",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_19",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 34,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_39",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 26,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_722",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_19",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 24,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_64",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_65",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 33,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_32",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 563,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_silu_4/QuickGeluFusion/",
+      "type": "QuickGelu",
+      "compute_unit": "CPU",
+      "execution_time": 44,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_33",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 764,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_66",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 47,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_linear_34",
+      "type": "MatMul",
+      "compute_unit": "CPU",
+      "execution_time": 500,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_40",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 32,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Mul_20",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 29,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mean_20",
+      "type": "ReduceMean",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_add_41",
+      "type": "Add",
+      "compute_unit": "CPU",
+      "execution_time": 27,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_Sqrt_730",
+      "type": "Sqrt",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_rsqrt_20",
+      "type": "Reciprocal",
+      "compute_unit": "CPU",
+      "execution_time": 25,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_67",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 31,
+      "execution_cycles": 0
+    },
+    {
+      "name": "node_mul_68",
+      "type": "Mul",
+      "compute_unit": "CPU",
+      "execution_time": 38,
+      "execution_cycles": 0
+    }
+  ]
+}

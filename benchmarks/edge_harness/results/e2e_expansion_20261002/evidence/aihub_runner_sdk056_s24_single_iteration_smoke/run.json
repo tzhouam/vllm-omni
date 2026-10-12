@@ -1,0 +1,211 @@
+{
+  "active_requests": 1,
+  "batch_size": 1,
+  "completion": null,
+  "created_utc": "2026-10-02T11:02:13.988057+00:00",
+  "facility": "Qualcomm AI Hub Workbench",
+  "identity": {
+    "checkpoint": "Spark-X2.5-1.7B-historical-component",
+    "epoch": 0,
+    "model": "Spark-X2.5-attention-component-only",
+    "request_id": "sdk-smoke-j57e4k9lp",
+    "revision": "original-revision-unrecorded",
+    "target_name": "Samsung Galaxy S24"
+  },
+  "profile": false,
+  "qai_hub_version": "0.56.0",
+  "run_id": "60e456a0d8794593ef41795246a8e300495a9a6a05fa82aa64c9b9b11719ff02",
+  "same_physical_device_across_jobs": false,
+  "schema_version": 1,
+  "stage_topology": {
+    "attention_component": []
+  },
+  "state_location": "versioned_host_snapshots_between_jobs",
+  "status": "running",
+  "steps": [
+    {
+      "active_requests": 1,
+      "artifact": {
+        "artifact_id": "mq9y70k0n",
+        "checkpoint": "Spark-X2.5-1.7B-historical-component",
+        "hash_source": "compiled_artifact",
+        "layout_version": 1,
+        "precision": "w8a16",
+        "revision": "original-revision-unrecorded",
+        "runtime": "SourceModelType.QNN_DLC",
+        "sha256": "8f1518f1f392434306dba11fd7115fe7629657ab7bfc834c0f78ee6b684e5154",
+        "shape_bucket": "source-job-j57e4k9lp",
+        "target_model_id": "mq9y70k0n",
+        "target_name": "Samsung Galaxy S24"
+      },
+      "batch_size": 1,
+      "completed_utc": "2026-10-02T11:06:08.016572+00:00",
+      "input_dataset_id": "d2q4q4ov7",
+      "input_file_sha256": "5a439e6c6d148f1720938770daa110039a39edde014f1c1592c823c7d7dfc8ed",
+      "input_npz": "attention-0.inputs.npz",
+      "input_provenance": {
+        "cos_full": "request:audited-j57e4k9lp",
+        "k_cache_0": "request:audited-j57e4k9lp",
+        "mask_full": "request:audited-j57e4k9lp",
+        "sin_full": "request:audited-j57e4k9lp",
+        "v_cache_0": "request:audited-j57e4k9lp",
+        "x": "request:audited-j57e4k9lp"
+      },
+      "input_records": {
+        "cos_full": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 256,
+          "sha256": "2ca1e5bd00b614b7c6a4c32dae42605407fcdf1e0303d79dfe6760af244def2d",
+          "shape": [
+            1,
+            1,
+            1,
+            64
+          ]
+        },
+        "k_cache_0": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2097152,
+          "sha256": "98f2cec51c90f90be3b395b565130180aa4e9810f9153087a29f64ea5102d82a",
+          "shape": [
+            1,
+            2,
+            1024,
+            256
+          ]
+        },
+        "mask_full": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 4100,
+          "sha256": "d01706741907f23b5b7e4659c887baacd14df67eb117721e029cd6c329cfa494",
+          "shape": [
+            1,
+            1,
+            1,
+            1025
+          ]
+        },
+        "sin_full": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 256,
+          "sha256": "279b6dd524d53a47faf73a7680d6bc2862211b3abee7732e88b3dc3e17ba3f58",
+          "shape": [
+            1,
+            1,
+            1,
+            64
+          ]
+        },
+        "v_cache_0": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2097152,
+          "sha256": "e241c4839e9b4a1bfd7392f44e02925aa3464bdb998ff0f405485a8cd9823a69",
+          "shape": [
+            1,
+            2,
+            1024,
+            256
+          ]
+        },
+        "x": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 8192,
+          "sha256": "8ff8f87f3ccd2ac6ba050583e8a3090741f398cedc05fe3e821b684c24f13631",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        }
+      },
+      "job_id": "jglyz2we5",
+      "job_status": "SUCCESS",
+      "job_status_message": "",
+      "options": "--compute_unit npu --max_profiler_iterations 1",
+      "output_file_sha256": "67f1236f5866c601791f3d8656591adeec3250f864b56a902542d6b84b937c4a",
+      "output_npz": "attention-0.outputs.npz",
+      "output_records": {
+        "output_0": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 8192,
+          "sha256": "7f371839f1d79d7e331927f35342e68e4ae964e3fd086f1ab5a1086a1aefe163",
+          "shape": [
+            1,
+            1,
+            2048
+          ]
+        },
+        "output_1": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2048,
+          "sha256": "bc4828f794313849df8b1960df25e48576b41b731fb858ec958cee3d599e3a14",
+          "shape": [
+            1,
+            2,
+            1,
+            256
+          ]
+        },
+        "output_2": {
+          "dtype": "float32",
+          "layout": "C",
+          "nbytes": 2048,
+          "sha256": "3e2c668556f65121530138b2aaa9133b53c333f44c420c76b454249b15c3a4c2",
+          "shape": [
+            1,
+            2,
+            1,
+            256
+          ]
+        }
+      },
+      "placement": {
+        "actual_compute_units": null,
+        "requested_options": "--compute_unit npu --max_profiler_iterations 1",
+        "source": "not verified by inference job"
+      },
+      "profile": false,
+      "remote_profile_detail_rows": 0,
+      "remote_profile_iteration_samples": 1,
+      "remote_profile_response_path": "attention-0.inference_profile_response.json",
+      "remote_profile_response_sha256": "e2cc77be50163b8c88caba2283e9a306734113e86bbea872b85ec37768ca2bed",
+      "remote_profiling_enabled": false,
+      "sequence": 0,
+      "stage_id": 0,
+      "stage_name": "attention_component",
+      "status": "completed",
+      "step_id": "attention-0",
+      "submitted_utc": "2026-10-02T11:03:04.655847+00:00"
+    }
+  ],
+  "target_registration": {
+    "attributes": [
+      "os:android",
+      "framework:tflite",
+      "framework:onnx",
+      "abi:aarch64-android",
+      "vendor:samsung",
+      "format:phone",
+      "chipset:qualcomm-snapdragon-8gen3",
+      "chipset:sm8650",
+      "hexagon:v75",
+      "soc-model:57",
+      "htp-supports-fp16:true",
+      "htp-supports-weight-sharing:true",
+      "framework:qnn"
+    ],
+    "name": "Samsung Galaxy S24",
+    "os": "14"
+  },
+  "tier": "aihub_hosted_functional_replay",
+  "updated_utc": "2026-10-02T11:06:08.016605+00:00",
+  "whole_request_device_latency_measured": false
+}
