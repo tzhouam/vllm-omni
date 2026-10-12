@@ -221,9 +221,9 @@ def file_bytes(path, maximum):
     with Path(path).open("rb") as stream:
         before = os.fstat(stream.fileno())
         require(stat.S_ISREG(before.st_mode) and before.st_size <= maximum, "file_bound")
-        data = stream.read(maximum + 1)
+        data = stream.read(before.st_size + 1)
         after = os.fstat(stream.fileno())
-    require(len(data) <= maximum and (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
+    require(len(data) == before.st_size and len(data) <= maximum and (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns)
             == (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns), "file_changed")
     return data
 

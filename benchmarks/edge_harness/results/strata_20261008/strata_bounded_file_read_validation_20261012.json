@@ -1,0 +1,68 @@
+{
+  "scope": "bounded complete-file read optimization with coordinated source pins; new runtime and neural validation pending",
+  "source_sha256": {
+    "vllm_omni/engine/backends/strata_execution/strata_exec_runtime.py": "0a032642a55c3bd7f40b86a2c73076ba1cac91058500cd5f11b16135fd78de39",
+    "vllm_omni/engine/backends/strata_execution/strata_exec_live.py": "717eb955f580027f84c17531283082f96ca4ead4cb63a7902c1c3c25fc8966b9",
+    "vllm_omni/engine/backends/strata.py": "bb398cb5d524196b8c05d7a9d96c67c5f639723b8f6c1a2c7511b12e95493427",
+    "tests/edge/test_strata_bounded_file_read.py": "522ca5ae06be8efc52a82992804c05dbcf8938590b7373c8da86218dc76f59c1"
+  },
+  "change": "Read the observed open-file size plus one byte rather than allocating for the maximum envelope; require complete length and preserve identity/mtime checks.",
+  "native_regression": {
+    "passed": 62,
+    "subtests_passed": 15,
+    "warnings": 14,
+    "exit_code": 0,
+    "exec_session": 63647,
+    "test_files": [
+      "tests/edge/test_strata_bounded_file_read.py",
+      "tests/edge/test_strata_runtime_snapshot.py",
+      "tests/edge/test_strata_execution_lifecycle.py",
+      "tests/edge/test_strata_execution_alias_envelope.py"
+    ],
+    "scope": "No model execution; runtime snapshot and Stage lifecycle boundaries use fixtures."
+  },
+  "ruff_new_test": "passed",
+  "microbenchmark": {
+    "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\strata-bounded-read-candidate-20261012-v1\\real-files-result.json",
+    "sha256": "84c19e97599dcc2f6efedac1f64d8cfbb6d12b0c7abf6bc9c71e08f682c3e1af",
+    "real_file_count": 256,
+    "results": [
+      {
+        "reader": "baseline",
+        "seconds": 1.572988299652934
+      },
+      {
+        "reader": "candidate",
+        "seconds": 0.04049739986658096
+      },
+      {
+        "reader": "candidate",
+        "seconds": 0.046023800037801266
+      },
+      {
+        "reader": "baseline",
+        "seconds": 1.7619894999079406
+      }
+    ],
+    "all_bytes_verified": true,
+    "scope": "real small-file read/hash microbenchmark; no cold-cache, startup or neural performance claim",
+    "maximum": 33554432
+  },
+  "runtime_registry": "C:\\Users\\zhout\\w2\\strata-omni\\patches\\strata-execution-live-registry-v6\\registry.json",
+  "assembly_session": 87607,
+  "runtime_target": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v4",
+  "runtime_assembly_complete": false,
+  "neural_validation_complete": false,
+  "startup_speedup_qualified": false,
+  "qualification_created": false,
+  "preparation_failures": {
+    "failed_attempts": [
+      "Selected basic _BOOTSTRAP instead of _EXECUTION_BOOTSTRAP: hash assertion failed.",
+      "Normalized comparison still used wrong literal and failed.",
+      "Assembler invoked before registry existed and refused missing input; no runtime assembled."
+    ],
+    "resolution": "Extracted _EXECUTION_BOOTSTRAP as selected by Stage for execution-observed routes; exact prior hash unchanged.",
+    "registry_sha256": "3a884ae0096db515125dbeb7ac4a510e48e82499c6e431dd41506cf4536b74f2",
+    "runtime_assembled": false
+  }
+}
