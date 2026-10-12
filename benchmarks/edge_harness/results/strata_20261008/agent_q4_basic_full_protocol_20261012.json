@@ -1,0 +1,184 @@
+{
+  "scope": "closed public basic Agent protocol, fixed bilingual arithmetic fixture; no broad task or release qualification",
+  "exec_session": 83065,
+  "exec_exit_code": 0,
+  "raw_file": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-four-gib-agent-basic-full-20261012-v1\\native_d8859ef90d5e4667921b71e8f9808287\\raw\\20261012T053123Z_f0d6a4c0\\samples.jsonl",
+  "raw_sha256": "14985a8899e15d4df7fc18e5fae83fc373140d6f25138f9d3a9956a1f5a34d02",
+  "index_sha256": "21b2b4b2ea0338db000ca993dd76aefc5f78b2b66e4a3d262e06428fc9b3a6f8",
+  "summary_sha256": "a4d8ccc3c4245c4fbdfff6b4b88f27493500a0978cd4ef5e2edd0f6c61107401",
+  "counts": {
+    "warmup": 6,
+    "measured": 60,
+    "endurance": 89
+  },
+  "exact_reference_outputs": 155,
+  "unique_case_phase_repetition_keys": 155,
+  "sustained_request_seconds": 1802.3492877999993,
+  "endurance_wall_seconds": 1806.5436886004172,
+  "answer_p50_s": {
+    "long": 21.7986714,
+    "medium": 19.8552008,
+    "short": 18.6895214
+  },
+  "answer_p95_s": {
+    "long": 22.8325605,
+    "medium": 20.2947071,
+    "short": 20.4459868
+  },
+  "cold_integrity_and_preparation_s": 818.4888918,
+  "conditions": {
+    "driver_versions": {
+      "nvidia": "610.71"
+    },
+    "environment_fingerprint": "3fdd0ba91db0d76542d45b1bb46aa9ee391d2dec57afdef2f1d4ba63036d9dd2",
+    "hardware_id": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD | NVIDIA GeForce RTX 5090 Laptop GPU | RAM 67773509632 bytes",
+    "notes": "Fixed loopback fixtures; sampled RAM/VRAM/NVIDIA device power/heat. NVML GPU power is for the device as a whole, not model-only; system power unavailable. Verified native WDDM process local/nonlocal samples stay separate; startup peak coverage is unavailable. Code case checks only static output, with no code execution tool. Submission mode: model_selected_tools_v1.",
+    "os_version": "Windows-11-10.0.26200-SP0",
+    "power_condition": "AC",
+    "runtime_versions": {
+      "agent_runtime_identity_sha256": "bc0591b68076e4276f39009e5e1b28b340e99ff0d902257451a3543eb1e43d86",
+      "llama_server_sha256": "",
+      "memory_fixture_evaluation_schema": "omni-agent-memory-fixture-provenance-v1",
+      "python": "3.12.10",
+      "strata_runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+      "vllm": "0.29.0+cu134",
+      "vllm_omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "vllm_omni_imported_source_sha256": "6340002918c16855963564fbe02bdb6cfad7851e5fd2a5667f14d514f8d44ff0",
+      "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "vllm_omni_source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge"
+    },
+    "suite_id": "edge-agent-fixed-local-fixtures-v1"
+  },
+  "route": {
+    "artifact_id": "strata-agent:850c569d37a066c442cdcd4bb1dbe2c0c09ab30329b419a7369ac590688930f4",
+    "artifact_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+    "backend": "external.strata.text.v1",
+    "backend_identity": {
+      "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+      "backend_config_sha256": "28df2b0357c49584f1561de92134c68195e0667daa864ebbc381ed8d4473b3f6",
+      "base_engine_artifact_id": "strata:28df2b0357c49584f1561de92134c68195e0667daa864ebbc381ed8d4473b3f6",
+      "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+      "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+      "conversion_manifest_sha256": "8d3b87923fd727ef46057c7bf66213576ecfe1c52b8a912daae6c51a6e2b0954",
+      "declared_python_environment_sha256": "aafee115a0b7d649557038a301582ce2ea4e80589a7c01a1d7264442a7288fb1",
+      "engine_sha256": "39adcb4afc80d6fdf6d9c577231258ecfac9b3c798fa1e3409b49d0e310fc177",
+      "execution_observation": {
+        "adapter_sha256": {
+          "strata_exec": "c653d6eb422ed1f5ca970d5db1d0d3c8d08139a1e085eabd171497490a7663bf",
+          "strata_exec_bridge": "5911125621e1d27cdcc9e12f92683e7e481e411cfe099fe6ce95b42c423e63fe",
+          "strata_exec_live": "a9748c3a29852fc56bf64011f2434a4aeff8be74bd72a25a0b271386b251777b",
+          "strata_exec_runtime": "273b81b115756988ef990d4a0ffde86104141787f1658bd0e90ec596f9753111"
+        },
+        "descriptor_sha256": "21cff9e1450593c63aa8a4163f84f512f54fd37abcfdeb866204a5443b66307a",
+        "io_adapter_sha256": "8dd65287a447e20bc3096408ae7606b38db4aeb44216ea678d57c09e406fde43",
+        "member_manifest_file": "members.json",
+        "member_manifest_sha256": "0f22c2ce5c10aed485d9879d8e6a1e951c29e7e5e4b9ee1db9c18812c48fa597",
+        "receipt_storage_bytes": 16777216,
+        "schema": "omni-strata-execution-route-binding-v1",
+        "source_context_sha256": "9ca0e9f940a643627101ba19633f60feb12973ef387fe71dbfef0ba50bdd16aa",
+        "static_identity_sha256": "e9ffe3f7ddfc494636c795f914a15a9954bc5631ba845edd4b5c924de0fd0d18",
+        "workspace_bytes": 2147483648
+      },
+      "expected_controls": {
+        "artifact_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+        "context_tokens": 4096,
+        "expert_profile_file": "data/expert-profile.bin",
+        "gpu_budget_bytes": 17179869184,
+        "io_mode": "auto",
+        "kv_type": "fp16",
+        "native_verify_window": 2,
+        "ple_io": "direct",
+        "prefetch": {
+          "io": false,
+          "ple": false,
+          "routing": false
+        },
+        "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+        "ram_expert_cache_budget_bytes": 4294967296,
+        "runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+        "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+        "schema": "omni-strata-explicit-cache-v2",
+        "spec_tokens": 0,
+        "vram_reserve_mib": 8079
+      },
+      "gpu_expert_cache_budget_bytes": 8053063680,
+      "model_output_consumer_identity": {
+        "adapter_source_sha256": "72339e1d5a4a39e8f0db0a6f9cec1ca8039258832afbc72b7136d1d148f10f90",
+        "base_artifact_id": "strata:28df2b0357c49584f1561de92134c68195e0667daa864ebbc381ed8d4473b3f6",
+        "contract": {
+          "max_depth": 16,
+          "max_directive_bytes": 8192,
+          "max_nodes": 2048,
+          "max_response_bytes": 65536,
+          "mode": "strict_outer_json_fence_agent_v1",
+          "schema": "omni-agent-output-contract-v1",
+          "workspace_budget_bytes": 2097152
+        },
+        "identity_sha256": "850c569d37a066c442cdcd4bb1dbe2c0c09ab30329b419a7369ac590688930f4",
+        "schema": "omni-agent-output-consumer-v1"
+      },
+      "native_layout_sha256": "5ed2c4a55910616db1efe16f0c989e9bec80cc8b9e95bf1c42f886aadfffd2d6",
+      "observation_runtime": null,
+      "prepared_manifest_sha256": "449bfd845504c75d9d1d9232eafff7cab44e3a79e768b6668607c9642398681f",
+      "python_environment_sha256": "21fe86c9aec753b083449eb069f479af82d778e21e7bc383c787159bbc66d32c",
+      "runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+      "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+      "schema": "omni-strata-profile-binding-v1",
+      "weight_tier_plan_sha256": "a38aefe6f5fda8174c443d1200d5cbed1a7f67d6c20f513ec415ac4b471972f2"
+    },
+    "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+    "expected_placement": "cpu+cuda:0",
+    "model_id": "unsloth/Qwen3.8-Flash-Next-GGUF",
+    "precision": "Unsloth UD-Q4_K_XL mixed",
+    "route_id": "q4-four-gib-agent-experimental"
+  },
+  "startup_samples": {
+    "attempted_sample_count": 7349,
+    "binding": {
+      "artifact_id": "strata-agent:850c569d37a066c442cdcd4bb1dbe2c0c09ab30329b419a7369ac590688930f4",
+      "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+      "load_id": "031d71265249423bbd507a1564683ac7",
+      "preparation_sequence": 1,
+      "route_id": "q4-four-gib-agent-experimental"
+    },
+    "bytes": 7338521,
+    "complete": true,
+    "error_type": null,
+    "path": "startup-samples/031d71265249423bbd507a1564683ac7.jsonl",
+    "ram_used_bytes_sampled_peak": 59937816576,
+    "sample_count": 7349,
+    "schema": "omni-native-startup-samples-v1",
+    "sha256": "826f14f93ab2ba70b21efcb7b5a03e2be5d137cd85e88edb4691178b39001935",
+    "vram_sample_count": 7349,
+    "vram_used_bytes_sampled_peak": 19767701504
+  },
+  "startup_memory_scope": "whole-system sampled use, not model-only or hard cap",
+  "controller_close": {
+    "controller_close_succeeded": true,
+    "preparation_sequence": 1,
+    "resource_snapshot": null,
+    "route_id": "q4-four-gib-agent-experimental",
+    "schema": "omni-native-profile-controller-close-v1",
+    "scope": "reported_post_close_resources_not_independent_release_qualification",
+    "snapshot_error": null,
+    "snapshot_max_encoded_bytes": 1048576,
+    "snapshot_status": "unavailable_not_exposed"
+  },
+  "qualification_blockers": [
+    "independent memory admission evidence pending",
+    "cancellation and recovery evidence pending",
+    "independent execution placement review pending",
+    "open-world visual and code task quality beyond fixed fixtures pending"
+  ],
+  "prior_known_PIDs_absent_in_postrun_CIM_query": [
+    162124,
+    162548,
+    33640
+  ],
+  "independent_retained_handle_exit_proof": false,
+  "all_descendants_exit_verified": false,
+  "empty_shared_ledger_verified_in_this_run": false,
+  "source_before_after_freeze_verified": false,
+  "default_or_release_qualified": false,
+  "physical_ssd_read_bytes": null
+}
