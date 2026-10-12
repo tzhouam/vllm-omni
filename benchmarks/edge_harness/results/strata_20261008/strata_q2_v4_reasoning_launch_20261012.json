@@ -1,0 +1,32 @@
+{
+  "schema": "omni-q2-v4-reasoning-comparison-launch-v1",
+  "registration": {
+    "schema": "omni-private-actual-combined-registration-attempt-v1",
+    "status": "registered_not_executed",
+    "parent_launch_file_sha256": "3ff069a7269210a89a60335e862cb37a5958eb66bcf46c87cd914383b1c932ab",
+    "static_receipt_sha256": "2307ffea38859b99ae9d742dc8d17912c2730ad4c7b94b8ddb3a6888ea41f7b8",
+    "static_identity_sha256": "ca41a2ff7ab1be7009118c97caf2eb33db564507c34bb02f05569cbd2e2017ff",
+    "raw_member_manifest_sha256": "ecf57443efe134f90cc105ecfd0ad634d99221e84b7aa157e204ef733dc85ec0",
+    "outer_runtime_manifest_sha256": "11a64ca8fbf3badc080bb31a57b4b55b258f2ac407ccbe599c3808ddf4355ba3",
+    "runtime_files_including_raw_manifest": 42649,
+    "runtime_bytes": 2231676831,
+    "native_model_executed": false,
+    "qualification_created": false,
+    "launch_sha256": "9dd65bc8e4f80b30bfa04dfddb1d64bec39e2db3f64f38f232ec85c983f91d1a",
+    "registration_receipt_sha256": "72ceab6c197023b8bb451a23fa0299d95cfb1a3b2c5007e23ede1abec83beaeb",
+    "producer_source_sha256": "e1ca75b2287c96bb1c9b83f0667270ff9437e0997a110c759ddf8cc259ef00ff"
+  },
+  "derived_launch_sha256": "f1cee5aec95764dcba24cf6676440e657627c2aa6d0cf344cdcd81926b441cb3",
+  "preparation_sha256": "4a816d1d31480c144f23092afe19f6a97b72613e9cbab64bdb407b5e424fc614",
+  "runtime": "e39-v4",
+  "task_class": "long_reasoning",
+  "batch_size": 1,
+  "concurrency": 1,
+  "smoke": true,
+  "expert_ram_cache_gib": 4,
+  "status": "registered_and_agent_smoke_started_results_pending",
+  "prior_q4_result": "0/9 on same fixed bilingual constraint tasks; retain original failures",
+  "comparison_scope": "Different checkpoint/quantization lineages; no isolated quantization causality",
+  "qualification_created": false,
+  "prior_setup_failure": "First registration command used base Python lacking aenum and exited before creating output paths; unchanged script retried with existing native Omni environment."
+}

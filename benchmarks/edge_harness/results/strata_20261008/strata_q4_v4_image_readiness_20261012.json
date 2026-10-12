@@ -1,0 +1,18 @@
+{
+  "schema": "omni-strata-current-image-readiness-v1",
+  "actual_metadata_loader": {
+    "status": "refused",
+    "type": "ValueError",
+    "error": "image registration JSON exceeds bounded metadata size"
+  },
+  "text_launch_bytes": 13384806,
+  "text_launch_sha256": "09aad6e58f702f2faf1cf7e6f6da78039a315fe7d6421a00d3bc398c7dd24e43",
+  "runtime_root": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v4",
+  "observation_runtime_present": false,
+  "execution_observation_present": true,
+  "image_registrar_sha256": "ca2882a89399b251af13bf4ebc8a93c83cabddd5e40c63a52b10c9000b7ca92b",
+  "projector_present": true,
+  "scope": "Actual current image metadata loader only; no model execution, artifact rehash, registration or capacity claim. Separate old-observation assumptions in image registrar and multimodal backend require integration before current combined-runtime image qualification.",
+  "next": "Integrate combined execution identity through image registration, bootstrap and image backend; preserve bounded metadata parsing and declared workspace; verify with negative contract tests and real image chain.",
+  "qualified": false
+}

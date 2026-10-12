@@ -1,5 +1,9 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-12 17:09 更新：Q2 e39-v4 完整运行时／产物注册及独立 4 GiB 缓存、Agent 配置生成均 EXIT 0；[真实中英文约束推理 smoke 已启动](../edge_harness/results/strata_20261008/strata_q2_v4_reasoning_launch_20261012.json)，结果待完成。对照沿用 Q4 失败题与 Agent 契约，不因两条路线产物不同而推断量化因果；尚无新默认资格。
+
+当前 Q4 图像接入另有[已实测的元数据拒绝](../edge_harness/results/strata_20261008/strata_q4_v4_image_readiness_20261012.json)：新版文本 launch 为 13,384,806 字节，超过旧图像注册器 8 MiB 上限。源码还保留旧 observation_runtime 前提，而 e39-v4 使用 execution_observation。需连同图像 bootstrap／后端身份校验一起适配，不能仅放大解析上限或继承旧 Q2 图像资格。该检查未加载图像模型。
+
 2026-10-12 16:47 更新：Q4 e39-v4 **跨控制器重开记忆实验已 EXIT 0**，两个真实模型请求分别完成记录与召回。第二轮任务不含答案，实际模型输入仅在带原始事件 ID 的 recalled_memory 中含参考；两个会话 ID 不同、输入哈希与输出契约一致、事件顺序连续、两轮关闭账本均为空，1,570 个源码文件前后一致。[原始哈希与独立复核](../edge_harness/results/strata_20261008/strata_q4_v4_persistent_memory_closed_20261012.json)。首版复核误将 JSON 序列化的记忆 payload 与纯文本比较而失败；v2 按生产格式解析后严格比较通过，原失败与原始记录均保留。只证明一个合成事实跨两次控制器启动召回，不代表广泛记忆质量、独立进程退场或性能资格。
 
 Q2 e39-v4 同题质量对照已进入全产物校验与注册，尚无本轮模型结果；既有 Q4 约束推理 0/9 失败不变。以下按时间保留历史快照，以本段及最新闭合记录为准。
