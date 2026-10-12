@@ -396,5 +396,65 @@
     "Measure and reduce startup overhead without weakening integrity checks",
     "Continue Q4 controlled SSD/cache-budget and same-artifact backend comparisons",
     "Retain separate DeepSeek and device-resident Android workstreams"
-  ]
+  ],
+  "successor_tooling_validation": {
+    "schema": "omni-strata-unavailable-successor-metadata-validation-v1",
+    "exit_code": 0,
+    "test_methods_passed": 107,
+    "subtests_passed": 15,
+    "junit_counts_include_subtests": true,
+    "junit": {
+      "sha256": "839a00631732b8a16991e90dceac79cadb94ea3a5687b38311e799efb4cdf8f0",
+      "counts": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "122",
+        "time": "1.607",
+        "timestamp": "2026-10-12T11:47:02.181169+08:00",
+        "hostname": "LAPTOP-07175OF9"
+      }
+    },
+    "source_pins_unchanged": true,
+    "sources": {
+      "actual-unavailable-sample.json": {
+        "sha256": "b595d2f649f5487dc9117f3bd463c79e17748931afe286014efe970bcf078cb7",
+        "bytes": 57310
+      },
+      "capture_browser_memory_cohort_owner.py": {
+        "sha256": "02a8c27efb04e5ff14d2b5622484c1bd1a64443b4360092ffc4f621daafd0f65",
+        "bytes": 25450
+      },
+      "derive_cache_alternate.py": {
+        "sha256": "6ce72b48712a634529b2bdf1888ce8dd5182a330ab15a825615b07a88b0456c8",
+        "bytes": 4861
+      },
+      "native_gpu_cohort_contract.py": {
+        "sha256": "74ff26685b98ab5e780f195357097d0fdfac764899bac197a7d1af4b81c3857a",
+        "bytes": 21753
+      },
+      "prepare_browser_memory_source_freeze.py": {
+        "sha256": "de9fa1a423e2e2dcbab2352a545304555591fc8b1a05ec07b31d6e09fcabfd3d",
+        "bytes": 5154
+      },
+      "run_observed_strata_browser_memory_cohort.py": {
+        "sha256": "ef955f508f19aa0eb138b0808e773c546b4886e33961ac0b2c94af562efc0dcb",
+        "bytes": 147852
+      },
+      "test_full_protocol_metadata.py": {
+        "sha256": "41028c1dbcd598749cc0946a032734703fc7ddcd9d94ac94c966be00ef3761f1",
+        "bytes": 16499
+      },
+      "test_successor_metadata.py": {
+        "sha256": "0645ba04e0dcaea548194783b4fe2abb63401389c04f7433f2cfc67fa677ae36",
+        "bytes": 23140
+      },
+      "test_unavailable.py": {
+        "sha256": "4b2f72f99b3a50a6d2ac3ffe46a31a605e68a4e03e6f86329f5edd6871a5618e",
+        "bytes": 3343
+      }
+    },
+    "scope": "private v4 producer/owner/freezer integration and metadata tests; no model/browser execution; prior v3 run exit unchanged"
+  }
 }
