@@ -207,6 +207,32 @@ def _image_execution_context(strata, runtime_root, runtime_files, backend, conte
     return settings
 
 
+def _derive_image_cache_budget(backend, budget, requested):
+    """Explicit cache reduction only; every independent allowance is retained."""
+    if requested is None:
+        return None
+    requested = _positive(requested, "expert_ram_budget_bytes")
+    old = budget["cpu_expert_cache_bytes"]
+    observer = backend.get("execution_observation")
+    workspace = observer["workspace_bytes"] if observer is not None else 0
+    loading = old + backend["host_overhead_bytes"] + backend["max_io_bytes"] + workspace
+    if (
+        type(old) is not int or requested >= old
+        or backend["expert_ram_budget_bytes"] != old
+        or budget["host_loading_peak_bytes"] != loading
+    ):
+        raise ValueError("explicit smaller cache requires the exact original cache/loading formula")
+    budget["cpu_expert_cache_bytes"] = requested
+    budget["host_loading_peak_bytes"] = loading - old + requested
+    return {
+        "old_expert_ram_budget_bytes": old,
+        "new_expert_ram_budget_bytes": requested,
+        "host_loading_bytes_removed": old - requested,
+        "windows_commit_peak_bytes_retained": budget["windows_commit_peak_bytes"],
+        "scope": "explicit alternate; no inherited quality or performance; fresh admission required",
+    }
+
+
 def register_cpu_image_route(
     text_launch_path: Path,
     *,
@@ -216,10 +242,12 @@ def register_cpu_image_route(
     route_id: str,
     max_io_bytes: int | None = None,
     execution_source_context_file: str | None = None,
+    expert_ram_budget_bytes: int | None = None,
 ):
     """Verify and derive an exclusive CPU-encoder/CUDA-language launch.
 
-    Existing text expert/cache/context/precision controls are retained. Encoder
+    Text context/precision controls are retained; an explicitly requested smaller
+    expert cache may reduce its exact cache/loading claim, never commit. Encoder
     and scratch budgets are additional coexistence claims, never substitutions
     for the text stage's overhead. Fresh snapshots do not reserve resources.
     """
@@ -303,6 +331,7 @@ def register_cpu_image_route(
     tier_data = tier.to_dict()
     tier_data.update(route_id=route_id, backend=BACKEND)
     budget = tier_data["budget"]
+    cache_derivation = _derive_image_cache_budget(backend, budget, expert_ram_budget_bytes)
     budget["host_workspace_bytes"] += extra_host
     budget["host_transfer_bytes"] += transport_delta
     for field in ("host_loading_peak_bytes", "windows_commit_peak_bytes"):
@@ -403,11 +432,14 @@ def register_cpu_image_route(
         # including it in overhead would count that same buffer twice.
         host_overhead_bytes=backend["host_overhead_bytes"] + extra_host,
         max_io_bytes=transport,
+        expert_ram_budget_bytes=budget["cpu_expert_cache_bytes"],
     )
     if execution_settings is not None:
         target["execution_observation"] = execution_settings
     derived["resource_budget"] = {"capacities": capacities, "demands": demands}
     derived["image_registration"] = provenance
+    if cache_derivation is not None:
+        provenance["explicit_cache_derivation"] = cache_derivation
     derived["admission_preflight"] = {
         "admitted": True,
         "over_budget_pools": [],
@@ -446,6 +478,7 @@ def main():
     parser.add_argument("--route-id", required=True)
     parser.add_argument("--max-io-bytes", type=int)
     parser.add_argument("--execution-source-context-file")
+    parser.add_argument("--expert-ram-budget-bytes", type=int)
     args = parser.parse_args()
     receipt = register_cpu_image_route(
         args.text_launch,
@@ -455,6 +488,7 @@ def main():
         route_id=args.route_id,
         max_io_bytes=args.max_io_bytes,
         execution_source_context_file=args.execution_source_context_file,
+        expert_ram_budget_bytes=args.expert_ram_budget_bytes,
     )
     print(json.dumps({key: receipt[key] for key in ("status", "route_id", "launch_canonical_sha256")}))
     return 0

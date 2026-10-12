@@ -77,6 +77,15 @@ complete runtime file manifest; image descriptors and receipts retain their
 Registration includes a separate encoder coexistence budget and does not
 create a model session or an Agent qualification.
 
+An explicit `--expert-ram-budget-bytes` may request a smaller expert cache for
+the separately named image route. The registrar requires the original exact
+cache/loading formula before removing that cache delta from loading peak;
+Windows commit, encoder/observer workspaces and all other claims are retained.
+The receipt records the alternate cache and fresh admission remains mandatory.
+The 2026-10-12 Q4 8 GiB image registration failed fresh RAM and commit admission
+after artifact verification; a separately named 4 GiB registration is pending.
+This alternate does not reproduce the 24/32/40 GiB comparison or inherit quality.
+
 This combined-image integration is currently under validation. The historical
 image results below belong to their original runtime. A fresh runtime bundle,
 real image requests, cancellation/recovery, and the Agent's combined image
