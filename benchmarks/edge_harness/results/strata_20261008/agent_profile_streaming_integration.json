@@ -1,0 +1,48 @@
+{
+  "schema": "omni-agent-profile-streaming-integration-v1",
+  "date": "2026-10-12",
+  "status": "implemented_regression_passed_neural_retest_pending",
+  "implementation": "Persist full rows, retain only measured latency scalars and gates, hash closed raw files in chunks. Not a whole-profiler memory hard cap.",
+  "native_tests": {
+    "test_cases": 98,
+    "subtests": 99,
+    "junit_including_subtests": {
+      "tests": 197,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "junit_sha256": "3c219bae7baaefa92563ca6babe2f5a8576bedc70bc7a0678bb76fecf9e2d687",
+    "log_sha256": "dd8122541934c28638a70088a13d368c75164577345fef3420e322d0e9286668",
+    "model_execution": false
+  },
+  "cache_metadata": {
+    "tests": 10,
+    "failures": 0,
+    "receipt_sha256": "61a923ce0bbdacb24e0b0213786cf498e9ef56c90ba39ba776ab3c07f29e8bdc"
+  },
+  "preserved_first_test_attempt": {
+    "passed": 29,
+    "setup_errors": 69,
+    "cause": "Missing parent directory for pytest basetemp; corrected command, same code.",
+    "junit_sha256": "5ed45c3d7e95b40ab84c961f99401fbe1b2a75ef6bec20498f4f1b124ba792f2"
+  },
+  "previous_neural_smoke": {
+    "exit_code": 1,
+    "complete_requests": 0,
+    "attempts": 9,
+    "model_calls": 9,
+    "terminal_sha256": "b702428de9cd42aa2b607a844f6d50537c924abc6f698cc55e84f560a6a56199",
+    "receipt_sha256": "760304d6c2bb3619778d62f5849cc81e62c849061cf9562ef444641fbfa64410",
+    "failure": "Private v2 headless wrapper rejects Bridge explicit default headless=False; browser factory quarantines, cleanup verification fails.",
+    "historical_cleanup_verified": false,
+    "later_observation": "2026-10-12 pre-test Win32_Process inventory found no python/strata/git processes; this does not repair historical cleanup proof.",
+    "next": "v3 explicit --browser-headless, fresh actual validation required"
+  },
+  "source_hashes": {
+    "benchmarks/edge_agent/profile.py": "4cd24203e175a793d9bb4611983293eb32ccf81de9e59667e5fb0618af2525eb",
+    "tests/edge/test_agent_profile_streaming.py": "ec11ab739a57daa8a11ab2f07fa3cac2eebb7a9a63e9f7a395649472000bfa97"
+  },
+  "default_qualified": false,
+  "release_qualified": false
+}

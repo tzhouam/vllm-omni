@@ -1,5 +1,9 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-12 更新：长时间 profiler 已改为逐请求落盘、仅保留测量延迟标量与汇总条件，并分块计算原始文件哈希。Windows 原生回归 **98/98、99 个子测试** 通过，缓存元数据回归 **10/10** 通过；这不是整个进程的内存硬上限。首次回归因测试临时目录父路径缺失产生 69 项 setup error，修正启动命令后通过，原记录保留。
+
+上次 sidecar 模型 smoke 已 **EXIT 1，0/9 完整请求**：旧私有入口要求 headless=True，但 Bridge 显式传入默认 False，浏览器构造被拒绝，随后隔离与关闭检查失败。9 次模型调用不等于完整 Agent 链。新版 v3 入口显式传递 headless，仍待真实重跑；当前路线取消／恢复、三档各 20 次与 30 分钟协议尚未完成，无默认／发布资格。 [验证摘要](../edge_harness/results/strata_20261008/agent_profile_streaming_integration.json)
+
 2026-10-10 latest implementation: [streaming startup sidecar and native regressions](../edge_harness/results/strata_20261008/agent_native_startup_sidecar_validation.json) is integrated. Complete original startup samples stream to contained JSONL; preparation/route_prepare retain a closed hash/size/count/peak reference. Existing 16/32/40 MiB validation bounds and model/budget controls are unchanged. Actual native regression **152/152**, private auditor **62/62**, and current cache-metadata regression **10/10** pass with EXIT 0, stable sources and zero model/browser process starts; the three production changes pass Ruff. Fresh neural-smoke configuration preparation completed with EXIT 0; no new neural result exists yet. The first preparation command's filename error and both original oversized-model-run failures remain preserved.
 
 Next is a frozen-source model→browser→model smoke on this 4 GiB expert-cache route, followed by its cancellation/recovery and the batch-1/single-active-request three-length 20-sample plus 30-minute protocol. Cold preparation includes journal serialization, writes, fsync and closed-file hashing; it is not pure model loading. No default/release route is promoted; physical SSD I/O and aggregate memory hardcaps remain unproven.

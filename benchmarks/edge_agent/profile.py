@@ -429,6 +429,135 @@ async def _one_request(
     }
 
 
+@dataclass
+class _RouteProfileAccumulator:
+    """Retain summary scalars and measured latencies, never full request rows.
+
+    Complete rows are still persisted before accumulation. Endurance rows only
+    update counters and gates; exact measured latency samples remain available
+    for nearest-rank percentiles and the existing RouteProfile output contract.
+    This does not bound one request's events, telemetry, or serialized row.
+    """
+
+    route: ProfileRoute
+    answer: dict[str, list[float]] = field(
+        default_factory=lambda: {bucket: [] for bucket in LENGTH_BUCKETS}
+    )
+    first: dict[str, list[float]] = field(
+        default_factory=lambda: {bucket: [] for bucket in LENGTH_BUCKETS}
+    )
+    warmup_counts: dict[str, int] = field(
+        default_factory=lambda: {bucket: 0 for bucket in LENGTH_BUCKETS}
+    )
+    task_class: str = ""
+    measured_attempts: int = 0
+    measured_successes: int = 0
+    endurance_requests: int = 0
+    correctness_pass: bool = True
+    tool_safety_pass: bool = True
+    e2e_trace_pass: bool = True
+    actual_placement_matches: bool = True
+    placement_evidence_present: bool = True
+    telemetry_present: bool = True
+    endurance_pass: bool = True
+
+    def add(self, row: Mapping[str, Any]) -> None:
+        phase = row["phase"]
+        if phase == "warmup":
+            bucket = row["case"]["length"]
+            if bucket in self.warmup_counts:
+                self.warmup_counts[bucket] += 1
+            return
+        if phase not in {"measured", "endurance"}:
+            return
+        if phase == "measured":
+            if self.measured_attempts == 0:
+                self.task_class = row["case"]["task_class"]
+            self.measured_attempts += 1
+            bucket = row["case"]["length"]
+            if bucket in self.answer:
+                self.answer[bucket].append(row["answer_latency_s"])
+                if row["ttft_s"] is not None:
+                    self.first[bucket].append(row["ttft_s"])
+            self.measured_successes += bool(
+                row["e2e_complete"] and row["placement_matches"]
+                and row["evaluation"] and row["evaluation"]["success"]
+            )
+            self.correctness_pass = self.correctness_pass and bool(
+                row["evaluation"] and row["evaluation"]["quality_pass"]
+                and row["evaluation"]["success"]
+            )
+        else:
+            self.endurance_requests += 1
+            self.endurance_pass = self.endurance_pass and bool(
+                row["e2e_complete"] and row["error"] is None
+                and row["evaluation"] and row["evaluation"]["success"]
+                and row["evaluation"]["quality_pass"]
+                and row["evaluation"]["tool_safe"]
+            )
+        self.e2e_trace_pass = self.e2e_trace_pass and bool(row["e2e_complete"])
+        self.actual_placement_matches = self.actual_placement_matches and bool(row["placement_matches"])
+        self.placement_evidence_present = self.placement_evidence_present and bool(
+            row["result"] and row["result"]["placement_evidence"]
+        )
+        self.tool_safety_pass = self.tool_safety_pass and bool(
+            row["evaluation"] and row["evaluation"]["tool_safe"]
+        )
+        self.telemetry_present = self.telemetry_present and bool(
+            row["telemetry"]["raw_samples"] and not row["telemetry"]["errors"]
+        )
+
+    def finish(
+        self,
+        *,
+        cold_start_s: float | None,
+        sustained_seconds: float,
+        endurance_wall_seconds: float,
+        config: ProfileConfig,
+    ) -> RouteProfile:
+        answer = {bucket: tuple(values) for bucket, values in self.answer.items()}
+        first = {bucket: tuple(values) for bucket, values in self.first.items()}
+        sample_counts_ok = all(
+            len(answer[bucket]) >= 20
+            and len(first[bucket]) == len(answer[bucket])
+            and self.warmup_counts[bucket] >= 1 for bucket in LENGTH_BUCKETS
+        )
+        compliant = bool(
+            config.protocol_minimums and sample_counts_ok
+            and sustained_seconds >= 1800 and self.e2e_trace_pass
+            and self.actual_placement_matches and self.telemetry_present
+            and cold_start_s is not None
+        )
+        return RouteProfile(
+            route=self.route,
+            task_class=self.task_class,
+            measured_attempts=self.measured_attempts,
+            measured_successes=self.measured_successes,
+            answer_latency_s=answer,
+            ttft_s=first,
+            answer_p50_s={bucket: _nearest_rank(answer[bucket], .5) for bucket in LENGTH_BUCKETS},
+            answer_p95_s={bucket: _nearest_rank(answer[bucket], .95) for bucket in LENGTH_BUCKETS},
+            ttft_p50_s={bucket: _nearest_rank(first[bucket], .5) for bucket in LENGTH_BUCKETS},
+            ttft_p95_s={bucket: _nearest_rank(first[bucket], .95) for bucket in LENGTH_BUCKETS},
+            warmups_per_length=dict(self.warmup_counts),
+            sustained_seconds=sustained_seconds,
+            endurance_wall_seconds=endurance_wall_seconds,
+            endurance_requests=self.endurance_requests,
+            correctness_pass=self.correctness_pass,
+            tool_safety_pass=self.tool_safety_pass,
+            stability_pass=bool(
+                self.endurance_requests and sustained_seconds >= config.endurance_seconds
+                and self.endurance_pass
+            ),
+            e2e_trace_pass=self.e2e_trace_pass,
+            actual_placement_matches=self.actual_placement_matches,
+            placement_evidence_present=self.placement_evidence_present,
+            telemetry_present=self.telemetry_present,
+            cold_start_s=cold_start_s,
+            protocol_compliant=compliant,
+        )
+
+
 def _route_profile(
     route: ProfileRoute,
     samples: Sequence[Mapping[str, Any]],
@@ -438,74 +567,25 @@ def _route_profile(
     endurance_wall_seconds: float,
     config: ProfileConfig,
 ) -> RouteProfile:
-    measured = [row for row in samples if row["phase"] == "measured"]
-    warmups = [row for row in samples if row["phase"] == "warmup"]
-    endurance = [row for row in samples if row["phase"] == "endurance"]
-    by_length = {bucket: [row for row in measured if row["case"]["length"] == bucket]
-                 for bucket in LENGTH_BUCKETS}
-    answer = {bucket: tuple(row["answer_latency_s"] for row in rows)
-              for bucket, rows in by_length.items()}
-    first = {bucket: tuple(row["ttft_s"] for row in rows if row["ttft_s"] is not None)
-             for bucket, rows in by_length.items()}
-    answer_p50 = {bucket: _nearest_rank(answer[bucket], .5) for bucket in LENGTH_BUCKETS}
-    answer_p95 = {bucket: _nearest_rank(answer[bucket], .95) for bucket in LENGTH_BUCKETS}
-    first_p50 = {bucket: _nearest_rank(first[bucket], .5) for bucket in LENGTH_BUCKETS}
-    first_p95 = {bucket: _nearest_rank(first[bucket], .95) for bucket in LENGTH_BUCKETS}
-    warmup_counts = {bucket: sum(row["case"]["length"] == bucket for row in warmups)
-                     for bucket in LENGTH_BUCKETS}
-    success = sum(bool(row["e2e_complete"] and row["placement_matches"]
-                       and row["evaluation"] and row["evaluation"]["success"])
-                  for row in measured)
-    all_rows = [*measured, *endurance]
-    e2e = all(bool(row["e2e_complete"]) for row in all_rows)
-    placement_matches = all(bool(row["placement_matches"]) for row in all_rows)
-    placement_evidence = all(bool(row["result"] and
-                                  row["result"]["placement_evidence"])
-                             for row in all_rows)
-    correctness = all(bool(row["evaluation"] and row["evaluation"]["quality_pass"]
-                           and row["evaluation"]["success"])
-                      for row in measured)
-    tool_safety = all(bool(row["evaluation"] and row["evaluation"]["tool_safe"])
-                      for row in all_rows)
-    stable = bool(endurance) and sustained_seconds >= config.endurance_seconds and all(
-        row["e2e_complete"] and row["error"] is None
-        and row["evaluation"] and row["evaluation"]["success"]
-        and row["evaluation"]["quality_pass"]
-        and row["evaluation"]["tool_safe"] for row in endurance
-    )
-    telemetry_present = all(bool(row["telemetry"]["raw_samples"])
-                            and not row["telemetry"]["errors"] for row in all_rows)
-    sample_counts_ok = all(len(by_length[bucket]) >= 20 and
-                           len(first[bucket]) == len(by_length[bucket]) and
-                           warmup_counts[bucket] >= 1 for bucket in LENGTH_BUCKETS)
-    compliant = bool(config.protocol_minimums and sample_counts_ok and
-                     sustained_seconds >= 1800 and e2e and placement_matches
-                     and telemetry_present and cold_start_s is not None)
-    return RouteProfile(
-        route=route,
-        task_class=measured[0]["case"]["task_class"] if measured else "",
-        measured_attempts=len(measured),
-        measured_successes=success,
-        answer_latency_s=answer,
-        ttft_s=first,
-        answer_p50_s=answer_p50,
-        answer_p95_s=answer_p95,
-        ttft_p50_s=first_p50,
-        ttft_p95_s=first_p95,
-        warmups_per_length=warmup_counts,
+    """Compatibility entry point using the same streaming summary semantics."""
+    accumulator = _RouteProfileAccumulator(route)
+    for row in samples:
+        accumulator.add(row)
+    return accumulator.finish(
+        cold_start_s=cold_start_s,
         sustained_seconds=sustained_seconds,
         endurance_wall_seconds=endurance_wall_seconds,
-        endurance_requests=len(endurance),
-        correctness_pass=correctness,
-        tool_safety_pass=tool_safety,
-        stability_pass=stable,
-        e2e_trace_pass=e2e,
-        actual_placement_matches=placement_matches,
-        placement_evidence_present=placement_evidence,
-        telemetry_present=telemetry_present,
-        cold_start_s=cold_start_s,
-        protocol_compliant=compliant,
+        config=config,
     )
+
+
+def _sha256_file(path: Path) -> str:
+    """Hash closed raw bytes incrementally, including native CRLF line endings."""
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 async def run_profile(
@@ -586,7 +666,7 @@ async def run_profile(
             "scope": "complete_agent_request",
         })
         for route in routes:
-            route_samples: list[dict[str, Any]] = []
+            route_samples = _RouteProfileAccumulator(route)
             cold_start_s: float | None = None
             if prepare is not None:
                 began = time.perf_counter_ns()
@@ -618,12 +698,14 @@ async def run_profile(
                     case = cases[repetition % len(cases)]
                     row = await run_one(route, case, "warmup", repetition)
                     write_line(handle, row)
-                    route_samples.append(row)
+                    route_samples.add(row)
+                    del row
                 for repetition in range(config.measured_per_length):
                     case = cases[repetition % len(cases)]
                     row = await run_one(route, case, "measured", repetition)
                     write_line(handle, row)
-                    route_samples.append(row)
+                    route_samples.add(row)
+                    del row
             endurance_started = time.perf_counter()
             active_endurance_seconds = 0.0
             endurance_count = 0
@@ -631,16 +713,17 @@ async def run_profile(
                 case = all_cases[endurance_count % len(all_cases)]
                 row = await run_one(route, case, "endurance", endurance_count)
                 write_line(handle, row)
-                route_samples.append(row)
+                route_samples.add(row)
                 active_endurance_seconds += row["answer_latency_s"]
                 endurance_count += 1
+                del row
             endurance_wall_seconds = time.perf_counter() - endurance_started
-            route_profiles[route.route_id] = _route_profile(
-                route, route_samples, cold_start_s=cold_start_s,
+            route_profiles[route.route_id] = route_samples.finish(
+                cold_start_s=cold_start_s,
                 sustained_seconds=active_endurance_seconds,
                 endurance_wall_seconds=endurance_wall_seconds, config=config,
             )
-    raw_sha256 = hashlib.sha256(raw_path.read_bytes()).hexdigest()
+    raw_sha256 = _sha256_file(raw_path)
     summary = ProfileSummary(
         run_id=run_id,
         run_directory=run_directory,
