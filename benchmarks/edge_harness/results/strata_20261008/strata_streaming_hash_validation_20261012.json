@@ -1,0 +1,300 @@
+{
+  "startup": {
+    "receipt": {
+      "schema": "omni-strata-static-startup-phase-diagnostic-v1",
+      "no_model_execution": true,
+      "not_full_startup_measurement": true,
+      "launch_sha256": "6e72a0a70e30ec65b58a03b4cd69aa69c95fa3d7d8860f8fdf306d2b81ee52ca",
+      "cache_condition": "uncontrolled_existing_OS_file_cache",
+      "nested_timings_are_inclusive_not_additive": true,
+      "runtime_files": 42649,
+      "runtime_bytes": 2231676748,
+      "runtime_manifest_phase_scope": "measured in preserved v1: 429.47439320012927 s; not repeated in v2; full provenance below independently verifies bundle members",
+      "runtime_verifier_sha256_before": "273b81b115756988ef990d4a0ffde86104141787f1658bd0e90ec596f9753111",
+      "static_identity_matches": true,
+      "source_weights": {
+        "files": 2,
+        "bytes": 66423878624
+      },
+      "prepared_pack": {
+        "files": 9,
+        "bytes": 1495796923
+      },
+      "runtime_verifier_unchanged": true,
+      "launch_unchanged": true,
+      "status": "passed"
+    },
+    "receipt_sha256": "53a804c44b30bd9cad5ff73e8db6795e528f39f245d8b9b03a1ee9670e04db06",
+    "script_sha256": "2ad8fc491bfd24a6ad0f4213a2af0b71fba9b838b83f960799f44e8625c0b7a9",
+    "phases": [
+      {
+        "phase": "production_imports",
+        "status": "passed",
+        "wall_seconds": 13.616152100265026
+      },
+      {
+        "phase": "full_static_runtime_provenance",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_combined_runtime",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_base_source_pins",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_base_source_pins",
+        "status": "passed",
+        "wall_seconds": 0.0016597001813352108
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "passed",
+        "wall_seconds": 0.004116300027817488
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "passed",
+        "wall_seconds": 0.017152799759060144
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "passed",
+        "wall_seconds": 0.0027890997007489204
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "passed",
+        "wall_seconds": 0.0026499000377953053
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "passed",
+        "wall_seconds": 0.0030561001040041447
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "passed",
+        "wall_seconds": 0.00935050006955862
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_checkout_controls",
+        "status": "passed",
+        "wall_seconds": 0.009655000176280737
+      },
+      {
+        "phase": "nested_verify_failed_build_supplement",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_archived_ninja_graph",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_archived_ninja_graph",
+        "status": "passed",
+        "wall_seconds": 0.049711700063198805
+      },
+      {
+        "phase": "nested_verify_target_compile_inputs",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_target_compile_inputs",
+        "status": "passed",
+        "wall_seconds": 2.6995449997484684
+      },
+      {
+        "phase": "nested_verify_failed_build_supplement",
+        "status": "passed",
+        "wall_seconds": 2.8521581003442407
+      },
+      {
+        "phase": "nested_verify_strata_source_auxiliary",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_strata_source_auxiliary",
+        "status": "passed",
+        "wall_seconds": 0.052085500210523605
+      },
+      {
+        "phase": "nested_verify_pe_evidence",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_pe_evidence",
+        "status": "passed",
+        "wall_seconds": 0.037959800101816654
+      },
+      {
+        "phase": "nested_verify_abi_evidence",
+        "status": "started"
+      },
+      {
+        "phase": "nested_verify_abi_evidence",
+        "status": "passed",
+        "wall_seconds": 0.27638679975643754
+      },
+      {
+        "phase": "nested_verify_combined_runtime",
+        "status": "passed",
+        "wall_seconds": 511.4532278999686
+      },
+      {
+        "phase": "full_static_runtime_provenance",
+        "status": "passed",
+        "wall_seconds": 511.45604509999976
+      },
+      {
+        "phase": "source_weights_verify",
+        "status": "started"
+      },
+      {
+        "phase": "source_weights_verify",
+        "status": "passed",
+        "wall_seconds": 68.94259750004858
+      },
+      {
+        "phase": "prepared_pack_verify",
+        "status": "started"
+      },
+      {
+        "phase": "prepared_pack_verify",
+        "status": "passed",
+        "wall_seconds": 1.724624500144273
+      }
+    ]
+  },
+  "microbenchmark": {
+    "receipt": {
+      "scope": "read-only small-file hash microbenchmark, not startup or neural execution",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+      "source_sha256": "646b9326c494add4aede90b636987e41fb786421a87297d59585a5dcb8a4aa75",
+      "launch_sha256": "6e72a0a70e30ec65b58a03b4cd69aa69c95fa3d7d8860f8fdf306d2b81ee52ca",
+      "sample_files": 1024,
+      "sample_bytes": 5826332,
+      "sample_manifest_sha256": "79fe0eaefc26cf70300a376d578bb7dfac23905df8e6de238ef3f20493b073b0",
+      "cache_condition": "uncontrolled OS file cache; alternating order; no cold-cache claim",
+      "measurements": [
+        {
+          "round": 0,
+          "implementation": "production_8m",
+          "seconds": 5.121387300081551,
+          "hashes_matched": 1024
+        },
+        {
+          "round": 0,
+          "implementation": "candidate_64k",
+          "seconds": 0.09147860016673803,
+          "hashes_matched": 1024
+        },
+        {
+          "round": 1,
+          "implementation": "candidate_64k",
+          "seconds": 0.08262480003759265,
+          "hashes_matched": 1024
+        },
+        {
+          "round": 1,
+          "implementation": "production_8m",
+          "seconds": 2.7788970000110567,
+          "hashes_matched": 1024
+        }
+      ],
+      "source_unchanged": true,
+      "launch_unchanged": true,
+      "status": "passed"
+    },
+    "receipt_sha256": "574d383c604fd706a30d050c47aa3a897839d99351fef20cd436c97c0b99d9b4",
+    "script_sha256": "f672832cc07955cd4f09dec29421cc413672e339e80423eb9c373bec0f145000"
+  },
+  "integrated": {
+    "receipt": {
+      "scope": "actual full manifest and shard verification, no model execution or startup qualification",
+      "cache_condition": "uncontrolled OS file cache; not a paired cold-start speedup",
+      "source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py",
+      "source_sha256": "012edffbd83cccfed4627b330caf3553c51e013838108c3b801a503356d1dec6",
+      "launch_sha256": "6e72a0a70e30ec65b58a03b4cd69aa69c95fa3d7d8860f8fdf306d2b81ee52ca",
+      "phases": [
+        {
+          "phase": "runtime_manifest",
+          "wall_seconds": 306.62430439982563,
+          "files": 42649,
+          "bytes": 2231676748,
+          "manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219"
+        },
+        {
+          "phase": "source_weights",
+          "wall_seconds": 58.576744300313294,
+          "files": 2,
+          "bytes": 66423878624,
+          "manifest_sha256": "c75cc17f2ef45d2c4dc533477be50d903d74e7bf7c6676108cd752aa42f38098"
+        },
+        {
+          "phase": "prepared_pack",
+          "wall_seconds": 1.365695500280708,
+          "files": 9,
+          "bytes": 1495796923,
+          "manifest_sha256": "daf45467f0cf394b9bc3d26abe64802d9b773d39bf170455b943bd684896e900"
+        }
+      ],
+      "inputs_unchanged": true,
+      "status": "passed"
+    },
+    "receipt_sha256": "0e0974fbf29404cd40b323d31fef47d881b50a818bbd75aa9e9dea8807ca496a",
+    "script_sha256": "6067e1be018af5e854f851e7bef82740ecb2ed6dea7d5d491aefadef91520141"
+  },
+  "scope": "Windows native static verification only. No new neural execution, paired cold-start speedup or release qualification.",
+  "regression": {
+    "native_windows": {
+      "passed": 28,
+      "failed": 1,
+      "failure": "Existing symlink fixture setup: WinError 1314, no OS privilege; assertion not reached."
+    },
+    "wsl": {
+      "passed": 29,
+      "failed": 0,
+      "warning": "vLLM 0.28 / Omni 0.29 mismatch; no neural execution"
+    },
+    "ruff": "both modified Python files passed",
+    "origin_probe_failure": "Unqualified isolated python import selected installed Omni checkout and failed CUDA initialization. Integration diagnostic explicitly imports repository and asserts resolved module origin."
+  },
+  "prior_runtime_manifest_seconds": 429.47439320012927,
+  "limitations": [
+    "OS cache uncontrolled; serial before/after measurements are not paired cold runs.",
+    "Full provenance verifier remains unchanged and measured 511.456 seconds independently.",
+    "Model startup and Agent must be measured separately; phase sums are not E2E latency."
+  ]
+}

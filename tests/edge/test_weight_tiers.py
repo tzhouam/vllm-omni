@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Artifact corruption, shared admission and truthful observation boundaries."""
 
+import hashlib
 from dataclasses import FrozenInstanceError, replace
 
 import pytest
@@ -18,7 +19,22 @@ from vllm_omni.engine.weight_tiers import (
     WeightTierPlan,
     manifest_from_gguf,
     reserve_tier_plan,
+    sha256_file,
 )
+
+
+@pytest.mark.parametrize("size", [0, 1, 65535, 65536, 65537, 8 * 1024 * 1024 + 17])
+def test_streaming_hash_covers_chunk_boundaries_and_tail(tmp_path, size):
+    payload = (bytes(range(256)) * ((size + 255) // 256))[:size]
+    path = tmp_path / "weights.bin"
+    path.write_bytes(payload)
+    expected = hashlib.sha256(payload).hexdigest()
+    assert sha256_file(path) == expected
+    if size:
+        with path.open("r+b") as stream:
+            stream.seek(-1, 2)
+            stream.write(bytes([payload[-1] ^ 1]))
+        assert sha256_file(path) != expected
 
 
 def _artifacts(tmp_path):

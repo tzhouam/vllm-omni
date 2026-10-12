@@ -57,7 +57,9 @@ def sha256_file(path: Path | str) -> str:
     """Hash streaming chunks rather than loading a multi-gigabyte shard."""
     digest = hashlib.sha256()
     with Path(path).open("rb") as stream:
-        for chunk in iter(lambda: stream.read(8 * 1024 * 1024), b""):
+        # Avoid allocating an 8 MiB read buffer for every small runtime member.
+        # Continue through EOF so large shards receive the same full hash.
+        for chunk in iter(lambda: stream.read(64 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
 
