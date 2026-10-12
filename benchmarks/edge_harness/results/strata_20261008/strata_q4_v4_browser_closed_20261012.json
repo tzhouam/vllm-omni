@@ -1,0 +1,205 @@
+{
+  "schema": "omni-q4-v4-browser-closed-smoke-v1",
+  "execution_exit_code": 0,
+  "reconciliation_exit_code": 0,
+  "terminal": {
+    "exit_code": 0,
+    "elapsed_wall_s": 1084.280999999959,
+    "source_before_after_equal": true,
+    "source_files": 1570,
+    "console_sha256": "11a48b101993487a35f5b383878652aa3979a09f3dbf61642eaa18a8e99c52f6",
+    "qualified": false
+  },
+  "conditions": {
+    "driver_versions": {
+      "nvidia": "610.71"
+    },
+    "environment_fingerprint": "716fb2428586bc3f744079558587975b5c4366a62697a12f906a58b15dc95f59",
+    "hardware_id": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD | NVIDIA GeForce RTX 5090 Laptop GPU | RAM 67773509632 bytes",
+    "notes": "Fixed loopback fixtures; sampled RAM/VRAM/NVIDIA device power/heat. NVML GPU power is for the device as a whole, not model-only; system power unavailable. Verified native WDDM process local/nonlocal samples stay separate; startup peak coverage is unavailable. Code case checks only static output, with no code execution tool. Submission mode: model_selected_tools_v1.",
+    "os_version": "Windows-11-10.0.26200-SP0",
+    "power_condition": "AC",
+    "runtime_versions": {
+      "agent_runtime_identity_sha256": "157e2e3b8c610d99229e4aba069eb5300d6c51dfd3805e4650878c7b012b0975",
+      "llama_server_sha256": "",
+      "memory_fixture_evaluation_schema": "omni-agent-memory-fixture-provenance-v1",
+      "python": "3.12.10",
+      "strata_runtime_manifest_sha256": "11a64ca8fbf3badc080bb31a57b4b55b258f2ac407ccbe599c3808ddf4355ba3",
+      "vllm": "0.29.0+cu134",
+      "vllm_omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "vllm_omni_imported_source_sha256": "3502c9c1f51f1eeae01e265f8f35cf049a8297b2f67ce34b9635aa45ade5b02e",
+      "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "vllm_omni_source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge"
+    },
+    "suite_id": "edge-agent-fixed-local-fixtures-v1"
+  },
+  "batch_size": 1,
+  "concurrency": 1,
+  "requests": [
+    {
+      "case_id": "browser_text-en-short",
+      "phase": "warmup",
+      "answer_latency_s": 67.5341163,
+      "final_answer": "CEDAR-4827",
+      "reference": "CEDAR-4827",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-en-short",
+      "phase": "measured",
+      "answer_latency_s": 51.8051081,
+      "final_answer": "CEDAR-4827",
+      "reference": "CEDAR-4827",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-zh-short",
+      "phase": "measured",
+      "answer_latency_s": 52.9944874,
+      "final_answer": "LANSHAN-6153",
+      "reference": "LANSHAN-6153",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-en-medium",
+      "phase": "warmup",
+      "answer_latency_s": 52.3864824,
+      "final_answer": "CEDAR-4827",
+      "reference": "CEDAR-4827",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-en-medium",
+      "phase": "measured",
+      "answer_latency_s": 52.5396895,
+      "final_answer": "CEDAR-4827",
+      "reference": "CEDAR-4827",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-zh-medium",
+      "phase": "measured",
+      "answer_latency_s": 53.4829451,
+      "final_answer": "LANSHAN-6153",
+      "reference": "LANSHAN-6153",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-en-long",
+      "phase": "warmup",
+      "answer_latency_s": 65.5435843,
+      "final_answer": "CEDAR-4827",
+      "reference": "CEDAR-4827",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-en-long",
+      "phase": "measured",
+      "answer_latency_s": 68.6445135,
+      "final_answer": "CEDAR-4827",
+      "reference": "CEDAR-4827",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    },
+    {
+      "case_id": "browser_text-zh-long",
+      "phase": "measured",
+      "answer_latency_s": 67.4472666,
+      "final_answer": "LANSHAN-6153",
+      "reference": "LANSHAN-6153",
+      "tool_operations": [
+        "browser_open",
+        "browser_read"
+      ],
+      "model_calls": 2
+    }
+  ],
+  "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-browser-agent-smoke-20261012-v1\\profile\\native_9e6fdde341f24863bbcb4b970db6eeab\\raw\\20261012T080315Z_699c2c6c\\samples.jsonl",
+  "raw_sha256": "c20cddeb8afdff10f4f1e8264303abb7be1b6a401b3643b89db490e66f467292",
+  "full_review_sha256": "be094740108ace745c000e595083d9f08f5efe2590f0139403e1bbadd8fcd08e",
+  "index_sha256": "9b5ecad6c31ec1c4928b8764d35d91bca776c4052edfd64280dcedfb26a9332b",
+  "artifact_runtime_registration": "strata_q4_runtime_v4_registration_20261012.json",
+  "close": {
+    "controller_close_succeeded": true,
+    "snapshot_status": "captured",
+    "ledger": {
+      "capacities": {
+        "host_ram": 20734394368,
+        "ssd": 852791976076,
+        "vram": 19946643456,
+        "windows_commit": 57852145664
+      },
+      "owners": [],
+      "quarantined": [],
+      "reserved": {
+        "host_ram": 0,
+        "ssd": 0,
+        "vram": 0,
+        "windows_commit": 0
+      }
+    },
+    "joint_admission": {
+      "combined_demands": {},
+      "companion_owner": null,
+      "envelope_sha256": "f8cac1e6901980b5d8ca6ac6c3f84e72216e2f81707fb23769f579eb43038636",
+      "evidence_reference": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-browser-agent-input-20261012-v1\\browser-resource-envelope.json",
+      "generation": null,
+      "loading": false,
+      "model_owner": null,
+      "needs_drain": false,
+      "protected_free_floor": {},
+      "route_id": null,
+      "scope": "declared_incremental_joint_allowance_not_process_hard_cap",
+      "snapshot_monotonic_ns": [],
+      "startup_free": {}
+    },
+    "model_retirement_verified": true,
+    "observer_handles_closed": true,
+    "browser_bound_set_drain_verified": true,
+    "browser_known_bound_children_retired": true,
+    "browser_quarantine_required": false,
+    "browser_process_records": 9,
+    "browser_all_retained_records_signaled": true,
+    "browser_all_retained_handles_closed": true,
+    "browser_records_with_unavailable_last_counters": 9,
+    "all_descendants_covered": false
+  },
+  "qualification_created": false,
+  "limits": [
+    "Three warmups and six measured requests only; no qualified p95/endurance",
+    "Read-only local page fixture, not open-world browser capability",
+    "Bound process set only; unknown counters are not zero and not complete memory peaks",
+    "Physical SSD transfer attribution blocked by WPR permissions"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "checks": 3,
+  "scope": "Actual production function; missing None/empty path bypasses resolver and parser; nonempty path delegates unchanged through mocked collaborators",
+  "source_sha256": "16552de7d658d59d149842a33bedce759eb2c1e6243be7c8edf2b9673fe31fe9",
+  "model_executed": false
+}

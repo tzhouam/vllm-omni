@@ -1877,7 +1877,7 @@ def load_omni_transfer_config_for_model(model: str, config_path: str | None) -> 
     from vllm_omni.distributed.omni_connectors import load_omni_transfer_config
 
     try:
-        if config_path is None:
+        if config_path is None or config_path == "":
             return None
         from vllm_omni.config.stage_config import resolve_deploy_yaml
 
