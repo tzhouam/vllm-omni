@@ -1,5 +1,9 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-12 Q4 路线进展：同一 Omni Strata 后端的 **4 GiB 专家缓存文本生命周期已完成**，四条参考输出、实际取消及新实例恢复通过，最终账本归零；[原始闭合证据](../edge_harness/results/strata_20261008/strata_q4_four_gib_lifecycle_closed_20261012.json)。这不是 Agent 验收结果。
+
+公共 `benchmarks.edge_agent.native_profile` 已启动 Q4 **basic** 完整协议，固定 batch=1／concurrency=1、三档各 20 次正式测量和 30 分钟顺序运行，当前仍在首次请求前准备。配置位于本机 `C:/Users/zhout/w2/strata-omni/runs/q4-four-gib-agent-input-20261012-v1`，原始输出位于 `q4-four-gib-agent-basic-full-20261012-v1`；无默认或发布资格。Q2 浏览器的闭合功能结果与限制见下文，不能继承为 Q4 结果。
+
 2026-10-12 最新实跑与离线复核：Windows 原生 Strata ISTA Q2、4 GiB 专家 RAM 缓存的只读浏览器 Agent 完成 **149 条完整请求、298 次模型调用**，包括三档各 2 次预热、20 次测量及 83 条耐久请求（**1,804.499 秒实际请求时间**）。完整回答 p50/p95：短 **18.554/19.276 s**、中 **19.253/20.034 s**、长 **25.474/26.396 s**；校验与冷准备 **786.787 s**，不是纯加载时间，普通回答 10 秒目标未达到。
 
 **原运行保持 EXIT 1。** 收尾审计将 Edge helper 的 WinError 31 查询失败所产生的明确不可用观测误判为畸形存活记录。私有候选校验器保留该记录为 unavailable，不计为完整内存测量，并继续拒绝身份矛盾和假零值；4 项定向测试（含 15 种畸形反例）通过。使用候选校验器的完整离线审计 EXIT 0，原始结果未修改；28,855 个不可用观测投影被保留，该数字不是独立采样数。资源账本归零、已绑定进程退场及源码前后一致已核验。匹配后端配置的独立 4 GiB 路线取消／新实例恢复也已 EXIT 0；不能把它称为本次 Agent 运行内的取消测试。详见 [原始样本与审计摘要](../edge_harness/results/strata_20261008/agent_full_protocol_20261012_offline_review.json)。
