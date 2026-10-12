@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-12 新版 Q4 基础 Agent smoke 已闭合：**9/9 请求参考匹配**（3 预热＋6 测量），首次校验加准备 **195.562 s**。修复后的公共入口实际取得关闭资源快照：四池预留归零、无 owner／隔离项、无驻留路线；不再是 `unavailable_not_exposed`。[闭合样本与哈希](../edge_harness/results/strata_20261008/strata_q4_v4_basic_agent_closed_20261012.json)。四类总作业继续运行，整轮源码前后核对尚未完成；这不是三档各 20 次／30 分钟性能资格，也不是与旧缓存条件配对的启动加速结论。
+
 2026-10-12 e39-v4 Q4 注册与独立 4 GiB 缓存配置、Agent 配置准备均已 **EXIT 0**。[注册回执与启动范围](../edge_harness/results/strata_20261008/strata_q4_runtime_v4_registration_20261012.json)。新版公共 Agent 四类 smoke 已启动：基础回答、带来源的记忆召回、代码结果推理（无执行工具）、约束推理；固定 batch=1／单请求，记录源码前后哈希与绑定进程资源观测。当前结果待完成，不授予性能或发布资格；4 GiB 配置仍不替代 24／32／40 GiB 对照。
 
 2026-10-12 新运行时与关闭检查更新：e39-v4 已完成组装及独立完整静态核验，EXIT 0，耗时 **86.817 s**，身份 `ca41a2ff7ab1be7009118c97caf2eb33db564507c34bb02f05569cbd2e2017ff`；这不是模型加载或推理性能。普通 Agent 路线现与浏览器联合路线一样绑定现有共享账本的最终关闭检查，并暴露资源快照；残留后端不能通过关闭检查。原生 Windows **133 项回归通过**，Ruff 通过。[验证记录](../edge_harness/results/strata_20261008/strata_runtime_v4_agent_close_20261012.json)。新 Q4 运行时注册正在进行，尚无新版本神经执行结论；旧 Agent 运行的资源证据缺口不会被本次代码修复追溯补齐。

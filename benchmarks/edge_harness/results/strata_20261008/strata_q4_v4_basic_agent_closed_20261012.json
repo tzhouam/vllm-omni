@@ -1,0 +1,301 @@
+{
+  "schema": "omni-q4-v4-basic-agent-closed-smoke-v1",
+  "scope": "Completed basic block only; four-class process remains active, no full-run source-after comparison yet",
+  "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-agent-multiclass-smoke-20261012-v1\\profile\\native_35b55e07f1ed48d6b5cba7ec4fd59c04\\raw\\20261012T070807Z_6c35d106\\samples.jsonl",
+  "raw_sha256": "cbeb998cdb27fcbb71e6a59fe4e6b699aec08ecc3f9b4cc4374e283729ad81e4",
+  "raw_size_bytes": 8143006,
+  "requests": [
+    {
+      "phase": "warmup",
+      "case_id": "basic_arithmetic-en-short",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 24.6843569,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "measured",
+      "case_id": "basic_arithmetic-en-short",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 23.3630703,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "measured",
+      "case_id": "basic_arithmetic-zh-short",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 23.2674722,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "warmup",
+      "case_id": "basic_arithmetic-en-medium",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 23.8707966,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "measured",
+      "case_id": "basic_arithmetic-en-medium",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 23.1880361,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "measured",
+      "case_id": "basic_arithmetic-zh-medium",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 23.7915669,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "warmup",
+      "case_id": "basic_arithmetic-en-long",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 24.6126156,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "measured",
+      "case_id": "basic_arithmetic-en-long",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 23.9694207,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    },
+    {
+      "phase": "measured",
+      "case_id": "basic_arithmetic-zh-long",
+      "reference": "22",
+      "final_answer": "22",
+      "reference_matches": true,
+      "answer_latency_s": 24.5213026,
+      "e2e_complete": true,
+      "placement_matches": true,
+      "evaluation": {
+        "details": {
+          "answer_exact": true,
+          "code_tool_available": null,
+          "quality_scope": "fixed_self_contained_task",
+          "required_tools_seen": true,
+          "source_verified": true
+        },
+        "quality_pass": true,
+        "quality_score": 1.0,
+        "success": true,
+        "tool_safe": true
+      },
+      "error": null
+    }
+  ],
+  "request_count": 9,
+  "preparation": {
+    "cold_start_s": 195.5616167,
+    "prepare_wall_s": 195.5616167
+  },
+  "controller_close": {
+    "controller_close_succeeded": true,
+    "preparation_sequence": 1,
+    "resource_snapshot": {
+      "ledger": {
+        "capacities": {
+          "host_ram": 20609040384,
+          "ssd": 850869325964,
+          "vram": 19701866496,
+          "windows_commit": 54133420032
+        },
+        "owners": [],
+        "quarantined": [],
+        "reserved": {
+          "host_ram": 0,
+          "ssd": 0,
+          "vram": 0,
+          "windows_commit": 0
+        }
+      },
+      "resident_free_floor": {},
+      "resident_route": null
+    },
+    "route_id": "q4-four-gib-agent-experimental",
+    "schema": "omni-native-profile-controller-close-v1",
+    "scope": "reported_post_close_resources_not_independent_release_qualification",
+    "snapshot_error": null,
+    "snapshot_max_encoded_bytes": 1048576,
+    "snapshot_status": "captured"
+  },
+  "process_close_flags": {
+    "schema": "omni-windows-bound-process-memory-v1",
+    "coverage": {
+      "agent_identity_verified": true,
+      "all_descendants_covered": false,
+      "all_startup_peaks_covered": false,
+      "binding_registry_overflow": false,
+      "browser_launch_attempted": false,
+      "browser_root_identity_verified": false,
+      "cdp_checkpoint_count": 0,
+      "cdp_membership_is_not_ancestry": true,
+      "cdp_process_type_max_utf8_bytes": 128,
+      "cdp_process_type_scope": "observed_owned_CDP_label_not_verified_process_function",
+      "model_identity_verified": true,
+      "node_spawn_identity_verified": false,
+      "node_start_attempted": false,
+      "owner_checkpoint_queue_limit": 16,
+      "owner_checkpoint_queue_overflow": false,
+      "scope": "exact_retained_handle_bound_set_only",
+      "short_lived_processes_may_be_unobserved": true,
+      "unadopted_handle_close_failures": 0,
+      "unknown_count": 0,
+      "unknown_details": [],
+      "unknown_details_truncated": false,
+      "unrecognized_cdp_type_binding_count": 0
+    },
+    "agent_alive_expected": true,
+    "agent_alive_observed": true,
+    "all_descendants_retired": false,
+    "attribution_close_verified": true,
+    "model_retirement_verified": true,
+    "observer_handles_closed": true
+  },
+  "release_qualified": false,
+  "protocol_scope": "Smoke: three warmups and six measured requests, not 20 per length or endurance",
+  "limits": [
+    "Fixed arithmetic only",
+    "Process coverage is the bound cohort, not unobserved descendants",
+    "195.6-second preparation includes integrity checks; OS cache not paired to old measurements",
+    "Physical SSD bytes remain unknown"
+  ]
+}
