@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-12 Q4 Agent **三档各 20 条正式测量已完成**：[原始前缀哈希与全部 60 条结果](../edge_harness/results/strata_20261008/agent_q4_basic_measurements_partial_20261012.json)。固定中英文基础算术任务，batch=1／单请求，60 条答案与参考逐条相等，生产记录的整链／放置检查均为 true，无失败；不代表广泛 Agent 质量或独立全算子放置证明。完整回答 nearest-rank p50/p95：短 **18.690/20.446 s**、中 **19.855/20.295 s**、长 **21.799/22.833 s**。首次校验加准备 **818.489 s**。耐久运行仍在继续，资源关闭尚未核验，默认／发布资格仍为 false；下方“首次请求前准备”为历史状态。
+
 2026-10-12 Q4 路线进展：同一 Omni Strata 后端的 **4 GiB 专家缓存文本生命周期已完成**，四条参考输出、实际取消及新实例恢复通过，最终账本归零；[原始闭合证据](../edge_harness/results/strata_20261008/strata_q4_four_gib_lifecycle_closed_20261012.json)。这不是 Agent 验收结果。
 
 公共 `benchmarks.edge_agent.native_profile` 已启动 Q4 **basic** 完整协议，固定 batch=1／concurrency=1、三档各 20 次正式测量和 30 分钟顺序运行，当前仍在首次请求前准备。配置位于本机 `C:/Users/zhout/w2/strata-omni/runs/q4-four-gib-agent-input-20261012-v1`，原始输出位于 `q4-four-gib-agent-basic-full-20261012-v1`；无默认或发布资格。Q2 浏览器的闭合功能结果与限制见下文，不能继承为 Q4 结果。

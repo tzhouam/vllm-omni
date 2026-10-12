@@ -1,0 +1,546 @@
+{
+  "schema": "omni-q4-agent-measurement-partial-v1",
+  "captured_utc": "2026-10-12T06:08:13.208995+00:00",
+  "scope": "fixed bilingual basic arithmetic Agent fixture; measurement prefix only, live run not closed",
+  "batch_size": 1,
+  "concurrency": 1,
+  "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-four-gib-agent-basic-full-20261012-v1\\native_d8859ef90d5e4667921b71e8f9808287\\raw\\20261012T053123Z_f0d6a4c0\\samples.jsonl",
+  "raw_prefix_bytes": 41499114,
+  "raw_prefix_sha256": "b6f6ab47cd655bcebb10579249957e144163bf25d9903202cb29b498f5f60545",
+  "config_sha256": "df10c9890a753b707bf080d1f6e846d1a7f1bf170b64712374e5b6ee1052a441",
+  "counts": {
+    "warmup": 6,
+    "measured": 60
+  },
+  "conditions": {
+    "driver_versions": {
+      "nvidia": "610.71"
+    },
+    "environment_fingerprint": "3fdd0ba91db0d76542d45b1bb46aa9ee391d2dec57afdef2f1d4ba63036d9dd2",
+    "hardware_id": "AMD64 Family 26 Model 36 Stepping 0, AuthenticAMD | NVIDIA GeForce RTX 5090 Laptop GPU | RAM 67773509632 bytes",
+    "notes": "Fixed loopback fixtures; sampled RAM/VRAM/NVIDIA device power/heat. NVML GPU power is for the device as a whole, not model-only; system power unavailable. Verified native WDDM process local/nonlocal samples stay separate; startup peak coverage is unavailable. Code case checks only static output, with no code execution tool. Submission mode: model_selected_tools_v1.",
+    "os_version": "Windows-11-10.0.26200-SP0",
+    "power_condition": "AC",
+    "runtime_versions": {
+      "agent_runtime_identity_sha256": "bc0591b68076e4276f39009e5e1b28b340e99ff0d902257451a3543eb1e43d86",
+      "llama_server_sha256": "",
+      "memory_fixture_evaluation_schema": "omni-agent-memory-fixture-provenance-v1",
+      "python": "3.12.10",
+      "strata_runtime_manifest_sha256": "35203d6ea8126826db8aa403687341b8acfe7ebe553da67011eb5dff3510d219",
+      "vllm": "0.29.0+cu134",
+      "vllm_omni": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "vllm_omni_imported_source_sha256": "6340002918c16855963564fbe02bdb6cfad7851e5fd2a5667f14d514f8d44ff0",
+      "vllm_omni_installed_distribution": "0.29.0rc2.dev238+g189f7f0df.d20261005",
+      "vllm_omni_source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge"
+    },
+    "suite_id": "edge-agent-fixed-local-fixtures-v1"
+  },
+  "preparation_wall_s": 818.4888918,
+  "percentile_method": "nearest rank",
+  "stats": {
+    "short": {
+      "n": 20,
+      "p50_s": 18.6895214,
+      "p95_s": 20.4459868
+    },
+    "medium": {
+      "n": 20,
+      "p50_s": 19.8552008,
+      "p95_s": 20.2947071
+    },
+    "long": {
+      "n": 20,
+      "p50_s": 21.7986714,
+      "p95_s": 22.8325605
+    }
+  },
+  "measured_requests": [
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 0,
+      "answer_latency_s": 20.4459868,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 1,
+      "answer_latency_s": 20.4919238,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 2,
+      "answer_latency_s": 19.7244942,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 3,
+      "answer_latency_s": 19.9505232,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 4,
+      "answer_latency_s": 19.3156159,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 5,
+      "answer_latency_s": 19.316262,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 6,
+      "answer_latency_s": 18.4912918,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 7,
+      "answer_latency_s": 18.7650496,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 8,
+      "answer_latency_s": 18.4316764,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 9,
+      "answer_latency_s": 18.9632055,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 10,
+      "answer_latency_s": 18.4823205,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 11,
+      "answer_latency_s": 18.8500452,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 12,
+      "answer_latency_s": 18.6628551,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 13,
+      "answer_latency_s": 18.6864908,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 14,
+      "answer_latency_s": 18.3389051,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 15,
+      "answer_latency_s": 18.6895214,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 16,
+      "answer_latency_s": 18.3464416,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 17,
+      "answer_latency_s": 18.6762079,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-short",
+      "length": "short",
+      "repetition": 18,
+      "answer_latency_s": 18.2524953,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-short",
+      "length": "short",
+      "repetition": 19,
+      "answer_latency_s": 18.7645059,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 0,
+      "answer_latency_s": 19.7755807,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 1,
+      "answer_latency_s": 20.298716,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 2,
+      "answer_latency_s": 19.8552008,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 3,
+      "answer_latency_s": 20.2947071,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 4,
+      "answer_latency_s": 19.6908767,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 5,
+      "answer_latency_s": 20.2902559,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 6,
+      "answer_latency_s": 19.8443026,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 7,
+      "answer_latency_s": 20.2566771,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 8,
+      "answer_latency_s": 19.6835695,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 9,
+      "answer_latency_s": 20.2764462,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 10,
+      "answer_latency_s": 19.8412185,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 11,
+      "answer_latency_s": 20.2708494,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 12,
+      "answer_latency_s": 19.7144584,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 13,
+      "answer_latency_s": 20.2214565,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 14,
+      "answer_latency_s": 19.7946717,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 15,
+      "answer_latency_s": 20.2536338,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 16,
+      "answer_latency_s": 19.5841591,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 17,
+      "answer_latency_s": 20.2459098,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-medium",
+      "length": "medium",
+      "repetition": 18,
+      "answer_latency_s": 19.7630418,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-medium",
+      "length": "medium",
+      "repetition": 19,
+      "answer_latency_s": 20.2425745,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 0,
+      "answer_latency_s": 21.3817504,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 1,
+      "answer_latency_s": 22.3079316,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 2,
+      "answer_latency_s": 21.1812394,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 3,
+      "answer_latency_s": 22.3671274,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 4,
+      "answer_latency_s": 21.403387,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 5,
+      "answer_latency_s": 22.324115,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 6,
+      "answer_latency_s": 21.2808748,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 7,
+      "answer_latency_s": 22.9342137,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 8,
+      "answer_latency_s": 21.3921967,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 9,
+      "answer_latency_s": 22.8325605,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 10,
+      "answer_latency_s": 21.4289404,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 11,
+      "answer_latency_s": 22.4002294,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 12,
+      "answer_latency_s": 21.3167188,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 13,
+      "answer_latency_s": 22.3994044,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 14,
+      "answer_latency_s": 21.7986714,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 15,
+      "answer_latency_s": 22.6696654,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 16,
+      "answer_latency_s": 21.3702443,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 17,
+      "answer_latency_s": 22.5991358,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-en-long",
+      "length": "long",
+      "repetition": 18,
+      "answer_latency_s": 21.4179255,
+      "final_answer": "22",
+      "expected": "22"
+    },
+    {
+      "case_id": "basic_arithmetic-zh-long",
+      "length": "long",
+      "repetition": 19,
+      "answer_latency_s": 22.4195383,
+      "final_answer": "22",
+      "expected": "22"
+    }
+  ],
+  "all_exact_outputs_checked": true,
+  "producer_e2e_and_placement_checks_all_true": true,
+  "independent_whole_model_placement_verified": false,
+  "endurance_complete": false,
+  "run_closed": false,
+  "default_or_release_qualified": false,
+  "physical_ssd_read_bytes": null
+}
