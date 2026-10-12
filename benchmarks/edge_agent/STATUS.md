@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-12 Q2 e39-v4 同题对照已闭合：[原始输出、哈希及对照](../edge_harness/results/strata_20261008/strata_q2_v4_reasoning_closed_20261012.json)。正式英文三档 **3/3** 正确，正式中文三档 **0/3**，分别回答 12／12／10，参考均为 11；另三条英文预热正确，总计 **6/9**。生产执行 EXIT 0 表示采集完成，独立质量复核 EXIT 1；不能替代 Q4 原有 0/9 失败或获得复杂推理默认资格。六条正式完整耗时为 8.206／8.624／8.436／8.846／9.886／10.642 s，样本不足以授予 p95；首次校验加准备 180.102 s，不是纯模型加载。1,570 个源码文件前后一致，关闭账本为空、绑定模型退场及观察句柄关闭已核对。对照涉及不同 checkpoint／量化谱系，不能把差异单独归因于位宽。下方启动记录为历史快照。
+
 2026-10-12 17:09 更新：Q2 e39-v4 完整运行时／产物注册及独立 4 GiB 缓存、Agent 配置生成均 EXIT 0；[真实中英文约束推理 smoke 已启动](../edge_harness/results/strata_20261008/strata_q2_v4_reasoning_launch_20261012.json)，结果待完成。对照沿用 Q4 失败题与 Agent 契约，不因两条路线产物不同而推断量化因果；尚无新默认资格。
 
 当前 Q4 图像接入另有[已实测的元数据拒绝](../edge_harness/results/strata_20261008/strata_q4_v4_image_readiness_20261012.json)：新版文本 launch 为 13,384,806 字节，超过旧图像注册器 8 MiB 上限。源码还保留旧 observation_runtime 前提，而 e39-v4 使用 execution_observation。需连同图像 bootstrap／后端身份校验一起适配，不能仅放大解析上限或继承旧 Q2 图像资格。该检查未加载图像模型。

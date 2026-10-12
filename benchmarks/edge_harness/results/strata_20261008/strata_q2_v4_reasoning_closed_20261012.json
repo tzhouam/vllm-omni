@@ -1,0 +1,208 @@
+{
+  "schema": "omni-agent-closed-block-reconciliation-v1",
+  "whole_run_terminal": {
+    "exit_code": 0,
+    "elapsed_wall_s": 346.8279999997467,
+    "source_before_after_equal": true,
+    "source_files": 1570,
+    "console_sha256": "546179b0297f6fef978cd081660f3971c82f48ac9494f6a4c3b407dbe36f0b70",
+    "qualified": false
+  },
+  "index_sha256_at_review": "3d4de5a2aab192379c49dbab1d75430c1ea63a3871ffef3a8d8b28a5c5b3fc2b",
+  "memory_validator_sha256": "796b7db9f82563e7d8d065ecd282cc0ccd9e6fb2afc29eacd09c2c61a22e749f",
+  "blocks": [
+    {
+      "task_class": "long_reasoning",
+      "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\ista-q2-v4-reasoning-comparison-smoke-20261012-v1\\profile\\native_effc3cf3172e45f1919b739608eff85a\\raw\\20261012T090507Z_09a3ba4d\\samples.jsonl",
+      "raw_sha256": "25cb5ae8d26a41ddaea131c7a23bea168248ee30a569f479b7c225d659581225",
+      "request_count": 9,
+      "preparation_s": 180.1018834,
+      "requests": [
+        {
+          "case_id": "reasoning_constraints-en-short",
+          "phase": "warmup",
+          "reference": "11",
+          "final_answer": "11",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 9.0595805,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-short",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "11",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 8.2055885,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-zh-short",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "12",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 8.6238219,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-medium",
+          "phase": "warmup",
+          "reference": "11",
+          "final_answer": "11",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 8.8871132,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-medium",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "11",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 8.4355855,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-zh-medium",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "12",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 8.8457207,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-long",
+          "phase": "warmup",
+          "reference": "11",
+          "final_answer": "11",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 9.7401076,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-long",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "11",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 9.8859759,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-zh-long",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 10.6423048,
+          "error": null
+        }
+      ],
+      "controller_close": {
+        "controller_close_succeeded": true,
+        "preparation_sequence": 1,
+        "resource_snapshot": {
+          "ledger": {
+            "capacities": {
+              "host_ram": 16273760256,
+              "ssd": 807138902171,
+              "vram": 19804135424,
+              "windows_commit": 50167037952
+            },
+            "owners": [],
+            "quarantined": [],
+            "reserved": {
+              "host_ram": 0,
+              "ssd": 0,
+              "vram": 0,
+              "windows_commit": 0
+            }
+          },
+          "resident_free_floor": {},
+          "resident_route": null
+        },
+        "route_id": "ista-q2-four-gib-agent-experimental",
+        "schema": "omni-native-profile-controller-close-v1",
+        "scope": "reported_post_close_resources_not_independent_release_qualification",
+        "snapshot_error": null,
+        "snapshot_max_encoded_bytes": 1048576,
+        "snapshot_status": "captured"
+      },
+      "process_close": {
+        "coverage": {
+          "agent_identity_verified": true,
+          "all_descendants_covered": false,
+          "all_startup_peaks_covered": false,
+          "binding_registry_overflow": false,
+          "browser_launch_attempted": false,
+          "browser_root_identity_verified": false,
+          "cdp_checkpoint_count": 0,
+          "cdp_membership_is_not_ancestry": true,
+          "cdp_process_type_max_utf8_bytes": 128,
+          "cdp_process_type_scope": "observed_owned_CDP_label_not_verified_process_function",
+          "model_identity_verified": true,
+          "node_spawn_identity_verified": false,
+          "node_start_attempted": false,
+          "owner_checkpoint_queue_limit": 16,
+          "owner_checkpoint_queue_overflow": false,
+          "scope": "exact_retained_handle_bound_set_only",
+          "short_lived_processes_may_be_unobserved": true,
+          "unadopted_handle_close_failures": 0,
+          "unknown_count": 0,
+          "unknown_details": [],
+          "unknown_details_truncated": false,
+          "unrecognized_cdp_type_binding_count": 0
+        },
+        "model_retirement_verified": true,
+        "observer_handles_closed": true,
+        "attribution_close_verified": true,
+        "all_descendants_retired": false
+      },
+      "release_qualified": false
+    }
+  ],
+  "issues": [
+    "request gate failed: reasoning_constraints-zh-short",
+    "request gate failed: reasoning_constraints-zh-medium",
+    "request gate failed: reasoning_constraints-zh-long"
+  ],
+  "qualification_created": false,
+  "scope": "Closed fixed-fixture smoke blocks; recorded placement gates, not independent full-operator proof; memory check reuses frozen production metadata validator; no reopened-memory persistence or broad quality claim",
+  "paired_comparison": {
+    "q2_total_correct": 6,
+    "q2_total_requests": 9,
+    "q2_measured_correct": 3,
+    "q2_measured_requests": 6,
+    "q2_measured_english_correct": 3,
+    "q2_measured_chinese_correct": 0,
+    "q4_total_correct": 0,
+    "q4_total_requests": 9,
+    "q4_measured_correct": 0,
+    "q4_measured_requests": 6,
+    "reference": "11",
+    "algebra": "(B+3)+B+2B+(2B-4)+(3B-1)=9B-2=97",
+    "q4_evidence": "strata_q4_v4_multiclass_closed_20261012.json",
+    "scope": "Same fixed tasks and current Agent contract, distinct checkpoint/quantization lineages. No attribution to bitwidth alone. Warmup and measured counts separated. No p95 or default qualification."
+  },
+  "review_exit_code": 1
+}
