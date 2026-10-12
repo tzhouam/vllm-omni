@@ -1,0 +1,130 @@
+{
+  "scope": "closed output, inventory, producer source maps and retained-process receipt review; not full placement or performance qualification",
+  "lifecycle_exit_code": 0,
+  "observer_exit_code": 0,
+  "exit_evidence": "resumed exec sessions 85857 and 85120",
+  "receipt_sha256": "9d4ce06db977ae250d50d7efa3a020adb4528bd251ff579c4d4afb329e60b81c",
+  "observer_receipt_sha256": "216399df631e16abdd28dc70eb77cc0a050fdd0c4e50a0e2ca2af0294247acf3",
+  "raw_files_verified": 36,
+  "requests": [
+    {
+      "request_id": "strata-0f1d3c3831aa4075b5f15d21a255be4a",
+      "output_text": "READY",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+      "full_response_s": 11.838322000112385
+    },
+    {
+      "request_id": "strata-4ae232e616ad4d68b3e9b6337e62e2a0",
+      "output_text": "42",
+      "output_sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+      "full_response_s": 17.427893299609423
+    },
+    {
+      "request_id": "strata-aa00b815d1fc4ff68eb1cf65ee390647",
+      "output_text": "{\"final\":\"edge ready\"}",
+      "output_sha256": "22cdd6496b02d06a4cd71fa0b3e85fbda10206b7b268ded96746e6b7a10cfbe4",
+      "full_response_s": 16.40565609978512
+    },
+    {
+      "request_id": "strata-92b6d0d7ba8446b3b1823bfe9558050d",
+      "output_text": "READY",
+      "output_sha256": "c2e3ac47f4a325469c1a2d5f117e463ec943c721986d5d9f09ac4540b7d80526",
+      "full_response_s": 10.660545999649912
+    }
+  ],
+  "source_maps_equal": true,
+  "ledger_empty": true,
+  "initial_start_s": 1637.1018949998543,
+  "recovery_start_s": 929.923249699641,
+  "observer": {
+    "roles": {
+      "initial": {
+        "role": "initial",
+        "status": "exact_retained_process_signaled",
+        "plan_sha256": "258905b77b55627cc58a785e19f45becdd88b82b4433f97e4e0ea62552ec3f57",
+        "owner": {
+          "pid": 4400,
+          "creation_filetime_100ns": 134362553242349728,
+          "worker_generation": "22b698a346014d7f81cd05dc4d14057f"
+        },
+        "rows": 315,
+        "observed_rows": 315,
+        "bytes_written": 323664,
+        "read_errors": 0,
+        "peak_working_set_bytes": 8321933312,
+        "peak_private_commit_bytes": 24741511168,
+        "retained_owner_terminal_or_current": {
+          "pid": 4400,
+          "creation_filetime_100ns": "134362553242349728",
+          "generation": "22b698a346014d7f81cd05dc4d14057f",
+          "signaled": true,
+          "exit_code": 15,
+          "same_retained_handle": true
+        },
+        "query_handle_closed": true,
+        "writer_closed": true,
+        "captured_unix": 1791781741.3984108,
+        "plan_stable_after_observation": true,
+        "raw_file": {
+          "file": "initial-samples.jsonl",
+          "size_bytes": 323664,
+          "sha256": "11c2e445ec6fbc3e51f9c11bbcf6e971d65029c0eee42a38991bdc6dc2debd7c"
+        }
+      },
+      "recovery": {
+        "role": "recovery",
+        "status": "exact_retained_process_signaled",
+        "plan_sha256": "2561464c2fdc2fc2caf31c837440534a38b49bb2a91234ad415f44e21a44a375",
+        "owner": {
+          "pid": 32336,
+          "creation_filetime_100ns": 134362563338338929,
+          "worker_generation": "92bed4fb3c374e1fad553ad87b9b07e5"
+        },
+        "rows": 46,
+        "observed_rows": 46,
+        "bytes_written": 47312,
+        "read_errors": 0,
+        "peak_working_set_bytes": 7826644992,
+        "peak_private_commit_bytes": 24270700544,
+        "retained_owner_terminal_or_current": {
+          "pid": 32336,
+          "creation_filetime_100ns": "134362563338338929",
+          "generation": "92bed4fb3c374e1fad553ad87b9b07e5",
+          "signaled": true,
+          "exit_code": 15,
+          "same_retained_handle": true
+        },
+        "query_handle_closed": true,
+        "writer_closed": true,
+        "captured_unix": 1791782750.806657,
+        "plan_stable_after_observation": true,
+        "raw_file": {
+          "file": "recovery-samples.jsonl",
+          "size_bytes": 47312,
+          "sha256": "c5433739fba4d3b87ddbcee4965e7a2bc9b84b4de84897d1377f7adaae7ecbc5"
+        }
+      }
+    },
+    "lifecycle_terminal_receipt_observed": false,
+    "lifecycle_launch_binding_verified": true,
+    "failure": null,
+    "schema": "omni-private-lifecycle-retained-process-memory-sidecar-v1",
+    "launch_sha256": "b5f91e3b40fae26d8e1d8c161665113668dc93189f77e60dfda06982ebcf1588",
+    "launch_stable": true,
+    "observer_source_sha256": "de58a6c07ee62775b94bfb5becca2962f6e9277d7253f1c71009a6e757faa143",
+    "observer_source_stable": true,
+    "sidecar_source_sha256": "386818cb9594491b3ef0a3a5367aed4bbd8e782d7f3a6b53a4f53db19e0422ee",
+    "sidecar_source_stable": true,
+    "max_seconds": 7200,
+    "max_rows_per_role": 28801,
+    "interval_s": 0.25,
+    "scope": "each_exact_native_process_lifetime_through_samples_including_earlier_loading_or_requests_before_attach",
+    "isolated_loading_peak_verified": false,
+    "aggregate_RAM_or_memory_hardcap_verified": false,
+    "gpu_loading_peak_bytes": null,
+    "physical_ssd_model_bytes": null,
+    "model_or_Agent_qualification": false,
+    "individual_process_memory_observed": true
+  },
+  "default_eligible": false
+}
