@@ -1,0 +1,539 @@
+{
+  "schema": "omni-agent-closed-block-reconciliation-v1",
+  "whole_run_terminal": null,
+  "index_sha256_at_review": "fb3d386375739a9c9e4b38fb8e152a6340e1732b6194020c21333622ef6e03be",
+  "memory_validator_sha256": "796b7db9f82563e7d8d065ecd282cc0ccd9e6fb2afc29eacd09c2c61a22e749f",
+  "blocks": [
+    {
+      "task_class": "basic",
+      "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-agent-multiclass-smoke-20261012-v1\\profile\\native_35b55e07f1ed48d6b5cba7ec4fd59c04\\raw\\20261012T070807Z_6c35d106\\samples.jsonl",
+      "raw_sha256": "cbeb998cdb27fcbb71e6a59fe4e6b699aec08ecc3f9b4cc4374e283729ad81e4",
+      "request_count": 9,
+      "preparation_s": 195.5616167,
+      "requests": [
+        {
+          "case_id": "basic_arithmetic-en-short",
+          "phase": "warmup",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 24.6843569,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-en-short",
+          "phase": "measured",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.3630703,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-zh-short",
+          "phase": "measured",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.2674722,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-en-medium",
+          "phase": "warmup",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.8707966,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-en-medium",
+          "phase": "measured",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.1880361,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-zh-medium",
+          "phase": "measured",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.7915669,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-en-long",
+          "phase": "warmup",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 24.6126156,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-en-long",
+          "phase": "measured",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.9694207,
+          "error": null
+        },
+        {
+          "case_id": "basic_arithmetic-zh-long",
+          "phase": "measured",
+          "reference": "22",
+          "final_answer": "22",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 24.5213026,
+          "error": null
+        }
+      ],
+      "controller_close": {
+        "controller_close_succeeded": true,
+        "preparation_sequence": 1,
+        "resource_snapshot": {
+          "ledger": {
+            "capacities": {
+              "host_ram": 20609040384,
+              "ssd": 850869325964,
+              "vram": 19701866496,
+              "windows_commit": 54133420032
+            },
+            "owners": [],
+            "quarantined": [],
+            "reserved": {
+              "host_ram": 0,
+              "ssd": 0,
+              "vram": 0,
+              "windows_commit": 0
+            }
+          },
+          "resident_free_floor": {},
+          "resident_route": null
+        },
+        "route_id": "q4-four-gib-agent-experimental",
+        "schema": "omni-native-profile-controller-close-v1",
+        "scope": "reported_post_close_resources_not_independent_release_qualification",
+        "snapshot_error": null,
+        "snapshot_max_encoded_bytes": 1048576,
+        "snapshot_status": "captured"
+      },
+      "process_close": {
+        "coverage": {
+          "agent_identity_verified": true,
+          "all_descendants_covered": false,
+          "all_startup_peaks_covered": false,
+          "binding_registry_overflow": false,
+          "browser_launch_attempted": false,
+          "browser_root_identity_verified": false,
+          "cdp_checkpoint_count": 0,
+          "cdp_membership_is_not_ancestry": true,
+          "cdp_process_type_max_utf8_bytes": 128,
+          "cdp_process_type_scope": "observed_owned_CDP_label_not_verified_process_function",
+          "model_identity_verified": true,
+          "node_spawn_identity_verified": false,
+          "node_start_attempted": false,
+          "owner_checkpoint_queue_limit": 16,
+          "owner_checkpoint_queue_overflow": false,
+          "scope": "exact_retained_handle_bound_set_only",
+          "short_lived_processes_may_be_unobserved": true,
+          "unadopted_handle_close_failures": 0,
+          "unknown_count": 0,
+          "unknown_details": [],
+          "unknown_details_truncated": false,
+          "unrecognized_cdp_type_binding_count": 0
+        },
+        "model_retirement_verified": true,
+        "observer_handles_closed": true,
+        "attribution_close_verified": true,
+        "all_descendants_retired": false
+      },
+      "release_qualified": false
+    },
+    {
+      "task_class": "code_tools",
+      "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-agent-multiclass-smoke-20261012-v1\\profile\\native_35b55e07f1ed48d6b5cba7ec4fd59c04\\raw\\20261012T071500Z_d04d9891\\samples.jsonl",
+      "raw_sha256": "78f9103ac74df3ba81294cce913488d24b3429180b2958a3f9b3604de6923ca6",
+      "request_count": 9,
+      "preparation_s": 420.7659574,
+      "requests": [
+        {
+          "case_id": "code_reasoning-en-short",
+          "phase": "warmup",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 22.7641198,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-en-short",
+          "phase": "measured",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 20.9762228,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-zh-short",
+          "phase": "measured",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 20.993283,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-en-medium",
+          "phase": "warmup",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 21.9354926,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-en-medium",
+          "phase": "measured",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 21.1318638,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-zh-medium",
+          "phase": "measured",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 21.4685188,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-en-long",
+          "phase": "warmup",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 22.7932459,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-en-long",
+          "phase": "measured",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 22.3304242,
+          "error": null
+        },
+        {
+          "case_id": "code_reasoning-zh-long",
+          "phase": "measured",
+          "reference": "14",
+          "final_answer": "14",
+          "literal_reference_matches": true,
+          "recorded_gates_pass": true,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.9578379,
+          "error": null
+        }
+      ],
+      "controller_close": {
+        "controller_close_succeeded": true,
+        "preparation_sequence": 2,
+        "resource_snapshot": {
+          "ledger": {
+            "capacities": {
+              "host_ram": 21093613568,
+              "ssd": 850824233100,
+              "vram": 19823091712,
+              "windows_commit": 54214193152
+            },
+            "owners": [],
+            "quarantined": [],
+            "reserved": {
+              "host_ram": 0,
+              "ssd": 0,
+              "vram": 0,
+              "windows_commit": 0
+            }
+          },
+          "resident_free_floor": {},
+          "resident_route": null
+        },
+        "route_id": "q4-four-gib-agent-experimental",
+        "schema": "omni-native-profile-controller-close-v1",
+        "scope": "reported_post_close_resources_not_independent_release_qualification",
+        "snapshot_error": null,
+        "snapshot_max_encoded_bytes": 1048576,
+        "snapshot_status": "captured"
+      },
+      "process_close": {
+        "coverage": {
+          "agent_identity_verified": true,
+          "all_descendants_covered": false,
+          "all_startup_peaks_covered": false,
+          "binding_registry_overflow": false,
+          "browser_launch_attempted": false,
+          "browser_root_identity_verified": false,
+          "cdp_checkpoint_count": 0,
+          "cdp_membership_is_not_ancestry": true,
+          "cdp_process_type_max_utf8_bytes": 128,
+          "cdp_process_type_scope": "observed_owned_CDP_label_not_verified_process_function",
+          "model_identity_verified": true,
+          "node_spawn_identity_verified": false,
+          "node_start_attempted": false,
+          "owner_checkpoint_queue_limit": 16,
+          "owner_checkpoint_queue_overflow": false,
+          "scope": "exact_retained_handle_bound_set_only",
+          "short_lived_processes_may_be_unobserved": true,
+          "unadopted_handle_close_failures": 0,
+          "unknown_count": 0,
+          "unknown_details": [],
+          "unknown_details_truncated": false,
+          "unrecognized_cdp_type_binding_count": 0
+        },
+        "model_retirement_verified": true,
+        "observer_handles_closed": true,
+        "attribution_close_verified": true,
+        "all_descendants_retired": false
+      },
+      "release_qualified": false
+    },
+    {
+      "task_class": "long_reasoning",
+      "raw_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-agent-multiclass-smoke-20261012-v1\\profile\\native_35b55e07f1ed48d6b5cba7ec4fd59c04\\raw\\20261012T072521Z_b564e669\\samples.jsonl",
+      "raw_sha256": "9e2e36cbb248d22cab08c836491c22f12dbd0a845a76dd466816887c3791353c",
+      "request_count": 9,
+      "preparation_s": 445.2036681,
+      "requests": [
+        {
+          "case_id": "reasoning_constraints-en-short",
+          "phase": "warmup",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 23.8549533,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-short",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 21.7947519,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-zh-short",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 21.9843709,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-medium",
+          "phase": "warmup",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 22.6309108,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-medium",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 21.6146297,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-zh-medium",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 22.7018666,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-long",
+          "phase": "warmup",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 24.7797644,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-en-long",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 25.7023585,
+          "error": null
+        },
+        {
+          "case_id": "reasoning_constraints-zh-long",
+          "phase": "measured",
+          "reference": "11",
+          "final_answer": "10",
+          "literal_reference_matches": false,
+          "recorded_gates_pass": false,
+          "memory_metadata_revalidated": null,
+          "answer_latency_s": 24.5296818,
+          "error": null
+        }
+      ],
+      "controller_close": {
+        "controller_close_succeeded": true,
+        "preparation_sequence": 3,
+        "resource_snapshot": {
+          "ledger": {
+            "capacities": {
+              "host_ram": 20780679168,
+              "ssd": 850642927756,
+              "vram": 19893288960,
+              "windows_commit": 54304174080
+            },
+            "owners": [],
+            "quarantined": [],
+            "reserved": {
+              "host_ram": 0,
+              "ssd": 0,
+              "vram": 0,
+              "windows_commit": 0
+            }
+          },
+          "resident_free_floor": {},
+          "resident_route": null
+        },
+        "route_id": "q4-four-gib-agent-experimental",
+        "schema": "omni-native-profile-controller-close-v1",
+        "scope": "reported_post_close_resources_not_independent_release_qualification",
+        "snapshot_error": null,
+        "snapshot_max_encoded_bytes": 1048576,
+        "snapshot_status": "captured"
+      },
+      "process_close": {
+        "coverage": {
+          "agent_identity_verified": true,
+          "all_descendants_covered": false,
+          "all_startup_peaks_covered": false,
+          "binding_registry_overflow": false,
+          "browser_launch_attempted": false,
+          "browser_root_identity_verified": false,
+          "cdp_checkpoint_count": 0,
+          "cdp_membership_is_not_ancestry": true,
+          "cdp_process_type_max_utf8_bytes": 128,
+          "cdp_process_type_scope": "observed_owned_CDP_label_not_verified_process_function",
+          "model_identity_verified": true,
+          "node_spawn_identity_verified": false,
+          "node_start_attempted": false,
+          "owner_checkpoint_queue_limit": 16,
+          "owner_checkpoint_queue_overflow": false,
+          "scope": "exact_retained_handle_bound_set_only",
+          "short_lived_processes_may_be_unobserved": true,
+          "unadopted_handle_close_failures": 0,
+          "unknown_count": 0,
+          "unknown_details": [],
+          "unknown_details_truncated": false,
+          "unrecognized_cdp_type_binding_count": 0
+        },
+        "model_retirement_verified": true,
+        "observer_handles_closed": true,
+        "attribution_close_verified": true,
+        "all_descendants_retired": false
+      },
+      "release_qualified": false
+    }
+  ],
+  "issues": [
+    "request gate failed: reasoning_constraints-en-short",
+    "request gate failed: reasoning_constraints-en-short",
+    "request gate failed: reasoning_constraints-zh-short",
+    "request gate failed: reasoning_constraints-en-medium",
+    "request gate failed: reasoning_constraints-en-medium",
+    "request gate failed: reasoning_constraints-zh-medium",
+    "request gate failed: reasoning_constraints-en-long",
+    "request gate failed: reasoning_constraints-en-long",
+    "request gate failed: reasoning_constraints-zh-long"
+  ],
+  "qualification_created": false,
+  "scope": "Closed fixed-fixture smoke blocks; recorded placement gates, not independent full-operator proof; memory check reuses frozen production metadata validator; no reopened-memory persistence or broad quality claim",
+  "reconciliation_exit_code": 1,
+  "artifact_runtime_registration": "strata_q4_runtime_v4_registration_20261012.json",
+  "reference_check": {
+    "task": "reasoning_constraints",
+    "equation": "(B+3)+B+2B+(2B-4)+(3B-1)=9B-2=97",
+    "reference_B": 11,
+    "observed_B": 10,
+    "observed_B_implies_total": 88,
+    "reference_changed": false,
+    "attribution": "Specific Q4 artifact/runtime/Agent task failure; quantization versus backend cause not isolated"
+  }
+}
