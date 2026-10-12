@@ -1,0 +1,140 @@
+{
+  "schema": "omni-strata-framework-import-memory-v1",
+  "date": "2026-10-12",
+  "no_model_probe_exit_code": 0,
+  "ordered_import_probe_exit_code": 0,
+  "no_model_samples": [
+    {
+      "phase": "stdlib_and_psutil",
+      "time_unix": 1791801704.4177768,
+      "pid": 106108,
+      "creation_time": 1791801704.276547,
+      "rss_bytes": 20832256,
+      "private_commit_bytes": 10739712,
+      "module_count": 103,
+      "scope": "own_process_counter_at_boundary_not_loading_peak_or_model_memory"
+    },
+    {
+      "phase": "lifecycle_import_without_runtime",
+      "time_unix": 1791801704.712445,
+      "pid": 106108,
+      "creation_time": 1791801704.276547,
+      "rss_bytes": 28893184,
+      "private_commit_bytes": 17498112,
+      "module_count": 189,
+      "scope": "own_process_counter_at_boundary_not_loading_peak_or_model_memory"
+    },
+    {
+      "phase": "actual_runtime_api_imports_without_driver_instance",
+      "time_unix": 1791801760.8400443,
+      "pid": 106108,
+      "creation_time": 1791801704.276547,
+      "rss_bytes": 998354944,
+      "private_commit_bytes": 2947063808,
+      "module_count": 7479,
+      "scope": "own_process_counter_at_boundary_not_loading_peak_or_model_memory"
+    },
+    {
+      "phase": "loaded_runtime_identity_without_driver_instance",
+      "time_unix": 1791801796.4148219,
+      "pid": 106108,
+      "creation_time": 1791801704.276547,
+      "rss_bytes": 1001324544,
+      "private_commit_bytes": 2949324800,
+      "module_count": 7483,
+      "scope": "own_process_counter_at_boundary_not_loading_peak_or_model_memory"
+    }
+  ],
+  "ordered_import_samples": [
+    {
+      "phase": "stdlib_psutil",
+      "pid": 164236,
+      "creation_time": 1791801922.8866005,
+      "rss_bytes": 19808256,
+      "private_commit_bytes": 10301440,
+      "module_count": 98,
+      "elapsed_s": 0
+    },
+    {
+      "phase": "torch",
+      "pid": 164236,
+      "creation_time": 1791801922.8866005,
+      "rss_bytes": 527544320,
+      "private_commit_bytes": 1699028992,
+      "module_count": 1153,
+      "elapsed_s": 2.5469999997876585
+    },
+    {
+      "phase": "vllm",
+      "pid": 164236,
+      "creation_time": 1791801922.8866005,
+      "rss_bytes": 683999232,
+      "private_commit_bytes": 1847250944,
+      "module_count": 2649,
+      "elapsed_s": 3.780999999959022
+    },
+    {
+      "phase": "vllm_omni",
+      "pid": 164236,
+      "creation_time": 1791801922.8866005,
+      "rss_bytes": 987451392,
+      "private_commit_bytes": 2935611392,
+      "module_count": 7261,
+      "elapsed_s": 14.578000000212342
+    },
+    {
+      "phase": "vllm_omni.engine.stage_runtime",
+      "pid": 164236,
+      "creation_time": 1791801922.8866005,
+      "rss_bytes": 996487168,
+      "private_commit_bytes": 2944679936,
+      "module_count": 7470,
+      "elapsed_s": 2.3909999998286366
+    }
+  ],
+  "failed_lifecycle_final_ledger": {
+    "capacities": {
+      "host_ram": 22930124800,
+      "vram:0": 25651314688,
+      "ssd": 861586432140,
+      "windows_commit": 68113162240
+    },
+    "reserved": {
+      "host_ram": 0,
+      "vram:0": 0,
+      "ssd": 0,
+      "windows_commit": 0
+    },
+    "owners": [],
+    "quarantined": []
+  },
+  "native_role_retirement_verified": false,
+  "scope": "same-process ordered import samples; order-dependent deltas, not independent package attribution, peaks, or permission to discount memory claims",
+  "files": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-framework-import-memory-20261012\\samples.json",
+      "sha256": "9e0a2754dc6619e3551a2e76b5d72c2ab9740971fba168fa1064c093ba9a1b91",
+      "size_bytes": 1367
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-framework-import-memory-20261012\\complete.json",
+      "sha256": "80737dfcfdc23b8c3a21fe1bb2d1978e050c47fee951b1a36fcc0bd60af305ed",
+      "size_bytes": 232
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-framework-import-breakdown-20261012\\samples.json",
+      "sha256": "e2689ce21f49b1bf7e1d927cbfd6a4ed7910402604c5248b3858ca5e96779811",
+      "size_bytes": 1168
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-framework-import-breakdown-20261012\\complete.json",
+      "sha256": "6089e12893b9e721472f4286ddc139f67a4e553dd16400ea7f302e50f0fd8646",
+      "size_bytes": 228
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5\\receipt.json",
+      "sha256": "1869e7af797e84c0014402a3c2c569eb0648401cf56aa54418720a1ab498596b",
+      "size_bytes": 992880
+    }
+  ]
+}

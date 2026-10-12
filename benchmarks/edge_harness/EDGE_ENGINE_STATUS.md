@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-12 导入内存调查已结束，两项无模型探针均 EXIT 0：[同进程边界计数及原始哈希](results/strata_20261008/strata_framework_import_memory_20261012.json)。实际 lifecycle runtime API 导入后 private commit 为 **2,947,063,808 B**，身份采集后 **2,949,324,800 B**；没有创建 driver、模型或浏览器。另一个进程按 torch→vllm→Omni→StageRuntime 顺序得到约 1.58→1.72→2.73→2.74 GiB private commit；是顺序相关的累积计数，不能当独立包峰值或直接扣减准入预算。补核失败生命周期的 `ledger_final`：四池预留为零、owner／隔离项为空；原生角色句柄证明仍缺失，保留原关闭验证 false。
+
 2026-10-12 Q4 4 GiB 图像真实启动已失败退出（EXIT 1）：框架加载后的 fresh admission 要求 Windows commit **48,392,830,976 B**，当时仅 **44,628,508,672 B** 可用；登记通过不替代启动准入。[失败、关闭诊断及退出后原始文件哈希](results/strata_20261008/strata_q4_image_v5_startup_refusal_20261012.json)。零条完成请求，源码／输入前后一致，采样线程停止。未取得两个原生角色句柄，关闭验证为 false，不能报告原生角色退场已验证。没有降低 commit 门槛；正在单独测量无模型框架导入开销，设备容量变化后才可在相同预算下重新尝试。
 
 2026-10-12 Q4 图像登记更新：8 GiB 专家缓存路线因当时 RAM／Windows commit 不足而拒绝，保留原失败；独立命名的 4 GiB 路线已完成产物核验与实时准入（EXIT 0）。缩小缓存仅减少明确缓存／加载峰值，原 commit、编码器及观测器预算保留。[原始失败、成功登记、哈希与启动记录](results/strata_20261008/strata_q4_image_4g_registration_20261012.json)。冻结源码的图像生命周期作业已启动，准备执行两条真实截图问答、编码阶段取消和新实例恢复；截至本条记录尚无生成结果，不授予图像或 Agent 资格。
