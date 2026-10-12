@@ -1,0 +1,85 @@
+{
+  "schema": "omni-private-persistent-memory-closed-review-v2",
+  "passed": true,
+  "issues": [],
+  "batch_size": 1,
+  "concurrency": 1,
+  "source_files": 1570,
+  "sources_equal": true,
+  "controllers": [
+    {
+      "controller": 1,
+      "events": 5,
+      "model_calls": 1,
+      "actual_input_sha256": [
+        "f04a729728ef209e5e6bda8b7ece6b84549167ae88fb987955a915475ff762e7"
+      ],
+      "final_sha256": "1afc73e07986a0444e7c0c6597933b433f4ecd86863ae4754be1cbadbdbc4a53",
+      "reported_ledger_empty": true
+    },
+    {
+      "controller": 2,
+      "events": 5,
+      "model_calls": 1,
+      "actual_input_sha256": [
+        "3d486f07d79143ac9c0099433c3177c40bb0cb5a7656181689f178867b7ca012"
+      ],
+      "final_sha256": "03a20c1fb37ce40110a5f63d6f52fba58666e167891543faa6e996516578487c",
+      "reported_ledger_empty": true
+    }
+  ],
+  "raw_files": {
+    "terminal.json": {
+      "sha256": "9f5976ca7d7789bbb3d77ac891e70e12c19e9f809766c1e5287d64972feaa79f",
+      "bytes": 353
+    },
+    "fixture.json": {
+      "sha256": "8442adef9fd428dd50efa407762a18dfc3a564fc99ab60632df999b1dec5d137",
+      "bytes": 359
+    },
+    "controller-1.json": {
+      "sha256": "7d6605d1a77d00912cd598db5a71b4451af1c4e1722c93c436c14c5649d359ff",
+      "bytes": 135243
+    },
+    "controller-2.json": {
+      "sha256": "7e37cc512dfb30230eaec18a3a8eb2030d43834ef47ab4f0f310ab6fb637bf12",
+      "bytes": 141829
+    },
+    "sources-before.json": {
+      "sha256": "2dc001c7eb9fbf840482df2dc132bfc4c199f4dd05fa7d03f53fa735261f3010",
+      "bytes": 204517
+    },
+    "sources-after.json": {
+      "sha256": "2dc001c7eb9fbf840482df2dc132bfc4c199f4dd05fa7d03f53fa735261f3010",
+      "bytes": 204517
+    },
+    "config.json": {
+      "sha256": "2492729ff7a51122184732d6259aef8d075f9b61ed558d549cde8a5ca0dcc6d6",
+      "bytes": 15115329
+    }
+  },
+  "qualification_created": false,
+  "limitations": [
+    "One synthetic fact across two actual controllers; not broad memory quality.",
+    "Ledger/controller closure is recorded; no independent retained-process observer.",
+    "No performance qualification or physical SSD attribution."
+  ],
+  "reviewer_sha256": "ee50440188ba91c10cae49f5ce80d851a5bf3da92d5ef9a60c5acbfc7d7e8f9e",
+  "prior_review": {
+    "passed": false,
+    "sha256": "3278f22aaada025d729aafe1cd00080a73a39f2efd3d8257ce3e3c104d0cdabf",
+    "issue": "Reviewer compared JSON-serialized recalled payload to plain text. Production controller.py serializes recall payload; v2 parses and compares the exact payload. Original raw records and failed review retained."
+  },
+  "execution": {
+    "exit_code": 0,
+    "runtime": "e39-v4",
+    "model": "unsloth/Qwen3.8-Flash-Next-GGUF",
+    "route": "q4-four-gib-agent-experimental",
+    "os": "native Windows",
+    "gpu": "RTX 5090 Laptop GPU",
+    "expert_ram_cache_gib": 4,
+    "context": 4096,
+    "raw_root": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-v4-agent-persistent-memory-20261012-v1",
+    "scope": "Two real controllers using the same isolated DPAPI memory store. No direct database seed insertion."
+  }
+}
