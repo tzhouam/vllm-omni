@@ -1,0 +1,31 @@
+{
+  "schema": "strata-image-registration-evidence-v1",
+  "status": "registered_experimental_image_not_executed",
+  "model_executed": false,
+  "started_unix": 1791871237.2819462,
+  "text_launch_sha256": "4c196cf2906a46e460c9b5728385c1b58fcf2cd51441149e8df26661e744dd4b",
+  "script_sha256": "4197a29708e0022f26465a3f254a623bb105e374d99be380c4e54ccebd555b8d",
+  "launch_sha256": "21970f20a9644b9f6b3feab6d848bdea32c9aeacd5b4209ba937170f872c3056",
+  "finished_unix": 1791871700.7838068,
+  "process_exit_code": 0,
+  "qualified": false,
+  "raw_archive": "strata_image_v6_registration_20261013.raw.tar.gz",
+  "raw_archive_sha256": "d70b17ea6440ee83deabda75b0f49485a4df4286f61292f9aea7e92a7c759721",
+  "raw_files": {
+    "attempt.json": "bfca33b9911ecf0bf04128bf1fc89c026569e1d1412705e04fb9c83c0cc39da1",
+    "launch.image-registration.json": "9b6435c422797ba01c177887a0e90c5e32b6f382d6bd3b9f0742a625271e3b57",
+    "launch.json": "21970f20a9644b9f6b3feab6d848bdea32c9aeacd5b4209ba937170f872c3056",
+    "register_image.py": "4197a29708e0022f26465a3f254a623bb105e374d99be380c4e54ccebd555b8d"
+  },
+  "scope": "CPU image encoder plus Q4 language route registration only; no image inference or Agent run.",
+  "user_constraint": "Keep models unloaded; real regressions remain deferred.",
+  "lifecycle_preparation": {
+    "status": "metadata_freeze_prepared_not_executed",
+    "freeze_file": "strata_image_v6_lifecycle_freeze_20261013.json",
+    "freeze_sha256": "c213177e39c0dfe4a18cd181a9d30d49f71e17a15f4620acc95e4ffa48477f43",
+    "local_freeze": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-input-8g-20261013-v6\\freeze.json",
+    "runner": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-lifecycle-combined-v2-20261012\\run_strata_image_lifecycle.py",
+    "runner_sha256": "25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9",
+    "execution_requires": "User changes keep-models-unloaded preference; fresh source/input checks and capacity admission remain required."
+  }
+}
