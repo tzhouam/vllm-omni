@@ -1,0 +1,24 @@
+{
+  "previous_failed_run_preserved": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261012-v5",
+  "run_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261013-v5",
+  "memory_at_observation": {
+    "available_commit_bytes": 79666864128,
+    "available_ram_bytes": 28415733760
+  },
+  "scope": "Fresh memory permits retry with unchanged frozen source and budgets; loading and complete image/cancellation/recovery remain pending.",
+  "source_commit": "ccc8066d5",
+  "schema": "omni-strata-image-resume-v1",
+  "status": "running_not_qualified",
+  "phase": "initial_loading",
+  "process_start": "2026-10-13T09:42:22.1920212+08:00",
+  "freeze_sha256": "46db44f7524bd521813f17a2c1c36696d911e79acd9e25e88b256e8a8cb894a2",
+  "qualified": false,
+  "browser_config": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-20261013-v5\\browser-config.json",
+    "executed": false,
+    "sha256": "896009286f2b6db90da18fd22ffc743652ecc8b2a0f18a4a9d209d54872a5e83"
+  },
+  "launch_sha256": "e40ce55cde1257fb939005b4c22ae5e4b693b0825fbb7ec47d7ccfff8141be8e",
+  "process_id": 140232,
+  "observed_at": "2026-10-13T09:45:23.5992411+08:00"
+}
