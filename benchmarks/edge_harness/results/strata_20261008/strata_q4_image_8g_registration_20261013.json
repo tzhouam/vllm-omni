@@ -1,0 +1,152 @@
+{
+  "schema": "omni-strata-q4-image-8g-registration-v1",
+  "date": "2026-10-13",
+  "status": "registered_experimental_image_not_executed",
+  "qualification_created": false,
+  "attempt": {
+    "status": "registered_experimental_image_not_executed",
+    "model_executed": false,
+    "started_unix": 1791860295.2378635,
+    "text_launch_sha256": "d965202f1b1f80c86d0b14819f2ed25f3f75da25fbcce46b56f01ee75b658d68",
+    "script_sha256": "dcf7ca4f6610609a78d4e9cf4001989c1f18c6c53b83e72dff20abccea713a7c",
+    "launch_sha256": "2cd42823c78a38929699f4f9e90f12b4fb4f8c3fe25315695991932e53399bd7",
+    "finished_unix": 1791860867.954851
+  },
+  "fresh_admission": {
+    "admitted": true,
+    "over_budget_pools": [],
+    "probe_started_utc": "2026-10-13T11:07:46.478741+08:00",
+    "memory": {
+      "host_ram_available_bytes": 28704231424,
+      "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+      "gpu_total_bytes": 25651314688,
+      "gpu_free_bytes": 20963078144,
+      "gpu_source": "NVML exact bytes",
+      "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+      "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+      "gpu_pci_bus_id": "00000000:64:00.0",
+      "windows_commit_available_bytes": 77536935936,
+      "windows_host_available_bytes": 28704231424,
+      "wsl_ram_available_bytes": null,
+      "is_wsl": false,
+      "windows_host_verification": "measured",
+      "captured_unix_s": 1791860866.478741
+    },
+    "disk_capacity": [
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v5",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 736996073472,
+        "used_bytes": 1276916101120
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 736996073472,
+        "used_bytes": 1276916101120
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\packs\\q4-compat-20261008-1840",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 736996073472,
+        "used_bytes": 1276916101120
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 736996073472,
+        "used_bytes": 1276916101120
+      },
+      {
+        "path": "C:\\Users\\zhout\\AppData\\Local\\Temp",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 736996073472,
+        "used_bytes": 1276916101120
+      }
+    ],
+    "scope": "fresh registration snapshot only; startup requires new probes and shared resource lease"
+  },
+  "route_id": "unsloth-q4-8g-image-execution-e39-v5",
+  "runtime_manifest_sha256": "c2d6b02707a492bf3ce9a2c37aa4210fc7fac5eafb32d4d8cffd1613ae09d103",
+  "source_manifest_sha256": "ed991bc32b5583ad5d70f1466a7ba30168e1a40bf4e20ffb4f65bf28152cb043",
+  "image_identity_sha256": "c769d0ecce643669a2baf957343e0d263eb94a8ccec7a51aff03ee5b3a1ca5c1",
+  "lifecycle": {
+    "status": "launched_result_pending",
+    "output": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-8g-20261013-v5",
+    "freeze_sha256": "4ef90e063ca413d0ecfd7bedf8163a50fe8b7f4832c0b4b8dab6a1b749fa3ec5",
+    "session_id": 89469
+  },
+  "diagnostic": {
+    "status": "completed",
+    "files": 512,
+    "selected_bytes": 4174147,
+    "rows": [
+      {
+        "workers": 1,
+        "wall_s": 0.16018619993701577,
+        "verified_files": 512
+      },
+      {
+        "workers": 4,
+        "wall_s": 0.1686814003624022,
+        "verified_files": 512
+      },
+      {
+        "workers": 4,
+        "wall_s": 0.18493930017575622,
+        "verified_files": 512
+      },
+      {
+        "workers": 1,
+        "wall_s": 0.15013250010088086,
+        "verified_files": 512
+      }
+    ],
+    "scope": "512 small runtime files only; not whole startup, model latency, or qualification",
+    "cache_condition": "uncontrolled; ABBA order; first touch differs from later passes",
+    "concurrent_work": "Overlapped tail of 8 GiB registration; not an isolated performance comparison",
+    "conclusion": "No observed benefit for 4 threads in this small subset. Do not extrapolate to full manifest or change production verifier."
+  },
+  "raw_files": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-8g-20261013-v5\\attempt.json",
+      "size_bytes": 439,
+      "sha256": "3336b8dacb33449364e91778bb96a49e4057e4475ad20b307ce8dedb42a40fb2"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-8g-20261013-v5\\launch.json",
+      "size_bytes": 13391992,
+      "sha256": "2cd42823c78a38929699f4f9e90f12b4fb4f8c3fe25315695991932e53399bd7"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-8g-20261013-v5\\launch.image-registration.json",
+      "size_bytes": 7685,
+      "sha256": "a8851f32ffecfc6804cf03da3a82ef5f5a57ea380fad70c19a1a9d6914ccba34"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-execution-8g-20261013-v5\\lifecycle-freeze.json",
+      "size_bytes": 330701,
+      "sha256": "4ef90e063ca413d0ecfd7bedf8163a50fe8b7f4832c0b4b8dab6a1b749fa3ec5"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\runtime-hash-subset-20261013\\receipt.json",
+      "size_bytes": 37258,
+      "sha256": "44b410e207eaa0fd9469bc1206ec3d9e7ce81327e17891cb9dcf25947810065b"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\probe_bounded_runtime_hashing_20261013.py",
+      "size_bytes": 3462,
+      "sha256": "425893ca4a4874e2d50162fa814ec4a94417e629d721afc4b4fbd085af3ac04c"
+    }
+  ],
+  "limitations": [
+    "Registration is not neural execution; fresh startup re-admission remains required.",
+    "8 GiB does not replace 24/32/40 GiB reproduction budgets or inherit 4 GiB quality results.",
+    "Diagnostic is not whole startup performance; no production code modified."
+  ]
+}
