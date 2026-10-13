@@ -216,6 +216,9 @@ class AgentController:
         self._active_model_request: str | None = None
         self._tool_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="omni-agent-tools")
         self._lock = threading.RLock()
+        self._close_lock = threading.Lock()
+        self._closing = False
+        self._closed = False
         self._memory_sources: list[str] = []
         self._model_output_epochs: dict[tuple[str, str, int], int] = {}
         if resource_finalize is not None and (
@@ -478,6 +481,8 @@ class AgentController:
         if not isinstance(prompt, str) or not prompt.strip():
             raise ValueError("a nonempty Agent task is required")
         with self._lock:
+            if self._closing:
+                raise RuntimeError("Agent controller is closing or closed")
             if (self._turn_owner is not None or not self._turn_done.is_set()
                     or (self._current is not None and not self._current.done())):
                 raise RuntimeError("one Agent request is already active")
@@ -527,6 +532,10 @@ class AgentController:
                        _reservation: object | None = None,
                        read_url: str | None = None) -> str | None:
         with self._lock:
+            # An already reserved submission retains its cleanup path; new
+            # direct turns cannot race shutdown's resource retirement.
+            if self._closing and _reservation is None:
+                raise RuntimeError("Agent controller is closing or closed")
             owner = (request_id, epoch)
             if (self._turn_owner is not None and
                     (self._turn_owner != owner or self._turn_started
@@ -926,6 +935,8 @@ class AgentController:
     def delete_all_memory(self) -> int:
         """Explicit local-user deletion; no model tool can invoke this method."""
         with self._lock:
+            if self._closing:
+                raise RuntimeError("Agent controller is closing or closed")
             if not self._turn_done.is_set():
                 raise RuntimeError("wait for the active Agent request before deleting memory")
             return self.memory.delete_all()
@@ -937,6 +948,8 @@ class AgentController:
         direct run_turn calls, memory deletion and application shutdown.
         """
         with self._lock:
+            if self._closing:
+                raise RuntimeError("Agent controller is closing or closed")
             if (self._turn_owner is not None or not self._turn_done.is_set()
                     or (self._current is not None and not self._current.done())):
                 raise RuntimeError("finish or cancel the active request before releasing models")
@@ -963,6 +976,18 @@ class AgentController:
                 self._turn_done.set()
 
     def close(self) -> None:
+        # Serialize drain attempts, but permit retry after a failed release.
+        # Once closing begins no new request may resurrect retired resources.
+        with self._close_lock:
+            with self._lock:
+                if self._closed:
+                    return
+                self._closing = True
+            self._close_resources()
+            with self._lock:
+                self._closed = True
+
+    def _close_resources(self) -> None:
         self.resource_close_evidence = None
         self.cancel()
         if not self._turn_done.is_set():

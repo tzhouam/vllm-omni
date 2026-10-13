@@ -32,6 +32,9 @@ class CloseFutureMemoryTests(unittest.TestCase):
         controller = AgentController.__new__(AgentController)
         controller._current = future
         controller._lock = threading.RLock()
+        controller._close_lock = threading.Lock()
+        controller._closing = False
+        controller._closed = False
         controller._turn_done = threading.Event()
         controller._turn_done.set()
         controller.cancel = Mock()
@@ -46,6 +49,66 @@ class CloseFutureMemoryTests(unittest.TestCase):
         controller._turn_owner = None
         controller._epoch = 0
         return controller
+
+    def test_shutdown_fences_new_work_and_serializes_duplicate_close(self):
+        controller = self.controller(None)
+        entered, proceed = threading.Event(), threading.Event()
+        errors = []
+
+        def drain():
+            entered.set()
+            if not proceed.wait(5):
+                raise TimeoutError("test did not release backend")
+
+        backend = Mock()
+        backend.close.side_effect = drain
+        controller.backends = {"model": backend}
+
+        def close():
+            try:
+                controller.close()
+            except BaseException as error:
+                errors.append(error)
+
+        first, second = threading.Thread(target=close), threading.Thread(target=close)
+        first.start()
+        try:
+            self.assertTrue(entered.wait(5))
+            second.start()
+            for action in (lambda: controller.submit("new request"), controller.release_idle_models,
+                           controller.delete_all_memory):
+                with self.assertRaisesRegex(RuntimeError, "closing or closed"):
+                    action()
+            with self.assertRaisesRegex(RuntimeError, "closing or closed"):
+                asyncio.run(controller.run_turn("direct", request_id="new", epoch=1))
+            backend.close.assert_called_once()
+        finally:
+            proceed.set()
+            first.join(5)
+            if second.ident is not None:
+                second.join(5)
+        self.assertFalse(first.is_alive())
+        self.assertFalse(second.is_alive())
+        self.assertEqual(errors, [])
+        backend.close.assert_called_once()
+        controller.close()
+        backend.close.assert_called_once()
+        with self.assertRaisesRegex(RuntimeError, "closing or closed"):
+            controller.submit("after close")
+
+    def test_failed_shutdown_can_retry_but_cannot_accept_new_work(self):
+        controller = self.controller(None)
+        backend = Mock()
+        backend.close.side_effect = [RuntimeError("not drained"), True]
+        controller.backends = {"model": backend}
+        with self.assertRaisesRegex(RuntimeError, "not drained"):
+            controller.close()
+        self.assertFalse(controller._closed)
+        with self.assertRaisesRegex(RuntimeError, "closing or closed"):
+            controller.submit("cannot resurrect failed backend")
+        controller.close()
+        self.assertTrue(controller._closed)
+        self.assertEqual(backend.close.call_count, 2)
 
     def test_idle_release_preserves_memory_and_tools(self):
         controller = self.controller(None)

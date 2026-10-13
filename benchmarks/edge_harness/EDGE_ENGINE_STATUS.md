@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-13 Agent 关闭竞态修复：关闭开始即拒绝新提交、直接 run_turn、闲时卸载和记忆删除；已预约任务保留取消／清理路径。并发 close 串行，成功后幂等，释放失败仍允许重试关闭且禁止新请求。关闭／Strata 控制器定向检查 17 项通过，控制器／联合准入／桌面回归 139 项通过；未加载模型。生产来源已变化，旧神经实跑不自动成为本版本资格。 [139 项原始 JUnit](results/strata_20261008/agent_shutdown_fence_20261013.junit.xml.gz)
+
 2026-10-13 Strata 0.1.43.1 **真实编译库的 Q4 索引探测通过**：[夹具、原始日志、输入及库哈希](results/strata_20261008/strata_native_pack_index_20261013.json)。链接候选 `strata_core.lib` 调用实际 `WeightTable::load`；仅含真实 index.txt 的目录解析后返回 `arena is 0 B but the index needs 1485606400`，损坏行返回 `1 of 19 fields` 解析失败。零 arena 在权重打开和 CUDA 暂存分配前拒绝；未载入权重。首轮夹具误用 /MD 与候选 /MT 冲突，改为 /MT 后编译及探测 EXIT 0，保留失败配置。只证明索引解析及拒绝路径，不证明权重转换、上传、神经输出或整体运行时兼容。
 
 2026-10-13 打包来源预检提前到任何文件内容扫描之前：错误 tool revision、源／转换产物绑定、complete 标记及转换列表会立即拒绝并释放租约；有效配置仍完整核验运行时、全部模型分片及打包产物。新增五项检查证明拒绝前未进入 `ArtifactManifest.verify`；[后端回归 70 通过、2 项 POSIX 专项跳过](results/strata_20261008/strata_pack_preflight_20261013.junit.xml.gz)。未加载模型，未测量启动加速，未允许跨版本运行。下一版运行时身份及 pack 兼容迁移仍未完成。
