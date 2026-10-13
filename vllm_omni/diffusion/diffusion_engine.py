@@ -625,18 +625,24 @@ class DiffusionEngine:
             self._emit_finished_outputs(pending_finished, None)
 
             with self._cv:
-                while (
-                    (self._scheduling_paused or not self.scheduler.has_requests())
-                    and self._rpc_queue.empty()
-                    and self.abort_queue.empty()
-                    and not self.stop_event.is_set()
-                ):
-                    self._cv.wait(timeout=1.0)
+                while self._rpc_queue.empty() and self.abort_queue.empty() and not self.stop_event.is_set():
+                    if self._scheduling_paused or not self.scheduler.has_requests():
+                        wait_timeout: float | None = 1.0
+                    else:
+                        wait_timeout = self.scheduler.get_execution_wait_timeout(time.monotonic())
+                        if wait_timeout == 0:
+                            break
+                    self._cv.wait(timeout=wait_timeout)
 
                 if self.stop_event.is_set():
                     break
 
-                if self._scheduling_paused or not self.scheduler.has_requests():
+                if (
+                    self._scheduling_paused
+                    or not self.scheduler.has_requests()
+                    or not self._rpc_queue.empty()
+                    or not self.abort_queue.empty()
+                ):
                     # Only RPC / abort work pending; loop back to drain it.
                     continue
 
@@ -827,6 +833,11 @@ class DiffusionEngine:
             if not fut.done():
                 fut.set_exception(exc)
         else:
+            if task.method == "submit_interaction":
+                request_id = task.args[0] if task.args else (task.kwargs or {})["request_id"]
+                with self._cv:
+                    self.scheduler.notify_interaction(request_id)
+                    self._cv.notify_all()
             if not fut.done():
                 fut.set_result(result)
 

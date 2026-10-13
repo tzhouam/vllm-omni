@@ -584,6 +584,60 @@ def test_execute_stepwise_closes_session_when_request_finishes(monkeypatch):
     assert "req-1" not in runner._sessions
 
 
+@pytest.mark.parametrize("reason", ["interaction", "timeout"])
+def test_execute_stepwise_resumes_inside_bound_session_before_batch(monkeypatch, reason):
+    from vllm_omni.diffusion.data import DiffusionOutput
+    from vllm_omni.diffusion.worker.utils import BatchRunnerOutput, RunnerOutput, StepWait
+
+    pipeline = StepCapablePipeline(lingbot_like_spec())
+    runner = make_runner(pipeline, step_execution=True)
+    state = SimpleNamespace(ready=False)
+    runner.state_cache = {"req-1": state}
+
+    def resume(request_state, received_reason):
+        assert request_state is state
+        assert received_reason == reason
+        assert pipeline.bound_state is not None
+        request_state.ready = True
+
+    def wait(request_state):
+        assert request_state is state
+        assert pipeline.bound_state is not None
+        return StepWait()
+
+    monkeypatch.setattr(pipeline, "ar_diffusion_resume_step", resume, raising=False)
+    monkeypatch.setattr(pipeline, "ar_diffusion_step_wait", wait, raising=False)
+
+    def execute(self, output):
+        assert state.ready, "Resume must update prompts before input batching"
+        return BatchRunnerOutput.from_list([RunnerOutput("req-1", result=DiffusionOutput())])
+
+    monkeypatch.setattr(DiffusionModelRunner, "execute_stepwise", execute)
+    scheduled = scheduler_output()
+    scheduled.step_resumes["req-1"] = reason
+    output = runner.execute_stepwise(scheduled)
+    assert output.get_request_output("req-1").wait_for_interaction == StepWait()
+    assert "req-1" in runner._sessions
+    assert pipeline.bound_state is None
+
+
+def test_step_resume_failure_releases_session(monkeypatch):
+    pipeline = StepCapablePipeline(lingbot_like_spec())
+    runner = make_runner(pipeline, step_execution=True)
+    runner.state_cache = {"req-1": object()}
+
+    def resume(state, reason):
+        raise ValueError("fallback encoding failed")
+
+    monkeypatch.setattr(pipeline, "ar_diffusion_resume_step", resume, raising=False)
+    scheduled = scheduler_output()
+    scheduled.step_resumes["req-1"] = "timeout"
+    with pytest.raises(ValueError, match="fallback encoding failed"):
+        runner.execute_stepwise(scheduled)
+    assert "req-1" not in runner._sessions
+    assert "req-1" not in runner.state_cache
+
+
 def test_execute_stepwise_exception_releases_kv_and_does_not_resume_pages(monkeypatch):
     pipeline = StepCapablePipeline(lingbot_like_spec())
     runner = make_runner(pipeline, step_execution=True)
