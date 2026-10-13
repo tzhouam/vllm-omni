@@ -1,0 +1,151 @@
+{
+  "schema": "strata-upstream-migration-review-v1",
+  "date": "2026-10-13",
+  "scope": "source comparison only; no new runtime build or neural execution; deployed runtime unchanged",
+  "baseline_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "candidate_revision": "a0116b2782a5b82622358c04a06496485d12b2d6",
+  "candidate_version": "0.1.43.1",
+  "source_checkout": "C:\\Users\\zhout\\w2\\strata-omni\\source-upstream-review-20261013",
+  "files": {
+    "src/core/expert_source.cpp": {
+      "baseline": {
+        "git_blob": "fcf8b71e8887617025a9348f34e522b8fcce6a66",
+        "sha256": "2f0e14294ba463fd4fbcfb58829865c5f33712bcc72c6856ebbe2ff595b6e208",
+        "size_bytes": 198731
+      },
+      "candidate": {
+        "git_blob": "ad28f56f840ebf656386fe6036fdcf894a50b497",
+        "sha256": "a985b6623fe94d907edc9b298ae75f41146da6114445e8c20f4e33c843bbacba",
+        "size_bytes": 249900
+      },
+      "unchanged": false
+    },
+    "include/strata/core/expert_source.hpp": {
+      "baseline": {
+        "git_blob": "1bbdb413085b5c6d832c93ab0ac058f588709af0",
+        "sha256": "32f9bc3e7e72c2713d9323dd7353ad70e6b58604daa4e4c18a7e20e1c9929f1f",
+        "size_bytes": 57610
+      },
+      "candidate": {
+        "git_blob": "5d16d997714fdb6a3f80999add97519accbe53f0",
+        "sha256": "05574c05979da63c8156b402b4c4066807110624f9cfefbea224da30904966db",
+        "size_bytes": 68779
+      },
+      "unchanged": false
+    },
+    "src/program/generate.cpp": {
+      "baseline": {
+        "git_blob": "ce8e004744352a182c99597ced8818de1f0d4ce9",
+        "sha256": "f4eda3a268133016a74b80d61dca99d6e4ce0df99dae4862fd3f6c1026a11d56",
+        "size_bytes": 795668
+      },
+      "candidate": {
+        "git_blob": "1e5299e522ff1550f180c55347bf181e85c2cabb",
+        "sha256": "183e4a60cfd15613b58f5d854cacfa1becc3b5a6fe7ed020469aba830dac0986",
+        "size_bytes": 918761
+      },
+      "unchanged": false
+    },
+    "src/core/peer_experts.cpp": {
+      "baseline": {
+        "git_blob": "ad88bda8fbf663f259f1174be2764f155f52f639",
+        "sha256": "c82b9764c6b5eb2fe907f3f99e427bbcb0b9168ba50ab626021e85724484f500",
+        "size_bytes": 15503
+      },
+      "candidate": {
+        "git_blob": "6c8f567e62bbf39274975a1812ff9bb8e5a5379c",
+        "sha256": "be770fcacb58acdd72cbf44f906111b58cb57416e105740df129a46d4d028fe2",
+        "size_bytes": 15707
+      },
+      "unchanged": false
+    },
+    "src/core/remote_expert_opt.cu": {
+      "baseline": {
+        "git_blob": "229781c805ae889df83f3175962482aaa65c958d",
+        "sha256": "6e2212c17f2fdfeb09b780c73dc8faaef6979d27f04b91ba6f6d205705df1aa9",
+        "size_bytes": 8752
+      },
+      "candidate": {
+        "git_blob": "7ddb45e2d9ae1c957702b4438fdda112845b176c",
+        "sha256": "24ddcccc9169ca61b3b1515655c738a08d4789fb5115088032fe4275e8467dd6",
+        "size_bytes": 8877
+      },
+      "unchanged": false
+    },
+    "tools/vision/strata_vision.cpp": {
+      "baseline": {
+        "git_blob": "d8ef58fe873edbb075611b9d74cae568f8fb29d3",
+        "sha256": "8282a92fdcf599de822fa0a6df1e56a2cf4a5b1311fac8b4abbea9aba52aafb5",
+        "size_bytes": 12702
+      },
+      "candidate": {
+        "git_blob": "d8ef58fe873edbb075611b9d74cae568f8fb29d3",
+        "sha256": "8282a92fdcf599de822fa0a6df1e56a2cf4a5b1311fac8b4abbea9aba52aafb5",
+        "size_bytes": 12702
+      },
+      "unchanged": true
+    },
+    "tools/vision/CMakeLists.txt": {
+      "baseline": {
+        "git_blob": "d6518c71daf05076f919701148970b827d42d0af",
+        "sha256": "da2a8825649f64eb096d3290ac5cf234165d45611caf21ca1fbe7dc7d21e9ee9",
+        "size_bytes": 3359
+      },
+      "candidate": {
+        "git_blob": "d6518c71daf05076f919701148970b827d42d0af",
+        "sha256": "da2a8825649f64eb096d3290ac5cf234165d45611caf21ca1fbe7dc7d21e9ee9",
+        "size_bytes": 3359
+      },
+      "unchanged": true
+    },
+    "CMakeLists.txt": {
+      "baseline": {
+        "git_blob": "995765af93359436fc3c297de7dc39bf0082a2e8",
+        "sha256": "8d94c8776586ee7a27838985a5540829b921d19968b8cdb0e126c4084cd32372",
+        "size_bytes": 99675
+      },
+      "candidate": {
+        "git_blob": "0f6426a45f3e12903bdf2e1aec00bbd9b6506635",
+        "sha256": "d3aac134aae2afb7d33ee2fd975957bcf0c4ca3370aec611c9aa4663b6f45b48",
+        "size_bytes": 110678
+      },
+      "unchanged": false
+    }
+  },
+  "findings": [
+    {
+      "area": "Windows SSD expert reads",
+      "source": "src/core/expert_source.cpp:1686",
+      "integration": "src/program/generate.cpp:6887",
+      "finding": "Candidate can unmap GGUF views while retaining unbuffered handles; generate selects it only for the FileExpertSource unbuffered path when STRATA_KEEP_MAPPING is absent. Source comments attribute mapped-file serialization to NTFS; this is an upstream claim, not a local measurement.",
+      "next": "Compare same Q4 shards, precision, context, RAM/GPU budgets and input with mapping kept versus dropped. Record actual path and parity before latency claims."
+    },
+    {
+      "area": "Async staging correctness",
+      "source": "src/core/expert_source.cpp:1233",
+      "finding": "Candidate adds note_async_read CUDA events and waits before stage reuse, with callers in cache-fill, peer and remote paths. STAGE_PIN_DEFAULT remains 0 and comments cite prior IQ3_S corruption.",
+      "next": "Keep staging pin disabled for the baseline. Opt-in requires separate long-prompt output parity, cancellation during transfer, and event-lifetime validation; never claim the fence alone proves correctness."
+    },
+    {
+      "area": "Startup",
+      "source": "src/core/expert_source.cpp:1742",
+      "finding": "begin_startup_unbuffered is guarded for a single experts.bin, excluding multi-GGUF native role maps.",
+      "next": "Do not attribute this experts.bin optimization to the current four-shard Q4 route or to Omni runtime-manifest hash time."
+    },
+    {
+      "area": "Image encoding",
+      "source": "tools/vision/strata_vision.cpp",
+      "finding": "Vision source and vision CMake are byte-identical to the pinned baseline.",
+      "next": "Retain the explicit CPU encoder route. CUDA encoder still needs physical GPU identity and warmup memory admission; an upstream upgrade does not satisfy those requirements."
+    }
+  ],
+  "migration_gates": [
+    "Build a separate immutable runtime; preserve current e39-v5 and all prior results.",
+    "Port native I/O and actual execution observation patches against the changed expert/cache lifetime; do not reuse old runtime identities.",
+    "Verify model shards, prepared conversion and projector identities; re-admit with live RAM/commit/VRAM.",
+    "Re-run complete same-input text and real-image quality, cancellation, idle unload/reload and recovery before full batch-one profiling.",
+    "Measure logical reads separately from physical SSD I/O; existing WPR permission blocker remains."
+  ],
+  "outcome": "candidate_for_separate_reproduction_not_selected_or_qualified",
+  "model_loaded": false
+}
