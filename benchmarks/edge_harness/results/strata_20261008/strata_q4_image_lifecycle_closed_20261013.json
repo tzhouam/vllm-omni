@@ -1,0 +1,215 @@
+{
+  "input_stable": true,
+  "source_stable": true,
+  "exit_code": 0,
+  "schema": "omni-strata-image-lifecycle-closed-v1",
+  "recovery_start_including_verification_s": 557.7122059999965,
+  "requests": [
+    {
+      "phase": "initial",
+      "case_id": "approval_heading",
+      "request_id": "strata-b91319f337c044c5960832dc2c0f17fc",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 40.88457059999928,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "c10cb203bb4841ffba28f7df280b4d19",
+      "loaded_plan_sha256": "c89e19ffcd6f25eb8716f4fe715b378afdefb2627227693727e6a029f3fce706",
+      "proof_file": "initial-approval_heading-proof.json",
+      "proof_sha256": "0e84afaeba1a365e1bf1df13c01004e710bac811dd9dd327689430602ef990de",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    {
+      "phase": "initial",
+      "case_id": "bilingual_button_label",
+      "request_id": "strata-98a7c3789e014b99b99828a8ef798b5f",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 41.73601769981906,
+      "native_seq": 2,
+      "encoder_seq": 2,
+      "generation": "c10cb203bb4841ffba28f7df280b4d19",
+      "loaded_plan_sha256": "c89e19ffcd6f25eb8716f4fe715b378afdefb2627227693727e6a029f3fce706",
+      "proof_file": "initial-bilingual_button_label-proof.json",
+      "proof_sha256": "712c5ca22dc360d240abc05eff0aa876003183a2578d272d1ed4b1d258e42313",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    {
+      "phase": "recovery",
+      "case_id": "approval_heading",
+      "request_id": "strata-21d6bc031b6647dc9fbc3ebf6af73ebe",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 40.40170319983736,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "2d58edd63bd349fdaaa2dd2d0ec80635",
+      "loaded_plan_sha256": "77a6cbcf923b37299fc9999235801abaec17297624f24e91e193e6458acaf3a0",
+      "proof_file": "recovery-approval_heading-proof.json",
+      "proof_sha256": "c52fc9d145527cc01a8f82abd12c2b2694a5a705222154d00d0638cde0a838c3",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    }
+  ],
+  "encoder_phase_cancel_passed": true,
+  "run_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261013-v5",
+  "receipt_sha256": "aecd0d3372bb6b3c248059400d4361320d9d13492028f9ae398a7caa79f3955a",
+  "resource_drain_verified": true,
+  "observed_at": "2026-10-13T10:17:57.8732792+08:00",
+  "status": "scoped_image_lifecycle_passed_agent_execution_started",
+  "scope": "Three screenshot questions across two exact generations, encoder-in-flight cancellation and drained ledgers; no broad vision quality, physical SSD I/O, full performance protocol or default-route qualification.",
+  "raw_files": {
+    "after-cancel-ledger.json": {
+      "size_bytes": 273,
+      "sha256": "755de7c4c23dc1a714b506de64cafcbba1fadd0c20075c2f688c833e4f16bb7d"
+    },
+    "after-cancel-loaded-plan.json": {
+      "size_bytes": 300598,
+      "sha256": "995c974f6b69cdbf466bbb1dda04c15cb41f1ae42dec67bd59909d5d7c9f0c2b"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392336,
+      "sha256": "e40ce55cde1257fb939005b4c22ae5e4b693b0825fbb7ec47d7ccfff8141be8e"
+    },
+    "encoder-cancellation.json": {
+      "size_bytes": 12432,
+      "sha256": "c676f0206c4874ebba92562caab740736194231b1be087eb48fae8d323a771c0"
+    },
+    "initial-approval_heading-proof.json": {
+      "size_bytes": 90891,
+      "sha256": "e7979776667700c2aff36f88ecb70f6227b26f5f60076e814d68f739913db7f6"
+    },
+    "initial-approval_heading-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "initial-approval_heading.json": {
+      "size_bytes": 286670,
+      "sha256": "5def0008c9f0c4e4dbecd60d9240916ff2ee947fbca5b657b949db2b602eb3ab"
+    },
+    "initial-approval_heading.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "initial-bilingual_button_label-proof.json": {
+      "size_bytes": 91076,
+      "sha256": "041dfd77ef30e73ee083597ebc676e81985e6e6b4c8cc1d885a6dc0ea7c14a18"
+    },
+    "initial-bilingual_button_label-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "initial-bilingual_button_label.json": {
+      "size_bytes": 289924,
+      "sha256": "cf4d2a668b4f416ba8cc67f862f557c581b80a2b98c827512fe48a8e3373a339"
+    },
+    "initial-bilingual_button_label.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "initial-close.json": {
+      "size_bytes": 923,
+      "sha256": "1b3b634069f84908359b818015c1fe9966ace293064964b8ebcaffa4d79e79c0"
+    },
+    "initial-last-image.json": {
+      "size_bytes": 942,
+      "sha256": "6eeaaa937b3ceb02ce980d669ea33fb06ada75accd3df635f44fc8f430518bd0"
+    },
+    "initial-last-io.json": {
+      "size_bytes": 2228,
+      "sha256": "eaa9ea504447a199ebeae8f9c6814042e327bb18514ec68770aa0ad3fdae0a92"
+    },
+    "initial-loaded-plan.json": {
+      "size_bytes": 316405,
+      "sha256": "2f8daa1ce62463ec9ca2b5cf22cca0d1183da9e69f938740b6c7bcacddef8eaa"
+    },
+    "input.png": {
+      "size_bytes": 59775,
+      "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e"
+    },
+    "recovery-approval_heading-proof.json": {
+      "size_bytes": 90899,
+      "sha256": "49ad81a66e27f2df23f309b222579955d9d9979a88e6e9c0918751f57434c8fa"
+    },
+    "recovery-approval_heading-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "recovery-approval_heading.json": {
+      "size_bytes": 286693,
+      "sha256": "17a1f92b532bfb805c4dd60fa67596e313e2990d5e1fc4877649cda9424b7eb3"
+    },
+    "recovery-approval_heading.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "recovery-close.json": {
+      "size_bytes": 1792,
+      "sha256": "afd60313818ee0b4d91a1ba6a484ee564a7c9dad1dc6d27d409e77d4660685af"
+    },
+    "recovery-last-image.json": {
+      "size_bytes": 1296,
+      "sha256": "dc0f7d47dc4df35aa39acf61f63ae5e8dda8a3f859a29cb971453b34a18feca8"
+    },
+    "recovery-last-io.json": {
+      "size_bytes": 9940,
+      "sha256": "d99c8b8d8048708fcd6d6ac3ff532f02217ba280c518b097e715e43520a88c30"
+    },
+    "recovery-loaded-plan.json": {
+      "size_bytes": 316405,
+      "sha256": "041c97804a30ceb6af982e8700e07072241df418d755d7542f8f83ceb07e3d47"
+    },
+    "reference.json": {
+      "size_bytes": 1058,
+      "sha256": "ae90056198d16d861d4cc9139e4df68684533c74a38b55606f2ed267af19f3ed"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 10726527,
+      "sha256": "357101394a7ea9a311759d9171ee9498787d396d5f8369a15c36c9f18f20a611"
+    }
+  },
+  "agent": {
+    "functional_passed": false,
+    "launcher": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-20261013-v5\\run-agent.ps1",
+    "status": "invoked_prerequisite_checks_pending",
+    "run_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-20261013-v5",
+    "launcher_sha256": "8246668278ea057654cffa864bfafa46cae380740f3482534be06fa20087c2f8"
+  },
+  "fresh_generation_image_recovery_passed": true,
+  "ledger_final": {
+    "capacities": {
+      "host_ram": 22930124800,
+      "vram:0": 25651314688,
+      "ssd": 861586432140,
+      "windows_commit": 68113162240
+    },
+    "reserved": {
+      "host_ram": 0,
+      "vram:0": 0,
+      "ssd": 0,
+      "windows_commit": 0
+    },
+    "owners": [],
+    "quarantined": []
+  },
+  "offline_audit": {
+    "sha256": "249f77df4ddc101466fd77d706e8d0d91ae2636f1bcd2ef47257c06a68a1174c",
+    "exit_code": 0,
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-20261013-v5\\lifecycle-offline-audit.json",
+    "result": {
+      "schema": "omni-private-strata-cpu-image-lifecycle-v1-prerequisite",
+      "receipt_sha256": "aecd0d3372bb6b3c248059400d4361320d9d13492028f9ae398a7caa79f3955a",
+      "runner_sha256": "25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9",
+      "raw_closure_verified": true,
+      "image_identity_sha256": "c769d0ecce643669a2baf957343e0d263eb94a8ccec7a51aff03ee5b3a1ca5c1",
+      "route_controls_sha256": "43a6b815062d28fccb7c568eb5947042228c5851577d4dc72595c18bb854ed4c",
+      "generations": [
+        "c10cb203bb4841ffba28f7df280b4d19",
+        "2d58edd63bd349fdaaa2dd2d0ec80635"
+      ],
+      "scope": "closed three narrow real-app image requests plus encoder-phase cancel/recovery; no default or performance qualification"
+    }
+  },
+  "release_qualified": false,
+  "initial_start_including_verification_s": 1040.9193774997257
+}
