@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-13 Agent close now drops its completed Future reference after actual turn cleanup, releasing otherwise retained failure tracebacks and image/tool locals. Caller-owned Futures retain the original error. Three ownership/cleanup tests and ten existing close/cancel regressions pass; Ruff passes. Restoring the old method in memory reproduces all three new test failures. No model was loaded or GPU-memory saving measured. Production source identity changed: subsequent image lifecycle and Agent performance runs must bind current sources; historical smoke remains evidence only for its original sources. Code: 001888093.
+
 2026-10-13 正式图像性能入口离线修正：私有 v2 原按含证据保存间隙的墙钟计满 30 分钟，v3 改为与公共 profiler 一致，累计至少 1800 秒请求执行，另报墙钟时间。11 项测试及 Ruff 通过，包括拒绝以空闲时间凑足持续负载；旧版本与原始 smoke 不变。[修正记录与源码补丁](results/strata_20261008/strata_image_profile_active_duration_20261013.json)。尚未启动完整模型协议，不授予新性能资格。
 
 2026-10-13 **8 GiB Q4 驻留图像 Agent 四轮 smoke 及独立复核通过**：[原始证据索引](results/strata_20261008/strata_q4_image_resident_smoke_20261013.json)。4 条完整任务、8 次模型调用、52 个有序事件；原生序号连续至 8，每轮输入无前轮检索记忆，截图到模型输入关联通过。完整任务分别 83.329／74.921／73.771／78.594 s；模型及编码器退场、浏览器绑定集合释放、共享账本归零，33 个原始文件已再次核对哈希。仅一个截图任务族，全部超过 60 s 目标，不报告 p95 或授予默认资格。三档各 20 次与 30 分钟图像协议仍待执行。用户要求释放内存后，本次只整理已有证据，未重新加载模型。

@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-13 Agent close now drops its completed Future reference after actual turn cleanup, releasing otherwise retained failure tracebacks and image/tool locals. Caller-owned Futures retain the original error. Three ownership/cleanup tests and ten existing close/cancel regressions pass; Ruff passes. Restoring the old method in memory reproduces all three new test failures. No model was loaded or GPU-memory saving measured. Production source identity changed: subsequent image lifecycle and Agent performance runs must bind current sources; historical smoke remains evidence only for its original sources. Code: 001888093.
+
 2026-10-13 **8 GiB Q4 驻留图像 Agent 四轮 smoke 及独立复核通过**：[原始证据索引](../edge_harness/results/strata_20261008/strata_q4_image_resident_smoke_20261013.json)。4 条完整任务、8 次模型调用、52 个有序事件；原生序号连续至 8，每轮输入无前轮检索记忆，截图到模型输入关联通过。完整任务分别 83.329／74.921／73.771／78.594 s；模型及编码器退场、浏览器绑定集合释放、共享账本归零，33 个原始文件已再次核对哈希。仅一个截图任务族，全部超过 60 s 目标，不报告 p95 或授予默认资格。三档各 20 次与 30 分钟图像协议仍待执行。用户要求释放内存后，本次只整理已有证据，未重新加载模型。
 
 2026-10-13：8 GiB Q4 浏览器图像任务已实跑 EXIT 0，独立原始证据复核 EXIT 0：[完整记录](../edge_harness/results/strata_20261008/strata_q4_image_agent_8g_closed_20261013.json)。13 个有序事件、2 次模型调用，实际打开页面、截图并回答；截图到模型输入、17 个原始文件哈希、关闭资源账本和源码一致性均通过。任务耗时 85.030 s（不含校验加启动 598.039 s），4 GiB 对应单次结果为 98.029 s。每路线仅一条、缓存／功耗未配对，不报告稳定加速或 p95；仍高于 60 s 目标，无自动默认资格。后续继续完整 batch=1 性能协议和代表性质量验证。
