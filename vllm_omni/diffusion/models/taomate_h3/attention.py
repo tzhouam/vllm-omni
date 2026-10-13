@@ -14,7 +14,7 @@ document of the current chunk:
 * media (audio + video) rows attend to ``[text K/V | persistent clean AV K/V | current chunk K/V]``;
 * alignment-padding rows produce zeros;
 * in clean-commit mode the layer additionally stages its post-all-to-all
-  K/V rows of the current chunk into the session's ``CleanAVKVCache``.
+  K/V rows of the current chunk into the engine-owned segmented KV pool.
 
 Sequence parallelism is pure Ulysses: the layer performs the sequence-to-head
 all-to-all itself (as LingBot-World does) so that the persistent cache holds
@@ -39,8 +39,7 @@ from vllm_omni.diffusion.attention.backends.vdnh3_attn import VDNLayout
 from vllm_omni.diffusion.distributed.comm import SeqAllToAll4D, all_to_all_5D
 from vllm_omni.diffusion.layers.fused_qk_norm_rope import fused_qk_norm_rope
 from vllm_omni.diffusion.models.minimax_h3.minimax_h3_transformer import MiniMaxH3Attention
-
-from .kv_cache import CleanAVKVCache
+from vllm_omni.experimental.ar_diffusion.kv_cache.segmented import ARDiffusionSegmentedKVState
 
 
 class StreamMode(str, Enum):
@@ -52,13 +51,11 @@ class StreamMode(str, Enum):
 class StreamContext:
     """Full-sequence metadata of the live chunk document, shared by all layers."""
 
-    cache: CleanAVKVCache
+    cache: ARDiffusionSegmentedKVState
     mode: StreamMode
     # Global (full packed sequence) row indices, on the compute device.
     condition_rows: torch.Tensor
     media_rows: torch.Tensor
-    token_tags: torch.Tensor
-    commit_mask: torch.Tensor
     seq_len: int
     # ``(start, length)`` when the rows are one contiguous range (the pinned
     # phase layout: text rows, then audio and video rows); slices then replace
@@ -142,6 +139,7 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
         # Assigned by the DiT model; ``None`` keeps the layer on the base path
         # (token refiner blocks are never streamed).
         self.layer_name: str | None = None
+        self.layer_index: int | None = None
         self.ulysses_world_size, self.ulysses_rank, self.ulysses_group = _ulysses_state()
         if self.num_heads % self.ulysses_world_size:
             raise ValueError(
@@ -262,7 +260,8 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
         # One contiguous [history | media | condition] view per layer: the live
         # rows are copied into the cache's scratch rows; no per-layer
         # concatenation of the history.
-        keys, values = context.cache.assemble(self.layer_name, k_condition, v_condition, k_media, v_media)
+        assert self.layer_index is not None
+        keys, values = context.cache.assemble(self.layer_index, k_condition, v_condition, k_media, v_media)
         media_out = _dense_attention(
             q_media,
             keys,
@@ -282,9 +281,7 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
             out.index_copy_(0, media_rows, media_out)
         if context.mode is StreamMode.CLEAN_COMMIT:
             # The clean media rows already sit right after the history.
-            context.cache.stage_in_place(
-                self.layer_name, int(k_media.shape[0]), context.token_tags, context.commit_mask
-            )
+            context.cache.stage(self.layer_index)
         return out
 
 

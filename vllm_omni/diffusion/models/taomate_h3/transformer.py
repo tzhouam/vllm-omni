@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-import inspect
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -24,24 +23,6 @@ if TYPE_CHECKING:
     from vllm_omni.diffusion.data import OmniDiffusionConfig
 
 logger = init_logger(__name__)
-
-_EMBED_PARAMETERS = frozenset(
-    {
-        "x",
-        "audio_x",
-        "text_embeddings_selected",
-        "unique_timesteps",
-        "img_pos",
-        "audio_pos",
-        "text_pos",
-        "refiner_cu_seqlens",
-        "refiner_max_seqlen",
-        "seq_len",
-        "device",
-        "local_span",
-        "num_requests",
-    }
-)
 
 
 @dataclass(frozen=True)
@@ -147,17 +128,7 @@ class TaoMateH3DiTModel(MiniMaxH3DiTModel):
         )
         for index, block in enumerate(self.blocks):
             block.attn.layer_name = f"blocks.{index}.attn"
-        # The graph-safe embedding below re-implements the upstream method; if
-        # upstream changes its contract the plan path is switched off rather
-        # than trusted.
-        # (A distinct name: the API docs render this assignment and cross-link
-        # bare identifiers; "parameters" is an ambiguous anchor there.)
-        embed_signature = set(inspect.signature(MiniMaxH3DiTModel._embed).parameters) - {"self"}
-        self.local_embed_plan_supported = embed_signature == _EMBED_PARAMETERS
-        if not self.local_embed_plan_supported:
-            logger.warning(
-                "TaoMate-H3: MiniMaxH3DiTModel._embed signature changed; graph-safe embedding plans are disabled"
-            )
+            block.attn.layer_index = index
 
     @property
     def streaming_local_heads(self) -> int:
@@ -172,10 +143,8 @@ class TaoMateH3DiTModel(MiniMaxH3DiTModel):
         text_pos: torch.Tensor,
         seq_len: int,
         device: torch.device,
-    ) -> LocalEmbedPlan | None:
-        """Build the embedding plan of one layout for this rank, or ``None`` if unsupported."""
-        if not self.local_embed_plan_supported:
-            return None
+    ) -> LocalEmbedPlan:
+        """Build the embedding row selection of one layout for this rank."""
         return LocalEmbedPlan.build(
             img_pos=img_pos,
             audio_pos=audio_pos,
@@ -185,39 +154,19 @@ class TaoMateH3DiTModel(MiniMaxH3DiTModel):
             device=device,
         )
 
-    def _embed(  # type: ignore[override]
+    def _embed_row_indices(
         self,
         *,
-        x: torch.Tensor,
-        audio_x: torch.Tensor,
-        text_embeddings_selected: torch.Tensor,
-        unique_timesteps: torch.Tensor,
         img_pos: torch.Tensor,
         audio_pos: torch.Tensor,
         text_pos: torch.Tensor,
-        refiner_cu_seqlens: torch.Tensor,
-        refiner_max_seqlen: int,
         seq_len: int,
-        device: torch.device,
         local_span: tuple[int, int],
-        num_requests: int = 1,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor | None]:
         plan = _LOCAL_EMBED_PLAN.get()
-        if plan is None or not self.local_embed_plan_supported:
-            return super()._embed(
-                x=x,
-                audio_x=audio_x,
-                text_embeddings_selected=text_embeddings_selected,
-                unique_timesteps=unique_timesteps,
-                img_pos=img_pos,
-                audio_pos=audio_pos,
-                text_pos=text_pos,
-                refiner_cu_seqlens=refiner_cu_seqlens,
-                refiner_max_seqlen=refiner_max_seqlen,
-                seq_len=seq_len,
-                device=device,
-                local_span=local_span,
-                num_requests=num_requests,
+        if plan is None:
+            return super()._embed_row_indices(
+                img_pos=img_pos, audio_pos=audio_pos, text_pos=text_pos, seq_len=seq_len, local_span=local_span
             )
         local_start, local_len = int(local_span[0]), int(local_span[1])
         expected = (
@@ -245,45 +194,17 @@ class TaoMateH3DiTModel(MiniMaxH3DiTModel):
                     plan.fingerprint[:3],
                     expected[:3],
                 )
-            return super()._embed(
-                x=x,
-                audio_x=audio_x,
-                text_embeddings_selected=text_embeddings_selected,
-                unique_timesteps=unique_timesteps,
-                img_pos=img_pos,
-                audio_pos=audio_pos,
-                text_pos=text_pos,
-                refiner_cu_seqlens=refiner_cu_seqlens,
-                refiner_max_seqlen=refiner_max_seqlen,
-                seq_len=seq_len,
-                device=device,
-                local_span=local_span,
-                num_requests=num_requests,
+            return super()._embed_row_indices(
+                img_pos=img_pos, audio_pos=audio_pos, text_pos=text_pos, seq_len=seq_len, local_span=local_span
             )
-        # Same arithmetic as the upstream method, with the plan's fixed
-        # selections in place of boolean-mask indexing.
-        x_rows = x.view(-1, x.shape[-1]).index_select(0, plan.img_global_pos).to(torch.float32)
-        video_embed, _ = self.video_patch_proj(x_rows)
-        audio_rows = audio_x.view(-1, audio_x.shape[-1]).index_select(0, plan.audio_global_pos).to(torch.float32)
-        audio_embed, _ = self.audio_patch_proj(audio_rows)
-
-        text_rows = text_embeddings_selected.to(device=device, dtype=torch.bfloat16)
-        text_embed, _ = self.condition_proj(text_rows)
-        text_embed = self.token_refiner(
-            text_embed,
-            cu_seqlens=refiner_cu_seqlens,
-            max_seqlen=refiner_max_seqlen,
-            num_requests=num_requests,
+        return (
+            plan.img_global_pos,
+            plan.audio_global_pos,
+            plan.img_local_pos,
+            plan.audio_local_pos,
+            plan.text_local_pos,
+            plan.text_local_indices,
         )
-        if plan.text_local_indices is not None:
-            text_embed = text_embed.index_select(0, plan.text_local_indices)
-
-        embeddings = torch.zeros((local_len, self.hidden_size), device=device, dtype=torch.bfloat16)
-        embeddings.index_add_(0, plan.text_local_pos, text_embed.to(torch.bfloat16)[: plan.text_local_pos.shape[0]])
-        embeddings.index_add_(0, plan.img_local_pos, video_embed.to(torch.bfloat16)[: plan.img_local_pos.shape[0]])
-        embeddings.index_add_(0, plan.audio_local_pos, audio_embed.to(torch.bfloat16)[: plan.audio_local_pos.shape[0]])
-        t_emb = self.time_embedder(unique_timesteps)
-        return embeddings, t_emb
 
 
 EntryClass = TaoMateH3DiTModel

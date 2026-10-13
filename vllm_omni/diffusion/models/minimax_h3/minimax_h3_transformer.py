@@ -1625,6 +1625,34 @@ class MiniMaxH3DiTModel(nn.Module):
         value = psp.get(field) if isinstance(psp, dict) else getattr(psp, field, None)
         return default if value is None else value
 
+    def _embed_row_indices(
+        self,
+        *,
+        img_pos: torch.Tensor,
+        audio_pos: torch.Tensor,
+        text_pos: torch.Tensor,
+        seq_len: int,
+        local_span: tuple[int, int],
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor | None]:
+        """Select this rank's rows; derived models may reuse a prepared selection."""
+        local_start, local_len = local_span
+        if local_len == seq_len:
+            return img_pos, audio_pos, img_pos, audio_pos, text_pos, None
+        local_end = local_start + local_len
+        img_mask = (img_pos >= local_start) & (img_pos < local_end)
+        audio_mask = (audio_pos >= local_start) & (audio_pos < local_end)
+        text_mask = (text_pos >= local_start) & (text_pos < local_end)
+        img_global_pos = img_pos[img_mask]
+        audio_global_pos = audio_pos[audio_mask]
+        return (
+            img_global_pos,
+            audio_global_pos,
+            img_global_pos - local_start,
+            audio_global_pos - local_start,
+            text_pos[text_mask] - local_start,
+            torch.nonzero(text_mask, as_tuple=False).view(-1),
+        )
+
     def _embed(
         self,
         *,
@@ -1651,26 +1679,12 @@ class MiniMaxH3DiTModel(nn.Module):
         contract) do not silently miss the kwarg. ``forward()`` reads the real
         value from ``packed_seq_params["num_requests"]``.
         """
-        local_start, local_len = local_span
-        local_end = local_start + local_len
-        local_only = local_len != seq_len
-        if local_only:
-            img_mask = (img_pos >= local_start) & (img_pos < local_end)
-            audio_mask = (audio_pos >= local_start) & (audio_pos < local_end)
-            text_mask = (text_pos >= local_start) & (text_pos < local_end)
-            img_global_pos = img_pos[img_mask]
-            audio_global_pos = audio_pos[audio_mask]
-            img_local_pos = img_global_pos - local_start
-            audio_local_pos = audio_global_pos - local_start
-            text_local_pos = text_pos[text_mask] - local_start
-            text_local_indices = torch.nonzero(text_mask, as_tuple=False).view(-1)
-        else:
-            img_global_pos = img_pos
-            audio_global_pos = audio_pos
-            img_local_pos = img_pos
-            audio_local_pos = audio_pos
-            text_local_pos = text_pos
-            text_local_indices = None
+        local_len = local_span[1]
+        img_global_pos, audio_global_pos, img_local_pos, audio_local_pos, text_local_pos, text_local_indices = (
+            self._embed_row_indices(
+                img_pos=img_pos, audio_pos=audio_pos, text_pos=text_pos, seq_len=seq_len, local_span=local_span
+            )
+        )
 
         # Latent embedders stay fp32 in and out; their outputs are cast to the
         # bf16 sequence dtype only during indexed scattering.

@@ -17,8 +17,7 @@ from vllm_omni.diffusion.models.taomate_h3.kv_cache import (
     AUDIO_TOKEN_TAG,
     TEXT_TOKEN_TAG,
     VIDEO_TOKEN_TAG,
-    CleanAVKVCache,
-    KVContract,
+    TaoMateKVHistory,
 )
 from vllm_omni.diffusion.models.taomate_h3.lora import TaoMateLoRAAdapter, is_taomate_lora_dir, taomate_lora_targets
 from vllm_omni.diffusion.models.taomate_h3.packed import (
@@ -178,62 +177,103 @@ def test_audio_only_layouts() -> None:
 # KV cache
 
 
-def _fake_kv(rows: int, contract: KVContract) -> tuple[torch.Tensor, torch.Tensor]:
-    key = torch.randn(rows, contract.local_heads, contract.head_dim).to(contract.dtype)
-    value = torch.randn(rows, contract.local_heads, contract.head_dim).to(contract.dtype)
-    return key, value
+def _segmented_cache(*, num_layers=2, heads=2, head_dim=4, capacity=80):
+    from vllm_omni.experimental.ar_diffusion.capability import ARDiffusionKVBranchSpec, ARDiffusionSegmentedKVSpec
+    from vllm_omni.experimental.ar_diffusion.kv_cache import ARDiffusionKVCache, ARDiffusionKVConfig
+    from vllm_omni.experimental.ar_diffusion.kv_cache.state import ARDiffusionKVState
+
+    pool = ARDiffusionKVCache(
+        ARDiffusionKVConfig(enable=True, chunk_size=16, window_chunks=1, gpu_memory_fraction=0.01),
+        num_layers=num_layers,
+        num_kv_heads=heads,
+        head_size=head_dim,
+        dtype=torch.bfloat16,
+        block_size=16,
+        max_model_len=100000,
+        available_bytes=128 * 1024**2,
+        kv_branches=(ARDiffusionKVBranchSpec("main", 0),),
+        session_capacity=1,
+        device=torch.device("cpu"),
+        segmented=ARDiffusionSegmentedKVSpec(
+            block_size=16,
+            max_retained_tokens=capacity,
+            max_retained_segments=5,
+            max_pending_tokens=capacity,
+            max_pending_segments=2,
+            initial_staging_tokens=capacity * 2 + 8,
+        ),
+    )
+    state = ARDiffusionKVState(pool, "test", {"main": pool.begin_request("test")}, num_layers=num_layers)
+    return state, state.segmented("main")
 
 
-def _stage_chunk(
-    cache: CleanAVKVCache, contract: KVContract, *, video_rows: int, audio_rows: int, text_rows: int
-) -> None:
-    seq = text_rows + audio_rows + video_rows + 3
-    tags = torch.full((seq,), -1, dtype=torch.long)
-    tags[:text_rows] = TEXT_TOKEN_TAG
-    tags[text_rows : text_rows + audio_rows] = AUDIO_TOKEN_TAG
-    tags[text_rows + audio_rows : text_rows + audio_rows + video_rows] = VIDEO_TOKEN_TAG
-    mask = (tags == AUDIO_TOKEN_TAG) | (tags == VIDEO_TOKEN_TAG)
-    cache.begin_clean_commit(cache.committed_blocks)
-    for name in contract.layer_names:
-        key, value = _fake_kv(seq, contract)
-        cache.stage(name, key, value, tags, mask)
-    cache.commit()
+def test_segmented_retention_matches_dense_history_over_thirteen_windows():
+    torch.manual_seed(1)
+    state, cache = _segmented_cache()
+    ledger = TaoMateKVHistory(lambda: cache)
+    reference: list[tuple[torch.Tensor, torch.Tensor]] = []
+    try:
+        for window in range(13):
+            if window == 12:
+                expected_drop = sum(pair[0].shape[0] for pair in reference[-2:])
+                assert ledger.drop_audio_history() == expected_drop
+                reference = [(a[:0], v) for a, v in reference]
+            for phase in range(4):
+                audio, video, text = (
+                    3 + ((window + phase) % 3),
+                    (12 if not reference else 10) if phase == 0 else (10, 10, 5)[phase - 1],
+                    3,
+                )
+                cache.prepare_layer_views(media_tokens=audio + video, condition_tokens=text)
+                if len(reference) <= 2:
+                    retained = [tensor for pair in reference for tensor in pair]
+                else:
+                    retained = [reference[0][1]] + [tensor for pair in reference[-2:] for tensor in pair]
+                expected_history = torch.cat(retained) if retained else torch.empty(0, 2, 2, 4, dtype=torch.bfloat16)
+                assert cache.history_tokens == expected_history.shape[0]
+                media = torch.randn(audio + video, 2, 2, 4, dtype=torch.bfloat16)
+                condition = torch.randn(text, 2, 2, 4, dtype=torch.bfloat16)
+                for noisy in range(3):
+                    for layer in range(2):
+                        k, v = cache.assemble(layer, condition[:, 0], condition[:, 1], media[:, 0], media[:, 1])
+                        torch.testing.assert_close(k[: cache.history_tokens], expected_history[:, 0], rtol=0, atol=0)
+                        torch.testing.assert_close(v[: cache.history_tokens], expected_history[:, 1], rtol=0, atol=0)
+                        torch.testing.assert_close(
+                            k[cache.history_tokens :], torch.cat((media[:, 0], condition[:, 0])), rtol=0, atol=0
+                        )
+                    assert ledger.committed_phases == window * 4 + phase
+                ledger.begin_commit(audio_tokens=audio, video_tokens=video)
+                for layer in range(2):
+                    cache.assemble(layer, condition[:, 0], condition[:, 1], media[:, 0], media[:, 1])
+                    cache.stage(layer)
+                ledger.commit()
+                reference.append((media[:audio].clone(), media[audio:].clone()))
+        assert ledger.committed_phases == 52
+    finally:
+        state.close()
 
 
-def test_kv_cache_retention_policy() -> None:
-    contract = KVContract(num_layers=3, local_heads=2, head_dim=4, dtype=torch.float32)
-    cache = CleanAVKVCache(contract)
-    _stage_chunk(cache, contract, video_rows=12, audio_rows=6, text_rows=5)
-    cache.retain_sink_and_recent_commits()
-    assert cache.history_tokens == 18 and cache.committed_blocks == 1
-    _stage_chunk(cache, contract, video_rows=10, audio_rows=4, text_rows=5)
-    cache.retain_sink_and_recent_commits()
-    assert cache.history_tokens == 18 + 14
-    _stage_chunk(cache, contract, video_rows=10, audio_rows=4, text_rows=5)
-    cache.retain_sink_and_recent_commits()
-    # Chunk 0 aged to a video-only sink (12 rows), chunks 1 and 2 complete.
-    assert cache.history_video_tokens == 12 + 10 + 10
-    assert cache.history_audio_tokens == 4 + 4
-    _stage_chunk(cache, contract, video_rows=5, audio_rows=2, text_rows=5)
-    cache.retain_sink_and_recent_commits()
-    assert cache.history_video_tokens == 12 + 10 + 5
-    assert cache.history_audio_tokens == 4 + 2
-    dropped = cache.drop_audio_history()
-    assert dropped == 6 and cache.history_audio_tokens == 0 and cache.history_video_tokens == 27
-    for name in contract.layer_names:
-        assert cache.history(name).key.shape[0] == 27
-
-
-def test_kv_cache_rollback_and_ordering() -> None:
-    contract = KVContract(num_layers=2, local_heads=1, head_dim=2, dtype=torch.float32)
-    cache = CleanAVKVCache(contract)
-    cache.begin_clean_commit(0)
-    with pytest.raises(RuntimeError):
-        cache.commit()  # missing layers
-    cache.rollback()
-    assert not cache.clean_commit_active
-    with pytest.raises(RuntimeError):
-        cache.begin_clean_commit(1)
+def test_segmented_failed_commit_rolls_back_without_advancing_model_history():
+    state, cache = _segmented_cache()
+    ledger = TaoMateKVHistory(lambda: cache)
+    try:
+        cache.prepare_layer_views(media_tokens=5, condition_tokens=1)
+        ledger.begin_commit(audio_tokens=2, video_tokens=3)
+        x = torch.ones(5, 2, 4, dtype=torch.bfloat16)
+        cache.assemble(0, x[:1], x[:1], x, x)
+        cache.stage(0)
+        with pytest.raises(RuntimeError):
+            ledger.commit()
+        assert ledger.committed_phases == 0 and cache.history_tokens == 0
+        ledger.rollback()
+        ledger.begin_commit(audio_tokens=2, video_tokens=3)
+        for layer in range(2):
+            cache.assemble(layer, x[:1], x[:1], x, x)
+            cache.stage(layer)
+        ledger.commit()
+        assert ledger.committed_phases == 1 and cache.history_tokens == 5
+    finally:
+        state.close()
 
 
 # ----------------------------------------------------------------------------
@@ -459,14 +499,13 @@ def test_audio_decoder_pads_the_rounded_tail_but_rejects_missing_audio() -> None
 def test_pinned_lengths_cover_every_phase_and_teacher_document() -> None:
     from vllm_omni.diffusion.models.taomate_h3 import pipeline as pipeline_module
     from vllm_omni.diffusion.models.taomate_h3.audio_teacher import ROLLOVER_LATENTS_PER_CHANNEL
-    from vllm_omni.diffusion.models.taomate_h3.kv_cache import KVContract
 
     canvas = geo.CanvasGeometry(height=864, width=480)
     session = pipeline_module._Session(
         session_id="s",
         canvas=canvas,
         seed=1,
-        contract=KVContract(num_layers=1, local_heads=1, head_dim=1),
+        cache=None,  # type: ignore[arg-type]
         video_decoder=None,  # type: ignore[arg-type]
         audio_decoder=None,  # type: ignore[arg-type]
         audio_kv_reset_requests=12,
@@ -549,25 +588,21 @@ def test_hold_idles_at_a_request_boundary_until_a_prompt_update(monkeypatch) -> 
     state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)  # request 1, no new prompt yet
     pipe.prepare_next_chunk(state)
     assert state.extra["taomate_held"] is True
-    assert state.step_in_chunk == 0  # the runner must not decode the held boundary again
-    assert state.current_timestep is not None  # the runner's InputBatch still batches the held state
-    assert pipe.supports_chunk_step_grouping is False  # each idle step goes back to the scheduler
-
-    applies = []
-    monkeypatch.setattr(pipe, "apply_interaction_at_chunk_boundary", lambda s: applies.append(1), raising=False)
-    assert pipe.denoise_step(None, states=[state]) is None  # idle step
-    pipe.step_scheduler(state, None)  # no-op while held
-    assert state.step_in_chunk == 0 and applies == [1]
+    assert state.step_in_chunk == 3  # no fake step or timestep reset while waiting
+    assert pipe.supports_chunk_step_grouping is True
+    assert pipe.ar_diffusion_step_wait(state).timeout_seconds is None
+    with pytest.raises(RuntimeError, match="waiting requests"):
+        pipe.denoise_step(None, states=[state])
 
     def apply_prompt(s):
         s.interaction_sessions["prompt"].version += 1
 
     monkeypatch.setattr(pipe, "apply_interaction_at_chunk_boundary", apply_prompt, raising=False)
-    with pytest.raises(_RequestStartedError):  # the new prompt releases the hold and starts request 1
-        pipe.denoise_step(None, states=[state])
+    with pytest.raises(_RequestStartedError):
+        pipe.ar_diffusion_resume_step(state, "interaction")
     assert state.extra["taomate_held"] is False
     assert state.extra["taomate_prompt_version"] == 2
-    assert pipe.supports_chunk_step_grouping is True  # the started request's steps group again
+    assert pipe.ar_diffusion_step_wait(state) is None
 
 
 def test_hold_never_blocks_the_first_request_or_request_mode(monkeypatch) -> None:
@@ -600,7 +635,7 @@ def prepare_encode_pipeline(monkeypatch):
     monkeypatch.setattr(pipeline_module.TaoMateH3Pipeline, "device", torch.device("cpu"), raising=False)
     monkeypatch.setattr(pipeline_module, "StreamingVideoDecoder", Mock())
     monkeypatch.setattr(pipeline_module, "StreamingAudioDecoder", Mock())
-    pipe._ar_diffusion_kv_state = SimpleNamespace(session_id="session")
+    pipe._ar_diffusion_kv_state = SimpleNamespace(session_id="session", segmented=lambda branch: Mock(), reset=Mock())
     pipe._tm_teacher = object()
     pipe._tm_default_height = 864
     pipe._tm_default_width = 480
@@ -837,11 +872,12 @@ def _ahead_session(pad_text_tokens: int = 128):
     from vllm_omni.diffusion.models.taomate_h3.pipeline import _Session
 
     canvas = geo.CanvasGeometry(height=864, width=480)
+    _, cache = _segmented_cache(num_layers=1, heads=1, head_dim=8, capacity=20000)
     session = _Session(
         session_id="s",
         canvas=canvas,
         seed=7,
-        contract=KVContract(num_layers=1, local_heads=1, head_dim=8),
+        cache=lambda: cache,
         video_decoder=None,  # type: ignore[arg-type]
         audio_decoder=None,  # type: ignore[arg-type]
         audio_kv_reset_requests=12,
@@ -945,14 +981,13 @@ def test_hold_is_released_after_its_time_bound(monkeypatch) -> None:
     pipe._tm_hold_max_seconds = 0.05
     state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)  # request 1, no new prompt
     pipe.prepare_next_chunk(state)
-    assert state.extra["taomate_held"] is True and "taomate_hold_since" in state.extra
-    pipe.prepare_next_chunk(state)  # still within the bound
+    assert pipe.ar_diffusion_step_wait(state).timeout_seconds == 0.05
+    pipe.prepare_next_chunk(state)
     assert state.extra["taomate_held"] is True
-    state.extra["taomate_hold_since"] -= 1.0  # the bound has passed
-    with pytest.raises(_RequestStartedError):  # the request starts with the previous prompt
-        pipe.prepare_next_chunk(state)
-    assert state.extra["taomate_held"] is False and "taomate_hold_since" not in state.extra
-    assert state.extra["taomate_prompt_version"] == 1  # a late update still applies at the next boundary
+    with pytest.raises(_RequestStartedError):
+        pipe.ar_diffusion_resume_step(state, "timeout")
+    assert state.extra["taomate_held"] is False
+    assert state.extra["taomate_prompt_version"] == 1
 
 
 def test_hold_bound_can_fall_back_to_a_neutral_prompt(monkeypatch) -> None:
@@ -971,18 +1006,16 @@ def test_hold_bound_can_fall_back_to_a_neutral_prompt(monkeypatch) -> None:
     monkeypatch.setattr(pipe, "encode_prompt", encode_prompt, raising=False)
     state = _hold_state(chunk_index=_NUM_PHASES, applied_version=1)
     pipe.prepare_next_chunk(state)
-    state.extra["taomate_hold_since"] -= 1.0
     with pytest.raises(_RequestStartedError):
-        pipe.prepare_next_chunk(state)
+        pipe.ar_diffusion_resume_step(state, "timeout")
     assert calls == ["She listens quietly."]
     assert tuple(state.prompt_embeds.shape) == (6, 8) and state.txt_seq_lens == [6]
     assert int(state.extra["text_tags"][0]) == 0
     # The encoding is cached: a second expiry does not re-encode.
     state2 = _hold_state(chunk_index=2 * _NUM_PHASES, applied_version=1)
     pipe.prepare_next_chunk(state2)
-    state2.extra["taomate_hold_since"] -= 1.0
     with pytest.raises(_RequestStartedError):
-        pipe.prepare_next_chunk(state2)
+        pipe.ar_diffusion_resume_step(state2, "timeout")
     assert calls == ["She listens quietly."]
 
 
@@ -1015,80 +1048,6 @@ def test_fp8_activation_quant_is_pointed_at_the_cuda_kernel() -> None:
 # buffered K/V cache: in-place assembly, staging and compaction match the reference semantics
 
 
-def _reference_history(commits: list[tuple[torch.Tensor, torch.Tensor, list[int]]], selection):
-    """History rows after ``selection`` of (block, video_only) over committed (key, value, tags) blocks."""
-    keys, values = [], []
-    for block, video_only in selection:
-        key, value, tags = commits[block]
-        keep = [i for i, tag in enumerate(tags) if not video_only or tag == VIDEO_TOKEN_TAG]
-        idx = torch.tensor(keep)
-        keys.append(key.index_select(0, idx))
-        values.append(value.index_select(0, idx))
-    return torch.cat(keys), torch.cat(values)
-
-
-def test_kv_cache_assemble_and_in_place_staging_match_concatenation() -> None:
-    torch.manual_seed(1)
-    contract = KVContract(num_layers=2, local_heads=2, head_dim=4)
-    cache = CleanAVKVCache(contract, capacity_rows=8)  # small: forces a buffer growth below
-    text, audio, video = 3, 2, 4
-    seq = text + audio + video
-    tags = torch.tensor([1] * text + [AUDIO_TOKEN_TAG] * audio + [VIDEO_TOKEN_TAG] * video)
-    mask = torch.tensor([False] * text + [True] * (audio + video))
-    commits: list[tuple[torch.Tensor, torch.Tensor, list[int]]] = []
-    for block in range(4):
-        cache.begin_clean_commit(block)
-        for layer in contract.layer_names:
-            k = torch.randn(seq, 2, 4, dtype=torch.bfloat16)
-            v = torch.randn(seq, 2, 4, dtype=torch.bfloat16)
-            history = cache.history(layer)
-            keys, values = cache.assemble(layer, k[:text], v[:text], k[text:], v[text:])
-            expected_k = torch.cat(([history.key] if history is not None else []) + [k[text:], k[:text]])
-            expected_v = torch.cat(([history.value] if history is not None else []) + [v[text:], v[:text]])
-            assert torch.equal(keys, expected_k) and torch.equal(values, expected_v)
-            cache.stage_in_place(layer, audio + video, tags, mask)
-            if layer == contract.layer_names[0]:
-                commits.append((k[text:].clone(), v[text:].clone(), tags[text:].tolist()))
-        cache.commit()
-        cache.retain_sink_and_recent_commits()
-    # After four commits the policy keeps block 0 video-only and blocks 2 and 3 whole.
-    assert cache.committed_blocks == 4 and cache.history_tokens == video + 2 * (audio + video)
-    ref_k, ref_v = _reference_history(commits, [(0, True), (2, False), (3, False)])
-    history = cache.history(contract.layer_names[0])
-    assert torch.equal(history.key, ref_k) and torch.equal(history.value, ref_v)
-    # Dropping the audio history compacts to the video rows of every kept block.
-    removed = cache.drop_audio_history()
-    assert removed == 2 * audio and cache.history_tokens == 3 * video
-    ref_k, ref_v = _reference_history(commits, [(0, True), (2, True), (3, True)])
-    history = cache.history(contract.layer_names[0])
-    assert torch.equal(history.key, ref_k) and torch.equal(history.value, ref_v)
-
-
-def test_kv_cache_stage_paths_agree() -> None:
-    """stage() (full-sequence rows) and assemble()+stage_in_place() leave the same history."""
-    contract = KVContract(num_layers=1, local_heads=1, head_dim=2)
-    layer = contract.layer_names[0]
-    seq, text = 6, 2
-    tags = torch.tensor([1, 1, AUDIO_TOKEN_TAG, AUDIO_TOKEN_TAG, VIDEO_TOKEN_TAG, VIDEO_TOKEN_TAG])
-    mask = torch.tensor([False, False, True, True, True, True])
-    k = torch.randn(seq, 1, 2, dtype=torch.bfloat16)
-    v = torch.randn(seq, 1, 2, dtype=torch.bfloat16)
-    a = CleanAVKVCache(contract)
-    a.begin_clean_commit(0)
-    a.stage(layer, k, v, tags, mask)
-    a.commit()
-    b = CleanAVKVCache(contract)
-    b.begin_clean_commit(0)
-    b.assemble(layer, k[:text], v[:text], k[text:], v[text:])
-    b.stage_in_place(layer, seq - text, tags, mask)
-    b.commit()
-    assert torch.equal(a.history(layer).key, b.history(layer).key)
-    assert torch.equal(a.history(layer).value, b.history(layer).value)
-    with pytest.raises(RuntimeError):
-        b.begin_clean_commit(1)
-        b.stage_in_place(layer, seq - text - 1, tags, mask)  # row count must match the mask
-
-
 def test_contiguous_span_detection() -> None:
     from vllm_omni.diffusion.models.taomate_h3.pipeline import _contiguous_span
 
@@ -1096,3 +1055,43 @@ def test_contiguous_span_detection() -> None:
     assert _contiguous_span(torch.tensor([3])) == (3, 1)
     assert _contiguous_span(torch.tensor([1, 2, 4])) is None
     assert _contiguous_span(torch.tensor([], dtype=torch.long)) is None
+
+
+def test_request_mode_reusing_session_starts_with_empty_engine_kv(prepare_encode_pipeline):
+    pipe, request, _ = prepare_encode_pipeline
+    bound, _ = _segmented_cache()
+    pipe._ar_diffusion_kv_state = bound
+    pipe._tm_sessions = {}
+    try:
+        pipe.prepare_encode(request)
+        first = pipe._tm_sessions[bound.session_id]
+        first.cache.prepare_layer_views(media_tokens=5, condition_tokens=1)
+        first.history.begin_commit(audio_tokens=2, video_tokens=3)
+        x = torch.ones(5, 2, 4, dtype=torch.bfloat16)
+        for layer in range(2):
+            first.cache.assemble(layer, x[:1], x[:1], x, x)
+            first.cache.stage(layer)
+        first.history.commit()
+        first_cache = first.cache
+        assert first_cache.history_tokens == 5
+        pipe.prepare_encode(request)
+        second = pipe._tm_sessions[bound.session_id]
+        assert second.cache is not first_cache
+        assert second.cache.history_tokens == 0
+        assert second.history.committed_phases == 0 and second.media_time_origin is None
+        with pytest.raises(RuntimeError, match="closed"):
+            first_cache.prepare_layer_views(media_tokens=5, condition_tokens=1)
+    finally:
+        bound.close()
+
+
+def test_model_kv_requires_current_matching_ar_binding(prepare_encode_pipeline):
+    pipe, request, _ = prepare_encode_pipeline
+    pipe.prepare_encode(request)
+    session = pipe._tm_sessions["session"]
+    pipe._ar_diffusion_kv_state.session_id = "another-session"
+    with pytest.raises(RuntimeError, match="outside its bound session"):
+        _ = session.cache
+    pipe._ar_diffusion_kv_state = None
+    with pytest.raises(RuntimeError, match="requires the AR-Diffusion engine"):
+        _ = session.cache

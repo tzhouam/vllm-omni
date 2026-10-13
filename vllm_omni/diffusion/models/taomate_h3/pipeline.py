@@ -11,7 +11,7 @@ contract on vLLM-Omni's AR-Diffusion runtime (LingBot-World's realtime path):
 
 * one AR chunk = one TaoMate phase (``chunk_num_steps = 3``) with the clean-KV
   commit and the incremental VAE decode in ``post_decode``;
-* the persistent clean audio/video KV is model-owned (``CleanAVKVCache``) and
+* the persistent clean audio/video KV is owned by the AR engine and
   read by ``TaoMateH3StreamingAttention`` after the Ulysses all-to-all;
 * the prompt of the *next* request may change at any chunk boundary through
   the streaming ``session.interaction`` API (TaoMate's just-in-time lock);
@@ -27,10 +27,10 @@ Ulysses sequence parallelism (``tensor_parallel_size == 1``).
 from __future__ import annotations
 
 import time
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, cast
+from typing import Any, ClassVar, Literal, cast
 
 import numpy as np
 import torch
@@ -51,9 +51,14 @@ from vllm_omni.diffusion.models.minimax_h3.pipeline_minimax_h3 import MiniMaxH3P
 from vllm_omni.diffusion.request import OmniDiffusionRequest
 from vllm_omni.diffusion.worker.input_batch import InputBatch
 from vllm_omni.diffusion.worker.request_batch import DiffusionRequestBatch
-from vllm_omni.diffusion.worker.utils import StepRequestState
+from vllm_omni.diffusion.worker.utils import StepRequestState, StepWait
 from vllm_omni.errors import OmniClientError
-from vllm_omni.experimental.ar_diffusion.capability import ARDiffusionKVBranchSpec, ARDiffusionKVCacheSpec
+from vllm_omni.experimental.ar_diffusion.capability import (
+    ARDiffusionKVBranchSpec,
+    ARDiffusionKVCacheSpec,
+    ARDiffusionSegmentedKVSpec,
+)
+from vllm_omni.experimental.ar_diffusion.kv_cache.segmented import ARDiffusionSegmentedKVState
 from vllm_omni.experimental.ar_diffusion.kv_cache.state import ARDiffusionKVState
 from vllm_omni.experimental.ar_diffusion.tick_protocol import ARDiffusionChunkMetadata
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams
@@ -82,7 +87,7 @@ from .geometry import (
     phases_for_frames,
     request_plan,
 )
-from .kv_cache import CleanAVKVCache, KVContract
+from .kv_cache import TaoMateKVHistory
 from .lora import TaoMateLoRAAdapter, is_taomate_lora_dir
 from .packed import taomate_phase_packed_layout
 from .schedule import euler_eta0_update_, student_sigmas
@@ -187,8 +192,6 @@ class _PhaseState:
     branch: MiniMaxH3DenoiseBranch
     condition_rows: torch.Tensor
     media_rows: torch.Tensor
-    token_tags: torch.Tensor
-    commit_mask: torch.Tensor
     seq_len: int
     condition_span: tuple[int, int] | None = None
     media_span: tuple[int, int] | None = None
@@ -205,18 +208,18 @@ class _Session:
         session_id: str,
         canvas: CanvasGeometry,
         seed: int,
-        contract: KVContract,
+        cache: Callable[[], ARDiffusionSegmentedKVState],
         video_decoder: StreamingVideoDecoder,
         audio_decoder: StreamingAudioDecoder,
         audio_kv_reset_requests: int,
         pad_text_tokens: int = 0,
-        kv_capacity_rows: int | None = None,
     ) -> None:
         self.session_id = session_id
         self.canvas = canvas
         self.pad_text_tokens = int(pad_text_tokens)
         self.seed = int(seed)
-        self.cache = CleanAVKVCache(contract, capacity_rows=kv_capacity_rows)
+        self._cache = cache
+        self.history = TaoMateKVHistory(cache)
         self.video_decoder = video_decoder
         self.audio_decoder = audio_decoder
         self.audio_kv_reset_requests = int(audio_kv_reset_requests)
@@ -243,6 +246,11 @@ class _Session:
         self.last_phase_end: float | None = None
         # Teacher graphs of this session's prompt length captured (first step).
         self.teacher_shapes_warm = False
+
+    @property
+    def cache(self) -> ARDiffusionSegmentedKVState:
+        # Resolve against the current runner binding, never retain its state.
+        return self._cache()
 
     # -- request lifecycle -------------------------------------------------
 
@@ -276,7 +284,7 @@ class _Session:
         if self.media_time_origin is None:
             self.media_time_origin = text_len
         if index > 0 and self.audio_kv_reset_requests > 0 and index % self.audio_kv_reset_requests == 0:
-            dropped = self.cache.drop_audio_history()
+            dropped = self.history.drop_audio_history()
             logger.info(
                 "TaoMate-H3 session %s: dropped %d audio KV rows at request %d", self.session_id, dropped, index
             )
@@ -418,15 +426,12 @@ class _Session:
         media_cpu = torch.cat((packed["audio_pos"].view(-1), packed["img_pos"].view(-1))).sort().values.to(torch.long)
         condition_rows = condition_cpu.to(device=device)
         media_rows = media_cpu.to(device=device)
-        commit_mask = torch.zeros(seq_len, dtype=torch.bool)
-        commit_mask[media_cpu] = True
+        self.cache.prepare_layer_views(media_tokens=int(media_cpu.numel()), condition_tokens=int(condition_cpu.numel()))
         self.phase = _PhaseState(
             phase=phase,
             branch=branch,
             condition_rows=condition_rows,
             media_rows=media_rows,
-            token_tags=tags.to(device=device, dtype=torch.long),
-            commit_mask=commit_mask.to(device=device),
             seq_len=seq_len,
             condition_span=_contiguous_span(condition_cpu),
             media_span=_contiguous_span(media_cpu),
@@ -441,8 +446,6 @@ class _Session:
             mode=mode,
             condition_rows=phase.condition_rows,
             media_rows=phase.media_rows,
-            token_tags=phase.token_tags,
-            commit_mask=phase.commit_mask,
             seq_len=phase.seq_len,
             condition_span=phase.condition_span,
             media_span=phase.media_span,
@@ -460,7 +463,8 @@ class _Session:
         return (current - mean).div(std).mul(anchor_std).add(anchor_mean).to(dtype=rows.dtype)
 
     def close(self) -> None:
-        self.cache.clear()
+        # Physical KV lifetime belongs to the AR runner; only retire model state.
+        self.history.clear()
         self.video_decoder.reset()
         self.audio_decoder.reset()
         self.request = None
@@ -640,11 +644,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # Opt-in just-in-time prompt lock for clients that choose each request's
         # prompt at the last moment: request k >= 1 starts only after a prompt
         # update was applied since request k-1 started. Until then the session
-        # idles at the request boundary (one short no-op step per poll), so the
+        # waits in the scheduler at the request boundary, so the
         # stream cannot run ahead of the client and start a request on a stale
         # prompt. Off by default: the free-running stream keeps the last prompt.
         self._tm_hold_for_prompt = bool(model_config.get("taomate_h3_hold_for_prompt", False))
-        self._tm_hold_poll_seconds = float(model_config.get("taomate_h3_hold_poll_seconds", 0.02))
+        # taomate_h3_hold_poll_seconds remains accepted for old deploy files;
+        # scheduler notifications now replace polling.
         # Bound on the hold: after this many seconds at a request boundary
         # without a new prompt, the request starts with the previous prompt and
         # a late update applies one request later. 0 keeps the hold unbounded
@@ -891,44 +896,36 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
 
     # -- AR-Diffusion capability --------------------------------------------
 
-    def _kv_contract(self) -> KVContract:
-        return KVContract(
-            num_layers=int(self.transformer.arch.num_layers),
-            local_heads=int(self.transformer.streaming_local_heads),
-            head_dim=int(self.transformer.arch.attention_head_dim),
-            dtype=torch.bfloat16,
-        )
-
-    def _dense_kv_rows_bound(self, canvas: CanvasGeometry) -> int:
-        # Sink (12 video latents) + two recent AV chunks (10 latents each) +
-        # one staged chunk (12 latents) plus their audio rows.
-        video_latents = 12 + 10 + 10 + 12
-        audio_rows = 2 * (60 + 56 + 56 + 60)
-        return video_latents * canvas.frame_rows + audio_rows
-
     def ar_diffusion_kv_cache_spec(self) -> ARDiffusionKVCacheSpec:
-        """Declare the (tiny) paged geometry and the model-owned dense state."""
+        """Declare actual segmented KV and the remaining non-KV model state."""
         canvas = self._tm_default_canvas
-        contract = self._kv_contract()
-        # The dense history is rebuilt by concatenation at commit time, so two
-        # copies of one layer coexist transiently; budget the whole cache twice.
-        dense_bytes = 2 * contract.bytes_for_rows(self._dense_kv_rows_bound(canvas))
+        # First video phase is the sink; recent phases may each contain ten
+        # video latents. Audio/video have independent partially filled pages.
+        retained_rows = (12 + 10 + 10) * canvas.frame_rows + 4 * max(_MAX_PHASE_AUDIO_LATENTS)
+        pending_rows = 12 * canvas.frame_rows + 2 * max(_MAX_PHASE_AUDIO_LATENTS)
         latent_bytes = 24 * REQUEST_VIDEO_LATENTS * canvas.latent_h * canvas.latent_w * 4 * 2
         audio_bytes = 2 * _AUDIO_ROW_WIDTH * 4 * REQUEST_AUDIO_LATENTS * 8
         decoder_bytes = (
             24 * 20 * canvas.latent_h * canvas.latent_w * 4 + 3 * 5 * canvas.height * canvas.width * 4 + 64 * 1024**2
         )
         return ARDiffusionKVCacheSpec(
-            num_layers=contract.num_layers,
-            num_kv_heads=contract.local_heads,
-            head_size=contract.head_dim,
+            num_layers=int(self.transformer.arch.num_layers),
+            num_kv_heads=int(self.transformer.streaming_local_heads),
+            head_size=int(self.transformer.arch.attention_head_dim),
             tokens_per_frame=canvas.frame_rows,
             frames_per_block=1,
             window_frames=1,
-            sink_frames=0,
             kv_branches=(ARDiffusionKVBranchSpec(_AR_BRANCH, 0),),
             session_capacity=1,
-            model_owned_state_bytes_per_session=dense_bytes + latent_bytes + audio_bytes + decoder_bytes,
+            segmented=ARDiffusionSegmentedKVSpec(
+                block_size=256,
+                max_retained_tokens=retained_rows,
+                max_retained_segments=5,
+                max_pending_tokens=pending_rows,
+                max_pending_segments=2,
+                initial_staging_tokens=retained_rows + pending_rows + max(self._tm_pad_text_tokens, 256),
+            ),
+            model_owned_state_bytes_per_session=latent_bytes + audio_bytes + decoder_bytes,
         )
 
     @contextmanager
@@ -963,6 +960,14 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 "TaoMate-H3 step execution requires the AR-Diffusion engine "
                 "(engine_backend: vllm_omni.experimental.ar_diffusion.engine.ARDiffusionEngine)"
             )
+
+    def _bound_segmented_cache(self, session_id: str) -> ARDiffusionSegmentedKVState:
+        self._require_bound_ar_state()
+        bound = self._ar_diffusion_kv_state
+        assert bound is not None
+        if bound.session_id != session_id:
+            raise RuntimeError("TaoMate-H3 KV access outside its bound session")
+        return bound.segmented(_AR_BRANCH)
 
     def _bound_session_id(self, state: StepRequestState) -> str:
         bound = self._ar_diffusion_kv_state
@@ -1056,6 +1061,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._require_bound_ar_state()
         if self._tm_teacher is None:
             raise RuntimeError("TaoMate-H3 weights are not loaded")
+        bound = self._ar_diffusion_kv_state
+        assert bound is not None
         sampling = state.sampling
         if int(getattr(sampling, "num_outputs_per_prompt", 1) or 1) != 1:
             raise OmniClientError("TaoMate-H3 produces one stream per session; num_outputs_per_prompt must be 1")
@@ -1092,11 +1099,14 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         previous = self._tm_sessions.pop(session_id, None)
         if previous is not None:
             previous.close()
+            # Request mode may reuse the runner's default session ID for a
+            # new rollout. Its prompt/RoPE timeline starts afresh as well.
+            bound.reset()
         session = _Session(
             session_id=session_id,
             canvas=canvas,
             seed=seed,
-            contract=self._kv_contract(),
+            cache=lambda: self._bound_segmented_cache(session_id),
             video_decoder=StreamingVideoDecoder(
                 self.video_vae,
                 device=self.device,
@@ -1107,9 +1117,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             audio_decoder=StreamingAudioDecoder(self.audio_vae, device=self.device),
             audio_kv_reset_requests=self._tm_audio_kv_reset_requests,
             pad_text_tokens=self._tm_pad_text_tokens,
-            # History bound plus the largest live document, so the per-layer
-            # K/V buffers are allocated once.
-            kv_capacity_rows=self._dense_kv_rows_bound(canvas) + max(self._tm_pad_text_tokens, 256) + 4352,
         )
         self._tm_sessions[session_id] = session
         state.chunk_num_steps = STUDENT_STEPS
@@ -1154,23 +1161,11 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 and state.chunk_index >= NUM_PHASES
                 and not state.extra.get("taomate_no_hold")
                 and version <= int(state.extra.get("taomate_prompt_version", 0))
-                and not self._hold_expired(state)
+                and not state.extra.get("taomate_resuming")
             ):
-                # Hold at the request boundary until the client locks this
-                # request's prompt; denoise_step polls (see _tm_hold_for_prompt).
                 state.extra["taomate_held"] = True
-                # the runner batches every scheduled state: keep a valid current timestep
-                # and never re-decode the finished phase while idling
-                state.step_in_chunk = 0
-                state.step_index = 0
-                # Idle steps emit nothing: stop the AR runner from grouping them as
-                # one chunk's denoise steps, so every idle step returns to the
-                # scheduler (where the client's prompt update arrives).
-                self.supports_chunk_step_grouping = False
                 return
-            self.__dict__.pop("supports_chunk_step_grouping", None)  # back to the class policy
             state.extra["taomate_held"] = False
-            state.extra.pop("taomate_hold_since", None)
             state.extra["taomate_prompt_version"] = version
             if state.prompt_embeds is None:
                 raise RuntimeError("TaoMate-H3 request needs prompt embeddings")
@@ -1311,61 +1306,42 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 time.perf_counter() - started,
             )
 
-    def _hold_expired(self, state: StepRequestState) -> bool:
-        """True when the bounded hold at this request boundary has run out (the request then starts).
+    def ar_diffusion_step_wait(self, state: StepRequestState) -> StepWait | None:
+        """The scheduler owns waiting and the deadline; no model steps poll."""
+        if state.extra.get("taomate_held"):
+            return StepWait(timeout_seconds=self._tm_hold_max_seconds or None)
+        return None
 
-        Every DiT rank polls with its own clock, so the decision is agreed
-        across the ranks (any rank past the bound releases all of them);
-        otherwise one rank could start the request while its peer keeps
-        holding, and the next collective would hang.
-        """
-        limit = self._tm_hold_max_seconds
-        if limit <= 0:
-            return False
-        since = state.extra.get("taomate_hold_since")
-        now = time.perf_counter()
-        if since is None:
-            state.extra["taomate_hold_since"] = now
-            expired_here = False
+    def ar_diffusion_resume_step(self, state: StepRequestState, reason: Literal["interaction", "timeout"]) -> None:
+        if not state.extra.get("taomate_held"):
+            raise RuntimeError("TaoMate-H3 resumed a request that was not waiting")
+        if reason == "interaction":
+            self.apply_interaction_at_chunk_boundary(state)
+        elif reason == "timeout":
+            fallback = self._hold_fallback_embeddings()
+            if fallback is not None:
+                state.prompt_embeds, tags = fallback
+                sync_prompt_length(state, text_tags=tags)
+            logger.warning(
+                "TaoMate-H3 %s: no prompt within %.1f s at chunk %d; using the %s prompt",
+                state.request_id,
+                self._tm_hold_max_seconds,
+                state.chunk_index,
+                "fallback" if fallback is not None else "previous",
+            )
         else:
-            expired_here = now - since >= limit
-        if not self._ranks_agree_any(expired_here):
-            return False
-        fallback = self._hold_fallback_embeddings()
-        if fallback is not None:
-            hidden, tags = fallback
-            state.prompt_embeds = hidden
-            sync_prompt_length(state, text_tags=tags)
-            what = "the fallback prompt"
-        else:
-            what = "the previous prompt"
-        logger.warning(
-            "TaoMate-H3 %s: no prompt within %.1f s of the request boundary at chunk %d; the request runs with %s "
-            "(a late update applies one request later)",
-            state.request_id,
-            limit,
-            state.chunk_index,
-            what,
-        )
-        return True
-
-    def _ranks_agree_any(self, flag: bool) -> bool:
-        """Logical OR of ``flag`` over the DiT ranks (a plain value when there is one rank)."""
+            raise ValueError(f"Unknown TaoMate-H3 resume reason: {reason!r}")
+        state.extra["taomate_resuming"] = True
         try:
-            _, _, group = _ulysses_state()
-        except Exception:  # noqa: BLE001 - no distributed state (single process, CPU tests)
-            return flag
-        if group is None or not torch.distributed.is_initialized() or torch.distributed.get_world_size(group) <= 1:
-            return flag
-        vote = torch.tensor([1 if flag else 0], dtype=torch.int32, device=self.device)
-        torch.distributed.all_reduce(vote, op=torch.distributed.ReduceOp.MAX, group=group)
-        return bool(int(vote.item()))
+            self.prepare_next_chunk(state)
+        finally:
+            state.extra.pop("taomate_resuming", None)
 
     def _hold_fallback_embeddings(self) -> tuple[torch.Tensor, torch.Tensor] | None:
         if self._tm_hold_fallback_prompt is None:
             return None
         if self._tm_hold_fallback_encoded is None:
-            # Every rank reaches this together (after the agreement above), as
+            # The scheduler sends the same resume reason to every rank, as
             # encode_prompt requires.
             hidden, tags = self.encode_prompt(prompt=self._tm_hold_fallback_prompt)
             self._tm_hold_fallback_encoded = (hidden.detach(), tags.detach())
@@ -1411,14 +1387,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         self._require_bound_ar_state()
         state = states[0]
         if state.extra.get("taomate_held"):
-            # Still at a held request boundary: apply any prompt the client sent
-            # since the last step (the same interaction sequence reaches every
-            # rank, so all ranks decide alike), then start the request or idle.
-            self.apply_interaction_at_chunk_boundary(state)
-            self.prepare_next_chunk(state)
-            if state.extra.get("taomate_held"):
-                time.sleep(self._tm_hold_poll_seconds)
-                return None
+            raise RuntimeError("TaoMate-H3 waiting requests must not execute denoise steps")
         session = self._session(state)
         request = session.request
         phase_state = session.phase
@@ -1474,8 +1443,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
 
     def step_scheduler(self, state: StepRequestState, noise_pred: torch.Tensor | None, **kwargs: Any) -> None:
         del kwargs
-        if noise_pred is None and state.extra.get("taomate_held"):
-            return  # idle step at a held request boundary: nothing advances
         session = self._session(state)
         request = session.request
         phase_state = session.phase
@@ -1529,7 +1496,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         if self.taomate_lora is not None:
             self.taomate_lora.ensure_student()
         commit_started = time.perf_counter()
-        cache.begin_clean_commit(cache.committed_blocks)
+        session.history.begin_commit(audio_tokens=int(audio_rows.shape[0]), video_tokens=int(clean_video.shape[0]))
         try:
             forward_kwargs = phase_state.branch.forward_kwargs(
                 video_rows=clean_video,
@@ -1543,11 +1510,10 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 self.transformer(**forward_kwargs)
             if self._tm_log_timings:
                 phase_state.timings["commit_launch"] = time.perf_counter() - commit_started
-            cache.commit()
+            session.history.commit()
         except BaseException:
-            cache.rollback()
+            session.history.rollback()
             raise
-        cache.retain_sink_and_recent_commits()
         session.stats["clean_forwards"] += 1
         if self._tm_log_timings and torch.cuda.is_available():
             torch.accelerator.synchronize()
