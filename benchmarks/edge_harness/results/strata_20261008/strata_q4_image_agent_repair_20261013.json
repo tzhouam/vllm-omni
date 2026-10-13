@@ -1,0 +1,73 @@
+{
+  "candidate": {
+    "sha256": "c9ae65f04008340cb83665ebc1dcef82c14ed2713636f87b24775b2480f6d929",
+    "changes": [
+      "Adapt actual engine Telemetry to sample browser companion separately; unknown counters remain unknown",
+      "Retain wrapper before optional observer attachment so early failures can inspect ledger",
+      "Use ThreadingHTTPServer blocking close semantics, including no-request _NoThreads case",
+      "Record and require actual browser companion release proof for successful tasks"
+    ],
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\agent-image-combined-v4-20261013\\run_strata_agent_image_functional.py",
+    "production_engine_changed": false
+  },
+  "observed_at": "2026-10-13T10:26:03.8730765+08:00",
+  "retry": {
+    "launcher_sha256": "42c6b5897a5ff8fac7f5ac6d3d9ace9d3ff586a8e448e5515a5380908413a975",
+    "run_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-20261013-v5-attempt2",
+    "functional_passed": false,
+    "status": "invoked_prerequisite_validation_pending"
+  },
+  "schema": "omni-strata-agent-image-runner-repair-v1",
+  "tests": {
+    "ruff_passed": true,
+    "exit_code": 0,
+    "passed": 42,
+    "sha256": "9ad9a994e55cbe46fb6b7bce799aebd3b3d4b27ed36f72feee2019a75c3cedc4",
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\agent-image-combined-v4-tests-20261013.xml",
+    "scope": "Includes actual engine Telemetry interface, unavailable/cold browser observations and real loopback server close before/after a request. No neural model."
+  },
+  "original_failure": {
+    "source_stable": null,
+    "error": "AttributeError: 'Telemetry' object has no attribute 'attach_browser_companion'",
+    "server_close_error": "'_NoThreads' object is not iterable",
+    "exit_code": 1,
+    "close_error": "RuntimeError: Agent shared ledger unavailable after close",
+    "resource_drain_verified": false,
+    "run_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-20261013-v5",
+    "raw_files_hashed_after_process_exit": {
+      "effective-launch.json": {
+        "sha256": "e40ce55cde1257fb939005b4c22ae5e4b693b0825fbb7ec47d7ccfff8141be8e",
+        "size_bytes": 13392336
+      },
+      "telemetry.jsonl": {
+        "sha256": "f919366506ca58cf414947ecbed852d8b951512dac58f66409f036f81abf4e73",
+        "size_bytes": 11306
+      },
+      "fixture.html": {
+        "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f",
+        "size_bytes": 79963
+      },
+      "receipt.json": {
+        "sha256": "b96d5701e23739c71be6aaf52c974ee4d3788589b7873022832851419ca4425b",
+        "size_bytes": 334622
+      },
+      "memory.sqlite": {
+        "sha256": "c59fc3bdbff86ccd9bcd9cbb2aaeb1b197152cd7f65d92e6b6a10ffe07b5703c",
+        "size_bytes": 77824
+      },
+      "runner-phases.jsonl": {
+        "sha256": "aba7fed4fad8ba81317810b83ed2a8786faea9e3d0a94830bc6d0f20a47550e7",
+        "size_bytes": 141
+      },
+      "config.json": {
+        "sha256": "be3dc7d1a8235028c64b4c700aea79e631230cf23a5b379fc1cb9ba09481f76c",
+        "size_bytes": 14770934
+      },
+      "fixture.json": {
+        "sha256": "a126bfe97da908a9f70c49ea49c0169fc74a5dc6133cbfe643ac6a198f087afe",
+        "size_bytes": 317
+      }
+    }
+  },
+  "scope": "Original failure unchanged; no new Agent qualification until actual chain and closure pass."
+}
