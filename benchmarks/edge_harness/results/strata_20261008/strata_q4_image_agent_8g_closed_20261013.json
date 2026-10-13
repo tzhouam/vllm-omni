@@ -1,0 +1,410 @@
+{
+  "schema": "omni-strata-q4-image-agent-8g-closed-v1",
+  "date": "2026-10-13",
+  "status": "scoped_functional_pass",
+  "exit_code": 0,
+  "offline_audit_exit_code": 0,
+  "qualified": false,
+  "batch_size": 1,
+  "concurrency": 1,
+  "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-8g-20261013-v5",
+  "receipt_sha256": "738cdeeb67555a6474402d04d789bc922b4a45209bf474246d249dc75e98c091",
+  "audit": {
+    "status": "passed",
+    "scope": "closed one real browser-image Agent task, not broad quality/performance or full process coverage",
+    "receipt_sha256": "738cdeeb67555a6474402d04d789bc922b4a45209bf474246d249dc75e98c091",
+    "raw_file_count": 17,
+    "event_count": 13,
+    "model_calls": 2,
+    "answer": "Actions requiring your approval",
+    "whole_agent_task_s_excludes_load": 85.03008809965104,
+    "cold_load_and_verification_s": 598.0391123997979,
+    "screenshot_to_model_pixels_verified": true,
+    "browser_all_descendants_retired": false,
+    "hard_process_cap": false,
+    "qualified": false
+  },
+  "answer": "Actions requiring your approval",
+  "task_s_excludes_load": 85.03008809965104,
+  "load_and_verification_s": 598.0391123997979,
+  "calls": [
+    {
+      "native_request_seq": 1,
+      "prompt_sha256": "00a2735b7fa68ea475385a5d988b428cdf4533b6126c48bc93bb41727804d0ae",
+      "wall_s": 32.19215699983761,
+      "whole_model_wall_s": 31.101796600036323,
+      "backend_wall_s": 29.974421000108123,
+      "first_token_s": 15.430292900186032,
+      "usage": {
+        "prompt_tokens": 359,
+        "completion_tokens": 30,
+        "total_tokens": 389,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "runtime_timings": {
+        "cache_n": 0,
+        "prompt_n": 359,
+        "prompt_ms": 14667.3,
+        "prompt_per_token_ms": 40.856,
+        "prompt_per_second": 24.5,
+        "predicted_n": 30,
+        "predicted_ms": 15198.4,
+        "predicted_per_token_ms": 506.613,
+        "predicted_per_second": 2.0,
+        "draft_n": 0,
+        "draft_n_accepted": 0
+      },
+      "runtime_telemetry": {
+        "hit_rate": 0.33,
+        "ram_blobs": 1858,
+        "file_blobs": 8620,
+        "logical_file_read_bytes": 24967100000,
+        "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+        "file_tier_io_policy": "unbuffered",
+        "physical_ssd_read_bytes": null,
+        "native_compute": {
+          "scope": "routed_decode_experts_only",
+          "counters": {
+            "generated": 30,
+            "hits": 4594,
+            "lookups": 13909,
+            "offloaded": 491,
+            "prompt_read": 359,
+            "prompt_tokens": 359
+          },
+          "cpu_expert_entries": 9315,
+          "gpu_expert_entries": 5085,
+          "units": [
+            "cpu",
+            "cuda:0"
+          ],
+          "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+        }
+      }
+    },
+    {
+      "native_request_seq": 2,
+      "prompt_sha256": "36d4e698dbf6d09c157e25c60bda61775614d2887677e18361b13dd060a89f98",
+      "wall_s": 49.73403870034963,
+      "whole_model_wall_s": 48.62496390007436,
+      "backend_wall_s": 47.562036799732596,
+      "first_token_s": 46.066102699842304,
+      "usage": {
+        "prompt_tokens": 1531,
+        "completion_tokens": 5,
+        "total_tokens": 1536,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "runtime_timings": {
+        "cache_n": 0,
+        "prompt_n": 1531,
+        "prompt_ms": 29493.6,
+        "prompt_per_token_ms": 19.264,
+        "prompt_per_second": 51.9,
+        "predicted_n": 5,
+        "predicted_ms": 1811.2,
+        "predicted_per_token_ms": 362.24,
+        "predicted_per_second": 2.8,
+        "draft_n": 0,
+        "draft_n_accepted": 0
+      },
+      "runtime_telemetry": {
+        "hit_rate": 0.391,
+        "ram_blobs": 447,
+        "file_blobs": 1151,
+        "logical_file_read_bytes": 3067800000,
+        "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+        "file_tier_io_policy": "unbuffered",
+        "physical_ssd_read_bytes": null,
+        "native_compute": {
+          "scope": "routed_decode_experts_only",
+          "counters": {
+            "generated": 5,
+            "hits": 898,
+            "lookups": 2296,
+            "offloaded": 104,
+            "prompt_read": 1531,
+            "prompt_tokens": 1531
+          },
+          "cpu_expert_entries": 1398,
+          "gpu_expert_entries": 1002,
+          "units": [
+            "cpu",
+            "cuda:0"
+          ],
+          "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+        }
+      }
+    }
+  ],
+  "event_count": 13,
+  "source_stable": true,
+  "prerequisites_stable": true,
+  "resource_drain_verified": true,
+  "output_writers_quiesced": true,
+  "ledger_after_close": {
+    "resident_route": null,
+    "resident_free_floor": {},
+    "ledger": {
+      "capacities": {
+        "host_ram": 27953819648,
+        "vram": 20759134208,
+        "windows_commit": 76427870208,
+        "ssd": 849942474892
+      },
+      "reserved": {
+        "host_ram": 0,
+        "vram": 0,
+        "windows_commit": 0,
+        "ssd": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "joint_admission": {
+      "generation": null,
+      "route_id": null,
+      "startup_free": {},
+      "snapshot_monotonic_ns": [],
+      "combined_demands": {},
+      "protected_free_floor": {},
+      "needs_drain": false,
+      "loading": false,
+      "model_owner": null,
+      "companion_owner": null,
+      "envelope_sha256": "c3f80f2d8d7d97b1c06964a3a4f5da27c8153cbb19f95f37cec1affb5962bcf4",
+      "evidence_reference": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-8g-20261013-v5\\browser-resource-envelope.json",
+      "scope": "declared_incremental_joint_allowance_not_process_hard_cap"
+    }
+  },
+  "exact_role_retirement": {
+    "encoder": "retired",
+    "language": "retired"
+  },
+  "browser_release_scope": {
+    "owned_work_drained": true,
+    "required_ownership_verified": true,
+    "quarantine_required": false,
+    "all_descendants_retired": false,
+    "hard_process_cap": false
+  },
+  "image_witness": {
+    "browser_jpeg_sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5",
+    "browser_width": 1280,
+    "browser_height": 720,
+    "controller_png": {
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "size_bytes": 161034,
+      "width": 1280,
+      "height": 720,
+      "transport": "data:image/png;base64"
+    },
+    "original_fixture_image_sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+    "reference_not_in_prompt_or_dom_or_memory": true,
+    "scope": "actual browser rasterization, separate from source PNG"
+  },
+  "raw_files": {
+    "all-raw.json": {
+      "size_bytes": 948967,
+      "sha256": "2e596abd3ea64b92169620d3272de7ae209636c85766a0ebdf4b37425f1e271f"
+    },
+    "browser-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "browser-screenshot.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "config.json": {
+      "size_bytes": 14770940,
+      "sha256": "a6e0ea1daa2e839a4095f216974dce2077d53b924eea50f60ebc5031de063adb"
+    },
+    "controller-image.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13391992,
+      "sha256": "2cd42823c78a38929699f4f9e90f12b4fb4f8c3fe25315695991932e53399bd7"
+    },
+    "events.jsonl": {
+      "size_bytes": 285844,
+      "sha256": "ce8ae4327407adcbc1e30c54e4e6fc9a49d140f7c11d554a099ed032455c7470"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "635a3b48878e16fd74e1b0506af5df780feb7a5e3add60d47677e1b1182a5b3e"
+    },
+    "hardware.json": {
+      "size_bytes": 4703,
+      "sha256": "1425dcbaa024f1af44cd6b7eacd8b9eb0145d688e934b63780afe49c3dd6695f"
+    },
+    "image-2.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 300590,
+      "sha256": "8da14b364780da38d23f0376985eaadf6f9c2b87bc535493ea96b78a7d8d4cab"
+    },
+    "memory.sqlite": {
+      "size_bytes": 630784,
+      "sha256": "9ef24fd4933536e57911506cf4c6a15699e12076984618a2d6de498ee1e6c279"
+    },
+    "model-image-2.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "private-case.json": {
+      "size_bytes": 353,
+      "sha256": "29b2e733155c35bb8b1b6cbc42d6ca09fa8f6e1c2af2d4bea0f63a791d962807"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 385,
+      "sha256": "5615f66b49fa98c744c36f7cb54452efa4122f84c6a8853e5c828fe64b5f0028"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 18737103,
+      "sha256": "b34ba037463e3e1bd073021fbe4b6264df598f13e2c268750dd0dcc54ed5f9ab"
+    }
+  },
+  "comparison": {
+    "baseline_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-20261013-v5-attempt2",
+    "baseline_receipt_sha256": "13b26640951cce1222118e94757dad8a6433aced15a55854d125843fa0673968",
+    "baseline_task_s": 98.02939140005037,
+    "observed_single_sample_reduction_percent": 13.26061818271439,
+    "same_browser_and_model_image_bytes": true,
+    "baseline_calls": [
+      {
+        "native_request_seq": 1,
+        "prompt_sha256": "c6dbe4024ffdcc16b2bb36e2d6c838888619115cdc8aae4579544ee16d0c319c",
+        "wall_s": 38.05559239955619,
+        "whole_model_wall_s": 36.93670240044594,
+        "backend_wall_s": 35.62708170013502,
+        "first_token_s": 17.917149000335485,
+        "usage": {
+          "prompt_tokens": 359,
+          "completion_tokens": 30,
+          "total_tokens": 389,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "runtime_timings": {
+          "cache_n": 0,
+          "prompt_n": 359,
+          "prompt_ms": 16859.8,
+          "prompt_per_token_ms": 46.963,
+          "prompt_per_second": 21.3,
+          "predicted_n": 30,
+          "predicted_ms": 18625.4,
+          "predicted_per_token_ms": 620.847,
+          "predicted_per_second": 1.6,
+          "draft_n": 0,
+          "draft_n_accepted": 0
+        },
+        "runtime_telemetry": {
+          "hit_rate": 0.317,
+          "ram_blobs": 949,
+          "file_blobs": 9643,
+          "logical_file_read_bytes": 28520900000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "file_tier_io_policy": "unbuffered",
+          "physical_ssd_read_bytes": null,
+          "native_compute": {
+            "scope": "routed_decode_experts_only",
+            "counters": {
+              "generated": 30,
+              "hits": 4480,
+              "lookups": 14141,
+              "offloaded": 259,
+              "prompt_read": 359,
+              "prompt_tokens": 359
+            },
+            "cpu_expert_entries": 9661,
+            "gpu_expert_entries": 4739,
+            "units": [
+              "cpu",
+              "cuda:0"
+            ],
+            "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+          }
+        }
+      },
+      {
+        "native_request_seq": 2,
+        "prompt_sha256": "c974b028868a0046e4e069cbab271a4570e6a2708a0cab77a3b5146e2948b8c2",
+        "wall_s": 56.01993399998173,
+        "whole_model_wall_s": 54.86398749984801,
+        "backend_wall_s": 53.78336069965735,
+        "first_token_s": 51.61854269960895,
+        "usage": {
+          "prompt_tokens": 1531,
+          "completion_tokens": 5,
+          "total_tokens": 1536,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "runtime_timings": {
+          "cache_n": 0,
+          "prompt_n": 1531,
+          "prompt_ms": 33175.5,
+          "prompt_per_token_ms": 21.669,
+          "prompt_per_second": 46.1,
+          "predicted_n": 5,
+          "predicted_ms": 2610.1,
+          "predicted_per_token_ms": 522.02,
+          "predicted_per_second": 1.9,
+          "draft_n": 0,
+          "draft_n_accepted": 0
+        },
+        "runtime_telemetry": {
+          "hit_rate": 0.388,
+          "ram_blobs": 257,
+          "file_blobs": 1333,
+          "logical_file_read_bytes": 4054600000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "file_tier_io_policy": "unbuffered",
+          "physical_ssd_read_bytes": null,
+          "native_compute": {
+            "scope": "routed_decode_experts_only",
+            "counters": {
+              "generated": 5,
+              "hits": 906,
+              "lookups": 2336,
+              "offloaded": 64,
+              "prompt_read": 1531,
+              "prompt_tokens": 1531
+            },
+            "cpu_expert_entries": 1430,
+            "gpu_expert_entries": 970,
+            "units": [
+              "cpu",
+              "cuda:0"
+            ],
+            "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+          }
+        }
+      }
+    ],
+    "samples_per_route": 1,
+    "not_paired_identical_prompt_bytes": true,
+    "boundary": "Same fixture and model image; independently allocated loopback URL and request/session metadata differ. Cache and power conditions not controlled. No p95 or causal/stable speedup claim."
+  },
+  "remaining": [
+    "Three input lengths, >=20 measurements each plus warmups and 30-minute sequential run",
+    "Broader task quality, same-artifact baseline and cache/prefetch/MTP comparisons",
+    "Physical SSD attribution and exact full process/peak coverage; retained unknown counters",
+    "85 s sample still exceeds 60 s upgraded-answer target; no automatic default promotion"
+  ]
+}
