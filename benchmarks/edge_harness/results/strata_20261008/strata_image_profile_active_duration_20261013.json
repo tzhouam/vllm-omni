@@ -1,0 +1,39 @@
+{
+  "schema": "strata-image-profile-active-duration-repair-v1",
+  "date": "2026-10-13",
+  "status": "offline_tests_passed_model_not_run",
+  "reason": "Private v2 used wall time including evidence bookkeeping; shared benchmarks/edge_agent/profile.py accumulates request duration. v3 now follows the existing active-request duration boundary.",
+  "runtime_behavior_change": "Continue single-request endurance until the sum of submit-to-completion intervals reaches at least 1800 seconds; preserve separate wall time.",
+  "validation": {
+    "unittest_count": 11,
+    "unittest_result": "passed",
+    "ruff": "passed",
+    "negative_case": "900 seconds of active requests plus idle time cannot satisfy 1800 seconds endurance",
+    "other_checks": [
+      "duplicate/cross-request state",
+      "memory isolation",
+      "separate warmups and measured groups",
+      "event timing and nonoverlap"
+    ]
+  },
+  "private_source_directory": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-profile-v3",
+  "source_hashes": {
+    "audit_profile.py": "4cc1c7be7760861a75b6d9adff83aa43cad9669f6698fc4965f0ac90c87220de",
+    "profile_loop.py": "acded528a167da2e750e465718a605bf514de5af21e6018b1dce847f497f8fc3",
+    "protocol.py": "96cfdc606f953aca39b6d4e4ba5e0c9f5ba7d97334515a5525e85d83a5874af3",
+    "run-full.ps1": "972bc2d936a12d1eebc9242fadac635ae9026a23336e58e295992ecbd87d5fd9",
+    "run_image_profile.py": "2e93e004045f2d63779555fc7391c8830090ad34175878d6becc1daafb482fc4",
+    "test_isolation.py": "23c30103cb521a565a6049d9958b04812ed011f41bb377610002756991119030",
+    "test_protocol.py": "2ce17f84b8fcdb1415e2a4b0f97bd0ed00980aea7f1e3660936abe0006dc5019",
+    "test_timing.py": "57d88ba0e2a4fb1d462c87eab24d3d35f8a71499873ceaaaf9153e69f981b91e",
+    "timing.py": "22843cbdf38df072a6d5ca6bc777ca4abd586486b2cf4be04a1d2ac6e00a614e"
+  },
+  "patch_sha256": "e011f01b28ec25557d6b9272e6a646da970fa3ab1d9b03764890dbeaa265459c",
+  "qualification": false,
+  "limitations": [
+    "Private harness change, not a new inference capability.",
+    "Requires the locally pinned runtime, lifecycle/functional helpers, launch artifacts and prior audit receipts.",
+    "No full model performance run executed; historical smoke results are unchanged.",
+    "No default-route, physical SSD, memory hard-cap or broad quality qualification."
+  ]
+}

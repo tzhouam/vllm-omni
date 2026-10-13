@@ -1,0 +1,121 @@
+--- image-profile-v2/profile_loop.py
++++ image-profile-v3/profile_loop.py
+@@ -119,9 +119,12 @@
+         started = time.perf_counter()
+         receipt['endurance_started_monotonic_s'] = started
+         index = 0
+-        while time.perf_counter() - started < 1800:
++        active_seconds = 0.0
++        while active_seconds < 1800:
+             one(protocol.Sample('endurance', ('short', 'medium', 'long')[index % 3], index))
++            active_seconds += rows[-1]['whole_agent_task_s_excludes_load']
+             index += 1
++        receipt['endurance_active_request_s'] = active_seconds
+         receipt['endurance_finished_monotonic_s'] = time.perf_counter()
+         receipt['endurance_wall_s_includes_between_request_bookkeeping'] = receipt['endurance_finished_monotonic_s'] - started
+     receipt.update(profile_completed=True, quality_passed=True, functional_task_passed=True,
+--- image-profile-v2/timing.py
++++ image-profile-v3/timing.py
+@@ -3,6 +3,8 @@
+ 
+ 
+ def audit_timing(rows, events, receipt):
++    if receipt.get('profile_mode') not in ('smoke', 'full') or not rows:
++        raise ValueError('unknown mode or empty profile')
+     previous_end = None
+     gaps = []
+     for row in rows:
+@@ -38,9 +40,14 @@
+             raise ValueError('endurance duration differs')
+         if start > endurance[0]['request_started_monotonic_s'] or end < endurance[-1]['request_finished_monotonic_s']:
+             raise ValueError('endurance requests escape interval')
+-        # Permit the final loop iteration's preparation to cross the deadline.
+-        if any(r['request_started_monotonic_s'] - start >= 1800 for r in endurance[:-1]):
+-            raise ValueError('extra request started after endurance target')
++        active = sum(r['whole_agent_task_s_excludes_load'] for r in endurance)
++        if active < 1800:
++            raise ValueError('less than 30 minutes of active requests')
++        recorded = receipt.get('endurance_active_request_s')
++        if type(recorded) not in (int, float) or not math.isfinite(recorded) or not math.isclose(active, recorded, abs_tol=1e-9):
++            raise ValueError('active endurance duration differs')
++        if active - endurance[-1]['whole_agent_task_s_excludes_load'] >= 1800:
++            raise ValueError('extra request after active endurance target')
+         if rows[-len(endurance):] != endurance:
+             raise ValueError('endurance mixed into warmup/measurement')
+         if [(r['ordinal'], r['length']) for r in endurance] != [
+@@ -49,4 +56,5 @@
+     elif endurance:
+         raise ValueError('smoke unexpectedly contains endurance')
+     return {'request_intervals_verified': len(rows), 'max_between_request_gap_s': max(gaps, default=0),
+-            'duration_scope': 'submit-to-completion; endurance includes explicit between-request bookkeeping'}
++            'endurance_active_request_s': sum(r['whole_agent_task_s_excludes_load'] for r in endurance),
++            'duration_scope': 'submit-to-completion; active endurance excludes between-request bookkeeping'}
+--- image-profile-v2/test_timing.py
++++ image-profile-v3/test_timing.py
+@@ -46,10 +46,16 @@
+             ])
+         receipt = dict(profile_mode='full', endurance_started_monotonic_s=10.0,
+                        endurance_finished_monotonic_s=1820.0,
+-                       endurance_wall_s_includes_between_request_bookkeeping=1810.0)
++                       endurance_wall_s_includes_between_request_bookkeeping=1810.0,
++                       endurance_active_request_s=1800.0)
+         result = audit_timing(rows, events, receipt)
+         self.assertEqual(result['request_intervals_verified'], 2)
+         self.assertEqual(result['max_between_request_gap_s'], 10.0)
++        # A long idle interval must not replace sustained model requests.
++        idle_rows = copy.deepcopy(rows[:1])
++        idle_receipt = dict(receipt, endurance_active_request_s=900.0)
++        with self.assertRaisesRegex(ValueError, 'active requests'):
++            audit_timing(idle_rows, events[:3], idle_receipt)
+         rows[1]['request_started_monotonic_s'] = 909.0
+         with self.assertRaisesRegex(ValueError, 'overlap'):
+             audit_timing(rows, events, receipt)
+--- image-profile-v2/run_image_profile.py
++++ image-profile-v3/run_image_profile.py
+@@ -782,7 +782,7 @@
+ 
+         controller.add_listener(listener)
+         protocol = load_pinned("private_image_profile_protocol", Path(__file__).parent / "protocol.py", "96cfdc606f953aca39b6d4e4ba5e0c9f5ba7d97334515a5525e85d83a5874af3")
+-        profile_loop = load_pinned("private_image_profile_loop", Path(__file__).parent / "profile_loop.py", "3f35672e8a2bfc019f15a5467c94af0b2f4e3e837cab4daed8b936cf45f5aae9")
++        profile_loop = load_pinned("private_image_profile_loop", Path(__file__).parent / "profile_loop.py", "acded528a167da2e750e465718a605bf514de5af21e6018b1dce847f497f8fc3")
+         profile_loop.execute_profile(protocol=protocol, args=args, controller=controller,
+             wrapper=wrapper, client=client, plan=plan, entry=entry, site=site, out=out,
+             events=events, calls=calls, errors=errors, receipt=receipt, phase=phase,
+--- image-profile-v2/audit_profile.py
++++ image-profile-v3/audit_profile.py
+@@ -10,10 +10,10 @@
+ ROOT = Path('C:/Users/zhout/w2/strata-omni')
+ REPO = Path(r'\\wsl.localhost\Ubuntu\home\zhout\project\edge_infer\vllm-omni-edge')
+ PINNED = {
+-    'timing.py': '5b78c46f4802f6c7e0de02e4897113ce8384967056619fa6f8df4caeaaf19586',
+-    'run_image_profile.py': '79b1305fcb27993a83ba02944bbbb399157d8df65286ddad8977ca2e4699c51b',
++    'timing.py': '22843cbdf38df072a6d5ca6bc777ca4abd586486b2cf4be04a1d2ac6e00a614e',
++    'run_image_profile.py': '2e93e004045f2d63779555fc7391c8830090ad34175878d6becc1daafb482fc4',
+     'protocol.py': '96cfdc606f953aca39b6d4e4ba5e0c9f5ba7d97334515a5525e85d83a5874af3',
+-    'profile_loop.py': '3f35672e8a2bfc019f15a5467c94af0b2f4e3e837cab4daed8b936cf45f5aae9',
++    'profile_loop.py': 'acded528a167da2e750e465718a605bf514de5af21e6018b1dce847f497f8fc3',
+ }
+ 
+ 
+--- image-profile-v2/run-full.ps1
++++ image-profile-v3/run-full.ps1
+@@ -1,10 +1,10 @@
+ $ErrorActionPreference = 'Stop'
+ $rootPath = 'C:\Users\zhout\w2\strata-omni'
+-$runner = "$rootPath\prototypes\image-profile-v2\run_image_profile.py"
++$runner = "$rootPath\prototypes\image-profile-v3\run_image_profile.py"
+ $lifecycle = "$rootPath\prototypes\image-lifecycle-combined-v2-20261012\run_strata_image_lifecycle.py"
+ $receiptPath = "$rootPath\runs\q4-image-lifecycle-8g-20261013-v5\receipt.json"
+ $configPath = "$rootPath\runs\q4-image-agent-input-8g-20261013-v5\browser-config.json"
+-if ((Get-FileHash -LiteralPath $runner).Hash.ToLower() -ne '79b1305fcb27993a83ba02944bbbb399157d8df65286ddad8977ca2e4699c51b') { throw 'Agent runner changed' }
++if ((Get-FileHash -LiteralPath $runner).Hash.ToLower() -ne '2e93e004045f2d63779555fc7391c8830090ad34175878d6becc1daafb482fc4') { throw 'Agent runner changed' }
+ if ((Get-FileHash -LiteralPath $lifecycle).Hash.ToLower() -ne '25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9') { throw 'Lifecycle runner changed' }
+ $receipt = Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json
+ if ($receipt.phase -ne 'completed' -or $receipt.resource_drain_verified -ne $true -or $receipt.source_stable -ne $true -or $receipt.input_stable -ne $true) { throw 'Lifecycle is not closed and verified' }
+@@ -14,5 +14,5 @@
+ $smokeReceiptPath = "$rootPath\runs\q4-image-profile-smoke-8g-20261013-v1\receipt.json"
+ $smokeAudit = Get-Content -LiteralPath "$rootPath\runs\q4-image-profile-smoke-8g-20261013-v1.audit.json" -Raw | ConvertFrom-Json
+ if ($smokeAudit.status -ne 'passed' -or $smokeAudit.mode -ne 'smoke' -or $smokeAudit.requests -ne 4 -or $smokeAudit.model_calls -ne 8 -or $smokeAudit.receipt_sha256 -ne (Get-FileHash -LiteralPath $smokeReceiptPath).Hash.ToLower()) { throw 'Closed four-request image smoke audit required' }
+-& 'C:\Users\zhout\w2\omni029venv\Scripts\python.exe' -I -B -X utf8 $runner --launch "$rootPath\runs\q4-image-execution-8g-20261013-v5\launch.json" --lifecycle-receipt $receiptPath --lifecycle-receipt-sha256 $receiptSha --lifecycle-runner $lifecycle --lifecycle-runner-sha256 25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9 --reference "$rootPath\runs\ista-q2-visioncpu-v3\image-lifecycle-v1\reference.json" --output "$rootPath\runs\q4-image-profile-full-8g-20261013-v2" --expected-precision 'Unsloth UD-Q4_K_XL mixed' --browser-config $configPath --browser-config-sha256 b9e566d605117fbda86f5377f5d976274692e7f29631a8248046c4c28add50a0
++& 'C:\Users\zhout\w2\omni029venv\Scripts\python.exe' -I -B -X utf8 $runner --launch "$rootPath\runs\q4-image-execution-8g-20261013-v5\launch.json" --lifecycle-receipt $receiptPath --lifecycle-receipt-sha256 $receiptSha --lifecycle-runner $lifecycle --lifecycle-runner-sha256 25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9 --reference "$rootPath\runs\ista-q2-visioncpu-v3\image-lifecycle-v1\reference.json" --output "$rootPath\runs\q4-image-profile-full-8g-20261013-v3" --expected-precision 'Unsloth UD-Q4_K_XL mixed' --browser-config $configPath --browser-config-sha256 b9e566d605117fbda86f5377f5d976274692e7f29631a8248046c4c28add50a0
+ exit $LASTEXITCODE
