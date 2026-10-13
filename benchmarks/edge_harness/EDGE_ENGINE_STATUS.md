@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-13 打包来源预检提前到任何文件内容扫描之前：错误 tool revision、源／转换产物绑定、complete 标记及转换列表会立即拒绝并释放租约；有效配置仍完整核验运行时、全部模型分片及打包产物。新增五项检查证明拒绝前未进入 `ArtifactManifest.verify`；[后端回归 70 通过、2 项 POSIX 专项跳过](results/strata_20261008/strata_pack_preflight_20261013.junit.xml.gz)。未加载模型，未测量启动加速，未允许跨版本运行。下一版运行时身份及 pack 兼容迁移仍未完成。
+
 2026-10-13 Omni Strata 后端显式设置 `STRATA_PREFILL_CPU_SHARE=0`、`STRATA_STAGE_PIN=0`，并把请求设置计入路线控制哈希，避免候选新版默认 CPU prefill 分担／固定页暂存改变未重新核算的预算。现用旧运行时仍保持原 revision；旧引擎可能不识别开关，记录不宣称原生确认或实际放置。真实子进程 loopback 检查父环境 `auto/1` 不会泄入且父环境不变；[后端回归 65 通过、2 个 POSIX 专项在 Windows 跳过](results/strata_20261008/strata_baseline_environment_20261013.json)。未加载权重。生产源码及路线身份已变，后续模型运行须重新绑定，不继承旧实跑资格。
 
 2026-10-13 新版 Strata 服务层离线迁移检查 **16/16 通过，无跳过**：[源码身份、完整日志及可重放 harness](results/strata_20261008/strata_upstream_serving_20261013.json)。其中 Windows 启动超时／重启超时两项改为直接启动 Python 假引擎，避免上游因 CMD 包装子进程未退场而跳过；其余覆盖模拟视觉启动失败及请求／取消后的统计。候选 serve/server.py 相对旧版有大量改动，因此 tokenizer 通过不能代替服务迁移。尚未验证 Omni bootstrap、编译引擎 ABI 或真实权重；未加载模型，未放宽运行时注册规则。

@@ -494,6 +494,33 @@ def test_modified_secondary_artifact_is_refused(stage_config):
         _stage(stage_config)
 
 
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"tool_revision": "a0116b2782a5b82622358c04a06496485d12b2d6"},
+        {"source_manifest_sha256": "0" * 64},
+        {"prepared_manifest_sha256": "0" * 64},
+        {"complete": False},
+        {"conversions": None},
+    ],
+)
+def test_incompatible_pack_refuses_before_file_scan(stage_config, monkeypatch, change):
+    def unexpected_scan(self, root):
+        pytest.fail("file bytes were scanned for an incompatible packing declaration")
+
+    monkeypatch.setattr(ArtifactManifest, "verify", unexpected_scan)
+    config = stage_config | {"conversion_manifest": stage_config["conversion_manifest"] | change}
+    ledger = Ledger()
+    with pytest.raises(ValueError, match="source-bound conversion manifest"):
+        StrataTextStageClient(
+            SimpleNamespace(stage_id=0),
+            config,
+            ledger,
+            SimpleNamespace(demands={"host_ram": 4 << 20, "vram:0": 2 << 20}),
+        )
+    assert ledger.releases == [True]
+
+
 @pytest.mark.parametrize("relative_path", ["tools/__pycache__/helper.cpython-312.pyc", "serve/foreign_helper.py"])
 def test_unpinned_runtime_code_refuses_before_model_hashing(stage_config, monkeypatch, relative_path):
     runtime = Path(stage_config["runtime_root"])

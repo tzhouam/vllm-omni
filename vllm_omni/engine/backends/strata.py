@@ -1511,6 +1511,18 @@ class StrataTextStageClient(StageClientBase):
         runtime_manifest = ArtifactManifest.from_dict(config["runtime_manifest"])
         artifacts = ArtifactManifest.from_dict(config["artifact_manifest"])
         prepared = ArtifactManifest.from_dict(config["prepared_pack_manifest"])
+        # Reject incompatible packing provenance before scanning weight bytes.
+        # This metadata check never replaces full file verification below.
+        conversion = config.get("conversion_manifest")
+        if (
+            not isinstance(conversion, dict)
+            or conversion.get("complete") is not True
+            or conversion.get("source_manifest_sha256") != artifacts.manifest_sha256
+            or conversion.get("prepared_manifest_sha256") != prepared.manifest_sha256
+            or conversion.get("tool_revision") != PINNED_STRATA_REVISION
+            or not isinstance(conversion.get("conversions"), list)
+        ):
+            raise ValueError("prepared pack needs a complete, source-bound conversion manifest")
         runtime_files = set(runtime_manifest.verify(runtime))
         if runtime_manifest.revision != PINNED_STRATA_REVISION:
             raise ValueError("runtime file manifest has a different revision")
@@ -1583,16 +1595,6 @@ class StrataTextStageClient(StageClientBase):
         # still mandatory before any native process can start.
         source_files = set(artifacts.verify(artifact_root))
         pack_files = set(prepared.verify(pack))
-        conversion = config.get("conversion_manifest")
-        if (
-            not isinstance(conversion, dict)
-            or conversion.get("complete") is not True
-            or conversion.get("source_manifest_sha256") != artifacts.manifest_sha256
-            or conversion.get("prepared_manifest_sha256") != prepared.manifest_sha256
-            or conversion.get("tool_revision") != PINNED_STRATA_REVISION
-            or not isinstance(conversion.get("conversions"), list)
-        ):
-            raise ValueError("prepared pack needs a complete, source-bound conversion manifest")
         for path in pack.rglob("*"):
             if path.is_file() and path.resolve() not in pack_files:
                 raise ValueError("prepared model directory contains an unpinned file")
