@@ -1,0 +1,74 @@
+{
+  "sample_count": 1,
+  "image_encoder_native_ms": 17336.0,
+  "qualified": false,
+  "startup_including_integrity_s": 580.8524243999273,
+  "browser_open_event_interval_s": 3.581082820892334,
+  "model_calls": [
+    {
+      "whole_model_wall_s": 36.93670240044594,
+      "usage": {
+        "prompt_tokens": 359,
+        "completion_tokens": 30,
+        "total_tokens": 389,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "first_token_s": 17.917149000335485,
+      "seq": 1,
+      "runtime_timings": {
+        "cache_n": 0,
+        "prompt_n": 359,
+        "prompt_ms": 16859.8,
+        "prompt_per_token_ms": 46.963,
+        "prompt_per_second": 21.3,
+        "predicted_n": 30,
+        "predicted_ms": 18625.4,
+        "predicted_per_token_ms": 620.847,
+        "predicted_per_second": 1.6,
+        "draft_n": 0,
+        "draft_n_accepted": 0
+      },
+      "wall_s": 38.05559239955619
+    },
+    {
+      "whole_model_wall_s": 54.86398749984801,
+      "usage": {
+        "prompt_tokens": 1531,
+        "completion_tokens": 5,
+        "total_tokens": 1536,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "first_token_s": 51.61854269960895,
+      "seq": 2,
+      "runtime_timings": {
+        "cache_n": 0,
+        "prompt_n": 1531,
+        "prompt_ms": 33175.5,
+        "prompt_per_token_ms": 21.669,
+        "prompt_per_second": 46.1,
+        "predicted_n": 5,
+        "predicted_ms": 2610.1,
+        "predicted_per_token_ms": 522.02,
+        "predicted_per_second": 1.9,
+        "draft_n": 0,
+        "draft_n_accepted": 0
+      },
+      "wall_s": 56.01993399998173
+    }
+  ],
+  "next": "Profile full runtime manifest verification without NN; then compare explicit larger feasible expert cache and investigate an independently validated GPU encoder. Keep model, precision, context and screenshot input fixed for paired comparisons.",
+  "receipt_sha256": "13b26640951cce1222118e94757dad8a6433aced15a55854d125843fa0673968",
+  "batch_size": 1,
+  "image_tokens": 920,
+  "raw_sha256": "876d3fcb04dddf31030c2974344f420be6ea9118f282a7947de0cf99ff406d68",
+  "whole_agent_task_s_excludes_load": 98.02939140005037,
+  "browser_screenshot_event_interval_s": 0.2036595344543457,
+  "schema": "omni-strata-agent-image-latency-breakdown-v1",
+  "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-20261013-v5-attempt2",
+  "concurrency": 1,
+  "interpretation": "Two full model calls dominate this sample; browser operations account for about 3.8 seconds. Native encoder and language counters are nested scopes, not additive whole-Agent measurements."
+}

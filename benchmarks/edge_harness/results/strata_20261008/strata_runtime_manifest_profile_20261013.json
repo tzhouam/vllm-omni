@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-13",
+  "status": "completed_diagnostic_only",
+  "scope": "Native Windows cProfile of unchanged full runtime manifest verification; no model execution",
+  "receipt": {
+    "status": "completed",
+    "pid": 163488,
+    "module": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py",
+    "module_sha256": "012edffbd83cccfed4627b330caf3553c51e013838108c3b801a503356d1dec6",
+    "launch_sha256": "e40ce55cde1257fb939005b4c22ae5e4b693b0825fbb7ec47d7ccfff8141be8e",
+    "runtime_root": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v5",
+    "manifest_sha256": "c2d6b02707a492bf3ce9a2c37aa4210fc7fac5eafb32d4d8cffd1613ae09d103",
+    "declared_files": 42653,
+    "declared_bytes": 2231988421,
+    "import_s": 14.520097200293094,
+    "native_model_executed": false,
+    "cache_condition": "uncontrolled_after_prior_model_runs",
+    "scope": "cProfile instrumentation of full runtime manifest verification; not model startup or a speedup benchmark",
+    "verified_files": 42653,
+    "profiled_verify_s": 305.7501511001028,
+    "pstats_sha256": "c06a866f48e015bed4cb401cc89f4be5a7dcf41988c5f74e9c290938b10c2abb",
+    "functions_sha256": "883aad65a68a9a189efb01a73891f84fd4733e8d339b3433ff99b016c9c15c99"
+  },
+  "top_cumulative": [
+    {
+      "file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py",
+      "line": 176,
+      "function": "verify",
+      "primitive_calls": 1,
+      "calls": 1,
+      "exclusive_s": 0.4791225,
+      "cumulative_s": 305.7493157
+    },
+    {
+      "file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py",
+      "line": 56,
+      "function": "sha256_file",
+      "primitive_calls": 42653,
+      "calls": 42653,
+      "exclusive_s": 0.7800365,
+      "cumulative_s": 278.1900741
+    },
+    {
+      "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+      "line": 1005,
+      "function": "open",
+      "primitive_calls": 42653,
+      "calls": 42653,
+      "exclusive_s": 0.1005492,
+      "cumulative_s": 268.5000951
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _io.open>",
+      "primitive_calls": 42653,
+      "calls": 42653,
+      "exclusive_s": 267.8914388,
+      "cumulative_s": 268.3995459
+    },
+    {
+      "file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py",
+      "line": 49,
+      "function": "_local_path",
+      "primitive_calls": 42653,
+      "calls": 42653,
+      "exclusive_s": 0.3186647,
+      "cumulative_s": 26.079611
+    },
+    {
+      "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+      "line": 1228,
+      "function": "resolve",
+      "primitive_calls": 42654,
+      "calls": 42654,
+      "exclusive_s": 0.195197,
+      "cumulative_s": 16.4799118
+    },
+    {
+      "file": "<frozen ntpath>",
+      "line": 705,
+      "function": "realpath",
+      "primitive_calls": 42654,
+      "calls": 42654,
+      "exclusive_s": 0.3041932,
+      "cumulative_s": 14.0040765
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method nt._getfinalpathname>",
+      "primitive_calls": 85308,
+      "calls": 85308,
+      "exclusive_s": 11.248018100000001,
+      "cumulative_s": 11.248018100000001
+    },
+    {
+      "file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py",
+      "line": 62,
+      "function": "<lambda>",
+      "primitive_calls": 114185,
+      "calls": 114185,
+      "exclusive_s": 0.0879226,
+      "cumulative_s": 5.4958746000000005
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'read' of '_io.BufferedReader' objects>",
+      "primitive_calls": 114185,
+      "calls": 114185,
+      "exclusive_s": 5.407952000000001,
+      "cumulative_s": 5.407952000000001
+    },
+    {
+      "file": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py",
+      "line": 36,
+      "function": "_relative_path",
+      "primitive_calls": 42653,
+      "calls": 42653,
+      "exclusive_s": 0.9559203000000001,
+      "cumulative_s": 4.9626311
+    },
+    {
+      "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+      "line": 551,
+      "function": "drive",
+      "primitive_calls": 298573,
+      "calls": 298573,
+      "exclusive_s": 0.49154580000000003,
+      "cumulative_s": 3.9053289
+    },
+    {
+      "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+      "line": 690,
+      "function": "is_relative_to",
+      "primitive_calls": 42653,
+      "calls": 42653,
+      "exclusive_s": 0.20488060000000002,
+      "cumulative_s": 3.5223098000000004
+    },
+    {
+      "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+      "line": 407,
+      "function": "_load_parts",
+      "primitive_calls": 213267,
+      "calls": 213267,
+      "exclusive_s": 0.3812951,
+      "cumulative_s": 3.4137831000000003
+    },
+    {
+      "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+      "line": 437,
+      "function": "__str__",
+      "primitive_calls": 531630,
+      "calls": 531630,
+      "exclusive_s": 0.4365799,
+      "cumulative_s": 3.3604773000000003
+    }
+  ],
+  "raw_files": [
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\runtime-manifest-profile-20261013\\receipt.json",
+      "size_bytes": 1076,
+      "sha256": "04713fa79394a8f814cc09f9b6d4c9b4ac18b8df3a0e7316f5c08e8c8b6fb806"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\runtime-manifest-profile-20261013\\functions.json",
+      "size_bytes": 19251,
+      "sha256": "883aad65a68a9a189efb01a73891f84fd4733e8d339b3433ff99b016c9c15c99"
+    },
+    {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\runtime-manifest-profile-20261013\\verify.pstats",
+      "size_bytes": 10107,
+      "sha256": "c06a866f48e015bed4cb401cc89f4be5a7dcf41988c5f74e9c290938b10c2abb"
+    }
+  ],
+  "interpretation": [
+    "Opening 42653 files accounts for 267.8914388 exclusive seconds; buffered reads account for 5.407952 seconds.",
+    "Instrumentation and uncontrolled cache conditions prohibit treating this as normal startup latency or a speedup comparison.",
+    "No integrity checks were skipped. No model, Agent, quality, performance or placement qualification is conferred.",
+    "Next optimization experiment must preserve complete file hash checks and use paired measurements; no antivirus or system security changes."
+  ]
+}
