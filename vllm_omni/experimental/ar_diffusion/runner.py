@@ -155,6 +155,23 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             raise RuntimeError("AR-Diffusion KV preallocation requires an initialized device")
         return current_omni_platform.get_free_memory(torch.device(self.device))
 
+    @staticmethod
+    def _segmented_all_rank_min(value: int) -> int:
+        """Agree on segmented allocation admission before a model collective."""
+        if not torch.distributed.is_initialized():
+            return value
+        from vllm_omni.diffusion.distributed.parallel_state import get_sp_group
+
+        group = get_sp_group()
+        if group.world_size == 1:
+            return value
+        vote = torch.tensor(value, dtype=torch.int64, device="cpu")
+        torch.distributed.all_reduce(vote, op=torch.distributed.ReduceOp.MIN, group=group.cpu_group)
+        return int(vote.item())
+
+    def _agree_segmented_allocation(self, successful: bool) -> bool:
+        return bool(self._segmented_all_rank_min(int(successful)))
+
     def _preallocate_kv_cache(self, *, available_bytes: int | None = None) -> None:
         """Build pools solely from the pipeline capability and runner config."""
         if bool(getattr(self.od_config, "step_execution", False)) and not supports_step_execution(self.pipeline):
@@ -190,15 +207,18 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         self.ar_diffusion_kv_config = config
         self._ar_diffusion_capability = capability
         self._ar_diffusion_kv_cache_spec = spec
+        memory_bytes = self._available_memory_bytes() if available_bytes is None else available_bytes
+        if spec.segmented is not None:
+            memory_bytes = self._segmented_all_rank_min(memory_bytes)
         self.kv_cache = ARDiffusionKVCache(
             config,
             num_layers=spec.num_layers,
             num_kv_heads=spec.num_kv_heads,
             head_size=spec.head_size,
             dtype=self.od_config.dtype,
-            block_size=paging_block_size(spec.tokens_per_frame),
+            block_size=paging_block_size(spec.segmented.block_size if spec.segmented else spec.tokens_per_frame),
             max_model_len=spec.max_model_len,
-            available_bytes=self._available_memory_bytes() if available_bytes is None else available_bytes,
+            available_bytes=memory_bytes,
             kv_branches=spec.kv_branches,
             session_capacity=spec.session_capacity,
             cross_attention_lengths=spec.cross_attention_lengths,
@@ -206,6 +226,8 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             frames_per_block=spec.frames_per_block,
             max_scratch_tokens_per_branch=spec.max_scratch_tokens_per_branch,
             model_owned_state_bytes_per_session=spec.model_owned_state_bytes_per_session,
+            segmented=spec.segmented,
+            agree_staging_allocation=self._agree_segmented_allocation,
             device=self.device,
         )
         self._session_capacity = self.kv_cache.session_capacity
