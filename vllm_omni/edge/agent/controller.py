@@ -180,6 +180,7 @@ class AgentController:
         power_condition_provider: Callable[[], str] | None = None,
         limits: AgentLimits = AgentLimits(), session_id: str | None = None,
         resource_finalize: Callable[[], Mapping[str, Any]] | None = None,
+        resource_unload: Callable[[], Mapping[str, Any]] | None = None,
     ) -> None:
         self.routes = list(routes)
         self.qualifications = list(qualifications)
@@ -222,6 +223,11 @@ class AgentController:
         ):
             raise ValueError("resource_finalize must be a callable final controller check")
         self._resource_finalize = resource_finalize
+        if resource_unload is not None and (
+            not callable(resource_unload) or inspect.iscoroutinefunction(resource_unload)
+        ):
+            raise ValueError("resource_unload must be a synchronous resource coordinator callback")
+        self._resource_unload = resource_unload
         self.resource_close_evidence: Mapping[str, Any] | None = None
 
     def add_listener(self, callback: Callable[[Mapping[str, Any]], None]) -> None:
@@ -924,10 +930,42 @@ class AgentController:
                 raise RuntimeError("wait for the active Agent request before deleting memory")
             return self.memory.delete_all()
 
+    def release_idle_models(self) -> Mapping[str, Any]:
+        """UI-only idle unload; preserve memory, tools and the controller loop.
+
+        Runs on a UI worker thread. The same turn boundary fences submission,
+        direct run_turn calls, memory deletion and application shutdown.
+        """
+        with self._lock:
+            if (self._turn_owner is not None or not self._turn_done.is_set()
+                    or (self._current is not None and not self._current.done())):
+                raise RuntimeError("finish or cancel the active request before releasing models")
+            if self._resource_unload is None:
+                raise RuntimeError("this controller has no verified idle resource release")
+            self._turn_owner = ("idle-model-release", self._epoch)
+            self._turn_started = True
+            self._turn_done.clear()
+            self._current = None
+        try:
+            evidence = self._resource_unload()
+            ledger = evidence.get("ledger") if isinstance(evidence, Mapping) else None
+            if not (isinstance(ledger, Mapping) and ledger.get("owners") == []
+                    and ledger.get("quarantined") == []
+                    and isinstance(ledger.get("reserved"), Mapping) and ledger["reserved"]
+                    and all(type(value) is int and value == 0 for value in ledger["reserved"].values())
+                    and evidence.get("resident_route") is None):
+                raise RuntimeError("idle model release did not verify an empty resource ledger")
+            return dict(evidence)
+        finally:
+            with self._lock:
+                self._turn_owner = None
+                self._turn_started = False
+                self._turn_done.set()
+
     def close(self) -> None:
         self.resource_close_evidence = None
         self.cancel()
-        if self._current is not None:
+        if not self._turn_done.is_set():
             # run_coroutine_threadsafe's Future becomes cancelled before its
             # asyncio task has finished cleanup. Wait for the actual turn's
             # finally block, including any in-flight native model loading.

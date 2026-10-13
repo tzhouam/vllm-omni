@@ -544,6 +544,38 @@ def test_no_companion_retains_original_single_model_budget_and_floor():
     assert manager.finalize_close()["ledger"]["owners"] == []
 
 
+def test_idle_release_drains_joint_owners_and_allows_fresh_admission():
+    manager, stages, companion, host, routes = _manager()
+    manager.start("model")
+    companion.launch()
+    old_generation = manager.snapshot()["joint_admission"]["generation"]
+    snapshot = manager.release_idle()
+    assert snapshot["ledger"]["owners"] == []
+    assert all(v == 0 for v in snapshot["ledger"]["reserved"].values())
+    assert snapshot["resident_route"] is None
+    assert not manager._finalized
+    assert companion.is_cold()
+    assert manager.admit(routes[0]).admitted
+    manager.start("model")
+    assert stages["model"].loads == 2
+    assert manager.snapshot()["joint_admission"]["generation"] != old_generation
+    manager.finalize_close()
+
+
+def test_idle_release_failure_keeps_quarantine_and_blocks_restart():
+    manager, stages, companion, host, routes = _manager()
+    manager.start("model")
+    companion.launch()
+    stages["model"].drain_ok = False
+    with pytest.raises(ResourceUnavailable):
+        manager.release_idle()
+    assert manager.snapshot()["ledger"]["quarantined"]
+    with pytest.raises(ResourceUnavailable):
+        manager.start("model")
+    stages["model"].drain_ok = True
+    manager.finalize_close()
+
+
 def test_finalized_controller_cannot_start_a_new_owner_or_raise_ceilings():
     manager, stages, companion, _, routes = _manager()
     before = manager.finalize_close()

@@ -2,9 +2,67 @@
 
 from __future__ import annotations
 
+import threading
+import time
+
 import pytest
 
 from vllm_omni.edge.agent import desktop
+
+
+@pytest.mark.parametrize("fails", [False, True])
+def test_unload_button_runs_off_ui_thread_and_reports_result(monkeypatch, fails):
+    if desktop.QApplication is None:
+        pytest.skip("PySide6 is not installed")
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = desktop.QApplication.instance() or desktop.QApplication([])
+    entered, proceed, finished = threading.Event(), threading.Event(), threading.Event()
+
+    class Controller:
+        def add_listener(self, callback):
+            self.callback = callback
+
+        def release_idle_models(self):
+            try:
+                entered.set()
+                assert proceed.wait(5)
+                if fails:
+                    raise RuntimeError("lease remains quarantined")
+                return {"ledger": {"owners": [], "quarantined": [], "reserved": {"host_ram": 0}}}
+            finally:
+                finished.set()
+
+    controller = Controller()
+    window = desktop.AgentWindow(controller)
+    try:
+        window.transcript.setPlainText("saved conversation")
+        window.placement_label.setText("model loaded")
+        window._release_models()
+        assert entered.wait(5)
+        assert not window.send_button.isEnabled()
+        assert not window.release_models_button.isEnabled()
+        assert not window.clear_memory_button.isEnabled()
+        app.processEvents()
+        proceed.set()
+        assert finished.wait(5)
+        deadline = time.monotonic() + 5
+        while window._active and time.monotonic() < deadline:
+            app.processEvents()
+            time.sleep(.001)
+        assert not window._active
+        assert window.send_button.isEnabled() and window.release_models_button.isEnabled()
+        assert "saved conversation" in window.transcript.toPlainText()
+        if fails:
+            assert "release failed" in window.status_label.text()
+            assert window.placement_label.text() == "model loaded"
+        else:
+            assert window.placement_label.text() == "Placement: not loaded"
+            assert "memory kept" in window.status_label.text()
+    finally:
+        proceed.set()
+        finished.wait(5)
+        window.close()
+        app.processEvents()
 
 
 def _route() -> dict:

@@ -327,8 +327,12 @@ class LocalPlanManager:
             self._joint_loading = False
             self._companion_bound = False
 
-    def finalize_close(self) -> dict[str, Any]:
-        """Final controller check, after application/tool writers are drained."""
+    def release_idle(self) -> dict[str, Any]:
+        """Drain an idle application's leases without disabling re-admission.
+
+        The caller must exclude requests and tool writers until this returns.
+        A joint browser companion is drained and reset with its model lease.
+        """
         with self._lock:
             self.close_joint()
             snapshot = self.snapshot()
@@ -337,6 +341,12 @@ class LocalPlanManager:
                 raise ResourceUnavailable("final controller resource ledger is not empty")
             if any(backend.resident for backend in self._backends.values()):
                 raise ResourceUnavailable("final controller still has a resident backend")
+            return snapshot
+
+    def finalize_close(self) -> dict[str, Any]:
+        """Final controller check, after application/tool writers are drained."""
+        with self._lock:
+            snapshot = self.release_idle()
             self._finalized = True
             return snapshot
 

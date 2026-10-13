@@ -727,6 +727,7 @@ def build_controller(
         bootstrap_route_id=data.get("experimental_bootstrap_route_id"),
         limits=AgentLimits(**data.get("limits", {})),
         resource_finalize=coordinator.finalize_close,
+        resource_unload=coordinator.release_idle,
     )
     # Application/profiler ownership handle, never exposed as a model tool.
     # Its presence does not claim route qualification or a hard process cap.

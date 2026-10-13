@@ -57,6 +57,7 @@ class DesktopController(Protocol):
     def approve(self, challenge_id: str) -> Any: ...
     def reject(self, challenge_id: str) -> Any: ...
     def delete_all_memory(self) -> int: ...
+    def release_idle_models(self) -> Mapping[str, Any]: ...
 
 
 def _field(event: Any, name: str, default: Any = None) -> Any:
@@ -264,6 +265,7 @@ else:
         event_received = Signal(object)
         callback_error = Signal(str)
         memory_cleared = Signal(int)
+        models_released = Signal()
         approval_resolved = Signal(str)
         approval_error = Signal(str, str, str)
 
@@ -282,6 +284,7 @@ else:
             self._relay.event_received.connect(self._accept_event)
             self._relay.callback_error.connect(self._report_callback_error)
             self._relay.memory_cleared.connect(self._memory_cleared)
+            self._relay.models_released.connect(self._models_released)
             self._relay.approval_resolved.connect(self._approval_resolved)
             self._relay.approval_error.connect(self._report_approval_error)
             self._last_seq: dict[tuple[str, int], int] = {}
@@ -345,6 +348,13 @@ else:
             self.send_button = QPushButton("发送 / Send")
             self.cancel_button = QPushButton("取消 / Cancel")
             self.clear_memory_button = QPushButton("清除本地记忆 / Clear memory")
+            self.release_models_button = QPushButton("释放模型内存 / Unload models")
+            self.release_models_button.setToolTip(
+                "Keeps conversation memory; closes the managed browser with its model lease. "
+                "The next request loads the model again."
+            )
+            self.release_models_button.setEnabled(callable(getattr(controller, "release_idle_models", None)))
+            self.release_models_button.clicked.connect(self._release_models)
             self.cancel_button.setEnabled(False)
             self.send_button.clicked.connect(self._submit)
             self.cancel_button.clicked.connect(self._cancel)
@@ -352,6 +362,7 @@ else:
             controls.addWidget(self.send_button)
             controls.addWidget(self.cancel_button)
             controls.addWidget(self.clear_memory_button)
+            controls.addWidget(self.release_models_button)
             layout.addLayout(controls)
             self.controller.add_listener(self.on_event)
 
@@ -395,6 +406,37 @@ else:
             self.cancel_button.setEnabled(True)
             self.clear_memory_button.setEnabled(False)
             self.status_label.setText("Running one local request")
+            self.release_models_button.setEnabled(False)
+
+        def _release_models(self) -> None:
+            if self._active:
+                return
+            self._active = True
+            self.send_button.setEnabled(False)
+            self.read_url_button.setEnabled(False)
+            self.clear_memory_button.setEnabled(False)
+            self.release_models_button.setEnabled(False)
+            self.status_label.setText("Releasing model and managed browser resources…")
+
+            def release() -> None:
+                try:
+                    self.controller.release_idle_models()
+                except Exception as exc:
+                    self._relay.callback_error.emit(f"Model release failed: {type(exc).__name__}: {exc}")
+                else:
+                    self._relay.models_released.emit()
+
+            threading.Thread(target=release, name="omni-agent-unload", daemon=True).start()
+
+        def _models_released(self) -> None:
+            self._active = False
+            self.send_button.setEnabled(True)
+            self.read_url_button.setEnabled(True)
+            self.clear_memory_button.setEnabled(True)
+            self.release_models_button.setEnabled(True)
+            self.route_label.setText("Route: will be admitted again on the next request")
+            self.placement_label.setText("Placement: not loaded")
+            self.status_label.setText("Model resources released; conversation memory kept")
 
         def _cancel(self) -> None:
             if self._active:
@@ -718,6 +760,7 @@ else:
                 self.read_url_button.setEnabled(True)
                 self.cancel_button.setEnabled(False)
                 self.clear_memory_button.setEnabled(True)
+                self.release_models_button.setEnabled(callable(getattr(self.controller, "release_idle_models", None)))
                 self.status_label.setText({
                     "final": "Ready", "answer": "Ready", "cancelled": "Cancelled",
                     "refusal": "Request refused", "error": "Request failed",
@@ -732,6 +775,8 @@ else:
             self.read_url_button.setEnabled(True)
             self.cancel_button.setEnabled(False)
             self.clear_memory_button.setEnabled(True)
+
+            self.release_models_button.setEnabled(callable(getattr(self.controller, "release_idle_models", None)))
 
 
 def run_desktop(controller: DesktopController) -> int:

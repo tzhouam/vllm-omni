@@ -1,5 +1,7 @@
 # Local Agent whole-request profiling
 
+The native Agent window has a **释放模型内存 / Unload models** button. Use it after the current request has finished or cancellation has drained. It releases the model and its jointly managed browser resources without deleting encrypted memory or closing the Agent window. The next request must pass fresh resource admission and reload the model. A failed drain is shown as an error; quarantined leases remain blocked. This is separate from **Clear memory**, which deletes stored observations. Controllers without a verified resource-coordinator unload callback disable the button.
+
 `profile.py` records **batch size 1, one active request** for a complete local
 Agent route: observation, retrieval, model output, tool decisions, verification,
 and final answer. It is a library harness. A model-stage timing callback or a
