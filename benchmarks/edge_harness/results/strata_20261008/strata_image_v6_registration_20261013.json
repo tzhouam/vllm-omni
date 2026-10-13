@@ -26,6 +26,14 @@
     "local_freeze": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-input-8g-20261013-v6\\freeze.json",
     "runner": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-lifecycle-combined-v2-20261012\\run_strata_image_lifecycle.py",
     "runner_sha256": "25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9",
-    "execution_requires": "User changes keep-models-unloaded preference; fresh source/input checks and capacity admission remain required."
+    "execution_requires": "User changes keep-models-unloaded preference; fresh source/input checks and capacity admission remain required.",
+    "entrypoint": {
+      "file": "run_image_v6_lifecycle_20261013.ps1",
+      "sha256": "050c3f4e553a388d5e7f5d7a2395944242c2ddcd36269e9800167fd3c73d26b4",
+      "default": "metadata hashes only; explicit -Execute required for neural execution",
+      "validation": "PowerShell AST parse passed with zero errors; four referenced input hashes independently rechecked in Python",
+      "execution_test": "Rejected before script execution: unsigned UNC script under current PowerShell execution policy. Policy unchanged. Neither default nor neural branch executed.",
+      "remaining": "Use an execution-policy-compliant signed entrypoint before relying on this wrapper; underlying Python runner remains unchanged."
+    }
   }
 }
