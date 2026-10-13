@@ -1760,6 +1760,12 @@ class StrataTextStageClient(StageClientBase):
                 env.pop(name)
         env["STRATA_ENGINE_READY_S"] = str(start_timeout)
         env["STRATA_RESIDENT_HEADROOM_GIB"] = str(host_overhead / (1 << 30))
+        # Keep the baseline independent of newer runtime defaults. Enabling CPU
+        # prefill sharing or pinned staging needs its own workspace admission and
+        # numerical validation. These are requested controls, not device proof;
+        # older pinned engines may not implement either switch.
+        baseline_environment = {"STRATA_PREFILL_CPU_SHARE": "0", "STRATA_STAGE_PIN": "0"}
+        env.update(baseline_environment)
         io_prefetch = config.get("io_prefetch", False)
         if type(io_prefetch) is not bool:
             raise ValueError("io_prefetch must be boolean")
@@ -1982,6 +1988,7 @@ class StrataTextStageClient(StageClientBase):
             "spec_tokens": spec,
             "native_verify_window": native_verify_window,
             "prefetch": {"ple": ple_prefetch, "routing": routing_prefetch, "io": io_prefetch},
+            "requested_baseline_environment": baseline_environment,
             "io_mode": io_mode,
             "ple_io": ple_io,
             "expert_profile_file": profile,

@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-13 Omni Strata 后端显式设置 `STRATA_PREFILL_CPU_SHARE=0`、`STRATA_STAGE_PIN=0`，并把请求设置计入路线控制哈希，避免候选新版默认 CPU prefill 分担／固定页暂存改变未重新核算的预算。现用旧运行时仍保持原 revision；旧引擎可能不识别开关，记录不宣称原生确认或实际放置。真实子进程 loopback 检查父环境 `auto/1` 不会泄入且父环境不变；[后端回归 65 通过、2 个 POSIX 专项在 Windows 跳过](results/strata_20261008/strata_baseline_environment_20261013.json)。未加载权重。生产源码及路线身份已变，后续模型运行须重新绑定，不继承旧实跑资格。
+
 2026-10-13 新版 Strata 服务层离线迁移检查 **16/16 通过，无跳过**：[源码身份、完整日志及可重放 harness](results/strata_20261008/strata_upstream_serving_20261013.json)。其中 Windows 启动超时／重启超时两项改为直接启动 Python 假引擎，避免上游因 CMD 包装子进程未退场而跳过；其余覆盖模拟视觉启动失败及请求／取消后的统计。候选 serve/server.py 相对旧版有大量改动，因此 tokenizer 通过不能代替服务迁移。尚未验证 Omni bootstrap、编译引擎 ABI 或真实权重；未加载模型，未放宽运行时注册规则。
 
 2026-10-13 Strata 0.1.43.1 候选的 tokenizer 迁移对照 **3,228/3,228 通过**：[可复现命令、源码／真实 Q4 词表哈希及全部原始 token ID](results/strata_20261008/strata_tokenizer_migration_20261013.json)。269 条生成输入覆盖中英文、Unicode、代码和工具标记，组合保护区间、特殊标记解析及重复调用；旧／新版 ID 完全一致且均可还原输入。补充脚本身份后重跑的原始记录哈希与首轮相同。仅证明这些输入的分词兼容，不证明独立正确性、聊天模板渲染、pack／ABI 兼容或模型输出质量；新版缓存为条目上限，并非字节预算。未加载模型，旧运行时与注册限制保持不变。

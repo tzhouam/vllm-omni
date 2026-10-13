@@ -69,6 +69,8 @@ print(f'strata generate: CPU pool tasks/phase: {3*(workers+1)} (automatic), part
 print(f'strata generate: {workers} expert-pool workers + the host thread',flush=True)
 print('strata generate: native pack: /private/fixture experts (largest blob 1.00 MB), token embedding Q8_0 in mapped host memory (1 MiB, 0.1 s)',flush=True)
 Path(a.config).with_name('observed.json').write_text(json.dumps(cfg))
+Path(a.config).with_name('baseline-env.json').write_text(json.dumps({
+    key: os.environ.get(key) for key in ('STRATA_PREFILL_CPU_SHARE', 'STRATA_STAGE_PIN')}))
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*a): pass
     def reply(self,obj):
@@ -282,9 +284,16 @@ def test_registered_stage_config_roundtrip_preserves_strict_conversion_proof(sta
     assert runtime.resource_ledger.snapshot()["quarantined"] == []
 
 
-def test_supervisor_builds_tool_free_bounded_configuration(stage_config):
+def test_supervisor_builds_tool_free_bounded_configuration(stage_config, monkeypatch):
+    monkeypatch.setenv("STRATA_PREFILL_CPU_SHARE", "auto")
+    monkeypatch.setenv("STRATA_STAGE_PIN", "1")
     stage, ledger = _stage(stage_config)
     try:
+        baseline = json.loads((Path(stage._temporary.name) / "baseline-env.json").read_text())
+        assert baseline == {"STRATA_PREFILL_CPU_SHARE": "0", "STRATA_STAGE_PIN": "0"}
+        assert stage.execution_plan["route_controls"]["requested_baseline_environment"] == baseline
+        assert os.environ["STRATA_PREFILL_CPU_SHARE"] == "auto"
+        assert os.environ["STRATA_STAGE_PIN"] == "1"
         generated = json.loads((Path(stage._temporary.name) / "observed.json").read_text())
         assert generated["mcp_servers"] == {}
         assert "before_load" not in generated and "vision" not in generated

@@ -1,0 +1,25 @@
+{
+  "schema": "strata-baseline-environment-regression-v1",
+  "passed": 65,
+  "skipped": 2,
+  "exit_code": 0,
+  "model_loaded": false,
+  "runtime_revision_unchanged": true,
+  "requested_controls": {
+    "STRATA_PREFILL_CPU_SHARE": "0",
+    "STRATA_STAGE_PIN": "0"
+  },
+  "scope": "Production supervisor request controls and loopback fixture, not native acknowledgement or neural execution",
+  "raw_file": "strata_baseline_environment_20261013.junit.xml.gz",
+  "raw_sha256": "1eaadb995646d4d89ff06e16d10c992f81e0d81517ac71b86872a8b9b97f4110",
+  "gzip_sha256": "ebf0d5bc6331ebc16f3c92fd9315bdc8b0f0b42c383432d433a6cd6a584b613f",
+  "sources": {
+    "vllm_omni/engine/backends/strata.py": "494e86ded89af6ce544c89924831e151988bfcb29da15c38ac0b645d122430c8",
+    "tests/edge/test_strata_backend.py": "63529c9bd84e6f3e25f6999a5bb4e67f7aad426e306522d3de6aff2bb8bac642"
+  },
+  "skipped_reasons": [
+    "POSIX process-group regression",
+    "POSIX stdout-observer fixture; native Windows uses pinned job module"
+  ],
+  "next": "Bind updated production source in subsequent real-model runs; separately register the newer runtime after full identity validation."
+}
