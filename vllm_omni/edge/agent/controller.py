@@ -932,6 +932,12 @@ class AgentController:
             # asyncio task has finished cleanup. Wait for the actual turn's
             # finally block, including any in-flight native model loading.
             self._turn_done.wait()
+        with self._lock:
+            # A failed Future retains its traceback and the turn's image/tool
+            # locals. Drop only the controller's reference after cleanup;
+            # callers holding the Future can still inspect the original error.
+            if self._current is not None and self._current.done():
+                self._current = None
         failures: list[Exception] = []
         for backend in self.backends.values():
             closer = getattr(backend, "close", None)
