@@ -1,0 +1,225 @@
+{
+  "offline_audit": {
+    "sha256": "d2d62895aa7912d0ef864e93893fc909297741d64bbeba3787592fac83aabe2d",
+    "script": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\audit_q4_image_agent_20261013.py",
+    "script_sha256": "062fd56e9e0182b1141cfa77e07faeaecf9741ca3f5225a07923192d11838bf1",
+    "result": {
+      "status": "passed",
+      "scope": "closed one real browser-image Agent task, not broad quality/performance or full process coverage",
+      "receipt_sha256": "13b26640951cce1222118e94757dad8a6433aced15a55854d125843fa0673968",
+      "raw_file_count": 17,
+      "event_count": 13,
+      "model_calls": 2,
+      "answer": "Actions requiring your approval",
+      "whole_agent_task_s_excludes_load": 98.02939140005037,
+      "cold_load_and_verification_s": 580.8524243999273,
+      "screenshot_to_model_pixels_verified": true,
+      "browser_all_descendants_retired": false,
+      "hard_process_cap": false,
+      "qualified": false
+    },
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-20261013-v5\\agent-offline-audit.json",
+    "exit_code": 0
+  },
+  "exit_code": 0,
+  "browser_release": {
+    "all_descendants_retired": false,
+    "required_ownership_verified": true,
+    "quarantine_required": false,
+    "hard_process_cap": false,
+    "bound_set_count": 9,
+    "scope": "joined_browser_owner_worker_and_exact_retained_handle_bound_set_only",
+    "owned_work_drained": true
+  },
+  "quality_passed": true,
+  "telemetry_errors": {},
+  "prerequisites_stable": true,
+  "whole_agent_task_s_excludes_load": 98.02939140005037,
+  "screenshot_witness": {
+    "browser_jpeg_sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5",
+    "browser_width": 1280,
+    "browser_height": 720,
+    "controller_png": {
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "size_bytes": 161034,
+      "width": 1280,
+      "height": 720,
+      "transport": "data:image/png;base64"
+    },
+    "original_fixture_image_sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+    "reference_not_in_prompt_or_dom_or_memory": true,
+    "scope": "actual browser rasterization, separate from source PNG"
+  },
+  "source_stable": true,
+  "concurrency": 1,
+  "receipt_sha256": "13b26640951cce1222118e94757dad8a6433aced15a55854d125843fa0673968",
+  "status": "scoped_browser_image_agent_passed",
+  "exact_role_retirement": {
+    "encoder": "retired",
+    "language": "retired"
+  },
+  "observed_at": "2026-10-13T10:45:33.2464886+08:00",
+  "raw_files": {
+    "all-raw.json": {
+      "size_bytes": 949051,
+      "sha256": "876d3fcb04dddf31030c2974344f420be6ea9118f282a7947de0cf99ff406d68"
+    },
+    "browser-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "browser-screenshot.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "config.json": {
+      "size_bytes": 14770943,
+      "sha256": "98b41c08731487cd33c11c31aae90ae59741f994b5d5992c1a17cd671917c1a0"
+    },
+    "controller-image.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392336,
+      "sha256": "e40ce55cde1257fb939005b4c22ae5e4b693b0825fbb7ec47d7ccfff8141be8e"
+    },
+    "events.jsonl": {
+      "size_bytes": 285866,
+      "sha256": "ef08ca4bcb9c55948df20f96c31e9daf19e79b51a7a6248f9cda7cbc03b28768"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "6f4d4353b6b302e5077425a6423be512310754d95a70d9c3e7c4d40c8375ab3b"
+    },
+    "hardware.json": {
+      "size_bytes": 4699,
+      "sha256": "167283bc72688a7c41755fa0ee4f8fce8e769e6995adb964ef14b037fb5ca1bc"
+    },
+    "image-2.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 300592,
+      "sha256": "cac8fd6d67d87a61deee7aa794420dcf56e8cec85ec103150d5ab93f5966e1b2"
+    },
+    "memory.sqlite": {
+      "size_bytes": 634880,
+      "sha256": "07dfa1e74ceaa95b0053b830ccad0354f335dc683a4ddd1ead21814fe3df02a2"
+    },
+    "model-image-2.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "private-case.json": {
+      "size_bytes": 353,
+      "sha256": "f18cbca5e7ba93744c3ae7083dd5befe4c6cf4a11663caa7e2219f6a64f673df"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 388,
+      "sha256": "569a4b7abdf86aa87a0189fdc775df5cf8615a33ce150d046aa8155bbc0be43a"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 19475257,
+      "sha256": "fe8468676767bc15b6659719a6b2c3714daea5db3a0da77f3dee3b50b75b924f"
+    }
+  },
+  "release_qualified": false,
+  "telemetry_samples": 4164,
+  "answer": "Actions requiring your approval",
+  "runtime_sha256": "0a48665915a36327809991428e8d01552e8dd7b44d2908d0a6ce6def0a8f85fb",
+  "precision_binding": {
+    "expected_precision": "Unsloth UD-Q4_K_XL mixed",
+    "checkpoint": "unsloth/Qwen3.8-Flash-Next-GGUF",
+    "checkpoint_revision": "38bb39ee97821de2c9009abb7e93950eec396e66",
+    "weight_quantization_metadata": [
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+        "sha256": "4448186216b3af4cc558bbce2c3213f01608f8f8b2e5267a9767971dd3ec8082",
+        "size_bytes": 10946624,
+        "quantization": "Unsloth UD-Q4_K_XL mixed"
+      },
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf",
+        "sha256": "3f342f1c1580473f1ee94ddd5b28206e8c07a70fa1a366f59d1d6c922919a6c9",
+        "size_bytes": 49859583136,
+        "quantization": "Unsloth UD-Q4_K_XL mixed"
+      },
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00003-of-00004.gguf",
+        "sha256": "56758f40269cad5cd9b0d3d6fbae0f40f6d5be6de49e4ab392dbe83157d9cbd3",
+        "size_bytes": 49376141504,
+        "quantization": "Unsloth UD-Q4_K_XL mixed"
+      },
+      {
+        "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00004-of-00004.gguf",
+        "sha256": "753bda48b98ba4f1636134a90a967de1b2d3908a236c026e464777342e53510a",
+        "size_bytes": 12087983520,
+        "quantization": "Unsloth UD-Q4_K_XL mixed"
+      }
+    ],
+    "scope": "exact declared all-weight-file quantization metadata; backend separately verifies actual artifact bytes",
+    "aliases_or_precision_substitution_allowed": false
+  },
+  "source_file_count": 1574,
+  "remaining": [
+    "Representative image Agent task quality and batch-1 full performance protocol",
+    "Reduce measured startup and whole-task latency without weakening evidence",
+    "24/32/40 GiB cache and prefetch/MTP comparisons under real admission",
+    "Same-artifact unsplit baseline and attributable physical SSD I/O",
+    "Remaining DeepSeek/mobile work and qualified default routes"
+  ],
+  "resource_drain_verified": true,
+  "scope": "One actual read-only loopback browser_open/browser_screenshot/image-answer task. No broad vision quality, p95, physical SSD or all-descendant/hard-cap qualification.",
+  "cold_load_and_verification_s": 580.8524243999273,
+  "run_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-20261013-v5-attempt2",
+  "writer_shutdown_checks": {
+    "agent_thread_stopped": true,
+    "tool_threads_stopped": true,
+    "browser_threads_stopped": true,
+    "browser_references_closed": true,
+    "browser_driver_reaped_or_never_started": true
+  },
+  "ledger_after_close": {
+    "resident_route": null,
+    "resident_free_floor": {},
+    "ledger": {
+      "capacities": {
+        "host_ram": 28905037824,
+        "vram": 20892737536,
+        "windows_commit": 78431920128,
+        "ssd": 849908568204
+      },
+      "reserved": {
+        "host_ram": 0,
+        "vram": 0,
+        "windows_commit": 0,
+        "ssd": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "joint_admission": {
+      "generation": null,
+      "route_id": null,
+      "startup_free": {},
+      "snapshot_monotonic_ns": [],
+      "combined_demands": {},
+      "protected_free_floor": {},
+      "needs_drain": false,
+      "loading": false,
+      "model_owner": null,
+      "companion_owner": null,
+      "envelope_sha256": "0d9516c1664d8c99a5dc8fb246334dba48b0b92e78990a31d99c7e0a16566696",
+      "evidence_reference": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-20261013-v5\\browser-resource-envelope.json",
+      "scope": "declared_incremental_joint_allowance_not_process_hard_cap"
+    }
+  },
+  "batch_size": 1,
+  "schema": "omni-strata-agent-image-closed-v1"
+}
