@@ -1,0 +1,22 @@
+{
+  "schema": "strata-text-registration-evidence-v1",
+  "status": "registered_not_executed",
+  "native_model_executed": false,
+  "qualification_created": false,
+  "static_receipt_sha256": "8a27cd0bd2c9312b52bbcdc3dcb31b8a603ac2ef3460bf49d36280c8097d2cd8",
+  "producer_source_sha256": "ef5fde8e017633e574ba5d4bd3239b027eacc4a080829583566dc35454a5755b",
+  "launch_sha256": "4c196cf2906a46e460c9b5728385c1b58fcf2cd51441149e8df26661e744dd4b",
+  "raw_archive": "strata_text_v6_registration_20261013.raw.tar.gz",
+  "raw_archive_sha256": "520cf43008bff54237374d2a7e34b9f79e792574f24dd88a4b6f5e5dc57d37c2",
+  "raw_files": {
+    "execution-config.json": "652dcf054f84cd27cf2568a9f334ce9fc04a4bcc6e02d5964d9e774c57963a04",
+    "launch.json": "4c196cf2906a46e460c9b5728385c1b58fcf2cd51441149e8df26661e744dd4b",
+    "launch.registration.json": "36df12496e698de39b55b5c687372fa0936be652d1a4adabfb83a52042797cb3",
+    "registration-attempt.json": "faaee2637dc1cdd439f3fc86c3a229eefa291ab0a8824dbab5f9d584b9f5a1d8",
+    "runtime-manifest.json": "8972dbe8ce7b6849b085cb1614112a7bc0cf20c698e1cb6bf46acc8a27dcc02a",
+    "register_text.py": "ef5fde8e017633e574ba5d4bd3239b027eacc4a080829583566dc35454a5755b"
+  },
+  "scope": "Current production adapter binding to existing 0.1.40.3 native engine; file verification only, no model or Agent execution.",
+  "image_registration": "still running at this snapshot",
+  "user_constraint": "Keep model memory unloaded; real regression deferred until user changes preference."
+}
