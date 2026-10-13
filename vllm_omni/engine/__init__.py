@@ -123,6 +123,8 @@ class OmniEngineCoreRequest(EngineCoreRequest):
             trace_headers=request.trace_headers,
             resumable=request.resumable,
             external_req_id=request.external_req_id,
+            session_id=request.session_id,
+            kv_hints=request.kv_hints,
             reasoning_ended=request.reasoning_ended,
             reasoning_parser_kwargs=request.reasoning_parser_kwargs,
             abort_immediately=request.abort_immediately,
@@ -150,6 +152,8 @@ class OmniEngineCoreOutput(EngineCoreOutput):
     new_prompt_len_snapshot: int | None = None
     # Authoritative segment count when the native plane suppresses token IPC.
     num_generation_tokens: int | None = None
+    # Coalesced decode steps have no recoverable per-step ITL samples.
+    is_coalesced: bool = False
 
 
 class OmniEngineCoreOutputs(EngineCoreOutputs):

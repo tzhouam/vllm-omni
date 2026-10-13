@@ -58,7 +58,7 @@ stages:
         # The persistent clean AV KV is model-owned (dense); the paged pool is
         # only the runner's bookkeeping, so keep its share of free memory small.
         gpu_memory_fraction: 0.02
-        # One throwaway five-second request at load time (the pipeline opts
-        # into it in eager mode too): the first chunk of a session then takes
-        # about 3 s instead of 17-20 s on a cold server.
+        # One throwaway session of four five-second requests at load time
+        # by default (also in eager mode): the first chunk of a session then
+        # takes about 3 s instead of 17-20 s on a cold server.
         warmup_cudagraph: true

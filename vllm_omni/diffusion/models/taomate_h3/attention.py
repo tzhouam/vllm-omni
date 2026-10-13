@@ -35,6 +35,7 @@ from enum import Enum
 import torch
 
 from vllm_omni.diffusion.attention.backends.abstract import VideoTokenLayout
+from vllm_omni.diffusion.attention.backends.vdnh3_attn import VDNLayout
 from vllm_omni.diffusion.distributed.comm import SeqAllToAll4D, all_to_all_5D
 from vllm_omni.diffusion.layers.fused_qk_norm_rope import fused_qk_norm_rope
 from vllm_omni.diffusion.models.minimax_h3.minimax_h3_transformer import MiniMaxH3Attention
@@ -162,6 +163,7 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
         sp_seq_lens: list[int] | None = None,
         video_layout: VideoTokenLayout | None = None,
         vsa_prefix_segments: tuple[int, ...] = (),
+        vdn_window: VDNLayout | None = None,
     ) -> torch.Tensor:
         context = _STREAM_CONTEXT.get()
         if context is None or self.layer_name is None:
@@ -175,7 +177,10 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
                 sp_seq_lens=sp_seq_lens,
                 video_layout=video_layout,
                 vsa_prefix_segments=vsa_prefix_segments,
+                vdn_window=vdn_window,
             )
+        if vdn_window is not None:
+            raise ValueError("TaoMate-H3 streaming attention does not support VDN windows")
         if num_requests != 1:
             raise ValueError("TaoMate-H3 streaming attention serves one live document per forward")
         if rope_table is None:

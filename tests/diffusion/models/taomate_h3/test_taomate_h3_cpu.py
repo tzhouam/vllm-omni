@@ -34,6 +34,8 @@ from vllm_omni.diffusion.models.taomate_h3.schedule import (
     time_shift_sigmas,
 )
 
+pytestmark = [pytest.mark.core_model, pytest.mark.cpu, pytest.mark.diffusion]
+
 # ----------------------------------------------------------------------------
 # geometry
 
@@ -232,6 +234,83 @@ def test_kv_cache_rollback_and_ordering() -> None:
     assert not cache.clean_commit_active
     with pytest.raises(RuntimeError):
         cache.begin_clean_commit(1)
+
+
+# ----------------------------------------------------------------------------
+# attention compatibility
+
+
+@pytest.fixture
+def vdn_window():
+    from vllm_omni.diffusion.attention.backends.vdnh3_attn import VDNLayout
+
+    return VDNLayout(
+        used=2,
+        text_len=1,
+        video_start=1,
+        num_frames=1,
+        frame_height=1,
+        frame_width=1,
+        chunk=1,
+        radius=0,
+    )
+
+
+@pytest.mark.parametrize("refiner", [False, True], ids=["teacher", "refiner"])
+@pytest.mark.parametrize("with_vdn", [False, True])
+def test_attention_preserves_upstream_vdn_argument_on_base_path(monkeypatch, vdn_window, refiner, with_vdn):
+    from contextlib import nullcontext
+    from unittest.mock import Mock
+
+    from vllm_omni.diffusion.models.taomate_h3.attention import (
+        MiniMaxH3Attention,
+        StreamContext,
+        TaoMateH3StreamingAttention,
+        stream_context,
+    )
+
+    attention = object.__new__(TaoMateH3StreamingAttention)
+    nn.Module.__init__(attention)
+    attention.layer_name = None if refiner else "blocks.0.attn"
+    hidden = torch.zeros(2, 4)
+    base_forward = Mock(return_value=hidden)
+    monkeypatch.setattr(MiniMaxH3Attention, "forward", base_forward)
+    window = vdn_window if with_vdn else None
+    # The teacher has no streaming context; a refiner must use base attention
+    # even when the surrounding student forward has installed one.
+    context = stream_context(Mock(spec=StreamContext)) if refiner else nullcontext()
+    with context:
+        output = attention(
+            hidden,
+            rope_table=None,
+            cu_seqlens=torch.tensor([0, 2]),
+            max_seqlen=2,
+            vdn_window=window,
+        )
+    assert output is hidden
+    assert base_forward.call_args.kwargs["vdn_window"] is window
+
+
+def test_streaming_attention_rejects_vdn_before_running_kernels(vdn_window):
+    from unittest.mock import Mock
+
+    from vllm_omni.diffusion.models.taomate_h3.attention import (
+        StreamContext,
+        TaoMateH3StreamingAttention,
+        stream_context,
+    )
+
+    attention = object.__new__(TaoMateH3StreamingAttention)
+    nn.Module.__init__(attention)
+    attention.layer_name = "blocks.0.attn"
+    with stream_context(Mock(spec=StreamContext)), pytest.raises(ValueError, match="does not support VDN windows"):
+        attention(
+            torch.zeros(2, 4),
+            rope_table=None,
+            cu_seqlens=torch.tensor([0, 2]),
+            max_seqlen=2,
+            vdn_window=vdn_window,
+        )
 
 
 # ----------------------------------------------------------------------------
@@ -502,6 +581,99 @@ def test_hold_never_blocks_the_first_request_or_request_mode(monkeypatch) -> Non
     pipe._tm_hold_for_prompt = False
     with pytest.raises(_RequestStartedError):  # default: free-running stream keeps the last prompt
         pipe.prepare_next_chunk(_hold_state(chunk_index=_NUM_PHASES, applied_version=1))
+
+
+# ----------------------------------------------------------------------------
+# request validation
+
+
+@pytest.fixture
+def prepare_encode_pipeline(monkeypatch):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    from vllm_omni.diffusion.models.taomate_h3 import pipeline as pipeline_module
+    from vllm_omni.diffusion.worker.utils import StepRequestState
+    from vllm_omni.inputs.data import OmniDiffusionSamplingParams
+
+    pipe = object.__new__(pipeline_module.TaoMateH3Pipeline)
+    monkeypatch.setattr(pipeline_module.TaoMateH3Pipeline, "device", torch.device("cpu"), raising=False)
+    monkeypatch.setattr(pipeline_module, "StreamingVideoDecoder", Mock())
+    monkeypatch.setattr(pipeline_module, "StreamingAudioDecoder", Mock())
+    pipe._ar_diffusion_kv_state = SimpleNamespace(session_id="session")
+    pipe._tm_teacher = object()
+    pipe._tm_default_height = 864
+    pipe._tm_default_width = 480
+    pipe._tm_default_canvas = geo.CanvasGeometry(height=864, width=480)
+    pipe._tm_default_seed = 8301
+    pipe._tm_output_rank = True
+    pipe._tm_audio_kv_reset_requests = 12
+    pipe._tm_pad_text_tokens = 0
+    pipe.transformer = SimpleNamespace(
+        arch=SimpleNamespace(num_layers=1, attention_head_dim=4), streaming_local_heads=1
+    )
+    pipe.video_vae = object()
+    pipe.audio_vae = object()
+    pipe.encode_prompt = Mock(return_value=(torch.zeros(2, 8), torch.ones(2, dtype=torch.long)))
+    previous = Mock()
+    pipe._tm_sessions = {"session": previous}
+    state = StepRequestState(
+        request_id="request",
+        sampling=OmniDiffusionSamplingParams(num_frames=124),
+        prompt="A presenter greets the audience.",
+    )
+    return pipe, state, previous
+
+
+@pytest.mark.parametrize(
+    ("fps", "frame_rate"),
+    [(30, None), (None, 30), (30, 24), (24, 30), (0, None), (float("nan"), None), (None, float("inf"))],
+)
+def test_prepare_encode_rejects_non_native_rates_before_encoding(prepare_encode_pipeline, fps, frame_rate):
+    from vllm_omni.errors import OmniClientError
+
+    pipe, state, previous = prepare_encode_pipeline
+    state.sampling.fps = fps
+    state.sampling.frame_rate = frame_rate
+    with pytest.raises(OmniClientError, match="24 fps"):
+        pipe.prepare_encode(state)
+    pipe.encode_prompt.assert_not_called()
+    previous.close.assert_not_called()
+    assert pipe._tm_sessions == {"session": previous}
+    assert state.prompt_embeds is None and state.extra == {}
+
+
+@pytest.mark.parametrize("modality", ["image", "video", "audio"])
+def test_prepare_encode_rejects_references_before_encoding(prepare_encode_pipeline, modality):
+    from vllm_omni.errors import OmniClientError
+
+    pipe, state, previous = prepare_encode_pipeline
+    state.prompt = {"prompt": state.prompt, "multi_modal_data": {modality: object()}}
+    with pytest.raises(OmniClientError, match="text prompts only"):
+        pipe.prepare_encode(state)
+    pipe.encode_prompt.assert_not_called()
+    previous.close.assert_not_called()
+    assert pipe._tm_sessions == {"session": previous}
+    assert state.prompt_embeds is None and state.extra == {}
+
+
+@pytest.mark.parametrize(("fps", "frame_rate"), [(None, None), (24, None), (None, 24), (24.0, 24.0)])
+@pytest.mark.parametrize("structured_prompt", [False, True])
+def test_prepare_encode_accepts_text_at_native_or_omitted_rates(
+    prepare_encode_pipeline, fps, frame_rate, structured_prompt
+):
+    pipe, state, previous = prepare_encode_pipeline
+    state.sampling.fps = fps
+    state.sampling.frame_rate = frame_rate
+    prompt = state.prompt
+    if structured_prompt:
+        state.prompt = {"prompt": prompt, "multi_modal_data": {}}
+    assert pipe.prepare_encode(state) is state
+    pipe.encode_prompt.assert_called_once_with(prompt=prompt)
+    previous.close.assert_called_once_with()
+    assert pipe._tm_sessions["session"] is not previous
+    assert state.prompt_embeds is pipe.encode_prompt.return_value[0]
+    assert state.extra["taomate_session_id"] == "session"
 
 
 # ----------------------------------------------------------------------------

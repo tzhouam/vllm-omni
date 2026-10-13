@@ -28,6 +28,8 @@ from vllm_omni.diffusion.models.taomate_h3.packed import (
 )
 from vllm_omni.diffusion.models.taomate_h3.transformer import LocalEmbedPlan, local_embed_plan
 
+pytestmark = [pytest.mark.core_model, pytest.mark.cpu, pytest.mark.diffusion]
+
 
 def test_signature_counts_tensors_by_shape_and_values_by_value() -> None:
     a = {"x": torch.zeros(3, 4), "meta": {"n": 1, "flag": True}, "seq": (1, 2)}

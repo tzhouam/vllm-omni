@@ -63,11 +63,10 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_cuda_graph_max_entries` | 16 | Resident teacher graphs (least recently used shape evicted); they share one memory pool |
 | `taomate_h3_warmup_requests` | 4 | Requests of the load-time warmup session. Later requests cycle through three audio latent counts (198, 198, 199 per channel), so four requests visit every teacher document shape: the graphs are captured and every phase size has been allocated before the first client connects |
 | `taomate_h3_teacher_graph_text_lengths` | unset | Prompt token counts (`"lo-hi"`) whose teacher graphs are captured during the load-time warmup, three document shapes per count (about 0.5 s and 5 MB each, estimate); these graphs are pinned against LRU eviction by later shapes. A teacher graph is keyed by the prompt's token count, so without this each new prompt length captures inside the stream (about 0.7 s per shape). Needs `taomate_h3_pad_text_tokens` and enough `taomate_h3_cuda_graph_max_entries` |
-| `step_async_output` | false | Separate PR (branch `feat/step-async-output`). Generic step-execution knob (read by the worker and the executor, not by the pipeline): pack each streamed chunk's media into shared memory on the worker's background thread and let the engine await it, instead of copying the 42 MB of frames per phase on the step thread. Measured locally at USP2: 4.98 -> 4.78 s per request (ten requests, constant short prompt); prompt updates unaffected |
-| `taomate_h3_text_encoder_cuda_graph` | false | Replay the text-only prompt encode of a prompt update from a CUDA graph (one graph per token count, captured for `taomate_h3_teacher_graph_text_lengths` at load, exact: the encoder's own modules run with graph-safe indexing). Prompts with images or videos, offloaded encoders and non-encoder ranks keep the eager path |
+| `taomate_h3_text_encoder_cuda_graph` | false | Replay the text-only prompt encode of a prompt update from a CUDA graph (one graph per token count, captured for `taomate_h3_teacher_graph_text_lengths` at load, exact: the encoder's own modules run with graph-safe indexing). Offloaded encoders and non-encoder ranks keep the eager path |
 | `taomate_h3_adaln_cache` | true | Exact AdaLN projection cache. Its key is a host digest of the timestep embedding (one device-to-host copy per forward); `false` recomputes the few projected rows per layer and removes that synchronization from every student forward |
 | `taomate_h3_cudnn_benchmark` | false | cuDNN autotuning for the fixed-shape VAE convolutions (measured: no change) |
-| `taomate_h3_lora_merge` | false | **Leave off.** Merges the LoRA delta into a second weight set for the student (per target a shadow linear `W + scale*B@A`, quantized like the base). Measured locally (2026-09-29, corrected): with per-channel FP8 the merged student renders about 4.7x less sharp video (median Laplacian variance over 24-25 recorded frames: 105-110 with the merge, 497 without it, 500-512 for the four-GPU BF16 demo, so the exact path matches BF16): the delta is 0.2-0.7% of |W| and 83-98% of it becomes FP8 rounding error, so the fine-tune is largely lost even though the merge is unbiased in expectation. It saved 0.12 s per request. Kept as an experiment knob; the BF16 delta on the hooks is the exact path |
+| `taomate_h3_lora_merge` | false | **Leave off.** Merges the LoRA delta into a second weight set for the student (per target a shadow linear `W + scale*B@A`, quantized like the base). Measured locally (2026-09-29, corrected): with per-channel FP8 the merged student renders about 4.7x less sharp video (median Laplacian variance over 24-25 recorded frames: 105-110 with the merge, 497 without it, 500-512 for the four-GPU BF16 demo, so the exact path matches BF16): the delta is 0.2-0.7% of \|W\| and 83-98% of it becomes FP8 rounding error, so the fine-tune is largely lost even though the merge is unbiased in expectation. It saved 0.12 s per request. Kept as an experiment knob; the BF16 delta on the hooks is the exact path |
 | `taomate_h3_decode_overlap` | false | Queue the phase's video VAE decode on a second CUDA stream before the clean-commit forward (the decode only needs the phase's clean latents; frames are fetched after the host has prepared the next phase). Measured locally at persona length: no gain (phase totals within 0.015 s of the serial order), because the commit forward is device time too; kept as an experiment knob |
 | `taomate_h3_vae_decoder_tile_size` | unset (checkpoint: 256) | Decoder tile edge of the video VAE in pixels (multiple of 16). **Do not raise it: 384 and 480 px tiles render a 16 px lattice over the whole frame (isolated 2026-09-28/29; the decoder's positional ids are normalized to the tile extent).** Fewer tiles than `vae_patch_parallel_size` falls back to the slower whole-frame decode (a warning is logged) |
 | `taomate_h3_vae_decoder_tile_overlap_min` | unset (checkpoint: 64) | Minimum overlap between decoder tiles in pixels (multiple of 16). At 480x864 the checkpoint's 64 px gives 15 tiles of 256 px covering 2.37x the canvas; 32 px gives 8 tiles covering 1.26x and halves the decode (0.37 -> 0.19 s per 34-frame phase, measured locally) with no seams at the tile borders (2x crops compared against the 64 px decode); 16 px gives the same 8 tiles |
@@ -75,9 +74,15 @@ Per-deployment knobs live under `model_config`:
 | `taomate_h3_fp8_quant_cuda_op` | true | Quantize the FP8 linears' activations with vLLM's CUDA op instead of the inductor-compiled native path (profiled on the two-GPU server: the inductor reduction kernel took 54 ms per 34-frame phase at about 600 GB/s; the CUDA op reads the rows at about 1.3 TB/s). Same per-token scale and e4m3 payload |
 
 The deploy config keeps `ar_diffusion_kv_config.warmup_cudagraph: true`: the AR runner runs
-one throwaway five-second request at load time (the pipeline opts into this warmup in eager
-mode as well), so the first chunk of a session arrives in about 3 s instead of 17-20 s on
-a cold server.
+one throwaway session of four five-second requests at load time by default (the pipeline
+opts into this warmup in eager mode as well), so the first chunk of a session arrives in
+about 3 s instead of 17-20 s on a cold server.
+
+The final two-GPU measurements below also used the separate
+`tzhouam:feat/step-async-output` branch. That branch packs streamed media on a worker
+background thread and saved about 0.2 s per request in the recorded tests. Its
+`step_async_output` option has no consumer on main, so the shipped config omits it.
+Those measurements have not been repeated on the current main integration.
 
 ## Stream
 
@@ -372,7 +377,6 @@ difference on the persona prompt) before use: FP8 attention in the DiT (25% fast
 about 0.2 s per request), FP8 GEMMs in the VAE decoder (about 0.15 s per request), FP8 for the
 DiT's boundary layers (small). They are not enabled.
 
-
 **Live-agent demo, paced by the app (measured locally by the demo session, 2026-09-29, two GPUs, exact
 path, 26 requests of a lesson, prompts of 373-444 tokens with the just-in-time hold):** median 4.905 s,
 mean 4.954 s between requests' first chunks, 7 requests above 4.958 s. With the hold the app keeps
@@ -392,13 +396,14 @@ schedule (the ladder is 1.0, 0.961, 0.853, 0), far from the clean K/V the model 
 to attend to.
 
 **Start-up time.** With the teacher and text-encoder graph captures for a 120-token range the two-GPU
-server takes about 7 minutes to become ready (3 min of loading, 3-4 min of captures), which exceeds
-vLLM-Omni's default stage initialization timeout of 600 s; raise it (for example 1800 s) or narrow
+server takes about 7 minutes to become ready (3 min of loading, 3-4 min of captures). For larger
+prompt ranges, raise the stage initialization timeout (for example to 1800 s) or narrow
 `taomate_h3_teacher_graph_text_lengths` to the deployment's prompt lengths.
 
 ## Limits
 
 - One session per server (`max_num_seqs: 1`, `session_capacity: 1`).
 - The canvas is fixed per deployment; a request with another size is rejected.
-- Only text prompts (T2VA); the TaoMate release has no image or audio conditioning.
+- Only text prompts (T2VA); requests with reference media are rejected.
+- Video and audio use a fixed 24 fps timeline; explicit `fps` or `frame_rate` values other than 24 are rejected.
 - Video is not bit-reproducible run to run (the release runtime has the same property).

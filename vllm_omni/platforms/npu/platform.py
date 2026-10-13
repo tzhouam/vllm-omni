@@ -7,7 +7,9 @@ from typing import Any
 
 import torch
 import torch.nn as nn
+from vllm.config import VllmConfig
 from vllm.logger import init_logger
+from vllm.v1.kv_cache_interface import FullAttentionSpec
 from vllm_ascend.platform import NPUPlatform
 
 from vllm_omni.diffusion.attention.backends.registry import DiffusionAttentionBackendEnum
@@ -44,6 +46,18 @@ def _get_strict_ulysses_paged_backend() -> type:
     return AscendStrictUlyssesPagedBackend
 
 
+def _requires_contiguous_kv_cache(layer: nn.Module | None, vllm_config: VllmConfig, spec: FullAttentionSpec) -> bool:
+    # Preserve the unpadded K/V layout used in vLLM-Ascend 0.30.0 and earlier to avoid performance regressions.
+    # Keep padded pages on the packed path: V2's separate K/V allocation requires unpadded pages.
+    return spec.page_size_bytes == spec.real_page_size_bytes
+
+
+def apply_contiguous_kv_patch() -> None:
+    from vllm_ascend.attention import utils
+
+    utils.requires_contiguous_pa_kv_cache.__code__ = _requires_contiguous_kv_cache.__code__
+
+
 class NPUOmniPlatform(OmniPlatform, NPUPlatform):
     """NPU/Ascend implementation of OmniPlatform.
 
@@ -68,20 +82,26 @@ class NPUOmniPlatform(OmniPlatform, NPUPlatform):
         from vllm_omni.platforms.npu.models.qwen3_tts_tokenizer_v2 import (
             apply_qwen3_tts_tokenizer_v2_patch,
         )
-        from vllm_omni.platforms.npu.models.voxcpm2_talker import (
-            apply_voxcpm2_talker_patch,
-        )
 
         adapt_patch(is_global_patch=True)
+        apply_contiguous_kv_patch()
         apply_minicpmo_4_5_code2wav_patch()
         apply_qwen3_tts_patches()
         apply_qwen3_tts_tokenizer_v2_patch()
-        apply_voxcpm2_talker_patch()
         apply_310p_patches()
 
     @classmethod
     def set_device(cls, device: torch.device) -> None:
         super().set_device(device)
+
+        # The model's dependencies resolve current_omni_platform, so importing
+        # it in __init__ would re-enter platform initialization. Install the
+        # patch in the worker, before it constructs the model instead.
+        from vllm_omni.platforms.npu.models.voxcpm2_talker import (
+            apply_voxcpm2_talker_patch,
+        )
+
+        apply_voxcpm2_talker_patch()
 
         # Register vllm_ascend custom ops (torch.ops._C_ascend.*).
         from vllm_ascend.utils import enable_custom_op

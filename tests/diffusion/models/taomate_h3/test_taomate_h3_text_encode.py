@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
 import torch
 import torch.nn.functional as F
 
@@ -14,6 +15,8 @@ from vllm_omni.diffusion.models.taomate_h3.text_encode import (
     embed_tokens_graph_safe,
     text_only_positions,
 )
+
+pytestmark = [pytest.mark.core_model, pytest.mark.cpu, pytest.mark.diffusion]
 
 
 class _Group:

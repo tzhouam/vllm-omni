@@ -35,8 +35,7 @@ stages:
     # per-token activation scales (validated visually against eager BF16);
     # the layers that map between pixels, tokens and timesteps and the text
     # encoder stay in BF16. The LoRA hooks add their BF16 delta on top.
-    # `method: fp8_per_channel` with an ignore list needs the online-quantization
-    # factory PR #8315 (split out of the TaoMate-H3 PR).
+    # The quantization factory supports `fp8_per_channel` with this ignore list.
     quantization:
       transformer:
         method: fp8_per_channel
@@ -69,7 +68,7 @@ stages:
       taomate_h3_height: 864
       taomate_h3_seed: 8301
       taomate_h3_audio_kv_reset_requests: 12
-      # One packed length per document kind (prompts up to 256 tokens), so
+      # One packed length per document kind (prompts up to 512 tokens), so
       # the teacher's graphs are keyed by prompt length only.
       taomate_h3_pad_text_tokens: 512
       # Replay the audio teacher's nine forwards from CUDA graphs (one graph
@@ -105,13 +104,9 @@ stages:
       # Do not set taomate_h3_vae_decoder_tile_size: 480 px decoder tiles render
       # a uniform 16 px lattice over the frame (isolated 2026-09-28); the
       # checkpoint's 256 px tiles are the correct decode.
-      # Pack each phase's frames into shared memory on the worker's background
-      # thread instead of the step thread (about 45 ms per phase at 480x864).
-      # Measured locally: 4.98 -> 4.78 s per 4.958 s request with a constant
-      # short prompt (ten requests), prompt updates unaffected.
-      # Needs the step_async_output PR (branch tzhouam:feat/step-async-output, split out of the TaoMate-H3 PR); the
-      # knob is ignored until it lands, at about 0.2 s per request.
-      step_async_output: true
+      # The historical timing measurements above also used the separate
+      # tzhouam:feat/step-async-output branch (about 0.2 s saved per request).
+      # Its step_async_output option has no consumer on main and is omitted.
       ar_diffusion_kv_config:
         gpu_memory_fraction: 0.02
         warmup_cudagraph: true

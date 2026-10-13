@@ -75,6 +75,13 @@ from vllm_omni.benchmarks.data_modules.videomme_dataset import (
     VideoMMESampleRequest,
     resolve_videomme_local_root,
 )
+from vllm_omni.benchmarks.duplex.omni_duplex_eval_serving import (
+    OmniDuplexEvalSampleRequest,
+    attach_duplex_eval,
+    finalize_duplex_eval,
+    get_duplex_eval_samples,
+    prepare_duplex_eval_sample,
+)
 from vllm_omni.benchmarks.omniinteract import (
     VIDEO_FPS,
     OmniInteractBenchmarkConfig,
@@ -205,6 +212,32 @@ def _pcm_s16le_to_seed_tts_wer_bytes(
         pcm_f32 = resampler.resample(pcm_f32, orig_sr=int(sample_rate))
     pcm_f32 = np.clip(pcm_f32, -1.0, 1.0)
     return (pcm_f32 * 32767).astype(np.int16).tobytes()
+
+
+def _stream_pcm_format_from_headers(
+    headers: Mapping[str, str],
+    sample_rate: int,
+    channels: int,
+) -> tuple[int, int]:
+    """Prefer the server's ``X-Audio-Sample-Rate``/``X-Audio-Channels`` headers.
+
+    Raw PCM has no self-describing header; the server states the model-native
+    format. ``sample_rate``/``channels`` (env-configured) remain the fallback.
+    """
+    resolved = []
+    for name, fallback in (("X-Audio-Sample-Rate", sample_rate), ("X-Audio-Channels", channels)):
+        raw = headers.get(name)
+        value = fallback
+        if raw:
+            try:
+                value = int(raw)
+            except ValueError:
+                logger.warning("Ignoring invalid %s header %r; using %d", name, raw, fallback)
+            else:
+                if value != fallback:
+                    logger.debug("Streamed PCM %s=%d from server header (configured %d)", name, value, fallback)
+        resolved.append(max(value, 1))
+    return resolved[0], resolved[1]
 
 
 get_samples_old = datasets.get_samples
@@ -561,6 +594,8 @@ def get_samples(args, tokenizer, **kwargs):
         "sound-effect",
     )
     is_omniinteract = args.dataset_name == "omniinteract"
+    if args.dataset_name == "omni-duplex-eval":
+        return get_duplex_eval_samples(args)
 
     # Check if we need to handle omni-related backends/datasets
     is_omni_backend = args.backend in [
@@ -2610,6 +2645,7 @@ async def async_request_openai_audio_speech(
     output.prompt_len = request_func_input.prompt_len
 
     # PCM format: 16-bit signed; sample_rate/channels are model-dependent.
+    # The env vars are a fallback for servers that do not send format headers.
     sample_rate, channels = defs.stream_pcm_format_from_env()
     sample_width = defs.DEFAULT_AUDIO_SAMPLE_WIDTH
 
@@ -2623,6 +2659,7 @@ async def async_request_openai_audio_speech(
     try:
         async with session.post(url=api_url, json=payload, headers=headers) as response:
             if response.status == 200:
+                sample_rate, channels = _stream_pcm_format_from_headers(response.headers, sample_rate, channels)
                 async for chunk in response.content.iter_any():
                     if not chunk:
                         continue
@@ -2913,6 +2950,70 @@ async def _async_request_omniinteract(
     return output
 
 
+async def _async_request_duplex_eval(request: RequestFuncInput, *, pbar: tqdm | None) -> MixRequestFuncOutput:
+    from vllm_omni.benchmarks.duplex.omni_duplex_eval_runner import generate_sample
+    from vllm_omni.clients.duplex import metric_mean
+
+    output = MixRequestFuncOutput()
+    output.prompt_len = request.prompt_len
+    output.start_time = time.perf_counter()
+    output.tpot_measured = False
+    try:
+        sample = getattr(request, "duplex_eval_sample", None)
+        if not isinstance(sample, OmniDuplexEvalSampleRequest) or sample.sample is None or sample.ref_audio is None:
+            raise ValueError("Omni-DuplexEval requires a dataset sample and reference audio")
+        # The benchmark's concurrency slot bounds live decoded inputs. Keep
+        # preparation off the event loop and outside this session's latency;
+        # throughput still includes any client preparation stalls.
+        prepared = await asyncio.to_thread(prepare_duplex_eval_sample, sample)
+        output.start_time = time.perf_counter()
+        headers = _get_headers()
+        _update_headers_common(headers, request)
+        result = await asyncio.wait_for(
+            generate_sample(
+                sample.sample,
+                url=request.api_url,
+                model=request.model_name or request.model,
+                ref_audio=sample.ref_audio,
+                output_root=sample.response_root,
+                fps=sample.fps,
+                prepared=prepared,
+                defer_artifacts=True,
+                additional_headers=headers or None,
+                extra_body=dict(request.extra_body or {}),
+            ),
+            timeout=_omni_request_timeout_s(),
+        )
+        output.generated_text = " ".join(str(row["sentence"]) for row in result.timed_sentences)
+        output.output_tokens = result.output_tokens
+        output.audio_frames = result.audio_bytes // 2
+        output.audio_duration = output.audio_frames / result.audio_sample_rate
+        # calculate_metrics uses duplex_session_metrics to exclude missing
+        # measurements; these typed defaults are not zero-valued samples.
+        output.ttft = (metric_mean(result.session_metrics.get("ttft_ms")) or 0.0) / 1000
+        output.audio_ttfp = (metric_mean(result.session_metrics.get("ttfp_ms")) or 0.0) / 1000
+        output.audio_rtf = metric_mean(result.session_metrics.get("rtf")) or 0.0
+        output.duplex_request_metrics = result.request_metrics
+        output.duplex_session_metrics = result.session_metrics
+        _apply_stage0_token_timings(
+            output,
+            [row.get("stage0_tokens") for row in result.request_metrics],
+            expected_output_tokens=result.output_tokens,
+        )
+        output.success = result.metadata.get("response_done") is True and not result.error
+        output.error = result.error
+        # Readiness/warmups run the identical session but retain no judge files.
+        if request.request_id is not None:
+            setattr(output, "duplex_eval_result", result)
+    except Exception:
+        output.error = traceback.format_exc()
+        logger.error("Omni-DuplexEval Realtime request failed: %s", output.error)
+    output.latency = time.perf_counter() - output.start_time
+    if pbar:
+        pbar.update(1)
+    return output
+
+
 class _RealtimeTTSProbe:
     """Explicit-session Realtime TTS driver over the public duplex client.
 
@@ -3050,6 +3151,8 @@ async def async_request_openai_realtime_duplex(
     del session
     if getattr(request_func_input, "omniinteract_case", None) is not None:
         return await _async_request_omniinteract(request_func_input, pbar=pbar)
+    if getattr(request_func_input, "duplex_eval_sample", None) is not None:
+        return await _async_request_duplex_eval(request_func_input, pbar=pbar)
     output = MixRequestFuncOutput()
     output.prompt_len = request_func_input.prompt_len
     output.start_time = time.perf_counter()
@@ -3359,6 +3462,7 @@ async def benchmark(
     _attach_omni_chat_to_request_func_input(input_requests[0], test_input)
     _attach_seed_tts_to_request_func_input(input_requests[0], test_input)
     _attach_omniinteract_to_request_func_input(input_requests[0], test_input)
+    attach_duplex_eval(input_requests[0], test_input)
 
     if ready_check_timeout_sec > 0:
         test_output = await wait_for_endpoint(
@@ -3537,6 +3641,7 @@ async def benchmark(
         _attach_omni_chat_to_request_func_input(request, request_func_input)
         _attach_seed_tts_to_request_func_input(request, request_func_input)
         _attach_omniinteract_to_request_func_input(request, request_func_input)
+        attach_duplex_eval(request, request_func_input)
         tasks.append(
             asyncio.create_task(limited_request_func(request_func_input=request_func_input, session=session, pbar=pbar))
         )
@@ -3551,6 +3656,7 @@ async def benchmark(
 
     benchmark_duration = time.perf_counter() - benchmark_start_time
 
+    duplex_eval_summary = await asyncio.to_thread(finalize_duplex_eval, input_requests, outputs)
     omniinteract_summary = _finalize_omniinteract_batch(input_requests, outputs)
     omniinteract_evaluation = await _evaluate_omniinteract_batch(input_requests, outputs)
     if omniinteract_summary is not None and omniinteract_evaluation is not None:
@@ -3700,6 +3806,11 @@ async def benchmark(
                 result[result_key] = summary
     if omniinteract_summary is not None:
         result["omniinteract"] = omniinteract_summary
+    if duplex_eval_summary is not None:
+        result["omni_duplex_eval"] = duplex_eval_summary
+        if (accuracy := duplex_eval_summary.get("accuracy")) is not None:
+            print("\nOmni-DuplexEval accuracy:")
+            print(json.dumps(accuracy, indent=2))
 
     from vllm_omni.benchmarks.data_modules.daily_omni_eval import (
         compute_daily_omni_accuracy_metrics,

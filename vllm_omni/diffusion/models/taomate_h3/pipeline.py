@@ -1059,7 +1059,18 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         sampling = state.sampling
         if int(getattr(sampling, "num_outputs_per_prompt", 1) or 1) != 1:
             raise OmniClientError("TaoMate-H3 produces one stream per session; num_outputs_per_prompt must be 1")
-        prompt_text, _ = self._extract_prompt(state.prompt)
+        for name in ("fps", "frame_rate"):
+            rate = getattr(sampling, name, None)
+            if rate is not None and rate != VIDEO_FPS:
+                raise OmniClientError(
+                    f"TaoMate-H3 generates synchronized audio/video at {VIDEO_FPS} fps; "
+                    f"{name} must be {VIDEO_FPS} (got {rate!r})"
+                )
+        prompt_text, multi_modal_data = self._extract_prompt(state.prompt)
+        if multi_modal_data:
+            raise OmniClientError(
+                "TaoMate-H3 supports text prompts only; image, video, and audio references are unsupported"
+            )
         height = int(getattr(sampling, "height", None) or self._tm_default_height)
         width = int(getattr(sampling, "width", None) or self._tm_default_width)
         try:
