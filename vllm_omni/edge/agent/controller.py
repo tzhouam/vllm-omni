@@ -219,6 +219,7 @@ class AgentController:
         self._close_lock = threading.Lock()
         self._closing = False
         self._closed = False
+        self._pending_backend_closes: dict[int, Future[Any]] = {}
         self._memory_sources: list[str] = []
         self._model_output_epochs: dict[tuple[str, str, int], int] = {}
         if resource_finalize is not None and (
@@ -1006,25 +1007,28 @@ class AgentController:
             closer = getattr(backend, "close", None)
             if closer is not None:
                 try:
-                    result = closer()
+                    pending = self._pending_backend_closes.get(id(backend))
+                    result = pending.result(timeout=10) if pending is not None else closer()
                     if inspect.isawaitable(result):
-                        result = (
-                            asyncio.run_coroutine_threadsafe(result, self._loop).result(timeout=10)
-                            if self._loop is not None else asyncio.run(result)
-                        )
+                        if self._loop is not None:
+                            pending = asyncio.run_coroutine_threadsafe(result, self._loop)
+                            self._pending_backend_closes[id(backend)] = pending
+                            result = pending.result(timeout=10)
+                        else:
+                            result = asyncio.run(result)
                     if result is False:
                         raise RuntimeError("backend did not verify state release")
                 except Exception as exc:
                     failures.append(exc)
+                finally:
+                    pending = self._pending_backend_closes.get(id(backend))
+                    if pending is not None and pending.done():
+                        self._pending_backend_closes.pop(id(backend), None)
         try:
             self._tool_executor.shutdown(wait=True, cancel_futures=True)
             self.tools.close()
         except Exception as exc:
             failures.append(exc)
-        if self._loop is not None:
-            self._loop.call_soon_threadsafe(self._loop.stop)
-        if self._thread is not None:
-            self._thread.join(timeout=5)
         try:
             self.memory.close()
         except Exception as exc:
@@ -1047,3 +1051,9 @@ class AgentController:
                 "Agent shutdown could not verify complete release: "
                 + "; ".join(str(failure) for failure in failures)
             ) from failures[0]
+        # A failed async close may still be running, or need the same loop on
+        # retry. Keep it available until every resource release is verified.
+        if self._loop is not None:
+            self._loop.call_soon_threadsafe(self._loop.stop)
+        if self._thread is not None:
+            self._thread.join(timeout=5)

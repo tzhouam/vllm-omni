@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-13 Agent 异步释放失败恢复修复：所有资源释放成功前保持事件循环；异步 close 等待超时后保存原 Future，重试继续等待它，不重新调用同一后端 close。已结束的失败 Future 清除后可重新尝试，关闭状态仍阻止新请求。真实 asyncio 失败／重试与模拟等待超时覆盖通过，相关控制器／Strata／桌面共 117 项回归通过；未加载模型，不授予新的神经运行资格。 [原始 JUnit](../edge_harness/results/strata_20261008/agent_async_close_retry_20261013.junit.xml.gz)
+
 2026-10-13 Agent 关闭竞态修复：关闭开始即拒绝新提交、直接 run_turn、闲时卸载和记忆删除；已预约任务保留取消／清理路径。并发 close 串行，成功后幂等，释放失败仍允许重试关闭且禁止新请求。关闭／Strata 控制器定向检查 17 项通过，控制器／联合准入／桌面回归 139 项通过；未加载模型。生产来源已变化，旧神经实跑不自动成为本版本资格。 [139 项原始 JUnit](../edge_harness/results/strata_20261008/agent_shutdown_fence_20261013.junit.xml.gz)
 
 2026-10-13 Native Agent now exposes an idle-only **Unload models** button. It reuses LocalPlanManager joint-lease drain, closes/reset the managed browser companion, verifies an empty ledger, and preserves the window and encrypted conversation memory. Submission/direct turns/memory deletion are fenced during release; application close waits for the drain. Failed release remains an error with quarantine retained, while successful release permits fresh admission on the next request. Joint resource/UI tests: 67 passed; targeted close/cancel tests: 16 passed (overlapping suites). This is offline control/resource verification, not a new real-model unload/reload or performance qualification.

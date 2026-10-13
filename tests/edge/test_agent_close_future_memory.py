@@ -35,6 +35,7 @@ class CloseFutureMemoryTests(unittest.TestCase):
         controller._close_lock = threading.Lock()
         controller._closing = False
         controller._closed = False
+        controller._pending_backend_closes = {}
         controller._turn_done = threading.Event()
         controller._turn_done.set()
         controller.cancel = Mock()
@@ -109,6 +110,70 @@ class CloseFutureMemoryTests(unittest.TestCase):
         controller.close()
         self.assertTrue(controller._closed)
         self.assertEqual(backend.close.call_count, 2)
+
+    def test_async_shutdown_failure_retains_loop_for_retry(self):
+        controller = self.controller(None)
+        loop = asyncio.new_event_loop()
+        ready = threading.Event()
+
+        def run():
+            asyncio.set_event_loop(loop)
+            loop.call_soon(ready.set)
+            loop.run_forever()
+
+        thread = threading.Thread(target=run)
+        controller._loop, controller._thread = loop, thread
+        attempts = []
+
+        async def close_backend():
+            self.assertIs(asyncio.get_running_loop(), loop)
+            attempts.append(True)
+            await asyncio.sleep(0)
+            if len(attempts) == 1:
+                raise RuntimeError("async drain failed")
+            return True
+
+        backend = Mock()
+        backend.close = close_backend
+        controller.backends = {"model": backend}
+        thread.start()
+        try:
+            self.assertTrue(ready.wait(5))
+            with self.assertRaisesRegex(RuntimeError, "async drain failed"):
+                controller.close()
+            self.assertTrue(loop.is_running())
+            self.assertFalse(controller._closed)
+            controller.close()
+            self.assertTrue(controller._closed)
+            self.assertEqual(len(attempts), 2)
+            self.assertFalse(thread.is_alive())
+        finally:
+            if loop.is_running():
+                loop.call_soon_threadsafe(loop.stop)
+            thread.join(5)
+            loop.close()
+
+    def test_pending_async_release_is_reused_after_observation_timeout(self):
+        class PendingRelease(Future):
+            def result(self, timeout=None):
+                if not self.done():
+                    raise TimeoutError("release still running")
+                return super().result(timeout)
+
+        controller = self.controller(None)
+        backend = Mock()
+        controller.backends = {"model": backend}
+        pending = PendingRelease()
+        controller._pending_backend_closes[id(backend)] = pending
+        with self.assertRaisesRegex(RuntimeError, "release still running"):
+            controller.close()
+        self.assertIs(controller._pending_backend_closes[id(backend)], pending)
+        backend.close.assert_not_called()
+        pending.set_result(True)
+        controller.close()
+        backend.close.assert_not_called()
+        self.assertEqual(controller._pending_backend_closes, {})
+        self.assertTrue(controller._closed)
 
     def test_idle_release_preserves_memory_and_tools(self):
         controller = self.controller(None)
