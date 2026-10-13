@@ -1,0 +1,80 @@
+{
+  "schema": "strata-upstream-port-build-start-v1",
+  "date": "2026-10-13",
+  "candidate_revision": "a0116b2782a5b82622358c04a06496485d12b2d6",
+  "status": "configure_passed_compilation_started_no_runtime_qualification",
+  "source_directory": "C:\\Users\\zhout\\w2\\strata-omni\\source-upstream-review-20261013",
+  "build_directory": "C:\\Users\\zhout\\w2\\strata-omni\\build-upstream-01431-port-v1",
+  "candidate_patch_sha256": "b6a41701aab90ab6bf44fde2634a9b58671f0e1018632d63be0192a472d8d279",
+  "changed_source_hashes": {
+    "include/strata/core/expert_source.hpp": "0aa210db8b201ee80048d1688fdd8fabd52ff7748e8e748ef7a5aa72afafca0b",
+    "include/strata/core/omni_execution_observer.hpp": "148b2d3de4b3f62e8f5ebff9211d04a89d488bd00d9256cc26ef41cc5bfa2f55",
+    "include/strata/kernels/ngram.hpp": "638db1f925019030a7e91316dd788ccb19839122808df214e34d25013043c3c4",
+    "include/strata/ngram/ple_reader.hpp": "fc64ba52686cda814e47846462c3a02f15d33edb247a653c38c85a773619037c",
+    "src/core/expert_cache.cpp": "84bfc1ae38cc8c8f9afe649613716ca397b506b656216a48a0d9781e3f32c387",
+    "src/core/expert_source.cpp": "f22ee54be79b36000e6a9b7f9611030c099db21aa853087ae4c994553baad420",
+    "src/core/session.cpp": "7764a3800f5a6a32bbddfd4c18434ac1997ccb7b87d87071e2ffcc9dbac1b950",
+    "src/core/verify.cpp": "459db03f9045c9cc6d89e2044febdb7bd29f14acbfdacd4f9d47766ad52efc18",
+    "src/kernels/cpu/pool.cpp": "69ab2b1094540d4d983b23c01320e0e387897a6f97e94f920cba9d7ac13356b3",
+    "src/kernels/ngram.cpp": "0268c238b32e8e102d618b91abe8579d3ccfbe5e956a2111fe1a22078a6725eb",
+    "src/ngram/ple_reader.cpp": "94511fa619e4cbdab68def354ea2ab25b4bc54e330413f8067afe598674c8b48",
+    "src/program/generate.cpp": "52bf6dd09e5ba3833319cdb13f2fdcf70cd80fe355d91e586f7bb336955507c2"
+  },
+  "identity_scope": "changed source files only, not complete runtime closure",
+  "dependency_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "commands": [
+    [
+      "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe",
+      "-S",
+      "C:\\Users\\zhout\\w2\\strata-omni\\source-upstream-review-20261013",
+      "-B",
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-upstream-01431-port-v1",
+      "-G",
+      "Ninja",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DCMAKE_CUDA_ARCHITECTURES=120",
+      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+      "-DCMAKE_CUDA_RUNTIME_LIBRARY=Static",
+      "-DCMAKE_MAKE_PROGRAM=C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
+      "-DCMAKE_CUDA_COMPILER=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.4/bin/nvcc.exe",
+      "-DSTRATA_ENABLE_CUDA=ON",
+      "-DSTRATA_NATIVE_EXPERTS=ON",
+      "-DSTRATA_PORTABLE=ON",
+      "-DSTRATA_BUILD_TESTS=OFF",
+      "-DSTRATA_BUILD_CONVERSATION_TESTS=OFF",
+      "-DSTRATA_GGML_DIR=C:\\Users\\zhout\\w2\\strata-omni\\dependencies\\llama.cpp-execution-observer-v4"
+    ],
+    [
+      "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe",
+      "--build",
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-upstream-01431-port-v1",
+      "--target",
+      "strata",
+      "--parallel",
+      "2"
+    ]
+  ],
+  "completed_steps": [
+    {
+      "index": 0,
+      "exit_code": 0,
+      "log": "C:\\Users\\zhout\\w2\\strata-omni\\build-upstream-01431-port-v1\\step-0.log",
+      "sha256": "41c5e98930f297a7e0ded7a694fb33d992b4401f5493310e513960b782e781a2"
+    }
+  ],
+  "parallelism": 2,
+  "model_loaded": false,
+  "installed": false,
+  "qualified": false,
+  "merge_review": [
+    "8 tracked files applied directly. verify.cpp, cpu/pool.cpp and program/generate.cpp required three-way application.",
+    "Only verify.cpp had conflicts: preserve upstream batch_rows/gfx_arch includes alongside observer include; retain adaptive-gate wait before observer cuda_prepare and graph launch.",
+    "Observer header copied with exact prior SHA256; previously qualified runtime/source trees unchanged."
+  ],
+  "remaining": [
+    "Finish compile and inspect terminal receipt.",
+    "Review all changed compute/I/O paths and observe new prefill CPU share explicitly; first baseline must pin its setting.",
+    "New staging pin remains disabled by default; MTP remains off for baseline.",
+    "Complete immutable runtime closure, resource admission and real text/image/cancel/unload-reload checks before profiling or route promotion."
+  ]
+}
