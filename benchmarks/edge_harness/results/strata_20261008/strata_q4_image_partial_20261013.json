@@ -1,0 +1,62 @@
+{
+  "schema": "omni-strata-image-partial-progress-v1",
+  "scope": "Interim records only; final closure, source stability and fresh-generation recovery remain pending. No physical SSD or broad vision qualification.",
+  "startup_diagnostic": {
+    "sha256": "215f47164280225f58bdb102e6dd3f7689510279b04a1c860f32d1d2b1ba7180",
+    "observed_function": "ArtifactManifest.verify -> sha256_file, source artifact verification at strata.py:1584",
+    "file": "C:\\Users\\zhout\\w2\\strata-omni\\diagnostic-tools\\py-spy-20261013\\q4-image-startup-stack.txt",
+    "scope": "single nonblocking stack sample; not time attribution",
+    "tool": "py-spy 0.4.2 dump --nonblocking --full-filenames"
+  },
+  "initial_start_including_verification_s": 1040.9193774997257,
+  "cancel": {
+    "ledger_after_cancel": {
+      "capacities": {
+        "host_ram": 22930124800,
+        "vram:0": 25651314688,
+        "ssd": 861586432140,
+        "windows_commit": 68113162240
+      },
+      "reserved": {
+        "host_ram": 0,
+        "vram:0": 0,
+        "ssd": 0,
+        "windows_commit": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "exact_role_retirement": {
+      "encoder": true,
+      "language": true
+    },
+    "status": "cancelled_during_observed_encoder_phase",
+    "duration_s": 1.1809559003449976,
+    "receipt_sha256": "c676f0206c4874ebba92562caab740736194231b1be087eb48fae8d323a771c0"
+  },
+  "qualified": false,
+  "run_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-4g-20261013-v5",
+  "agent_image_executed": false,
+  "status": "two_images_and_encoder_cancel_passed_recovery_pending",
+  "observed_at": "2026-10-13T10:04:40.6309910+08:00",
+  "samples": [
+    {
+      "reference_passed": true,
+      "file": "initial-approval_heading.json",
+      "batch_size": 1,
+      "sha256": "5def0008c9f0c4e4dbecd60d9240916ff2ee947fbca5b657b949db2b602eb3ab",
+      "full_response_s": 40.88457059999928,
+      "concurrency": 1,
+      "output_text": "Actions requiring your approval"
+    },
+    {
+      "reference_passed": true,
+      "file": "initial-bilingual_button_label.json",
+      "batch_size": 1,
+      "sha256": "cf4d2a668b4f416ba8cc67f862f557c581b80a2b98c827512fe48a8e3373a339",
+      "full_response_s": 41.73601769981906,
+      "concurrency": 1,
+      "output_text": "清除本地记忆 / Clear memory"
+    }
+  ]
+}
