@@ -1,0 +1,47 @@
+{
+  "status": "compiled_and_version_checked_no_model",
+  "binary": {
+    "path": "C:\\Users\\zhout\\w2\\strata-omni\\build-upstream-01431-port-v1\\strata.exe",
+    "size_bytes": 62358528,
+    "sha256": "a82ca5db40882f73822223f8481dcfe6c9ae2e4d4189840d689b3f1e41b6532a"
+  },
+  "version": "strata 0.1.43.1",
+  "version_exit_code": 0,
+  "source_changed_files_stable": true,
+  "receipt_sha256": "d40b123139ffa402d799ec945e2d6cdfe86179492bd505f79317f046decde147",
+  "steps": [
+    {
+      "index": 0,
+      "exit_code": 0,
+      "log": "C:\\Users\\zhout\\w2\\strata-omni\\build-upstream-01431-port-v1\\step-0.log",
+      "sha256": "41c5e98930f297a7e0ded7a694fb33d992b4401f5493310e513960b782e781a2"
+    },
+    {
+      "index": 1,
+      "exit_code": 0,
+      "log": "C:\\Users\\zhout\\w2\\strata-omni\\build-upstream-01431-port-v1\\step-1.log",
+      "sha256": "858e2d210f4da370f12149b35dbe9c5ce478a748dc7354f0fd690e9e308fb68d"
+    }
+  ],
+  "configuration_delta": {
+    "STRATA_PLE_FIXTURE_DIR": {
+      "baseline": "C:/Users/zhout/w2/strata-omni/source-execution-observer-v4/bench/micro",
+      "candidate": "C:/Users/zhout/w2/strata-omni/source-upstream-review-20261013/bench/micro"
+    }
+  },
+  "qualified": false,
+  "schema": "strata-upstream-candidate-compile-closure-v1",
+  "date": "2026-10-13",
+  "candidate_revision": "a0116b2782a5b82622358c04a06496485d12b2d6",
+  "patch_file": "../../runtime_patches/strata_01431_observer_candidate.patch",
+  "patch_sha256": "1a4440d848bdb9b2062889787bed1476a8763007bdf323848d7194e9c250db9b",
+  "model_loaded": false,
+  "installed": false,
+  "scope": "native compilation and no-model version smoke; not a complete immutable runtime closure or inference qualification",
+  "pending": [
+    "Immutable runtime/dependency identity and Windows load closure.",
+    "Cross-version packing compatibility: current registrar intentionally permits only its pinned revision and packing code; no gate was relaxed.",
+    "Pin CPU prefill share and stage-pin behavior, account for workspace and live memory.",
+    "Real text/image output, cancel, unload/reload, same-artifact latency and quality measurements."
+  ]
+}
