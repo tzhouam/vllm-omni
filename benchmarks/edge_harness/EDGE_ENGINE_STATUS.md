@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-13 Strata 0.1.43.1 **真实编译库的 Q4 索引探测通过**：[夹具、原始日志、输入及库哈希](results/strata_20261008/strata_native_pack_index_20261013.json)。链接候选 `strata_core.lib` 调用实际 `WeightTable::load`；仅含真实 index.txt 的目录解析后返回 `arena is 0 B but the index needs 1485606400`，损坏行返回 `1 of 19 fields` 解析失败。零 arena 在权重打开和 CUDA 暂存分配前拒绝；未载入权重。首轮夹具误用 /MD 与候选 /MT 冲突，改为 /MT 后编译及探测 EXIT 0，保留失败配置。只证明索引解析及拒绝路径，不证明权重转换、上传、神经输出或整体运行时兼容。
+
 2026-10-13 打包来源预检提前到任何文件内容扫描之前：错误 tool revision、源／转换产物绑定、complete 标记及转换列表会立即拒绝并释放租约；有效配置仍完整核验运行时、全部模型分片及打包产物。新增五项检查证明拒绝前未进入 `ArtifactManifest.verify`；[后端回归 70 通过、2 项 POSIX 专项跳过](results/strata_20261008/strata_pack_preflight_20261013.junit.xml.gz)。未加载模型，未测量启动加速，未允许跨版本运行。下一版运行时身份及 pack 兼容迁移仍未完成。
 
 2026-10-13 Omni Strata 后端显式设置 `STRATA_PREFILL_CPU_SHARE=0`、`STRATA_STAGE_PIN=0`，并把请求设置计入路线控制哈希，避免候选新版默认 CPU prefill 分担／固定页暂存改变未重新核算的预算。现用旧运行时仍保持原 revision；旧引擎可能不识别开关，记录不宣称原生确认或实际放置。真实子进程 loopback 检查父环境 `auto/1` 不会泄入且父环境不变；[后端回归 65 通过、2 个 POSIX 专项在 Windows 跳过](results/strata_20261008/strata_baseline_environment_20261013.json)。未加载权重。生产源码及路线身份已变，后续模型运行须重新绑定，不继承旧实跑资格。

@@ -1,0 +1,26 @@
+{
+  "index_sha256": "cfc07e91c4d9b8e8c999fd1f70fa364e584748e70fa377b30e0fc85426f52711",
+  "core_lib_sha256": "278f559c066c13733ebabffaec0ba92c58ce34b18a96f4d7e3d9df31c6ab6af9",
+  "model_weights_present": false,
+  "exit_code": 0,
+  "first_build_failure": "LNK2038: fixture MD did not match candidate MT; rebuilt fixture MT without changing runtime library",
+  "files": {
+    "probe.cpp": "2177953354e1f0629477fe0d3d640541d441c7e4c982e6d4487718e40cb08246",
+    "build.cmd": "2d22f99eddffe28002bdedd94330cf0558ac661246a127256737fa4a40f13b3d",
+    "build-md-failed.cmd": "d0305d262a12ed31982feac05009f67656d880f3cf81d5f505533ba66f9e0152",
+    "build.log": "31ad8bb8073b0b184b74c731c02818c46d4ffe253ff7a54cdfdee05523e6b908",
+    "probe.log": "dc9bb39298cc315806fe44d3171b3d3a8a6b2ef27ac56e373a3263bf86de7ba1",
+    "probe.exe": "f1ca269af24300f48761d9aeeda0054804e8a44e0a9597f0b07cfaff3afc446b"
+  },
+  "scope": "Real compiled candidate WeightTable: actual Q4 index parses, zero arena refuses before weight reads or CUDA allocation; malformed row refuses. No weight load or numerical/model qualification.",
+  "malformed_record_result": [
+    "valid_result=arena is 0 B but the index needs 1485606400",
+    "invalid_result=index.txt: could not parse a row (1 of 19 fields)"
+  ],
+  "candidate_revision": "a0116b2782a5b82622358c04a06496485d12b2d6",
+  "qualified": false,
+  "archive": "strata_native_pack_index_20261013.raw.tar.gz",
+  "archive_sha256": "c125bf5b2c896c67d94cc5bf2a2920b7da2512928fd475faa3b45125c58afdf8",
+  "raw_local_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\native-pack-index-01431-20261013-v1",
+  "reproduce": "Extract archive to a native Windows directory; run build.cmd against the pinned candidate library, then probe.exe valid invalid. Only index.txt is present in fixture directories."
+}
