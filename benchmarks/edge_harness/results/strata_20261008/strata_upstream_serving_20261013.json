@@ -1,0 +1,49 @@
+{
+  "tests_run": 16,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "success": true,
+  "source_files": {
+    "serve\\__init__.py": "5b38172f894574bf933b1e932a2dace1c113184f105bcd7db8718e6330f809c2",
+    "serve\\frontend.py": "3ac9235e6862034ca24cbb59268edc2d93b60864d68182226c8fbb462db62630",
+    "serve\\logit_bias.py": "62a9b53fa910ecc04b15231cb62b3696d117ce6eed28f0137983a287ab0404fd",
+    "serve\\mcp.py": "e7440cf7d404f2a9d9ff44c7bb9768c3a6abf0f036bc222e17beaed65aabba06",
+    "serve\\responses.py": "356dc3009126250023fcbcab8c735746005e6b2ae8ac7eb55bb770489f9a3a7c",
+    "serve\\runconfig.py": "b479b7f65067d1b85f8d3f36fca29772cf1307aecf2298d80e5e40f6955ffe4a",
+    "serve\\server.py": "f49013b37be6b5ccb94a16d9df99f4e443f3bed1284ed170a2f9789ebf5fb818",
+    "serve\\structured.py": "a4ce7afccd03220d388a9f2c42aa1ee645d6ff9badbd53541f85c674b4c48505",
+    "serve\\test_ready_timeout.py": "97d791ff795f3305f8da0ad6814ee0d5773d3e3f53806f4699456e6261a4c021",
+    "serve\\test_request_accounting.py": "7c252ecb1a672f4b24866fa8ce01b23628d30baf864750e7ede5c650da18d7a6",
+    "serve\\test_server.py": "db4bd144279fc5b2cf54fcfcca59011fe4d51046b60494d6511028f75fb11acd",
+    "serve\\test_vision_busy.py": "bc2cbcdab2f77be99e96be6b707a6115089220eeab7ba836fb4496bbd90e4c8e",
+    "serve\\winjob.py": "736ee937e58438a4599b25d576a97cb3680cb963f50976abecc25038ef20740f"
+  },
+  "source_stable": true,
+  "model_loaded": false,
+  "harness_sha256": "d24fc6308fe1d79bee6d719d6ae7ad773ea3ebc1d38d47661c8370852764b3dc",
+  "log_sha256": "39e4a893d6dd383557a9a4685b18df77a9e1aa733e69c3c92c57ec535bb16336",
+  "python_version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "os": "nt",
+  "scope": "Upstream service tests; fake engine protocol and mocked vision; no Omni/bootstrap or neural qualification",
+  "adaptation": "Windows timeout tests directly spawn isolated Python scripts, avoiding the skipped CMD wrapper and its surviving child",
+  "schema": "strata-upstream-serving-migration-v1",
+  "candidate_revision": "a0116b2782a5b82622358c04a06496485d12b2d6",
+  "archive": "strata_upstream_serving_20261013.raw.tar.gz",
+  "archive_sha256": "98d1e8e78fbc778a206c42ed1aadbdfbe8f60ce27d4308bd263f185ca10b8ce7",
+  "runtime_qualified": false,
+  "remaining": [
+    "Omni supervised bootstrap integration and runtime identity migration.",
+    "Actual compiled engine ABI, complete output and cancel/recovery with neural weights.",
+    "New prefill CPU sharing and pinned staging require explicit settings and memory accounting."
+  ],
+  "reproduce": [
+    "C:/Users/zhout/w2/omni029venv/Scripts/python.exe",
+    "-I",
+    "-B",
+    "-X",
+    "utf8",
+    "<extract archive to empty directory>/run.py",
+    "C:\\Users\\zhout\\w2\\strata-omni\\source-upstream-review-20261013"
+  ]
+}
