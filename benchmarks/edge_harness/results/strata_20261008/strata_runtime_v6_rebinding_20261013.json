@@ -1,0 +1,44 @@
+{
+  "schema": "strata-current-source-runtime-rebinding-v1",
+  "status": "static_records_and_both_source_contexts_verified_live_pending",
+  "exit_code": 0,
+  "model_executed": false,
+  "qualified": false,
+  "runtime_revision": "d5ea7133741e67743c0e886bb426c0ce8d69cf6c",
+  "runtime_version": "0.1.40.3",
+  "runtime_root": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6",
+  "parent_runtime": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v5",
+  "members": 42652,
+  "member_bytes": 2223200439,
+  "member_manifest_sha256": "8dc3a1435a70657ad50b36c19ea2a70f01c44011299785deb927adf6ba5a1fce",
+  "identity_sha256": "d96a77c6858bd128b615ccfd4bd063a8188e892747b07bf5d36de227dcd2515e",
+  "changed_sources": {
+    "adapter/omni_strata_stage.py": {
+      "source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\backends\\strata.py",
+      "sha256": "ad3be9803910b5ff85c173c60f67e7a16a10962acfd181b1cd8e4c40365305f8"
+    },
+    "adapter/strata_exec_live.py": {
+      "source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\backends\\strata_execution\\strata_exec_live.py",
+      "sha256": "8a80081cc9890d134de0125b0fd4352111091173b240d2b7c12695a8269ba3cb"
+    },
+    "adapter/strata_vision.py": {
+      "source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\backends\\strata_vision.py",
+      "sha256": "63b6f4edfe337b67acd0c075bb98f1f4ce6ed61f9c0391ffb83b6983751348a7"
+    },
+    "adapter/strata_multimodal.py": {
+      "source": "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\backends\\strata_multimodal.py",
+      "sha256": "d88e32153c7e72a738ec114e5f2416110f5207316530bd1e573465696a1ce6f3"
+    }
+  },
+  "raw_archive": "strata_runtime_v6_rebinding_20261013.raw.tar.gz",
+  "raw_archive_sha256": "221bb542df94fe6b393ef7f9b0f0293823408c048a3e90fd885af82774c04b04",
+  "raw_files": {
+    "assembly.json": "5bb7cf6ad8c3350af6225d3ed7c65c564d7807d01590f9cc0c1a25d3a1e32346",
+    "verification.json": "8a27cd0bd2c9312b52bbcdc3dcb31b8a603ac2ef3460bf49d36280c8097d2cd8",
+    "assemble.py": "837de2e32a5d094ee755c699ab5974d6eed5963d06f9d03b97cf10f2cf952881",
+    "register_text.py": "ef5fde8e017633e574ba5d4bd3239b027eacc4a080829583566dc35454a5755b",
+    "register_image.py": "4197a29708e0022f26465a3f254a623bb105e374d99be380c4e54ccebd555b8d"
+  },
+  "scope": "Same previously built native engine and dependencies, current production adapter source binding; not the separate 0.1.43.1 candidate and not a new neural run.",
+  "registration_status": "text registration launched; no success receipt yet"
+}
