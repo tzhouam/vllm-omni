@@ -125,6 +125,7 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         # ``_perf_e2e_times`` keeps one entry per AR block in both execution
         # modes instead of one entry per denoise step.
         self._stepwise_chunk_started: dict[str, float] = {}
+        self._active_stepwise_request_id: str | None = None
 
     @staticmethod
     def _require_capability(pipeline: object) -> SupportsARDiffusionPipeline:
@@ -370,14 +371,29 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             )
             raise
 
+    def release_step_requests(self, request_ids: Sequence[str]) -> None:
+        """Release cancelled AR sessions even when no execution wave follows.
+
+        The base runner also retires completed states while the pipeline is
+        still bound. Keep that session alive until ``execute_stepwise`` exits
+        the binding and synchronizes; external cancellation arrives at the
+        serialized worker-call boundary and can release it immediately.
+        """
+        super().release_step_requests(request_ids)
+        for request_id in request_ids:
+            if request_id == getattr(self, "_active_stepwise_request_id", None):
+                continue
+            self._stepwise_chunk_started.pop(request_id, None)
+            if request_id in self._sessions:
+                self._release_session(request_id, reset_model=False, reason="close", suppress_errors=True)
+
     def _release_scheduler_finished_sessions(self, scheduler_output: DiffusionSchedulerOutput) -> None:
         """Close sessions the scheduler retired, including aborted requests.
 
-        A stepwise request that runs to completion is closed as soon as its
-        final chunk is emitted; an aborted one never produces that output, so
-        its KV would otherwise linger until LRU eviction. Session ids equal
-        request ids on this path, and tick sessions are keyed by their own ids,
-        so the membership check leaves them untouched.
+        This also covers schedulers that retire an aborted request without an
+        explicit worker release call. Session ids equal request ids on this
+        path, and tick sessions are keyed by their own ids, so the membership
+        check leaves them untouched.
         """
         for request_id in getattr(scheduler_output, "finished_req_ids", None) or ():
             self._stepwise_chunk_started.pop(request_id, None)
@@ -517,9 +533,8 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             return super().execute_stepwise(scheduler_output)
         if self._ar_diffusion_capability is None:
             raise RuntimeError("AR-Diffusion capability missing after KV cache initialization")
-        # Retire sessions the scheduler dropped before serving this cycle: a
-        # completed request is closed when its final chunk is emitted, an
-        # aborted one only here.
+        # Also retire sessions reported by the scheduler if no explicit worker
+        # release call preceded this wave.
         self._release_scheduler_finished_sessions(scheduler_output)
         request_ids = list(getattr(scheduler_output, "scheduled_request_ids", ()))
         if not request_ids:
@@ -532,6 +547,7 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         request_id = request_ids[0]
         session_id = request_id
         chunk_started = self._stepwise_chunk_started.setdefault(request_id, time.perf_counter())
+        self._active_stepwise_request_id = request_id
         try:
             # Denoise steps inside one chunk need no device barrier; the chunk
             # boundary below is the meaningful one, and syncing per step would
@@ -569,6 +585,8 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         except Exception:
             self._fail_closed_stepwise(request_id)
             raise
+        finally:
+            self._active_stepwise_request_id = None
         # One entry per emitted AR block keeps ``_perf_e2e_times`` comparable
         # with request mode, where one execute_model() is one block.
         if chunk_emitted:

@@ -198,6 +198,9 @@ def make_runner(
     runner._session_capacity = 0
     runner._perf_e2e_times = []
     runner._stepwise_chunk_started = {}
+    runner._active_stepwise_request_id = None
+    runner.state_cache = {}
+    runner.input_batch = None
     if preallocate:
         runner._preallocate_kv_cache(available_bytes=available_bytes)
     return runner
@@ -710,6 +713,94 @@ def test_execute_stepwise_closes_session_for_scheduler_aborted_request(monkeypat
 
     assert "req-1" not in runner._sessions
     assert pipeline.closes == ["req-1"]
+
+
+def test_worker_release_held_request_closes_segmented_kv_without_another_wave():
+    from tests.diffusion.ar_diffusion.test_segmented_kv import append, make_cache, make_state
+    from vllm_omni.diffusion.worker.diffusion_worker import DiffusionWorker
+
+    pipeline = StepCapablePipeline(lingbot_like_spec())
+    runner = make_runner(pipeline, step_execution=True, preallocate=False)
+    runner._ar_diffusion_capability = pipeline
+    runner.kv_cache = cache = make_cache()
+    free = cache.manager.block_pool.get_num_free_blocks()
+    owner = make_state(cache, "held")
+    runner._sessions["held"] = owner
+    segments = owner.segmented("main")
+    append(segments, (3, 5))
+    segments.prepare_layer_views(6, 0)
+    segments.begin_commit((2, 4))
+    assert cache.manager.block_pool.get_num_free_blocks() < free
+    runner.state_cache["held"] = SimpleNamespace(extra={"taomate_held": True})
+    runner._stepwise_chunk_started["held"] = 0.0
+    runner.input_batch = SimpleNamespace(request_ids=["held"])
+    worker = object.__new__(DiffusionWorker)
+    worker.model_runner = runner
+    worker._step_lora_state = {"held": object()}
+
+    # This is the cancellation RPC boundary. A held last request cannot rely
+    # on another execute_stepwise call to retire either committed or pending KV.
+    worker.release_step_requests(["held"])
+    worker.release_step_requests(["held"])
+
+    assert owner._closed
+    assert not runner._sessions
+    assert not runner.state_cache
+    assert not runner._stepwise_chunk_started
+    assert runner.input_batch is None
+    assert not worker._step_lora_state
+    assert pipeline.closes == ["held"]
+    assert not cache._adapters
+    assert cache.manager.block_pool.get_num_free_blocks() == free
+
+
+@pytest.mark.parametrize("outcome", ["finished", "error", "exception"])
+def test_step_release_defers_model_close_until_unbound(monkeypatch, platform_synchronize_calls, outcome):
+    from vllm_omni.diffusion.data import DiffusionOutput
+    from vllm_omni.diffusion.worker.utils import BatchRunnerOutput, RunnerOutput
+
+    pipeline = StepCapablePipeline(lingbot_like_spec())
+    runner = make_runner(pipeline, step_execution=True)
+    runner.state_cache["req-1"] = object()
+
+    def close(session_id):
+        assert pipeline.bound_state is None
+        if outcome != "exception":
+            assert len(platform_synchronize_calls) == 1
+        pipeline.closes.append(session_id)
+
+    monkeypatch.setattr(pipeline, "close_ar_diffusion_session", close)
+
+    def execute(self, scheduled):
+        owner = pipeline.bound_state
+        assert owner is not None
+        self.release_step_requests(scheduled.scheduled_request_ids)
+        assert not owner._closed
+        assert self._sessions["req-1"] is owner
+        assert not pipeline.closes
+        if outcome == "exception":
+            raise RuntimeError("injected forward failure")
+        return BatchRunnerOutput.from_list(
+            [
+                RunnerOutput(
+                    "req-1",
+                    finished=True,
+                    result=DiffusionOutput(error="decode failed" if outcome == "error" else None),
+                )
+            ]
+        )
+
+    monkeypatch.setattr(DiffusionModelRunner, "execute_stepwise", execute)
+    if outcome == "exception":
+        with pytest.raises(RuntimeError, match="injected forward failure"):
+            runner.execute_stepwise(scheduler_output())
+    else:
+        runner.execute_stepwise(scheduler_output())
+    assert pipeline.closes == ["req-1"]
+    assert not runner._sessions
+    assert not runner.state_cache
+    assert not runner._stepwise_chunk_started
+    assert runner._active_stepwise_request_id is None
 
 
 def test_execute_stepwise_times_once_per_chunk_not_once_per_step(monkeypatch, platform_synchronize_calls):
