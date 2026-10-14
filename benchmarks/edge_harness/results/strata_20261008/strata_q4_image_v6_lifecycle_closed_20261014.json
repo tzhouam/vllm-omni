@@ -73,9 +73,9 @@
       "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
     }
   ],
-  "initial_verification_and_start_s": null,
-  "recovery_verification_and_start_s": null,
-  "cancel_s": null,
+  "initial_verification_and_start_s": 736.2666823999025,
+  "recovery_verification_and_start_s": 599.4753344999626,
+  "cancel_s": 1.802942800335586,
   "source_stable": true,
   "input_stable": true,
   "ledger_final": {
@@ -208,5 +208,11 @@
   "encoder_phase_cancel_passed": true,
   "fresh_generation_image_recovery_passed": true,
   "scope": "Three fixed image requests, encoder-phase cancellation and fresh-generation recovery only; no whole-Agent or performance qualification.",
-  "agent_followup": "Started; no completion evidence yet."
+  "agent_followup": "Started; no completion evidence yet.",
+  "timing_provenance": {
+    "initial_verification_and_start_s": "receipt.initial_start_s",
+    "recovery_verification_and_start_s": "receipt.recovery_start_s",
+    "cancel_s": "encoder-cancellation.json finished minus started monotonic seconds",
+    "scope": "Startup includes backend verification/loading; request times exclude it. No cold-disk guarantee or performance qualification."
+  }
 }
