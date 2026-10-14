@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Fish Speech S2 Pro config registration with transformers AutoConfig.
 
 Registers FishSpeechConfig (model_type="fish_qwen3_omni") and sub-configs

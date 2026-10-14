@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline Audex (Nemotron-Labs-Audex-2B) TTS inference example.
 
 Runs Stage 0 (thinker) + Stage 1 (streaming causal speech decoder) end-to-end

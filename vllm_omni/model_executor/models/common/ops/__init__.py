@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Common operators shared across models and hardware backends.
 
 This module contains fused operators that can be reused across multiple models

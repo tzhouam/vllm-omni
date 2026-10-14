@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # Adapted from https://github.com/hao-ai-lab/FastVideo
 # Originally from https://github.com/huggingface/diffusers
 # Copyright 2024-2025 The Alibaba Wan Team Authors. All rights reserved.

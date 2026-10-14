@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # Copyright 2025 The vLLM-Omni team.
 
 """Ming-flash-omni-2.0 imagegen (text-to-image / img2img) diffusion pipeline.

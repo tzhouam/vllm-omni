@@ -32,7 +32,6 @@ Use this recipe when you want a known-good starting point for serving
   `examples/offline_inference/text_to_speech/ming_flash_omni_tts/` and
   `examples/online_serving/text_to_speech/ming_flash_omni_tts/`.
 
-
 ## Hardware Support
 
 This recipe documents reference GPU configurations for the two-stage
@@ -279,7 +278,7 @@ curl http://127.0.0.1:8091/v1/chat/completions \
 | `steps` | 30 | Number of FlowMatchEuler denoise steps. |
 | `cfg` | 2.0 | Classifier-free guidance scale. |
 | `seed` | 42 | Per-request RNG seed. |
-| `byte5_text` | (auto) | Glyph text for ByT5 enhancement; raw strings are auto-wrapped to Ming's `Text "…". ` format. Auto-extracted from quoted spans in the prompt when omitted. |
+| `byte5_text` | (auto) | Glyph text for ByT5 enhancement; raw strings are auto-wrapped to Ming's `Text "…".` format. Auto-extracted from quoted spans in the prompt when omitted. |
 | `negative_prompt` | (empty) | Real CFG negative conditioning. Spawns a CFG-text companion via `expand_cfg_prompts`; **online / text-to-image only** (offline uses Ming's default zero-negative). |
 
 For img2img, add an `image_url` content part to the user message (online) or pass `--image` (offline); the reference image is routed into the DiT stage as `extra[reference_image]`.

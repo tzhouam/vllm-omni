@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # One-shot JoyVL demo: model -> interaction orchestrator -> JD webui.
 #
 # The model is the only fixed component; every external module is pluggable and

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CPU tests for GLM-Image timestep handoff through retrieve_timesteps.
 
 GLM-Image integrates with resolution-shifted sigmas but conditions the DiT on

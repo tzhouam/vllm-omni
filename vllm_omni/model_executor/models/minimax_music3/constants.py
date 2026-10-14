@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Inference-contract constants for MiniMax Music 3.
 
 These values are fixed by the checkpoint, not tuning knobs. Changing any of

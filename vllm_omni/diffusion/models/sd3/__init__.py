@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Stable diffusion3 model components."""
 
 from vllm_omni.diffusion.models.sd3.pipeline_sd3 import (

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Unit tests for the quack FP8 auto-enable gate.
 
 quack's CuteDSL FP8 GEMM uses the 5th-gen ``tcgen05`` tensor-core MMA, which

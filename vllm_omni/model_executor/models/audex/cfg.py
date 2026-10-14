@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 #
 # Adapted from nvidia/Nemotron-Labs-Audex-2B (Apache-2.0):
 #   inference_scripts_vllm/audiogen_scripts/cfg_logits_processor.py

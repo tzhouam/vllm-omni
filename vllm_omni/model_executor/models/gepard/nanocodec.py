@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """NeMo NanoCodec wrapper for Gepard — per-dimension FSQ decode.
 
 Gepard's 32 FSQ heads emit per-dimension codes (8 groups x 4 dims), while stock

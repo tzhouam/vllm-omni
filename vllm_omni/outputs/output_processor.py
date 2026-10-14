@@ -7,7 +7,7 @@ from typing import Any
 
 import torch
 from vllm.logger import init_logger
-from vllm.outputs import CompletionOutput, PoolingRequestOutput, RequestOutput
+from vllm.outputs import CompletionOutput, PoolingRequestOutput, RequestError, RequestOutput
 from vllm.sampling_params import RequestOutputKind
 from vllm.tokenizers import TokenizerLike
 from vllm.v1.engine import EngineCoreOutput, EngineCoreRequest, FinishReason
@@ -200,6 +200,7 @@ class OmniRequestState(RequestState):
         ec_transfer_params: dict[str, Any] | None = None,
         *,
         routed_experts: Any = None,
+        error: RequestError | None = None,
     ) -> OmniRequestOutput | PoolingRequestOutput | None:
         """Create a request output from generation results.
 
@@ -234,6 +235,7 @@ class OmniRequestState(RequestState):
                 stop_reason,
                 kv_transfer_params,
                 ec_transfer_params,
+                error=error,
             )
 
         is_delta = self.output_kind == RequestOutputKind.DELTA

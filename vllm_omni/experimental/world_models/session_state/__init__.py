@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Session memory for AR-diffusion world models (RFC #4480).
 
 Typed ``StateObject`` instances owned per session by ``SessionStateManager``.

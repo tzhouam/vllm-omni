@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Behavioral regression tests for Qwen-Image Edit ``txt_seq_lens`` wiring.
 
 RoPE text length must follow padded embed width, not valid-token count from

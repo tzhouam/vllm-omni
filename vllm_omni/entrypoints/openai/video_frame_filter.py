@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """EVS (Efficient Video Sampling) frame pre-filter for streaming video input.
 
 Lightweight pixel-level similarity filter that runs before frames reach the

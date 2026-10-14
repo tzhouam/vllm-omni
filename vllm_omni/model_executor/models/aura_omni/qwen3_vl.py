@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """AURA-compatible Qwen3-VL wrapper.
 
 AURA ships Qwen3-VL weights with a repository-local ``configuration_qwen3_vl``

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """stage input processor for a forced-aligner stage.
 
 Bridges a Code2Wav (audio) stage to a pooling forced-aligner stage:

@@ -34,7 +34,7 @@ CFG-Parallel eliminates this bottleneck by distributing the forward passes acros
 vLLM-omni provides `CFGParallelMixin` that encapsulates all CFG parallel logic. Pipelines inherit from this mixin and implement a `diffuse()` method that orchestrates the denoising loop.
 
 | Method | Purpose | Automatic Behavior |
-|--------|---------|-------------------|
+| -------- | --------- | ------------------- |
 | [`predict_noise_maybe_with_cfg()`](https://docs.vllm.ai/projects/vllm-omni/en/latest/api/vllm_omni/diffusion/distributed/cfg_parallel/) | Predict noise with 2-branch CFG | Detects parallel mode, distributes computation, gathers results |
 | [`predict_noise_with_multi_branch_cfg()`](https://docs.vllm.ai/projects/vllm-omni/en/latest/api/vllm_omni/diffusion/distributed/cfg_parallel/) | Predict noise with N-branch CFG | Round-robin dispatches N branches across M GPUs |
 | [`scheduler_step_maybe_with_cfg()`](https://docs.vllm.ai/projects/vllm-omni/en/latest/api/vllm_omni/diffusion/distributed/cfg_parallel/) | Step scheduler | All ranks step locally (no broadcast needed) |
@@ -48,14 +48,14 @@ vLLM-omni provides `CFGParallelMixin` that encapsulates all CFG parallel logic. 
 `predict_noise_maybe_with_cfg()` automatically detects and switches between two execution modes:
 
 - **CFG-Parallel mode** (when `cfg_world_size > 1`):
-  - Rank 0 computes positive prompt prediction
-  - Rank 1 computes negative prompt prediction
-  - Results are gathered via `all_gather()`
-  - All ranks compute CFG combine locally (deterministic, identical results)
+    - Rank 0 computes positive prompt prediction
+    - Rank 1 computes negative prompt prediction
+    - Results are gathered via `all_gather()`
+    - All ranks compute CFG combine locally (deterministic, identical results)
 
 - **Sequential mode** (when `cfg_world_size == 1`):
-  - Single rank computes both positive and negative predictions
-  - Directly combines them with CFG formula
+    - Single rank computes both positive and negative predictions
+    - Directly combines them with CFG formula
 
 `scheduler_step_maybe_with_cfg()` ensures consistent latent states across all ranks:
 
@@ -68,7 +68,7 @@ Some models require more than 2 CFG branches. For example, Bagel and OmniGen2 us
 `predict_noise_with_multi_branch_cfg()` handles these by automatically dispatching N branches across M GPUs using round-robin (rule: branch `i` → rank `i % M`):
 
 | Branches (N) | GPUs (M) | Dispatch |
-|:---:|:---:|:---|
+| :---: | :---: | :--- |
 | 3 | 2 | `[[0, 2], [1]]` |
 | 3 | 3 | `[[0], [1], [2]]` |
 | 4 | 2 | `[[0, 2], [1, 3]]` |
@@ -167,7 +167,6 @@ class Wan22Pipeline(nn.Module, CFGParallelMixin):
         return current_model(**kwargs)[0]
 ```
 
-
 ### Override `cfg_normalize_function()` for Custom Normalization
 
 Some models have their own normalization function. Taking LongCat Image model as an example:
@@ -190,7 +189,6 @@ class LongCatImagePipeline(nn.Module, CFGParallelMixin):
         # noise_pred = comb_pred * (cond_norm / noise_norm)
         # return noise_pred
 ```
-
 
 ### Multi-Branch CFG (3+ branches)
 
@@ -317,6 +315,7 @@ python text_to_image.py \
 **Problem:** Guidance scale too low or negative prompt not provided.
 
 **Solution:** Ensure `guidance_scale > 1.0` and negative prompt is provided:
+
 ```python
 images = pipeline(
     prompt="a cat",
@@ -332,7 +331,7 @@ images = pipeline(
 Complete examples in the codebase:
 
 | Model | Path | Pattern | Notes |
-|-------|------|---------|-------|
+| ------- | ------ | --------- | ------- |
 | **Qwen-Image** | `vllm_omni/diffusion/models/qwen_image/cfg_parallel.py` | Mixin | Dual-stream transformer |
 | **Qwen-Image-Edit** | `vllm_omni/diffusion/models/qwen_image/pipeline_qwen_image_edit.py` | Mixin | Image editing with `output_slice` |
 | **Wan2.2** | `vllm_omni/diffusion/models/wan2_2/pipeline_wan2_2.py` | Mixin | Dual-transformer architecture |

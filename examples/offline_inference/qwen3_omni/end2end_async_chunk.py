@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline inference with async_chunk enabled via AsyncOmni.
 
 This script uses AsyncOmni (the async orchestrator) to run offline inference

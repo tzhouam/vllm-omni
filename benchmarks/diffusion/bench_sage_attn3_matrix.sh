@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 #
 # 2x2 timing matrix (backend x compile mode) for SAGE_ATTN_3 vs TORCH_SDPA,
 # on HunyuanVideo-1.5 480p T2V and Wan 2.2 TI2V-5B. Run from the repo root:

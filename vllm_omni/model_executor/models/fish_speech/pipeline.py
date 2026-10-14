@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Fish Speech S2 Pro pipeline topology (frozen).
 
 Stage 0: slow_ar     — text → RVQ codec tokens (LLM autoregressive).

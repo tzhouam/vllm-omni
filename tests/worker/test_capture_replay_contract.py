@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Static coupling check for the ``has_preprocess`` capture/replay buffers.
 
 For models with ``has_preprocess``, CUDA-graph *capture* (``_dummy_run``) and

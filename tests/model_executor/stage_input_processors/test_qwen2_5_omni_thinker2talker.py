@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Light coverage for qwen2_5_omni.thinker2talker_full_payload.
 
 Covers the finish-reason-aware stop-row trim contract: when the request

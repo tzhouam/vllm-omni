@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Ming TTS pipeline: Stage-0 LLM+flow -> Stage-1 audio VAE."""
 
 from vllm_omni.config.stage_config import (

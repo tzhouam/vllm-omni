@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Fish Speech S2 Pro -- Slow AR model (Stage 0).
 
 Uses vLLM's ``Qwen3Model`` as the transformer backbone.  Adds:

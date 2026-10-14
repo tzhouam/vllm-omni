@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Throughput-scaling + isolation benchmark for diffusion replica data parallelism.
 
 Sends `--num-requests` text-to-video requests (up to `--concurrency` in flight)

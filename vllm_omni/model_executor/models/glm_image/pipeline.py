@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """GLM-Image pipeline topologies (frozen).
 Two-stage (default):
   Stage 0: AR — multimodal understanding + token_ids generation

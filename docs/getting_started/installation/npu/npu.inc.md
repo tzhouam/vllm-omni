@@ -3,6 +3,7 @@
 For detailed hardware and software requirements, please refer to the [vLLM-Ascend installation documentation](https://docs.vllm.ai/projects/ascend/en/latest/installation.html).
 
 # --8<-- [end:requirements]
+
 # --8<-- [start:installation-release]
 
 The recommended way to use vLLM-Omni on NPU is through the vLLM-Ascend pre-built Docker images:
@@ -96,7 +97,7 @@ vLLM-Omni offers Docker images for Ascend NPU deployment. You can just pull the 
 Supported images as following.
 
 | image name | Hardware | OS |
-|-|-|-|
+| - | - | - |
 | image-tag | A2 | Ubuntu |
 | image-tag-a3 | A3 | Ubuntu |
 | image-tag-a5 | A5 | Ubuntu |

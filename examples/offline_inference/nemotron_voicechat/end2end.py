@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline speech-to-speech with NVIDIA-NemotronLabs-VoiceChat-11B.
 
 Feeds a 16 kHz user utterance (plus a spoken-style system prompt) through the

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """MiniMax Music 3 text-to-music.
 
 Stage 0 is a Qwen3 backbone with an eight-codebook RVQ frame; stage 1 turns

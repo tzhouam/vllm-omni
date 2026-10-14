@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Gradio demo for MOSS-TTS-Nano with gapless streaming audio playback.
 
 Uses a custom AudioWorklet-based player (adapted from the Qwen3-TTS demo)

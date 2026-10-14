@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # SANA-Video-2B image-to-video serving through the Diffusers adapter.
 # Both 480p and 720p checkpoints are validated. For 720p:
 # MODEL=Efficient-Large-Model/SANA-Video_2B_720p_diffusers bash run_server_sana_video_diffusers.sh

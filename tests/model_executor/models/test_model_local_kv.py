@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """A declaration must match the cache that actually gets allocated.
 
 Two earlier versions of this file could not fail. The first asserted hand-typed

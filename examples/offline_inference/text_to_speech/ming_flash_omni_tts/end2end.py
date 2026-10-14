@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Offline e2e example for Ming-flash-omni-2.0 standalone talker (TTS)."""
 
 import os

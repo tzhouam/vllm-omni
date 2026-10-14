@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """OpenAI chat-completions client for MiniCPM-o 4.5 online serving.
 
 Thin wrapper around the shared multimodal client helpers, with MiniCPM-specific

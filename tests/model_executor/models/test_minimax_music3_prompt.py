@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Unit tests for MiniMax Music 3 prompt assembly and window arithmetic.
 
 The prompt transformations are not cosmetic: they decide token positions, and

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Batch client for the higgs-audio v2 online server.
 
 Sends a fixed list of prompts to ``/v1/audio/speech`` and saves the returned

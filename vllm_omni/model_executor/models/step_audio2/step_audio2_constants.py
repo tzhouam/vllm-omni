@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Step-Audio2 configuration constants - Single Source of Truth."""
 
 from dataclasses import dataclass

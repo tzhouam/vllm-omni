@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Independent fast paths for the diffusers Wan causal video VAE.
 
 ``install_wan_vae_fastpath(vae, level=...)`` rebinds the forwards of one loaded

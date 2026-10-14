@@ -5,7 +5,7 @@
 vLLM-Omni supports three deployment modes:
 
 | Mode | Deploy config | Output |
-|------|--------------|--------|
+| ------ | -------------- | -------- |
 | Thinker + Talker (omni-speech, default) | `vllm_omni/deploy/ming_flash_omni.yaml` | Text + Audio |
 | Thinker only (multimodal understanding) | `vllm_omni/deploy/ming_flash_omni_thinker_only.yaml` | Text |
 | Thinker + Imagegen (text-to-image / img2img) | `vllm_omni/deploy/ming_flash_omni_image.yaml` | Image (online-serving only at the moment) |
@@ -59,6 +59,7 @@ The default deploy YAML already runs thinker+talker, so spoken output only requi
 The thinker processes your multimodal input, generates text, then the talker synthesises the response as speech.
 
 **Audio-only output** (speech response, no text):
+
 ```bash
 python examples/offline_inference/ming_flash_omni/end2end.py \
     --query-type text \
@@ -67,6 +68,7 @@ python examples/offline_inference/ming_flash_omni/end2end.py \
 ```
 
 **Both text and audio output**:
+
 ```bash
 python examples/offline_inference/ming_flash_omni/end2end.py \
     --query-type use_audio \
@@ -81,7 +83,7 @@ The default deploy YAML allocates thinker on GPUs 0–3 and talker on GPU 3 for 
 ### Modality control
 
 | `--modalities` | Thinker output | Talker | Saved files |
-|---------------|----------------|--------|-------------|
+| --------------- | ---------------- | -------- | ------------- |
 | `text` (default) | Text | Not run | `<id>.txt` |
 | `audio` | Text (internal) | Runs | `<id>.wav` |
 | `text,audio` | Text | Runs | `<id>.txt` + `<id>.wav` |
@@ -107,6 +109,7 @@ python examples/offline_inference/text_to_image/text_to_image.py \
 ```
 
 Image-to-image (offline):
+
 ```bash
 # Reference image: figures/cases/person_gen_05.png from the upstream Ming repo
 # https://github.com/inclusionAI/Ming/blob/3954fcb880ff5e61ff128bcf7f1ec344d46a6fe3/examples/vllm_demo.py

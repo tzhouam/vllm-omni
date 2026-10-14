@@ -19,14 +19,14 @@ from fastapi import Request
 from openai.types.chat.chat_completion_audio import ChatCompletionAudio as OpenAIChatCompletionAudio
 from PIL import Image
 from pydantic import TypeAdapter
-from vllm.entrypoints.chat_utils import (
+from vllm.parser.utils import (
+    count_chat_history_tool_calls as get_history_tool_calls_cnt,
+)
+from vllm.renderers.chat_utils import (
     ChatCompletionMessageParam,
     ChatTemplateContentFormatOption,
     ConversationMessage,
     make_tool_call_id,
-)
-from vllm.parser.utils import (
-    count_chat_history_tool_calls as get_history_tool_calls_cnt,
 )
 
 from vllm_omni.diffusion.utils.image_output import extract_images_from_outputs
@@ -224,7 +224,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         field is now resolved on demand via ``get_tool_call_id_type``.
         """
         try:
-            from vllm.entrypoints.chat_utils import get_tool_call_id_type
+            from vllm.renderers.chat_utils import get_tool_call_id_type
 
             return get_tool_call_id_type(self.model_config)
         except Exception:

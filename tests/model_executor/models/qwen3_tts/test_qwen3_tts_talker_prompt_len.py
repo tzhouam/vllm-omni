@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Regression tests for `estimate_prompt_len_from_additional_information`.
 
 Pins the 2D `voice_clone_prompt.ref_code` shape behaviour. Applying the

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Helios online serving startup script.
 # All three variants (Helios-Base / Helios-Mid / Helios-Distilled) share the same
 # server launch; variant-specific knobs are sent per-request via `extra_params`

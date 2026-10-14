@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """NVIDIA NemotronLabs VoiceChat-11B: offline speech-to-speech 3-stage pipeline."""
 
 from vllm_omni.model_executor.models.nemotron_voicechat.configuration_nemotron_voicechat import (

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CUDA-only regression test for the AR-Diffusion paged KV write op.
 
 Split out of ``test_kv_cache.py``: that module is swept into CI's

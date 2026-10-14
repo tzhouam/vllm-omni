@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 from .helios_transformer import HeliosTransformer3DModel
 from .pipeline_helios import (
     HeliosPipeline,

@@ -3,6 +3,7 @@
 - GPU: compute capability 7.5 or higher (e.g., T4, RTX20xx, A100, L4, H100, etc.)
 
 # --8<-- [end:requirements]
+
 # --8<-- [start:set-up-using-python]
 
 vLLM-Omni depends on the matching major/minor release of vLLM. This source
@@ -23,6 +24,7 @@ Therefore, it is recommended to install vLLM and vLLM-Omni with a **fresh new** 
 These pre-built wheel instructions install the published vLLM-Omni 0.30.0 release.
 
 vLLM-Omni is built based on vLLM. Please install it with command below.
+
 ```bash
 uv pip install vllm==0.30.0 --torch-backend=auto
 ```
@@ -34,6 +36,7 @@ uv pip install vllm-omni==0.30.0
 ```
 
 To run Gradio demos, also install the optional extras:
+
 ```bash
 uv pip install 'vllm-omni[demo]==0.30.0'
 ```
@@ -43,6 +46,7 @@ uv pip install 'vllm-omni[demo]==0.30.0'
 # --8<-- [start:build-wheel-from-source]
 
 #### Installation of vLLM
+
 If you do not need to modify source code of vLLM, install the final 0.31.0
 release wheel from its commit-pinned index:
 
@@ -56,7 +60,9 @@ CUDA variant or want to reuse an existing PyTorch installation, build vLLM
 from source instead.
 
 #### Installation of vLLM-Omni
+
 Since vllm-omni is rapidly evolving, it's recommended to install it from source
+
 ```bash
 git clone https://github.com/vllm-project/vllm-omni.git
 cd vllm-omni
@@ -64,6 +70,7 @@ uv pip install -e .
 ```
 
 To run Gradio demos, install with optional extras:
+
 ```bash
 uv pip install -e '.[demo]'
 ```
@@ -76,21 +83,28 @@ git clone https://github.com/vllm-project/vllm.git
 cd vllm
 git checkout v0.31.0
 ```
+
 Set up environment variables to get pre-built wheels. If there are internet problems, just download the whl file manually. And set `VLLM_PRECOMPILED_WHEEL_LOCATION` as your local absolute path of whl file.
+
 ```bash
 # Default CUDA 12.9 wheel for v0.31.0 on x86_64
 export VLLM_PRECOMPILED_WHEEL_LOCATION=https://wheels.vllm.ai/db9527a46873454610df6dbedf79a36d6bf1a7f6/vllm-0.31.0-cp38-abi3-manylinux_2_28_x86_64.whl
 ```
+
 Install vllm with command below (If you have no existing PyTorch).
+
 ```bash
 VLLM_USE_PRECOMPILED=1 uv pip install --editable . --torch-backend=auto
 ```
+
 Install vllm with command below (If you already have PyTorch).
+
 ```bash
 python use_existing_torch.py
 uv pip install -r requirements/build/cuda.txt
 uv pip install --no-build-isolation --editable .
 ```
+
 </details>
 
 # --8<-- [end:build-wheel-from-source]
@@ -111,6 +125,7 @@ Nightly CUDA images built from the latest `main` are also available:
 Use a commit-pinned tag when you need a reproducible nightly environment.
 
 Here's an example deployment command that has been verified on 2 x H100's:
+
 ```bash
 docker run --runtime nvidia --gpus 2 \
     -v ~/.cache/huggingface:/root/.cache/huggingface \

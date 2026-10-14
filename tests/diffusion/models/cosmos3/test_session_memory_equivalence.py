@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Equivalence and session-isolation tests for Cosmos3StateAdapter (RFC #4480).
 
 These drive the adapter directly with tiny CPU tensors -- no model, no GPU --

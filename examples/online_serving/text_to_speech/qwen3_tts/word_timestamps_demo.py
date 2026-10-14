@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Gradio demo for streaming TTS word-level timestamps.
 
 Connects to the WebSocket endpoint ``/v1/audio/speech/stream`` with

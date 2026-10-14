@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Krea 2 diffusion model components."""
 
 from vllm_omni.diffusion.models.krea2.krea2_transformer import Krea2Transformer2DModel

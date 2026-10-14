@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """End-to-end ModelOpt FP8 quality accuracy for video-gen DiTs.
 
 Modeled on ``test_hunyuan_image3.py``'s ``test_quantized_dit_matches_bf16_accuracy``:

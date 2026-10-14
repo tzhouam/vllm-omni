@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Adapter presenting ``DreamZeroState``'s surface over the session manager.
 
 ``DreamZeroStateAdapter`` exposes the exact public methods and attributes that

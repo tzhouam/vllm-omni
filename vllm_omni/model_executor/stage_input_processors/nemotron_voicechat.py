@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Stage transfer processors for the NemotronVoiceChat 3-stage pipeline.
 
 thinker (0) -> talker (1): token path only. The thinker's frame-locked text

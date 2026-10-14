@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Declaration protocol for attention KV kept outside the paged manager.
 
 Several models hold their own attention KV as HuggingFace ``transformers`` cache

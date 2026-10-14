@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Minimal OpenPI client for the π0 (Pi-Zero) VLA policy server.
 
 Connects to a running π0 server (see README.md), sends a single robot

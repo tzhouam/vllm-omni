@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline Audex (Nemotron-Labs-Audex-2B) audio understanding example.
 
 Speech (or general audio) + text instruction → text, through the

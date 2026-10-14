@@ -32,7 +32,7 @@ The Tensor Parallel implementation relies vLLM's Parallel Layers:
 **Parallel Layer Types:**
 
 | Layer Type | Purpose | Weight Partitioning |
-|------------|---------|---------------------|
+| ------------ | --------- | --------------------- |
 | `ColumnParallelLinear` | First FFN layer, separated QKV | Columns (output dimension) |
 | `RowParallelLinear` | Second FFN layer, attention output | Rows (input dimension) |
 | `QKVParallelLinear` | Multi-head/grouped-query attention QKV | Handles head replication automatically |
@@ -42,12 +42,12 @@ The Tensor Parallel implementation relies vLLM's Parallel Layers:
 
 ## Step-by-Step Implementation
 
-
 ### Step 1: Identify Linear Layers
 
 Find all `nn.Linear` layers in your transformer that need to be sharded.
 
 **Key questions:**
+
 - Which layers should be column parallel (weight split by columns)?
 - Which layers should be row parallel (weight split by rows)?
 
@@ -210,6 +210,7 @@ python text_to_image.py \
 **Problem:** Linear layers not replaced with parallel equivalents.
 
 **Solution:** Replace with parallel layers:
+
 ```python
 # ❌ BAD
 self.proj = nn.Linear(dim, dim)
@@ -229,6 +230,7 @@ self.proj = RowParallelLinear(dim, dim, input_is_parallel=True)
 **Problem:** RowParallelLinear expects sharded input but receives full tensor.
 
 **Solution:** Set `input_is_parallel=True` when input comes from ColumnParallelLinear:
+
 ```python
 # ✅ GOOD: Correct pairing
 self.w1 = ColumnParallelLinear(dim, hidden_dim, return_bias=False,)
@@ -245,6 +247,7 @@ self.w2 = RowParallelLinear(
 **Problem:** QKV split sizes don't match sharded dimensions.
 
 **Solution:** Use `self.to_qkv.num_heads` (local heads per GPU):
+
 ```python
 # ❌ BAD: Uses total heads
 q_size = self.total_num_heads * self.head_dim
@@ -260,7 +263,7 @@ q_size = self.to_qkv.num_heads * self.head_dim
 Complete examples in the codebase:
 
 | Model | Path | Pattern | Notes |
-|-------|------|---------|-------|
+| ------- | ------ | --------- | ------- |
 | **Z-Image** | `vllm_omni/diffusion/models/z_image/z_image_transformer.py` | Standard TP | Full implementation with validation |
 | **FLUX** | `vllm_omni/diffusion/models/flux/flux_transformer.py` | Dual-stream | Image + text streams |
 | **Qwen-Image** | `vllm_omni/diffusion/models/qwen_image/qwen_image_transformer.py` | Standard TP | With RoPE |

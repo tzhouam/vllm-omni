@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Config for Gepard-1.0, a single-stage autoregressive TTS.
 
 Text tokens -> one 32-code FSQ audio frame per step -> NeMo NanoCodec ->

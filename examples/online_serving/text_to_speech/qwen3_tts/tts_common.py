@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Shared constants, helpers, and payload building for Qwen3-TTS Gradio demos."""
 
 import base64

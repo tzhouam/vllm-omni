@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Launch vLLM-Omni server for higgs-audio v2.
 #
 # v1 scope: plain text -> 24 kHz speech only. Voice cloning, multi-speaker,

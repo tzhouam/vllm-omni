@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Shared image-to-video server start script
 
 MODEL="${MODEL:-Wan-AI/Wan2.2-I2V-A14B-Diffusers}"

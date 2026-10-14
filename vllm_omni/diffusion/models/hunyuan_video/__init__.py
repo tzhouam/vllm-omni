@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """HunyuanVideo-1.5 diffusion model components (T2V and I2V)."""
 
 from vllm_omni.diffusion.models.hunyuan_video.hunyuan_video_15_transformer import (

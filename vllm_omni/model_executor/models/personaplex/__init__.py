@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """vllm-omni integration for PersonaPlex (a Moshi finetune, full-duplex S2S).
 
 Offline/batch runs go through a two-stage audio->audio pipeline (talker ->

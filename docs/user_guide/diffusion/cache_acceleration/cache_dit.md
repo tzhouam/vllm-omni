@@ -1,6 +1,5 @@
 # Cache-DiT Guide
 
-
 ## Table of Content
 
 - [Overview](#overview)
@@ -198,7 +197,7 @@ OmniDiffusionSamplingParams(
 ```
 
 | Server startup | Request quality | Behavior |
-|---|---|---|
+| --- | --- | --- |
 | `--cache-backend cache_dit` | omitted | Use or restore the startup Cache-DiT profile |
 | `--cache-backend cache_dit` | `lossless` | Remove Cache-DiT hooks and run the reference path |
 | `--cache-backend cache_dit` | `high` | Use or install H3's conservative Cache-DiT profile |
@@ -266,7 +265,7 @@ SCM allows you to specify which steps must be computed and which can use cached 
 `scm_steps_mask_policy` options (number of compute steps out of 28):
 
 | Policy | Compute Steps | Speed | Quality |
-|--------|--------------|-------|---------|
+| -------- | -------------- | ------- | --------- |
 | `None` (default) | All | Baseline | Best |
 | `"slow"` | 18 / 28 | Moderate | High |
 | `"medium"` | 15 / 28 | Balanced | Good |
@@ -297,7 +296,7 @@ cache_config={
 In `cache_config` passed to `Omni` constructor, it accepts the arguments of `DBCacheConfig` ([Cache-DiT API Reference](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/)). Key parameters are listed below:
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `Fn_compute_blocks` | int | 1 | First n blocks for difference computation (optimized for single-transformer models) |
 | `Bn_compute_blocks` | int | 0 | Last n blocks for fusion |
 | `max_warmup_steps` | int | 4 | Steps before caching starts (optimized for few-step distilled models) |
@@ -336,6 +335,7 @@ In `cache_config` passed to `Omni` constructor, it accepts the arguments of `DBC
 **Symptoms**: Generated images have visible artifacts or lower quality
 
 **Solution**:
+
 ```python
 # Reduce aggressiveness - use more conservative settings
 cache_config={

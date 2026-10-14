@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Audex (Nemotron-Labs-Audex-2B) TTS pipeline topology.
 
 Stage 0: Thinker  — ChatML text prompt → <speechcodec_N> tokens (LLM AR).

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Typed request boundary shared by AR-Diffusion models and serving APIs.
 
 The transport layer owns event ordering and snapshots. Model adapters consume

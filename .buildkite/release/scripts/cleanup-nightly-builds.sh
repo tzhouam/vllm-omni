@@ -1,5 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 #
 # Clean up old nightly builds from DockerHub (vllm/vllm-omni), keeping the
 # newest 14 tags with the nightly- prefix.

@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 #
 # This file vendors the minimal Continuous Image (CI) tokenizer implementation
 # needed by InternVLA-A1 from NVIDIA/Cosmos-Tokenizer. The code is intentionally

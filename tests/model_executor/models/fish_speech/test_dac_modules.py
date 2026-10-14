@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CPU tests for the vendored DAC codec modules (dac_modules).
 
 Guards the checkpoint contract: the module tree built by build_dac_codec()

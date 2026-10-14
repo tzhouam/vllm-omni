@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tests for merge_mxfp4_dualscale_checkpoint.py key-remapping helpers.
 
 These are pure-Python unit tests that exercise the transformation functions

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Benchmark Fish Speech voice cache: inline ref_audio vs uploaded voice.
 
 Measures TTFP improvement from DAC-code caching when using uploaded voices.

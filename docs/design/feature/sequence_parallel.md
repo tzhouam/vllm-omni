@@ -19,7 +19,6 @@ This section describes how to add Sequence Parallel (SP) to a diffusion transfor
 
 ## Overview
 
-
 ### What is Sequence Parallel?
 
 **Terminology Note:** Our "Sequence Parallelism" (SP) corresponds to "Context Parallelism" (CP) in the [diffusers library](https://github.com/huggingface/diffusers/blob/main/src/diffusers/models/_modeling_parallel.py). We use "Sequence Parallelism" to align with vLLM-Omni's terminology.
@@ -39,7 +38,7 @@ from vllm_omni.diffusion.distributed.sp_sharding import sp_shard, sp_gather
 ```
 
 | Method/Class | Purpose | Behavior |
-|--------------|---------|----------|
+| -------------- | --------- | ---------- |
 | `SequenceParallelInput` | Declare input sharding in `_sp_plan` | Auto-shards tensors at module input |
 | `SequenceParallelOutput` | Declare output gathering in `_sp_plan` | Auto-gathers tensors at module output |
 | `sp_shard()` | Manual tensor sharding | Splits tensor across SP workers |
@@ -89,6 +88,7 @@ Use it when plain Ulysses-SP would otherwise fail because:
 The `_sp_plan` mechanism allows SP **without modifying `forward()` logic**. The framework automatically registers hooks to shard inputs and gather outputs at module boundaries.
 
 **When to use:**
+
 - Standard transformer architectures
 - Tensor operations happen at `nn.Module` boundaries
 - Predictable sharding/gathering patterns
@@ -96,6 +96,7 @@ The `_sp_plan` mechanism allows SP **without modifying `forward()` logic**. The 
 This is the ideal approach for integrating sequence parallelism into new models, as it is easier to maintain and ensure compatibility with other types of acceleration.
 
 **How it works:**
+
 1. Declare `_sp_plan` dict in your transformer class
 2. Framework automatically applies hooks when `sequence_parallel_size > 1`
 3. Hooks shard/gather tensors at specified module boundaries
@@ -116,6 +117,7 @@ class StandardTransformer(nn.Module):
 `StandardTransformer` has a transformer blocks list `self.blocks = nn.ModuleList([...])`, and a projection output layer `self.proj_out`. The `_sp_plan` above defines that when SP is enabled, sharding the input tensor to the first transformer block, and gathering the sharded tensor at the final output projection layer.
 
 **Requirements:**
+
 - Tensor operations that need sharding/gathering must happen at **`nn.Module` boundaries**
 - Inline Python operations (e.g., `torch.cat`, `pad_sequence`) **cannot be hooked**
 
@@ -185,6 +187,7 @@ class ZImageTransformer(nn.Module):
 ```
 
 **Other common cases:**
+
 - `pad_sequence()` → `PadSequenceModule`
 - `torch.cat()` → `ConcatModule`
 - `tensor.reshape()` → `ReshapeModule`
@@ -276,7 +279,7 @@ NOTE: be careful to test adequately when refactoring classes that take this styl
 **SequenceParallelInput Parameters:**
 
 | Parameter | Type | Description |
-|-----------|------|-------------|
+| ----------- | ------ | ------------- |
 | `split_dim` | int | Dimension to split (usually `1` for sequence) |
 | `expected_dims` | int \| None | Expected tensor rank for validation (optional) |
 | `split_output` | bool | `False`: shard **input** params; `True`: shard **output** tensors |
@@ -296,7 +299,7 @@ Other references to the same storage also keep the full allocation alive.
 **Module Naming Conventions:**
 
 | Key | Meaning | Python equivalent |
-|-----|---------|-------------------|
+| ----- | --------- | ------------------- |
 | `""` | Root model | `model` |
 | `"blocks.0"` | First element of ModuleList | `model.blocks[0]` |
 | `"blocks.*"` | All elements of ModuleList | `for b in model.blocks` |
@@ -316,8 +319,8 @@ Other references to the same storage also keep the full allocation alive.
 
 For models with dynamic sharding logic that cannot be expressed via `_sp_plan`, manually insert shard/gather calls.
 
-
 **When to use:**
+
 - Dynamic/conditional sharding logic
 - Complex tensor manipulations that can't be encapsulated
 - Temporary workaround during development
@@ -394,6 +397,7 @@ python text_to_image.py \
 **Problem:** RoPE embeddings not sharded, but hidden_states is sharded.
 
 **Solution:** Shard RoPE outputs in `_sp_plan`:
+
 ```python
 _sp_plan = {
     "rope": {
@@ -425,6 +429,7 @@ _sp_plan = {
 | **Ring Attention Limitation** | Ring attention does not support arbitrary `attention_mask` values, so `auto_pad=True` remains incompatible. Contiguous suffix padding is supported when the model publishes the global `valid_kv_length` prefix. |
 
 1. Enable `auto_pad=True` for all sequence-dimension inputs in `_sp_plan`:
+
 ```python
 _sp_plan = {
     "rope": {
@@ -438,7 +443,8 @@ _sp_plan = {
 }
 ```
 
-2. Create attention mask dynamically when padding is applied:
+1. Create attention mask dynamically when padding is applied:
+
 ```python
 from vllm_omni.diffusion.forward_context import get_forward_context
 from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
@@ -467,6 +473,7 @@ While `auto_pad` enables generation for irregular resolutions, be aware of poten
 | **Padding Overhead** | Padded positions consume compute even when masked. For best efficiency, prefer resolutions divisible by `sp_size`. |
 
 **Recommendations for users:**
+
 - Use standard aspect ratios when possible (e.g., 768x432 for 16:9 instead of 700x400)
 - Ensure post-patch dimensions are divisible by `sp_size` for optimal quality
 - Test generation quality when using unusual resolutions
@@ -480,6 +487,7 @@ While `auto_pad` enables generation for irregular resolutions, be aware of poten
 - **Operations happen inline in `forward()`, not at module boundaries:**
 
 **Problem:**
+
 ```python
 def forward(self, x, cap):
     unified = torch.cat([x, cap], dim=1)  # ← Inline operation!
@@ -487,6 +495,7 @@ def forward(self, x, cap):
 ```
 
 **Solution:** Extract into submodule:
+
 ```python
 class ConcatModule(nn.Module):
     def forward(self, x, cap):
@@ -514,7 +523,7 @@ class MyModel(nn.Module):
 Complete examples in the codebase:
 
 | Model | Path | Pattern | Notes |
-|-------|------|---------|-------|
+| ------- | ------ | --------- | ------- |
 | **LongCat** | `vllm_omni/diffusion/models/longcat_image/longcat_image_transformer.py` | Dual-stream | Text components replicated, image components sharded |
 | **Qwen-Image** | `vllm_omni/diffusion/models/qwen_image/qwen_image_transformer.py` | Dual-stream + preprocessing | auto_pad, separate RoPE |
 | **Wan2.2** | `vllm_omni/diffusion/models/wan2_2/wan2_2_transformer.py` | Dual-Transformer + RoPE | Video transformer |

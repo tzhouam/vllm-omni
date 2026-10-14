@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CUDAGraph-accelerated CFM (flow-matching) diffusion head for Ming-TTS.
 
 The per-AR-step flow head runs ``steps`` ODE iterations, each a tiny DiT forward

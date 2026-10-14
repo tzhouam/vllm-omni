@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """L1 unit tests for the Boogu time-shifting flow-match Euler scheduler.
 
 Golden values were generated from the upstream boogu scheduler

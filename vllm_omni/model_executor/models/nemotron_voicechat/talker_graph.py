@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CUDA-graph fast path for the NemotronVoiceChat talker per-frame step.
 
 The eager talker step is launch-bound: one 80 ms frame costs ~3200 kernel

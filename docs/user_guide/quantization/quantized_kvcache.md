@@ -22,7 +22,7 @@ If `diffusion_kv_cache_dtype` is not set, attention runs in the native dtype.
 ## Hardware Support
 
 | Device | Dense FP8 | Dense MXFP8/MXFP4 | BSA FP8/MXFP4 |
-|--------|------------|-------------------|----------------|
+| -------- | ------------ | ------------------- | ---------------- |
 | Ascend NPU | ✅ | ✅ | ✅ |
 | NVIDIA GPU | ❌ | ❌ | ❌ |
 | AMD ROCm | ❌ | ❌ | ❌ |
@@ -99,7 +99,7 @@ The legacy keyword aliases `kv_cache_dtype`, `kv_cache_skip_steps`, and
 ## Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `diffusion_kv_cache_dtype` | str \| None | `None` | Runtime attention method. Dense FA supports `fp8`, `mxfp8`, and `mxfp4`; BSA supports `fp8` and `mxfp4` |
 | `diffusion_kv_cache_skip_steps` | str \| None | `None` | Denoising step selector to keep in native dtype, for example `"0,1,4-6"` |
 | `diffusion_kv_cache_skip_layers` | str \| None | `None` | Transformer layer selector to keep in native dtype, for example `"0-2,10"` |

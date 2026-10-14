@@ -8,6 +8,7 @@ CPU offload and distributed layerwise offload are not required in any of
 these configurations.
 
 Validated on:
+
 - Host: YLX Y762
 - GPUs: 8 × RTX PRO 6000 Blackwell (96 GiB)
 - Device order: default (`CUDA_VISIBLE_DEVICES` not set)

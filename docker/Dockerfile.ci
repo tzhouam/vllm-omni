@@ -3,7 +3,7 @@
 # on the previous release image. Copilot updates this commit pin, which also
 # selects the image used by CI. The selected commit must have a published
 # nightly image as well as a cu130 wheel.
-ARG VLLM_PRECOMPILED_WHEEL_COMMIT=db9527a46873454610df6dbedf79a36d6bf1a7f6
+ARG VLLM_PRECOMPILED_WHEEL_COMMIT=e0317b28ce3ba4c9bd2ff69d885e3f34688a6d71
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
 ARG VLLM_BASE_TAG=nightly-${VLLM_PRECOMPILED_WHEEL_COMMIT}
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Verify the IT2I AR-prefill prompt matches the official HF chat-template output.
 
 PR #3107 builds the AR prefill via

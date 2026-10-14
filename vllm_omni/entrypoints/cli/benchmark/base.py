@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Shared interface for vLLM-Omni benchmark CLI subcommands.
 
 ``OmniBenchmarkSubcommandBase`` defines the argument-registration and command

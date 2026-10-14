@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Talker -> Code2Wav input processors for PersonaPlex.
 
 The talker (stage 0) emits, per frame, the ``dep_q`` depformer audio codes under

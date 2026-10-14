@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Start an LVSA-enabled vLLM-Omni server for Wan or HunyuanVideo.
 #
 # LVSA is selected as the attention backend via --diffusion-attention-config (see

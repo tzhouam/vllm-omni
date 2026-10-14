@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Copyright 2025 Xiaomi Corporation.
 # Copyright (c) 2023, NVIDIA CORPORATION. All rights reserved.
 

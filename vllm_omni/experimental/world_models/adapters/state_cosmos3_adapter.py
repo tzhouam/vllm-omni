@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Adapter routing Cosmos3's per-CFG-branch UND text K/V through session state.
 
 Cosmos3's cross-step cache is the UND (reasoner) text K/V, currently kept as

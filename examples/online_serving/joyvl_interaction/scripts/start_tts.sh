@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Serve Qwen3-TTS (vLLM-Omni) and run the webui<->TTS bridge.
 # Then start the webui with:  TTS_URL=ws://127.0.0.1:8092/v1/tts bash scripts/start_server.sh
 set -euo pipefail

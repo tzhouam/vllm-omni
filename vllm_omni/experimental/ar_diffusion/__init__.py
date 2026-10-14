@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """AR-Diffusion Engine (AR-Diffusion).
 
 The AR-Diffusion engine: a ``DiffusionEngine`` subclass that adds engine-level KV

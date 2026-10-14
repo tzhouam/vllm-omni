@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Closed routing-pattern hierarchy for declarative parallel strategies.
 
 A routing pattern describes how a request batch is distributed across the

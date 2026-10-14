@@ -25,7 +25,7 @@ uncalibrated. See "Known limitations".
 ## Supported model contract
 
 | Task | Entrypoint | Input | Output |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Text-to-video-and-audio | `vllm serve kandinskylab/Kandinsky-6.0-Pro-5s-Diffusers --omni` / `Omni(model="kandinskylab/Kandinsky-6.0-Pro-5s-Diffusers")` | text prompt | synchronized MP4 (H.264 video + AAC 44.1 kHz mono audio) |
 | Image-to-video-and-audio | same | text prompt + reference image | synchronized MP4, first frame conditioned on the reference image |
 
@@ -185,45 +185,45 @@ instead.
   `[-1, 1]`, `audio_sample_rate=44100`, `fps`) so the serving muxer picks
   up the correct sample rate.
 - Acceleration that is wired:
-  - Tensor parallel: the DiT loader narrows full checkpoint tensors onto
+    - Tensor parallel: the DiT loader narrows full checkpoint tensors onto
     each rank's `ColumnParallelLinear` / `RowParallelLinear` shard.
-  - CFG parallel (`--cfg-parallel-size 2`): rank 0 runs the conditional
+    - CFG parallel (`--cfg-parallel-size 2`): rank 0 runs the conditional
     DiT, rank 1 the unconditional one, then both all-gather video and
     audio velocities.
-  - HSDP: `_hsdp_shard_conditions` covers the indexed transformer blocks.
+    - HSDP: `_hsdp_shard_conditions` covers the indexed transformer blocks.
     Do not combine with tensor parallel.
-  - Sequence parallel: visual tokens (and their RoPE) are sharded;
+    - Sequence parallel: visual tokens (and their RoPE) are sharded;
     Ulysses all-to-all runs inside visual self-attention, Ring uses the
     PyTorch ring kernel. Text stays replicated. Audio queries gather the
     full visual sequence.
-  - Pipeline parallel: `visual_transformer_blocks` are split with
+    - Pipeline parallel: `visual_transformer_blocks` are split with
     `PPMissingLayer`. Embeddings stay on the first stage, output heads on
     the last. Activations and the final velocity are sent between stages.
-  - VAE patch parallel: Hunyuan decode splits the latent width when
+    - VAE patch parallel: Hunyuan decode splits the latent width when
     `vae_patch_parallel_size > 1` and tiling is on.
-  - MagCache / TeaCache / Cache-DiT are registered. MagCache reuses the
+    - MagCache / TeaCache / Cache-DiT are registered. MagCache reuses the
     Pro `mag_ratios`. TeaCache coefficients are **uncalibrated** (copied
     from Qwen-Image) so skips are not quality-neutral. Cache-DiT targets
     `visual_transformer_blocks` only and falls back to the same step cache
     if the fused `(video, audio)` block return is rejected.
-  - FP8: online quantization runs in the DiT loader via
+    - FP8: online quantization runs in the DiT loader via
     `process_weights_after_loading` after the sharded assign.
-  - `attention_engine: auto` uses FlashAttention-3 when
+    - `attention_engine: auto` uses FlashAttention-3 when
     `flash_attn_interface` imports.
 - Known limitations:
-  - NABLA sparse attention is not registered in the framework attention
+    - NABLA sparse attention is not registered in the framework attention
     backend. NaviCache is not wired.
-  - Prompt expansion, NF4 Qwen, and the super-resolution cascade are not
+    - Prompt expansion, NF4 Qwen, and the super-resolution cascade are not
     part of this port.
-  - Distributed layerwise offload still uses one process unless another
+    - Distributed layerwise offload still uses one process unless another
     parallel axis sets `world_size > 1` (for example tensor parallel).
-  - `_load_components` loads the Diffusers checkpoint directly rather than the
+    - `_load_components` loads the Diffusers checkpoint directly rather than the
     streamed-prefetch loader.
 
 ## Supported features
 
 | Feature | Status | Guide |
-|---|---|---|
+| --- | --- | --- |
 | Text-to-video-and-audio | Supported (validated on H100) | — |
 | Image-to-video-and-audio | Supported (not yet validated on hardware) | — |
 | CPU offload (`--enable-cpu-offload`) | Supported (required on 80 GB) | — |

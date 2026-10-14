@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Audio length helpers (pure-Python).
 
 These utilities are used to keep code2wav (codec -> mel -> wav) lengths aligned

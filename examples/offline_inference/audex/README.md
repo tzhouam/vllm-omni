@@ -7,7 +7,7 @@ flags. Pass the HF repo ROOT as `--model` (default
 resolve automatically.
 
 | script | pipeline (`vllm_omni/deploy/<name>.yaml`) | audio in | text out | speech out | general audio out |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `text_to_speech.py` | `audex_tts` | ❌ | ❌ | ✅ | ❌ |
 | `text_to_audio.py` | `audex_tta` | ❌ | ❌ | ❌ | ✅ |
 | `audio_qa.py` | `audex_thinker_only` | ✅ | ✅ | ❌ | ❌ |

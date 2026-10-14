@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CPU coverage for Gepard's prompt layout, streaming-decode window and config.
 
 The e2e test needs a GPU, NeMo and the checkpoint, so it only runs nightly.

@@ -141,21 +141,21 @@ Then use the client under
 - Memory usage (observed offline): Stage-0 weights ~16.6 GiB; KV cache ~4.9 GiB
   with `gpu_memory_utilization: 0.78` on stage 0 and `0.12` on stage 1.
 - Key flags:
-  - `--deploy-config vllm_omni/deploy/mimo_audio_5090d.yaml` for 5090D memory
+    - `--deploy-config vllm_omni/deploy/mimo_audio_5090d.yaml` for 5090D memory
     and `TRITON_ATTN`.
-  - `MIMO_AUDIO_TOKENIZER_PATH` is mandatory.
-  - `MIMO_AUDIO_TOKENIZER_DEVICE=cpu` saves VRAM; requires
+    - `MIMO_AUDIO_TOKENIZER_PATH` is mandatory.
+    - `MIMO_AUDIO_TOKENIZER_DEVICE=cpu` saves VRAM; requires
     [#6539](https://github.com/vllm-project/vllm-omni/pull/6539) (or equivalent
     fix) so code2wav decode uses the tokenizer device.
-  - `VLLM_USE_FLASHINFER_SAMPLER=0` avoids FlashInfer top-p/top-k sampler
+    - `VLLM_USE_FLASHINFER_SAMPLER=0` avoids FlashInfer top-p/top-k sampler
     issues on consumer GPUs.
 - Known limitations:
-  - Blackwell may log `SM 12.x requires CUDA >= 12.9` from some optional
+    - Blackwell may log `SM 12.x requires CUDA >= 12.9` from some optional
     tooling; the tested path uses TRITON attention and cu129 wheels.
-  - Without a working `flash-attn` build, audio quality may be slightly
+    - Without a working `flash-attn` build, audio quality may be slightly
     metallic; install FlashAttention when a compatible wheel is available.
-  - First request triggers Triton JIT for rotary / attention kernels (latency
+    - First request triggers Triton JIT for rotary / attention kernels (latency
     spike); subsequent requests are faster.
-  - For longer outputs or batching, you may need to raise `max_model_len` in
+    - For longer outputs or batching, you may need to raise `max_model_len` in
     the deploy YAML and match `max_position_embeddings` in the model config
     (see the offline example README).

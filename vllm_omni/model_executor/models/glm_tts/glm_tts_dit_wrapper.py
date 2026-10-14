@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """GLM-TTS DiT wrapper: LLM_GENERATION-compatible flow-matching + vocoder."""
 
 from __future__ import annotations

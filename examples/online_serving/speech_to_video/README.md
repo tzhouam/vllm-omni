@@ -30,6 +30,7 @@ bash run_server.sh
 ```
 
 The script allows overriding:
+
 - `MODEL` (default: `Wan-AI/Wan2.2-S2V-14B`)
 - `PORT` (default: `8091`)
 - `FLOW_SHIFT` (default: `3.0`)
@@ -89,7 +90,7 @@ curl -L "http://127.0.0.1:8091/v1/videos/${video_id}/content" -o s2v_output.mp4
 ## Request Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `prompt` | str | - | Text description of the desired video |
 | `image_reference` | JSON str | - | Image reference: `{"image_url": "..."}` — supports HTTP(s) URLs or base64 data URLs |
 | `audio_reference` | JSON str | - | Audio reference: `{"audio_url": "..."}` — supports HTTP(s) URLs or base64 data URLs |
@@ -106,8 +107,8 @@ curl -L "http://127.0.0.1:8091/v1/videos/${video_id}/content" -o s2v_output.mp4
   (`audio_reference`). The generated video will show a person matching the reference
   image with lip movements synchronized to the audio.
 - `audio_reference` accepts a JSON string: `{"audio_url": "..."}` where the URL can be:
-  - An HTTP/HTTPS URL (e.g., `https://example.com/audio.mp3`)
-  - A base64 data URL (e.g., `data:audio/mp3;base64,...`)
+    - An HTTP/HTTPS URL (e.g., `https://example.com/audio.mp3`)
+    - A base64 data URL (e.g., `data:audio/mp3;base64,...`)
 - `--model-class-name WanS2VPipeline` is required on the server to select the
   S2V pipeline (distinct from the T2V/I2V pipelines).
 - `--cache-backend cache_dit` enables DiT caching for ~2x speedup on cached steps.

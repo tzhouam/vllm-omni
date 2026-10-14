@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """MOSS-TTSD dialogue dataset for ``vllm bench serve``.
 
 Loads ``meta.lst`` rows of the form::

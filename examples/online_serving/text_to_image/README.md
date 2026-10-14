@@ -12,6 +12,7 @@ Qwen-Image request through the standard Images API.
 ```bash
 vllm serve Qwen/Qwen-Image --omni --port 8091
 ```
+
 !!! note
     If you encounter Out-of-Memory (OOM) issues or have limited GPU memory, you can enable VAE slicing and tiling to reduce memory usage, --vae-use-slicing --vae-use-tiling
 

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Background KV prefetch — CPU-testable mechanism.
 
 Covers opt-in gating, the start_prefetch / consume_prefetched_kv round trip over a

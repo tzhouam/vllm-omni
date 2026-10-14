@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Config for the SANA-WM Stage-1 transformer.
 
 Loaded from the standard diffusers ``transformer/config.json`` (a flat dict

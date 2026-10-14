@@ -25,7 +25,6 @@ python openai_chat_completion_client_for_multimodal_generation.py --query-type u
 
 With `--log-stats` enabled, the server will output detailed metrics logs after each request. Example output:
 
-
 #### Overall Summary
 
 | Field                       | Value        |
@@ -69,7 +68,6 @@ With `--log-stats` enabled, the server will output detailed metrics logs after e
 | rx_decode_time_ms   | 111.865     | 31.706     |
 | in_flight_time_ms   | 2.015       | 2.819      |
 
-
 These logs include:
 
 - **Overall summary**: total requests, wall time, average tokens/sec, etc.
@@ -81,7 +79,6 @@ These logs include:
 - **Transfer table**: data transfer and timing for each edge.
 
 You can use these logs to monitor system health, debug performance, and analyze request-level metrics as described above.
-
 
 ## Metrics Scope: Offline vs Online Inference
 
@@ -115,7 +112,6 @@ For **online inference** (serving mode), the summary is always per-request. `e2e
 | `transfers_total_time_ms` | Sum of transfer edge `total_time_ms` for this request.                |
 | `transfers_total_kbytes`  | Sum of transfer kbytes for this request.                              |
 
-
 ---
 
 ### Stage Table (per stage event / request)
@@ -141,7 +137,6 @@ For **online inference** (serving mode), the summary is always per-request. `e2e
 | `tx_time_ms`         | Sender transfer time in ms.                                               |
 | `rx_decode_time_ms`  | Receiver decode time in ms.                                               |
 | `in_flight_time_ms`  | In-flight time in ms.                                                     |
-
 
 ### Expectation of the Numbers (Verification)
 

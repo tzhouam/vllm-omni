@@ -185,8 +185,8 @@ Current topology:
   └──────────────────────┘  └──────────────────────┘  └──────────────────────┘
 ```
 
-
 Test scripts:
+
 ```bash
 # enter offline inference folder.
 cd examples/offline_inference/qwen2_5_omni

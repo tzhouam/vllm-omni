@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Standalone diagnostic for the diffusion attention backends added in #3079.
 
 Exercises the same synthetic attention shape through each backend and each

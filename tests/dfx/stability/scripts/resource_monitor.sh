@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 #
 # Stability resource monitor script (single entry point, extendable to CPU/NPU later)
 # Only GPU monitoring is implemented for now; --backend reserves cpu/npu for future expansion.

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CPU coverage for the seam between Gepard's talker and the AR runner.
 
 ``test_gepard_window.py`` pins the decode arithmetic *below* this layer, and

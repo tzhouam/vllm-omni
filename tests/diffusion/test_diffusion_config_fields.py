@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Ensure diffusion stage YAML configs only use valid OmniDiffusionConfig fields.
 
 Regression test for https://github.com/vllm-project/vllm-omni/issues/2563

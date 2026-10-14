@@ -14,7 +14,7 @@ Upstream: **[LongVideoSparseAttention](https://github.com/JiusiServe/LongVideoSp
 Wan 2.1 1.3B, single A100 80 GB, mean over 5 prompts (Dense vs LVSA-FlashInfer):
 
 | Horizon | 1× | 2× | 3× | 4× | 5× | 6× |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | **Speedup** | 0.9× | 1.4× | 1.9× | 2.5× | 3.0× | **3.5×** |
 | **VQeval composite** (Dense→LVSA) | 63→63 | 59→63 | 61→63 | 61→64 | 59→64 | 59→63 |
 

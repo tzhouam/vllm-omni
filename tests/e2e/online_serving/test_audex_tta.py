@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """E2E online tests for Audex (Nemotron-Labs-Audex-2B) text-to-audio.
 
 Covers /v1/audio/speech through the ``audex_tta`` deployment:

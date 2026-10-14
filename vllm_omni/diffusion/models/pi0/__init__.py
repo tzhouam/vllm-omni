@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """π0 (Pi-Zero) VLA model for vllm-omni.
 
 PaliGemma (SigLIP vision + Gemma-2B LM) + Gemma-300M action expert + a

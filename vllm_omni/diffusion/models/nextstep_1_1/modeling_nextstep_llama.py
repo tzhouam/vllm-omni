@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # Adapted from NextStep-1.1 (https://huggingface.co/stepfun-ai/NextStep-1.1)
 # Original: models/llama_model.py — made TP-aware for vLLM-Omni.
 

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Daily-Omni multiple-choice accuracy scoring for vLLM-Omni bench serve.
 
 Compares model ``generated_text`` to dataset ``Answer`` (A/B/C/D).

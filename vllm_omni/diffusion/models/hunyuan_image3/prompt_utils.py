@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Shared prompt-template construction for HunyuanImage-3.0-Instruct.
 
 Single source of truth for the AR-prefill prompt format used by the

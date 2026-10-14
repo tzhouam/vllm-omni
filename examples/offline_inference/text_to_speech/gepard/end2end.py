@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline inference example for Gepard-1.0 TTS via vLLM-Omni.
 
 Single-stage native-AR pipeline: a Qwen3.5 backbone samples one 32-code FSQ

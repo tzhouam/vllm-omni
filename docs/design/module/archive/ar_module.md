@@ -19,6 +19,7 @@ As shown in the [end2end example](../../../user_guide/examples/offline_inference
 The AR module builds upon vLLM main framework through inheritance, extending core classes while preserving compatibility with vLLM's scheduling, batching, KV cache management, and execution mechanisms.
 
 ### Inheritance Hierarchy
+
 - Scheduler
 
 ```mermaid
@@ -37,6 +38,7 @@ classDiagram
     VLLMScheduler <|-- OmniARScheduler
     VLLMScheduler <|-- OmniGenerationScheduler
 ```
+
 - Worker
 
 ```mermaid
@@ -54,6 +56,7 @@ classDiagram
     GPUWorker <|-- GPUARWorker
     GPUWorker <|-- GPUGenerationWorker
 ```
+
 - ModelRunner
 
 ```mermaid
@@ -78,6 +81,7 @@ classDiagram
     OmniGPUModelRunner <|-- GPUARModelRunner
     OmniGPUModelRunner <|-- GPUGenerationModelRunner
 ```
+
 - InputProcessor/OutputProcessor
 
 ```mermaid
@@ -213,11 +217,13 @@ class GPUARWorker(GPUWorker):
 #### Two-Phase Execution
 
 **Phase 1: `execute_model()`** - Runs forward pass and stores state:
+
 - Computes logits from hidden states
 - Stores `ExecuteModelState` with hidden states, logits, and multimodal outputs
 - Returns `None` to defer sampling
 
 **Phase 2: `sample_tokens()`** - Samples tokens and builds output:
+
 - Retrieves stored state from `execute_model()`
 - Samples tokens using logits
 - Extracts per-request hidden states and multimodal outputs
@@ -275,6 +281,7 @@ def _collect_additional_information_for_prefill(self, num_scheduled_tokens_np):
 #### Additional Information Processing
 
 Decodes and manages `additional_information` payloads:
+
 - Decodes serialized payloads → CPU tensors in request state
 - Passes runtime information to model via `runtime_additional_information` kwarg
 - Processes model-provided updates via `postprocess()` hook
@@ -337,6 +344,7 @@ request = _upgrade_to_omni_request(request, prompt)
 #### Output Routing
 
 Routes `EngineCoreOutput` by `output_type` attribute:
+
 - `"text"`: Standard text generation path
 - `"image"`, `"audio"`, `"latents"`: Extract from `pooling_output` or `multimodal_outputs`
 - Fallback: Heuristic based on presence of `pooling_output`

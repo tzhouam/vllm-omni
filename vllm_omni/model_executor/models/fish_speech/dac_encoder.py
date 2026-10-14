@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """DAC codec encoder for Fish Speech S2 Pro voice cloning.
 
 Encodes reference audio into VQ codes for use as prompt conditioning.

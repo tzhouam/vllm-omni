@@ -13,7 +13,7 @@ inference time when the checkpoint already contains the quantization config.
 ## Hardware Support
 
 | Device | Support |
-|--------|---------|
+| -------- | --------- |
 | NVIDIA Blackwell GPU (SM 100+) | ✅ |
 | NVIDIA Ada/Hopper GPU (SM 89+) | ✅ |
 | NVIDIA Ampere GPU (SM 80+) | ✅ |
@@ -29,7 +29,7 @@ guide. AutoRound is Intel-supported.
 ### Diffusion Model (Qwen-Image, Wan2.2)
 
 | Model | Checkpoint | Scope | Scheme | Backend |
-|-------|------------|-------|--------|---------|
+| ------- | ------------ | ------- | -------- | --------- |
 | FLUX.1-dev | `vllm-project-org/FLUX.1-dev-AutoRound-w4a16` | Diffusion transformer | W4A16 | GPTQ-Marlin or Intel-supported AutoRound backend |
 | Qwen-Image | Not listed | Diffusion transformer | W4A16 | Not validated |
 | Wan2.2-I2V | `Intel/Wan2.2-I2V-A14B-Diffusers-int4-AutoRound` | Diffusion transformer | W4A16 | GPTQ-Marlin or Intel-supported AutoRound backend |
@@ -46,7 +46,7 @@ guide. AutoRound is Intel-supported.
 ### Multi-Stage Omni/TTS Model (Qwen3-Omni, Qwen3-TTS)
 
 | Model | Checkpoint | Scope | Scheme | Backend |
-|-------|------------|-------|--------|---------|
+| ------- | ------------ | ------- | -------- | --------- |
 | Qwen2.5-Omni-7B | `Intel/Qwen2.5-Omni-7B-int4-AutoRound` | Language-model stage | W4A16 | AutoRound |
 | Qwen3-Omni-30B-A3B-Instruct | `Intel/Qwen3-Omni-30B-A3B-Instruct-int4-AutoRound` | Thinker language-model stage | W4A16 | AutoRound |
 | Qwen3-TTS | Not listed | TTS language-model stage | W4A16 | Not validated |
@@ -92,7 +92,7 @@ python examples/offline_inference/text_to_image/text_to_image.py \
 ## Parameters
 
 | Field | Type | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | `quant_method` | str | Must be `"auto-round"` |
 | `bits` | int | Quantized weight bit width, usually `4` |
 | `group_size` | int | Quantization group size |

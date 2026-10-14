@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Reusable utility for building tiny diffusion models with random weights.
 
 Mirrors the component loading loop in DiffusionPipeline.from_pretrained,

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """CUDA Graph acceleration for the MOSS Audio Tokenizer codec decoder.
 
 Captures MossAudioTokenizerModel._decode for a set of fixed frame-count

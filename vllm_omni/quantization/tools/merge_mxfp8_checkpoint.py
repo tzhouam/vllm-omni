@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Merge W8A8 MXFP8 quantized Wan2.2 weights into HF Diffusers format for vllm-omni.
 
 Based on the SGLang convert_wan_to_diffusers approach, extended to:

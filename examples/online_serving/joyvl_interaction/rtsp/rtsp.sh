@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 set -euo pipefail
 
 # Loop a local video file and push it to an RTSP URL, simulating an RTSP camera.

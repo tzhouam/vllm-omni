@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Golden shape test for the NemotronVoiceChat frame-locked timeline contract.
 
 Pins the exact prefill/off-by-one arithmetic against values verified with the

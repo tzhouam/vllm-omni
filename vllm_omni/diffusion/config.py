@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Global diffusion config — mirrors vLLM's set_current_vllm_config pattern.
 
 Set once during model initialisation so that every ``Attention`` layer can

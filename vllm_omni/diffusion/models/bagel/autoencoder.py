@@ -1,6 +1,7 @@
 # Copyright (c) 2024 Black Forest Labs.
 # Copyright (c) 2025 Bytedance Ltd. and/or its affiliates.
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 #
 # This file has been modified by ByteDance Ltd. and/or its affiliates. on 2025-05-20.
 #

@@ -44,7 +44,6 @@ Two configurations are provided:
 
 None
 
-
 #### Command
 
 ```bash
@@ -125,7 +124,6 @@ python examples/offline_inference/speech_to_video/speech_to_video.py \
 
 None
 
-
 #### Command
 
 ```bash
@@ -170,7 +168,6 @@ python examples/offline_inference/speech_to_video/speech_to_video.py \
   --output s2v_720p_tp4_cfg2_offload.mp4
 ```
 
-
 ### Online Serving
 
 #### Server
@@ -211,26 +208,26 @@ image with lip movements synchronized to the audio. Check:
 #### Notes
 
 - **Key flags:**
-  - `--tensor-parallel-size <N>` — splits the DiT across N GPUs for TP.
-  - `--cfg-parallel-size <N>` - splits the conditioned / unconditioned pred to 2 GPUs run parallel.
-  - `--enable-cpu-offload` — enables model-level CPU offloading (transformer
+    - `--tensor-parallel-size <N>` — splits the DiT across N GPUs for TP.
+    - `--cfg-parallel-size <N>` - splits the conditioned / unconditioned pred to 2 GPUs run parallel.
+    - `--enable-cpu-offload` — enables model-level CPU offloading (transformer
     and text_encoder alternate on GPU). Adds ~12s overhead but reduces VRAM.
-  - `--vae-use-slicing --vae-use-tiling` — reduces VAE peak memory by
+    - `--vae-use-slicing --vae-use-tiling` — reduces VAE peak memory by
     processing frames in slices and spatial tiles.
-  - `--num-frames 81` — generates ~5s of video at 16 fps.
-  - `--num-inference-steps` — quality/speed tradeoff. 4 steps for fast preview,
+    - `--num-frames 81` — generates ~5s of video at 16 fps.
+    - `--num-inference-steps` — quality/speed tradeoff. 4 steps for fast preview,
     40 steps for production quality.
 - **Performance tips:**
-  - Use `--enforce-eager` to skip torch.compile if you encounter recompilation
+    - Use `--enforce-eager` to skip torch.compile if you encounter recompilation
     issues or want deterministic profiling.
-  - For profiling, add `--enable-diffusion-pipeline-profiler` for stage-level
+    - For profiling, add `--enable-diffusion-pipeline-profiler` for stage-level
     timing, or `--profiler-config '{"profiler":"torch","torch_profiler_dir":"./perf","torch_profiler_record_shapes":true,"torch_profiler_with_stack":false}'`
     for detailed op-level torch profiler traces.
-  - The first clip in multi-clip generation includes warmup overhead; subsequent
+    - The first clip in multi-clip generation includes warmup overhead; subsequent
     clips run at steady-state speed.
 - **Known limitations:**
-  - `VLLM_WORKER_MULTIPROC_METHOD=spawn` is required for multi-GPU offline
+    - `VLLM_WORKER_MULTIPROC_METHOD=spawn` is required for multi-GPU offline
     inference to avoid CUDA context issues with forked processes.
-  - CPU offload adds ~12s latency for model-level shuttling between CPU and GPU.
-  - S2V self-attention is ~8.5× more expensive than T2V due to audio-visual
+    - CPU offload adds ~12s latency for model-level shuttling between CPU and GPU.
+    - S2V self-attention is ~8.5× more expensive than T2V due to audio-visual
     conditioning fused into self-attn blocks.

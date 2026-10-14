@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Msgpack roundtrip tests for OmniEngineCoreOutputs with multimodal_output.
 
 Validates that tensor-only payloads survive msgspec encode/decode and that

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Configuration classes for Fish Speech S2 Pro (fish_qwen3_omni).
 
 The HuggingFace config uses field names from the original Fish Speech codebase

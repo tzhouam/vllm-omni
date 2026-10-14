@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """
 Assemble a Wan2.2-I2V-A14B-Diffusers-style model directory using a Diffusers
 skeleton and optional replacement transformer checkpoints.

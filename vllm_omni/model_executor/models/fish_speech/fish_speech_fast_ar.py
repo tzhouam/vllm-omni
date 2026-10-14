@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Fast AR (audio_decoder) for Fish Speech S2 Pro.
 
 4-layer transformer that predicts residual codebook codes (1..num_codebooks-1)

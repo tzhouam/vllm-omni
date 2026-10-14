@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 python image_edit.py \
     --model Qwen/Qwen-Image-Edit-2511 \
     --image qwen_bear.png \

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Composable parallel strategies for vLLM-Omni.
 
 A small, runtime-agnostic vocabulary for declaring a stage's parallel layout

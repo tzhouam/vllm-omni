@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """NPU patches for CosyVoice2 / Token2Wav DiT attention.
 
 CosyVoice2's DiT ``Attention.forward`` builds a key-padding style mask

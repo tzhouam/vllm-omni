@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 from vllm_omni.diffusion.models.longcat_video.longcat_video_avatar_transformer import (
     LongCatVideoAvatarTransformer3DModel,

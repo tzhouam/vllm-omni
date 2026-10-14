@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Plot universal TTS benchmark results.
 
 Reads JSON files saved by ``bench_tts.py`` (via ``vllm bench serve --omni``)

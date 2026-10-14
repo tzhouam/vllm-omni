@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Pre-compute VoxCPM2 custom voice profiles.
 
 The generated directory can be passed to the server via

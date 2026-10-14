@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # Adopted from https://github.com/descriptinc/descript-audio-codec (MIT License)
 # Copyright (c) 2023-present, Descript
 """Descript audio codec building blocks (Snake activation, weight-normed convs,
