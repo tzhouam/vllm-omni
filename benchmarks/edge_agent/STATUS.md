@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-14 **用户已撤销保持模型卸载限制；e39-v6 图像生命周期实跑及离线复核通过（EXIT 0）**：[本轮回执、逐文件哈希和验证范围](../edge_harness/results/strata_20261008/strata_q4_image_v6_lifecycle_closed_20261014.json)。三条指定图像请求参考检查通过，完整响应为 39.585／39.895／39.038 s；编码阶段取消、重新加载恢复、两代编码器／语言进程退场与最终账本清零通过，源码及输入前后稳定。仅为指定功能范围，不报告 p95 或默认资格。已开始绑定本轮回执的 Agent 浏览器截图整链回归，结果待完成。下方保持模型卸载及未实跑文字属于历史状态。
+
 2026-10-13 **e39-v6 Q4 图像路线注册成功，EXIT 0，未执行模型**：[完整原始注册证据](../edge_harness/results/strata_20261008/strata_image_v6_registration_20261013.json)。与本轮文本注册绑定，实际注册配置为 CPU 图像编码器＋Q4 语言路线；这不是图像请求或 Agent 回归通过。遵照用户要求继续保持模型卸载，当前版本的取消／恢复、质量及性能仍待真实回归。
 
 2026-10-13 Agent 异步释放失败恢复修复：所有资源释放成功前保持事件循环；异步 close 等待超时后保存原 Future，重试继续等待它，不重新调用同一后端 close。已结束的失败 Future 清除后可重新尝试，关闭状态仍阻止新请求。真实 asyncio 失败／重试与模拟等待超时覆盖通过，相关控制器／Strata／桌面共 117 项回归通过；未加载模型，不授予新的神经运行资格。 [原始 JUnit](../edge_harness/results/strata_20261008/agent_async_close_retry_20261013.junit.xml.gz)
