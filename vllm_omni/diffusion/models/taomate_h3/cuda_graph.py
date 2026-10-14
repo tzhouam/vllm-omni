@@ -35,7 +35,7 @@ from __future__ import annotations
 import dataclasses
 import traceback
 from collections import OrderedDict
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
@@ -140,7 +140,6 @@ class _Entry:
     # Pinned entries (captured up front for a configured shape range) are
     # never evicted by later, unpinned shapes.
     pinned: bool = False
-    replays: int = 0
 
 
 @contextmanager
@@ -199,7 +198,6 @@ class GraphedForward:
         self.replays = 0
         self.evictions = 0
         self.eager_calls = 0
-        self.disabled_reason: str | None = None
 
     # -- public --------------------------------------------------------------
 
@@ -230,7 +228,6 @@ class GraphedForward:
             copy_into(entry.static_kwargs, kwargs)
             self._entries.move_to_end(key)
         entry.graph.replay()
-        entry.replays += 1
         self.replays += 1
         return _clone_outputs(entry.outputs)
 
@@ -248,12 +245,15 @@ class GraphedForward:
             "eager_calls": self.eager_calls,
         }
 
+    def clear(self) -> None:
+        """Release captured graphs before their external weight buffers are freed."""
+        self._entries.clear()
+
     def disable(self, reason: str) -> None:
         if self.enabled:
             logger.warning("%s CUDA graphs disabled: %s", self.name, reason)
         self.enabled = False
-        self.disabled_reason = reason
-        self._entries.clear()
+        self.clear()
 
     # -- capture -------------------------------------------------------------
 
@@ -340,7 +340,5 @@ def _clone_outputs(outputs: Any) -> Any:
         return {key: _clone_outputs(item) for key, item in outputs.items()}
     return outputs
 
-
-ForwardFn = Callable[..., Any]
 
 __all__ = ["GraphedForward", "clone_static", "copy_into", "kwargs_signature"]

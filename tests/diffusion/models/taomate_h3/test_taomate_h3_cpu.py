@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
 from fractions import Fraction
 
 import pytest
@@ -19,7 +20,11 @@ from vllm_omni.diffusion.models.taomate_h3.kv_cache import (
     VIDEO_TOKEN_TAG,
     TaoMateKVHistory,
 )
-from vllm_omni.diffusion.models.taomate_h3.lora import TaoMateLoRAAdapter, is_taomate_lora_dir, taomate_lora_targets
+from vllm_omni.diffusion.models.taomate_h3.lora import (
+    TaoMateLoRAError,
+    prepare_taomate_lora,
+    taomate_lora_targets,
+)
 from vllm_omni.diffusion.models.taomate_h3.packed import (
     prompt_rope_start,
     taomate_audio_only_frozen_prefix_packed_layout,
@@ -417,35 +422,154 @@ def _adapter_tensor(tmp_path, name: str) -> torch.Tensor:
         return handle.get_tensor(name)
 
 
-def test_lora_adapter_hooks_add_scaled_delta_and_can_be_disabled(tmp_path) -> None:
+@pytest.mark.parametrize("scale", [0.5, 1.0, 1.5])
+def test_native_lora_preserves_fused_rows_and_unscaled_bf16_factors(tmp_path, scale) -> None:
     torch.manual_seed(0)
     model = _tiny_transformer()
-    adapter_dir = _write_adapter(tmp_path, model)
-    assert is_taomate_lora_dir(adapter_dir)
-    adapter = TaoMateLoRAAdapter.load(adapter_dir, transformer=model, device=torch.device("cpu"), dtype=torch.float32)
-    assert adapter.scale == pytest.approx(2.0)
-    assert len(adapter.bound_targets) == 8
-    x = torch.randn(5, 8)
-    fc2_in = torch.randn(5, 6)
-    with adapter.disabled():
-        base_out, _ = model.get_submodule("blocks.0.mlp.fc2")(fc2_in)
-    lora_out, _ = model.get_submodule("blocks.0.mlp.fc2")(fc2_in)
-    a = adapter._lora_a["blocks.0.mlp.fc2"]
-    b = adapter._lora_b["blocks.0.mlp.fc2"]
-    expected = base_out + (fc2_in @ a.t()) @ b.t() * adapter.scale
-    torch.testing.assert_close(lora_out, expected, rtol=1e-5, atol=1e-5)
-    # The qkv B rows are consumed in the adapter's merged [Q; K; V] order.
-    qkv_a = adapter._lora_a["blocks.0.attn.qkv_proj"]
-    qkv_b = adapter._lora_b["blocks.0.attn.qkv_proj"]
-    assert qkv_b.shape == (3 * 8, 3)
-    torch.testing.assert_close(qkv_b, _adapter_tensor(tmp_path, "blocks.0.attn.qkv_proj.lora_b"))
-    with adapter.disabled():
-        base_qkv, _ = model.get_submodule("blocks.0.attn.qkv_proj")(x)
-    lora_qkv, _ = model.get_submodule("blocks.0.attn.qkv_proj")(x)
-    torch.testing.assert_close(lora_qkv - base_qkv, (x @ qkv_a.t()) @ qkv_b.t() * adapter.scale, rtol=1e-5, atol=1e-5)
-    adapter.unbind()
-    plain, _ = model.get_submodule("blocks.0.mlp.fc2")(fc2_in)
-    torch.testing.assert_close(plain, base_out)
+    adapter_dir = _write_adapter(tmp_path, model, rank=3, alpha=3 * scale)
+    lora, peft, bank = prepare_taomate_lora(adapter_dir, transformer=model, device=torch.device("cpu"))
+    assert peft.r == 3 and peft.lora_alpha == 3 * scale
+    assert len(lora.loras) == 8 and bank is None
+    assert set(peft.target_modules) == set(lora.loras)
+    assert lora.clone(42).id == 42
+    for name, weights in lora.loras.items():
+        target = name.removeprefix("transformer.")
+        assert weights.scaling == scale
+        assert weights.lora_a.dtype == weights.lora_b.dtype == torch.bfloat16
+        # Neither QKV/fc1 row order nor B's numerical values may change here.
+        assert torch.equal(weights.lora_a, _adapter_tensor(tmp_path, f"{target}.lora_a").bfloat16())
+        assert torch.equal(weights.lora_b, _adapter_tensor(tmp_path, f"{target}.lora_b").bfloat16())
+        assert not model.get_submodule(target)._forward_hooks
+
+
+@pytest.mark.parametrize("artifact", ["peft_keys", "corrupt_file", "missing_file"])
+def test_native_lora_rejects_unrelated_or_unreadable_artifacts(tmp_path, artifact) -> None:
+    model = _tiny_transformer()
+    _write_adapter(tmp_path, model)
+    path = tmp_path / "adapter_model.safetensors"
+    if artifact == "peft_keys":
+        save_file({"blocks.0.attn.qkv_proj.lora_A.weight": torch.zeros(3, 8)}, str(path))
+    elif artifact == "corrupt_file":
+        path.write_bytes(b"not a safetensors file")
+    else:
+        path.unlink()
+    with pytest.raises(TaoMateLoRAError, match="inventory|cannot read"):
+        prepare_taomate_lora(tmp_path, transformer=model, device=torch.device("cpu"))
+
+
+@contextmanager
+def _native_manager_case(tmp_path, monkeypatch, *, merge, scale, device="cpu"):
+    """Exercise a native artifact and production bindings with tiny real linears."""
+    from vllm.config import VllmConfig, set_current_vllm_config
+    from vllm.model_executor import parameter
+    from vllm.model_executor.layers import linear
+
+    from vllm_omni.diffusion.lora.manager import DiffusionLoRAManager
+    from vllm_omni.diffusion.models.taomate_h3.audio_teacher import TaoMateAudioTeacher
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import TaoMateH3Pipeline
+
+    device = torch.device(device)
+    for module in (linear, parameter):
+        monkeypatch.setattr(module, "get_tensor_model_parallel_world_size", lambda: 1)
+        monkeypatch.setattr(module, "get_tensor_model_parallel_rank", lambda: 0)
+    if device.type == "cpu":
+        monkeypatch.setattr(
+            linear,
+            "dispatch_unquantized_gemm",
+            lambda *_args, **_kwargs: lambda _layer, x, weight, bias=None: torch.nn.functional.linear(x, weight, bias),
+        )
+    with set_current_vllm_config(VllmConfig()):
+        torch.manual_seed(17)
+        transformer = _tiny_transformer()
+        originals = {}
+        for target in taomate_lora_targets(num_blocks=1, num_refiner_blocks=1):
+            parent_name, _, leaf = target.rpartition(".")
+            parent = transformer.get_submodule(parent_name)
+            old = getattr(parent, leaf)
+            if leaf == "qkv_proj":
+                layer = linear.QKVParallelLinear(8, 4, 2, bias=False, params_dtype=torch.bfloat16)
+            elif leaf == "fc1":
+                layer = linear.MergedColumnParallelLinear(8, [6, 6], bias=False, params_dtype=torch.bfloat16)
+            else:
+                layer = linear.RowParallelLinear(
+                    old.in_features, old.out_features, bias=False, params_dtype=torch.bfloat16
+                )
+            layer.to(device=device)
+            layer.weight.data.copy_(old.weight)
+            setattr(parent, leaf, layer)
+            originals[f"transformer.{target}"] = layer
+        adapter_dir = _write_adapter(tmp_path, transformer, rank=8, alpha=8 * scale)
+        prepared = prepare_taomate_lora(adapter_dir, transformer=transformer, device=device, merge=merge)
+        pipeline = TaoMateH3Pipeline.__new__(TaoMateH3Pipeline)
+        nn.Module.__init__(pipeline)
+        pipeline.transformer = transformer
+        pipeline._tm_prepared_lora = prepared
+        pipeline._tm_lora_manager = None
+        pipeline._tm_teacher_graph = pipeline._tm_text_graph = None
+        pipeline._tm_teacher = TaoMateAudioTeacher(transformer, manager=None, device=device)
+        pipeline._turbo_lora_specs = {}
+        pipeline._native_lora_adapter_ids = set()
+        base = {name: layer.weight for name, layer in originals.items()}
+        manager = DiffusionLoRAManager(pipeline, device, torch.bfloat16, lora_path=adapter_dir, lora_scale=0.0)
+        try:
+            yield pipeline, manager, prepared, base, originals
+        finally:
+            manager.close()
+
+
+@pytest.mark.parametrize("merge", [False, True])
+@pytest.mark.parametrize("scale", [0.5, 1.0, 1.5])
+def test_native_artifact_uses_real_manager_and_preserves_teacher(tmp_path, monkeypatch, merge, scale) -> None:
+    from torch.utils._python_dispatch import TorchDispatchMode
+
+    class MatmulCount(TorchDispatchMode):
+        def __init__(self):
+            self.mm = self.addmm = 0
+
+        def __torch_dispatch__(self, func, types, args=(), kwargs=None):
+            self.mm += func._schema.name in {"aten::linear", "aten::matmul", "aten::mm"}
+            self.addmm += func._schema.name in {"aten::addmm_", "aten::addmm"}
+            return func(*args, **(kwargs or {}))
+
+    with _native_manager_case(tmp_path, monkeypatch, merge=merge, scale=scale) as case:
+        pipeline, manager, prepared, base, originals = case
+        assert pipeline._tm_teacher.manager is manager and pipeline._tm_prepared_lora is None
+
+        def unexpected_reload(*args, **kwargs):
+            pytest.fail("teacher/request transition reloaded or rebound the fixed adapter")
+
+        monkeypatch.setattr(manager, "_load_adapter", unexpected_reload)
+        monkeypatch.setattr(manager, "_bind_adapter_weights", unexpected_reload)
+        manager.set_request_adapter(None, 0.0)
+        with torch.inference_mode():
+            for name, original in originals.items():
+                layer = pipeline.get_submodule(name)
+                assert layer.base_layer is original and layer.n_slices == 1
+                weights = prepared[0].loras[name]
+                assert weights.scaling == scale and weights.lora_a.device.type == "cpu"
+                x = torch.randn(5, weights.lora_a.shape[1]).bfloat16()
+                if merge:
+                    merged = (base[name].float() + weights.lora_b.float() @ weights.lora_a.float() * scale).bfloat16()
+                    expected = torch.nn.functional.linear(x, merged)
+                else:
+                    expected = torch.nn.functional.linear(x, base[name])
+                    expected.addmm_(x @ weights.lora_a.T, weights.lora_b.T, alpha=scale)
+                pointers = (layer.lora_a_stacked[0].data_ptr(), layer.lora_b_stacked[0].data_ptr())
+                with MatmulCount() as count:
+                    actual = layer(x)[0]
+                torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+                # One base GEMM, plus one shrink and one fused expansion. QKV
+                # and fc1 must not repeat shrink for each logical slice.
+                assert (count.mm, count.addmm) == ((1, 0) if merge else (2, 1))
+                with pipeline._tm_teacher.manager.suspended():
+                    assert layer.base_layer.weight is base[name]
+                    torch.testing.assert_close(layer(x)[0], torch.nn.functional.linear(x, base[name]), rtol=0, atol=0)
+                torch.testing.assert_close(layer(x)[0], expected, rtol=0, atol=0)
+                assert pointers == (layer.lora_a_stacked[0].data_ptr(), layer.lora_b_stacked[0].data_ptr())
+        manager.close()
+        assert pipeline._tm_teacher.manager is None
+        assert all(pipeline.get_submodule(name) is original for name, original in originals.items())
+        assert all(original.weight is base[name] for name, original in originals.items())
 
 
 def test_lora_adapter_rejects_incomplete_inventory(tmp_path) -> None:
@@ -460,7 +584,7 @@ def test_lora_adapter_rejects_incomplete_inventory(tmp_path) -> None:
                 tensors[key] = handle.get_tensor(key)
     save_file(tensors, str(tmp_path / "adapter_model.safetensors"))
     with pytest.raises(Exception, match="inventory"):
-        TaoMateLoRAAdapter.load(str(tmp_path), transformer=model, device=torch.device("cpu"), dtype=torch.float32)
+        prepare_taomate_lora(str(tmp_path), transformer=model, device=torch.device("cpu"))
 
 
 # ----------------------------------------------------------------------------
@@ -815,7 +939,7 @@ def test_teacher_warm_shapes_cover_the_request_cycle(monkeypatch) -> None:
     from vllm_omni.diffusion.models.taomate_h3.cuda_graph import kwargs_signature
     from vllm_omni.diffusion.models.taomate_h3.geometry import CanvasGeometry
 
-    teacher = TaoMateAudioTeacher(SimpleNamespace(), lora=None, device=torch.device("cpu"))
+    teacher = TaoMateAudioTeacher(SimpleNamespace(), manager=None, device=torch.device("cpu"))
     assert (
         teacher.warm_shapes(
             text_embeddings=torch.zeros(5, 5120),
@@ -942,37 +1066,142 @@ def test_prepare_ahead_layout_matches_a_fresh_one_and_noise_is_reused() -> None:
     assert phase_state.branch.text_len == 50 and session.layout_ahead is None
 
 
-def test_lora_merge_builds_student_shadows_and_swaps_parameter_sets(tmp_path) -> None:
-    """The merged student weight is W + scale * B @ A; modes swap the target's parameters, not its hooks."""
+@pytest.mark.parametrize("scale", [0.5, 1.0, 1.5])
+def test_merged_student_preserves_bf16_rounding_and_base_storage(tmp_path, scale) -> None:
+    from types import SimpleNamespace
+
+    torch.manual_seed(7)
+    model = _tiny_transformer().bfloat16()
+    fc2 = model.get_submodule("blocks.0.mlp.fc2")
+    base_weight = fc2.weight
+    base_values = base_weight.detach().clone()
+    adapter_dir = _write_adapter(tmp_path, model, rank=3, alpha=3 * scale)
+    lora, _, bank = prepare_taomate_lora(adapter_dir, transformer=model, device=torch.device("cpu"), merge=True)
+    assert bank is not None
+    weights = lora.loras["transformer.blocks.0.mlp.fc2"]
+    expected = (base_values.float() + weights.lora_b.float() @ weights.lora_a.float() * scale).bfloat16()
+    shadow = fc2.taomate_student
+    assert torch.equal(shadow.weight, expected)
+    assert fc2.weight is base_weight
+    assert not shadow._forward_hooks
+    with pytest.raises(TaoMateLoRAError, match="bound after quantization"):
+        bank.activate()
+
+    wrappers = {
+        name: SimpleNamespace(base_layer=model.get_submodule(name.removeprefix("transformer."))) for name in lora.loras
+    }
+    bank.bind(wrappers)
+    bank.activate()
+    student_weight = fc2.weight
+    assert student_weight is shadow.weight
+    x = torch.randn(5, 6).bfloat16()
+    student_output, _ = fc2(x)
+    assert torch.equal(student_output, torch.nn.functional.linear(x, expected))
+    bank.suspend()
+    assert fc2.weight is base_weight and torch.equal(fc2.weight, base_values)
+    bank.activate()
+    assert fc2.weight is student_weight
+    bank.close()
+    bank.close()
+    assert fc2.weight is base_weight and not hasattr(fc2, "taomate_student")
+
+
+def test_merged_student_snapshots_parameters_only_after_final_quantization(tmp_path) -> None:
     model = _tiny_transformer()
     adapter_dir = _write_adapter(tmp_path, model)
-    adapter = TaoMateLoRAAdapter.load(adapter_dir, transformer=model, device=torch.device("cpu"), dtype=torch.float32)
-    fc2 = model.get_submodule("blocks.0.mlp.fc2")
-    base_weight = fc2.weight.detach().clone()
-    a = _adapter_tensor(tmp_path, "blocks.0.mlp.fc2.lora_a")
-    b = _adapter_tensor(tmp_path, "blocks.0.mlp.fc2.lora_b")
-    fc2_in = torch.randn(5, 6)
-    with adapter.disabled():
-        base_out, _ = fc2(fc2_in)
-    hooked_out, _ = fc2(fc2_in)
+    lora, _, bank = prepare_taomate_lora(adapter_dir, transformer=model, device=torch.device("cpu"), merge=True)
+    assert bank is not None
+    modules = {name: model.get_submodule(name.removeprefix("transformer.")) for name in lora.loras}
+    # Model loading can replace both parameter objects and quantization buffers
+    # between preparation and binding. The bank must retain those final objects.
+    for module in modules.values():
+        module.weight = nn.Parameter(module.weight.bfloat16(), requires_grad=False)
+        module.register_buffer("weight_scale", torch.tensor(2.0))
+        module.taomate_student.weight = nn.Parameter(module.taomate_student.weight.bfloat16(), requires_grad=False)
+        module.taomate_student.register_buffer("weight_scale", torch.tensor(3.0))
+    fc2 = modules["transformer.blocks.0.mlp.fc2"]
+    base_weight, base_scale = fc2.weight, fc2.weight_scale
+    student_weight, student_scale = fc2.taomate_student.weight, fc2.taomate_student.weight_scale
+    bank.bind(modules)
+    bank.activate()
+    assert fc2.weight is student_weight and fc2.weight_scale is student_scale
+    bank.suspend()
+    assert fc2.weight is base_weight and fc2.weight_scale is base_scale
+    bank.close()
 
-    merged = adapter.build_merged_student(model)
-    assert merged == len(adapter.targets) and adapter.merged and adapter.enabled is False
-    shadow = fc2.taomate_student
-    torch.testing.assert_close(shadow.weight, base_weight + b @ a * adapter.scale, rtol=1e-5, atol=1e-5)
-    assert not shadow._forward_hooks and torch.equal(fc2.weight, base_weight)  # base untouched until installed
 
-    adapter.ensure_student()
-    assert fc2.weight is shadow.weight
-    student_out, _ = fc2(fc2_in)
-    torch.testing.assert_close(student_out, hooked_out, rtol=1e-4, atol=1e-4)  # same math as the hooks
-    with adapter.disabled():
-        assert torch.equal(fc2.weight, base_weight)
-        teacher_out, _ = fc2(fc2_in)
-        torch.testing.assert_close(teacher_out, base_out)
-    assert fc2.weight is shadow.weight  # student weights back after the teacher
-    again, _ = fc2(fc2_in)
-    torch.testing.assert_close(again, student_out)
+def test_merged_student_preparation_and_binding_failures_preserve_base(tmp_path, monkeypatch) -> None:
+    from vllm_omni.diffusion.models.taomate_h3 import lora as lora_module
+
+    model = _tiny_transformer()
+    adapter_dir = _write_adapter(tmp_path, model)
+    original_weights = {name: module.weight for name, module in model.named_modules() if hasattr(module, "weight")}
+    original_shadow = lora_module._shadow_linear
+    calls = 0
+
+    def fail_after_first_shadow(module, weight):
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise RuntimeError("injected shadow failure")
+        return original_shadow(module, weight)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(lora_module, "_shadow_linear", fail_after_first_shadow)
+        with pytest.raises(RuntimeError, match="injected shadow failure"):
+            prepare_taomate_lora(adapter_dir, transformer=model, device=torch.device("cpu"), merge=True)
+    for name, weight in original_weights.items():
+        assert model.get_submodule(name).weight is weight
+        assert not hasattr(model.get_submodule(name), "taomate_student")
+    lora, _, bank = prepare_taomate_lora(adapter_dir, transformer=model, device=torch.device("cpu"), merge=True)
+    assert bank is not None
+    with pytest.raises(TaoMateLoRAError, match="original linear"):
+        bank.bind({})
+    bank.close()
+    for name, weight in original_weights.items():
+        assert model.get_submodule(name).weight is weight
+        assert not hasattr(model.get_submodule(name), "taomate_student")
+
+
+@pytest.mark.parametrize("transpose", [False, True])
+def test_merged_student_requantizes_already_fp8_base_and_restores_scales(tmp_path, transpose) -> None:
+    model = _tiny_transformer()
+    adapter_dir = _write_adapter(tmp_path, model, rank=3, alpha=1.5)
+
+    class FP8Method:
+        def process_weights_after_loading(self, module):
+            value = module.weight.detach().float()
+            scale = value.abs().amax(dim=1, keepdim=True).clamp_min(1e-5) / 240
+            quantized = (value / scale).to(torch.float8_e4m3fn)
+            module.weight = nn.Parameter(quantized.t().contiguous() if transpose else quantized, requires_grad=False)
+            module.weight_scale = nn.Parameter(scale, requires_grad=False)
+
+    targets = {
+        target: model.get_submodule(target) for target in taomate_lora_targets(num_blocks=1, num_refiner_blocks=1)
+    }
+    for module in targets.values():
+        module.output_size, module.input_size = module.weight.shape
+        module.quant_method = FP8Method()
+        module.quant_method.process_weights_after_loading(module)
+    fc2 = targets["blocks.0.mlp.fc2"]
+    base_weight, base_scale = fc2.weight, fc2.weight_scale
+    base = base_weight.t().float() if transpose else base_weight.float()
+    base = base * base_scale
+    lora, _, bank = prepare_taomate_lora(adapter_dir, transformer=model, device=torch.device("cpu"), merge=True)
+    assert bank is not None
+    pair = lora.loras["transformer.blocks.0.mlp.fc2"]
+    merged = (base + pair.lora_b.float() @ pair.lora_a.float() * 0.5).bfloat16().float()
+    expected_scale = merged.abs().amax(dim=1, keepdim=True).clamp_min(1e-5) / 240
+    expected_weight = (merged / expected_scale).to(torch.float8_e4m3fn)
+    if transpose:
+        expected_weight = expected_weight.t().contiguous()
+    bank.bind({f"transformer.{target}": module for target, module in targets.items()})
+    bank.activate()
+    assert torch.equal(fc2.weight.float(), expected_weight.float())
+    assert torch.equal(fc2.weight_scale, expected_scale)
+    bank.suspend()
+    assert fc2.weight is base_weight and fc2.weight_scale is base_scale
+    bank.close()
 
 
 def test_hold_is_released_after_its_time_bound(monkeypatch) -> None:

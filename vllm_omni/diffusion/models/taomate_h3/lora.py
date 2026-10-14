@@ -1,45 +1,29 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-"""TaoMate-H3 native LoRA adapter applied as switchable forward hooks.
+"""Native TaoMate LoRA loading and optional retained student weights.
 
-The TaoMate-H3 release (``TaoLiveAIGC/TaoMate-H3``) is a rank-128 LoRA over
-the fused MiniMax-H3 checkpoint layout: 52 blocks (2 token-refiner blocks and
-50 DiT blocks) x 4 projections (``attn.qkv_proj``, ``attn.out_proj``,
-``mlp.fc1``, ``mlp.fc2``), stored as ``<target>.lora_a`` [r, in] and
-``<target>.lora_b`` [out, r] in ``adapter_model.safetensors`` with
-``{"rank": 128, "alpha": 128.0}`` in ``config.json`` / ``adapter_config.json``.
-
-The adapter is deliberately *not* merged into the weights: TaoMate's audio
-teacher is the base H3 model without the LoRA, and it must share the resident
-BF16 weights with the LoRA student (two copies of the 62 GB DiT do not fit one
-device). Instead every target linear gets a forward hook that adds
-``(x @ A^T) @ B^T * alpha / rank`` to its output while the adapter is enabled;
-``disabled()`` switches it off for the teacher forwards.
-
-Only ``tensor_parallel_size == 1`` is supported (the realtime topology is pure
-Ulysses sequence parallelism): the adapter is then replicated on every rank
-and no A/B sharding is required. The fused QKV base weight is re-ordered from
-the checkpoint's per-head grouped layout to ``[Q; K; V]`` at load time; the
-adapter's fused-QKV ``lora_b`` already uses that merged row order (the release
-runtime applies it unpermuted), so it is consumed as stored.
+The artifact stores fused ``<target>.lora_a/b`` matrices over four projections
+in each DiT/refiner block. Its QKV B rows already use the loaded [Q; K; V]
+order. The shared diffusion LoRA manager applies these pairs and owns mode
+switching; the optional bank preserves separate base/student storage for the
+clean audio teacher, including graphs captured against the base parameters.
 """
 
 from __future__ import annotations
 
 import json
 import math
-from collections.abc import Iterator
-from contextlib import contextmanager
+from collections.abc import Mapping
 from pathlib import Path
 
 import torch
 import torch.nn as nn
-from safetensors import safe_open
-from vllm.logger import init_logger
+from safetensors import SafetensorError, safe_open
+from vllm.lora.lora_model import LoRAModel
+from vllm.lora.lora_weights import LoRALayerWeights
+from vllm.lora.peft_helper import PEFTHelper
 
 from vllm_omni.diffusion.models.minimax_h3.minimax_h3_transformer import MiniMaxH3DiTModel
-
-logger = init_logger(__name__)
 
 TAOMATE_LORA_TARGET_SUFFIXES = ("attn.qkv_proj", "attn.out_proj", "mlp.fc1", "mlp.fc2")
 TAOMATE_LORA_WEIGHTS_FILE = "adapter_model.safetensors"
@@ -75,288 +59,161 @@ def _read_adapter_config(adapter_dir: Path) -> tuple[int, float]:
     return int(rank), float(alpha)
 
 
-def is_taomate_lora_dir(path: str | Path | None) -> bool:
-    """Whether ``path`` looks like a TaoMate-H3 native adapter directory."""
-    if not path:
-        return False
-    root = Path(path)
-    if not root.is_dir() or not (root / TAOMATE_LORA_WEIGHTS_FILE).is_file():
-        return False
-    if not ((root / "config.json").is_file() or (root / "adapter_config.json").is_file()):
-        return False
+def prepare_taomate_lora(
+    adapter_dir: str | Path,
+    *,
+    transformer: MiniMaxH3DiTModel,
+    device: torch.device,
+    dtype: torch.dtype = torch.bfloat16,
+    merge: bool = False,
+) -> tuple[LoRAModel, PEFTHelper, MergedStudentWeights | None]:
+    """Normalize native factors before final quantization, without installing LoRA.
+
+    The model hook clones the returned model with the manager's request ID.
+    A/B stay on CPU for the manager cache, rounded before either use; alpha/r stays
+    separate for the fused addmm epilogue and FP32 merged-weight calculation.
+    """
+    root = Path(adapter_dir).expanduser().resolve()
+    rank, alpha = _read_adapter_config(root)
+    targets = taomate_lora_targets(
+        num_blocks=transformer.arch.num_layers,
+        num_refiner_blocks=transformer.arch.token_refiner_num_layers,
+    )
+    expected = {f"{target}.{leaf}" for target in targets for leaf in ("lora_a", "lora_b")}
+    modules = dict(transformer.named_modules())
+    loras: dict[str, LoRALayerWeights] = {}
     try:
-        with safe_open(str(root / TAOMATE_LORA_WEIGHTS_FILE), framework="pt", device="cpu") as handle:
-            keys = list(handle.keys())
-    except Exception:  # noqa: BLE001 - not ours if it does not open
-        return False
-    return any(key.endswith(".lora_a") for key in keys) and any(key.endswith(".lora_b") for key in keys)
+        checkpoint = safe_open(str(root / TAOMATE_LORA_WEIGHTS_FILE), framework="pt", device="cpu")
+    except (OSError, SafetensorError) as exc:
+        raise TaoMateLoRAError(f"cannot read TaoMate-H3 adapter weights under {root}: {exc}") from exc
+    with checkpoint as handle:
+        present = set(handle.keys())
+        if present != expected:
+            raise TaoMateLoRAError(
+                "TaoMate-H3 LoRA tensor inventory differs from the block x projection contract: "
+                f"missing={len(expected - present)}, unexpected={len(present - expected)}"
+            )
+        for target in targets:
+            module = modules.get(target)
+            if module is None or not hasattr(module, "weight"):
+                raise TaoMateLoRAError(f"TaoMate-H3 LoRA target {target!r} has no linear module in the DiT")
+            a, b = (handle.get_tensor(f"{target}.{leaf}") for leaf in ("lora_a", "lora_b"))
+            out_features, in_features = _linear_shape(module)
+            if tuple(a.shape) != (rank, in_features) or tuple(b.shape) != (out_features, rank):
+                raise TaoMateLoRAError(
+                    f"TaoMate-H3 LoRA {target}: A {tuple(a.shape)} / B {tuple(b.shape)} do not match "
+                    f"rank {rank} and linear ({out_features}, {in_features}); tensor parallel is unsupported"
+                )
+            name = f"transformer.{target}"
+            loras[name] = LoRALayerWeights(
+                module_name=name,
+                rank=rank,
+                lora_alpha=alpha,  # type: ignore[arg-type] - vLLM also accepts fractional alpha at runtime.
+                lora_a=a.to(dtype=dtype).contiguous(),
+                lora_b=b.to(dtype=dtype).contiguous(),
+                scaling=alpha / rank,
+            )
+    model = LoRAModel(lora_model_id=1, rank=rank, loras=loras)
+    peft = PEFTHelper.from_dict({"r": rank, "lora_alpha": alpha, "target_modules": list(loras)})
+    bank = MergedStudentWeights(transformer, model) if merge else None
+    return model, peft, bank
 
 
-class TaoMateLoRAAdapter:
-    """Hook-based, switchable application of the TaoMate-H3 LoRA."""
+class MergedStudentWeights:
+    """A parameter bank controlled by DiffusionLoRAManager, not a second adapter.
 
-    def __init__(
-        self,
-        *,
-        rank: int,
-        alpha: float,
-        lora_a: dict[str, torch.Tensor],
-        lora_b: dict[str, torch.Tensor],
-        source: str,
-    ) -> None:
-        self.rank = rank
-        self.alpha = alpha
-        self.scale = alpha / rank
-        self.source = source
-        self._lora_a = lora_a
-        self._lora_b = lora_b
-        self._handles: list[torch.utils.hooks.RemovableHandle] = []
-        self._bound_targets: tuple[str, ...] = ()
-        self.enabled = True
-        # Merged student weights (see build_merged_student): per target the
-        # module and its shadow linear holding W + scale * B @ A, plus the
-        # parameter sets swapped in for the student and for the base model.
+    Preparation registers shadows while the ordinary loader can still quantize
+    them. ``bind`` runs only after final quantization and wrapper installation;
+    it records the resulting parameters and buffers without copying their data.
+    """
+
+    def __init__(self, transformer: nn.Module, model: LoRAModel) -> None:
         self._shadows: dict[str, tuple[nn.Module, nn.Module]] = {}
         self._base_params: dict[str, dict[str, torch.Tensor]] = {}
         self._student_params: dict[str, dict[str, torch.Tensor]] = {}
-        self._student_installed = False
-
-    @property
-    def targets(self) -> tuple[str, ...]:
-        return tuple(self._lora_a)
-
-    @property
-    def bound_targets(self) -> tuple[str, ...]:
-        return self._bound_targets
-
-    @classmethod
-    def load(
-        cls,
-        adapter_dir: str | Path,
-        *,
-        transformer: MiniMaxH3DiTModel,
-        device: torch.device,
-        dtype: torch.dtype = torch.bfloat16,
-    ) -> TaoMateLoRAAdapter:
-        """Read the adapter and prepare rank-local A/B buffers in the model's fused layout."""
-        root = Path(adapter_dir).expanduser().resolve()
-        rank, alpha = _read_adapter_config(root)
-        arch = transformer.arch
-        targets = taomate_lora_targets(
-            num_blocks=arch.num_layers,
-            num_refiner_blocks=arch.token_refiner_num_layers,
-        )
-        expected = {f"{target}.{leaf}" for target in targets for leaf in ("lora_a", "lora_b")}
-        weights_path = root / TAOMATE_LORA_WEIGHTS_FILE
-        lora_a: dict[str, torch.Tensor] = {}
-        lora_b: dict[str, torch.Tensor] = {}
-        modules = dict(transformer.named_modules())
-        with safe_open(str(weights_path), framework="pt", device="cpu") as handle:
-            present = set(handle.keys())
-            if present != expected:
-                raise TaoMateLoRAError(
-                    "TaoMate-H3 LoRA tensor inventory differs from the 52-block x 4-projection contract: "
-                    f"missing={len(expected - present)}, unexpected={len(present - expected)}"
-                )
-            for target in targets:
-                module = modules.get(target)
-                if module is None or not hasattr(module, "weight"):
-                    raise TaoMateLoRAError(f"TaoMate-H3 LoRA target {target!r} has no linear module in the DiT")
-                a = handle.get_tensor(f"{target}.lora_a")
-                b = handle.get_tensor(f"{target}.lora_b")
-                if a.ndim != 2 or b.ndim != 2 or a.shape[0] != rank or b.shape[1] != rank:
-                    raise TaoMateLoRAError(f"TaoMate-H3 LoRA tensor shape differs for {target}")
-                weight = module.weight
+        try:
+            for name, weights in model.loras.items():
+                module = transformer.get_submodule(name.removeprefix("transformer."))
                 out_features, in_features = _linear_shape(module)
-                if a.shape[1] != in_features or b.shape[0] != out_features:
-                    raise TaoMateLoRAError(
-                        f"TaoMate-H3 LoRA {target}: A {tuple(a.shape)} / B {tuple(b.shape)} do not match the "
-                        f"linear ({out_features}, {in_features}); tensor parallel is not supported by this adapter"
-                    )
-                # The adapter's fused-QKV ``lora_b`` is already in the merged
-                # [Q; K; V] row order of the loaded base weight (the release
-                # loader reorders only the grouped base checkpoint), so no
-                # permutation is applied here.
-                lora_a[target] = a.to(device=device, dtype=dtype).contiguous()
-                lora_b[target] = b.to(device=device, dtype=dtype).contiguous()
-                del weight
-        adapter = cls(rank=rank, alpha=alpha, lora_a=lora_a, lora_b=lora_b, source=str(root))
-        adapter.bind(transformer)
-        logger.info(
-            "TaoMate-H3 LoRA loaded from %s: rank=%d alpha=%g targets=%d dtype=%s",
-            root,
-            rank,
-            alpha,
-            len(targets),
-            dtype,
-        )
-        return adapter
-
-    def bind(self, transformer: nn.Module) -> None:
-        """Install the forward hooks on every target linear."""
-        self.unbind()
-        modules = dict(transformer.named_modules())
-        bound: list[str] = []
-        for target in self.targets:
-            module = modules[target]
-            self._handles.append(module.register_forward_hook(self._make_hook(target)))
-            bound.append(target)
-        self._bound_targets = tuple(bound)
-
-    def unbind(self) -> None:
-        for handle in self._handles:
-            handle.remove()
-        self._handles.clear()
-        self._bound_targets = ()
-
-    def _make_hook(self, target: str):
-        lora_a = self._lora_a[target]
-        lora_b = self._lora_b[target]
-        scale = float(self.scale)
-        adapter = self
-
-        lora_a_t = lora_a.t()
-        lora_b_t = lora_b.t()
-
-        def hook(module: nn.Module, args: tuple, output):
-            if not adapter.enabled:
-                return None
-            x = args[0]
-            if isinstance(output, tuple):
-                out = output[0]
-            else:
-                out = output
-            flat = x.reshape(-1, x.shape[-1]).to(lora_a.dtype)
-            low_rank = torch.matmul(flat, lora_a_t)
-            out_rows = out.reshape(-1, out.shape[-1])
-            if out_rows.dtype == low_rank.dtype and out_rows.data_ptr() == out.data_ptr():
-                # One GEMM with the scale and the residual add in its epilogue
-                # (two launches per target instead of four; the sum rounds once).
-                out_rows.addmm_(low_rank, lora_b_t, alpha=scale)
-                return None
-            delta = torch.matmul(low_rank, lora_b_t)
-            if scale != 1.0:
-                delta = delta * scale
-            out.add_(delta.reshape(out.shape).to(out.dtype))
-            return None
-
-        return hook
-
-    # -- merged student weights ------------------------------------------
-
-    @property
-    def merged(self) -> bool:
-        return bool(self._shadows)
-
-    def build_merged_student(self, transformer: nn.Module) -> int:
-        """Give every target a shadow linear whose weight is ``W + scale * B @ A``.
-
-        Must run while the base weights are still BF16, before the loader's
-        online quantization: the shadow is registered as a submodule of its
-        target (``<target>.taomate_student``) so the loader quantizes it with
-        the target's own quantization method (per-channel FP8 keeps the delta
-        at channel resolution). Afterwards the student forwards use the shadow's
-        parameters and the hooks stay off; the base parameters are swapped back
-        in for the teacher (``disabled()``). Returns the number of targets.
-        """
-        if self._shadows:
-            return len(self._shadows)
-        modules = dict(transformer.named_modules())
-        for target in self.targets:
-            module = modules[target]
-            out_features, in_features = _linear_shape(module)
-            delta = torch.matmul(self._lora_b[target].float(), self._lora_a[target].float()) * float(self.scale)
-            if tuple(delta.shape) != (out_features, in_features):
-                raise TaoMateLoRAError(
-                    f"{target}: delta {tuple(delta.shape)} does not match the linear ({out_features}, {in_features})"
-                )
-            weight = module.weight.detach()
-            quantized = weight.dtype not in (torch.bfloat16, torch.float16, torch.float32)
-            if quantized:
-                # The loader quantized the base while loading it: dequantize
-                # (per-tensor or per-channel scale, stored transposed or not),
-                # merge in float32, and requantize the twin with the same method.
-                base = _dequantize_linear_weight(module, out_features, in_features)
-                merged = (base + delta.to(base.device)).to(torch.bfloat16)
-            else:
-                merged = (weight.to(delta.device, torch.float32) + delta).to(weight.dtype)
-            shadow = _shadow_linear(module, merged)
-            module.add_module("taomate_student", shadow)
-            if quantized:
-                quant_method = getattr(module, "quant_method", None)
-                if quant_method is None or not hasattr(quant_method, "process_weights_after_loading"):
-                    raise TaoMateLoRAError(f"{target}: quantized base weight without a quantization method")
-                quant_method.process_weights_after_loading(shadow)
-                if shadow.weight.dtype != weight.dtype or tuple(shadow.weight.shape) != tuple(weight.shape):
-                    raise TaoMateLoRAError(
-                        f"{target}: requantized student weight {shadow.weight.dtype} {tuple(shadow.weight.shape)} "
-                        f"differs from the base {weight.dtype} {tuple(weight.shape)}"
-                    )
-            self._shadows[target] = (module, shadow)
-        # The delta now lives in the student weights; hooks must not add it again.
-        self.enabled = False
-        self._student_installed = False
-        return len(self._shadows)
+                # Upload the rounded factors before widening, one target at a
+                # time. The manager keeps only their CPU copies in its cache.
+                device = module.weight.device
+                a = weights.lora_a.to(device=device, non_blocking=True).float()
+                b = weights.lora_b.to(device=device, non_blocking=True).float()
+                delta = (b @ a) * float(weights.scaling)
+                if tuple(delta.shape) != (out_features, in_features):
+                    raise TaoMateLoRAError(f"{name}: LoRA delta shape differs from the linear")
+                weight = module.weight.detach()
+                quantized = weight.dtype not in (torch.bfloat16, torch.float16, torch.float32)
+                if quantized:
+                    base = _dequantize_linear_weight(module, out_features, in_features)
+                    merged = (base + delta.to(base.device)).to(torch.bfloat16)
+                else:
+                    merged = (weight.to(delta.device, torch.float32) + delta).to(weight.dtype)
+                shadow = _shadow_linear(module, merged)
+                if hasattr(module, "taomate_student"):
+                    raise TaoMateLoRAError(f"{name}: student weights have already been prepared")
+                module.add_module("taomate_student", shadow)
+                self._shadows[name] = (module, shadow)
+                if quantized:
+                    quant_method = getattr(module, "quant_method", None)
+                    if quant_method is None or not hasattr(quant_method, "process_weights_after_loading"):
+                        raise TaoMateLoRAError(f"{name}: quantized base weight without a quantization method")
+                    quant_method.process_weights_after_loading(shadow)
+                    if shadow.weight.dtype != weight.dtype or tuple(shadow.weight.shape) != tuple(weight.shape):
+                        raise TaoMateLoRAError(f"{name}: requantized student weight differs from the base layout")
+        except BaseException:
+            self.close()
+            raise
 
     @staticmethod
     def _param_set(module: nn.Module) -> dict[str, torch.Tensor]:
-        names = [name for name, _ in module.named_parameters(recurse=False)]
-        names += [name for name, _ in module.named_buffers(recurse=False)]
-        return {name: getattr(module, name) for name in names}
+        return dict((*module.named_parameters(recurse=False), *module.named_buffers(recurse=False)))
 
-    def _snapshot_base(self) -> None:
+    def bind(self, modules: Mapping[str, nn.Module]) -> MergedStudentWeights:
+        """Validate complete bindings and snapshot finalized base/student storage."""
+        if not self._shadows:
+            raise TaoMateLoRAError("cannot bind a closed student weight bank")
         if self._base_params:
-            return
-        for target, (module, shadow) in self._shadows.items():
+            return self
+        base_params, student_params = {}, {}
+        for name, (module, shadow) in self._shadows.items():
+            wrapper = modules.get(name)
+            if wrapper is None or getattr(wrapper, "base_layer", wrapper) is not module:
+                raise TaoMateLoRAError(f"{name}: merged student did not bind to its original linear")
             student = self._param_set(shadow)
-            base = {name: getattr(module, name) for name in student if hasattr(module, name)}
-            missing = set(student) - set(base)
-            if missing:
-                raise TaoMateLoRAError(f"{target}: student parameters {sorted(missing)} have no base counterpart")
-            if any(getattr(shadow, name).dtype != base[name].dtype for name in student):
-                raise TaoMateLoRAError(f"{target}: student and base parameters differ in dtype (quantized alike?)")
-            self._base_params[target] = base
-            self._student_params[target] = student
+            base = {key: getattr(module, key) for key in student if hasattr(module, key)}
+            if set(student) != set(base):
+                raise TaoMateLoRAError(f"{name}: student parameters have no base counterpart")
+            if any(student[key].dtype != base[key].dtype or student[key].shape != base[key].shape for key in student):
+                raise TaoMateLoRAError(f"{name}: student and base parameters differ after quantization")
+            base_params[name], student_params[name] = base, student
+        self._base_params, self._student_params = base_params, student_params
+        return self
 
     def _install(self, params: dict[str, dict[str, torch.Tensor]]) -> None:
-        for target, (module, _) in self._shadows.items():
-            for name, value in params[target].items():
-                # Assigning a registered Parameter or buffer swaps it in place.
-                setattr(module, name, value)
+        for name, values in params.items():
+            module, _ = self._shadows[name]
+            for key, value in values.items():
+                setattr(module, key, value)
 
-    def ensure_student(self) -> None:
-        """Install the merged student weights (no-op without a merge or when installed)."""
-        if not self._shadows or self._student_installed:
-            return
-        self._snapshot_base()
+    def activate(self) -> None:
+        if not self._student_params:
+            raise TaoMateLoRAError("student weight bank must be bound after quantization before activation")
         self._install(self._student_params)
-        self._student_installed = True
 
-    @contextmanager
-    def disabled(self) -> Iterator[None]:
-        """Run the base model without the adapter (the audio teacher path)."""
-        if self._shadows:
-            # Base weights for the teacher, student weights back afterwards.
-            self._snapshot_base()
-            self._install(self._base_params)
-            self._student_installed = False
-            try:
-                yield
-            finally:
-                self._install(self._student_params)
-                self._student_installed = True
-            return
-        previous = self.enabled
-        self.enabled = False
-        try:
-            yield
-        finally:
-            self.enabled = previous
+    def suspend(self) -> None:
+        self._install(self._base_params)
 
-    def state_bytes(self) -> int:
-        return sum(t.numel() * t.element_size() for t in self._lora_a.values()) + sum(
-            t.numel() * t.element_size() for t in self._lora_b.values()
-        )
+    def close(self) -> None:
+        """Restore the base and discard owned shadows; safe after failed setup."""
+        self.suspend()
+        for module, shadow in self._shadows.values():
+            if getattr(module, "taomate_student", None) is shadow:
+                delattr(module, "taomate_student")
+        self._shadows.clear()
+        self._base_params.clear()
+        self._student_params.clear()
 
 
 def _dequantize_linear_weight(module: nn.Module, out_features: int, in_features: int) -> torch.Tensor:
@@ -424,9 +281,9 @@ def _linear_shape(module: nn.Module) -> tuple[int, int]:
 
 
 __all__ = [
+    "MergedStudentWeights",
     "TAOMATE_LORA_TARGET_SUFFIXES",
-    "TaoMateLoRAAdapter",
     "TaoMateLoRAError",
-    "is_taomate_lora_dir",
+    "prepare_taomate_lora",
     "taomate_lora_targets",
 ]

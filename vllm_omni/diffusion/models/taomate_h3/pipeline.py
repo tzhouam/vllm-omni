@@ -15,8 +15,8 @@ contract on vLLM-Omni's AR-Diffusion runtime (LingBot-World's realtime path):
   read by ``TaoMateH3StreamingAttention`` after the Ulysses all-to-all;
 * the prompt of the *next* request may change at any chunk boundary through
   the streaming ``session.interaction`` API (TaoMate's just-in-time lock);
-* the LoRA stays unmerged so the resident BF16 weights also serve the LoRA-free
-  audio teacher.
+* the LoRA manager preserves base weights for the clean audio teacher while
+  selecting either adapter execution or a separate merged student bank.
 
 The pipeline reuses the upstream MiniMax-H3 pipeline for component loading
 (DiT, Qwen3-VL text encoder with tensor parallel, VAEs) and only differs in
@@ -30,7 +30,7 @@ import time
 from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Literal, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
 import numpy as np
 import torch
@@ -62,6 +62,7 @@ from vllm_omni.experimental.ar_diffusion.kv_cache.segmented import ARDiffusionSe
 from vllm_omni.experimental.ar_diffusion.kv_cache.state import ARDiffusionKVState
 from vllm_omni.experimental.ar_diffusion.tick_protocol import ARDiffusionChunkMetadata
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams
+from vllm_omni.lora.request import LoRARequest
 from vllm_omni.model_executor.models.minimax_h3.conditioning import MiniMaxH3EncoderMediaInput
 from vllm_omni.model_executor.models.minimax_h3.encoder_processing import PreparedEncoderInputs
 
@@ -88,7 +89,7 @@ from .geometry import (
     request_plan,
 )
 from .kv_cache import TaoMateKVHistory
-from .lora import TaoMateLoRAAdapter, is_taomate_lora_dir
+from .lora import MergedStudentWeights, prepare_taomate_lora
 from .packed import taomate_phase_packed_layout
 from .schedule import euler_eta0_update_, student_sigmas
 from .stream_decode import StreamingAudioDecoder, StreamingVideoDecoder, samples_at_frame
@@ -96,6 +97,12 @@ from .text_encode import GraphSafeTextEncode, cudnn_sdp_enabled
 from .transformer import TaoMateH3DiTModel
 
 logger = init_logger(__name__)
+
+if TYPE_CHECKING:
+    from vllm.lora.lora_model import LoRAModel
+    from vllm.lora.peft_helper import PEFTHelper
+
+    from vllm_omni.diffusion.lora.manager import DiffusionLoRAManager
 
 NUM_PHASES = len(PHASE_GROUP_COUNTS)
 # Largest per-phase audio latent count over the first and the steady-state
@@ -162,7 +169,6 @@ class _RequestState:
     video_rows: torch.Tensor  # initial noise rows of the request's active video latents
     audio_rows: torch.Tensor  # initial noise rows [2 * active_audio, 32]
     audio_seed: int
-    video_seed: int
     frame_rows: int
     teacher: TeacherResult | None = None
     teacher_seconds: float = 0.0
@@ -227,14 +233,12 @@ class _Session:
         self.request_index = 0
         self.video_latent_offset = 0
         self.audio_latent_offset = 0
-        self.frames_published = 0
         self.renorm_anchor: tuple[torch.Tensor, torch.Tensor] | None = None
         self.teacher_previous_clean: torch.Tensor | None = None
         self.teacher_previous_count: int | None = None
         self.request: _RequestState | None = None
         self.phase: _PhaseState | None = None
         self.sigmas_video, self.sigmas_audio = student_sigmas()
-        self.stats: dict[str, float] = {"teacher_seconds": 0.0, "student_forwards": 0, "clean_forwards": 0}
         # Host-side work for the coming phase, computed while the device
         # decodes the current one: ``(key, packed layout)`` and the next
         # request's noise draws. See ``prepare_ahead``.
@@ -266,7 +270,6 @@ class _Session:
         transport_video = REQUEST_VIDEO_LATENTS - plan.video_latent_count
         transport_audio = REQUEST_AUDIO_LATENTS - plan.audio_latent_count
         audio_seed = self.seed + index
-        video_seed = (self.seed + index * _VIDEO_NOISE_REQUEST_STRIDE) % (2**63)
         ahead = self.noise_ahead
         self.noise_ahead = None
         if ahead is not None and ahead[0] == index:
@@ -296,7 +299,6 @@ class _Session:
             video_rows=video_rows.to(device=device, dtype=torch.float32),
             audio_rows=audio_rows.to(device=device, dtype=torch.float32),
             audio_seed=audio_seed,
-            video_seed=video_seed,
             frame_rows=frame_rows,
         )
         return self.request
@@ -552,6 +554,9 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
     # server otherwise spends 17-20 s on its first chunk, 3 s when warm.
     dummy_run_num_frames: ClassVar[int] = 0
     ar_diffusion_warmup_eager: ClassVar[bool] = True
+    requires_early_lora_init: ClassVar[bool] = True
+    diffusion_lora_scale_in_epilogue: ClassVar[bool] = True
+    diffusion_lora_fixed_adapter: ClassVar[bool] = True
     _transformer_cls: ClassVar[type] = TaoMateH3DiTModel
 
     def __init__(self, *, od_config: OmniDiffusionConfig, prefix: str = "") -> None:
@@ -691,7 +696,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # The executor returns the output of DiT rank 0; the other ranks take
         # part in the collectives but do not convert or decode media.
         self._tm_output_rank = int(self._dit_rank) == 0
-        self.taomate_lora: TaoMateLoRAAdapter | None = None
+        self._tm_lora_manager: DiffusionLoRAManager | None = None
+        self._tm_prepared_lora: tuple[LoRAModel, PEFTHelper, MergedStudentWeights | None] | None = None
         self._tm_teacher: TaoMateAudioTeacher | None = None
         self._tm_teacher_graph: GraphedForward | None = None
         self._tm_text_graph: GraphedForward | None = None
@@ -750,22 +756,13 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         lora_path = getattr(self.od_config, "lora_path", None)
         if isinstance(lora_path, (list, tuple)):
             lora_path = lora_path[0] if len(lora_path) == 1 else None
-        if lora_path and is_taomate_lora_dir(lora_path):
-            self.taomate_lora = TaoMateLoRAAdapter.load(
+        if lora_path:
+            self._tm_prepared_lora = prepare_taomate_lora(
                 lora_path,
                 transformer=self.transformer,
                 device=self.device,
                 dtype=torch.bfloat16,
-            )
-            if self._tm_lora_merge:
-                merged = self.taomate_lora.build_merged_student(self.transformer)
-                logger.info(
-                    "TaoMate-H3 LoRA merged into student weights for %d targets (taomate_h3_lora_merge)", merged
-                )
-        elif lora_path:
-            raise ValueError(
-                f"--lora-path {lora_path!r} is not a TaoMate-H3 native adapter directory "
-                "(expected adapter_model.safetensors with <target>.lora_a/lora_b keys and config.json)"
+                merge=self._tm_lora_merge,
             )
         elif not self._tm_allow_no_lora:
             raise ValueError(
@@ -795,9 +792,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             if cache is not None and hasattr(cache, "max_bytes"):
                 cache.max_bytes = 0
                 logger.info("TaoMate-H3: AdaLN projection cache off (taomate_h3_adaln_cache: false)")
-        self._tm_teacher = TaoMateAudioTeacher(
-            self.transformer, lora=self.taomate_lora, device=self.device, graph=graph
-        )
+        self._tm_teacher = TaoMateAudioTeacher(self.transformer, manager=None, device=self.device, graph=graph)
         return loaded
 
     def _build_text_encoder_graph(self) -> GraphedForward | None:
@@ -841,10 +836,44 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         with cudnn_sdp_enabled(True), torch.inference_mode():
             return text_graph(variant=("text_encode",), input_ids=ids)
 
-    @property
-    def lora_is_fused(self) -> bool:
-        # The adapter is applied by this pipeline; keep the dynamic LoRA manager away.
-        return True
+    def _load_diffusion_lora_adapter(
+        self, *, lora_request: LoRARequest, lora_path: Any, dtype: torch.dtype
+    ) -> tuple[LoRAModel, PEFTHelper]:
+        del lora_path, dtype
+        if self._tm_prepared_lora is None:
+            raise RuntimeError("TaoMate-H3 native adapter was not prepared during weight loading")
+        model, peft, _ = self._tm_prepared_lora
+        return model.clone(lora_request.lora_int_id), peft
+
+    def _get_diffusion_lora_packed_modules(self, module_name: str, module: torch.nn.Module) -> list[str] | None:
+        del module
+        return [module_name] if module_name.endswith((".attn.qkv_proj", ".mlp.fc1")) else None
+
+    def _create_diffusion_merged_lora(
+        self, *, lora_model: LoRAModel, modules: Any, scale: float
+    ) -> MergedStudentWeights | None:
+        del lora_model, scale
+        prepared = self._tm_prepared_lora
+        bank = None if prepared is None else prepared[2]
+        if bank is not None:
+            try:
+                bank.bind(modules)
+            except BaseException:
+                bank.close()
+                raise
+        return bank
+
+    def _bind_diffusion_lora_manager(self, manager: DiffusionLoRAManager | None) -> None:
+        self._tm_lora_manager = manager
+        if self._tm_teacher is not None:
+            self._tm_teacher.manager = manager
+        if manager is None:
+            for graph in (self._tm_teacher_graph, self._tm_text_graph):
+                if graph is not None:
+                    graph.clear()
+            if self._tm_prepared_lora is not None and self._tm_prepared_lora[2] is not None:
+                self._tm_prepared_lora[2].close()
+        self._tm_prepared_lora = None
 
     # -- prompts ----------------------------------------------------------
 
@@ -1365,7 +1394,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         )
         request.teacher = result
         request.teacher_seconds = time.perf_counter() - started
-        session.stats["teacher_seconds"] += request.teacher_seconds
         session.teacher_previous_clean = result.clean
         session.teacher_previous_count = result.audio_latent_count
         # The request's clean audio is final now; make it available to the
@@ -1424,8 +1452,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             imgvid_cond_timestep=t_video,
             audio_ref_cond_timestep=1.0,
         )
-        if self.taomate_lora is not None:
-            self.taomate_lora.ensure_student()
+        if self._tm_lora_manager is not None:
+            self._tm_lora_manager.set_request_adapter(None)
         started = time.perf_counter()
         with stream_context(session.stream_context(StreamMode.NOISY)), torch.inference_mode():
             velocity_video, _ = self.transformer(**forward_kwargs)
@@ -1438,7 +1466,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             if velocity_video.is_cuda:
                 torch.accelerator.synchronize()
         phase_state.timings["denoise"] = phase_state.timings.get("denoise", 0.0) + (time.perf_counter() - started)
-        session.stats["student_forwards"] += 1
         return velocity_video.float()
 
     def step_scheduler(self, state: StepRequestState, noise_pred: torch.Tensor | None, **kwargs: Any) -> None:
@@ -1493,8 +1520,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         # Sigma-zero forward: recompute this chunk's K/V from its clean latents
         # and append them to the persistent history.
         cache = session.cache
-        if self.taomate_lora is not None:
-            self.taomate_lora.ensure_student()
+        if self._tm_lora_manager is not None:
+            self._tm_lora_manager.set_request_adapter(None)
         commit_started = time.perf_counter()
         session.history.begin_commit(audio_tokens=int(audio_rows.shape[0]), video_tokens=int(clean_video.shape[0]))
         try:
@@ -1514,7 +1541,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         except BaseException:
             session.history.rollback()
             raise
-        session.stats["clean_forwards"] += 1
         if self._tm_log_timings and torch.cuda.is_available():
             torch.accelerator.synchronize()
         phase_state.timings["commit"] = time.perf_counter() - commit_started
@@ -1558,7 +1584,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             session.audio_decoder.skip_range(samples_at_frame(frame_start + num_frames))
             audio = np.zeros((0, 2), dtype=np.float32)
         phase_state.timings["audio_decode"] = time.perf_counter() - audio_started
-        session.frames_published = frame_start + num_frames
         phase_end = time.perf_counter()
         phase_seconds = phase_end - phase_state.started_at
         if self._tm_log_timings:

@@ -12,24 +12,25 @@ speech continues seamlessly across requests.
 
 The released implementation runs this teacher as a separate BF16 process on
 its own GPUs. Here it shares the resident weights with the student: the LoRA
-is a switchable hook set, so disabling it for nine forwards yields the base
-model exactly.
+manager suspends the student adapter for all nine forwards, restoring the
+base parameters when the student uses merged weights.
 """
 
 from __future__ import annotations
 
 import hashlib
 from collections.abc import Callable
+from contextlib import nullcontext
 from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
 
+from vllm_omni.diffusion.lora.manager import DiffusionLoRAManager
 from vllm_omni.diffusion.models.minimax_h3.denoise_loop import MiniMaxH3DenoiseBranch
 
 from .cuda_graph import GraphedForward
 from .geometry import REQUEST_AUDIO_LATENTS, REQUEST_VIDEO_LATENTS, CanvasGeometry, StreamPlan, request_plan
-from .lora import TaoMateLoRAAdapter
 from .packed import taomate_audio_only_frozen_prefix_packed_layout, taomate_audio_only_packed_layout
 from .schedule import TEACHER_STATE_NUMBERS, euler_eta0_update_, teacher_sigmas
 from .transformer import LocalEmbedPlan, local_embed_plan
@@ -82,7 +83,6 @@ class TeacherResult:
 
     milestones: list[torch.Tensor]
     audio_latent_count: int
-    forwards: int
 
     @property
     def clean(self) -> torch.Tensor:
@@ -96,17 +96,16 @@ class TaoMateAudioTeacher:
         self,
         transformer: nn.Module,
         *,
-        lora: TaoMateLoRAAdapter | None,
+        manager: DiffusionLoRAManager | None,
         device: torch.device,
         graph: GraphedForward | None = None,
     ) -> None:
         self.transformer = transformer
-        self.lora = lora
+        self.manager = manager
         self.device = device
         # Optional CUDA-graph replay of the nine fixed-shape forwards.
         self.graph = graph
         self.sigmas_video, self.sigmas_audio = teacher_sigmas()
-        self.forwards = 0
         # One embedding plan per document shape. A captured graph reads the
         # plan's index tensors by address, so the plan of a shape must stay
         # the same object for as long as the process serves that shape.
@@ -230,7 +229,7 @@ class TaoMateAudioTeacher:
                 (int(branch.audio_pos.numel()), AUDIO_ROW_WIDTH), dtype=torch.float32, device=self.device
             )
             embed_plan: LocalEmbedPlan | None = getattr(branch, "taomate_embed_plan", None)
-            lora_scope = self.lora.disabled() if self.lora is not None else _NullScope()
+            lora_scope = self.manager.suspended() if self.manager is not None else nullcontext()
             with lora_scope, local_embed_plan(embed_plan):
                 forward_kwargs = teacher_forward_kwargs(
                     branch, video_rows=video_rows, audio_rows=audio_rows, t_video=0.0, t_audio=0.0
@@ -290,7 +289,7 @@ class TaoMateAudioTeacher:
         video_rows = torch.empty((0, VIDEO_ROW_WIDTH), dtype=torch.float32, device=self.device)
         captured: dict[int, torch.Tensor] = {}
         steps = len(self.sigmas_video) - 1
-        lora_scope = self.lora.disabled() if self.lora is not None else _NullScope()
+        lora_scope = self.manager.suspended() if self.manager is not None else nullcontext()
         plan: LocalEmbedPlan | None = getattr(branch, "taomate_embed_plan", None)
         with lora_scope, local_embed_plan(plan):
             for step in range(steps):
@@ -305,7 +304,6 @@ class TaoMateAudioTeacher:
                     t_audio=t_a,
                 )
                 _, velocity_audio = self._forward(forward_kwargs, plan=plan)
-                self.forwards += 1
                 velocity_target = velocity_audio.float()[target]
                 target_rows = audio_rows[ref_rows:]
                 euler_eta0_update_(target_rows, velocity_target, sigma_curr=s_a, sigma_next=s_a_next)
@@ -313,7 +311,7 @@ class TaoMateAudioTeacher:
                 if state_number in TEACHER_STATE_NUMBERS:
                     captured[state_number] = target_rows.detach().clone()
         milestones = [captured[number] for number in TEACHER_STATE_NUMBERS]
-        return TeacherResult(milestones=milestones, audio_latent_count=active_audio_latents, forwards=steps)
+        return TeacherResult(milestones=milestones, audio_latent_count=active_audio_latents)
 
     def _forward(
         self, forward_kwargs: dict, *, plan: LocalEmbedPlan | None, pin: bool = False
@@ -321,7 +319,7 @@ class TaoMateAudioTeacher:
         graph = self.graph
         if graph is None or not graph.enabled:
             return self.transformer(**forward_kwargs)
-        # The graph is captured with the LoRA hooks disabled and this
+        # The graph is captured with the LoRA manager suspended and this
         # document's embedding plan installed; both are part of its identity.
         variant = ("teacher", "lora_off", None if plan is None else plan.fingerprint)
         return graph(variant=variant, keep_alive=() if plan is None else (plan,), pin=pin, **forward_kwargs)
@@ -366,7 +364,7 @@ def teacher_forward_kwargs(
         inverse = attach_teacher_timestep_slots(branch)
     x = branch.x_base.clone()
     if video_rows.shape[0]:
-        x[0].index_copy_(0, branch.img_pos_dev, video_rows)
+        raise ValueError("teacher documents carry no video rows")
     audio_x = branch.audio_x_base.clone()
     audio_x[0].index_copy_(0, branch.audio_pos_dev, audio_rows)
     unique = torch.tensor([float(t_video), 1.0, float(t_audio)], dtype=torch.float32, device=branch.device)
@@ -377,14 +375,6 @@ def teacher_forward_kwargs(
         "unique_timesteps": unique,
         "inverse_indices": inverse,
     }
-
-
-class _NullScope:
-    def __enter__(self) -> None:
-        return None
-
-    def __exit__(self, *exc: object) -> None:
-        return None
 
 
 __all__ = [
