@@ -7,7 +7,7 @@ import time
 from collections import OrderedDict
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import torch
 from vllm.logger import init_logger
@@ -139,7 +139,7 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
             )
         return pipeline
 
-    def load_model(self, *args: object, **kwargs: object) -> None:
+    def load_model(self, *args: Any, **kwargs: Any) -> None:
         super().load_model(*args, **kwargs)
         if self.pipeline is None:
             return
@@ -380,6 +380,8 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         serialized worker-call boundary and can release it immediately.
         """
         super().release_step_requests(request_ids)
+        if self.kv_cache is None:
+            return
         for request_id in request_ids:
             if request_id == getattr(self, "_active_stepwise_request_id", None):
                 continue
@@ -395,15 +397,7 @@ class ARDiffusionModelRunner(DiffusionModelRunner):
         path, and tick sessions are keyed by their own ids, so the membership
         check leaves them untouched.
         """
-        for request_id in getattr(scheduler_output, "finished_req_ids", None) or ():
-            self._stepwise_chunk_started.pop(request_id, None)
-            if request_id in self._sessions:
-                self._release_session(
-                    request_id,
-                    reset_model=False,
-                    reason="close",
-                    suppress_errors=True,
-                )
+        self.release_step_requests(getattr(scheduler_output, "finished_req_ids", None) or ())
 
     def execute_model(
         self,

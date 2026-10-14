@@ -4,6 +4,10 @@
 
 from __future__ import annotations
 
+import weakref
+from contextlib import nullcontext
+from types import SimpleNamespace
+
 import pytest
 import torch
 import torch.nn as nn
@@ -250,24 +254,48 @@ def test_real_teacher_kwargs_are_graph_cloneable() -> None:
         assert kwargs_signature(static) == kwargs_signature(kwargs)
 
 
-def test_copy_into_refreshes_an_alias_with_other_strides() -> None:
-    base = torch.arange(6.0).view(2, 3)
-    static = base.clone()
-    # Same storage pointer as ``static`` but transposed strides: must be copied, not skipped.
-    alias = static.t().contiguous().t()  # a fresh tensor with the same values and shape
-    assert copy_into(static, alias) == 1 and torch.equal(static, alias)
-    stale = torch.zeros(2, 3)
-    assert copy_into(stale, base) == 1 and torch.equal(stale, base)
+def test_copy_into_checks_strides_when_storage_is_shared(monkeypatch) -> None:
+    static = torch.arange(4.0).view(2, 2)
+    alias = static.t()
+    assert static.data_ptr() == alias.data_ptr() and static.stride() != alias.stride()
+    copies = []
+    # Observe the copy decision without attempting an unsupported overlapping copy.
+    monkeypatch.setattr(torch.Tensor, "copy_", lambda dst, src: copies.append((dst, src)))
+    assert copy_into(static, static) == 1 and not copies
+    assert copy_into(static, alias) == 1 and len(copies) == 1
+    assert copies[0][0] is static and copies[0][1] is alias
 
 
-def test_pinned_entries_survive_lru_eviction() -> None:
-    from vllm_omni.diffusion.models.taomate_h3.cuda_graph import _Entry
+def test_pinned_entries_survive_real_lru_eviction(monkeypatch) -> None:
+    stream = SimpleNamespace(wait_stream=lambda other: None)
+    monkeypatch.setattr(torch.cuda, "Stream", lambda **kwargs: stream)
+    monkeypatch.setattr(torch.cuda, "current_stream", lambda device: stream)
+    monkeypatch.setattr(torch.cuda, "stream", lambda stream: nullcontext())
+    monkeypatch.setattr(torch.cuda, "graph", lambda graph, **kwargs: nullcontext())
+    monkeypatch.setattr(torch.cuda, "CUDAGraph", lambda: SimpleNamespace(pool=lambda: None, replay=lambda: None))
+    graph = GraphedForward(_Doubler(), device=torch.device("cpu"), max_entries=3, warmup_iters=0)
+    graph.enabled = True
+    graph._probe_pending = False  # Only CUDA primitives are stubbed; capture and eviction run unchanged.
 
-    graph = GraphedForward(torch.nn.Identity(), device=torch.device("cpu"), max_entries=2)
-    graph.enabled = True  # exercise the eviction bookkeeping without a device
-    graph._entries["a"] = _Entry(graph=None, static_kwargs={}, outputs=None, pinned=True)
-    graph._entries["b"] = _Entry(graph=None, static_kwargs={}, outputs=None)
-    # Emulate the eviction step of _capture for a third key.
-    victim = next((k for k, e in graph._entries.items() if not e.pinned), None)
-    assert victim == "b"
-    assert graph.stats()["pinned"] == 1
+    def forward(variant, *, pin=False, keep_alive=()):
+        graph(variant=variant, pin=pin, keep_alive=keep_alive, x=torch.ones(2), scale=2.0)
+
+    plan = _Doubler()
+    plan_ref = weakref.ref(plan)
+    forward("a", pin=True, keep_alive=(plan,))
+    del plan
+    forward("b")
+    forward("c")
+    forward("b")  # Recently used b must survive; the older a is pinned.
+    forward("d")
+    assert [key[0] for key in graph._entries] == [kwargs_signature(v) for v in ("a", "b", "d")]
+    assert graph.stats()["evictions"] == 1 and graph.stats()["captures"] == 4
+    forward("b", pin=True)
+    forward("d", pin=True)
+    forward("b")  # Pinning remains set on an ordinary replay.
+    forward("e")  # All existing entries are pinned: preserve them and grow.
+    assert [key[0] for key in graph._entries] == [kwargs_signature(v) for v in ("a", "d", "b", "e")]
+    assert graph.stats()["pinned"] == 3 and graph.stats()["evictions"] == 1
+    assert plan_ref() is not None
+    graph.clear()
+    assert graph.enabled and graph.num_graphs == 0 and plan_ref() is None

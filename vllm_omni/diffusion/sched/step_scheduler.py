@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass
+from math import inf
 from typing import TYPE_CHECKING, Any, Literal
 
 from vllm.logger import init_logger
@@ -27,6 +28,10 @@ logger = init_logger(__name__)
 class _StepProgress:
     current_step: int
     total_steps: int
+    interaction_generation: int = 0
+    scheduled_interaction_generation: int = 0
+    wait_deadline: float | None = None  # None: runnable; inf: indefinite wait.
+    resume: Literal["interaction", "timeout"] | None = None
 
 
 class StepScheduler(BaseScheduler):
@@ -35,25 +40,16 @@ class StepScheduler(BaseScheduler):
     def __init__(self) -> None:
         super().__init__()
         self._request_progress: dict[str, _StepProgress] = {}
-        self._interaction_generation: dict[str, int] = {}
-        self._scheduled_interaction_generation: dict[str, int] = {}
-        self._interaction_waits: dict[str, float | None] = {}
-        self._step_resumes: dict[str, Literal["interaction", "timeout"]] = {}
 
     def _reset_scheduler_state(self) -> None:
         self._request_progress.clear()
-        self._interaction_generation.clear()
-        self._scheduled_interaction_generation.clear()
-        self._interaction_waits.clear()
-        self._step_resumes.clear()
 
     def _can_schedule_running(self, state: SchedulerRequestState) -> bool:
-        return state.request_id not in self._interaction_waits
+        return self._request_progress[state.request_id].wait_deadline is None
 
     def get_execution_wait_timeout(self, now: float) -> float | None:
-        if not self._interaction_waits:
-            return 0.0
-        if any(request_id not in self._interaction_waits for request_id in self._running):
+        deadlines = [p.wait_deadline for p in self._request_progress.values() if p.wait_deadline is not None]
+        if not deadlines or any(self._request_progress[rid].wait_deadline is None for rid in self._running):
             return 0.0
         if len(self._running) < self.max_num_running_reqs and any(
             self._can_schedule_waiting(self._request_states[request_id]) for request_id in self._waiting
@@ -61,29 +57,32 @@ class StepScheduler(BaseScheduler):
             return 0.0
         if self._finished_req_ids or self._kv_transfer_request_ids or self._kv_draining_requests:
             return 0.0
-        deadlines = [deadline for deadline in self._interaction_waits.values() if deadline is not None]
-        return max(min(deadlines) - now, 0.0) if deadlines else None
+        deadline = min(deadlines)
+        return None if deadline == inf else max(deadline - now, 0.0)
 
     def notify_interaction(self, request_id: str) -> None:
         state = self._request_states.get(request_id)
         if state is None or state.is_finished():
             return
-        self._interaction_generation[request_id] = self._interaction_generation.get(request_id, 0) + 1
-        if request_id in self._interaction_waits:
-            del self._interaction_waits[request_id]
-            self._step_resumes[request_id] = "interaction"
+        progress = self._request_progress[request_id]
+        progress.interaction_generation += 1
+        if progress.wait_deadline is not None:
+            progress.wait_deadline = None
+            progress.resume = "interaction"
 
     def schedule(self) -> DiffusionSchedulerOutput:
         now = time.monotonic()
-        for request_id, deadline in list(self._interaction_waits.items()):
-            if deadline is not None and now >= deadline:
-                del self._interaction_waits[request_id]
-                self._step_resumes[request_id] = "timeout"
+        for progress in self._request_progress.values():
+            if progress.wait_deadline is not None and now >= progress.wait_deadline:
+                progress.wait_deadline = None
+                progress.resume = "timeout"
         output = super().schedule()
         for request_id in output.scheduled_request_ids:
-            self._scheduled_interaction_generation[request_id] = self._interaction_generation.get(request_id, 0)
-            if request_id in self._step_resumes:
-                output.step_resumes[request_id] = self._step_resumes.pop(request_id)
+            progress = self._request_progress[request_id]
+            progress.scheduled_interaction_generation = progress.interaction_generation
+            if progress.resume is not None:
+                output.step_resumes[request_id] = progress.resume
+                progress.resume = None
         return output
 
     def add_request(self, request: OmniDiffusionRequest) -> str:
@@ -178,23 +177,17 @@ class StepScheduler(BaseScheduler):
                 if wait is not None:
                     # RPCs are drained before this update. Latch successful
                     # interactions even when the wait was not installed yet.
-                    if self._interaction_generation.get(request_id, 0) != self._scheduled_interaction_generation.get(
-                        request_id, 0
-                    ):
-                        self._step_resumes[request_id] = "interaction"
+                    if progress.interaction_generation != progress.scheduled_interaction_generation:
+                        progress.resume = "interaction"
                     else:
-                        self._interaction_waits[request_id] = (
-                            None if wait.timeout_seconds is None else time.monotonic() + wait.timeout_seconds
+                        progress.wait_deadline = (
+                            inf if wait.timeout_seconds is None else time.monotonic() + wait.timeout_seconds
                         )
 
         return self._finalize_update_from_output(sched_output, terminal_statuses, terminal_errors)
 
     def _pop_extra_request_state(self, request_id: str) -> None:
         self._request_progress.pop(request_id, None)
-        self._interaction_generation.pop(request_id, None)
-        self._scheduled_interaction_generation.pop(request_id, None)
-        self._interaction_waits.pop(request_id, None)
-        self._step_resumes.pop(request_id, None)
 
     def _finish_requests(
         self,
@@ -203,8 +196,10 @@ class StepScheduler(BaseScheduler):
     ) -> set[str]:
         finished = super()._finish_requests(statuses, errors)
         for request_id in finished:
-            self._interaction_waits.pop(request_id, None)
-            self._step_resumes.pop(request_id, None)
+            progress = self._request_progress.get(request_id)
+            if progress is not None:
+                progress.wait_deadline = None
+                progress.resume = None
         return finished
 
     def _get_total_steps(self, request: OmniDiffusionRequest) -> int:

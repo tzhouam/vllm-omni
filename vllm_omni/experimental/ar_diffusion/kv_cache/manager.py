@@ -507,15 +507,7 @@ class ARDiffusionKVCache:
             self.device,
         )
         if self.history_staging_tokens and self.segmented_spec is None:
-            for _ in range(self.num_layers):
-                shape = (self.history_staging_tokens, self.num_kv_heads, self.head_size)
-                pair = (
-                    torch.empty(shape, device=self.device, dtype=self.dtype),
-                    torch.empty(shape, device=self.device, dtype=self.dtype),
-                )
-                for buffer in pair:
-                    torch._dynamo.mark_static_address(buffer)
-                self.history_staging.append(pair)
+            self.history_staging = self._allocate_staging_layers(self.history_staging_tokens)
         if self.segmented_spec is not None:
             self.segmented_staging = [
                 self._allocate_segmented_staging(self.segmented_spec.initial_staging_tokens)
@@ -523,6 +515,9 @@ class ARDiffusionKVCache:
             ]
 
     def _allocate_segmented_staging(self, tokens: int) -> SegmentedStaging:
+        return SegmentedStaging(self._allocate_staging_layers(tokens), tokens)
+
+    def _allocate_staging_layers(self, tokens: int) -> list[tuple[torch.Tensor, torch.Tensor]]:
         layers = []
         for _ in range(self.num_layers):
             shape = (tokens, self.num_kv_heads, self.head_size)
@@ -533,7 +528,7 @@ class ARDiffusionKVCache:
             for buffer in pair:
                 torch._dynamo.mark_static_address(buffer)
             layers.append(pair)
-        return SegmentedStaging(layers, tokens)
+        return layers
 
     def ensure_segmented_staging(self, kv_branch: str, tokens: int) -> None:
         """Grow unpinned conditioning storage outside capture after admission.

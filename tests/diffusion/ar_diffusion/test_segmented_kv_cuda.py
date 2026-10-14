@@ -2,10 +2,13 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CUDA scatter/gather and fixed-address replay with the native KV allocator."""
 
+from functools import partial
+
 import pytest
 import torch
 
-from tests.diffusion.ar_diffusion.test_segmented_kv import make_cache, make_state
+from tests.diffusion.ar_diffusion.test_segmented_kv import append as _append
+from tests.diffusion.ar_diffusion.test_segmented_kv import make_cache, make_state, rows
 from tests.helpers.mark import hardware_marks
 
 pytestmark = [
@@ -29,22 +32,7 @@ def cuda_state():
     assert cache.manager.block_pool.get_num_free_blocks() == free
 
 
-def _rows(count, offset=0):
-    return (torch.arange(count * 8, device="cuda", dtype=torch.float32).reshape(count, 2, 4) / 19 + offset).to(
-        torch.bfloat16
-    )
-
-
-def _append(state, lengths, offset=0):
-    count = sum(lengths)
-    state.prepare_layer_views(count, 3)
-    handles = state.begin_commit(lengths)
-    for layer in range(state.cache.num_layers):
-        media, condition = _rows(count, offset + 10 * layer), _rows(3, -2)
-        state.assemble(layer, condition, -condition, media, -media)
-        state.stage(layer)
-    state.commit(retain=handles)
-    return handles
+_rows = partial(rows, device="cuda", dtype=torch.bfloat16)
 
 
 @pytest.mark.parametrize("lengths", [(15, 3), (17, 5)])
@@ -57,7 +45,7 @@ def test_cuda_partial_pages_exclude_poisoned_padding(cuda_state, lengths):
     for layer in range(state.cache.num_layers):
         media, condition = _rows(4, 5), _rows(2, -3)
         key, value = state.assemble(layer, condition, -condition, media, -media)
-        expected = torch.cat((_rows(sum(lengths), 2 + layer * 10), media, condition))
+        expected = torch.cat((_rows(sum(lengths), 2 + layer * 100), media, condition))
         torch.testing.assert_close(key, expected, rtol=0, atol=0)
         torch.testing.assert_close(value, -expected, rtol=0, atol=0)
         assert torch.isfinite(key).all() and torch.isfinite(value).all()
@@ -85,7 +73,7 @@ def test_cuda_partial_commit_rollback_preserves_history(cuda_state):
     state.prepare_layer_views(2, 0)
     for layer in range(state.cache.num_layers):
         key, value = state.assemble(layer, _rows(0), _rows(0), _rows(2), _rows(2))
-        expected = _rows(22, 7 + 10 * layer)
+        expected = _rows(22, 7 + 100 * layer)
         torch.testing.assert_close(key[:22], expected, rtol=0, atol=0)
         torch.testing.assert_close(value[:22], -expected, rtol=0, atol=0)
 

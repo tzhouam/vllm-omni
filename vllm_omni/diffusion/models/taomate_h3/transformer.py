@@ -37,8 +37,6 @@ class LocalEmbedPlan:
     indexing. ``fingerprint`` identifies the layout the plan was built for.
     """
 
-    seq_len: int
-    local_span: tuple[int, int]
     fingerprint: tuple[int, ...]
     img_global_pos: torch.Tensor
     audio_global_pos: torch.Tensor
@@ -80,8 +78,6 @@ class LocalEmbedPlan:
             text_local = text
             text_indices = None
         return LocalEmbedPlan(
-            seq_len=int(seq_len),
-            local_span=(local_start, local_len),
             fingerprint=fingerprint,
             img_global_pos=img_global.to(device),
             audio_global_pos=audio_global.to(device),

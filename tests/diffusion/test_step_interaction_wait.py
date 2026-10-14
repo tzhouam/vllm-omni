@@ -77,9 +77,30 @@ def test_abort_discards_wait_and_frees_admission():
     scheduler.pop_request_state("held")
     scheduler.add_request(_make_step_request("queued"))
     assert scheduler.schedule().scheduled_request_ids == ["queued"]
-    assert not scheduler._interaction_waits
-    assert not scheduler._step_resumes
-    assert not scheduler._interaction_generation
+    assert "held" not in scheduler._request_progress
+    assert scheduler.get_execution_wait_timeout(1e12) == 0
+
+
+def test_finite_deadline_wakes_only_its_request_among_indefinite_waits(monkeypatch):
+    now = [100.0]
+    monkeypatch.setattr("vllm_omni.diffusion.sched.step_scheduler.time.monotonic", lambda: now[0])
+    scheduler = _scheduler()
+    scheduler.max_num_running_reqs = 2
+    scheduler.add_request(_make_step_request("finite"))
+    scheduled = scheduler.schedule()
+    scheduler.update_from_output(
+        scheduled,
+        BatchRunnerOutput.from_list([_chunk(), RunnerOutput("finite", step_index=3, wait_for_interaction=StepWait(2))]),
+    )
+    assert scheduler.get_execution_wait_timeout(now[0]) == 2
+    now[0] += 2
+    resumed = scheduler.schedule()
+    assert resumed.scheduled_request_ids == ["finite"] and resumed.step_resumes == {"finite": "timeout"}
+    scheduler.finish_requests("finite", DiffusionRequestStatus.FINISHED_COMPLETED)
+    scheduler.schedule()  # Deliver terminal bookkeeping before waiting again.
+    assert scheduler.get_execution_wait_timeout(now[0]) is None
+    scheduler.notify_interaction("held")
+    assert scheduler.schedule().step_resumes == {"held": "interaction"}
 
 
 @pytest.mark.parametrize("wake", ["interaction", "timeout", "abort", "shutdown"])
@@ -94,7 +115,8 @@ def test_engine_sleeps_without_executing_held_request(monkeypatch, wake):
     condition_wait = engine._cv.wait
 
     def observe_wait(timeout=None):
-        if scheduler._interaction_waits:
+        progress = scheduler._request_progress.get("held")
+        if progress is not None and progress.wait_deadline is not None:
             sleeping.set()
         return condition_wait(timeout)
 
@@ -145,4 +167,4 @@ def test_failed_interaction_rpc_does_not_wake(monkeypatch):
     with pytest.raises(ValueError, match="invalid prompt"):
         task.future.result()
     assert scheduler.get_execution_wait_timeout(1e12) is None
-    assert not scheduler._interaction_generation
+    assert scheduler._request_progress["held"].interaction_generation == 0

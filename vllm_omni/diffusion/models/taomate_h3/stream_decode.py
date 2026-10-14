@@ -14,7 +14,7 @@ decode would; each phase yields 34/34/34/17 frames and the newest window's
 five-frame overlap is held until the next phase (or ``flush``). Frames are
 native 24 fps, 119 per steady request.
 
-All ranks of a tile-parallel VAE group call ``push`` collectively because the
+All ranks of a tile-parallel VAE group call ``push_device`` collectively because the
 checkpoint splits spatial tiles across the group.
 
 Audio
@@ -25,8 +25,6 @@ cropped to the samples aligned with the frames of the same phase.
 """
 
 from __future__ import annotations
-
-from typing import Any
 
 import numpy as np
 import torch
@@ -85,12 +83,6 @@ class StreamingVideoDecoder:
         self.next_window = 0
         self.overlap: torch.Tensor | None = None
         self.frames_emitted = 0
-
-    def state_bytes(self, latent_h: int, latent_w: int) -> int:
-        """Upper bound of resident latent and overlap buffers for one session."""
-        latent_rows = 24 * (_WINDOW_TOKENS + 12) * latent_h * latent_w * 4
-        overlap = 3 * _OVERLAP_FRAMES * self.height * self.width * 4
-        return latent_rows + overlap
 
     def _to_uint8_device(self, frames: torch.Tensor) -> torch.Tensor:
         # frames: [1, 3, T, H, W] in VAE output space -> [T, H, W, 3] uint8 on the device, cropped to the canvas
@@ -156,11 +148,6 @@ class StreamingVideoDecoder:
         if not self.emit_frames:
             return frame_start, np.zeros((int(frames.shape[2]), 0, 0, 3), dtype=np.uint8)
         return frame_start, self._to_uint8_device(frames)
-
-    def push(self, latents: torch.Tensor) -> tuple[int, np.ndarray | None]:
-        """Collective: append latents; return ``(frame_start, uint8 [T, H, W, 3] or None)``."""
-        frame_start, frames = self.push_device(latents)
-        return frame_start, self.to_host(frames)
 
     def flush(self) -> tuple[int, np.ndarray | None]:
         """Emit the held five-frame overlap of the last window (end of a session)."""
@@ -246,19 +233,9 @@ class StreamingAudioDecoder:
             self.latents = self.latents[:, :, keep_from - self.base :].contiguous()
             self.base = keep_from
 
-    def state_bytes(self) -> int:
-        return 2 * 32 * (self.left + self.right + 2 * 210) * 4
 
-
-def video_frames_to_payload(frames: np.ndarray | None) -> np.ndarray:
-    if frames is None:
-        return np.zeros((0, 1, 1, 3), dtype=np.uint8)
-    return frames
-
-
-__all__: list[Any] = [
+__all__ = [
     "StreamingAudioDecoder",
     "StreamingVideoDecoder",
     "samples_at_frame",
-    "video_frames_to_payload",
 ]

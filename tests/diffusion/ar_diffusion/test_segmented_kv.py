@@ -3,6 +3,7 @@
 """Exact-token storage and transactions through the real vLLM KV allocator."""
 
 from dataclasses import replace
+from functools import partial
 
 import pytest
 import torch
@@ -47,17 +48,18 @@ def make_state(cache, name="session"):
     return ARDiffusionKVState(cache, name, {"main": cache.begin_request(name)}, num_layers=cache.num_layers)
 
 
-def rows(count, offset=0):
-    return torch.arange(count * 8, dtype=torch.float32).reshape(count, 2, 4) / 19 + offset
+def rows(count, offset=0, *, device="cpu", dtype=torch.float32):
+    return (torch.arange(count * 8, dtype=torch.float32, device=device).reshape(count, 2, 4) / 19 + offset).to(dtype)
 
 
 def append(state, lengths, offset=0, retain=None):
+    row = partial(rows, device=state.cache.device, dtype=state.cache.dtype)
     count = sum(lengths)
     state.prepare_layer_views(count, 3)
     handles = state.begin_commit(lengths)
     for layer in range(state.cache.num_layers):
-        media = rows(count, offset + 100 * layer)
-        condition = rows(3, -20)
+        media = row(count, offset + 100 * layer)
+        condition = row(3, -20)
         state.assemble(layer, condition, -condition, media, -media)
         state.stage(layer)
     state.commit(retain=handles if retain is None else retain(handles))

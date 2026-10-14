@@ -62,14 +62,9 @@ class StreamContext:
     # the gathers.
     condition_span: tuple[int, int] | None = None
     media_span: tuple[int, int] | None = None
-    kernel_calls: int = 0
 
 
 _STREAM_CONTEXT: ContextVar[StreamContext | None] = ContextVar("taomate_h3_stream_context", default=None)
-
-
-def current_stream_context() -> StreamContext | None:
-    return _STREAM_CONTEXT.get()
 
 
 @contextmanager
@@ -269,7 +264,6 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
             scale=scale,
             flash_attn_func=self._flash_attn_func,
         )
-        context.kernel_calls += 2
         out = torch.zeros_like(q)
         if c_span is not None:
             out[c_span[0] : c_span[0] + c_span[1]] = condition_out
@@ -289,6 +283,5 @@ __all__ = [
     "StreamContext",
     "StreamMode",
     "TaoMateH3StreamingAttention",
-    "current_stream_context",
     "stream_context",
 ]

@@ -101,11 +101,6 @@ def taomate_phase_packed_layout(
     )
     grid[audio_by_channel[0], 0] = audio_times
     grid[audio_by_channel[1], 0] = audio_times
-    packed["taomate_times"] = {
-        "text_time_start": start,
-        "phase_video_time_start": float(video_times[0]),
-        "phase_audio_time_start": float(audio_times[0]),
-    }
     return packed
 
 
