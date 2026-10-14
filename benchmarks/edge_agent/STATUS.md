@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-14 **6 GiB 驻留 Agent smoke 也被实时联合 RAM 准入拒绝，0 条完整任务**：[原始失败回执与哈希](../edge_harness/results/strata_20261008/strata_q4_image_agent_6g_capacity_refusal_20261014.json)。联合需求 22,624,075,776 B，可用 18,999,222,272 B；安全退出、账本清零及源码／前置证据稳定性通过。独立 6 GiB 图像生命周期通过不变。未发现残留 Strata 模型进程；未关闭其他应用或 JiuwenCopilot 服务。保持固定路线，等待释放约 5 GiB RAM 或用户指定可关闭应用后重试；尚未开始正式性能长测。
+
 2026-10-14 **e39-v6 6 GiB 图像生命周期与离线复核 EXIT 0**：[原始回执及完整哈希索引](../edge_harness/results/strata_20261008/strata_q4_image_6g_v6_lifecycle_closed_20261014.json)。三条指定请求参考检查通过，完整响应 40.898／44.016／42.800 s；编码阶段取消、重新加载恢复、原生进程退场、账本清零及源码／输入稳定性通过。原生 RAM arena 报告 6141 MiB，GPU 专家缓存 7676 MiB，仅证明对应组件预算一致性，非总进程硬上限。四轮驻留 Agent smoke 已启动，尚无完成或性能资格结论。
 
 2026-10-14 **e39-v6 6 GiB 专家缓存图像实验注册 EXIT 0，生命周期实跑已启动**：[完整注册、冻结输入与预算差异](../edge_harness/results/strata_20261008/strata_q4_image_6g_registration_20261014.json)。与 8 GiB 路线逐项核对模型／打包／运行时清单、上下文、输出上限、KV、MTP 与 GPU 预算一致；仅专家 RAM 缓存及对应加载峰值减少 2 GiB，其余独立预算保留。当前尚无该路线生命周期或 Agent 完成结论，不继承 8 GiB 的通过记录。

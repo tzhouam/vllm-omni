@@ -1,0 +1,91 @@
+{
+  "schema": "omni-strata-agent-capacity-refusal-v1",
+  "date": "2026-10-14",
+  "status": "joint_ram_admission_refused",
+  "exit_code": 1,
+  "qualified": false,
+  "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-smoke-6g-20261014-v6",
+  "receipt_sha256": "4e66810ce7bb6932b656943a902b6c98409e5adc0e5def1e1f2e970ee8ea6bbd",
+  "receipt_archive": "strata_q4_image_agent_6g_capacity_refusal_20261014.receipt.json.gz",
+  "receipt_archive_sha256": "0b101790a1f064884d81d59770081a38832fee8c828bb3a4c09b8131a075f2af",
+  "error": "ResourceUnavailable: host_ram: joint need 22624075776 bytes, live free 18999222272 bytes",
+  "resource_drain_verified": true,
+  "ledger_after_close": {
+    "resident_route": null,
+    "resident_free_floor": {},
+    "ledger": {
+      "capacities": {
+        "host_ram": 18990669824,
+        "vram": 20512731136,
+        "windows_commit": 65145274368,
+        "ssd": 784075174028
+      },
+      "reserved": {
+        "host_ram": 0,
+        "vram": 0,
+        "windows_commit": 0,
+        "ssd": 0
+      },
+      "owners": [],
+      "quarantined": []
+    },
+    "joint_admission": {
+      "generation": null,
+      "route_id": null,
+      "startup_free": {},
+      "snapshot_monotonic_ns": [],
+      "combined_demands": {},
+      "protected_free_floor": {},
+      "needs_drain": false,
+      "loading": false,
+      "model_owner": null,
+      "companion_owner": null,
+      "envelope_sha256": "c3f80f2d8d7d97b1c06964a3a4f5da27c8153cbb19f95f37cec1affb5962bcf4",
+      "evidence_reference": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-8g-20261013-v5\\browser-resource-envelope.json",
+      "scope": "declared_incremental_joint_allowance_not_process_hard_cap"
+    }
+  },
+  "source_stable": true,
+  "prerequisites_stable": true,
+  "output_writers_quiesced": true,
+  "raw_files": {
+    "all-raw.json": {
+      "size_bytes": 100,
+      "sha256": "259b9d37fc24e7cb02f7d739b8ad412ff79e31e5f34f526f4a731fafc8092d35"
+    },
+    "config.json": {
+      "size_bytes": 14771000,
+      "sha256": "cf18462f9dbe1391a5758d1e403c2eda79f21c76aa8227cab4f47fa556c09f4f"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392363,
+      "sha256": "c7368df325ff69d41484a2fb9dc088dd4b24fe5465cfa3dd7150d51fdceb294a"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "8d93011de526888728ec213c1166b9beb86debf17db40db7b52bd829e31bc6e9"
+    },
+    "hardware.json": {
+      "size_bytes": 4703,
+      "sha256": "f4f101284f5cc1894cdc1f081d8f138335d643c524d0d810dd29c0520040ce34"
+    },
+    "memory.sqlite": {
+      "size_bytes": 77824,
+      "sha256": "768c870705991c821da4d520224212af6a4cb47c70b4d57332f175cb44183bed"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 219,
+      "sha256": "13643e3fe715903261a00adba7d892788dab03e1605073ff228c291fa8e88b04"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 12520,
+      "sha256": "d1897634305d20c39525884ff52d38551da81c1f0a284e4bc66c4e3b1c1774f9"
+    }
+  },
+  "scope": "Four-request smoke attempted; zero complete Agent tasks because live joint admission refused before model load. Separate 6 GiB image lifecycle remains passed.",
+  "next_action": "Retain the fixed six GiB route and obtain enough free host RAM for joint model/encoder/browser admission. User asked to free about five GiB or name applications that may be closed; unrelated services were not terminated."
+}
