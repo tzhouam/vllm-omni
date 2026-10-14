@@ -3,7 +3,18 @@
 # on the previous release image. Copilot updates this commit pin, which also
 # selects the image used by CI. The selected commit must have a published
 # nightly image as well as a cu130 wheel.
-ARG VLLM_PRECOMPILED_WHEEL_COMMIT=e0317b28ce3ba4c9bd2ff69d885e3f34688a6d71
+# This rebase's alignment target is e0317b28ce3ba4c9bd2ff69d885e3f34688a6d71,
+# but upstream's nightly cron never published an image for that commit (merged
+# after the Oct 12 nightly, superseded before the Oct 13 one), and Docker Hub
+# keeps nightly-<sha> tags only ~5 days. The pin is therefore the nearest
+# nightly-published ANCESTOR of the target: CI's vllm
+# (0.31.1rc1.dev296+gfe4df3df0) is ~40 commits older than the tree's
+# alignment (0.31.1rc1.dev336+ge0317b28c) on purpose. Newer nightlies are not
+# usable: cascade attention was removed upstream after the target, which
+# vllm_omni's AR runner still passes kwargs for. If this tag is ever pruned
+# ("not found" at load metadata), re-pin to the nearest still-published
+# nightly ancestor of the alignment target.
+ARG VLLM_PRECOMPILED_WHEEL_COMMIT=fe4df3df0eb703862c686b256e9fe44fa94c8945
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
 ARG VLLM_BASE_TAG=nightly-${VLLM_PRECOMPILED_WHEEL_COMMIT}
 
