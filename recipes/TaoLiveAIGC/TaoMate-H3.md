@@ -33,8 +33,11 @@ fallback prompt. A waiting request does not repeatedly execute a model step.
 
 Teacher/student math, global audio/video positions and incremental VAE state remain
 model-specific. By default the LoRA uses BF16 sidecars on the resident base weights;
-the teacher temporarily disables the adapter. The optional merged-student path uses
-a second weight set and has different memory and numerical behavior.
+the worker-owned `DiffusionLoRAManager` temporarily suspends the adapter for the teacher.
+The checkpoint uses ordinary low-rank A/B pairs in a native serialization format; its
+fused QKV factors already match the loaded projection order. The manager also controls
+the optional merged student bank, which uses a second weight set and has different
+memory and numerical behavior.
 
 ## Requirements and serve commands
 
@@ -167,8 +170,3 @@ Validate the deployment with prompt changes, at least 13 windows to cross audio-
 reset, bounded/unbounded prompt holds, cancellation followed by another session, and
 complete MP4 decoding. Compare both per-window latency and peak GPU memory with the
 same checkpoint, prompts, precision, graph settings and host load.
-
-Historical USP2 measurements of roughly 4.6-4.7 seconds per 4.958-second window used the
-separate `tzhouam:feat/step-async-output` branch. They do not establish this revision's
-performance. That branch's `step_async_output` setting has no consumer on main and is
-not part of the shipped configuration; remeasure after runtime or cache changes.
