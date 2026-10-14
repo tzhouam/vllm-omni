@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Golden characterization of ``_build_model_sampler_output_token_ids``.
 
 The base runner (``OmniGPUModelRunner``) and the AR runner

@@ -81,6 +81,7 @@ curl -s http://172.18.69.133:8000/v1/chat/completions \
     }
   }' | jq -r '.choices[0].message.content[0].image_url.url' | cut -d',' -f2- | base64 -d > land.png
 ```
+
 After the command finishes, check for the output files:
 
 ```bash

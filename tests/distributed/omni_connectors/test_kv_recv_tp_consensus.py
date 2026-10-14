@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Pure-TP KV receive consensus (#5627) — CPU-testable mechanism.
 
 In pure TP (LOCAL role) each rank fetches its own KV shard independently and

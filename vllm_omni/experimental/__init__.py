@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Experimental vLLM-Omni subsystems.
 
 Modules under ``vllm_omni.experimental`` are in active development and not yet

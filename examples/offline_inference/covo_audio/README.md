@@ -11,6 +11,7 @@ See the [pipeline and deploy configuration documentation](https://docs.vllm.ai/p
 ## Run examples
 
 Get into the example folder:
+
 ```bash
 cd examples/offline_inference/covo_audio
 ```
@@ -18,16 +19,19 @@ cd examples/offline_inference/covo_audio
 ### Audio input chat
 
 Using the default audio asset:
+
 ```bash
 python end2end.py
 ```
 
 Using a custom audio file:
+
 ```bash
 python end2end.py --audio-path /path/to/audio.wav
 ```
 
 Using a local model:
+
 ```bash
 python end2end.py -m /path/to/Covo-Audio-Chat --output-dir ./my_output
 ```
@@ -35,7 +39,7 @@ python end2end.py -m /path/to/Covo-Audio-Chat --output-dir ./my_output
 ### Command-line Arguments
 
 | Argument | Short | Default | Description |
-|----------|-------|---------|-------------|
+| ---------- | ------- | --------- | ------------- |
 | `--model-name` | `-m` | `tencent/Covo-Audio-Chat` | Model path or HuggingFace model ID |
 | `--text` | `-t` | `请回答这段音频里的问题。` | Text prompt / question for the audio |
 | `--audio-path` | `-a` | default audio asset | Path to local audio file |
@@ -66,6 +70,7 @@ The script generates two files per request in the output directory:
 ## FAQ
 
 If you encounter `ModuleNotFoundError: No module named 'librosa'`, install it with:
+
 ```bash
 pip install librosa
 ```

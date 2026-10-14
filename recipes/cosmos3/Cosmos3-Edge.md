@@ -22,7 +22,7 @@ The small Cosmos3 checkpoint, for constrained deployments. It runs on the shared
   `--guidance-scale` / `--flow-shift` and still get native Edge output:
 
 | | Edge | Nano / Super |
-|---|---|---|
+| --- | --- | --- |
 | T2I | 640×640 | 1024² |
 | T2V / I2V | 480×832 | 1280×720 |
 | Video `guidance_scale` | 5.0 | 6.0 |

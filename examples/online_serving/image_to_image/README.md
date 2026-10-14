@@ -39,7 +39,6 @@ vllm serve jdopensource/JoyAI-Image-Edit-Diffusers --omni --port 8092
 
 ### Start with Parameters
 
-
 Or use the startup script:
 
 ```bash
@@ -300,7 +299,7 @@ The response contains multiple images in `choices[0].message.content` — one pe
 #### Qwen-Image-Layered Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `layers` | int | 4 | Number of layers to decompose |
 | `resolution` | int | 640 | Resolution for dimension calculation (640 or 1024) |
 | `cfg_scale` | float | 4.0 | Classifier-free guidance scale (alias for `true_cfg_scale`) |

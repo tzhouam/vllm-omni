@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Launch the vLLM-Omni server for Audex (Nemotron-Labs-Audex-2B).
 #
 # MODE picks the deployment (see README.md for the capability matrix):

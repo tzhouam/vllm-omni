@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Regression tests for diffusion sampling params coercion."""
 
 from __future__ import annotations

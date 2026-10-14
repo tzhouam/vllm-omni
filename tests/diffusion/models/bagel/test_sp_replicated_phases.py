@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """BAGEL must keep its replicated phases off the sequence-parallel strategy.
 
 The text prefill, the ViT/VAE cache updates and the CFG cache-update forward

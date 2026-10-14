@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 # Run vLLM-Omni ROCm tests directly in the MI300 Kubernetes pod. The pod's
 # container image is selected by test-template-amd-omni.j2; MI300 has no DinD.

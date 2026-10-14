@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Single-prompt offline run with thinker tensor-parallel (3-GPU layout).
 # Thinker on GPU 0,1 (TP=2); talker + Token2Wav on GPU 2.
 set -euo pipefail

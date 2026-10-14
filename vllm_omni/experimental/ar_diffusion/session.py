@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Internal realtime session control plane for AR-Diffusion.
 
 This module owns transport-level identity, event ordering, backpressure, and

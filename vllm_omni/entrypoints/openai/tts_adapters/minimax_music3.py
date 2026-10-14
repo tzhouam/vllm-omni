@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """MiniMax Music 3 serving adapter for ``/v1/audio/speech``.
 
 This is a text-to-music model on a speech endpoint, so most of the speech

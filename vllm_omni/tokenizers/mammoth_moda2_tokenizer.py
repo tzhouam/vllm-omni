@@ -1,5 +1,6 @@
 # Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 #
 # This file has been modified by ByteDance Ltd. on 2025-09-30.
 #

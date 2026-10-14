@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Audex online client for all four deployment modes.
 
 Pick ``--mode`` to match the server's deploy yaml (see run_server.sh):

@@ -45,7 +45,7 @@ package-level API: `vllm_omni.diffusion.cache.cachedit`.
 [Cache-DiT API Reference](https://cache-dit.readthedocs.io/en/latest/user_guide/CACHE_API/)
 
 | API | Description |
-|-----|-------------|
+| ----- | ------------- |
 | `BlockAdapter` | Core abstraction for applying cache-dit to transformers. Specifies transformer module(s), block list(s), and forward signature pattern(s). |
 | `ForwardPattern` | Defines block forward signature patterns: `Pattern_0`, `Pattern_1`, `Pattern_2` |
 | `ParamsModifier` | Per-transformer or per-block-list cache configuration customization |
@@ -57,6 +57,7 @@ package-level API: `vllm_omni.diffusion.cache.cachedit`.
 ## Standard Models: Automatic Support
 
 Most DiT models follow this pattern:
+
 - Single transformer with one `ModuleList` of blocks
 - Standard forward signature
 - Compatible with cache-dit's automatic detection
@@ -287,6 +288,7 @@ images = omni.generate(
 - **Cache parameters too aggressive:**
 
 **Solution:**
+
 ```python
 cache_config={
     "residual_diff_threshold": 0.12,  # Lower from 0.24 (try 0.12-0.18)
@@ -304,7 +306,7 @@ Check the [user guide for cache_dit](../../user_guide/diffusion/cache_accelerati
 Complete examples in the codebase:
 
 | Model | Path | Pattern | Notes |
-|-------|------|---------|-------|
+| ------- | ------ | --------- | ------- |
 | **Standard DiT** | `cachedit.backend::enable_cache_for_dit` | Default enabler | Single transformer, automatic |
 | **Wan2.2** | `cachedit.model_specific::enable_cache_for_wan22` | Single or dual-transformer | Auto-detects mode based on transformer_2 presence |
 | **LongCat** | `cachedit.config::CacheDiTAdapterConfig` | Declarative block adapter | Two block lists in one transformer |

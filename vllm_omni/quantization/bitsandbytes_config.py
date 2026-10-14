@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """BitsAndBytes 4-bit quantization config for diffusion transformers.
 
 Supports online (dynamic) NF4/FP4 weight-only quantization from BF16/FP16

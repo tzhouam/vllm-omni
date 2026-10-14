@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Convenience script to launch both vLLM server and Gradio demo for Qwen3-Omni
 #
 # Usage:

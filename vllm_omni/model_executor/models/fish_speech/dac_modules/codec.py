@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # Adopted from the fish-speech 0.1.0 PyPI release (Apache-2.0)
 # https://pypi.org/project/fish-speech/0.1.0/
 # Copyright (c) Fish Audio

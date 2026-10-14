@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Concrete memory objects (RFC #4480).
 
 ``LatentBuffer`` backs its storage with a plain (monolithic) buffer. Attention

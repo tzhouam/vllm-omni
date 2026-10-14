@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Per-device shared/exclusive init phase locks for parallel stage init.
 
 When ``VllmOmniOrchestratorConfig.parallel_stage_init`` is enabled, several

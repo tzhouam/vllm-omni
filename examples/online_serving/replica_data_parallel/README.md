@@ -11,7 +11,7 @@ This example uses `Wan-AI/Wan2.2-TI2V-5B-Diffusers` with one GPU per replica.
 ## Files
 
 | File | Purpose |
-|------|---------|
+| ------ | --------- |
 | `wan2_2_ti2v_dp.yaml` | Deploy config; `num_replicas` + `devices` drive the fan-out. |
 | `run_server.sh` | Substitutes `NUM_REPLICAS` / `DEVICES` into the config and serves. |
 | `bench_replica_dp.py` | Replica-agnostic load driver; reports throughput, latency, and a per-input isolation check. |
@@ -68,7 +68,7 @@ sets match.
 Wan2.2-TI2V-5B (832×480, 33 frames, 30 steps), 4× A800-80GB (NVLink), one GPU per replica:
 
 | Replicas | Throughput (videos/min) | Scaling | Efficiency |
-|----------|-------------------------|---------|------------|
+| ---------- | ------------------------- | --------- | ------------ |
 | 1 | 4.71 | 1.00× | — |
 | 2 | 9.20 | 1.95× | 98% |
 | 4 | 18.02 | 3.83× | 96% |

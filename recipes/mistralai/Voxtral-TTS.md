@@ -158,7 +158,9 @@ curl -X POST http://127.0.0.1:8091/v1/audio/speech \
   }' \
   --output voxtral_stream.pcm
 ```
+
 Convert the raw PCM output to WAV
+
 ```bash
 ffmpeg -f s16le -ar 24000 -ac 1 -i voxtral_stream.pcm voxtral_stream.wav -y
 ffprobe -hide_banner voxtral_stream.wav

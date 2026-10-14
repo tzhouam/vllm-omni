@@ -21,7 +21,7 @@ uv pip install vllm-gguf-plugin>=0.0.3
 ## Hardware Support
 
 | Device | Support |
-|--------|---------|
+| -------- | --------- |
 | NVIDIA Blackwell GPU (SM 100+) | ✅ |
 | NVIDIA Ada/Hopper GPU (SM 89+) | ✅ |
 | NVIDIA Ampere GPU (SM 80+) | ✅ |
@@ -37,7 +37,7 @@ guide.
 ### Diffusion Model (Qwen-Image, Wan2.2)
 
 | Model | HF base model | GGUF input | Scope | Adapter |
-|-------|---------------|------------|-------|---------|
+| ------- | --------------- | ------------ | ------- | --------- |
 | Qwen-Image family | `Qwen/Qwen-Image`, `Qwen/Qwen-Image-2512`, edit and layered Qwen-Image pipelines | Local `.gguf`, `repo/file.gguf`, or `repo:quant_type` | Transformer only | `QwenImageGGUFAdapter` |
 | Wan2.2 | Wan2.2 diffusion pipelines | Not validated | Transformer only | No validated adapter listed |
 | Z-Image | `Tongyi-MAI/Z-Image-Turbo` | Local `.gguf`, `repo/file.gguf`, or `repo:quant_type` | Transformer only | `ZImageGGUFAdapter` |
@@ -96,7 +96,7 @@ vllm serve Qwen/Qwen-Image \
 `gguf_model` accepts:
 
 | Form | Example |
-|------|---------|
+| ------ | --------- |
 | Local file | `/models/z-image-Q4_K_M.gguf` |
 | Explicit HF file | `QuantStack/Qwen-Image-GGUF/Qwen_Image-Q4_K_M.gguf` |
 | HF repo plus quant type | `owner/repo:Q4_K_M` |

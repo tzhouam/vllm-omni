@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Lance online serving startup script
 
 MODEL="${MODEL:-bytedance-research/Lance}"

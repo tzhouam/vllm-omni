@@ -7,6 +7,7 @@
 Use this recipe when deploying Cosmos3-Super (64B / 124 GB) or Cosmos3-Nano (17B / 33 GB) across multiple devices where the model does not fit on a single device's HBM, or when you need higher throughput via DP multi-concurrency.
 
 **Key benefits:**
+
 - Each rank stores only 1/dp_size of the model weights on host memory
 - Only 2 transformer blocks reside on each device at any time (fixed double-buffer)
 - DP multi-concurrency: N concurrent requests with near-linear throughput scaling
@@ -156,7 +157,7 @@ wait
 ## CLI flags
 
 | Flag | Description | Default |
-|------|-------------|---------|
+| ------ | ------------- | --------- |
 | `--enable-distributed-layerwise-offload` | Enable DLO with H2D + AllGather overlap | `false` |
 | `--data-parallel-size N` | Number of DP ranks; DLO weight sharding + concurrent requests when AllGather is enabled | `1` |
 | `--dlo-use-allgather` | Use shard + AllGather for weight reconstruction (recommended) | `true` |
@@ -166,7 +167,7 @@ wait
 ## Mode comparison
 
 | Mode | CLI flags | CPU/rank | HBM/card | Throughput | Use case |
-|------|----------|---------|---------|-----------|----------|
+| ------ | ---------- | --------- | --------- | ----------- | ---------- |
 | DLO + AllGather (DP4) | `--enable-distributed-layerwise-offload --data-parallel-size 4` | 1/4 model | 2 blocks | **3.3× HSDP** | Max throughput, short sequences |
 | DLO + AllGather (DP2) | `--enable-distributed-layerwise-offload --data-parallel-size 2` | 1/2 model | 2 blocks | 2× HSDP | Balanced throughput + memory |
 | DLO + AllGather (SP4) | `--enable-distributed-layerwise-offload --usp 4` | 1/4 model | 2 blocks | 1× (single req) | Long sequences (720p+) |
@@ -176,7 +177,7 @@ wait
 ## Memory expectations
 
 | Model | Config | Host RAM (cgroup) | HBM/card |
-|-------|--------|-------------------|----------|
+| ------- | -------- | ------------------- | ---------- |
 | Nano (33 GB) | DP2 + AllGather | ~38 GB | ~10 GB |
 | Nano (33 GB) | DP4 + AllGather | ~47 GB | ~10 GB |
 | Super (124 GB) | DP2 + AllGather | ~157 GB | ~15 GB |

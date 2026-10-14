@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 from vllm_omni.diffusion.cache.magcache.backend import MagCacheBackend
 from vllm_omni.diffusion.cache.magcache.config import MagCacheConfig

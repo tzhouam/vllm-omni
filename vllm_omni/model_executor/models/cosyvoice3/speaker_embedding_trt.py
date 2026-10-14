@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """TensorRT speaker-embedding (campplus) extractor for CosyVoice3.
 
 Drop-in accelerator for the ONNX-Runtime campplus session used in the

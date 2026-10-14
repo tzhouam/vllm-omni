@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # Adopted from https://github.com/FunAudioLLM/CosyVoice/blob/main/cosyvoice/llm/llm.py
 from collections.abc import Callable
 

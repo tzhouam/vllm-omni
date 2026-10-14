@@ -22,7 +22,7 @@ The async diffusion output feature moves the D2H (Device→Host) copy and SHM pa
 ### HunyuanImage-3.0 (TP4)
 
 | Resolution | Async Off (QPS) | Async On (QPS) | Change |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1024×1024 | 0.4773 | 0.4802 | +0.60% |
 | 768×768 | 0.8370 | 0.8533 | +1.95% |
 
@@ -143,7 +143,7 @@ All models running in request-mode (`step_execution=False`, the default) automat
 **Verified models**:
 
 | Model | Type | `supports_request_batch` |
-|---|---|---|
+| --- | --- | --- |
 | **HunyuanImage-3.0** | Image | `False` |
 | **Qwen-Image** | Image | `True` |
 | **LTX-2.3** | Video / Audio | `False` |
@@ -171,7 +171,7 @@ Adapting step-mode requires additional design because:
 No configuration needed. Async output is automatically enabled when `step_execution=False` (default).
 
 | `step_execution` | Mode | Async Output | Pump Thread | Worker BG Thread |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `False` (default) | request-mode | ✅ enabled | ✅ started | ✅ started |
 | `True` | step-mode | ❌ disabled | ❌ not started | ❌ not started |
 

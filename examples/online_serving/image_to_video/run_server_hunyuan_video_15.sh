@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # HunyuanVideo-1.5 image-to-video online serving startup script
 #
 # 480p: ~35 GB VRAM (BF16), fits 1x A100 80GB

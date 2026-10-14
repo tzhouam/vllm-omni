@@ -1,1 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """HunyuanVideo-1.5 T2V accuracy test cases."""

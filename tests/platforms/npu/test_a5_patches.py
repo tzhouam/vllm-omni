@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Unit tests for A5 (Ascend 950 PR) patch wiring.
 
 The A5 logic lives in the shared NPU platform files (``npu/__init__.py`` for

@@ -150,7 +150,7 @@ python3 -u end2end.py \
   --audio-path "./prompt_speech_zh_m.wav"
 ```
 
-Note: This task uses hardcoded audio files in the script. The audio files used in examples are available at: https://github.com/XiaomiMiMo/MiMo-Audio/tree/main/examples
+Note: This task uses hardcoded audio files in the script. The audio files used in examples are available at: <https://github.com/XiaomiMiMo/MiMo-Audio/tree/main/examples>
 
 ### speech2text_dialogue_sft_multiturn (Speech-to-Text Dialogue)
 
@@ -197,5 +197,5 @@ Note: This task uses hardcoded message lists in the script.
 - The script uses default model paths and audio files embedded in `end2end.py`. Update them if your local cache path differs.
 - Use `--output-dir` to change the output folder (default: `./output_audio`).
 - Use `--num-prompts` to generate multiple prompts in one run (default: 1).
-- Audio files used in multi-turn dialogue examples are available at: https://github.com/XiaomiMiMo/MiMo-Audio/tree/main/examples
+- Audio files used in multi-turn dialogue examples are available at: <https://github.com/XiaomiMiMo/MiMo-Audio/tree/main/examples>
 - The script supports various configuration options for initialization timeouts, batch timeouts, and shared memory thresholds. See `--help` for details.

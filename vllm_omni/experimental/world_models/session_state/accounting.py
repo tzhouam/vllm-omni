@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Per-device byte accounting for session state (RFC #4480).
 
 A session holds bytes in more than one place -- device tensors, host tensors,

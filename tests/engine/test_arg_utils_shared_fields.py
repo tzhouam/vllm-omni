@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tests for vllm_omni.engine.arg_utils — invariants that must
 hold for the orchestrator/engine/server CLI flag partition."""
 

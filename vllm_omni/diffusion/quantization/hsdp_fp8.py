@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """HSDP/FSDP2 compatibility for online FP8 quantization.
 
 vllm's ``Fp8LinearMethod.process_weights_after_loading`` ends with

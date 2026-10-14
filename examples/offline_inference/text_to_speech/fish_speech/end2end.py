@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Offline inference demo for Fish Speech S2 Pro via vLLM Omni.
 
 Generates speech from text using the fishaudio/s2-pro model.

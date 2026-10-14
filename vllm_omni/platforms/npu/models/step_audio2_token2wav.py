@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """NPU patches for Step-Audio2 / MiniCPM Token2Wav.
 
 Ascend-specific workarounds that must not live in the shared GPU model file:

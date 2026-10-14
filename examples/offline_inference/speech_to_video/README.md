@@ -32,7 +32,7 @@ python speech_to_video.py \
 ## Key Arguments
 
 | Parameter | Default | Description |
-|-----------|---------|-------------|
+| ----------- | --------- | ------------- |
 | `--model` | *(required)* | Path to Wan2.2 S2V model (local path or HuggingFace ID) |
 | `--image` | *(required)* | Path to reference image (face/portrait) |
 | `--audio` | *(required)* | Path to audio file (wav/mp3) |
@@ -62,7 +62,7 @@ python speech_to_video.py \
 The dominant cost in S2V is self-attention across the full token sequence (~80K at 720p), which scales quadratically with resolution. Strategies to speed up generation:
 
 | Strategy | Speedup | How |
-|---|---|---|
+| --- | --- | --- |
 | **Lower resolution** (480p) | ~3.5x | `--height 448 --width 832` — reduces tokens from 80K to 33K |
 | **Tensor parallelism** (2 GPUs) | ~1.4x | `--tensor-parallel-size 2` — splits attention/GEMM across GPUs |
 | **Fewer steps** | Linear | `--num-inference-steps 5` — trades quality for speed |
@@ -110,7 +110,7 @@ python speech_to_video.py \
 **Profiler Arguments:**
 
 | Parameter | Description |
-|-----------|-------------|
+| ----------- | ------------- |
 | `--profile-dir` | Enable torch profiler and save traces to this directory |
 | `--profile-record-shapes` | Record tensor shapes (increases trace size) |
 | `--profile-with-stack` | Record stack traces (increases overhead) |
@@ -118,6 +118,7 @@ python speech_to_video.py \
 | `--profile-with-flops` | Estimate FLOPs for operations |
 
 **Output Files:**
+
 - `trace_rank*.json.gz` - Chrome trace (open in `chrome://tracing`)
 - `ops_rank*.xlsx` - Excel workbook with operation statistics
 

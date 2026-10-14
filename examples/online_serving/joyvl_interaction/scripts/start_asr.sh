@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Serve Qwen3-ASR (the same audio-LLM AURA uses as its ASR stage) and run the
 # webui<->ASR bridge. Then start the webui with:
 #   ASR_URL=ws://127.0.0.1:8093/v1/asr bash scripts/start_server.sh

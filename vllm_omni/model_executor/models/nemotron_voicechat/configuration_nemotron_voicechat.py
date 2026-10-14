@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """HF-compatible configs synthesized from the NeMo-style NemotronVoiceChat checkpoint.
 
 The ``nvidia/NVIDIA-NemotronLabs-VoiceChat-11B`` checkpoint ships a NeMo training

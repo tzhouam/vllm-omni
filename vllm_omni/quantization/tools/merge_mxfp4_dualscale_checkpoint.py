@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Merge W4A4_MXFP4_DUALSCALE quantized Wan2.2 weights into HF Diffusers format.
 
 msModelSlim produces a checkpoint where each linear layer is either:

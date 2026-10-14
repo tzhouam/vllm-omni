@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline E2E smoke test for Audex (Nemotron-Labs-Audex-2B) TTS.
 
 Passes the HF repo ROOT and verifies the 2-stage pipeline (thinker →

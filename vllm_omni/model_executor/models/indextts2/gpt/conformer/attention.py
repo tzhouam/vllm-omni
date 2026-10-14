@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 # Copyright (c) 2019 Shigeki Karita
 #               2020 Mobvoi Inc (Binbin Zhang)

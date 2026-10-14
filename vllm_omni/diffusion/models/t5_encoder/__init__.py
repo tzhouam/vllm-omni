@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tensor-parallel T5 encoder model."""
 
 from vllm_omni.diffusion.models.t5_encoder.t5_encoder import T5EncoderModel

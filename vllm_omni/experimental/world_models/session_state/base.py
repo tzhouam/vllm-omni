@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """The ``StateObject`` contract for session state (RFC #4480).
 
 A session is a named collection of ``StateObject`` instances. The interface

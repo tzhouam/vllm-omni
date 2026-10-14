@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Configuration class for higgs-audio v2 in vllm-omni.
 
 Mirrors `bosonai/higgs-audio-v2-generation-3B-base/config.json` and exposes the

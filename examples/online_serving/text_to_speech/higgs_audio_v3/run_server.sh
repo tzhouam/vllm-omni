@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Launch vLLM-Omni server for higgs-audio v3.
 #
 # Supports plain text TTS and voice cloning via /v1/audio/speech.

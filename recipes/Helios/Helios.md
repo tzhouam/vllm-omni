@@ -92,8 +92,8 @@ Saved generated video to helios_t2v_base.mp4
   `text_to_video.py` example configures the pipeline through its arguments.
 - Helios-specific knobs (declared in `vllm_omni/model_extras/helios.py`) are
   passed via the generic `--extra-body` JSON flag:
-  - Helios-Mid: `--extra-body '{"is_enable_stage2": true, "pyramid_num_inference_steps_list": [20, 20, 20], "use_cfg_zero_star": true, "use_zero_init": true, "zero_steps": 1}'`
-  - Helios-Distilled: `--extra-body '{"is_enable_stage2": true, "pyramid_num_inference_steps_list": [2, 2, 2], "is_amplify_first_chunk": true}'`
+    - Helios-Mid: `--extra-body '{"is_enable_stage2": true, "pyramid_num_inference_steps_list": [20, 20, 20], "use_cfg_zero_star": true, "use_zero_init": true, "zero_steps": 1}'`
+    - Helios-Distilled: `--extra-body '{"is_enable_stage2": true, "pyramid_num_inference_steps_list": [2, 2, 2], "is_amplify_first_chunk": true}'`
 
 #### Known limitations
 

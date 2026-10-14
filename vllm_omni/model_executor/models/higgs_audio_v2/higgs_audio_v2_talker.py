@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Stage-0 talker for higgs-audio v2 (vLLM-native, DualFFN-aware).
 
 Architecture summary (verified against `transformers.models.higgs_audio_v2`

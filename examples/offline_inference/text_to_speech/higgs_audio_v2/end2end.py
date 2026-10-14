@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline higgs-audio v2 inference example.
 
 Runs Stage 0 (DualFFN talker) + Stage 1 (HiggsAudio codec) end-to-end

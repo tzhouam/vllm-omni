@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Inference-only π0 (Pi-Zero) VLA math kernel for vllm-omni.
 
 A self-contained inference kernel: only the math that turns a robot observation

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Per-device byte accounting and the bounded VAE encoder ring (RFC #4480).
 
 Two things are pinned here. First, that a session reports the bytes it actually

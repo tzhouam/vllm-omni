@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Unit tests for OmniDiffusionConfig.is_moe (fix is_moe type and threshold, 6663c0b)."""
 
 import pytest

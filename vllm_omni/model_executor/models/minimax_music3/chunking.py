@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Chunk boundary and overlap arithmetic for MiniMax Music 3.
 
 The AR stage emits fixed 200-frame windows that overlap by half. The acoustic

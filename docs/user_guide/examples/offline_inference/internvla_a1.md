@@ -2,9 +2,9 @@
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/internvla_a1>.
 
-
 ## Setup
-This example is adapted from: https://github.com/InternRobotics/InternVLA-A1/blob/master/tests/policies/internvla_a1_3b/open_loop_genie1_real.ipynb
+
+This example is adapted from: <https://github.com/InternRobotics/InternVLA-A1/blob/master/tests/policies/internvla_a1_3b/open_loop_genie1_real.ipynb>
 
 This example runs the single-path vLLM offline inference workflow for InternVLA-A1 open-loop action prediction.
 

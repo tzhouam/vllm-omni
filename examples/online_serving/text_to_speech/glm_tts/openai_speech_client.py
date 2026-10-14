@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """OpenAI-compatible client for GLM-TTS via /v1/audio/speech endpoint.
 
 GLM-TTS is a two-stage TTS system (AR + DiT) that generates audio from text

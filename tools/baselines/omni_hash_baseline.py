@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Record / verify a deterministic text+audio output hash baseline for an Omni model.
 
 This is the cheap "output is bit-identical" gate for the behaviour-preserving

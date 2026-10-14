@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Typed session-attribute descriptor (RFC #4480).
 
 ``SessionAttr`` lets an adapter declare each piece of session-scoped scalar or

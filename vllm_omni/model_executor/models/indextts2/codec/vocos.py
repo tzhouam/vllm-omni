@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # SPDX-License-Identifier: MIT
 # SPDX-FileCopyrightText: Copyright contributors to the Amphion project
 """ConvNeXt Vocos backbone used by the IndexTTS 2.5 codec decoder."""

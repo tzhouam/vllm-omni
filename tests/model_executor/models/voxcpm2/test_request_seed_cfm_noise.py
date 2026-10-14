@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Request-level seeds must control the VoxCPM2 CFM noise stream (#7658).
 
 ``/v1/audio/speech`` folds ``request.seed`` into ``SamplingParams.seed``, which

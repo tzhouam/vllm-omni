@@ -5,7 +5,7 @@ for a given `MODE`; `client.py --mode <mode>` tests it. The capability
 matrix:
 
 | mode (`vllm_omni/deploy/audex_<mode>.yaml`) | audio in | text out | speech out | general audio out | endpoint |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `tts` | ❌ | ❌ | ✅ | ❌ | `/v1/audio/speech` |
 | `tta` | ❌ | ❌ | ❌ | ✅ | `/v1/audio/speech` |
 | `thinker_only` | ✅ | ✅ | ❌ | ❌ | `/v1/chat/completions` |

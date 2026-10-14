@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Fused attention prologue for models with a packed QKV projection.
 
 A Qwen3-style attention layer with GQA does six things between its projection

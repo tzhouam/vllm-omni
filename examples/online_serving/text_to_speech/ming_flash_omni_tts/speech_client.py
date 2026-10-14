@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Client for Ming standalone TTS via /v1/audio/speech endpoint."""
 
 import argparse

@@ -15,14 +15,16 @@ The `async_chunk` feature enables asynchronous, chunked processing of data acros
 **Chunk Size Definition**
 
 - **Prefill Phase**: `chunk_size = num_scheduled_tokens` for chunked prefill processing
-- **Decode Phase**: `chunk_size = num_scheduled_tokens = 1 ` for per-token streaming
+- **Decode Phase**: `chunk_size = num_scheduled_tokens = 1` for per-token streaming
 
 For qwen3-omni:
+
 - **Thinker → Talker**: Per decode step (typically chunk_size=1)
 - **Talker → Code2Wav**: Accumulated to `codec_chunk_frames` (default=25) before sending. During the initial phase, a dynamic initial chunk size (IC) is automatically selected based on server load to reduce TTFP. Use the per-request `initial_codec_chunk_frames` API field to override.
 - **Code2Wav**: Streaming decode with code2wav chunk_size
 
 With `async_chunk`:
+
 - Stages can start processing as soon as chunks are available
 - Overlapping execution across stages
 - Reduced latency and improved throughput
@@ -30,6 +32,7 @@ With `async_chunk`:
 - Async scheduling: Chunk IO (get/put) overlaps with compute via background threads so the scheduler is not blocked waiting for chunks
 
 ## Performance
+
 1. **Reduced Latency**: Next stage can start processing immediately
 2. **Streaming Support**: Enables streaming for audio generation
 3. **IO-Compute Overlap**: Chunk retrieval happens asynchronously while other requests compute
@@ -47,7 +50,6 @@ With `async_chunk`:
 | text 100  | text 100+audio   | True                | 1                   | 1              | 50      | 6179.79    | 44.58      | 8.69      | 522.99      | 0.22     | 8.60     |
 | text 100  | text 100+audio   | True                | 1                   | 4              | 50      | 7692.69    | 103.96     | 10.22     | 785.85      | 0.29     | 10.12    |
 | text 100  | text 100+audio   | True                | 1                   | 10             | 50      | 11152.71   | 685.60     | 17.64     | 1628.88     | 0.41     | 17.62    |
-
 
 Performance data collected on H800 GPUs through comprehensive benchmarking with cudagraph enabled. text input uses random dataset.
 
@@ -90,7 +92,7 @@ The following diagram illustrates the **Async Chunk Architecture** for multi-sta
 **Diagram Legend:**
 
 | Step | Stage Type | Description |
-|------|-----------|------------|
+| ------ | ----------- | ------------ |
 | `prefill` | Initialization | Context processing, KV cache initialization |
 | `decode` | Autoregressive | Token-by-token generation in AR stages |
 | `codes` | Audio Encoding | RVQ codec codes from Talker stage |
@@ -99,14 +101,16 @@ The following diagram illustrates the **Async Chunk Architecture** for multi-sta
 ### Data Flow
 
 #### Stage 0: Thinker (Multimodal Understanding + Text Generation)
+
 - **Prefill**: Processes multimodal input (text/image/audio/video), initializes KV cache
 - **Decode Loop**: Generates text tokens autoregressively
 - **Chunk Triggers**: Each decode step (typically `chunk_size=1`) can trigger downstream processing
 - **Dual Output**:
-  - **Text Stream**: `text_0`, `text_1`, `text_2`... `text_n` streamed to output
-  - **Hidden States**: Passed to Talker stage for audio synthesis
+    - **Text Stream**: `text_0`, `text_1`, `text_2`... `text_n` streamed to output
+    - **Hidden States**: Passed to Talker stage for audio synthesis
 
 #### Stage 1: Talker (Text → RVQ Audio Codes)
+
 - **Prefill**: Receives hidden states from Thinker as semantic condition
 - **Decode Loop**: Generates RVQ codec codes autoregressively
 - **Accumulation**: Codes accumulate to `codec_chunk_frames` (default=25) before forwarding
@@ -114,12 +118,14 @@ The following diagram illustrates the **Async Chunk Architecture** for multi-sta
 - **Output**: `codes` blocks (chunk 0, 1, ... n) sent to Code2Wav
 
 #### Stage 2: Code2Wav (Vocoder Decoder)
+
 - **Non-Autoregressive**: Processes RVQ codes in parallel batches
 - **Streaming Decode**: Converts codes to audio waveforms chunk-by-chunk
 - **Batching**: Supports batched inference for multiple concurrent requests
 - **Output**: Audio segments `audio_0`, `audio_1`, ... `audio_n`
 
 #### Stage 3: Output (Dual Stream)
+
 - **Text Streaming**: `text_0` → `text_1` → `text_2` → ... (user sees response in real-time)
 - **Audio Streaming**: `audio_0` → `audio_1` → ... (user hears audio progressively)
 
@@ -144,6 +150,7 @@ Total: ~3.5s, TTFP: ~0.5s
 ```
 
 #### Sequential Flow (for comparison)
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" src="https://raw.githubusercontent.com/vllm-project/vllm-omni/refs/heads/main/docs/source/architecture/qwen3-omni-non-async-chunk.png">
@@ -154,13 +161,13 @@ Total: ~3.5s, TTFP: ~0.5s
 In sequential mode, each stage must wait for the previous stage to complete entirely before starting.
 
 ### Async Chunk System Architecture
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" src="https://raw.githubusercontent.com/vllm-project/vllm-omni/refs/heads/main/docs/source/architecture/async-chunk-architecture.png">
     <img alt="Async Chunk Architecture" src="https://raw.githubusercontent.com/vllm-project/vllm-omni/refs/heads/main/docs/source/architecture/async-chunk-architecture.png" width=100%>
   </picture>
 </p>
-
 
 ### Key Components
 

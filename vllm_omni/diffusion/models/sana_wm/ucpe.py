@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """SANA-WM UCPE (Unified Camera Pose Embedding) per-block attention transforms.
 
 Ported from NVlabs/Sana ``sana_camctrl_blocks.py`` for the inference-only

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Request normalization for Sana-WM image-to-video.
 
 The released SANA-WM checkpoint is first-frame image-to-video. This module keeps

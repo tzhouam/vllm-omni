@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """IndexTTS2 Stage 1: S2Mel decoder + BigVGAN vocoder.
 
 Receives mel_codes + latent from Stage 0 (GPT AR talker), runs flow matching

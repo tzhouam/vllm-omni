@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """π0 LeRobot parity (in-process): the bit-for-bit correctness oracle.
 
 Verifies that vllm-omni's ``Pi0ForActionPrediction`` produces bit-for-bit

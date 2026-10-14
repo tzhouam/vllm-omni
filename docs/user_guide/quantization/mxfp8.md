@@ -10,7 +10,7 @@ FP8 while keeping the same 8-bit weight footprint.
 This method supports three modes:
 
 | Mode | Description |
-|------|-------------|
+| ------ | ------------- |
 | **Online** | BF16 weights are quantized to MXFP8 at load time — no pre-processing needed |
 | **Offline (Native)** | msModelSlim-exported MXFP8 weights converted to diffusers format via `merge_mxfp8_checkpoint.py` — weights and scales are loaded directly from the preprocessed checkpoint |
 | **Offline (AutoRound)** | AutoRound MXFP8 checkpoints with `data_type="mx_fp"` — auto-detected from `config.json` |
@@ -18,7 +18,7 @@ This method supports three modes:
 ## Hardware Support
 
 | Device | Online | Offline (Native) | Offline (AutoRound) |
-|--------|--------|------------------|---------------------|
+| -------- | -------- | ------------------ | --------------------- |
 | NVIDIA Blackwell GPU (SM 100+) | ⭕ | ⭕ | ⭕ |
 | NVIDIA Ada/Hopper GPU (SM 89+) | ⭕ | ⭕ | ⭕ |
 | NVIDIA Ampere GPU (SM 80+) | ⭕ | ⭕ | ⭕ |
@@ -35,7 +35,7 @@ Legend: `✅` supported, `❌` unsupported, `⭕` not verified in this guide.
 ### Diffusion Model (Wan2.2)
 
 | Model | Mode | Notes |
-|-------|------|-------|
+| ------- | ------ | ------- |
 | Wan2.2-T2V-A14B | Online + Offline | MoE cascade; quantizes two transformers (`transformer` + `transformer_2`) |
 | Wan2.2-I2V-A14B | Online + Offline | MoE cascade; quantizes two transformers (`transformer` + `transformer_2`) |
 | Wan2.2-TI2V-5B | Online + Offline | Single transformer |
@@ -132,7 +132,7 @@ python vllm_omni/quantization/tools/merge_mxfp8_checkpoint.py \
 ```
 
 | Argument | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `--model-type` | Model variant: `Wan2.2-T2V-A14B`, `Wan2.2-I2V-A14B`, or `Wan2.2-TI2V-5B` |
 | `--original-model` | Root directory of the original BF16 diffusers model |
 | `--quant-path` | Root directory of the msModelSlim quantized output |
@@ -199,7 +199,7 @@ omni = Omni(model="<autoround-mxfp8-model>")
 ## Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `method` | str | — | Must be `"mxfp8"` |
 | `is_checkpoint_mxfp8_serialized` | bool | `False` | `True` for offline pre-quantized checkpoints; auto-set from `config.json` when using the preprocessing script |
 | `ignored_layers` | list[str] | `[]` | Layer name substrings to keep in BF16 (e.g. `"to_out"` matches `blocks.0.attn1.to_out.0`) |

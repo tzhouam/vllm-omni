@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tests for merge_mxfp8_checkpoint.py key-remapping helpers and model metadata.
 
 These are pure-Python unit tests that exercise the transformation functions

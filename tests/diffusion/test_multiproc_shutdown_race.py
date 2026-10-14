@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Regression tests for MultiprocDiffusionExecutor shutdown / delayed-pump race.
 
 Reproduces hsliuustc0106's #6439 review finding: `shutdown()` joins each result

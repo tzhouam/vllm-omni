@@ -33,7 +33,6 @@ Enable EP by setting the `--enable-expert-parallel` flag. The EP size is automat
 EP_SIZE = TP_SIZE × SP_SIZE × CFG_SIZE × DP_SIZE
 ```
 
-
 Where:
 
 - `TP_SIZE`: Tensor parallel size
@@ -43,6 +42,7 @@ Where:
 - `EP_SIZE`: Expert parallel size (computed automatically)
 
 Note:
+
 - Expert parallelism is only applicable to Mixture-of-Experts (MoE) models.
 - The EP group is created **per pipeline stage**, meaning it includes all ranks that participate in model parallelism except pipeline parallelism.
 - The underlying communication pattern for expert parallelism is **All-to-All** among the ranks in the EP group.
@@ -52,7 +52,6 @@ For example, consider a configuration with `TP=2`, `SP=1`, `CFG=2`, and `DP=4` (
 - Expert layers are handled by an EP group of size 16.
 
 - Attention layers use tensor parallelism of size 2 within each of the 8 DP groups (because `DP×CFG×SP = 4×2×1 = 8` groups, each containing the 2 TP ranks). Inside each such group, the attention weights are sharded across the 2 GPUs.
-
 
 ## Step-by-Step Implementation
 
@@ -69,9 +68,10 @@ num_local_experts = num_experts // ep_size  # 8 experts per card
 assert num_experts % ep_size == 0, "Experts must be divisible by EP size"
 ```
 
-### Step 2: Use Sparse MoE Block to enable EP routing.
+### Step 2: Use Sparse MoE Block to enable EP routing
 
 Example:
+
 ```
 from vllm.model_executor.layers.linear import ReplicatedLinear
 class HunYuanSparseMoeBlock(nn.Module):
@@ -101,13 +101,16 @@ class HunYuanSparseMoeBlock(nn.Module):
         # EP expert layer (factory loads platform-specific implementation)
         self.experts = HunyuanFusedMoE(...)
 ```
+
 **Key Points:**
+
 - gate is **ReplicatedLinear** (replicated on all ranks)
 - experts is created via **HunyuanFusedMoE factory**, which automatically handles EP dispatch
 
 ### Step 3: Initialize EP Runtime
 
 Initialize the EP communication context before model loading.
+
 ```
 from vllm.utils.import_utils import resolve_obj_by_qualname
 # Call during __init__ or model loading
@@ -125,6 +128,7 @@ impl = resolve_obj_by_qualname(
 ### Step 4: Expert Weight Mapping & Loading
 
 Each rank loads only the expert weights assigned to its local allocation.
+
 ```
 # Get expert parameter mapping (different per rank)
 expert_mapping = HunyuanFusedMoE.make_expert_params_mapping(
@@ -149,9 +153,11 @@ for name, loaded_weight in weights:
         if not (local_expert_start <= expert_id < local_expert_end):
             continue  # Skip non-local expert weights
 ```
+
 ### Step 5: Forward Pass with EP
 
 Example (MoE Forward):
+
 ```
 def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
     orig_shape = hidden_states.shape
@@ -185,7 +191,9 @@ def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
 ```
 
 ## Testing
+
 After adding Expert Parallel support, test via command line:
+
 ```bash
 cd examples/offline_inference/text_to_image
 python text_to_image.py \
@@ -206,12 +214,13 @@ vLLM‑Omni currently focuses on core diffusion model inference acceleration, so
 Complete examples in the codebase:
 
 | Model | Path | Pattern | Notes |
-|-------|------|---------|-------|
+| ------- | ------ | --------- | ------- |
 | **HunyuanImage3.0** | `vllm_omni/diffusion/models/hunyuan_image3/hunyuan_image3_transformer.py` | Standard EP | Full implementation with validation |
 | **EP Tests** | `vllm-omni/tests/e2e/offline_inference/test_expert_parallel.py` | E2E testing | EP correctness and performance |
 | **Constraint Tests** | `vllm-omni/tests/diffusion/models/hunyuan_image3/test_hunyuan_fused_moe.py` | Unit testing | Validation logic |
 
 ---
+
 ## Summary
 
 Adding Expert Parallel support to diffusion model:

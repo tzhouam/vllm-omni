@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Session end-of-life routing (RFC #4480, adapting to #5271).
 
 The AR-Diffusion runner raises an explicit end-of-session signal on reset,

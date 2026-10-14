@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Regression tests for the inductor factorable-divisibility patch.
 
 torch 2.13 proves symbolic divisibility with torch's own unevaluated Mod,

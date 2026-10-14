@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """
 This sitecustomize.py is used to ensure the presence of an ftfy implementation.
 ftfy is a text encoding sanitizer and it is implicitly required by diffusers' WanImageToVideoPipeline.

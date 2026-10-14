@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 # Adapted from lucidrains/naturalspeech2-pytorch  (PerceiverResampler)
 # https://github.com/lucidrains/naturalspeech2-pytorch/blob/659bec7f/

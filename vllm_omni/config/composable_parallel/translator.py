@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Translate a ``StrategySpec`` stack into vLLM-Omni parallel sizing.
 
 Read a stack of strategy specs (one per mesh axis) and work out the

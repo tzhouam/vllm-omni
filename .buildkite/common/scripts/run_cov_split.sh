@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Run a model's E2E tests once per entry mode as separate coverage runs and upload
 # the reports, so per-mode attribution survives (see vllm-project/vllm-omni#5332).
 #

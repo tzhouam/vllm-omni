@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Unit tests for BAGEL LoRA support across Stage 0 (Thinker) and Stage 1 (DiT)."""
 
 from __future__ import annotations

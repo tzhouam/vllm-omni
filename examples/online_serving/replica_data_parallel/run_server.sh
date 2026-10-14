@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Serve N independent Wan2.2 TI2V-5B replicas (replica data parallelism).
 #
 # Usage:

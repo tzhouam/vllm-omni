@@ -264,7 +264,7 @@ Measured on one A800-SXM4-80GB (driver 580.126.09, CUDA 13.0, PyTorch
 81 frames, 50 steps, seed 42, each configuration in its own process:
 
 | Configuration | 480p T2V latency | 480p T2V generation peak |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Baseline | 120.19 s | 24.07 GiB |
 | Cache-DiT | 77.11 s (1.56x) | 24.07 GiB |
 | Model CPU offload | 121.15 s | 16.81 GiB (-7.26 GiB) |

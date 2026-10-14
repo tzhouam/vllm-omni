@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Helios text-to-video curl example using the async video job API.
 #
 # Helios-specific knobs (declared in vllm_omni/model_extras/helios.py) are passed

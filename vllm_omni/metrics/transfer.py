@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """OmniTransferMetrics — cross-stage transfer Prometheus families.
 
 Four families with ``{model_name, from_stage, from_replica, to_stage,

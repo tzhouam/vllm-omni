@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Serve the JoyVL interaction model as a plain VLM (NOT --omni: it is a
 # standard Qwen3-VL autoregressive model, not an omni/diffusion model).
 set -euo pipefail

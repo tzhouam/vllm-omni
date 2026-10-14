@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """E2E online tests for MiniMax Music 3 text-to-music.
 
 This is a music model on the speech endpoint, so the request shape differs

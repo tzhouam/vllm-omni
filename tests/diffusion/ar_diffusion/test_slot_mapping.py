@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Slot-mapping / block-table tests for the AR-Diffusion engine (Phase 1, Step 3)."""
 
 import pytest

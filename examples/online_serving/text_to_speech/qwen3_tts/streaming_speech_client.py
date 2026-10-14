@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """WebSocket client for streaming text-input TTS.
 
 Connects to the /v1/audio/speech/stream endpoint, sends text incrementally

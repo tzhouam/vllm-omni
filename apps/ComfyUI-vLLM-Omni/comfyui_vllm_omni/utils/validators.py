@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 from .logger import get_logger
 from .models import lookup_model_spec
 from .types import AutoregressionSamplingParams, DiffusionSamplingParams

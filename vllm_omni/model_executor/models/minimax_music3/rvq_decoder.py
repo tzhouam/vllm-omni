@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """RVQ depth decoder for MiniMax Music 3 (codebooks c1..c7).
 
 Each audio frame is eight codebooks deep. The backbone's own ``lm_head``

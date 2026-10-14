@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Unified quantization framework for vLLM-OMNI.
 
 Delegates to vLLM's quantization registry (35+ methods, all platforms).

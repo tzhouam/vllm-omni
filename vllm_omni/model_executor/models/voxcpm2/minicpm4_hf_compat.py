@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """fp32 RoPE + MLP matching native VoxCPM2 numerics.
 
 Exports: _MiniCPMLongRoPE, _MiniCPMMLP, _apply_rotary_pos_emb

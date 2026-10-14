@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation and Jiarui Fang
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # DeepSpeed Team & Jiarui Fang
 #  from https://github.com/feifeibear/long-context-attention/blob/main/yunchang/comm/all_to_all.py
 from typing import Any

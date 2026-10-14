@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Shared weight-attribute helper for vLLM-omni quantization configs.
 
 ``copy_missing_attrs`` used to live in upstream

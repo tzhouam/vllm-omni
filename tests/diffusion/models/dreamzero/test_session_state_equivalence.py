@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Bit-equivalence tests: DreamZeroStateAdapter vs bespoke DreamZeroState.
 
 These drive both state objects directly with tiny CPU tensors -- no model, no

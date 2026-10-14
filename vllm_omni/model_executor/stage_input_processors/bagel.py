@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Stage input processor for Bagel: CFG prompt expansion and KV cache collection.
 
 Bagel's 3-branch CFG requires multiple prompts through the AR stage:

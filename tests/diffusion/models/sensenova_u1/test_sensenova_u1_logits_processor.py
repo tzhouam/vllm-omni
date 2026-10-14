@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Regression test: SenseNovaU1ForCausalLM instantiation under the diffusion
 config shim must not crash on missing ``head_dtype`` and the resulting
 LogitsProcessor must have ``head_dtype is None`` (= use model dtype)."""

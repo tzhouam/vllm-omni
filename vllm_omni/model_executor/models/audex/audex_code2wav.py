@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Audex code2wav: streaming speech-codec-token → waveform stage.
 
 Wraps the vendored Audex causal speech decoder (see ``speech_decoder/``).

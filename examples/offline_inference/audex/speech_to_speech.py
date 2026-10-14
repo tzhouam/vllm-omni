@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline Audex (Nemotron-Labs-Audex-2B) cascaded speech-to-speech example.
 
 The official three-pass cascade over ONE ``audex_s2s``

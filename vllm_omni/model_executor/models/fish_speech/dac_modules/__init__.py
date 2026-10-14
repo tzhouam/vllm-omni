@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Vendored DAC codec modules for Fish Speech S2 Pro.
 
 Adopted from the ``fish-speech`` 0.1.0 PyPI release

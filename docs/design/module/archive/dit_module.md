@@ -15,7 +15,6 @@ This document describes the architecture design of the diffusion module, includi
   <em> Main Components of the Diffusion Module </em>
 </p>
 
-
 **Table of Content:**
 
 - [Architecture Overview](#architecture-overview)
@@ -42,7 +41,6 @@ The diffusion module follows a **multi-process, distributed architecture** with 
 <p align="center">
   <em> Diffusion Architecture Overview </em>
 </p>
-
 
 ---
 
@@ -79,8 +77,8 @@ class DiffusionEngine:
 - **Pre/Post Processing**: Registers model-specific pre-processing and post-processing functions via registry pattern
 
 - **Execution Mode Selection**: Selects one of two execution modes:
-  - `REQUEST_BATCH`: complete requests are scheduled through request-level execution. `max_num_seqs=1` is the serial request path; values above `1` allow compatible requests to use fused `pipeline.forward(batch)` when the pipeline supports it.
-  - `STEP_BATCH`: requests are advanced one denoising step at a time through `prepare_encode()`, `denoise_step()`, `step_scheduler()`, and `post_decode()`. `max_num_seqs` controls the maximum number of compatible active requests in one step wave.
+    - `REQUEST_BATCH`: complete requests are scheduled through request-level execution. `max_num_seqs=1` is the serial request path; values above `1` allow compatible requests to use fused `pipeline.forward(batch)` when the pipeline supports it.
+    - `STEP_BATCH`: requests are advanced one denoising step at a time through `prepare_encode()`, `denoise_step()`, `step_scheduler()`, and `post_decode()`. `max_num_seqs` controls the maximum number of compatible active requests in one step wave.
 
 - **Scheduler Selection**: Uses `StepScheduler` for step-batch execution and `RequestScheduler` for request-batch execution. Tests and custom integrations may inject a `SchedulerInterface` instance explicitly.
 
@@ -649,6 +647,7 @@ Ring Attention is a **parallel attention strategy** that implements sequence par
 Ring Attention splits sequence dimension across GPUs in a ring topology, implemented via the `ParallelAttentionStrategy` interface, instead of `AttentionBackend`. P2P ring communication is applied to circulate Key/Value blocks across GPUs. Internally, `ring_flash_attn_func` or `ring_pytorch_attn_func` is used depending on available backends.
 
 **Architecture**:
+
 ```python
 class RingParallelAttention:
     """Ring sequence-parallel strategy."""
@@ -911,7 +910,6 @@ def initialize_model_parallel(
 
 **Note**: For attention-level Sequence Parallelism implementations (Ring Attention and Ulysses), see [Parallel Attention](#52-parallel-attention). This section covers higher-level parallelism strategies.
 
-
 ---
 
 ## 6. Data Flow
@@ -924,7 +922,6 @@ def initialize_model_parallel(
 <p align="center">
   <em> End-to-end Data Flow in the vLLM-Omni Diffusion Module </em>
 </p>
-
 
 ```
 1. User Request

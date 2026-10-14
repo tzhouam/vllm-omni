@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline E2E test for the Audex cascaded speech-to-speech pipeline.
 
 One ``audex_s2s`` deployment serves all three official

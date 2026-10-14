@@ -5,7 +5,7 @@
 ## Files
 
 | File | Purpose |
-|---|---|
+| --- | --- |
 | `end2end.py` | Driver: CLI, case loading, prompt construction, orchestration (~150 lines) |
 | `cases.yaml` | All 11 built-in case definitions (prompt, text, instruction, ref-audio flags, flow controls) |
 | `runner.py` | Engine management and audio output (streaming + blocking paths) |
@@ -164,7 +164,7 @@ The repo-facing example is intended to cover the same dense TTS workflows used
 by the local Ming validation script:
 
 | Case | Blocking `deploy/ming_tts.yaml` | Async chunk `deploy/ming_tts.yaml` | Extra inputs |
-|---|---:|---:|---|
+| --- | ---: | ---: | --- |
 | `style` | Yes | Optional smoke test | none |
 | `ip` | Yes | Optional smoke test | none |
 | `bgm` | Yes | Optional smoke test | none |
@@ -184,7 +184,7 @@ they are not ROCm benchmark results. Default async_chunk matched blocking
 output frame counts and Stage-1 patch counts for every case:
 
 | Case | Blocking frames / patches / sec | Async chunk frames / patches / sec |
-|---|---:|---:|
+| --- | ---: | ---: |
 | `style` | 409248 / 29 / 9.28 | 409248 / 29 / 9.28 |
 | `ip` | 183456 / 13 / 4.16 | 183456 / 13 / 4.16 |
 | `bgm` | 1326528 / 94 / 30.08 | 1326528 / 94 / 30.08 |
@@ -200,7 +200,7 @@ output frame counts and Stage-1 patch counts for every case:
 ## Key Arguments
 
 | Argument | Description |
-|---|---|
+| --- | --- |
 | `--model` | Hugging Face repo or local Ming checkpoint path |
 | `--deploy-config` | Deploy config YAML. Use `vllm_omni/deploy/ming_tts.yaml` |
 | `--case` | Built-in demo case |
@@ -231,8 +231,8 @@ output frame counts and Stage-1 patch counts for every case:
 - Default filename: `ming_<case>.wav`
 - When `--num-prompts > 1`, outputs are indexed as `ming_<case>_00000.wav`, `..._00001.wav`, etc.
 - When stats are enabled, the script can also write:
-  - a stats log file such as `ming_style_pipeline.log`
-  - a manifest JSON with per-output metadata, stage durations, peak memory info,
+    - a stats log file such as `ming_style_pipeline.log`
+    - a manifest JSON with per-output metadata, stage durations, peak memory info,
     and streaming client latency metrics when `--streaming` is used
 
 ## Notes

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 # Script to detect changed files and find corresponding test files
 # Usage: ./detect_changed_tests.sh [base_sha] [head_sha] [event_type]
 #

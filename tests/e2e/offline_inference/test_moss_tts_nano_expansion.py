@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """E2E offline inference tests for MOSS-TTS-Nano single-stage pipeline.
 
 Every request needs a reference audio clip. We test upstream's

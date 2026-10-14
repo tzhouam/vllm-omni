@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Qwen2.5-Omni pipeline topology (frozen).
 
 Stage 0: Thinker  — multimodal understanding + text generation

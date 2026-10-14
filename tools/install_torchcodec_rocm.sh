@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 # Build TorchCodec against the ROCm PyTorch installation.  The PyPI wheel is
 # built against upstream PyTorch and is not ABI-compatible with ROCm builds.

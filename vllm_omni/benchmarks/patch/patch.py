@@ -39,6 +39,7 @@ from vllm.benchmarks.lib.endpoint_request_func import (
     _update_headers_common,
     _update_payload_common,
     _validate_api_url,
+    async_request_profile,
 )
 from vllm.logger import init_logger
 from vllm.tokenizers import TokenizerLike
@@ -3566,23 +3567,11 @@ async def benchmark(
 
     if profile:
         print("Starting profiler...")
-        profile_input = RequestFuncInput(
-            model=model_id,
-            model_name=model_name,
-            prompt=test_prompt,
-            api_url=base_url + "/start_profile",
-            prompt_len=test_prompt_len,
-            output_len=test_output_len,
-            logprobs=logprobs,
-            multi_modal_content=test_mm_content,
-            ignore_eos=ignore_eos,
+        profile_output = await async_request_profile(
+            base_url + "/start_profile",
+            session,
             extra_headers=extra_headers,
-            extra_body=test_extra_body,
-            chat_messages=test_chat_messages,
         )
-        _attach_omni_chat_to_request_func_input(input_requests[0], profile_input)
-        _attach_seed_tts_to_request_func_input(input_requests[0], profile_input)
-        profile_output = await request_func(request_func_input=profile_input, session=session)
         if profile_output.success:
             print("Profiler started")
 
@@ -3978,17 +3967,11 @@ async def benchmark(
 
     if profile:
         print("Stopping profiler...")
-        profile_input = RequestFuncInput(
-            model=model_id,
-            prompt=test_prompt,
-            api_url=base_url + "/stop_profile",
-            prompt_len=test_prompt_len,
-            output_len=test_output_len,
-            logprobs=logprobs,
-            extra_body=test_extra_body,
-            chat_messages=test_chat_messages,
+        profile_output = await async_request_profile(
+            base_url + "/stop_profile",
+            session,
+            extra_headers=extra_headers,
         )
-        profile_output = await request_func(request_func_input=profile_input, session=session)
         if profile_output.success:
             print("Profiler stopped")
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Shared TTS sampling primitives: nucleus (top-p/top-k) and RAS.
 
 Used by CosyVoice3 and GLM-TTS (and any future TTS model with RAS).

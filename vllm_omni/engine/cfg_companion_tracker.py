@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """CFG companion request tracker for the Omni orchestrator.
 
 Encapsulates all bookkeeping for Classifier-Free Guidance companion

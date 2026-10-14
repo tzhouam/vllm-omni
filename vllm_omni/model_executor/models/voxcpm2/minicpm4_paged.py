@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """MiniCPM4 with PagedAttention + fp32 RoPE/RMSNorm for VoxCPM2.
 
 Uses vllm Attention for KV cache, keeps fp32 precision ops from

@@ -27,7 +27,7 @@ caption, the seed, and the length.
 ## Architecture
 
 | Component | Spec |
-|---|---|
+| --- | --- |
 | Backbone | Qwen3 decoder, 36 layers, hidden 4096, GQA 32/8, vocab 200k |
 | Depth decoder | 4 layers, hidden 4096, 16 heads; 7 residual codebooks of 1024 |
 | Frame | 8 codebooks; `c0` in the backbone vocabulary, `c1..c7` in the depth decoder |
@@ -104,11 +104,11 @@ response shorter than the cap is the model finishing rather than a truncation.
 - **Key flags:** none required. Guidance, the solver step count and the window
   geometry are fixed by the checkpoint and are not request parameters.
 - **Known limitations:**
-  - The external API is non-streaming; `stream: true` is rejected.
-  - `max_model_len` is 10,240, so a maximum-length prompt (5,000 tokens) and a
+    - The external API is non-streaming; `stream: true` is rejected.
+    - `max_model_len` is 10,240, so a maximum-length prompt (5,000 tokens) and a
     maximum-length song (9,000 frames) cannot both fit. Long captions shorten
     the maximum song. This is a property of the checkpoint.
-  - The acoustic stage runs in float32. bfloat16 is accepted but measurably
+    - The acoustic stage runs in float32. bfloat16 is accepted but measurably
     degrades the solver.
 
 ### 2x H200 141GB
@@ -152,7 +152,7 @@ same song.
 ## Request parameters
 
 | Parameter | Type | Default | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `input` | string | required | Lyrics, non-empty. Tags on their own lines |
 | `instructions` | string | required | Caption, non-empty |
 | `seed` | int | `0` | Non-negative. Fixes the output for a given request |
@@ -165,7 +165,7 @@ The request is refused rather than silently ignored, so a mistake is visible
 immediately.
 
 | Parameter | Reason |
-|---|---|
+| --- | --- |
 | `temperature`, `top_p`, `top_k`, `repetition_penalty` | Sampling is fixed: guidance at 1.5, then a seeded top-k 50 draw |
 | `voice` | There is no speaker to select; the vocal comes from the caption |
 | `ref_audio`, `ref_text`, `language`, `task_type` | No reference-audio conditioning and no language tag |

@@ -37,7 +37,7 @@ metadata (3 cameras, `joint_position`, action horizon 50, action dim 32).
 These live under `stages[0].model_config` in `vllm_omni/deploy/pi0.yaml`:
 
 | Key | Default | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | `chunk_size` | `50` | Action-chunk length (timesteps) the model predicts per inference. |
 | `num_inference_steps` | `10` | Flow-matching Euler denoising steps. |
 | `max_action_dim` | `32` | Action dimensionality (state/action are padded to this). |

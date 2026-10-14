@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 # This script build the XPU docker image and run the offline inference inside the container.
 set -ex

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Regression tests for per-replica compile-cache isolation at spawn time.
 
 Replicas of the same stage compile the same model concurrently, and vLLM

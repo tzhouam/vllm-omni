@@ -3,6 +3,7 @@
 - GPU: Moore Threads GPU with MUSA SDK installed (validated on MTT S5000)
 
 # --8<-- [end:requirements]
+
 # --8<-- [start:set-up-using-python]
 
 vLLM-Omni for MUSA requires building from source. Pre-built wheels are not currently available.

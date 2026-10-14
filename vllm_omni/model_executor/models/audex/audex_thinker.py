@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 # Adapted from the NemotronDense vLLM plugin bundled with
 # nvidia/Nemotron-Labs-Audex-2B (nemotron_dense_vllm_plugin), which is not
 # installed as a package; the model code is carried here instead.

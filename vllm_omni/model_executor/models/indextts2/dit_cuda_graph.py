@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Per-shape CUDA graph capture for the S2Mel DiT transformer core.
 
 Profiling showed the DiT estimator forward is CPU launch-bound (the GPU

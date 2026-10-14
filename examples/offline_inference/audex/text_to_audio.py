@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline Audex (Nemotron-Labs-Audex-2B) text-to-audio inference example.
 
 Caption → general audio through the vLLM-Omni TTA pipeline: the audiogen

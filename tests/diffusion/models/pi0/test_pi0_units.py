@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """CPU unit tests for the π0 (Pi-Zero) VLA model.
 
 Deliberately lightweight: pure utility code (config plumbing, mask building,

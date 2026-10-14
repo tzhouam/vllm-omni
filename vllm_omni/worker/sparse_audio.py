@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Sparse-audio output protocol: marker classification and payload routing.
 
 A step's per-request `multimodal_outputs` lists may cover only a SUBSET of

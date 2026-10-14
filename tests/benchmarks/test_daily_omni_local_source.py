@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Offline Daily-Omni sources: local mirrors must not fall back to the Hub id."""
 
 import json

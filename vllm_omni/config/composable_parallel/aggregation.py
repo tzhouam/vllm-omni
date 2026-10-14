@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Closed aggregation-pattern hierarchy for declarative parallel strategies.
 
 An aggregation pattern describes how the per-worker results of one mesh axis

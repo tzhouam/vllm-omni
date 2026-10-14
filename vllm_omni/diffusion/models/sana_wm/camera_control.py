@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Camera-control helpers for SANA-WM.
 
 This module mirrors the public NVlabs/Sana SANA-WM camera preparation path:

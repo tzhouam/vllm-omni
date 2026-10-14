@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Tests for MossTTSCUDAGraphCodecWrapper numerical equivalence.
 
 Verifies that CUDA Graph-accelerated decoding produces results equivalent

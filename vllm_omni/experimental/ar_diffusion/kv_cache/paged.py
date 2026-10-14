@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Generic paging mechanics + chunk-window eviction spec for the AR-Diffusion engine.
 
 Engine-generic, model-agnostic primitives — the layer a second model (e.g. the

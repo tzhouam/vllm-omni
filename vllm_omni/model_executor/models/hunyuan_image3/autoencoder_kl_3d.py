@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """
 Reference code
 [FLUX] https://github.com/black-forest-labs/flux/blob/main/src/flux/modules/autoencoder.py

@@ -2,7 +2,6 @@
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/image_to_video>.
 
-
 This example demonstrates how to generate videos from images using Wan2.2,
 LTX-2, HunyuanVideo-1.5, and SANA-Video Image-to-Video models with
 vLLM-Omni's offline inference API.
@@ -133,8 +132,6 @@ Key arguments:
 - `--use-hsdp`: Enable Hybrid Sharded Data Parallel to shard model weights across GPUs.
 - `--hsdp-shard-size`: Number of GPUs to shard model weights across within each replica group. -1 (default) auto-calculates as world_size / replicate_size.
 - `--hsdp-replicate-size`: Number of replica groups for HSDP. Each replica holds a full sharded copy. Default 1 means pure sharding (no replication).
-
-
 
 > ℹ️ If you encounter OOM errors, try using `--vae-use-slicing` and `--vae-use-tiling` to reduce memory usage.
 

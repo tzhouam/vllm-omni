@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Audex thinker → code2wav stage input processors.
 
 The thinker is a plain token-autoregressive LM whose sampled stream contains

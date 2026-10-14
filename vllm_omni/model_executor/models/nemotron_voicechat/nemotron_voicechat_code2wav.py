@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Stage-2 Code2Wav for NemotronVoiceChat: RVQ-VAE codec decode to 22.05 kHz PCM.
 
 ``LLM_GENERATION`` stage consuming the talker's per-frame 31-quantizer code

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Qwen3-Omni Code Predictor -- thin wrapper over CodePredictorWrapper."""
 
 from vllm.config import VllmConfig

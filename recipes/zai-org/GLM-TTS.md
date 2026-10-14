@@ -218,7 +218,7 @@ deviation.
   baseline use and are not baseline-subtracted.
 
 | GPUs | Mode | Response | Wall time (s) | TTFA (s) | RTF |
-|---:|---|---|---:|---:|---:|
+| ---: | --- | --- | ---: | ---: | ---: |
 | 1 | Async | Non-streaming | 2.144 +/- 0.076 | -- | 0.550 +/- 0.019 |
 | 2 | Async | Non-streaming | 1.969 +/- 0.130 | -- | 0.505 +/- 0.033 |
 | 1 | Async | Streaming | 2.135 +/- 0.093 | 1.245 +/- 0.178 | 0.548 +/- 0.024 |
@@ -232,7 +232,7 @@ wall time by 1.6%. Single- and dual-GPU outputs were bitwise identical only
 within matching execution and response modes.
 
 | Configuration | GPU 0 | GPU 1 |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Single-GPU async | 31.52 GiB | -- |
 | Dual-GPU async | 29.23 GiB | 2.91 GiB |
 | Single-GPU sync | 31.47 GiB | -- |

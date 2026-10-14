@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Compute LPIPS between pairs of BF16 (baseline) and FP8 (quantized) images.
 
 Reads image pairs from a directory, computes LPIPS perceptual distance,

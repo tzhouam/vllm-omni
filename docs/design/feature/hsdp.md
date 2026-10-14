@@ -26,6 +26,7 @@ HSDP (Hybrid Sharded Data Parallel) is a memory optimization technique that **sh
 This enables inference of large models (e.g., Wan2.2 14B) on GPUs with limited memory.
 
 **Important constraints:**
+
 - HSDP cannot be used with Tensor Parallelism
 - For standalone HSDP (no other parallelism), `hsdp_shard_size` must be specified explicitly
 
@@ -49,6 +50,7 @@ Determine which modules in your transformer should be sharded. Typically, these 
 - Large submodules with significant weight memory
 
 **Key questions:**
+
 - Which modules have the largest weights?
 - Which modules are repeated (like transformer blocks)?
 
@@ -138,7 +140,7 @@ vllm serve Your-org/your-model --omni --port 8091 --use-hsdp
 Complete examples in the codebase:
 
 | Model | Path | Notes |
-|-------|------|-------|
+| ------- | ------ | ------- |
 | **Wan2.2** | `vllm_omni/diffusion/models/wan2_2/wan2_2_transformer.py` | Reference implementation |
 | **HSDP Core** | `vllm_omni/diffusion/distributed/hsdp.py` | `apply_hsdp_to_model`, `shard_model` |
 | **HSDP Tests** | `tests/diffusion/distributed/test_hsdp.py` | Unit tests |

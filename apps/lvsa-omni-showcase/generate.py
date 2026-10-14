@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+
 """Generate a long video through an LVSA-enabled vLLM-Omni server.
 
 A thin client over the Omni video API — start the server first with
