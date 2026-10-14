@@ -1,0 +1,45 @@
+{
+  "schema": "omni-strata-explicit-cache-alternate-v1",
+  "date": "2026-10-14",
+  "status": "registered_experimental_image_not_executed",
+  "registration_exit_code": 0,
+  "qualified": false,
+  "parent_launch_sha256": "21970f20a9644b9f6b3feab6d848bdea32c9aeacd5b4209ba937170f872c3056",
+  "launch_sha256": "c7368df325ff69d41484a2fb9dc088dd4b24fe5465cfa3dd7150d51fdceb294a",
+  "old_expert_cache_bytes": 8589934592,
+  "new_expert_cache_bytes": 6442450944,
+  "old_demands": {
+    "host_ram": 20476592128,
+    "vram:0": 17179869184,
+    "windows_commit": 48392830976,
+    "ssd": 120349115780
+  },
+  "new_demands": {
+    "host_ram": 18329108480,
+    "vram:0": 17179869184,
+    "windows_commit": 48392830976,
+    "ssd": 120349115780
+  },
+  "equal_backend_fields_verified": [
+    "artifact_manifest",
+    "prepared_pack_manifest",
+    "runtime_manifest",
+    "context_tokens",
+    "max_new_tokens",
+    "gpu_budget_bytes",
+    "spec_tokens",
+    "kv_type"
+  ],
+  "raw_archive": "strata_q4_image_6g_registration_20261014.raw.tar.gz",
+  "raw_archive_sha256": "6aa10815945fb1bbc12e76fe82ce6a55fc524a0ded3070016e85bec7590f898b",
+  "raw_files": {
+    "attempt.json": "d1feb0c1afe33ced483d6f713a35647880c8141802caa1b8bce8579bc33bb7ab",
+    "launch.image-registration.json": "c30cce896a1b012c297f98b8b09dd00eb4f0eb4420f3cbb6f094e787f6ea1c32",
+    "launch.json": "c7368df325ff69d41484a2fb9dc088dd4b24fe5465cfa3dd7150d51fdceb294a",
+    "register.py": "9bdae306d84e19b80d416f1c14a36cb2eb87a3eb4e87d220f717dd128174acf7",
+    "freeze.json": "021f6c8293c14366b3a162bb7f8993e0502a8ba936d93f6ab7ebc31135ff8209"
+  },
+  "lifecycle_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-lifecycle-6g-20261014-v6",
+  "lifecycle_status": "started_not_complete",
+  "scope": "Explicit smaller expert cache only; no inherited quality/performance; does not replace 8/24/32/40 GiB outcomes."
+}
