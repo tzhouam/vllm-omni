@@ -1057,16 +1057,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
                 scheduler_output, num_scheduled_tokens_np
             )
 
-            cascade_attn_prefix_lens = None
-            # Disable cascade attention when using microbatching (DBO)
-            if self.cascade_attn_enabled and not self.parallel_config.use_ubatching:
-                # Pre-compute cascade attention prefix lengths
-                cascade_attn_prefix_lens = self._compute_cascade_attn_prefix_lens(
-                    num_scheduled_tokens_np,
-                    self.input_batch.num_computed_tokens_cpu[:num_reqs],
-                    scheduler_output.num_common_prefix_blocks,
-                )
-
             (
                 cudagraph_mode,
                 batch_desc,
@@ -1078,7 +1068,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
                 num_reqs=num_reqs,
                 num_scheduled_tokens_np=num_scheduled_tokens_np,
                 max_num_scheduled_tokens=max_num_scheduled_tokens,
-                use_cascade_attn=cascade_attn_prefix_lens is not None,
+                use_cascade_attn=False,
                 num_encoder_reqs=len(scheduler_output.scheduled_encoder_inputs),
             )
             num_tokens_padded = batch_desc.num_tokens
@@ -1151,7 +1141,6 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
                 max_num_sampled_tokens=max_num_sampled_tokens,
                 use_spec_decode=use_spec_decode,
                 num_scheduled_tokens=scheduler_output.num_scheduled_tokens,
-                cascade_attn_prefix_lens=cascade_attn_prefix_lens,
                 slot_mappings=slot_mappings_by_group,
                 for_cudagraph_capture=runner_assisted_full_attn_capture,
             )

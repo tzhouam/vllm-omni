@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 import contextlib
+import inspect
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -196,10 +197,12 @@ def test_execute_model_zero_tokens_kv_connector_no_forward(monkeypatch):
     runner = _make_guard_runner()
     sentinel = object()
     calls = []
-    runner.kv_connector_no_forward = lambda scheduler_output, vllm_config: (
-        calls.append(scheduler_output),
-        sentinel,
-    )[1]
+
+    def _no_forward(scheduler_output, vllm_config):
+        calls.append(scheduler_output)
+        return sentinel
+
+    runner.kv_connector_no_forward = _no_forward
     runner.vllm_config = object()
 
     output = GPUGenerationModelRunner.execute_model(runner, _StubSchedulerOutput(0))
@@ -287,7 +290,6 @@ def test_exact_shape_models_receive_unpadded_input_ids(monkeypatch, exact_shape,
         requires_request_ids=False,
         requires_exact_input_shape=exact_shape,
     )
-    runner.cascade_attn_enabled = False
     runner.num_prompt_logprobs = None
     runner.vllm_config = None
     runner.parallel_config = SimpleNamespace(
@@ -310,7 +312,15 @@ def test_exact_shape_models_receive_unpadded_input_ids(monkeypatch, exact_shape,
         ),
     )
     monkeypatch.setattr(GPUGenerationModelRunner, "_get_slot_mappings", lambda self, **kw: (None, None))
-    monkeypatch.setattr(GPUGenerationModelRunner, "_build_attention_metadata", lambda self, **kw: (None, None))
+    # Use the installed upstream contract: a permissive **kwargs stub would
+    # hide removed runner arguments such as cascade_attn_prefix_lens.
+    metadata_signature = inspect.signature(GPUGenerationModelRunner._build_attention_metadata)
+
+    def _build_attention_metadata(self, **kwargs):
+        metadata_signature.bind(self, **kwargs)
+        return None, None
+
+    monkeypatch.setattr(GPUGenerationModelRunner, "_build_attention_metadata", _build_attention_metadata)
     monkeypatch.setattr(
         GPUGenerationModelRunner,
         "_maybe_attach_attention_metadata_extensions",

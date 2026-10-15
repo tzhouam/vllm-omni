@@ -22,8 +22,15 @@ def main() -> None:
 
     import torch
     import vllm
+    from vllm._version import __commit_id__
 
-    assert expected_commit[:8] in vllm.__version__, vllm.__version__
+    # Release wheels omit the SHA from __version__, but retain the build
+    # commit in _version. Check it so a different wheel of the same release
+    # cannot silently pass the pin check.
+    installed_commit = (__commit_id__ or "").removeprefix("g")
+    assert len(installed_commit) >= 8 and expected_commit.startswith(installed_commit), (
+        f"Expected vLLM {expected_commit}, got {__commit_id__} ({vllm.__version__})"
+    )
     assert torch.cuda.is_available(), "vLLM runtime check requires a GPU worker"
     for module in ("flashinfer", "vllm._C_stable_libtorch"):
         importlib.import_module(module)

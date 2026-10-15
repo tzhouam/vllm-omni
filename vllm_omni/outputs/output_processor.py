@@ -3,7 +3,7 @@
 
 from collections.abc import Iterable
 from dataclasses import fields as dataclass_fields
-from typing import Any
+from typing import Any, cast
 
 import torch
 from vllm.logger import init_logger
@@ -79,8 +79,8 @@ def _accumulate_segment_tpot(record: dict[str, object], *, elapsed_ms: float, ne
     """Weight one decode step by its token count. ITL stays one sample per step."""
     if new_tokens <= 0:
         return
-    total_elapsed_ms = float(record.get(_TPOT_ELAPSED_MS) or 0.0) + elapsed_ms
-    total_intervals = int(record.get(_TPOT_INTERVALS) or 0) + new_tokens
+    total_elapsed_ms = float(cast(float, record.get(_TPOT_ELAPSED_MS) or 0.0)) + elapsed_ms
+    total_intervals = int(cast(int, record.get(_TPOT_INTERVALS) or 0)) + new_tokens
     record[_TPOT_ELAPSED_MS] = total_elapsed_ms
     record[_TPOT_INTERVALS] = total_intervals
     record["vllm_tpot_ms"] = total_elapsed_ms / float(total_intervals)
@@ -93,6 +93,8 @@ class OmniRequestState(RequestState):
     multimodal tensor outputs (e.g., images, audio, latents) that
     are produced incrementally during generation.
     """
+
+    sent_tokens_offset: int
 
     def __init__(
         self,
@@ -882,6 +884,13 @@ class MultimodalOutputProcessor(VLLMOutputProcessor):
         native_stats = req_state.native_text_stats if isinstance(req_state, OmniRequestState) else None
         if iteration_stats is None or native_stats is None or finish_reason is None:
             return
+
+        # Upstream records watermark status on the per-request stats. Native
+        # text stats track segment timing separately and reset on streaming
+        # updates, so restore the request flags before counting completions.
+        if req_state.stats is not None:
+            native_stats.is_watermarked = req_state.stats.is_watermarked
+            native_stats.is_watermark_skipped = req_state.stats.is_watermark_skipped
 
         iteration_stats.update_from_finished_request(
             finish_reason=finish_reason,
