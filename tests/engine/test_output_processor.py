@@ -1488,3 +1488,23 @@ def test_cumulative_audio_terminal_output_supplies_full_aligner_waveform():
     assert (waveform[800:2000] == 1).all()
     assert (waveform[2000:] == 2).all()
     assert aligned["additional_information"]["aligner_audio_duration_ms"] == [100.0]
+
+
+@pytest.mark.parametrize("streaming_update", [False, True])
+@pytest.mark.parametrize("watermarked,skipped", [(True, False), (False, True), (False, False)])
+def test_native_finished_stats_preserve_watermark_status(watermarked, skipped, streaming_update):
+    processor = MultimodalOutputProcessor(tokenizer=None, log_stats=True, engine_core_output_type=AUDIO)
+    kwargs = {**_NO_DETOK_STATE_KWARGS, "log_stats": True}
+    state = OmniRequestState(**kwargs, output_kind=RequestOutputKind.CUMULATIVE)
+    assert state.stats is not None
+    state.stats.is_watermarked = watermarked
+    state.stats.is_watermark_skipped = skipped
+    if streaming_update:
+        state.apply_streaming_update(SimpleNamespace(final=True, prompt=None, prompt_token_ids=[], arrival_time=1.0))
+    stats = IterationStats()
+
+    processor._update_stats_from_finished(state, FinishReason.STOP, stats)
+
+    assert stats.num_watermarked_reqs == int(watermarked)
+    assert stats.num_watermark_skipped_reqs == int(skipped)
+    assert stats.num_not_watermarked_reqs == int(not watermarked and not skipped)

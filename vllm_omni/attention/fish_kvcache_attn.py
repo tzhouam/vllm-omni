@@ -27,10 +27,8 @@ def _triton_backend() -> Any:
 
 
 def is_available() -> bool:
-    # The Fish kvcache fast path is CUDA-only: it depends on FlashAttention's
-    # use_cascade metadata (absent from Ascend's metadata) and a Triton CUDA
-    # kernel. On other platforms report unavailable so the native attention
-    # backend takes over instead of crashing on attn_metadata.use_cascade.
+    # The Fish kvcache fast path uses FlashAttention metadata and a Triton
+    # CUDA kernel. Let the native attention backend handle other platforms.
     from vllm.platforms import current_platform
 
     if not current_platform.is_cuda():
@@ -136,6 +134,8 @@ def _get_decode_workspace(
     max_seq_len: int,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     batch_size, num_q_heads, head_dim = query.shape
+    key: tuple[Any, ...]
+    partial_shapes: tuple[tuple[int, ...], ...]
     if int(max_seq_len) <= FISH_KVCACHE_SMALL_PATH_MAX_SEQ_LEN:
         key = (query.device.type, query.device.index, "empty")
         partial_shapes = ((0,), (0,), (0,))
