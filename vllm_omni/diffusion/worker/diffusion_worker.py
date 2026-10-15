@@ -1070,6 +1070,9 @@ class DiffusionWorker:
         lora_manager = getattr(self, "lora_manager", None)
         if lora_manager is not None:
             lora_manager.close()
+        # The manager still references its pipeline after close. Drop this
+        # local before cleanup tracebacks or CuMem pool release can retain it.
+        del lora_manager
         self.model_runner = None
         self.lora_manager = None
         self.profiler = None
