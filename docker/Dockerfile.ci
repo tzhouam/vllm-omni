@@ -1,22 +1,11 @@
-# Target an unreleased vLLM main commit. The official commit image carries
-# the matching CUDA/PyTorch/FlashInfer stack; do not overlay a nightly wheel
-# on the previous release image. Copilot updates this commit pin, which also
-# selects the image used by CI. The selected commit must have a published
-# nightly image as well as a cu130 wheel.
-# This rebase's alignment target is e0317b28ce3ba4c9bd2ff69d885e3f34688a6d71,
-# but upstream's nightly cron never published an image for that commit (merged
-# after the Oct 12 nightly, superseded before the Oct 13 one), and Docker Hub
-# keeps nightly-<sha> tags only ~5 days. The pin is therefore the nearest
-# nightly-published ANCESTOR of the target: CI's vllm
-# (0.31.1rc1.dev296+gfe4df3df0) is ~40 commits older than the tree's
-# alignment (0.31.1rc1.dev336+ge0317b28c) on purpose. Newer nightlies are not
-# usable: cascade attention was removed upstream after the target, which
-# vllm_omni's AR runner still passes kwargs for. If this tag is ever pruned
-# ("not found" at load metadata), re-pin to the nearest still-published
-# nightly ancestor of the alignment target.
-ARG VLLM_PRECOMPILED_WHEEL_COMMIT=fe4df3df0eb703862c686b256e9fe44fa94c8945
+# Align with the exact releases/v0.32.0 tip (also tagged v0.32.0rc2).
+# Upstream has published its cu130 wheel but no matching Docker image.
+# Reuse the CUDA 13 / torch 2.13 / FlashInfer 0.7 nightly stack by digest,
+# then install the exact release wheel and its updated dependencies below.
+ARG VLLM_PRECOMPILED_WHEEL_COMMIT=7960eeb9de293137b7fca35cd4ae92c4c50ea286
+ARG VLLM_VERSION=0.32.0rc2
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
-ARG VLLM_BASE_TAG=nightly-${VLLM_PRECOMPILED_WHEEL_COMMIT}
+ARG VLLM_BASE_TAG=nightly-fe4df3df0eb703862c686b256e9fe44fa94c8945@sha256:8e5e3042302f29e63b1722ceb1db8edf96beafc5dfc19f5eebb5a668470b71b4
 
 # We use registry-based layer caching for the dependencies,
 # where the tag is determined based on the hash of the contents
@@ -25,6 +14,7 @@ ARG VLLM_BASE_TAG=nightly-${VLLM_PRECOMPILED_WHEEL_COMMIT}
 # change much across branches.
 FROM ${VLLM_BASE_IMAGE}:${VLLM_BASE_TAG} AS deps
 ARG VLLM_PRECOMPILED_WHEEL_COMMIT
+ARG VLLM_VERSION
 # Keep APP_DIR outside /workspace so k8s Buildkite workspace mounts cannot
 # shadow the editable install target (#5364). Docker WORKDIR creates /opt if
 # needed.
@@ -55,11 +45,13 @@ ENV VLLM_OMNI_VERSION_OVERRIDE=0.0.0
 # the package itself is linked to APP_DIR (populated later by COPY --link).
 # Do NOT use a non-editable install here — that copies an empty stub into
 # site-packages and breaks ``import vllm_omni.entrypoints``.
-RUN uv pip install --system -e ".[dev]"
+RUN uv pip install --system \
+    "vllm @ https://wheels.vllm.ai/${VLLM_PRECOMPILED_WHEEL_COMMIT}/vllm-${VLLM_VERSION}-cp38-abi3-manylinux_2_28_$(uname -m).whl" \
+    -e ".[dev]"
 # Fail the image build if dependency resolution replaced the selected vLLM.
 # The CPU builder has no NVIDIA driver; CUDA imports are checked at the start
 # of each GPU test job by .buildkite/cuda/scripts/check_vllm_runtime.py.
-RUN python3 -c "import vllm; assert '${VLLM_PRECOMPILED_WHEEL_COMMIT}'[:8] in vllm.__version__, vllm.__version__"
+RUN python3 -c "from vllm._version import __commit_id__; commit = (__commit_id__ or '').removeprefix('g'); assert len(commit) >= 8 and '${VLLM_PRECOMPILED_WHEEL_COMMIT}'.startswith(commit), __commit_id__"
 
 # The final stage just copies the working dir on top of the
 # dependencies image. This uses --link so that we can skip
