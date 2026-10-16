@@ -92,6 +92,11 @@ Raw benchmark JSON retains unmeasured warmup chunk arrivals and startup timings
 under `warmups`, separately from measured `sessions` and aggregate `metrics`.
 These records are serialized after measurement and add no requests or settling
 delays. They help distinguish warmup behavior from subsequent TTFC failures.
+If a warmup or measured session fails, the client writes a separate
+`benchmark-{warmup|session}-N-failure.json` containing received chunk timings,
+protocol events and the original error. This diagnostic has `complete: false`
+and no aggregate metrics; it cannot establish acceptance. Trace writes occur
+after failure and preserve the original exception even if the filesystem fails.
 Each case receives an unmeasured
 eight-chunk warmup session. The first six and terminal chunks stay in raw results and
 playback/FPS accounting, but are excluded from steady cadence by `workload.py`.

@@ -439,7 +439,7 @@ def _serve(script):
     return _Server()
 
 
-async def _emit_rollout(websocket, payload, *, intervals=None, chunks=None, trailer=True) -> None:
+async def _emit_rollout(websocket, payload, *, intervals=None, chunks=None, trailer=True, done=True) -> None:
     """Replay the documented event order: start, metadata+binary per chunk, done."""
     num_chunks = chunks if chunks is not None else len(payload["extra_params"]["camera_action_script"])
     await websocket.send(json.dumps({"type": "video.start", "request_id": "req-1", "format": "m4s"}))
@@ -476,7 +476,8 @@ async def _emit_rollout(websocket, payload, *, intervals=None, chunks=None, trai
             )
         )
         await websocket.send(tail)
-    await websocket.send(json.dumps({"type": "session.done", "stopped": False, "chunks": num_chunks}))
+    if done:
+        await websocket.send(json.dumps({"type": "session.done", "stopped": False, "chunks": num_chunks}))
 
 
 def _run(coro):
@@ -619,6 +620,127 @@ def test_a_short_rollout_fails_loudly_instead_of_reporting_a_partial_cadence() -
                 )
         finally:
             await server.__aexit__(None, None, None)
+
+    _run(scenario())
+
+
+@pytest.mark.parametrize("phase", ["warmup", "session"])
+@pytest.mark.parametrize("failure", ["timeout", "short", "server_error"])
+def test_failed_benchmark_retains_received_chunks(tmp_path: Path, phase: str, failure: str) -> None:
+    async def script(websocket, payload) -> None:
+        await _emit_rollout(websocket, payload, chunks=1, trailer=False, done=failure == "short")
+        if failure == "server_error":
+            await websocket.send(json.dumps({"type": "error", "message": "injected engine failure"}))
+        elif failure == "timeout":
+            await websocket.wait_closed()
+
+    async def scenario() -> None:
+        async with _serve(script) as url:
+            output = tmp_path / "benchmark.json"
+            args = parse_args(
+                [
+                    "--base-url",
+                    url,
+                    "--image",
+                    "data:image/png;base64,eA==",
+                    "--num-chunks",
+                    "4",
+                    "--warmup-sessions",
+                    "1" if phase == "warmup" else "0",
+                    "--first-chunk-timeout",
+                    "5",
+                    "--chunk-timeout",
+                    "0.2",
+                    "--ping-interval",
+                    "0",
+                    "--output-json",
+                    str(output),
+                ]
+            )
+            message = {
+                "timeout": "No media chunk",
+                "short": "Expected 4 chunks",
+                "server_error": "injected engine failure",
+            }[failure]
+            with pytest.raises(BenchmarkError, match=message) as raised:
+                await run_benchmark(args)
+        assert not output.exists(), "an incomplete run must not produce a successful benchmark"
+        trace = json.loads((tmp_path / f"benchmark-{phase}-0-failure.json").read_text())
+        assert trace["complete"] is False
+        assert trace["error"] == {"type": "BenchmarkError", "message": str(raised.value)}
+        assert trace["request_id"] == "req-1"
+        assert trace["expected_chunks"] == 4
+        assert len(trace["chunks"]) == 1
+        assert trace["chunks"][0]["index"] == 0
+        assert trace["chunks"][0]["byte_length"] == 100
+        assert trace["ttfc_ms"] == trace["chunks"][0]["arrival_s"] * 1000
+        assert 0 <= trace["video_start_ms"] <= trace["ttfc_ms"]
+        assert trace["wall_seconds"] >= trace["chunks"][0]["arrival_s"]
+        assert any(event["type"] == "video.start" for event in trace["events"])
+        assert "metrics" not in trace
+
+    _run(scenario())
+
+
+def test_failed_trace_write_preserves_the_session_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    occupied = tmp_path / "occupied"
+    occupied.write_text("existing file")
+
+    async def script(websocket, payload) -> None:
+        await _emit_rollout(websocket, payload, chunks=1, trailer=False)
+
+    async def scenario() -> None:
+        async with _serve(script) as url:
+            with pytest.raises(BenchmarkError, match="Expected 4 chunks"):
+                await run_session(
+                    url,
+                    "model",
+                    _workload(num_chunks=4),
+                    first_chunk_timeout=5,
+                    chunk_timeout=5,
+                    ping_interval=0,
+                    collect_media=False,
+                    print_chunks=False,
+                    failure_output=occupied / "failure.json",
+                )
+
+    _run(scenario())
+    assert "Could not retain failed session trace" in capsys.readouterr().err
+    assert occupied.read_text() == "existing file"
+
+
+def test_cancelled_session_retains_chunks_and_propagates_cancellation(tmp_path: Path) -> None:
+    async def script(websocket, payload) -> None:
+        await _emit_rollout(websocket, payload, chunks=1, trailer=False, done=False)
+        await websocket.wait_closed()
+
+    async def scenario() -> None:
+        received = asyncio.Event()
+        trace_path = tmp_path / "cancelled.json"
+        async with _serve(script) as url:
+            task = asyncio.create_task(
+                run_session(
+                    url,
+                    "model",
+                    _workload(num_chunks=4),
+                    first_chunk_timeout=5,
+                    chunk_timeout=5,
+                    ping_interval=0.1,
+                    collect_media=False,
+                    print_chunks=False,
+                    on_chunk=lambda record: received.set(),
+                    failure_output=trace_path,
+                )
+            )
+            await asyncio.wait_for(received.wait(), timeout=5)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+        trace = json.loads(trace_path.read_text())
+        assert trace["complete"] is False
+        assert trace["error"]["type"] == "CancelledError"
+        assert len(trace["chunks"]) == 1
+        assert trace["chunks"][0]["index"] == 0
 
     _run(scenario())
 
