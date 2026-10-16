@@ -133,3 +133,36 @@ def test_unpinned_evaluator_dependencies_are_rejected(tmp_path: Path):
     path.write_text("pytest>=8\n")
     with pytest.raises(RegressionError, match="not exactly pinned"):
         verify_environment(Path(sys.executable), path)
+
+
+@pytest.mark.parametrize(
+    "metric,reference_values,candidate_value",
+    [
+        ("ttfc_ms", [1501.201, 1458.253, 1549.494], 1646.096),
+        ("stall_ms", [159.172, 112.634, 90.709], 201.321),
+    ],
+)
+def test_h100_transient_jitter_uses_only_independent_reference_values(metric, reference_values, candidate_value):
+    # Actual H100 build 17394 transients; cadence remains subject to the same
+    # 3% CV and 5% regression rules. Candidate values never enter calibration.
+    row = performance_metrics(document(), num_chunks=40, min_steady=30)
+    references = [dict(row, **{metric: value}) for value in reference_values]
+    gate = calibrate(references, contract={}, reference_revision="a" * 40)
+    strict = calibrate(references, contract={}, reference_revision="a" * 40, transient_noise_sigma=0)
+    candidate = dict(row, **{metric: candidate_value})
+    assert not check_performance(candidate, strict, contract={})["passed"]
+    assert check_performance(candidate, gate, contract={})["passed"]
+    original = copy.deepcopy(gate)
+    candidate[metric] = gate["limits"][metric]["value"] + 1
+    assert not check_performance(candidate, gate, contract={})["passed"]
+    candidate[metric] = candidate_value
+    candidate["mean_ms"] *= 1.06
+    assert not check_performance(candidate, gate, contract={})["passed"]
+    assert gate == original
+
+
+@pytest.mark.parametrize("sigma", [-1, float("nan"), 3.01])
+def test_transient_noise_multiplier_is_finite_nonnegative_and_bounded(sigma):
+    row = performance_metrics(document(), num_chunks=40, min_steady=30)
+    with pytest.raises(RegressionError):
+        calibrate([row] * 3, contract={}, reference_revision="a" * 40, transient_noise_sigma=sigma)

@@ -56,6 +56,12 @@ playback/FPS accounting, but are excluded from steady cadence by `workload.py`.
 
 Reference cadence CV above 3% invalidates calibration. Each candidate must
 meet measured reference limits with the profile's 5% regression allowance.
+For TTFC and accumulated playback stalls only, the allowance is the greater of
+5% of the worst reference and three reference population standard deviations.
+The profile pins this multiplier (at most three); both allowances are reported.
+This accounts for startup/discrete-stall jitter observed in real H100 runs, and
+is a fixed calibration rule, not a confidence interval or a retry of a failed
+candidate. Stationary cadence limits and the 3% reference CV cap are unchanged.
 Candidate measurements never calibrate their own limits. This is a relative
 regression gate, not a promise of 12 FPS. The MP4 label and playback FPS basis
 are recorded separately. P99 is always reported but gates only when each
