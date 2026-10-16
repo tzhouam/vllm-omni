@@ -679,12 +679,25 @@ def test_keepalive_pings_reach_the_server_during_a_slow_first_chunk() -> None:
     _run(scenario())
 
 
-def test_prompt_updates_are_sent_on_their_chunk_boundary() -> None:
+@pytest.mark.parametrize("camera", [False, True])
+def test_interactions_are_sent_on_their_chunk_boundary(camera: bool) -> None:
+    update = PromptUpdate(after_chunk=0, prompt="Rain begins", transition_chunks=1)
+    payload = update.to_payload()
+    if camera:
+        payload["interaction"]["event"] = {
+            "multi_modal_data": {
+                "camera": {
+                    "mode": "target",
+                    "data": {"translation": [0.0, 0.0, 1.0], "rotation": [0.0, 0.0, 0.0, 1.0]},
+                }
+            }
+        }
     workload = Workload(
         prompt="start",
         image_reference=_IMAGE,
         camera_script=build_camera_script(3, "forward"),
-        prompt_updates=(PromptUpdate(after_chunk=0, prompt="Rain begins", transition_chunks=1),),
+        prompt_updates=() if camera else (update,),
+        extra_params={"camera_action_script": None} if camera else {},
     )
     received: list[dict] = []
 
@@ -694,7 +707,7 @@ def test_prompt_updates_are_sent_on_their_chunk_boundary() -> None:
                 received.append(json.loads(message))
 
         drainer = asyncio.create_task(drain())
-        await _emit_rollout(websocket, payload, intervals=[0.02, 0.15, 0.02], trailer=False)
+        await _emit_rollout(websocket, payload, intervals=[0.02, 0.15, 0.02], chunks=workload.num_chunks, trailer=False)
         await asyncio.sleep(0.05)
         drainer.cancel()
 
@@ -711,13 +724,15 @@ def test_prompt_updates_are_sent_on_their_chunk_boundary() -> None:
                 ping_interval=0,
                 collect_media=False,
                 print_chunks=False,
+                interactions_after_chunk={0: payload} if camera else None,
             )
         finally:
             await server.__aexit__(None, None, None)
         interactions = [event for event in received if event.get("type") == "session.interaction"]
         assert len(interactions) == 1
-        assert interactions[0]["interaction"]["event"]["prompt"] == "Rain begins"
-        assert interactions[0]["interaction"]["transition_chunks"] == 1
+        assert interactions[0] == payload
+        if camera:
+            assert server.start_payloads[0]["extra_params"]["camera_action_script"] is None
 
     _run(scenario())
 

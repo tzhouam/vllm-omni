@@ -178,6 +178,7 @@ async def run_session(
     collect_media: bool,
     print_chunks: bool,
     on_chunk: Callable[[ChunkRecord], None] | None = None,
+    interactions_after_chunk: dict[int, dict[str, Any]] | None = None,
 ) -> SessionResult:
     """Drive one rollout and timestamp every chunk as its bytes land."""
     try:
@@ -251,6 +252,9 @@ async def run_session(
                             # Diagnostic observations may synchronize devices.
                             # Performance runs never install this callback.
                             on_chunk(records[-1])
+                        if interactions_after_chunk is not None and index in interactions_after_chunk:
+                            async with send_lock:
+                                await websocket.send(json.dumps(interactions_after_chunk[index], ensure_ascii=False))
                         if print_chunks:
                             print(
                                 f"  chunk {index:3d}  t={arrival:8.3f}s  "

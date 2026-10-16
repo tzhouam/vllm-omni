@@ -131,7 +131,7 @@ def diagnostic_session(server, settings: dict[str, Any], image: Path, destinatio
     """Separate instrumented rollout for control updates and bounded memory."""
     from dataclasses import replace
 
-    from benchmarks.lingbot_world.workload import PromptUpdate, default_workload
+    from benchmarks.lingbot_world.workload import default_workload
     from vllm_omni.platforms import current_omni_platform as platform
 
     memory = []
@@ -154,9 +154,24 @@ def diagnostic_session(server, settings: dict[str, Any], image: Path, destinatio
         height=settings["height"],
         fps=settings["mux_fps"],
     )
-    workload = replace(
-        workload, prompt_updates=(PromptUpdate(after_chunk=2, prompt="The scene is illuminated by warm sunlight."),)
-    )
+    # LingBot supports camera interactions, not prompt replacement. Scripted
+    # trajectories and live camera input are mutually exclusive in the pipeline.
+    workload = replace(workload, extra_params={"camera_action_script": None})
+    camera_update = {
+        "type": "session.interaction",
+        "interaction": {
+            "event_id": "camera-chunk-2",
+            "event": {
+                "multi_modal_data": {
+                    "camera": {
+                        "mode": "target",
+                        "data": {"translation": [0.0, 0.0, 1.0], "rotation": [0.0, 0.0, 0.0, 1.0]},
+                    }
+                }
+            },
+            "transition_chunks": 2,
+        },
+    }
     result = asyncio.run(
         run_session(
             f"ws://{server.host}:{server.port}/v1/realtime/video",
@@ -168,6 +183,7 @@ def diagnostic_session(server, settings: dict[str, Any], image: Path, destinatio
             collect_media=False,
             print_chunks=False,
             on_chunk=observe,
+            interactions_after_chunk={2: camera_update},
         )
     )
     write_json(
@@ -178,11 +194,12 @@ def diagnostic_session(server, settings: dict[str, Any], image: Path, destinatio
         event
         for event in result.events
         if any(
-            "chunk-2" in event.get(key, []) for key in ("started_event_ids", "active_event_ids", "completed_event_ids")
+            "camera-chunk-2" in event.get(key, [])
+            for key in ("started_event_ids", "active_event_ids", "completed_event_ids")
         )
     ]
     if not applied:
-        raise RegressionError("Prompt update was not acknowledged as applied in the streamed metadata")
+        raise RegressionError("Camera update was not acknowledged as applied in the streamed metadata")
     if len(memory) < 2:
         raise RegressionError("Insufficient post-warmup memory observations")
     for device in range(settings["dies"]):
