@@ -78,6 +78,26 @@ def _prepare_evaluators(root: Path) -> Path:
         check=True,
         timeout=1800,
     )
+    # Import the actual scoring stack before taking a GPU evaluator slot.
+    # HPSv3 imports training helpers even during inference, so its dependencies
+    # are not discovered by importing WBench's lazy evaluator alone.
+    subprocess.run(
+        [
+            str(venv / "bin/python"),
+            "-c",
+            "import sys; sys.path[:0] = sys.argv[1:]; "
+            "import clip, pyiqa; "
+            "from vbench import VBench; "
+            "from src.metrics.video_quality.evaluator import VideoQualityEvaluator; "
+            "from hpsv3.inference import HPSv3RewardInferencer",
+            str(root / "vbench"),
+            str(root / "wbench"),
+            str(root / "wbench/third_party/HPSv3"),
+        ],
+        env={**os.environ, "CUDA_VISIBLE_DEVICES": ""},
+        check=True,
+        timeout=180,
+    )
     return venv / "bin/python"
 
 
