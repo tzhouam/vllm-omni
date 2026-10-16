@@ -324,6 +324,28 @@ def test_a_deeper_buffer_absorbs_the_same_jitter() -> None:
     assert buffered.underrun_count < fast.underrun_count
 
 
+def test_playback_startup_and_steady_stalls_preserve_the_complete_total() -> None:
+    records = _records([1.0, 0.9, 0.5, 2.0, 0.5])
+    result = simulate_playback(records, fps=16, buffer_chunks=1, startup_chunks=2)
+    assert result.startup_stall_s > 0
+    assert result.steady_stall_s > 0
+    assert result.total_stall_s == pytest.approx(result.startup_stall_s + result.steady_stall_s)
+    later_boundary = simulate_playback(records, fps=16, buffer_chunks=1, startup_chunks=4)
+    assert later_boundary.total_stall_s == result.total_stall_s
+    assert later_boundary.underrun_count == result.underrun_count
+    assert later_boundary.steady_stall_s == 0
+
+
+def test_compute_metrics_labels_stalls_using_the_pinned_steady_window() -> None:
+    records = _records([1.0, 0.9, 0.5, 2.0, 0.5, 0.5, 0.5, 2.0, 0.5])
+    metrics = compute_metrics(records, fps=16, warmup_chunks=6)
+    playback = metrics["playback"]
+    assert playback["startup_chunks"] == 6
+    assert playback["startup_stall_ms"] > 0
+    assert playback["steady_stall_ms"] > 0
+    assert playback["total_stall_ms"] == pytest.approx(playback["startup_stall_ms"] + playback["steady_stall_ms"])
+
+
 def test_playback_rejects_a_buffer_deeper_than_the_rollout() -> None:
     with pytest.raises(ValueError, match="exceeds"):
         simulate_playback(_records([1.0, 0.5]), fps=16, buffer_chunks=9)

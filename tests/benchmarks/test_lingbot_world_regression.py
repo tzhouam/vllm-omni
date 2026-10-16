@@ -23,7 +23,7 @@ from benchmarks.lingbot_world.regression import (
     read_json,
     sha256,
     verify_environment,
-    verify_quality_calibration_contract,
+    verify_reference_calibration_contract,
 )
 from benchmarks.lingbot_world.workload import ChunkRecord, compute_metrics
 
@@ -171,6 +171,109 @@ def test_transient_noise_multiplier_is_finite_nonnegative_and_bounded(sigma):
     row = performance_metrics(document(), num_chunks=40, min_steady=30)
     with pytest.raises(RegressionError):
         calibrate([row] * 3, contract={}, reference_revision="a" * 40, transient_noise_sigma=sigma)
+
+
+def test_recorded_reference_startup_noise_is_covered_without_a_steady_stall_allowance():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    evidence = read_json(root / "calibration/cuda_nightly_reference.json")["startup_stall_calibration"]
+    required = 0
+    base = performance_metrics(document(), num_chunks=40, min_steady=30)
+    for cohorts in evidence["cases"].values():
+        for source, heldout in ((cohorts[0], cohorts[1]), (cohorts[1], cohorts[0])):
+            assert len(source) == len(heldout) == 3
+            assert all(row["steady_stall_ms"] == 0 for row in [*source, *heldout])
+            required = max(
+                required,
+                max(row["startup_stall_ms"] for row in heldout) - max(row["startup_stall_ms"] for row in source),
+            )
+            reference = [
+                dict(
+                    base,
+                    stall_ms=row["startup_stall_ms"],
+                    **{key: row[key] for key in ("startup_stall_ms", "steady_stall_ms")},
+                )
+                for row in source
+            ]
+            gate = calibrate(
+                reference,
+                contract={},
+                reference_revision="a" * 40,
+                startup_stall_jitter_floor_ms=evidence["selected_floor_ms"],
+            )
+            for row in heldout:
+                measured = dict(
+                    base,
+                    stall_ms=row["startup_stall_ms"],
+                    **{key: row[key] for key in ("startup_stall_ms", "steady_stall_ms")},
+                )
+                assert check_performance(measured, gate, contract={})["passed"]
+            assert gate["limits"]["steady_stall_ms"]["value"] == 0
+    assert required == pytest.approx(evidence["maximum_reference_startup_excess_ms"])
+    assert evidence["selected_floor_ms"] == math.ceil(required * 1.25)
+
+
+def test_startup_noise_allowance_cannot_hide_a_later_stall_or_forged_summary():
+    def measured(first_gap_jitter=0.0, later_gap_jitter=0.0):
+        doc = document(interval=0.8)
+        session = doc["sessions"][0]
+        for index, row in enumerate(session["chunks"]):
+            row["arrival_s"] += (first_gap_jitter if index >= 1 else 0) + (later_gap_jitter if index >= 6 else 0)
+            previous = session["chunks"][index - 1]["arrival_s"] if index else 0
+            row["inter_arrival_ms"] = (row["arrival_s"] - previous) * 1000
+        session["metrics"]["wall_seconds"] = session["chunks"][-1]["arrival_s"]
+        session["metrics"]["playback"].update(total_stall_ms=0, startup_stall_ms=0, steady_stall_ms=0)
+        return performance_metrics(doc, num_chunks=40, min_steady=30)
+
+    reference = [measured(jitter) for jitter in (0, 0.02, 0.04)]
+    candidate = measured(later_gap_jitter=1.02)
+    legacy = calibrate(reference, contract={}, reference_revision="a" * 40)
+    assert check_performance(candidate, legacy, contract={})["passed"]
+    gate = calibrate(reference, contract={}, reference_revision="a" * 40, startup_stall_jitter_floor_ms=135)
+    assert candidate["steady_stall_ms"] == pytest.approx(20)
+    check = check_performance(candidate, gate, contract={})
+    assert not check["passed"]
+    assert len(check["violations"]) == 1 and "steady_stall_ms" in check["violations"][0]
+    startup_only = measured(first_gap_jitter=0.1)
+    assert check_performance(startup_only, gate, contract={})["passed"]
+    startup_only["stall_ms"] = gate["limits"]["stall_ms"]["value"] + 1
+    assert not check_performance(startup_only, gate, contract={})["passed"]
+
+
+@pytest.mark.parametrize("metric", ["mean_ms", "p50_ms", "p95_ms", "p99_ms", "ttfc_ms", "generated_fps"])
+def test_startup_noise_floor_does_not_change_other_performance_limits(metric):
+    row = performance_metrics(document(num_chunks=1020), num_chunks=1020, min_steady=1000)
+    gate = calibrate([row] * 3, contract={}, reference_revision="a" * 40, startup_stall_jitter_floor_ms=135)
+    original = calibrate([row] * 3, contract={}, reference_revision="a" * 40)
+    assert gate["limits"][metric] == original["limits"][metric]
+    candidate = dict(row)
+    limit = gate["limits"][metric]
+    candidate[metric] = limit["value"] + (1 if limit["direction"] == "max" else -1)
+    assert not check_performance(candidate, gate, contract={})["passed"]
+
+
+@pytest.mark.parametrize("floor", [-1, True, float("nan"), float("inf")])
+def test_invalid_startup_stall_floor_fails_closed(floor):
+    row = performance_metrics(document(), num_chunks=40, min_steady=30)
+    with pytest.raises(RegressionError):
+        calibrate([row] * 3, contract={}, reference_revision="a" * 40, startup_stall_jitter_floor_ms=floor)
+
+
+def test_startup_stall_floor_requires_separate_raw_steady_measurements():
+    row = performance_metrics(document(), num_chunks=40, min_steady=30)
+    del row["steady_stall_ms"]
+    with pytest.raises(RegressionError, match="separately recomputed steady"):
+        calibrate([row] * 3, contract={}, reference_revision="a" * 40, startup_stall_jitter_floor_ms=135)
+
+
+def test_regression_rejects_a_changed_playback_buffer():
+    from tests.dfx.lingbot_world.runner import _measured_metrics
+
+    doc = document()
+    doc["sessions"][0]["request_id"] = "test-session"
+    doc["sessions"][0]["session_index"] = 0
+    doc["config"]["playback_buffer_chunks"] = 2
+    with pytest.raises(RegressionError, match="one-chunk playback buffer"):
+        _measured_metrics(doc, {"num_chunks": 40, "min_steady_samples": 30, "target_fps": 12, "warmup_chunks": 6})
 
 
 @pytest.mark.parametrize(
@@ -330,14 +433,14 @@ def test_quality_calibration_cannot_be_reused_after_numerical_contract_changes(g
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
     record = read_json(root / "calibration/cuda_nightly_reference.json")
     contract = {"deploy_sha256": record["deploy_sha256"], "profile": record["workload"], "hardware": record["hardware"]}
-    verify_quality_calibration_contract(contract, record)
+    verify_reference_calibration_contract(contract, record)
     heldout = copy.deepcopy(contract)
     heldout["profile"].update(num_chunks=600, cases=[{"id": "new-heldout-scene", "seed": 123}])
-    verify_quality_calibration_contract(heldout, record)
+    verify_reference_calibration_contract(heldout, record)
     changed = copy.deepcopy(contract)
     (changed if group is None else changed[group])[field] = "unreviewed change"
-    with pytest.raises(RegressionError, match="Quality calibration"):
-        verify_quality_calibration_contract(changed, record)
+    with pytest.raises(RegressionError, match="Reference calibration"):
+        verify_reference_calibration_contract(changed, record)
 
 
 def test_reference_quality_spread_does_not_widen_candidate_budget():
