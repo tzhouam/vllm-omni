@@ -12,7 +12,7 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from types import SimpleNamespace
+from typing import NamedTuple
 
 import pytest
 import yaml
@@ -22,6 +22,10 @@ from tests.dfx.lingbot_world.runner import server_arguments, server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
+
+
+class _DeviceProperties(NamedTuple):
+    uuid: str
 
 
 @pytest.mark.parametrize("reverse", [False, True])
@@ -123,7 +127,7 @@ def test_exclusive_allocation_preflight_records_all_reserved_devices(tmp_path, m
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "7,6,5,4,3,2,1,0")
     monkeypatch.setattr(torch.accelerator, "device_count", lambda: 8)
     monkeypatch.setattr(torch.cuda, "get_device_name", lambda index: "H100")
-    monkeypatch.setattr(torch.cuda, "get_device_properties", lambda index: SimpleNamespace(uuid=f"GPU-{index}"))
+    monkeypatch.setattr(torch.cuda, "get_device_properties", lambda index: _DeviceProperties(uuid=f"GPU-{index}"))
     output = tmp_path / "allocation.json"
     assert (
         prepare_cuda_allocation({"platform": "cuda", "cards": 4, "dies": 4, "reserved_cards": 8}, output) == "7,6,5,4"
@@ -137,16 +141,11 @@ def test_exclusive_hardware_contract_requires_matching_allocation_evidence(tmp_p
     import vllm_omni.platforms
     from tests.dfx.lingbot_world.runner import hardware_contract
 
-    monkeypatch.setattr(
-        vllm_omni.platforms,
-        "current_omni_platform",
-        SimpleNamespace(
-            device_type="cuda",
-            get_device_count=lambda: 4,
-            get_device_name=lambda index: "H100",
-            get_device_total_memory=lambda index: 80 * 1024**3,
-        ),
-    )
+    platform = vllm_omni.platforms.current_omni_platform
+    monkeypatch.setattr(platform, "device_type", "cuda")
+    monkeypatch.setattr(platform, "get_device_count", lambda: 4)
+    monkeypatch.setattr(platform, "get_device_name", lambda index: "H100")
+    monkeypatch.setattr(platform, "get_device_total_memory", lambda index: 80 * 1024**3)
     settings = {"platform": "cuda", "cards": 4, "dies": 4, "reserved_cards": 8}
     monkeypatch.delenv("LINGBOT_ALLOCATION_FILE", raising=False)
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "0,1,2,3")
