@@ -24,6 +24,43 @@ pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
 
 
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize(
+    "selection,expected_names",
+    [
+        ("core_model and cpu", ("test_selected_text_encoder_is_released_before_following_video_work",)),
+        (
+            "full_model and cuda and H100",
+            ("test_cuda_smoke", "test_cuda_served_regression", "test_wbench_vbench_and_video_precision"),
+        ),
+        ("full_model and npu and A2", ("test_collect_npu_measurement_pair", "test_npu_served_regression")),
+        ("core_model and xpu and B60", ()),
+    ],
+)
+def test_model_and_dfx_packages_collect_together_on_every_platform(reverse, selection, expected_names):
+    # Intel collects both trees before applying its XPU expression. DFX must
+    # not shadow the existing model package, including for deselected tests.
+    paths = ["tests/diffusion/models/lingbot_world/test_offload_lingbot_world.py", "tests/dfx/lingbot_world"]
+    if reverse:
+        paths.reverse()
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", *paths, "-m", selection],
+        cwd=ROOT,
+        env={
+            **os.environ,
+            "CUDA_VISIBLE_DEVICES": "",
+            "BUILDKITE_PARALLEL_JOB": "0",
+            "BUILDKITE_PARALLEL_JOB_COUNT": "1",
+        },
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+    assert result.returncode == (0 if expected_names else 5), result.stdout + result.stderr
+    assert "ERROR collecting" not in result.stdout
+    assert all(name in result.stdout for name in expected_names)
+
+
 @pytest.mark.parametrize("timeout", [37, 1200])
 def test_server_initialization_and_stage_deadlines_use_the_explicit_profile_budget(timeout):
     settings = {"deploy_config": "tests/dfx/lingbot_world/configs/npu_usp4_offload.yaml", "startup_timeout_s": timeout}
