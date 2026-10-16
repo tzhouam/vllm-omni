@@ -132,7 +132,9 @@ aggregate rejects different hardware/dependency contracts and unstable reference
 populations. It verifies all three complete manifests, revisions and checksums,
 rejects duplicated sessions, recomputes performance from raw chunks, and applies
 the same performance and seven VAE precision checks. Collection success alone is
-not regression acceptance; quality jobs require the aggregate gate to pass.
+not regression acceptance. Quality jobs depend on the aggregate, retain scores
+for complete failed populations, and require both aggregate and quality gates
+to pass for acceptance.
 
 These partitions keep individual jobs below the effective timeout observed in
 the CI environment. A configured step timeout does not override a smaller
