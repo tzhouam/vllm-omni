@@ -6,7 +6,9 @@ import pytest
 
 from tests.dfx.lingbot_world.runner import aggregate_measurements
 
-pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
+# This gate consumes full-model artifacts and is selected explicitly by the
+# aggregate launcher; generic CPU CI has neither a profile nor measurements.
+pytestmark = [pytest.mark.full_model, pytest.mark.diffusion, pytest.mark.cpu]
 
 
 def test_all_npu_measurement_pairs_pass_regression(lingbot_settings):
