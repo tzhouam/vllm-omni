@@ -7,6 +7,7 @@ from __future__ import annotations
 import asyncio
 import importlib.metadata
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -237,8 +238,28 @@ def diagnostic_session(server, settings: dict[str, Any], image: Path, destinatio
             raise RegressionError(f"Unbounded memory growth on device {device}: {samples}")
 
 
-def generate(settings: dict[str, Any]) -> dict[str, Any]:
-    """Six independent starts, interleaved reference/candidate; no auto-skip."""
+def _measured_metrics(document: dict, settings: dict) -> dict[str, float]:
+    sessions = document.get("sessions", [])
+    count = settings.get("measured_sessions", 1)
+    ids = [session.get("request_id") for session in sessions]
+    if (
+        len(sessions) != count
+        or [session.get("session_index") for session in sessions] != list(range(count))
+        or any(not isinstance(identity, str) or not identity for identity in ids)
+        or len(set(ids)) != count
+    ):
+        raise RegressionError("Missing or duplicated measured sessions in an independent start")
+    if any(document["config"].get(key) != settings[key] for key in ("warmup_chunks", "target_fps")):
+        raise RegressionError("Benchmark measurement policy differs from the profile")
+    return performance_metrics(document, num_chunks=settings["num_chunks"], min_steady=settings["min_steady_samples"])
+
+
+def generate(settings: dict[str, Any], *, measurement_repeat: int | None = None) -> dict[str, Any]:
+    """Collect all starts, or one NPU pair for a separately gated long campaign."""
+    if measurement_repeat is not None and (
+        type(measurement_repeat) is not int or measurement_repeat not in range(3) or settings["platform"] != "npu"
+    ):
+        raise RegressionError("Measurement collection requires an NPU repeat index 0, 1 or 2")
     from tests.helpers.runtime import OmniServer
 
     output = settings["output"]
@@ -254,7 +275,7 @@ def generate(settings: dict[str, Any]) -> dict[str, Any]:
     contract = {"hardware": hardware, "profile": config, "deploy_sha256": sha256(deployment)}
     write_json(output / "contract.json", contract)
     records: dict[str, Any] = {"reference": [], "candidate": []}
-    for repeat in range(3):
+    for repeat in [measurement_repeat] if measurement_repeat is not None else range(3):
         # Alternate AB/BA to reduce bias from thermal/host-load drift.
         order = ("reference", "candidate") if repeat % 2 == 0 else ("candidate", "reference")
         for role in order:
@@ -324,9 +345,7 @@ def generate(settings: dict[str, Any]) -> dict[str, Any]:
                     # Server revision, not the client harness revision.
                     document["server_revision"] = git_revision(source)
                     write_json(destination / "benchmark.json", document)
-                    case_results[case["id"]] = performance_metrics(
-                        document, num_chunks=settings["num_chunks"], min_steady=settings["min_steady_samples"]
-                    )
+                    case_results[case["id"]] = _measured_metrics(document, settings)
                 # Reuse lifecycle tests against this exact server, with the
                 # same pinned first frame; no second untracked service launch.
                 if settings["lifecycle_checks"]:
@@ -351,6 +370,36 @@ def generate(settings: dict[str, Any]) -> dict[str, Any]:
                 raise RegressionError(f"Server children survived teardown: {lingering}")
             records[role].append(case_results)
             write_json(output / "progress.json", {"records": records, "contract": contract})
+    if measurement_repeat is not None:
+        measurement = {
+            "measurement_only": True,
+            "complete": True,
+            "repeat": measurement_repeat,
+            "contract": contract,
+            "records": records,
+            "reference_revision": settings["reference_revision"],
+            "candidate_revision": git_revision(ROOT),
+            "buildkite_job_id": os.environ.get("BUILDKITE_JOB_ID"),
+            "artifacts": {
+                str(path.relative_to(output)): sha256(path)
+                for role in ("reference", "candidate")
+                for path in (output / role).rglob("*")
+                if path.is_file()
+            },
+        }
+        write_json(output / "measurement.json", measurement)
+        write_json(output / "generation.json", {"passed": False, "status": "awaiting_aggregate"})
+        return measurement
+    return _finalize_measurements(settings, contract, records)
+
+
+def _finalize_measurements(settings: dict[str, Any], contract: dict, records: dict) -> dict[str, Any]:
+    output = settings["output"]
+    cases = {case["id"] for case in settings["cases"]}
+    if any(len(records.get(role, [])) != 3 for role in ("reference", "candidate")):
+        raise RegressionError("Final gates require three independent starts per role")
+    if any(set(row) != cases for role in ("reference", "candidate") for row in records[role]):
+        raise RegressionError("Measurement cases do not cover the complete profile")
     report: dict[str, Any] = {
         "contract": contract,
         "cases": {},
@@ -396,5 +445,105 @@ def generate(settings: dict[str, Any]) -> dict[str, Any]:
         for path in output.rglob("*")
         if path.is_file() and path.suffix in {".mp4", ".npz"}
     }
+    write_json(output / "generation.json", report)
+    return report
+
+
+def aggregate_measurements(settings: dict[str, Any]) -> dict[str, Any]:
+    """Verify three complete NPU pairs before applying the full regression gate."""
+    source = settings["generation"]
+    output = settings["output"].resolve()
+    if source is None or settings["platform"] != "npu":
+        raise RegressionError("NPU aggregation requires a measurement artifact directory")
+    source = source.resolve()
+    if output.is_relative_to(source) or source.is_relative_to(output):
+        raise RegressionError("Aggregate input and output directories must be disjoint")
+    output.mkdir(parents=True, exist_ok=True)
+    if any((output / role).exists() for role in ("reference", "candidate")):
+        raise RegressionError("Use a fresh aggregate output directory")
+    write_json(output / "generation.json", {"passed": False, "status": "aggregating"})
+    revision = git_revision(ROOT)
+    profile = read_json(settings["profile_path"])
+    cases = {case["id"] for case in settings["cases"]}
+    contract = None
+    records: dict[str, list] = {"reference": [], "candidate": []}
+    provenance = []
+    request_ids: set[str] = set()
+    for repeat in range(3):
+        root = source / f"pair-{repeat}"
+        if not (root / "measurement.json").is_file():
+            raise RegressionError(f"Missing measurement pair {repeat}")
+        manifest = read_json(root / "measurement.json")
+        if (
+            manifest.get("complete") is not True
+            or manifest.get("measurement_only") is not True
+            or type(manifest.get("repeat")) is not int
+            or manifest["repeat"] != repeat
+            or manifest.get("candidate_revision") != revision
+            or manifest.get("reference_revision") != settings["reference_revision"]
+        ):
+            raise RegressionError(f"Incomplete, duplicate or wrong-revision measurement pair {repeat}")
+        current = manifest["contract"]
+        hardware = current["hardware"]
+        if (
+            current["profile"] != profile
+            or current["deploy_sha256"] != sha256(ROOT / settings["deploy_config"])
+            or any(hardware.get(key) != settings[key] for key in ("platform", "cards", "dies"))
+            or len(hardware.get("devices", [])) != settings["dies"]
+        ):
+            raise RegressionError(f"Measurement profile or hardware mismatch in pair {repeat}")
+        if contract is not None and current != contract:
+            raise RegressionError("Measurement hardware/dependency contracts differ between pairs")
+        contract = current
+        required = {f"{role}/{repeat}/precision.npz" for role in records}
+        required |= {
+            f"{role}/{repeat}/{case}/{name}"
+            for role in records
+            for case in cases
+            for name in ("benchmark.json", "rollout.mp4")
+        }
+        if repeat == 0:
+            required |= {f"{role}/0/diagnostic.json" for role in records}
+        artifacts = manifest["artifacts"]
+        if not required.issubset(artifacts):
+            raise RegressionError(f"Missing measurement artifacts in pair {repeat}")
+        for relative, digest in artifacts.items():
+            path = Path(relative)
+            if (
+                path.is_absolute()
+                or ".." in path.parts
+                or len(path.parts) < 3
+                or path.parts[0] not in records
+                or path.parts[1] != str(repeat)
+            ):
+                raise RegressionError(f"Unsafe or wrong-repeat measurement path: {relative}")
+            if sha256(root / path) != digest:
+                raise RegressionError(f"Measurement artifact checksum mismatch: {relative}")
+            destination = output / path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(root / path, destination)
+        for role in records:
+            completed = manifest["records"].get(role, [])
+            if len(completed) != 1 or set(completed[0]) != cases:
+                raise RegressionError(f"Incomplete case population in {role} pair {repeat}")
+            metrics = {}
+            for case in cases:
+                raw = read_json(output / role / str(repeat) / case / "benchmark.json")
+                server_revision = settings["reference_revision"] if role == "reference" else revision
+                if raw.get("git_revision") != revision or raw.get("server_revision") != server_revision:
+                    raise RegressionError(f"Wrong benchmark producer/server revision in {role} pair {repeat}")
+                # Recompute from chunks; a claimed aggregate cannot set its own limits.
+                metrics[case] = _measured_metrics(raw, settings)
+                identities = {session["request_id"] for session in raw["sessions"]}
+                if identities & request_ids:
+                    raise RegressionError("Measured requests were reused across independent starts")
+                request_ids.update(identities)
+            records[role].append(metrics)
+        provenance.append({"repeat": repeat, "buildkite_job_id": manifest.get("buildkite_job_id")})
+    assert contract is not None
+    write_json(output / "progress.json", {"records": records, "contract": contract})
+    write_json(output / "measurement-jobs.json", provenance)
+    report = _finalize_measurements(settings, contract, records)
+    report["measurement_jobs"] = provenance
     write_json(output / "generation.json", report)
     return report

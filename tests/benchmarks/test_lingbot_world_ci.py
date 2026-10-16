@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import subprocess
 import sys
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from types import SimpleNamespace
@@ -20,6 +22,30 @@ from tests.dfx.lingbot_world.runner import server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize("platform,count", [("cuda", 3), ("npu", 6)])
+def test_weekly_shards_cover_every_original_case_once_without_changing_measurements(platform, count):
+    from tests.dfx.lingbot_world.prepare import profile_for_case_shard
+
+    original = json.loads((ROOT / f"tests/dfx/lingbot_world/configs/{platform}_weekly.json").read_text())
+    shards = [profile_for_case_shard(original, f"{index}/{count}") for index in range(count)]
+    ids = [case["id"] for shard in shards for case in shard["cases"]]
+    assert len(ids) == len(set(ids)) == len(original["cases"]) == 18
+    assert set(ids) == {case["id"] for case in original["cases"]}
+    assert all(len(shard["cases"]) == 18 // count for shard in shards)
+    for shard in shards:
+        assert {k: v for k, v in shard.items() if k not in {"cases", "case_shard"}} == {
+            k: v for k, v in original.items() if k != "cases"
+        }
+
+
+@pytest.mark.parametrize("selection", ["", "-1/3", "3/3", "0/0", "0/19", "0/3/4"])
+def test_case_shards_reject_invalid_or_empty_populations(selection):
+    from tests.dfx.lingbot_world.prepare import profile_for_case_shard
+
+    with pytest.raises(RegressionError):
+        profile_for_case_shard({"cases": [{"id": str(index)} for index in range(18)]}, selection)
 
 
 @pytest.mark.parametrize("mask", [None, "7,6,5,4,3,2,1,0", ",".join(f"GPU-{index}" for index in range(8))])
@@ -236,8 +262,25 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
         assert prefix + "-evaluator-image" in evaluate["depends_on"]
     if level == "weekly":
         assert prefix + "-long" in keyed
+        count = 3 if platform == "cuda" else 6
+        assert generate["matrix"] == evaluate["matrix"] == {"setup": {"shard": [str(i) for i in range(count)]}}
+        assert (
+            generate["env"]["LINGBOT_CASE_SHARD"]
+            == evaluate["env"]["LINGBOT_CASE_SHARD"]
+            == ("{{matrix.shard}}/" + str(count))
+        )
         if platform == "cuda":
             assert keyed[prefix + "-long"]["mirror_hardwares"] == "h100_4_exclusive"
+        else:
+            collection = keyed[prefix + "-long"]
+            gate = keyed[prefix + "-long-gate"]
+            quality = keyed[prefix + "-long-quality"]
+            assert collection["matrix"] == {"setup": {"repeat": ["0", "1", "2"]}}
+            assert " collect " in collection["commands"][0]
+            assert prefix + "-long" in gate["depends_on"]
+            assert gate["mirror_hardwares"] == "l4_1" and not gate.get("soft_fail")
+            assert prefix + "-long-gate" in quality["depends_on"]
+            assert quality["commands"][0].endswith(prefix + "-long-gate")
 
 
 def test_selected_ci_skip_is_a_failed_pytest_job(tmp_path: Path):
@@ -317,6 +360,52 @@ def test_launcher_setup_failure_retains_nonzero_exit_and_junit(tmp_path: Path, s
         timeout=60,
     )
     assert result.returncode != 0
+    assert ET.parse(output / "pytest.xml").find("testcase/failure") is not None
+    assert not json.loads((output / "setup-failure.json").read_text())["passed"]
+
+
+@pytest.mark.parametrize("cancel_signal", [signal.SIGTERM, signal.SIGKILL])
+def test_launcher_cancellation_retains_failure_junit(tmp_path: Path, cancel_signal):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    python = bin_dir / "python"
+    python.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, sys\nfrom pathlib import Path\n"
+        "if sys.argv[1:4] == ['-m', 'tests.dfx.lingbot_world.prepare', 'reference']:\n"
+        "    Path(sys.argv[sys.argv.index('--env-output')+1]).write_text(json.dumps({'model_path':'unused'}))\n"
+        "else:\n    os.execv(sys.executable, [sys.executable, *sys.argv[1:]])\n"
+    )
+    pytest_cli = bin_dir / "pytest"
+    ready = tmp_path / "ready"
+    pytest_cli.write_text(
+        f"#!{sys.executable}\nimport time\nfrom pathlib import Path\nPath({str(ready)!r}).touch()\ntime.sleep(120)\n"
+    )
+    python.chmod(0o755)
+    pytest_cli.chmod(0o755)
+    profile = tmp_path / "profile.json"
+    profile.write_text(json.dumps({"platform": "npu", "dies": 4}))
+    output = tmp_path / "artifacts"
+    process = subprocess.Popen(
+        ["bash", str(ROOT / ".buildkite/common/scripts/run-lingbot-ci.sh"), "generate", str(profile), str(output)],
+        cwd=ROOT,
+        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ["PATH"]},
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    try:
+        deadline = time.monotonic() + 10
+        while not ready.exists() and process.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.02)
+        assert ready.exists(), "Fake generation did not reach the interruption point"
+        os.killpg(process.pid, cancel_signal)
+        process.communicate(timeout=10)
+    finally:
+        if process.poll() is None:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait(timeout=5)
+    assert process.returncode != 0
     assert ET.parse(output / "pytest.xml").find("testcase/failure") is not None
     assert not json.loads((output / "setup-failure.json").read_text())["passed"]
 

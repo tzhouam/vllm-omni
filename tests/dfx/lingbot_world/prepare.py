@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import urllib.request
@@ -15,6 +16,17 @@ from pathlib import Path
 from benchmarks.lingbot_world.regression import RegressionError, read_json, sha256, verify_environment, write_json
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def profile_for_case_shard(settings: dict, selection: str) -> dict:
+    match = re.fullmatch(r"(\d+)/(\d+)", selection)
+    if match is None:
+        raise RegressionError("Case shard must be INDEX/COUNT")
+    index, count = map(int, match.groups())
+    cases = settings["cases"]
+    if count < 1 or index >= count or count > len(cases):
+        raise RegressionError("Case shard would be empty or outside the configured population")
+    return {**settings, "cases": cases[index::count], "case_shard": {"index": index, "count": count}}
 
 
 def select_cuda_devices(available: int, mask: str | None, *, dies: int, reserved_cards: int) -> str:
@@ -170,13 +182,22 @@ def prepare_evaluators(root: Path) -> Path:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=("reference", "evaluators", "devices"))
+    parser.add_argument("stage", choices=("reference", "evaluators", "devices", "shard"))
     parser.add_argument("--profile", type=Path)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--env-output", type=Path)
+    parser.add_argument("--case-shard")
     args = parser.parse_args()
     if args.stage == "evaluators":
         print(prepare_evaluators(args.root.resolve()))
+    elif args.stage == "shard":
+        if args.profile is None or args.case_shard is None:
+            parser.error("shard needs --profile and --case-shard")
+        settings = profile_for_case_shard(read_json(args.profile), args.case_shard)
+        settings["case_shard"]["source_sha256"] = sha256(args.profile)
+        output = args.root.resolve() / "profile.json"
+        write_json(output, settings)
+        print(output)
     elif args.stage == "devices":
         if args.profile is None:
             parser.error("devices needs --profile")

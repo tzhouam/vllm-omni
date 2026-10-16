@@ -2,7 +2,8 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Fail-closed regression checks and calibration for real LingBot rollouts.
 
-The baseline is measured on the same runner using a frozen reference revision.
+The baseline uses independent starts of a frozen reference revision with a
+matching hardware and dependency contract.
 Neither a different accelerator topology nor another precision policy may reuse
 it. Calibration is explicit and never happens inside the candidate check.
 """

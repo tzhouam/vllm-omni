@@ -14,6 +14,7 @@ def pytest_addoption(parser):
     group.addoption("--lingbot-output", type=Path, default=Path("lingbot-artifacts"))
     group.addoption("--lingbot-reference-root", type=Path, help="Clean checkout at profile.reference_revision")
     group.addoption("--lingbot-generation", type=Path, help="Downloaded generation artifacts for GPU evaluation")
+    group.addoption("--lingbot-measurement-repeat", type=int, choices=(0, 1, 2))
 
 
 @pytest.fixture(scope="module")
@@ -30,6 +31,7 @@ def lingbot_settings(request):
     settings["reference_root"] = request.config.getoption("--lingbot-reference-root")
     settings["generation"] = request.config.getoption("--lingbot-generation")
     settings["profile_path"] = path.resolve()
+    settings["measurement_repeat"] = request.config.getoption("--lingbot-measurement-repeat")
     return settings
 
 

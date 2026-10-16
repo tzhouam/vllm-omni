@@ -676,15 +676,25 @@ steps:
     steps:
       - label: "LingBot World · CUDA measured reference/candidate"
         key: lingbot-cuda-weekly-generation
+        matrix:
+          setup:
+            shard: ["0", "1", "2"]
+        env:
+          LINGBOT_CASE_SHARD: "{{matrix.shard}}/3"
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 1440
         mirror_hardwares: h100_4_exclusive
         artifact_paths:
           - "lingbot-artifacts/cuda-weekly/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh generate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh generate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly/shard-{{matrix.shard}}
       - label: "LingBot World · CUDA videos WBench/VBench gate on GPU"
         key: lingbot-cuda-weekly-quality
+        matrix:
+          setup:
+            shard: ["0", "1", "2"]
+        env:
+          LINGBOT_CASE_SHARD: "{{matrix.shard}}/3"
         source_file_dependencies: lingbot_world_regression
         depends_on:
           - lingbot-cuda-weekly-generation
@@ -693,7 +703,7 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/cuda-weekly-quality/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly-quality lingbot-artifacts/cuda-weekly lingbot-cuda-weekly-generation
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly-quality/shard-{{matrix.shard}} lingbot-artifacts/cuda-weekly/shard-{{matrix.shard}} lingbot-cuda-weekly-generation
       - label: "LingBot World · CUDA long session and bounded memory"
         key: lingbot-cuda-weekly-long
         source_file_dependencies: lingbot_world_regression
