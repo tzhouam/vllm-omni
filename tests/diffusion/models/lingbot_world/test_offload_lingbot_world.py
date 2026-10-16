@@ -4,12 +4,13 @@
 
 from collections import OrderedDict
 from contextlib import contextmanager
-from types import SimpleNamespace
-from typing import Any, cast
 
 import pytest
 import torch
+from transformers import BatchEncoding
+from transformers.modeling_outputs import BaseModelOutput
 
+from vllm_omni.diffusion.data import OmniDiffusionConfig
 from vllm_omni.diffusion.models.lingbot_world.pipeline import LingBotWorldCausalDMDPipeline
 from vllm_omni.diffusion.offloader import sequential_backend
 
@@ -21,26 +22,26 @@ def test_selected_text_encoder_is_released_before_following_video_work(monkeypat
     events = []
 
     def tokenizer(*args, **kwargs):
-        return SimpleNamespace(
-            input_ids=torch.arange(512).view(1, 512), attention_mask=torch.ones(1, 512, dtype=torch.long)
+        return BatchEncoding(
+            {"input_ids": torch.arange(512).view(1, 512), "attention_mask": torch.ones(1, 512, dtype=torch.long)}
         )
 
     def encoder(*args, **kwargs):
         events.append("encode")
         if encode_fails:
             raise RuntimeError("injected encoding failure")
-        return SimpleNamespace(last_hidden_state=torch.ones(1, 512, 8))
+        return BaseModelOutput(last_hidden_state=torch.ones(1, 512, 8))
 
     # Exercise the real method without downloading or constructing a model.
-    pipeline = SimpleNamespace(
-        device=torch.device("cpu"),
-        od_config=SimpleNamespace(
-            diffusion_offload_config={"mode": "module", "components": ["text_encoder"], "pin_memory": False}
-        ),
-        _prompt_embeds_cache=OrderedDict(),
-        tokenizer=tokenizer,
-        text_encoder=encoder,
+    pipeline = object.__new__(LingBotWorldCausalDMDPipeline)
+    torch.nn.Module.__init__(pipeline)
+    pipeline.device = torch.device("cpu")
+    pipeline.od_config = OmniDiffusionConfig(
+        diffusion_offload_config={"mode": "module", "components": ["text_encoder"], "pin_memory": False}
     )
+    pipeline._prompt_embeds_cache = OrderedDict()
+    pipeline.tokenizer = tokenizer
+    pipeline.text_encoder = encoder
 
     @contextmanager
     def component_scope(component):
@@ -54,9 +55,7 @@ def test_selected_text_encoder_is_released_before_following_video_work(monkeypat
     monkeypatch.setattr(sequential_backend, "sequential_offload_component", component_scope)
 
     def encode():
-        return LingBotWorldCausalDMDPipeline.encode_prompt(
-            cast(Any, pipeline), "scene", max_sequence_length=512, dtype=torch.float32
-        )
+        return pipeline.encode_prompt("scene", max_sequence_length=512, dtype=torch.float32)
 
     if encode_fails:
         with pytest.raises(RuntimeError, match="injected encoding failure"):

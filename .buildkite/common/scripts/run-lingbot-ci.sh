@@ -77,6 +77,7 @@ UNIT_ENV
         tests/benchmarks/test_lingbot_world_*.py \
         tests/diffusion/models/lingbot_world/test_offload_lingbot_world.py \
         'tests/diffusion/offloader/test_backend_plan_contract.py::test_text_encoder_only_offload_keeps_early_dit_projections_resident[cpu]' \
+        'tests/diffusion/offloader/test_backend_plan_contract.py::test_text_encoder_only_offload_handles_cached_dit_owner_references[cpu]' \
         --lingbot-output="$OUTPUT" -m 'core_model and cpu' --run-level core_model \
         --junitxml="$OUTPUT/pytest.xml"
 elif [[ "$STAGE" == "aggregate" ]]; then

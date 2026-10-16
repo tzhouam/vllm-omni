@@ -394,7 +394,7 @@ class ModelLevelOffloadBackend(OffloadBackend):
             # directly before their top-level forward hook (e.g. AR KV setup).
             for component in resolved.dits:
                 if not component.selected:
-                    component.module.to(self.device)
+                    SequentialOffloadHook._move_params(component.module, self.device)
             for encoder in encoders:
                 encoder.to(self.device)
             for vae in vaes:

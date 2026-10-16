@@ -181,3 +181,22 @@ def test_text_encoder_only_offload_keeps_early_dit_projections_resident(executio
         assert next(pipeline.transformer.parameters()).device == execution_device
     finally:
         backend.disable()
+
+
+def test_text_encoder_only_offload_handles_cached_dit_owner_references(execution_device):
+    pipeline = _Pipeline()
+    # Cached block wrappers can retain a registered reference to their owner.
+    # Parameter/buffer traversal deduplicates it; nn.Module.to() recurses.
+    pipeline.transformer.add_module("cached_owner_reference", pipeline.transformer)
+    inputs = torch.ones(1, 4)
+    expected = pipeline(inputs)
+    backend = ModelLevelOffloadBackend(_config(OffloadStrategy.MODEL_LEVEL, {"text_encoder"}), execution_device)
+    try:
+        backend.enable(pipeline)
+        assert backend.enabled
+        assert pipeline.transformer.cached_owner_reference is pipeline.transformer
+        actual = pipeline(inputs.to(execution_device))
+        torch.testing.assert_close(actual.cpu(), expected)
+    finally:
+        backend.disable()
+    _assert_no_offload_hooks(pipeline)
