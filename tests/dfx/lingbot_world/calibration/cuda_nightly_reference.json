@@ -776,6 +776,85 @@
     "startup_chunks": 6,
     "target_fps": 12
   },
+  "target_h100_hps_reference_calibration": {
+    "build_url": "https://buildkite.com/vllm/vllm-omni/builds/17443",
+    "evaluator_hardware": {
+      "cards": 1,
+      "devices": [
+        {
+          "name": "NVIDIA H100 80GB HBM3",
+          "total_bytes": 85017624576
+        }
+      ],
+      "dies": 1,
+      "packages": {
+        "diffusers": "0.40.0",
+        "torch": "2.13.0+cu130",
+        "transformers": "5.14.1",
+        "vllm": "0.31.0"
+      },
+      "platform": "cuda"
+    },
+    "evaluator_lock_sha256": "3944139af9027ddbb45f73bcaa14718405b77e15436f301df18b35a5bc16775c",
+    "evaluator_requirements_sha256": "06474312fc6285ca1a0227d36dcb0aab9dffa11ed8d3f135e38a75d50ade7f8a",
+    "generation_manifest_sha256": "3e2fa677eefd2e4623297f90c07caeb467353753b2066237d94c10349f882e30",
+    "independent_reference_starts": 3,
+    "margin_fraction": 0.25,
+    "maximum_reference_range": 0.064710581354398,
+    "previous_ceiling": 0.05,
+    "profile_sha256": "9abd0259507318f750419ad1d3fc4411c4936e1a81b8c31900f245c25d3351c7",
+    "published_head": "95f438a598241945f65c6af58e0896bc2ed08b1a",
+    "quality_job": "01a145df-c788-4b61-95db-a12edb635b51",
+    "raw_scores_sha256": "c270e8265ef5c00295b0090186976b2dbf94ca44e58abfa0eed0ca3e62f07d94",
+    "reference_ranges": {
+      "blossom-42": 0.008042873073417778,
+      "boardwalk-42": 0.064710581354398,
+      "street-42": 0.006086608952965311
+    },
+    "reference_revision": "ebe2c18271db4fdd12221fbb4def6061e14a9379",
+    "reference_scores": {
+      "blossom-42": {
+        "scores": [
+          0.8255133690951357,
+          0.8271781207856151,
+          0.8335562421685535
+        ],
+        "video_sha256": [
+          "1688b1220113996436dbc488f14396c7d2fbabb369c6d9cbe8118481650660b8",
+          "cc818f7e030e50f28a42d5d675824ee11857476a3c0412136cda0fa1f34b1179",
+          "29881cc82d453b2a30f4e2127b968a67e49720c58f5b7eb1dcaa76f7dc0a72b1"
+        ]
+      },
+      "boardwalk-42": {
+        "scores": [
+          0.7929218443361273,
+          0.8576324256905253,
+          0.8036637856542805
+        ],
+        "video_sha256": [
+          "20a230e213c951e695991148688e680a4528e99456cbf369f29715db246c3d0f",
+          "e6bd344ccc74e4a28323b7f9e87cbf28cc5b2c92d0616c11cd7765230b9d7ab6",
+          "a99728a4f3f6e5eb6875dabf1d50b480c240a6e161142f1a7de7b9cff947d0f4"
+        ]
+      },
+      "street-42": {
+        "scores": [
+          0.9127710341717157,
+          0.9066844252187504,
+          0.9069372541480057
+        ],
+        "video_sha256": [
+          "d11c7289d7526fc8d1ec77a2742b7d6b7352ae59052cc8920ad7a1ca5a6bd826",
+          "fc7c16227fa6dc4782ba806b0d77ec073ea1434013047a09b982fbceebe3061a",
+          "f4c2eec0bbb3a98bcf6670860cb70101164c38c9807dd54a07d8d15eadfb87cf"
+        ]
+      }
+    },
+    "round_up_step": 0.005,
+    "scope": "Reference-only target-H100 nightly HPSv3 calibration. Candidate scores excluded; fresh independent target-runner validation and all weekly/long profiles remain required.",
+    "selected_ceiling": 0.085,
+    "unchanged_candidate_tolerance": 0.02
+  },
   "vbench_revision": "fd18b3d055cb0fc6f066ca90fe2c3c8cbb698490",
   "wbench_reference_cohorts": [
     {
