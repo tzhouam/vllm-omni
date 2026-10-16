@@ -89,6 +89,22 @@ def test_activity_is_not_a_higher_is_better_quality_score():
     assert not result["passed"]
 
 
+def test_every_configured_quality_dimension_rejects_a_collapse():
+    limits = json.loads((ROOT / "tests/dfx/lingbot_world/quality.json").read_text())
+    # Both pinned evaluators return these dimensions on a [0, 1] scale.
+    # A tolerance accidentally expressed as percentage points must not make
+    # a dimension incapable of blocking a regression.
+    for suite in ("vbench", "wbench"):
+        for dimension, tolerance in limits[suite].items():
+            result = check_quality(
+                [{dimension: 0.9}] * 3,
+                {dimension: 0.0},
+                tolerances={dimension: tolerance},
+                activity_dimensions=("dynamic_degree",),
+            )
+            assert not result["passed"], (suite, dimension)
+
+
 def test_launcher_setup_failure_retains_nonzero_exit_and_junit(tmp_path: Path):
     output = tmp_path / "artifacts"
     result = subprocess.run(

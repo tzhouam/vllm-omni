@@ -8,7 +8,7 @@
     "subject_consistency": 0.01,
     "background_consistency": 0.01,
     "aesthetic_quality": 0.01,
-    "imaging_quality": 1.0,
+    "imaging_quality": 0.01,
     "temporal_flickering": 0.01,
     "motion_smoothness": 0.01
   },
