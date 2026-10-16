@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from itertools import combinations
 from pathlib import Path
 
 import pytest
@@ -106,6 +107,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                         evaluation["scores"][f"case{index}_candidate{repeat}"],
                         tolerances=tolerances,
                         activity_dimensions=("dynamic_degree",),
+                        max_reference_spreads=limits["max_reference_spreads"][suite],
                     )
                     for repeat in range(3)
                 ]
@@ -118,14 +120,15 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
 
             # Pixel divergence is calibrated against independent same-code
             # repeats. It is distinct from the fixed-input VAE precision gate.
+            reference_pairs = list(combinations(range(3), 2))
             reference = [
                 compare_video_pair(
-                    directory("reference", 0),
-                    directory("reference", repeat),
+                    directory("reference", first),
+                    directory("reference", second),
                     window_seconds=limits["pixel_window_seconds"],
                     ssim_stride=24,
                 )
-                for repeat in (1, 2)
+                for first, second in reference_pairs
             ]
             candidate = [
                 compare_video_pair(
@@ -147,6 +150,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 ):
                     raise RegressionError("Decoded video does not match the pinned workload")
             report["pixels"][case["id"]] = {
+                "reference_pairs": reference_pairs,
                 "reference_repeat": reference,
                 "candidate": candidate,
                 "checks": [

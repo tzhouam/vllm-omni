@@ -253,16 +253,23 @@ def check_quality(
     *,
     tolerances: Mapping[str, float],
     activity_dimensions: Sequence[str] = (),
+    max_reference_spreads: Mapping[str, float] | None = None,
 ) -> dict[str, Any]:
     """Protect each requested dimension; never average across cases/dimensions.
 
-    Tolerances use native evaluator units. The fixed tolerance is a ceiling:
-    if reference repeatability itself exceeds it, calibration fails.
+    Candidate tolerances and reference spread limits use native evaluator
+    units. Separate reference limits do not widen candidate degradation
+    budgets. Without explicit limits, the candidate tolerances also bound
+    reference spread for compatibility with strict callers.
     """
     if len(reference) < 3 or not tolerances or set(candidate) != set(tolerances):
         raise RegressionError("Quality requires three repeats and exact dimension coverage")
     if any(set(row) != set(tolerances) for row in reference):
         raise RegressionError("Reference quality dimension coverage mismatch")
+    if max_reference_spreads is None:
+        max_reference_spreads = tolerances
+    elif set(max_reference_spreads) != set(tolerances):
+        raise RegressionError("Reference spread limits require exact dimension coverage")
     violations = []
     dimensions = {}
     for dimension, tolerance in tolerances.items():
@@ -270,13 +277,17 @@ def check_quality(
         values = [number(row[dimension], dimension) for row in reference]
         actual = number(candidate[dimension], dimension)
         noise = max(values) - min(values)
-        if noise > tolerance:
-            raise RegressionError(f"Unstable reference quality {dimension}: spread {noise} > {tolerance}")
+        reference_limit = number(max_reference_spreads[dimension], f"{dimension} reference spread limit")
+        if noise > reference_limit:
+            raise RegressionError(f"Unstable reference quality {dimension}: spread {noise} > {reference_limit}")
         lower_bound = min(values) - tolerance
         upper_bound = max(values) + tolerance if dimension in activity_dimensions else None
         passed = actual >= lower_bound and (upper_bound is None or actual <= upper_bound)
         dimensions[dimension] = {
             "reference": values,
+            "reference_spread": noise,
+            "max_reference_spread": reference_limit,
+            "candidate_tolerance": tolerance,
             "candidate": actual,
             "minimum": lower_bound,
             "maximum": upper_bound,

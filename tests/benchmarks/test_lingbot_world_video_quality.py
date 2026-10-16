@@ -51,11 +51,18 @@ def test_late_corruption_fails_even_when_global_pixel_scores_pass(tmp_path: Path
     reference, candidate = tmp_path / "reference.avi", tmp_path / "candidate.avi"
     _write_video(reference, [40] * 512, fps=16)
     _write_video(candidate, [40] * 504 + [60] * 8, fps=16)
-    repeats = [quality.compare_video_pair(reference, reference, window_seconds=2, ssim_stride=16)] * 2
+    repeats = [quality.compare_video_pair(reference, reference, window_seconds=2, ssim_stride=16)] * 3
     measured = quality.compare_video_pair(reference, candidate, window_seconds=2, ssim_stride=16)
     assert measured["total"]["psnr_db"] > 40
     assert measured["ssim"]["mean"] >= 0.99
-    result = check_video_precision(repeats, measured, min_psnr_db=40, psnr_drop_db=1, ssim_drop=0.01)
+    limits = json.loads((Path(__file__).parents[2] / "tests/dfx/lingbot_world/quality.json").read_text())
+    result = check_video_precision(
+        repeats,
+        measured,
+        min_psnr_db=limits["min_psnr_db"],
+        psnr_drop_db=limits["psnr_drop_db"],
+        ssim_drop=limits["ssim_drop"],
+    )
     assert not result["passed"]
     assert result["psnr"][0]["passed"]
     assert "window 15" in result["violations"][0]
@@ -361,3 +368,33 @@ def test_worker_rejects_hps_nonfinite_details_and_records_flow_backend(
     else:
         assert result["scores"]["reference"] == {"hpsv3_quality": 1.0, "dynamic_degree": 0.0}
     json.dumps(result, allow_nan=False)
+
+
+@pytest.mark.parametrize(
+    "reference_psnr,reference_ssim,candidate_psnr,candidate_ssim",
+    [
+        ([26.0183304, 23.5055139, 24.4058944], [0.4613212, 0.4506127, 0.4628122], 22.3198337, 0.4450724),
+        ([30.0] * 3, [0.3195815, 0.2982344, 0.3221995], 30.0, 0.2779404),
+    ],
+)
+def test_full_rollout_pixel_calibration_remains_bounded(reference_psnr, reference_ssim, candidate_psnr, candidate_ssim):
+    # Observed H100-generated boardwalk window 3 and street SSIM comparisons.
+    # The input populations are retained; target-runner calibration is separate.
+    def row(psnr, ssim):
+        distance = {"psnr_db": psnr, "psnr_is_infinite": False}
+        return {
+            "total": distance,
+            "windows": [{"index": 3, "start_frame": 96, "frame_count": 32, **distance}],
+            "ssim": {"mean": ssim},
+        }
+
+    reference = [row(p, s) for p, s in zip(reference_psnr, reference_ssim)]
+    candidate = row(candidate_psnr, candidate_ssim)
+    assert not check_video_precision(reference, candidate, min_psnr_db=40, psnr_drop_db=1, ssim_drop=0.01)["passed"]
+    limits = json.loads((Path(__file__).parents[2] / "tests/dfx/lingbot_world/quality.json").read_text())
+    options = {key: limits[key] for key in ("min_psnr_db", "psnr_drop_db", "ssim_drop")}
+    assert check_video_precision(reference, candidate, **options)["passed"]
+    worse_psnr = row(min(reference_psnr) - limits["psnr_drop_db"] - 0.1, candidate_ssim)
+    worse_ssim = row(candidate_psnr, min(reference_ssim) - limits["ssim_drop"] - 0.001)
+    assert not check_video_precision(reference, worse_psnr, **options)["passed"]
+    assert not check_video_precision(reference, worse_ssim, **options)["passed"]

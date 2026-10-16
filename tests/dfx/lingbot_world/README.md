@@ -55,6 +55,12 @@ The CI deployment retains the full resolution, KV window and rollout lengths;
 minimum after offloading frees device memory. This placement is identical for
 reference/candidate and is included in the hashed deployment contract.
 
+The NPU bootstrap reference is `8d7c354674c7e1dc57544f248689574fccb71af9`,
+which places unselected DiT weights before direct AR projections and releases
+selected text weights before video conditioning. Those placement fixes are
+required for this component-offload deployment. CUDA keeps its original reference;
+every platform still calibrates independent reference starts before checking candidates.
+
 ## Performance, precision and lifecycle
 
 Three reference and three candidate server starts run in alternating AB/BA
@@ -119,11 +125,20 @@ profile and artifact checksums must match. Seven VBench custom-input dimensions
 and six WBench video-quality dimensions are checked per case and candidate
 repeat. Dynamic degree uses a two-sided activity bound. Excessive reference
 spread fails calibration; scores are never averaged across dimensions/scenes.
+`quality.json` separately pins `max_reference_spreads` for reproducibility and
+per-suite candidate tolerances for degradation. The candidate floor remains the
+worst reference minus its candidate tolerance; a larger reference-spread ceiling
+never increases that tolerance. Reports retain both budgets and the measured
+reference spread. Reference ceilings must be verified on the target evaluator;
+local diagnostic scores alone do not establish hardware acceptance.
 All selected scores from these pinned evaluator revisions use a 0–1 scale.
 
 Video diagnostics validate full frame/geometry/FPS coverage, compute PSNR on
 every frame and SSIM every 24 frames, and compare candidate divergence against
-same-code reference repeats. PSNR is also gated independently in every two-second
+all three pairs of independent same-code reference repeats. Candidate PSNR
+must stay within 3 dB of the worst reference distance, and sampled SSIM within
+0.03. These are approximate rollout-divergence budgets; the separate fixed-input
+VAE numerical gate still requires exact repeats. PSNR is also gated independently in every two-second
 window so a whole-video average cannot hide late corruption. Perfect repeats use
 an explicit minimum PSNR budget rather than arithmetic on infinity. Failed pixel
 checks retain the reference noise floors and every candidate result.

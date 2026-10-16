@@ -166,3 +166,30 @@ def test_transient_noise_multiplier_is_finite_nonnegative_and_bounded(sigma):
     row = performance_metrics(document(), num_chunks=40, min_steady=30)
     with pytest.raises(RegressionError):
         calibrate([row] * 3, contract={}, reference_revision="a" * 40, transient_noise_sigma=sigma)
+
+
+def test_reference_quality_spread_does_not_widen_candidate_budget():
+    # H100-generated full rollout scores, obtained with the pinned VBench
+    # evaluator. These diagnose calibration; target-runner acceptance is separate.
+    reference = [{"background": value} for value in (0.876767968, 0.898090779, 0.894397383)]
+    candidate = {"background": 0.872326250}
+    with pytest.raises(RegressionError, match="Unstable reference"):
+        check_quality(reference, candidate, tolerances={"background": 0.01})
+    options = {"tolerances": {"background": 0.01}, "max_reference_spreads": {"background": 0.03}}
+    report = check_quality(reference, candidate, **options)
+    assert report["passed"]
+    dimension = report["dimensions"]["background"]
+    assert dimension["minimum"] == pytest.approx(0.866767968)
+    assert dimension["candidate_tolerance"] == 0.01
+    assert dimension["max_reference_spread"] == 0.03
+    assert not check_quality(reference, {"background": 0.86}, **options)["passed"]
+    with pytest.raises(RegressionError, match="Unstable reference"):
+        check_quality([*reference[:2], {"background": 0.93}], candidate, **options)
+
+
+@pytest.mark.parametrize("limits", [{}, {"wrong": 0.03}, {"imaging": float("nan")}, {"imaging": -1}])
+def test_invalid_quality_reference_spread_limits_fail_closed(limits):
+    with pytest.raises(RegressionError):
+        check_quality(
+            [{"imaging": 0.8}] * 3, {"imaging": 0.8}, tolerances={"imaging": 0.01}, max_reference_spreads=limits
+        )

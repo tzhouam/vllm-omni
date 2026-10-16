@@ -206,12 +206,14 @@ def test_every_configured_quality_dimension_rejects_a_collapse():
     # A tolerance accidentally expressed as percentage points must not make
     # a dimension incapable of blocking a regression.
     for suite in ("vbench", "wbench"):
+        assert limits[suite].keys() == limits["max_reference_spreads"][suite].keys()
         for dimension, tolerance in limits[suite].items():
             result = check_quality(
                 [{dimension: 0.9}] * 3,
                 {dimension: 0.0},
                 tolerances={dimension: tolerance},
                 activity_dimensions=("dynamic_degree",),
+                max_reference_spreads={dimension: limits["max_reference_spreads"][suite][dimension]},
             )
             assert not result["passed"], (suite, dimension)
 
