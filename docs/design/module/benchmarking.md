@@ -47,7 +47,7 @@ outputs before using timings as performance evidence.
 Test workload parsing and metric calculations with deterministic fixtures. Do
 not compare materially different workloads or runtime settings.
 
-The [LingBot World regression suite](../../../tests/dfx/lingbot_world/README.md)
+The [LingBot World regression suite](https://github.com/vllm-project/vllm-omni/blob/main/tests/dfx/lingbot_world/README.md)
 wraps the served realtime workload in blocking pytest jobs. It measures a frozen
 reference on the same hardware/dependencies, calibrates from three independent
 server starts, and checks candidate performance separately. Fixed-input VAE
