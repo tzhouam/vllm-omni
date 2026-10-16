@@ -33,6 +33,7 @@ from benchmarks.lingbot_world.benchmark_lingbot_world_realtime import (
     parse_args,
     resolve_image_reference,
     run_session,
+    run_benchmark,
 )
 from benchmarks.lingbot_world.workload import (
     DEFAULT_WARMUP_CHUNKS,
@@ -462,6 +463,7 @@ def _run(coro):
 
 def test_session_records_one_chunk_per_block_and_ignores_the_trailer() -> None:
     workload = _workload(num_chunks=4)
+    observed = []
 
     async def scenario() -> None:
         server = _serve(_emit_rollout)
@@ -476,17 +478,48 @@ def test_session_records_one_chunk_per_block_and_ignores_the_trailer() -> None:
                 ping_interval=0,
                 collect_media=True,
                 print_chunks=False,
+                on_chunk=lambda record: observed.append(record.index),
             )
         finally:
             await server.__aexit__(None, None, None)
 
         assert [record.index for record in result.records] == [0, 1, 2, 3]
+        assert observed == [0, 1, 2, 3]
         assert [record.num_frames for record in result.records] == [9, 12, 12, 12]
         assert result.request_id == "req-1"
         assert result.ttfc_s is not None and result.ttfc_s > 0
         # The trailer's bytes are kept for remuxing but carry no chunk record.
         assert len(result.media) == sum(record.byte_length for record in result.records) + 8
         assert server.start_payloads[0]["num_frames"] == workload.num_frames
+
+    _run(scenario())
+
+
+def test_short_warmup_does_not_shorten_measured_rollout() -> None:
+    async def scenario() -> None:
+        server = _serve(_emit_rollout)
+        async with server as url:
+            result = await run_benchmark(
+                parse_args(
+                    [
+                        "--base-url",
+                        url,
+                        "--image",
+                        _IMAGE,
+                        "--num-chunks",
+                        "10",
+                        "--warmup-sessions",
+                        "1",
+                        "--warmup-num-chunks",
+                        "8",
+                        "--ping-interval",
+                        "0",
+                    ]
+                )
+            )
+        assert [chunks_for_num_frames(payload["num_frames"]) for payload in server.start_payloads] == [8, 10]
+        assert len(result["sessions"][0]["chunks"]) == 10
+        assert result["config"]["warmup_num_chunks"] == 8
 
     _run(scenario())
 

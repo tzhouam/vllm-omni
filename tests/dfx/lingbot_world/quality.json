@@ -1,0 +1,23 @@
+{
+  "timeout_s": 21600,
+  "min_psnr_db": 40,
+  "psnr_drop_db": 1,
+  "ssim_drop": 0.01,
+  "vbench": {
+    "dynamic_degree": 0.34,
+    "subject_consistency": 0.01,
+    "background_consistency": 0.01,
+    "aesthetic_quality": 0.01,
+    "imaging_quality": 1.0,
+    "temporal_flickering": 0.01,
+    "motion_smoothness": 0.01
+  },
+  "wbench": {
+    "dynamic_degree": 0.34,
+    "aesthetic_quality": 0.01,
+    "imaging_quality": 0.01,
+    "temporal_flickering": 0.01,
+    "motion_smoothness": 0.01,
+    "hpsv3_quality": 0.02
+  }
+}

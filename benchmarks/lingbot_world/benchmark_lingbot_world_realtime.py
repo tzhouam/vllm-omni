@@ -46,7 +46,8 @@ import platform
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -150,6 +151,7 @@ class SessionResult:
     video_start_s: float | None
     wall_s: float
     done_event: dict[str, Any]
+    events: list[dict[str, Any]] = field(default_factory=list)
 
 
 async def _keepalive(websocket: Any, send_lock: asyncio.Lock, interval: float) -> None:
@@ -175,6 +177,7 @@ async def run_session(
     ping_interval: float,
     collect_media: bool,
     print_chunks: bool,
+    on_chunk: Callable[[ChunkRecord], None] | None = None,
 ) -> SessionResult:
     """Drive one rollout and timestamp every chunk as its bytes land."""
     try:
@@ -194,6 +197,7 @@ async def run_session(
     video_start_s: float | None = None
     last_arrival: float | None = None
     done_event: dict[str, Any] = {}
+    events: list[dict[str, Any]] = []
     send_lock = asyncio.Lock()
     keepalive: asyncio.Task[None] | None = None
     # Fire remaining prompt updates in chunk order as their boundary passes.
@@ -243,6 +247,10 @@ async def run_session(
                             )
                         )
                         last_arrival = arrival
+                        if on_chunk is not None:
+                            # Diagnostic observations may synchronize devices.
+                            # Performance runs never install this callback.
+                            on_chunk(records[-1])
                         if print_chunks:
                             print(
                                 f"  chunk {index:3d}  t={arrival:8.3f}s  "
@@ -258,6 +266,7 @@ async def run_session(
                     continue
 
                 event = json.loads(message)
+                events.append(event)
                 event_type = event.get("type")
                 if event_type == "video.chunk_metadata":
                     pending = event
@@ -306,6 +315,7 @@ async def run_session(
         video_start_s=video_start_s,
         wall_s=wall_s,
         done_event=done_event,
+        events=events,
     )
 
 
@@ -460,6 +470,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     run.add_argument("--sessions", type=int, default=1, help="Sequential measured rollouts.")
     run.add_argument("--warmup-sessions", type=int, default=0, help="Unmeasured rollouts first (pays compile cost).")
     run.add_argument(
+        "--warmup-num-chunks",
+        type=int,
+        default=None,
+        help="Optional shorter warmup rollout; measured rollout length is unchanged.",
+    )
+    run.add_argument(
         "--warmup-chunks",
         type=int,
         default=DEFAULT_WARMUP_CHUNKS,
@@ -496,6 +512,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         parser.error("--sessions must be at least 1.")
     if args.warmup_sessions < 0:
         parser.error("--warmup-sessions must be non-negative.")
+    if args.warmup_num_chunks is not None and args.warmup_num_chunks < 1:
+        parser.error("--warmup-num-chunks must be positive.")
     if args.warmup_chunks < 0:
         parser.error("--warmup-chunks must be non-negative.")
     if args.playback_buffer_chunks < 1:
@@ -544,10 +562,18 @@ async def run_benchmark(args: argparse.Namespace) -> dict[str, Any]:
 
     for index in range(args.warmup_sessions):
         print(f"Warmup session {index + 1}/{args.warmup_sessions} (not measured)...")
+        warmup = workload
+        if args.warmup_num_chunks is not None:
+            count = min(args.warmup_num_chunks, workload.num_chunks)
+            warmup = replace(
+                workload,
+                camera_script=workload.camera_script[:count],
+                prompt_updates=tuple(update for update in workload.prompt_updates if update.after_chunk < count),
+            )
         await run_session(
             url,
             args.model,
-            workload,
+            warmup,
             first_chunk_timeout=args.first_chunk_timeout,
             chunk_timeout=args.chunk_timeout,
             ping_interval=args.ping_interval,
@@ -609,6 +635,7 @@ async def run_benchmark(args: argparse.Namespace) -> dict[str, Any]:
         "config": {
             "sessions": args.sessions,
             "warmup_sessions": args.warmup_sessions,
+            "warmup_num_chunks": args.warmup_num_chunks,
             "warmup_chunks": args.warmup_chunks,
             "camera_pattern": args.camera_pattern,
             "chunk_slo_ms": args.chunk_slo_ms,
