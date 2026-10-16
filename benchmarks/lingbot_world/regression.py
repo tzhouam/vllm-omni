@@ -372,6 +372,7 @@ def check_video_precision(
     psnr_drop_db: float,
     min_psnr_db: float,
     ssim_drop: float,
+    reject_uniform_frames: bool = False,
 ) -> dict[str, Any]:
     """Gate decoded divergence globally and in every aligned time window."""
     if len(reference) < 2:
@@ -395,6 +396,23 @@ def check_video_precision(
     minimum_ssim = min(ssim(row) for row in reference) - ssim_drop
     actual_ssim = ssim(candidate)
     violations = [] if actual_ssim >= minimum_ssim else ["Sampled SSIM regression"]
+    if type(reject_uniform_frames) is not bool:
+        raise RegressionError("Uniform-frame policy must be a boolean")
+    if reject_uniform_frames:
+        populations = [(f"reference comparison {index}", row) for index, row in enumerate(reference)]
+        for label, row in [*populations, ("candidate", candidate)]:
+            frames = row.get("decoded_frames")
+            indices = row.get("uniform_frame_indices")
+            if type(frames) is not int or frames < 1 or not isinstance(indices, dict):
+                raise RegressionError("Missing decoded uniform-frame coverage")
+            for role in ("reference", "candidate"):
+                values = indices.get(role)
+                if not isinstance(values, list) or any(
+                    type(value) is not int or not 0 <= value < frames for value in values
+                ):
+                    raise RegressionError("Invalid decoded uniform-frame coverage")
+                if values:
+                    violations.append(f"{label} {role} contains {len(values)} spatially uniform frames")
     psnr_checks = []
 
     def check(label, references, measured):

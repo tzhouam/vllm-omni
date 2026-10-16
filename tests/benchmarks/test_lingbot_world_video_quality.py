@@ -47,6 +47,67 @@ def test_video_windows_reveal_late_drift(tmp_path: Path) -> None:
     json.dumps(result, allow_nan=False)
 
 
+def _write_textured_video(path: Path, base: int, *, corrupt_tail: bool = False) -> None:
+    cv2 = pytest.importorskip("cv2")
+    np = pytest.importorskip("numpy")
+    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"MJPG"), 16, (32, 24))
+    if not writer.isOpened():
+        pytest.skip("OpenCV MJPEG encoder unavailable")
+    y, x = np.indices((24, 32))
+    texture = ((x * 3 + y * 5) % 40).astype(np.uint8)
+    image = np.stack([texture + base, texture + base + 5, texture + base + 10], axis=-1)
+    try:
+        for index in range(160):
+            frame = np.roll(image, index % 32, axis=1)
+            writer.write(np.zeros_like(frame) if corrupt_tail and index >= 128 else frame)
+    finally:
+        writer.release()
+
+
+@pytest.mark.parametrize("platform", ["cuda", "npu"])
+def test_noisy_reference_budget_cannot_hide_a_spatially_empty_window(tmp_path: Path, platform: str) -> None:
+    paths = [tmp_path / f"reference-{index}.avi" for index in range(3)]
+    for path, base in zip(paths, (20, 160, 90)):
+        _write_textured_video(path, base)
+    references = [
+        quality.compare_video_pair(paths[a], paths[b], window_seconds=2, ssim_stride=24)
+        for a, b in ((0, 1), (0, 2), (1, 2))
+    ]
+    candidate = tmp_path / "late-black-window.avi"
+    _write_textured_video(candidate, 20, corrupt_tail=True)
+    measured = quality.compare_video_pair(paths[0], candidate, window_seconds=2, ssim_stride=24)
+    assert measured["uniform_frame_indices"]["reference"] == []
+    assert measured["uniform_frame_indices"]["candidate"] == list(range(128, 160))
+    policy = json.loads((Path(__file__).parents[2] / "tests/dfx/lingbot_world/quality.json").read_text())
+    options = {"min_psnr_db": policy["min_psnr_db"], **policy["pixel_budgets"][platform]}
+    assert check_video_precision(references, measured, **options)["passed"]
+    strict = {**options, "reject_uniform_frames": policy["reject_uniform_frames"]}
+    check = check_video_precision(references, measured, **strict)
+    assert not check["passed"] and any("uniform" in violation for violation in check["violations"])
+    assert check_video_precision(references, references[0], **strict)["passed"]
+
+
+def test_identically_blank_reference_and_candidate_cannot_pass_content_validation(tmp_path: Path) -> None:
+    path = tmp_path / "blank.avi"
+    _write_video(path, [0] * 16)
+    pair = quality.compare_video_pair(path, path, window_seconds=2, ssim_stride=8)
+    options = {"min_psnr_db": 40, "psnr_drop_db": 3, "ssim_drop": 0.04}
+    assert check_video_precision([pair] * 3, pair, **options)["passed"]
+    check = check_video_precision([pair] * 3, pair, reject_uniform_frames=True, **options)
+    assert not check["passed"] and all("uniform" in violation for violation in check["violations"])
+
+
+def test_selected_content_validation_requires_decoded_frame_evidence(tmp_path: Path) -> None:
+    path = tmp_path / "valid.avi"
+    _write_textured_video(path, 20)
+    pair = quality.compare_video_pair(path, path, window_seconds=2, ssim_stride=24)
+    missing = {key: value for key, value in pair.items() if key != "uniform_frame_indices"}
+    with pytest.raises(RegressionError, match="uniform-frame coverage"):
+        check_video_precision(
+            [pair] * 3, missing, reject_uniform_frames=True, min_psnr_db=40, psnr_drop_db=3, ssim_drop=0.04
+        )
+
+
 @pytest.mark.parametrize("platform", ["cuda", "npu"])
 def test_late_corruption_fails_even_when_global_pixel_scores_pass(tmp_path: Path, platform: str) -> None:
     reference, candidate = tmp_path / "reference.avi", tmp_path / "candidate.avi"

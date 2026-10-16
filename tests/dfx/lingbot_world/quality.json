@@ -1,6 +1,7 @@
 {
   "timeout_s": 21600,
   "min_psnr_db": 40,
+  "reject_uniform_frames": true,
   "pixel_window_seconds": 2,
   "binary_activity_dimensions": [
     "dynamic_degree"
