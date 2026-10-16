@@ -326,6 +326,14 @@ For a local run, leave `BUILDKITE` unset so the already collected directories
 are used directly. On CI the launcher downloads every pair from the named
 matrix step. Use the aggregate's output directory for the subsequent GPU evaluator.
 
+For source attribution, use `candidate_revision` from the retained
+`generation.json`. Buildkite can test a synthetic merge containing upstream
+changes absent from the PR branch. Compare that merge with `reference_revision`
+and its upstream parent before attributing failures to the PR or host noise.
+Comparing only the unmerged branch cannot establish source equivalence.
+Upstream differences alone do not justify replacing the reference or widening
+limits; preserve the failed observations while investigating their cause.
+
 Advance a reference only by changing its full SHA and inspecting three new
 independent reference starts on every target runner. Model, input, evaluator,
 topology or precision changes require reviewed lock/profile updates and fresh
