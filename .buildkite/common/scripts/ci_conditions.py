@@ -33,6 +33,7 @@ L45_YAML_FILES: dict[str, str] = {
     ".buildkite/amd/test-amd-nightly.yml": "amd",
     ".buildkite/amd/test-amd-weekly.yml": "amd",
     ".buildkite/npu/test-npu-nightly.yml": "npu",
+    ".buildkite/npu/test-npu-weekly.yml": "npu",
 }
 
 BOOTSTRAP_STEPS_FILENAME = "bootstrap-upload-steps.yml"

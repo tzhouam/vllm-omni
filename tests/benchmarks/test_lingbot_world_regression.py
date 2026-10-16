@@ -1,0 +1,135 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+"""A completed benchmark is not a passing performance or quality regression."""
+
+from __future__ import annotations
+
+import copy
+import importlib.metadata
+import sys
+from pathlib import Path
+
+import pytest
+
+from benchmarks.lingbot_world.regression import (
+    RegressionError,
+    calibrate,
+    check_performance,
+    check_quality,
+    performance_metrics,
+    read_json,
+    verify_environment,
+)
+from benchmarks.lingbot_world.workload import ChunkRecord, compute_metrics
+
+pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
+
+
+def document(interval=0.5, num_chunks=40):
+    records = [ChunkRecord(i, (i + 1) * interval, interval, 1024, 9 if i == 0 else 12) for i in range(num_chunks)]
+    config = {"target_fps": 12, "warmup_chunks": 6, "chunk_slo_ms": 1000, "playback_buffer_chunks": 1}
+    metrics = compute_metrics(records, fps=12, warmup_chunks=6, slo_ms=1000, ttfc_s=interval)
+    return {"config": config, "sessions": [{"chunks": [r.to_dict() for r in records], "metrics": metrics}]}
+
+
+def baseline():
+    measured = performance_metrics(document(), num_chunks=40, min_steady=30)
+    return calibrate([measured] * 3, contract={"sku": "H100", "cards": 1}, reference_revision="a" * 40)
+
+
+def test_successful_but_slow_benchmark_fails():
+    measured = performance_metrics(document(interval=0.7), num_chunks=40, min_steady=30)
+    result = check_performance(measured, baseline(), contract={"sku": "H100", "cards": 1})
+    assert not result["passed"]
+    assert any("mean_ms" in reason for reason in result["violations"])
+
+
+@pytest.mark.parametrize("change", ["missing", "reordered", "frames", "nonfinite", "interval", "wall"])
+def test_invalid_population_cannot_pass(change):
+    data = document()
+    chunks = data["sessions"][0]["chunks"]
+    if change == "missing":
+        chunks.pop()
+    elif change == "reordered":
+        chunks[1], chunks[2] = chunks[2], chunks[1]
+    elif change == "frames":
+        chunks[0]["num_frames"] = 12
+    elif change == "nonfinite":
+        chunks[7]["arrival_s"] = float("nan")
+    elif change == "interval":
+        chunks[7]["inter_arrival_ms"] = 0.01
+    else:
+        data["sessions"][0]["metrics"]["wall_seconds"] = 1
+    with pytest.raises(RegressionError):
+        performance_metrics(data, num_chunks=40, min_steady=30)
+
+
+def test_raw_chunk_times_override_forged_aggregate():
+    data = document(interval=0.8)
+    data["sessions"][0]["metrics"]["interval_steady"]["mean_ms"] = 1
+    assert performance_metrics(data, num_chunks=40, min_steady=30)["mean_ms"] == pytest.approx(800)
+
+
+def test_baseline_is_tied_to_hardware_and_configuration():
+    measured = performance_metrics(document(), num_chunks=40, min_steady=30)
+    with pytest.raises(RegressionError, match="contract mismatch"):
+        check_performance(measured, baseline(), contract={"sku": "910B1", "cards": 4})
+
+
+def test_calibration_rejects_insufficient_or_noisy_reference():
+    measured = performance_metrics(document(), num_chunks=40, min_steady=30)
+    with pytest.raises(RegressionError, match="three independent"):
+        calibrate([measured] * 2, contract={}, reference_revision="a" * 40)
+    noisy = copy.deepcopy(measured)
+    noisy["mean_ms"] *= 2
+    with pytest.raises(RegressionError, match="Unstable reference"):
+        calibrate([measured, measured, noisy], contract={}, reference_revision="a" * 40)
+
+
+def test_short_run_reports_p99_without_gating_it():
+    measured = performance_metrics(document(), num_chunks=40, min_steady=30)
+    assert measured["p99_ms"] == 500
+    assert "p99_ms" not in baseline()["limits"]
+    gate = baseline()
+    gate["limits"]["p99_ms"] = {"direction": "max", "value": 1000}
+    with pytest.raises(RegressionError, match="1000 steady"):
+        check_performance(measured, gate, contract=gate["contract"])
+
+
+def test_quality_regression_cannot_hide_behind_improved_aesthetics():
+    reference = [{"imaging": 70, "aesthetic": 0.5}] * 3
+    result = check_quality(reference, {"imaging": 60, "aesthetic": 0.9}, tolerances={"imaging": 1, "aesthetic": 0.01})
+    assert not result["passed"]
+    assert result["dimensions"]["aesthetic"]["passed"]
+    assert not result["dimensions"]["imaging"]["passed"]
+
+
+def test_quality_requires_repeatability_and_complete_dimensions():
+    with pytest.raises(RegressionError, match="Unstable reference"):
+        check_quality([{"imaging": v} for v in (70, 65, 72)], {"imaging": 71}, tolerances={"imaging": 1})
+    with pytest.raises(RegressionError, match="exact dimension"):
+        check_quality([{"imaging": 70}] * 3, {}, tolerances={"imaging": 1})
+
+
+def test_nonfinite_baseline_json_is_rejected(tmp_path: Path):
+    path = tmp_path / "baseline.json"
+    path.write_text('{"mean": NaN}')
+    with pytest.raises(RegressionError, match="Nonfinite"):
+        read_json(path)
+
+
+def test_evaluator_dependency_lock_is_checked_in_selected_interpreter(tmp_path: Path):
+    path = tmp_path / "requirements.txt"
+    version = importlib.metadata.version("pytest")
+    path.write_text(f"pytest=={version}\n")
+    assert verify_environment(Path(sys.executable), path) == {"pytest": version}
+    path.write_text("pytest==0.0.0\n")
+    with pytest.raises(RegressionError, match="environment differs"):
+        verify_environment(Path(sys.executable), path)
+
+
+def test_unpinned_evaluator_dependencies_are_rejected(tmp_path: Path):
+    path = tmp_path / "requirements.txt"
+    path.write_text("pytest>=8\n")
+    with pytest.raises(RegressionError, match="not exactly pinned"):
+        verify_environment(Path(sys.executable), path)

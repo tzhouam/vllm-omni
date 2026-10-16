@@ -651,3 +651,48 @@ steps:
         commands:
           - pytest -s -v tests/e2e/online_serving/test_magi2.py -m "slow and diffusion and cuda and H100 and cards_4" --run-level "full_model"
         mirror_hardwares: h100_4
+
+  - group: "LingBot World CUDA weekly regression"
+    depends_on: upload-weekly-pipeline
+    if: build.env("WEEKLY") == "1" || build.pull_request.labels includes "weekly-test"
+    steps:
+      - label: "LingBot World · CUDA measured reference/candidate"
+        key: lingbot-cuda-weekly-generation
+        source_file_dependencies: lingbot_world_regression
+        timeout_in_minutes: 1440
+        mirror_hardwares: h100_4
+        artifact_paths:
+          - "lingbot-artifacts/cuda-weekly/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh generate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly
+      - label: "LingBot World · CUDA videos WBench/VBench gate on GPU"
+        key: lingbot-cuda-weekly-quality
+        source_file_dependencies: lingbot_world_regression
+        depends_on:
+          - lingbot-cuda-weekly-generation
+        timeout_in_minutes: 1440
+        mirror_hardwares: h100_1
+        artifact_paths:
+          - "lingbot-artifacts/cuda-weekly-quality/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly-quality lingbot-artifacts/cuda-weekly lingbot-cuda-weekly-generation
+      - label: "LingBot World · CUDA long session and bounded memory"
+        key: lingbot-cuda-weekly-long
+        source_file_dependencies: lingbot_world_regression
+        timeout_in_minutes: 1440
+        mirror_hardwares: h100_4
+        artifact_paths:
+          - "lingbot-artifacts/cuda-long/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh generate tests/dfx/lingbot_world/configs/cuda_long.json lingbot-artifacts/cuda-long
+      - label: "LingBot World · CUDA long-rollout WBench/VBench gate"
+        key: lingbot-cuda-weekly-long-quality
+        source_file_dependencies: lingbot_world_regression
+        depends_on:
+          - lingbot-cuda-weekly-long
+        timeout_in_minutes: 480
+        mirror_hardwares: h100_1
+        artifact_paths:
+          - "lingbot-artifacts/cuda-long-quality/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_long.json lingbot-artifacts/cuda-long-quality lingbot-artifacts/cuda-long lingbot-cuda-weekly-long

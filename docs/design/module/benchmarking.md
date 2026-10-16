@@ -46,3 +46,12 @@ outputs before using timings as performance evidence.
 
 Test workload parsing and metric calculations with deterministic fixtures. Do
 not compare materially different workloads or runtime settings.
+
+The [LingBot World regression suite](../../../tests/dfx/lingbot_world/README.md)
+wraps the served realtime workload in blocking pytest jobs. It measures a frozen
+reference on the same hardware/dependencies, calibrates from three independent
+server starts, and checks candidate performance separately. Fixed-input VAE
+replay and instrumented lifecycle/memory checks run outside timing windows.
+GPU evaluators consume checksum-verified CUDA or NPU videos and enforce native
+per-dimension quality limits. Incomplete populations, unstable references,
+missing prerequisites and skipped selected CI tests cannot establish acceptance.

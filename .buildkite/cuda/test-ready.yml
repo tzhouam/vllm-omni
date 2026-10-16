@@ -293,3 +293,16 @@ steps:
               pytest -s -v tests/e2e/online_serving/test_lingbot_video.py -m 'core_model and cuda' --run-level 'core_model'
             "
         mirror_hardwares: h100_1
+
+  - group: "LingBot World PR smoke"
+    depends_on: upload-ready-pipeline
+    steps:
+      - label: "LingBot World · real-checkpoint stream and cancellation"
+        key: ready-lingbot-world-smoke
+        source_file_dependencies: lingbot_world_regression
+        timeout_in_minutes: 45
+        mirror_hardwares: h100_1
+        artifact_paths:
+          - "lingbot-artifacts/cuda-smoke/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh smoke tests/dfx/lingbot_world/configs/cuda_smoke.json lingbot-artifacts/cuda-smoke

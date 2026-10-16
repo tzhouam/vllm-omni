@@ -405,3 +405,37 @@ steps:
             EXIT=$$?
             buildkite-agent artifact upload "tests/dfx/perf/results/*.json"
             exit $$EXIT
+
+  - group: "LingBot World NPU nightly regression"
+    depends_on: upload-nightly-pipeline
+    if: build.env("NIGHTLY") == "1" || build.pull_request.labels includes "nightly-test"
+    steps:
+      - label: "Build CUDA evaluator image for NPU artifacts"
+        key: lingbot-npu-nightly-evaluator-image
+        source_file_dependencies: lingbot_world_regression
+        timeout_in_minutes: 90
+        agents:
+          queue: medium_cpu_queue_premerge
+        commands:
+          - bash .buildkite/cuda/scripts/build-ci-image.sh
+      - label: "LingBot World · NPU measured reference/candidate"
+        key: lingbot-npu-nightly-generation
+        source_file_dependencies: lingbot_world_regression
+        timeout_in_minutes: 240
+        mirror_hardwares: a2b3_npu_4
+        artifact_paths:
+          - "lingbot-artifacts/npu-nightly/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh generate tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly
+      - label: "LingBot World · NPU videos WBench/VBench gate on GPU"
+        key: lingbot-npu-nightly-quality
+        source_file_dependencies: lingbot_world_regression
+        depends_on:
+          - lingbot-npu-nightly-generation
+          - lingbot-npu-nightly-evaluator-image
+        timeout_in_minutes: 480
+        mirror_hardwares: h100_1
+        artifact_paths:
+          - "lingbot-artifacts/npu-nightly-quality/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly-quality lingbot-artifacts/npu-nightly lingbot-npu-nightly-generation
