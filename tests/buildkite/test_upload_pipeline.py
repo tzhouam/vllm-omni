@@ -113,6 +113,36 @@ def test_npu_docs_only_does_not_upload_ready_on_nightly() -> None:
     assert 'build.env("NIGHTLY") == "1"' in by_key["upload-nightly-pipeline"]["if"]
 
 
+@pytest.mark.parametrize(
+    "changed_files", [["tests/dfx/lingbot_world/runner.py"], [".buildkite/npu/test-npu-weekly.yml"]]
+)
+def test_npu_weekly_is_admitted_for_schedule_and_pr_label(changed_files: list[str]) -> None:
+    path = Path(".buildkite/npu/bootstrap-upload-steps.yml")
+    rendered = _render_bootstrap_pipeline(
+        _load_bootstrap_steps(path), decision=resolve_ci_decision(changed_files), path=path
+    )
+    by_key = {step["key"]: step for step in yaml.safe_load(rendered)["steps"]}
+    condition = by_key["upload-weekly-pipeline"]["if"]
+    assert 'build.env("WEEKLY") == "1"' in condition
+    assert 'labels includes "weekly-test"' in condition
+    assert "NON_CRITICAL" not in condition
+    image_condition = by_key["image-build-a2"].get("if")
+    if image_condition is not None:
+        assert 'labels includes "weekly-test"' in image_condition
+
+
+def test_npu_docs_only_weekly_keeps_only_scheduled_admission() -> None:
+    path = Path(".buildkite/npu/bootstrap-upload-steps.yml")
+    rendered = _render_bootstrap_pipeline(
+        _load_bootstrap_steps(path), decision=resolve_ci_decision(["docs/foo.md"]), path=path
+    )
+    by_key = {step["key"]: step for step in yaml.safe_load(rendered)["steps"]}
+    assert 'build.env("WEEKLY") == "1"' in by_key["upload-weekly-pipeline"]["if"]
+    assert 'build.env("WEEKLY") == "1"' in by_key["image-build-a2"]["if"]
+    assert "weekly-test" not in rendered
+    assert "upload-ready-pipeline" not in by_key
+
+
 def test_nightly_label_if_is_only_nightly_test() -> None:
     assert 'labels includes "nightly-test"' in NIGHTLY_LABEL_IF
     forbidden = (
