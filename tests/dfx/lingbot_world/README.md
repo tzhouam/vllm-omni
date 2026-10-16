@@ -88,6 +88,10 @@ every platform still calibrates independent reference starts before checking can
 
 Three reference and three candidate server starts run in alternating AB/BA
 order. Each reference/candidate pair shares its device reservation and dependencies.
+Raw benchmark JSON retains unmeasured warmup chunk arrivals and startup timings
+under `warmups`, separately from measured `sessions` and aggregate `metrics`.
+These records are serialized after measurement and add no requests or settling
+delays. They help distinguish warmup behavior from subsequent TTFC failures.
 Each case receives an unmeasured
 eight-chunk warmup session. The first six and terminal chunks stay in raw results and
 playback/FPS accounting, but are excluded from steady cadence by `workload.py`.

@@ -564,6 +564,7 @@ async def run_benchmark(args: argparse.Namespace) -> dict[str, Any]:
         + ("" if args.target_fps is None else f" (mux label stays {workload.fps} fps)")
     )
 
+    warmup_results: list[SessionResult] = []
     for index in range(args.warmup_sessions):
         print(f"Warmup session {index + 1}/{args.warmup_sessions} (not measured)...")
         warmup = workload
@@ -574,15 +575,17 @@ async def run_benchmark(args: argparse.Namespace) -> dict[str, Any]:
                 camera_script=workload.camera_script[:count],
                 prompt_updates=tuple(update for update in workload.prompt_updates if update.after_chunk < count),
             )
-        await run_session(
-            url,
-            args.model,
-            warmup,
-            first_chunk_timeout=args.first_chunk_timeout,
-            chunk_timeout=args.chunk_timeout,
-            ping_interval=args.ping_interval,
-            collect_media=False,
-            print_chunks=False,
+        warmup_results.append(
+            await run_session(
+                url,
+                args.model,
+                warmup,
+                first_chunk_timeout=args.first_chunk_timeout,
+                chunk_timeout=args.chunk_timeout,
+                ping_interval=args.ping_interval,
+                collect_media=False,
+                print_chunks=False,
+            )
         )
 
     session_metrics: list[dict[str, Any]] = []
@@ -648,6 +651,20 @@ async def run_benchmark(args: argparse.Namespace) -> dict[str, Any]:
             "playback_buffer_chunks": args.playback_buffer_chunks,
             "workload_file": args.workload,
         },
+        # Serialize warmup evidence after measurement; it never participates in
+        # the measured session population or adds a pause between requests.
+        "warmups": [
+            {
+                "session_index": index,
+                "measured": False,
+                "request_id": result.request_id,
+                "video_start_ms": (result.video_start_s * 1000.0) if result.video_start_s is not None else None,
+                "ttfc_ms": (result.ttfc_s * 1000.0) if result.ttfc_s is not None else None,
+                "wall_seconds": result.wall_s,
+                "chunks": [record.to_dict() for record in result.records],
+            }
+            for index, result in enumerate(warmup_results)
+        ],
         "sessions": session_payloads,
         "metrics": aggregate,
     }
