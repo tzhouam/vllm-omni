@@ -215,6 +215,16 @@ up to 0.005. Other native candidate budgets stay at 0.01 (HPSv3: 0.02).
 NPU retains its initial native budgets. These reference-only calculations are
 recorded separately from the reference-spread ceilings and still require fresh
 target-runner validation; candidate observations never set their own limits.
+Standard VBench background consistency encodes every native-selected frame
+through CLIP in batches of 32 with gradients disabled. The pinned native
+implementation otherwise retains a full-rollout gradient graph and exceeds
+even 140 GiB on a 600-chunk reference video. This adapter changes only that
+metric's image encoding; native transforms, normalization, cosine aggregation
+and frame selection are preserved. Other metrics keep their native paths and
+the evaluator checkout stays immutable. Reports bind the adapter source hash
+and retain per-video encoded-frame/batch counters. CI requires every expected
+frame and rejects a missing counter, changed batch size or enabled gradients.
+
 Both native score populations are saved before calibration checks. A reference
 calibration error is recorded as a failed case check; remaining cases and pixel
 checks still run and retain their evidence. The final pytest assertion fails
