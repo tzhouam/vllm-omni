@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -30,27 +31,43 @@ def main():
     import torch
 
     from vllm_omni.diffusion.distributed.autoencoders.autoencoder_kl_wan import DistributedAutoencoderKLWan
+    from vllm_omni.diffusion.distributed.parallel_state import (
+        destroy_distributed_env,
+        init_distributed_environment,
+    )
     from vllm_omni.platforms import current_omni_platform
 
     device = current_omni_platform.device_type
-    vae = (
-        DistributedAutoencoderKLWan.from_pretrained(
-            args.model, subfolder="vae", torch_dtype=torch.bfloat16, local_files_only=True
-        )
-        .to(device)
-        .eval()
-    )
-    generator = torch.Generator(device="cpu").manual_seed(42)
-    latent = torch.randn((1, 16, 3, args.height // 8, args.width // 8), generator=generator)
-    latent = latent.to(device=device, dtype=torch.bfloat16)
-    with torch.inference_mode():
-        decoded = vae.decode(latent).sample
-    precision.save_tensor_sample(
-        args.output,
-        inputs={"latent": latent},
-        outputs={"decoded": decoded},
-        metadata={"context": {"operation": "wan_vae_decode", "dtype": "bfloat16", "seed": 42}},
-    )
+    # The production VAE wrapper requires a WORLD group even for a single
+    # device decode. A file rendezvous avoids port collisions across CI jobs.
+    with tempfile.TemporaryDirectory(prefix="lingbot-precision-") as rendezvous:
+        try:
+            init_distributed_environment(
+                world_size=1,
+                rank=0,
+                local_rank=0,
+                distributed_init_method=(Path(rendezvous) / "world").as_uri(),
+            )
+            vae = (
+                DistributedAutoencoderKLWan.from_pretrained(
+                    args.model, subfolder="vae", torch_dtype=torch.bfloat16, local_files_only=True
+                )
+                .to(device)
+                .eval()
+            )
+            generator = torch.Generator(device="cpu").manual_seed(42)
+            latent = torch.randn((1, 16, 3, args.height // 8, args.width // 8), generator=generator)
+            latent = latent.to(device=device, dtype=torch.bfloat16)
+            with torch.inference_mode():
+                decoded = vae.decode(latent).sample
+            precision.save_tensor_sample(
+                args.output,
+                inputs={"latent": latent},
+                outputs={"decoded": decoded},
+                metadata={"context": {"operation": "wan_vae_decode", "dtype": "bfloat16", "seed": 42}},
+            )
+        finally:
+            destroy_distributed_env()
 
 
 if __name__ == "__main__":
