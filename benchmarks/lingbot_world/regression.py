@@ -164,6 +164,7 @@ def calibrate(
     reference_revision: str,
     max_cv: float = 0.03,
     regression_fraction: float = 0.05,
+    transient_noise_sigma: float = 3.0,
 ) -> dict[str, Any]:
     """Freeze limits from >=3 independent reference server starts.
 
@@ -178,23 +179,33 @@ def calibrate(
         number(value, label, positive=True)
         if value >= 1:
             raise RegressionError(f"{label} must be below one")
+    number(transient_noise_sigma, "transient_noise_sigma")
+    if transient_noise_sigma > 3:
+        raise RegressionError("Transient noise allowance cannot exceed three reference standard deviations")
     limits = {}
     for metric in ("mean_ms", "p50_ms", "p95_ms", "ttfc_ms", "generated_fps", "stall_ms"):
         values = [number(row[metric], metric) for row in reference]
         mean = statistics.mean(values)
         cv = statistics.pstdev(values) / mean if mean else 0.0
-        # Startup and discrete playback stalls are observations, not stationary
-        # cadence; their explicit worst-value allowance is still enforced.
+        # Startup and discrete playback stalls have measured reference jitter,
+        # unlike stationary cadence. Calibrate their allowance from references
+        # only; never use a failed candidate to raise a limit.
         if metric in {"mean_ms", "p50_ms", "p95_ms"} and cv > max_cv:
             raise RegressionError(f"Unstable reference {metric}: CV={cv:.3%} > {max_cv:.3%}")
         lower_is_better = metric != "generated_fps"
+        worst = max(values) if lower_is_better else min(values)
+        relative_allowance = worst * regression_fraction
+        jitter_allowance = (
+            statistics.pstdev(values) * transient_noise_sigma if metric in {"ttfc_ms", "stall_ms"} else 0.0
+        )
+        allowance = max(relative_allowance, jitter_allowance)
         limits[metric] = {
             "direction": "max" if lower_is_better else "min",
-            "value": max(values) * (1 + regression_fraction)
-            if lower_is_better
-            else min(values) * (1 - regression_fraction),
+            "value": worst + allowance if lower_is_better else worst - allowance,
             "reference": values,
             "cv": cv,
+            "relative_allowance": relative_allowance,
+            "reference_jitter_allowance": jitter_allowance,
         }
     if all(row["steady_samples"] >= 1000 for row in reference):
         limits["p99_ms"] = {

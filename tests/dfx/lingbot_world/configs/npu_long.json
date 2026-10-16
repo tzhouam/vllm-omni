@@ -34,5 +34,6 @@
   "deploy_config": "benchmarks/lingbot_world/configs/npu_usp4_eager.yaml",
   "memory_growth_budget_bytes": 268435456,
   "measured_sessions": 2,
-  "warmup_num_chunks": 8
+  "warmup_num_chunks": 8,
+  "transient_noise_sigma": 3.0
 }

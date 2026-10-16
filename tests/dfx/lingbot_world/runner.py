@@ -346,6 +346,7 @@ def generate(settings: dict[str, Any]) -> dict[str, Any]:
             reference_revision=settings["reference_revision"],
             max_cv=settings["max_reference_cv"],
             regression_fraction=settings["performance_regression_fraction"],
+            transient_noise_sigma=settings["transient_noise_sigma"],
         )
         checks = [check_performance(row[case_id], baseline, contract=contract) for row in records["candidate"]]
         report["cases"][case_id] = {"baseline": baseline, "checks": checks}
