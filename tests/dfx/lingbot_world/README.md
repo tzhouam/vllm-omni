@@ -97,6 +97,11 @@ If a warmup or measured session fails, the client writes a separate
 protocol events and the original error. This diagnostic has `complete: false`
 and no aggregate metrics; it cannot establish acceptance. Trace writes occur
 after failure and preserve the original exception even if the filesystem fails.
+Lifecycle checks use a one-second playback window: the initial nine-frame
+block fits, but admitting the following twelve-frame block requires playback
+progress. The held-playhead assertion therefore exercises backpressure before
+second-block inference, independently of model speed. These instrumented
+requests remain outside performance measurements.
 Each case receives an unmeasured
 eight-chunk warmup session. The first six and terminal chunks stay in raw results and
 playback/FPS accounting, but are excluded from steady cadence by `workload.py`.

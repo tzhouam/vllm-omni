@@ -9,6 +9,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -22,6 +23,28 @@ from tests.dfx.lingbot_world.runner import server_arguments, server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_lifecycle_playhead_blocks_second_admission_before_inference() -> None:
+    from benchmarks.lingbot_world.workload import pixel_frames_in_chunk
+    from tests.e2e.online_serving import test_lingbot_world_v2_stepwise as lifecycle
+    from vllm_omni.diffusion.diffusion_engine import DiffusionEngine, _StreamingPlayback
+
+    state = _StreamingPlayback(
+        buffer_seconds=lifecycle._paced_overrides()["streaming_pacing"]["max_lead_ms"] / 1000,
+        next_media_duration=pixel_frames_in_chunk(0) / 16,
+    )
+    engine = object.__new__(DiffusionEngine)
+    engine._cv = threading.Condition()
+    engine._streaming_playback = {"paced": state}
+    assert not engine._playback_blocked(), "the window must fit the initial chunk"
+
+    state.generated_seconds = state.next_media_duration
+    state.next_media_duration = pixel_frames_in_chunk(1) / 16
+    assert engine._playback_blocked(), "held playback must block the second chunk before its inference starts"
+
+    state.played_seconds = state.generated_seconds
+    assert not engine._playback_blocked(), "reporting playback must release admission"
 
 
 class _DeviceProperties(NamedTuple):
