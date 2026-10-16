@@ -44,6 +44,7 @@ def pytest_runtest_makereport(item, call):
         report.longrepr = f"Selected LingBot CI test was skipped: {report.longrepr}"
     if report.failed:
         from benchmarks.lingbot_world.regression import write_json
+        from tests.dfx.lingbot_world.resources import collect_resources
 
         output = item.config.getoption("--lingbot-output")
         write_json(
@@ -53,5 +54,6 @@ def pytest_runtest_makereport(item, call):
                 "nodeid": item.nodeid,
                 "phase": report.when,
                 "error": str(report.longrepr),
+                "resources": collect_resources(),
             },
         )

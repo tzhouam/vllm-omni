@@ -225,7 +225,18 @@ def main():
                 .splitlines()[-1]
             )
         if args.env_output:
-            write_json(args.env_output, {"model_path": str(Path(model).resolve())})
+            from tests.dfx.lingbot_world.resources import collect_resources
+
+            model_path = Path(model).resolve()
+            lock = read_json(ROOT / "tests/dfx/lingbot_world/assets.lock.json")
+            weight = next(
+                path
+                for path in lock["model_files"]
+                if path.startswith("transformer/") and path.endswith(".safetensors")
+            )
+            write_json(
+                args.env_output, {"model_path": str(model_path), "resources": collect_resources(model_path / weight)}
+            )
 
 
 if __name__ == "__main__":
