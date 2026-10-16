@@ -82,7 +82,8 @@ every platform still calibrates independent reference starts before checking can
 ## Performance, precision and lifecycle
 
 Three reference and three candidate server starts run in alternating AB/BA
-order on the same devices and dependencies. Each case receives an unmeasured
+order. Each reference/candidate pair shares its device reservation and dependencies.
+Each case receives an unmeasured
 eight-chunk warmup session. The first six and terminal chunks stay in raw results and
 playback/FPS accounting, but are excluded from steady cadence by `workload.py`.
 
@@ -99,6 +100,26 @@ regression gate, not a promise of 12 FPS. The MP4 label and playback FPS basis
 are recorded separately. P99 is always reported but gates only when each
 independent start has at least 1000 steady observations; long profiles use
 two measured 600-chunk sessions per start.
+
+CI partitions weekly's 18 cases into three CUDA groups of six cases and six NPU
+groups of three cases. Each case still receives all three reference and three
+candidate starts. Generated effective profiles retain the source profile SHA256;
+generation and evaluation use the same `LINGBOT_CASE_SHARD=INDEX/COUNT` selection.
+No scene, seed, rollout length or measurement is removed.
+
+NPU long collection runs as three independent reference/candidate pairs, followed
+by a blocking CPU aggregation job. Each start still has two 600-chunk sessions
+and at least 1,186 steady observations. The first pair also runs both complete
+600-chunk memory/control diagnostics. Pairs may run on different nodes, but the
+aggregate rejects different hardware/dependency contracts and unstable reference
+populations. It verifies all three complete manifests, revisions and checksums,
+rejects duplicated sessions, recomputes performance from raw chunks, and applies
+the same performance and seven VAE precision checks. Collection success alone is
+not regression acceptance; quality jobs require the aggregate gate to pass.
+
+These partitions keep individual jobs below the effective timeout observed in
+the CI environment. A configured step timeout does not override a smaller
+[pipeline/organization maximum](https://buildkite.com/docs/pipelines/configure/build-timeouts).
 
 Fixed-input VAE diagnostics run outside performance windows. Both checkouts
 load the real Wan VAE and decode the same CPU-seeded BF16 latent. Independent
@@ -174,13 +195,35 @@ this video-quality suite.
 - NIGHTLY: independent CUDA/NPU generation followed by one-GPU evaluation.
   The NPU build provisions its matching CUDA evaluator image in the same build.
 - WEEKLY/manual (`weekly-test`): three scenes, three camera patterns and two
-  seeds (18 cases), 160 chunks each, plus a separate 600-chunk long profile.
+  seeds (18 cases), 160 chunks each across the groups above, plus the complete
+  600-chunk long profile. NPU long quality waits for all three collected pairs
+  and their CPU performance/precision aggregation gate.
 
 Selected jobs are blocking. Missing prerequisites and skipped CI tests fail.
 NPU generation uses the existing infrastructure retry codes (`-1`, `128`),
 with one retry per code. Pytest failures and OOM are never automatically retried.
 JUnit, raw chunks, measured limits, precision captures, memory/events, videos,
 scores and logs are retained through `artifact_paths`, including failed jobs.
+A failed placeholder JUnit report is written before provisioning so a forced
+SIGKILL still leaves failure evidence. Pytest replaces it on completion; normal
+failure and SIGTERM also retain structured launcher errors.
+
+To reproduce one weekly group, set `LINGBOT_CASE_SHARD=0/3` for CUDA or `0/6`
+for NPU when invoking both `generate` and `evaluate`. To reproduce NPU long
+collection, invoke `collect` three times with `LINGBOT_MEASUREMENT_REPEAT=0`,
+`1` and `2`, writing to `lingbot-artifacts/npu-long-measurements/pair-0`,
+`pair-1` and `pair-2`. Each invocation requires the usual four-NPU reservation.
+Then run the CPU gate without loading a checkpoint:
+
+```bash
+bash .buildkite/common/scripts/run-lingbot-ci.sh aggregate \
+  tests/dfx/lingbot_world/configs/npu_long.json lingbot-artifacts/npu-long \
+  lingbot-artifacts/npu-long-measurements lingbot-npu-weekly-long
+```
+
+For a local run, leave `BUILDKITE` unset so the already collected directories
+are used directly. On CI the launcher downloads every pair from the named
+matrix step. Use the aggregate's output directory for the subsequent GPU evaluator.
 
 Advance a reference only by changing its full SHA and inspecting three new
 independent reference starts on every target runner. Model, input, evaluator,

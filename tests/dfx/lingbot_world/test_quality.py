@@ -72,7 +72,9 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         "suites": {},
         "pixels": {},
         "evaluator_packages": packages,
-        "evaluator_hardware": hardware_contract({**settings, "platform": "cuda", "cards": 1, "dies": 1}),
+        "evaluator_hardware": hardware_contract(
+            {**settings, "platform": "cuda", "cards": 1, "dies": 1, "reserved_cards": 1}
+        ),
         "evaluator_lock_sha256": sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
     }
     try:
