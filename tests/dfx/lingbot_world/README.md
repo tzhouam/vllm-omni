@@ -67,7 +67,8 @@ This is VAE numerical evidence, not a full DiT replay or GPU/NPU bitwise-parity
 claim. Generated videos additionally cover full-pipeline behavior.
 
 Existing public endpoint tests check chunk order, pacing, stop and successful
-session reuse. An additional instrumented rollout sends a prompt update,
+session reuse. An additional instrumented rollout sends a live SE3 camera update
+(with the fixed action script disabled, as required by the pipeline),
 requires its event ID in streamed started/active/completed metadata, and samples
 device-wide memory on the allocated devices. The post-warmup growth budget is
 256 MiB per die. Diagnostic timings never enter performance limits. Server
