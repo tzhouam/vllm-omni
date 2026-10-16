@@ -80,6 +80,25 @@ def hardware_contract(settings: dict[str, Any]) -> dict[str, Any]:
 
     if platform.device_type != settings["platform"] or platform.get_device_count() != settings["dies"]:
         raise RegressionError("Wrong platform or visible die count for the requested profile")
+    allocation = None
+    if settings.get("reserved_cards", settings["cards"]) != settings["cards"]:
+        path = os.environ.get("LINGBOT_ALLOCATION_FILE")
+        if path is None:
+            raise RegressionError("Exclusive CUDA profiles require the launcher allocation preflight")
+        allocation = read_json(Path(path))
+        identities = {
+            device.get("uuid")
+            for device in allocation.get("devices", [])
+            if isinstance(device, dict) and isinstance(device.get("uuid"), str) and device.get("uuid")
+        }
+        if (
+            allocation.get("reserved_cards") != settings["reserved_cards"]
+            or allocation.get("visible_dies") != settings["dies"]
+            or len(allocation.get("devices", [])) != settings["reserved_cards"]
+            or len(identities) != settings["reserved_cards"]
+            or allocation.get("visible_devices") != os.environ.get("CUDA_VISIBLE_DEVICES")
+        ):
+            raise RegressionError("CUDA allocation evidence does not match the requested profile/visibility")
     devices = []
     for index in range(settings["dies"]):
         devices.append(
@@ -98,6 +117,7 @@ def hardware_contract(settings: dict[str, Any]) -> dict[str, Any]:
         "dies": settings["dies"],
         "devices": devices,
         "packages": packages,
+        **({"allocation": allocation} if allocation is not None else {}),
     }
 
 

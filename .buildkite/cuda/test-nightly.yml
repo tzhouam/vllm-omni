@@ -617,7 +617,7 @@ steps:
         key: lingbot-cuda-nightly-generation
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 240
-        mirror_hardwares: h100_4
+        mirror_hardwares: h100_4_exclusive
         artifact_paths:
           - "lingbot-artifacts/cuda-nightly/**/*"
         commands:

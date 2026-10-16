@@ -7,9 +7,19 @@ gate logic separately and are not model performance evidence.
 
 Use the inference environment matching `docker/Dockerfile.ci` (vLLM 0.31.0)
 and development dependencies. Reserve devices with the host scheduler before
-inference. CUDA nightly needs four GPUs; NPU uses the four-device Ascend A2 pool. The smoke
+inference. Full CUDA profiles use four GPUs while reserving all eight GPU slots
+of a node in the H100 pool; NPU uses the four-device Ascend A2 pool. The smoke
 uses the real 14B checkpoint at 192×320 on one GPU. Full performance/quality
 profiles remain 480×832. CI provides exclusive devices.
+
+The CUDA performance preset prevents other GPU jobs from sharing the eight-GPU
+node during paired measurements. The launcher verifies all eight reserved
+devices, records their UUIDs in `allocation.json`, then preserves the original
+device mapping while exposing only four to inference. This retains SP4, memory
+and precision settings. It changes scheduling isolation rather than regression
+thresholds. A four-GPU allocation cannot silently run an exclusive profile.
+For a local full CUDA run, reserve eight devices with `gpu run --gpus 8 -- ...`
+before invoking the launcher.
 
 ```bash
 pytest -q --confcutdir=tests/benchmarks \
@@ -42,6 +52,11 @@ runs pytest with the correct platform/card selection and `--run-level full_model
 Direct equivalent after preparing `/tmp/lingbot-reference`:
 
 ```bash
+export LINGBOT_ALLOCATION_FILE="$(pwd)/lingbot-artifacts/cuda-nightly/allocation.json"
+CUDA_VISIBLE_DEVICES="$(python -m tests.dfx.lingbot_world.prepare devices \
+  --profile tests/dfx/lingbot_world/configs/cuda_nightly.json \
+  --root lingbot-artifacts/cuda-nightly)"
+export CUDA_VISIBLE_DEVICES
 pytest -sv tests/dfx/lingbot_world/test_generate.py \
   --lingbot-profile tests/dfx/lingbot_world/configs/cuda_nightly.json \
   --lingbot-reference-root=/tmp/lingbot-reference \

@@ -71,12 +71,17 @@ elif [[ "$STAGE" == "evaluate" ]]; then
         -m 'full_model and diffusion and cuda and H100 and cards_1' --run-level full_model \
         --junitxml="$OUTPUT/pytest.xml"
 elif [[ "$STAGE" == "generate" || "$STAGE" == "smoke" ]]; then
+    PLATFORM="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["platform"])' "$PROFILE")"
+    if [[ "$STAGE" == "generate" && "$PLATFORM" == "cuda" ]]; then
+        CUDA_VISIBLE_DEVICES="$(python -m tests.dfx.lingbot_world.prepare devices --profile "$PROFILE" --root "$OUTPUT")"
+        export CUDA_VISIBLE_DEVICES
+        export LINGBOT_ALLOCATION_FILE="$OUTPUT/allocation.json"
+    fi
     REFERENCE="${TMPDIR:-/tmp}/lingbot-reference-${BUILDKITE_JOB_ID:-$$}"
     python -m tests.dfx.lingbot_world.prepare reference --profile "$PROFILE" \
         --root "$REFERENCE" --env-output "$OUTPUT/model.json"
     LINGBOT_MODEL_PATH="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["model_path"])' "$OUTPUT/model.json")"
     export LINGBOT_MODEL_PATH
-    PLATFORM="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["platform"])' "$PROFILE")"
     CARDS="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["dies"])' "$PROFILE")"
     TEST_FILE="tests/dfx/lingbot_world/test_generate.py"
     if [[ "$STAGE" == "smoke" ]]; then
