@@ -17,6 +17,7 @@ from benchmarks.lingbot_world.precision import save_tensor_sample
 from benchmarks.lingbot_world.regression import RegressionError, sha256, write_json
 from tests.benchmarks.test_lingbot_world_regression import document
 from tests.dfx.lingbot_world import runner
+from tests.dfx.lingbot_world.runner import git_revision as source_revision
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 
@@ -201,7 +202,9 @@ def test_final_gate_rejects_missing_candidate_start(measurement_campaign):
 
 def test_aggregate_launcher_executes_pytest_and_returns_nonzero_for_regression(measurement_campaign):
     settings = measurement_campaign
-    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=runner.ROOT, text=True).strip()
+    # Source-only CI images intentionally omit .git; use the same checked
+    # Buildkite SHA fallback as the real artifact consumer.
+    revision = source_revision(runner.ROOT)
     for repeat in range(3):
         root = settings["generation"] / f"pair-{repeat}"
         manifest_path = root / "measurement.json"
