@@ -1037,3 +1037,23 @@ def test_qwen_image_21_accuracy_model_dependencies(
     assert any("test_qwen_image_21.py" in command for command in step["commands"])
     assert any(selector in command for command in step["commands"])
     assert "tests/e2e/accuracy/artifacts/qwen_image_21/**/*" in step["artifact_paths"]
+
+
+@pytest.mark.parametrize("filename", ["test-npu-nightly.yml", "test-npu-weekly.yml"])
+def test_lingbot_npu_infra_retry_does_not_retry_test_failures(filename: str) -> None:
+    path = Path(".buildkite/npu") / filename
+    rendered = _render_test_pipeline(
+        yaml.safe_load(path.read_text()),
+        changed_files=["tests/dfx/lingbot_world/runner.py"],
+        pipeline_path=path,
+    )
+    steps = [
+        step
+        for step in _iter_steps(rendered)
+        if str(step.get("key", "")).startswith("lingbot-npu-")
+        and step.get("agents", {}).get("resource_class") == "npu-4"
+    ]
+    assert len(steps) == (1 if "nightly" in filename else 2)
+    for step in steps:
+        assert step["retry"] == {"automatic": [{"exit_status": -1, "limit": 1}, {"exit_status": 128, "limit": 1}]}
+        assert not step.get("soft_fail")

@@ -127,6 +127,8 @@ this video-quality suite.
   seeds (18 cases), 160 chunks each, plus a separate 600-chunk long profile.
 
 Selected jobs are blocking. Missing prerequisites and skipped CI tests fail.
+NPU generation uses the existing infrastructure retry codes (`-1`, `128`),
+with one retry per code. Pytest failures and OOM are never automatically retried.
 JUnit, raw chunks, measured limits, precision captures, memory/events, videos,
 scores and logs are retained through `artifact_paths`, including failed jobs.
 

@@ -423,6 +423,13 @@ steps:
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 240
         mirror_hardwares: a2b3_npu_4
+        # Match existing infra retry codes; pytest and OOM still fail.
+        retry:
+          automatic:
+            - exit_status: -1
+              limit: 1
+            - exit_status: 128
+              limit: 1
         artifact_paths:
           - "lingbot-artifacts/npu-nightly/**/*"
         commands:
