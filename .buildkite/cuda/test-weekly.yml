@@ -679,7 +679,8 @@ steps:
           LINGBOT_CASE_SHARD: "{{matrix.shard}}/3"
         source_file_dependencies: lingbot_world_regression
         depends_on:
-          - lingbot-cuda-weekly-generation
+          - step: lingbot-cuda-weekly-generation
+            allow_failure: true
         timeout_in_minutes: 1440
         mirror_hardwares: h100_1
         artifact_paths:
@@ -699,7 +700,8 @@ steps:
         key: lingbot-cuda-weekly-long-quality
         source_file_dependencies: lingbot_world_regression
         depends_on:
-          - lingbot-cuda-weekly-long
+          - step: lingbot-cuda-weekly-long
+            allow_failure: true
         timeout_in_minutes: 480
         mirror_hardwares: h100_1
         artifact_paths:

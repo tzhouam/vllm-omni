@@ -396,6 +396,121 @@ def leaves(document):
             yield step
 
 
+@pytest.mark.parametrize(
+    "generation_passed,mutation", [(True, None), (False, None), (False, "unlisted"), (False, "corrupt")]
+)
+def test_quality_retains_scores_after_generation_failure_without_passing(
+    tmp_path, monkeypatch, generation_passed, mutation
+):
+    import cv2
+    import numpy as np
+
+    from benchmarks.lingbot_world.regression import sha256, write_json
+    from tests.dfx.lingbot_world import test_quality as gate
+
+    source = tmp_path / "source"
+    policy = source / "tests/dfx/lingbot_world"
+    policy.mkdir(parents=True)
+    limits = json.loads((ROOT / "tests/dfx/lingbot_world/quality.json").read_text())
+    write_json(policy / "quality.json", limits)
+    write_json(
+        policy / "evaluators.lock.json",
+        {"files": {}, "repositories": {suite: {"revision": "snapshot"} for suite in ("vbench", "wbench")}},
+    )
+    generation = tmp_path / "generation"
+    artifacts = {}
+    y, x = np.indices((24, 32))
+    texture = ((x * 3 + y * 5) % 80 + 40).astype(np.uint8)
+    frame = np.stack([texture, texture + 5, texture + 10], axis=-1)
+    for role in ("reference", "candidate"):
+        for repeat in range(3):
+            path = generation / role / str(repeat) / "scene/rollout.mp4"
+            path.parent.mkdir(parents=True)
+            writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 16, (32, 24))
+            assert writer.isOpened(), "CPU quality coordinator test requires an MP4 encoder"
+            try:
+                for _ in range(9):
+                    writer.write(frame)
+            finally:
+                writer.release()
+            artifacts[str(path.relative_to(generation))] = sha256(path)
+    if mutation == "unlisted":
+        artifacts.pop("candidate/2/scene/rollout.mp4")
+    elif mutation == "corrupt":
+        (generation / "candidate/2/scene/rollout.mp4").write_bytes(b"corrupt output")
+    profile = tmp_path / "profile.json"
+    write_json(profile, {"platform": "npu", "num_chunks": 1})
+    write_json(
+        generation / "generation.json",
+        {
+            "passed": generation_passed,
+            "contract": {"profile": json.loads(profile.read_text())},
+            "candidate_revision": "snapshot",
+            "artifacts": artifacts,
+        },
+    )
+    monkeypatch.setattr(gate, "ROOT", source)
+    monkeypatch.setattr(gate, "git_revision", lambda path: "snapshot")
+    monkeypatch.setattr(gate, "verify_environment", lambda *args: {})
+    monkeypatch.setattr(gate, "hardware_contract", lambda settings: {"unit_test": True})
+    monkeypatch.setattr(gate.subprocess, "run", lambda command, **kwargs: subprocess.CompletedProcess(command, 0))
+    monkeypatch.setenv("LINGBOT_EVALUATOR_ROOT", str(tmp_path / "evaluators"))
+    monkeypatch.setenv("LINGBOT_EVALUATOR_PYTHON", sys.executable)
+    for name in ("VBENCH_CACHE_DIR", "WBENCH_WEIGHTS_DIR", "HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"):
+        monkeypatch.setenv(name, os.environ.get(name, ""))
+    calls = []
+
+    def score(videos, output, *, suite, dimensions, **kwargs):
+        calls.append(suite)
+        return {
+            "status": "passed",
+            "protocol": {"dynamic_degree_backend": "raft"},
+            "scores": {label: {name: 1.0 for name in dimensions} for label in videos},
+            "native_provenance": {
+                label: {
+                    "background_clip_inference": {
+                        "batch_size": 32,
+                        "encoded_images": 9,
+                        "forward_batches": 1,
+                        "max_forward_batch": 9,
+                        "gradients": False,
+                    }
+                }
+                for label in videos
+            },
+        }
+
+    monkeypatch.setattr(gate, "evaluate_video_quality", score)
+    output = tmp_path / "quality"
+    settings = {
+        "output": output,
+        "generation": generation,
+        "profile_path": profile,
+        "platform": "npu",
+        "num_chunks": 1,
+        "width": 32,
+        "height": 24,
+        "mux_fps": 16,
+        "cases": [{"id": "scene"}],
+    }
+    if mutation:
+        with pytest.raises(RegressionError, match="checksum|Unhashed"):
+            gate.test_wbench_vbench_and_video_precision(settings)
+        assert calls == []
+        return
+    if generation_passed:
+        gate.test_wbench_vbench_and_video_precision(settings)
+    else:
+        with pytest.raises(AssertionError, match="Quality regression"):
+            gate.test_wbench_vbench_and_video_precision(settings)
+    report = json.loads((output / "quality.json").read_text())
+    assert calls == ["vbench", "wbench"]
+    assert report["quality_passed"] is True
+    assert report["generation_passed"] is generation_passed
+    assert report["passed"] is generation_passed
+    assert (output / "vbench-raw.json").is_file() and (output / "wbench-raw.json").is_file()
+
+
 @pytest.mark.parametrize("platform", ["cuda", "npu"])
 @pytest.mark.parametrize("level", ["nightly", "weekly"])
 def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, level):
@@ -406,7 +521,7 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
     generate, evaluate = keyed[prefix + "-generation"], keyed[prefix + "-quality"]
     if platform == "cuda":
         assert generate["mirror_hardwares"] == "h100_4_exclusive"
-    assert prefix + "-generation" in evaluate["depends_on"]
+    assert {"step": prefix + "-generation", "allow_failure": True} in evaluate["depends_on"]
     assert evaluate["mirror_hardwares"] == "h100_1"
     for step in (generate, evaluate):
         assert not step.get("soft_fail")
@@ -433,8 +548,11 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
             assert " collect " in collection["commands"][0]
             assert prefix + "-long" in gate["depends_on"]
             assert gate["mirror_hardwares"] == "l4_1" and not gate.get("soft_fail")
-            assert prefix + "-long-gate" in quality["depends_on"]
+            assert {"step": prefix + "-long-gate", "allow_failure": True} in quality["depends_on"]
             assert quality["commands"][0].endswith(prefix + "-long-gate")
+        assert {"step": prefix + "-long" + ("-gate" if platform == "npu" else ""), "allow_failure": True} in keyed[
+            prefix + "-long-quality"
+        ]["depends_on"]
 
 
 def test_selected_ci_skip_is_a_failed_pytest_job(tmp_path: Path):

@@ -41,10 +41,20 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         raise RegressionError("--lingbot-generation must name the downloaded generation artifact directory")
     generation = generation.resolve()
     manifest = read_json(generation / "generation.json")
-    if not manifest["passed"] or manifest["contract"]["profile"] != read_json(settings["profile_path"]):
-        raise RegressionError("Generation did not pass or belongs to a different profile")
+    if type(manifest.get("passed")) is not bool or manifest.get("contract", {}).get("profile") != read_json(
+        settings["profile_path"]
+    ):
+        raise RegressionError("Generation is incomplete or belongs to a different profile")
     if manifest["candidate_revision"] != git_revision(ROOT):
         raise RegressionError("Generation artifacts belong to a different candidate commit")
+    videos = {}
+    for index, case in enumerate(settings["cases"]):
+        for role in ("reference", "candidate"):
+            for repeat in range(3):
+                videos[f"case{index}_{role}{repeat}"] = generation / role / str(repeat) / case["id"] / "rollout.mp4"
+    required = {str(path.relative_to(generation)) for path in videos.values()}
+    if not required.issubset(manifest["artifacts"]):
+        raise RegressionError("Unhashed generation videos; complete quality populations are required")
     for relative, digest in manifest["artifacts"].items():
         if sha256(generation / relative) != digest:
             raise RegressionError(f"Generation artifact checksum mismatch: {relative}")
@@ -79,6 +89,8 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
     report = {
         "passed": False,
+        "generation_passed": manifest["passed"],
+        "quality_passed": False,
         "generation": str(generation),
         "generation_manifest_sha256": sha256(generation / "generation.json"),
         "generation_platform": settings["platform"],
@@ -92,12 +104,6 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         "evaluator_lock_sha256": sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
     }
     try:
-        videos = {}
-        for index, case in enumerate(settings["cases"]):
-            for role in ("reference", "candidate"):
-                for repeat in range(3):
-                    path = generation / role / str(repeat) / case["id"] / "rollout.mp4"
-                    videos[f"case{index}_{role}{repeat}"] = path
         evaluations = {}
         for suite in ("vbench", "wbench"):
             tolerances = candidate_tolerances[suite]
@@ -211,9 +217,10 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                     for row in candidate
                 ],
             }
-        report["passed"] = all(
+        report["quality_passed"] = all(
             check["passed"] for suite in report["suites"].values() for checks in suite.values() for check in checks
         ) and all(check["passed"] for case in report["pixels"].values() for check in case["checks"])
+        report["passed"] = report["generation_passed"] and report["quality_passed"]
     finally:
         write_json(output / "quality.json", report)
     assert report["passed"], f"Quality regression; see {output}/quality.json"

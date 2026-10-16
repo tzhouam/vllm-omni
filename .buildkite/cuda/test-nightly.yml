@@ -648,7 +648,8 @@ steps:
         key: lingbot-cuda-nightly-quality
         source_file_dependencies: lingbot_world_regression
         depends_on:
-          - lingbot-cuda-nightly-generation
+          - step: lingbot-cuda-nightly-generation
+            allow_failure: true
         timeout_in_minutes: 480
         mirror_hardwares: h100_1
         artifact_paths:

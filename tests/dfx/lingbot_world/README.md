@@ -288,6 +288,12 @@ remain explicit because cgroup namespace layouts differ. Unavailable interfaces
 remain absent/null; read errors are retained without replacing the original
 test failure.
 These read-only snapshots run before serving or after failure, outside timing.
+Quality steps also run after a failed generation gate: when all videos and
+their checksums are retained, both native suites and pixel checks still record
+their evidence. `quality.json` separates `generation_passed` and
+`quality_passed`; overall `passed` requires both. Missing, unhashed, corrupt or
+incompatible generation populations fail before scoring. The generation job
+remains blocking, and evaluator-image failures still prevent scoring.
 
 To reproduce one weekly group, set `LINGBOT_CASE_SHARD=0/3` for CUDA or `0/6`
 for NPU when invoking both `generate` and `evaluate`. To reproduce NPU long

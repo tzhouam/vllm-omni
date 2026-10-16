@@ -438,7 +438,8 @@ steps:
         key: lingbot-npu-nightly-quality
         source_file_dependencies: lingbot_world_regression
         depends_on:
-          - lingbot-npu-nightly-generation
+          - step: lingbot-npu-nightly-generation
+            allow_failure: true
           - lingbot-npu-nightly-evaluator-image
         timeout_in_minutes: 480
         mirror_hardwares: h100_1
