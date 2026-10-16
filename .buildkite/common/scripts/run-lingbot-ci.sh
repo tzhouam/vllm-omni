@@ -37,7 +37,7 @@ if [[ "$STAGE" == "evaluate" ]]; then
     if [[ "${BUILDKITE:-}" == "true" ]]; then
         buildkite-agent artifact download "$GENERATION/**" . --step "$SOURCE_STEP"
     fi
-    EVALUATOR_LOCK="$(python -c 'import hashlib; print(hashlib.sha256(open("tests/dfx/lingbot_world/evaluators.lock.json", "rb").read()).hexdigest()[:16])')"
+    EVALUATOR_LOCK="$(python -c 'from tests.dfx.lingbot_world.prepare import evaluator_cache_key; print(evaluator_cache_key())')"
     export LINGBOT_EVALUATOR_ROOT="${LINGBOT_EVALUATOR_ROOT:-${HF_HOME:-${TMPDIR:-/tmp}}/lingbot-evaluators-$EVALUATOR_LOCK}"
     python -m tests.dfx.lingbot_world.prepare evaluators --root "$LINGBOT_EVALUATOR_ROOT"
     export LINGBOT_EVALUATOR_PYTHON="$LINGBOT_EVALUATOR_ROOT/venv/bin/python"

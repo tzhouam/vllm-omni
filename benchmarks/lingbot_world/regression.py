@@ -274,3 +274,62 @@ def check_quality(
         if not passed:
             violations.append(f"{dimension}: {actual} outside [{lower_bound}, {upper_bound}]")
     return {"passed": not violations, "violations": violations, "dimensions": dimensions}
+
+
+def check_video_precision(
+    reference: Sequence[Mapping[str, Any]],
+    candidate: Mapping[str, Any],
+    *,
+    psnr_drop_db: float,
+    min_psnr_db: float,
+    ssim_drop: float,
+) -> dict[str, Any]:
+    """Gate decoded divergence globally and in every aligned time window."""
+    if len(reference) < 2:
+        raise RegressionError("Pixel calibration needs comparisons from three reference starts")
+    for label, value in (("psnr_drop_db", psnr_drop_db), ("min_psnr_db", min_psnr_db), ("ssim_drop", ssim_drop)):
+        number(value, label)
+
+    def ssim(row):
+        value = row["ssim"]["mean"]
+        if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value):
+            raise RegressionError("Missing finite sampled SSIM")
+        if not -1 <= value <= 1:
+            raise RegressionError("SSIM must be in [-1, 1]")
+        return value
+
+    def psnr(row):
+        if type(row["psnr_is_infinite"]) is not bool:
+            raise RegressionError("Invalid PSNR infinity flag")
+        return None if row["psnr_is_infinite"] else number(row["psnr_db"], "PSNR")
+
+    minimum_ssim = min(ssim(row) for row in reference) - ssim_drop
+    actual_ssim = ssim(candidate)
+    violations = [] if actual_ssim >= minimum_ssim else ["Sampled SSIM regression"]
+    psnr_checks = []
+
+    def check(label, references, measured):
+        finite = [value for row in references if (value := psnr(row)) is not None]
+        minimum = min(finite) - psnr_drop_db if finite else min_psnr_db
+        actual = psnr(measured)
+        passed = actual is None or actual >= minimum
+        psnr_checks.append({"scope": label, "minimum_db": minimum, "actual_db": actual, "passed": passed})
+        if not passed:
+            violations.append(f"{label} PSNR regression: {actual} < {minimum}")
+
+    check("total", [row["total"] for row in reference], candidate["total"])
+    windows = candidate["windows"]
+
+    def signature(rows):
+        return [(row["index"], row["start_frame"], row["frame_count"]) for row in rows]
+
+    if not windows or any(signature(row["windows"]) != signature(windows) for row in reference):
+        raise RegressionError("Pixel calibration windows do not cover the same frames")
+    for index, window in enumerate(windows):
+        check(f"window {window['index']}", [row["windows"][index] for row in reference], window)
+    return {
+        "passed": not violations,
+        "violations": violations,
+        "ssim": {"minimum": minimum_ssim, "actual": actual_ssim},
+        "psnr": psnr_checks,
+    }

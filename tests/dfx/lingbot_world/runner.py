@@ -32,6 +32,15 @@ from benchmarks.lingbot_world.regression import (
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def server_environment(source: Path) -> dict[str, str]:
+    # Keep CANN's compiler modules (tbe/te) and any other backend import paths.
+    # The selected checkout must still win over an inherited candidate path.
+    paths = [str(source)]
+    if inherited := os.environ.get("PYTHONPATH"):
+        paths.append(inherited)
+    return {"PYTHONPATH": os.pathsep.join(paths), "VLLM_WORKER_MULTIPROC_METHOD": "spawn"}
+
+
 def git_revision(root: Path) -> str:
     if not (root / ".git").exists() and root == ROOT:
         # CI Docker contexts exclude .git; the image tag is the Buildkite SHA.
@@ -237,7 +246,7 @@ def generate(settings: dict[str, Any]) -> dict[str, Any]:
                 str(model),
                 ["--deploy-config", str(deployment)],
                 source_root=str(source),
-                env_dict={"PYTHONPATH": str(source), "VLLM_WORKER_MULTIPROC_METHOD": "spawn"},
+                env_dict=server_environment(source),
                 startup_timeout=settings["startup_timeout_s"],
             ) as server:
                 process = server.proc

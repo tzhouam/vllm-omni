@@ -14,10 +14,121 @@ from pathlib import Path
 import pytest
 import yaml
 
-from benchmarks.lingbot_world.regression import check_quality
+from benchmarks.lingbot_world.regression import RegressionError, check_quality
+from tests.dfx.lingbot_world.runner import server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_reference_server_keeps_backend_import_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    backend = tmp_path / "cann"
+    backend.mkdir()
+    (backend / "compiler_backend.py").write_text('origin = "backend"\n')
+    for name in ("reference", "candidate"):
+        package = tmp_path / name / "vllm_omni"
+        package.mkdir(parents=True)
+        (package / "__init__.py").write_text(f'origin = "{name}"\n')
+    monkeypatch.setenv("PYTHONPATH", os.pathsep.join((str(tmp_path / "candidate"), str(backend))))
+    result = subprocess.run(
+        [sys.executable, "-c", "import vllm_omni, compiler_backend; print(vllm_omni.origin, compiler_backend.origin)"],
+        cwd=tmp_path,
+        env={**os.environ, **server_environment(tmp_path / "reference")},
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30,
+    )
+    assert result.stdout.strip() == "reference backend"
+
+
+def evaluator_repository(root: Path):
+    directory = root / "tests/dfx/lingbot_world"
+    directory.mkdir(parents=True)
+    (directory / "evaluators.lock.json").write_text('{"repositories": {}, "files": {}}')
+    (root / "requirements").mkdir()
+    (root / "requirements/lingbot-quality.txt").write_text("example==1\n")
+
+
+def test_explicit_model_provisioning_preserves_offline_inference(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from tests.dfx.lingbot_world import prepare
+
+    profile = tmp_path / "profile.json"
+    profile.write_text(json.dumps({"reference_revision": "a" * 40}))
+    model = tmp_path / "model"
+    model.mkdir()
+    output = tmp_path / "model.json"
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    monkeypatch.delenv("LINGBOT_MODEL_PATH", raising=False)
+    monkeypatch.setattr(prepare, "checkout", lambda *args: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prepare",
+            "reference",
+            "--profile",
+            str(profile),
+            "--root",
+            str(tmp_path / "ref"),
+            "--env-output",
+            str(output),
+        ],
+    )
+    calls = []
+
+    def download(command, **kwargs):
+        calls.append((command, kwargs))
+        return str(model) + "\n"
+
+    monkeypatch.setattr(prepare.subprocess, "check_output", download)
+    prepare.main()
+    command, options = calls[0]
+    lock = json.loads((ROOT / "tests/dfx/lingbot_world/assets.lock.json").read_text())
+    assert command == ["hf", "download", lock["model_id"], "--revision", lock["model_revision"], "--quiet"]
+    assert options["env"]["HF_HUB_OFFLINE"] == "0"
+    assert os.environ["HF_HUB_OFFLINE"] == "1"
+    assert json.loads(output.read_text())["model_path"] == str(model)
+
+
+def test_evaluator_cache_isolated_by_code_weights_and_dependencies(tmp_path: Path):
+    from tests.dfx.lingbot_world.prepare import evaluator_cache_key
+
+    evaluator_repository(tmp_path)
+    initial = evaluator_cache_key(tmp_path)
+    (tmp_path / "requirements/lingbot-quality.txt").write_text("example==2\n")
+    assert evaluator_cache_key(tmp_path) != initial
+    (tmp_path / "requirements/lingbot-quality.txt").write_text("example==1\n")
+    (tmp_path / "tests/dfx/lingbot_world/evaluators.lock.json").write_text('{"revision": "different"}')
+    assert evaluator_cache_key(tmp_path) != initial
+
+
+def test_ready_evaluator_is_never_resynced(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from tests.dfx.lingbot_world import prepare
+
+    repository = tmp_path / "repository"
+    evaluator_repository(repository)
+    monkeypatch.setattr(prepare, "ROOT", repository)
+    monkeypatch.setattr(prepare, "verify_environment", lambda *args: {})
+    calls = []
+
+    def provision(command, **kwargs):
+        calls.append(command)
+        if command[:2] == ["uv", "venv"]:
+            python = Path(command[-1]) / "bin/python"
+            python.parent.mkdir(parents=True)
+            python.touch()
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(prepare.subprocess, "run", provision)
+    root = tmp_path / "cache"
+    prepare._prepare_evaluators(root)
+    prepare._prepare_evaluators(root)
+    assert sum(command[:3] == ["uv", "pip", "sync"] for command in calls) == 1
+    (repository / "requirements/lingbot-quality.txt").write_text("example==2\n")
+    with pytest.raises(RegressionError, match="fresh evaluator root"):
+        prepare._prepare_evaluators(root)
+    assert sum(command[:3] == ["uv", "pip", "sync"] for command in calls) == 1
 
 
 def leaves(document):
