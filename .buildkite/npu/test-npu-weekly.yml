@@ -42,7 +42,8 @@ steps:
           LINGBOT_CASE_SHARD: "{{matrix.shard}}/6"
         source_file_dependencies: lingbot_world_regression
         depends_on:
-          - lingbot-npu-weekly-generation
+          - step: lingbot-npu-weekly-generation
+            allow_failure: true
           - lingbot-npu-weekly-evaluator-image
         timeout_in_minutes: 1440
         mirror_hardwares: h100_1
@@ -87,7 +88,8 @@ steps:
         key: lingbot-npu-weekly-long-quality
         source_file_dependencies: lingbot_world_regression
         depends_on:
-          - lingbot-npu-weekly-long-gate
+          - step: lingbot-npu-weekly-long-gate
+            allow_failure: true
           - lingbot-npu-weekly-evaluator-image
         timeout_in_minutes: 480
         mirror_hardwares: h100_1
