@@ -19,7 +19,7 @@ from benchmarks.lingbot_world.regression import (
     read_json,
     sha256,
     verify_environment,
-    verify_quality_calibration_contract,
+    verify_reference_calibration_contract,
     write_json,
 )
 from benchmarks.lingbot_world.video_quality import compare_video_pair, evaluate_video_quality
@@ -55,7 +55,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     if settings["platform"] == "cuda":
         calibration = read_json(ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json")
         write_json(output / "reference-calibration.json", calibration)
-        verify_quality_calibration_contract(manifest["contract"], calibration)
+        verify_reference_calibration_contract(manifest["contract"], calibration)
     lock = read_json(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json")
     evaluator_root = Path(os.environ["LINGBOT_EVALUATOR_ROOT"]).resolve()
     python = Path(os.environ["LINGBOT_EVALUATOR_PYTHON"])

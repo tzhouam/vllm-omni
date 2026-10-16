@@ -97,6 +97,8 @@ def performance_metrics(document: Mapping[str, Any], *, num_chunks: int, min_ste
     ttfc: list[float] = []
     generation_fps: list[float] = []
     stalls: list[float] = []
+    startup_stalls: list[float] = []
+    steady_stalls: list[float] = []
     for session in sessions:
         chunks = session.get("chunks", [])
         if len(chunks) != num_chunks or [row.get("index") for row in chunks] != list(range(num_chunks)):
@@ -142,6 +144,8 @@ def performance_metrics(document: Mapping[str, Any], *, num_chunks: int, min_ste
         ttfc.append(number(metrics["ttfc_ms"], "TTFC", positive=True))
         generation_fps.append(number(metrics["total_frames"] / metrics["wall_seconds"], "generated FPS", positive=True))
         stalls.append(number(metrics["playback"]["total_stall_ms"], "playback stall"))
+        startup_stalls.append(number(metrics["playback"]["startup_stall_ms"], "startup playback stall"))
+        steady_stalls.append(number(metrics["playback"]["steady_stall_ms"], "steady playback stall"))
     if len(intervals) < min_steady:
         raise RegressionError(f"Only {len(intervals)} steady samples; require {min_steady}")
     from benchmarks.lingbot_world.workload import percentile
@@ -154,6 +158,8 @@ def performance_metrics(document: Mapping[str, Any], *, num_chunks: int, min_ste
         "ttfc_ms": statistics.mean(ttfc),
         "generated_fps": min(generation_fps),
         "stall_ms": max(stalls),
+        "startup_stall_ms": max(startup_stalls),
+        "steady_stall_ms": max(steady_stalls),
         "steady_samples": float(len(intervals)),
     }
 
@@ -166,6 +172,7 @@ def calibrate(
     max_cv: float = 0.03,
     regression_fraction: float = 0.05,
     transient_noise_sigma: float = 3.0,
+    startup_stall_jitter_floor_ms: float = 0.0,
 ) -> dict[str, Any]:
     """Freeze limits from >=3 independent reference server starts.
 
@@ -183,8 +190,14 @@ def calibrate(
     number(transient_noise_sigma, "transient_noise_sigma")
     if transient_noise_sigma > 3:
         raise RegressionError("Transient noise allowance cannot exceed three reference standard deviations")
+    number(startup_stall_jitter_floor_ms, "startup stall jitter floor")
+    if startup_stall_jitter_floor_ms and any("steady_stall_ms" not in row for row in reference):
+        raise RegressionError("Startup jitter calibration requires separately recomputed steady stalls")
     limits = {}
-    for metric in ("mean_ms", "p50_ms", "p95_ms", "ttfc_ms", "generated_fps", "stall_ms"):
+    metrics = ["mean_ms", "p50_ms", "p95_ms", "ttfc_ms", "generated_fps", "stall_ms"]
+    if startup_stall_jitter_floor_ms:
+        metrics.append("steady_stall_ms")
+    for metric in metrics:
         values = [number(row[metric], metric) for row in reference]
         mean = statistics.mean(values)
         cv = statistics.pstdev(values) / mean if mean else 0.0
@@ -197,9 +210,12 @@ def calibrate(
         worst = max(values) if lower_is_better else min(values)
         relative_allowance = worst * regression_fraction
         jitter_allowance = (
-            statistics.pstdev(values) * transient_noise_sigma if metric in {"ttfc_ms", "stall_ms"} else 0.0
+            statistics.pstdev(values) * transient_noise_sigma
+            if metric in {"ttfc_ms", "stall_ms", "steady_stall_ms"}
+            else 0.0
         )
-        allowance = max(relative_allowance, jitter_allowance)
+        floor = startup_stall_jitter_floor_ms if metric == "stall_ms" else 0.0
+        allowance = max(relative_allowance, jitter_allowance, floor)
         limits[metric] = {
             "direction": "max" if lower_is_better else "min",
             "value": worst + allowance if lower_is_better else worst - allowance,
@@ -207,6 +223,7 @@ def calibrate(
             "cv": cv,
             "relative_allowance": relative_allowance,
             "reference_jitter_allowance": jitter_allowance,
+            "startup_jitter_floor_ms": floor,
         }
     if all(row["steady_samples"] >= 1000 for row in reference):
         limits["p99_ms"] = {
@@ -299,20 +316,20 @@ def check_quality(
     return {"passed": not violations, "violations": violations, "dimensions": dimensions}
 
 
-def verify_quality_calibration_contract(contract: Mapping[str, Any], calibration: Mapping[str, Any]) -> None:
-    """Reject reuse of numerical noise budgets after runtime/model changes.
+def verify_reference_calibration_contract(contract: Mapping[str, Any], calibration: Mapping[str, Any]) -> None:
+    """Reject reuse of reference-noise budgets after runtime/model changes.
 
     New scenes and rollout lengths remain held-out test inputs. Hardware,
     deployment, precision and model/runtime revisions must match calibration.
     """
     if contract["deploy_sha256"] != calibration["deploy_sha256"]:
-        raise RegressionError("Quality calibration deployment changed")
+        raise RegressionError("Reference calibration deployment changed")
     for field in ("reference_revision", "model_revision", "height", "width", "precision"):
         if contract["profile"][field] != calibration["workload"][field]:
-            raise RegressionError(f"Quality calibration profile changed: {field}")
+            raise RegressionError(f"Reference calibration profile changed: {field}")
     for field in ("platform", "cards", "dies", "devices", "packages"):
         if contract["hardware"][field] != calibration["hardware"][field]:
-            raise RegressionError(f"Quality calibration hardware/runtime changed: {field}")
+            raise RegressionError(f"Reference calibration hardware/runtime changed: {field}")
 
 
 def check_binary_activity(

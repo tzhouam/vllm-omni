@@ -542,6 +542,240 @@
   "reference_revision": "ebe2c18271db4fdd12221fbb4def6061e14a9379",
   "schema_version": 1,
   "scope": "Reference-only CUDA nightly calibration evidence. This does not establish final-head hardware acceptance or calibrate other profiles/platforms.",
+  "startup_stall_calibration": {
+    "cases": {
+      "blossom-42": [
+        [
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 85.88048908859491
+              }
+            ],
+            "raw_benchmark_sha256": "7a32e0018e96c7563ec7fdb05ef55a84522541d67368de43740fedfa77220849",
+            "startup_stall_ms": 85.88048908859491,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 244.17201802134514
+              }
+            ],
+            "raw_benchmark_sha256": "61253a42938031e7be01093931ad2409c9e50f7c9323265096a98c07ff238128",
+            "startup_stall_ms": 244.17201802134514,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 105.2381843328476
+              }
+            ],
+            "raw_benchmark_sha256": "96f137b7fa8e56bcaabb128480c97edf30c80ad9f490d5fa796198ee5d6e389d",
+            "startup_stall_ms": 105.2381843328476,
+            "steady_stall_ms": 0.0
+          }
+        ],
+        [
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 90.4412679374218
+              }
+            ],
+            "raw_benchmark_sha256": "21b8e73e97858e187fc97f7f5b5c179a3f09739833a0b06ce1b0e6fea3ede253",
+            "startup_stall_ms": 90.4412679374218,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 100.3675339743495
+              }
+            ],
+            "raw_benchmark_sha256": "4bd15dd81d8097250dce299f513736f663d1a9747fc43825701d756c80b777ce",
+            "startup_stall_ms": 100.3675339743495,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 136.39382366091013
+              }
+            ],
+            "raw_benchmark_sha256": "d04796fb5b39ce2ec145eed34901fc921130dbd9570fcfb3651a1263a3754785",
+            "startup_stall_ms": 136.39382366091013,
+            "steady_stall_ms": 0.0
+          }
+        ]
+      ],
+      "boardwalk-42": [
+        [
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 108.34144242107868
+              }
+            ],
+            "raw_benchmark_sha256": "5fc366f7d9c77288192d8e639b113d5c0642443eb38df25e148c9e57a412528d",
+            "startup_stall_ms": 108.34144242107868,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 83.93332920968533
+              }
+            ],
+            "raw_benchmark_sha256": "3e2d2160a0ddb9c6b8d421c9fcd47547aaf85d722048dfc95a9c5ed8e18a1834",
+            "startup_stall_ms": 83.93332920968533,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 96.13172989338636
+              }
+            ],
+            "raw_benchmark_sha256": "9037c6b1e521ce4c22828aa90c53ea3e74a5b7f435e4756edb5428f091d1b1b5",
+            "startup_stall_ms": 96.13172989338636,
+            "steady_stall_ms": 0.0
+          }
+        ],
+        [
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 89.01932835578918
+              }
+            ],
+            "raw_benchmark_sha256": "390b9935b1db4d7d8a5c5192874dfe2b5d24fa580d0d2e857c3cf2e9dc7cbe4b",
+            "startup_stall_ms": 89.01932835578918,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 156.73006512224674
+              }
+            ],
+            "raw_benchmark_sha256": "61386f72466647e2f2ef43e0bfb04b7201e925158f9ee26ff8eb4f9b1db02735",
+            "startup_stall_ms": 156.73006512224674,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 118.58916003257036
+              }
+            ],
+            "raw_benchmark_sha256": "943934339cebc4d36824386781aa2b0dcf6e528de3fc8777161fb0951cba1aa1",
+            "startup_stall_ms": 118.58916003257036,
+            "steady_stall_ms": 0.0
+          }
+        ]
+      ],
+      "street-42": [
+        [
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 95.96176166087389
+              }
+            ],
+            "raw_benchmark_sha256": "1123bb12abb6ef4f07ac8ec02be7e13a3bc0a8081e34454c1c34b1f4b6e93e08",
+            "startup_stall_ms": 95.96176166087389,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 87.45428454130888
+              }
+            ],
+            "raw_benchmark_sha256": "5837fd4992bba5f3df3304628c0d528e2623162c3d9ce0393ed3db2342fbbf33",
+            "startup_stall_ms": 87.45428454130888,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 68.16449388861656
+              }
+            ],
+            "raw_benchmark_sha256": "fa0ba6dd61757c93348bc163060047f978a1a6aeeb3eb7535f8e3290f0b7731d",
+            "startup_stall_ms": 68.16449388861656,
+            "steady_stall_ms": 0.0
+          }
+        ],
+        [
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 129.3812757357955
+              }
+            ],
+            "raw_benchmark_sha256": "a849a3d7982f4375bb88df5b80a81eecac37f7c85962a9b0337b881c75b88e57",
+            "startup_stall_ms": 129.3812757357955,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 61.159877106547356
+              }
+            ],
+            "raw_benchmark_sha256": "36334bb12dbc934210dd8683ef9f27c07d962cf76d8db3208449dc80987097da",
+            "startup_stall_ms": 61.159877106547356,
+            "steady_stall_ms": 0.0
+          },
+          {
+            "events": [
+              {
+                "chunk": 1,
+                "stall_ms": 96.9708301126957
+              }
+            ],
+            "raw_benchmark_sha256": "d4637fafc47e29d0d26306aee51ee3f69f4ad393e800ac7586a036cfbbc89bdb",
+            "startup_stall_ms": 96.9708301126957,
+            "steady_stall_ms": 0.0
+          }
+        ]
+      ]
+    },
+    "maximum_reference_startup_excess_ms": 107.77819436043501,
+    "playback_buffer_chunks": 1,
+    "reference_steady_stalls_all_zero": true,
+    "reserve_fraction": 0.25,
+    "round_up_ms": 1,
+    "rule": "Maximum held-out reference startup stall minus its calibration cohort maximum, over both cohort directions and all scenes; add25%reserve and round up to1ms. Apply as a floor only to total-stall allowance and also gate post-startup stalls independently, with no floor. Startup is max(2,warmup_chunks) media blocks.",
+    "scope": "CUDA-only reference-only startup playback noise. Candidate observations excluded. NPU keeps zero floor until its own calibration. Fresh target validation remains required.",
+    "selected_floor_ms": 135,
+    "source_builds": [
+      17426,
+      17431
+    ],
+    "startup_chunks": 6,
+    "target_fps": 12
+  },
   "vbench_revision": "fd18b3d055cb0fc6f066ca90fe2c3c8cbb698490",
   "wbench_reference_cohorts": [
     {

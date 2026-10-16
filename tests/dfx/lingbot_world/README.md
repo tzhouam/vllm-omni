@@ -97,6 +97,18 @@ meet measured reference limits with the profile's 5% regression allowance.
 For TTFC and accumulated playback stalls only, the allowance is the greater of
 5% of the worst reference and three reference population standard deviations.
 The profile pins this multiplier (at most three); both allowances are reported.
+CUDA additionally uses a 135 ms floor for the total-stall allowance. Two
+independent three-start reference cohorts falsely rejected two same-code
+reference runs under the original rule. All their stalls occurred during
+startup; their largest cross-cohort startup excess was 107.778 ms. Adding 25%
+reserve and rounding up to 1 ms gives 135 ms, using reference inputs only.
+This floor requires a second, independent post-startup stall gate without
+the floor: later stalls cannot hide behind initial playback jitter. The
+startup boundary is `max(2, warmup_chunks)` media blocks (six in CI), so the
+first nine-frame block and the configured attention ramp are distinguished
+from steady playback. Both components stay in total-stall accounting. The
+one-chunk playback buffer is explicitly passed and checked. NPU retains its
+own calibration with zero constant floor. TTFC and cadence limits are unchanged.
 This accounts for startup/discrete-stall jitter observed in real H100 runs, and
 is a fixed calibration rule, not a confidence interval or a retry of a failed
 candidate. Stationary cadence limits and the 3% reference CV cap are unchanged.

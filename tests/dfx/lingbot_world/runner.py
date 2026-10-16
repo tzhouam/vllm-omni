@@ -27,6 +27,7 @@ from benchmarks.lingbot_world.regression import (
     performance_metrics,
     read_json,
     sha256,
+    verify_reference_calibration_contract,
     write_json,
 )
 
@@ -265,6 +266,8 @@ def _measured_metrics(document: dict, settings: dict) -> dict[str, float]:
         raise RegressionError("Missing or duplicated measured sessions in an independent start")
     if any(document["config"].get(key) != settings[key] for key in ("warmup_chunks", "target_fps")):
         raise RegressionError("Benchmark measurement policy differs from the profile")
+    if document["config"].get("playback_buffer_chunks") != 1:
+        raise RegressionError("LingBot regression requires the pinned one-chunk playback buffer")
     return performance_metrics(document, num_chunks=settings["num_chunks"], min_steady=settings["min_steady_samples"])
 
 
@@ -335,6 +338,8 @@ def generate(settings: dict[str, Any], *, measurement_repeat: int | None = None)
                             str(settings["mux_fps"]),
                             "--target-fps",
                             str(settings["target_fps"]),
+                            "--playback-buffer-chunks",
+                            "1",
                             "--num-chunks",
                             str(settings["num_chunks"]),
                             "--sessions",
@@ -414,6 +419,21 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
         raise RegressionError("Final gates require three independent starts per role")
     if any(set(row) != cases for role in ("reference", "candidate") for row in records[role]):
         raise RegressionError("Measurement cases do not cover the complete profile")
+    startup_stall_floor = 0.0
+    if settings.get("platform") == "cuda":
+        calibration_path = ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json"
+        calibration = read_json(calibration_path)
+        verify_reference_calibration_contract(contract, calibration)
+        if any(settings[key] != calibration["workload"][key] for key in ("target_fps", "warmup_chunks")):
+            raise RegressionError("Startup-stall calibration playback rate/window changed")
+        startup_stall_floor = calibration["startup_stall_calibration"]["selected_floor_ms"]
+        write_json(
+            output / "startup-stall-calibration.json",
+            {
+                "reference_record_sha256": sha256(calibration_path),
+                **calibration["startup_stall_calibration"],
+            },
+        )
     report: dict[str, Any] = {
         "contract": contract,
         "cases": {},
@@ -430,6 +450,7 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
             max_cv=settings["max_reference_cv"],
             regression_fraction=settings["performance_regression_fraction"],
             transient_noise_sigma=settings["transient_noise_sigma"],
+            startup_stall_jitter_floor_ms=startup_stall_floor,
         )
         checks = [check_performance(row[case_id], baseline, contract=contract) for row in records["candidate"]]
         report["cases"][case_id] = {"baseline": baseline, "checks": checks}
