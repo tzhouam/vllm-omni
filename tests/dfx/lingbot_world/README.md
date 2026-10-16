@@ -72,6 +72,11 @@ The CI deployment retains the full resolution, KV window and rollout lengths;
 `gpu_memory_fraction=0.1` avoids allocating extra pages above the one-session
 minimum after offloading frees device memory. This placement is identical for
 reference/candidate and is included in the hashed deployment contract.
+The same deployment disables eager multithreaded safetensors loading for both
+roles: four ranks otherwise read up to sixteen whole shards concurrently from
+the shared checkpoint filesystem. The serial iterator preserves the checkpoint
+tensors and leaves the 1,200-second initialization budget unchanged. Startup
+success must still be established on the target runner.
 
 The NPU bootstrap reference is `8d7c354674c7e1dc57544f248689574fccb71af9`,
 which places unselected DiT weights before direct AR projections and releases

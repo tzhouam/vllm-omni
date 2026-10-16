@@ -438,12 +438,19 @@ def test_profiles_pin_inputs_and_use_distinct_reference_starts():
 
 
 def test_npu_profiles_offload_only_text_encoder_without_reducing_workload():
+    from vllm_omni.config.pipeline_registry import resolve_pipeline_config
+    from vllm_omni.config.stage_config import load_deploy_config, merge_pipeline_deploy
     from vllm_omni.diffusion.offloader.config import OffloadMode, parse_diffusion_offload_config
 
     for name in ("npu_nightly", "npu_weekly", "npu_long"):
         profile = json.loads((ROOT / f"tests/dfx/lingbot_world/configs/{name}.json").read_text())
         deployment = yaml.safe_load((ROOT / profile["deploy_config"]).read_text())
         stage = deployment["stages"][0]
+        assert stage["enable_multithread_weight_load"] is False
+        resolved = merge_pipeline_deploy(
+            resolve_pipeline_config("lingbot_world"), load_deploy_config(ROOT / profile["deploy_config"])
+        )
+        assert resolved[0].yaml_engine_args["enable_multithread_weight_load"] is False
         offload = parse_diffusion_offload_config(stage["diffusion_offload_config"])
         assert offload is not None and offload.mode == OffloadMode.MODULE
         assert offload.components == {"text_encoder"}
