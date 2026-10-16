@@ -44,6 +44,7 @@
   ],
   "platform": "cuda",
   "cards": 4,
+  "reserved_cards": 8,
   "dies": 4,
   "deploy_config": "benchmarks/lingbot_world/configs/usp4_compiled.yaml",
   "memory_growth_budget_bytes": 268435456,

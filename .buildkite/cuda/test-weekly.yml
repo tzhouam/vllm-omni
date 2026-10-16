@@ -660,7 +660,7 @@ steps:
         key: lingbot-cuda-weekly-generation
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 1440
-        mirror_hardwares: h100_4
+        mirror_hardwares: h100_4_exclusive
         artifact_paths:
           - "lingbot-artifacts/cuda-weekly/**/*"
         commands:
@@ -680,7 +680,7 @@ steps:
         key: lingbot-cuda-weekly-long
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 1440
-        mirror_hardwares: h100_4
+        mirror_hardwares: h100_4_exclusive
         artifact_paths:
           - "lingbot-artifacts/cuda-long/**/*"
         commands:

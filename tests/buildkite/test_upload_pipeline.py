@@ -39,6 +39,17 @@ BOOTSTRAP_STEPS_TEMPLATE = """steps:
 """
 
 
+def test_exclusive_h100_reservation_keeps_four_card_inference_explicit(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("MIRROR_HW", raising=False)
+    expanded = _expand_mirror_hardwares({"label": "LingBot performance", "mirror_hardwares": "h100_4_exclusive"})
+    assert expanded is not None
+    container = expanded["plugins"][0]["kubernetes"]["podSpec"]["containers"][0]
+    assert container["resources"]["limits"]["nvidia.com/gpu"] == 8
+    assert expanded["agents"]["queue"] == "mithril-h100-pool"
+    monkeypatch.setenv("MIRROR_HW", "b200")
+    assert _expand_mirror_hardwares({"mirror_hardwares": "h100_4_exclusive"}) is None
+
+
 def _render(changed_files: list[str]) -> str:
     decision = resolve_ci_decision(changed_files)
     return _render_bootstrap_pipeline(

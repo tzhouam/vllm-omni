@@ -17,6 +17,47 @@ from benchmarks.lingbot_world.regression import RegressionError, read_json, sha2
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def select_cuda_devices(available: int, mask: str | None, *, dies: int, reserved_cards: int) -> str:
+    """Use a fixed subset without releasing the remaining scheduler reservation."""
+    for value in (available, dies, reserved_cards):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise RegressionError("CUDA allocation counts must be positive integers")
+    if available != reserved_cards or dies > reserved_cards:
+        raise RegressionError(f"Expected {reserved_cards} reserved GPUs, found {available}; requested {dies} dies")
+    identifiers = mask.split(",") if mask is not None else [str(index) for index in range(available)]
+    identifiers = [identifier.strip() for identifier in identifiers]
+    if len(identifiers) != available or len(set(identifiers)) != available or not all(identifiers):
+        raise RegressionError("CUDA visibility does not match the scheduler allocation")
+    return ",".join(identifiers[:dies])
+
+
+def prepare_cuda_allocation(settings: dict, output: Path) -> str:
+    if settings["platform"] != "cuda":
+        raise RegressionError("CUDA allocation preparation requires a CUDA profile")
+    import torch
+
+    reserved = settings.get("reserved_cards", settings["cards"])
+    visible = select_cuda_devices(
+        torch.accelerator.device_count(),
+        os.environ.get("CUDA_VISIBLE_DEVICES"),
+        dies=settings["dies"],
+        reserved_cards=reserved,
+    )
+    write_json(
+        output,
+        {
+            "reserved_cards": reserved,
+            "visible_dies": settings["dies"],
+            "visible_devices": visible,
+            "devices": [
+                {"name": torch.cuda.get_device_name(index), "uuid": str(torch.cuda.get_device_properties(index).uuid)}
+                for index in range(reserved)
+            ],
+        },
+    )
+    return visible
+
+
 def evaluator_cache_key(root: Path = ROOT) -> str:
     files = (root / "tests/dfx/lingbot_world/evaluators.lock.json", root / "requirements/lingbot-quality.txt")
     return hashlib.sha256(b"\0".join(path.read_bytes() for path in files)).hexdigest()[:16]
@@ -129,13 +170,17 @@ def prepare_evaluators(root: Path) -> Path:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=("reference", "evaluators"))
+    parser.add_argument("stage", choices=("reference", "evaluators", "devices"))
     parser.add_argument("--profile", type=Path)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--env-output", type=Path)
     args = parser.parse_args()
     if args.stage == "evaluators":
         print(prepare_evaluators(args.root.resolve()))
+    elif args.stage == "devices":
+        if args.profile is None:
+            parser.error("devices needs --profile")
+        print(prepare_cuda_allocation(read_json(args.profile), args.root.resolve() / "allocation.json"))
     else:
         if args.profile is None:
             parser.error("reference needs --profile")

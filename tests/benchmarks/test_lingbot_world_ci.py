@@ -10,6 +10,7 @@ import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import yaml
@@ -19,6 +20,82 @@ from tests.dfx.lingbot_world.runner import server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize("mask", [None, "7,6,5,4,3,2,1,0", ",".join(f"GPU-{index}" for index in range(8))])
+def test_reserved_cuda_allocation_preserves_the_original_device_mapping(mask):
+    from tests.dfx.lingbot_world.prepare import select_cuda_devices
+
+    expected = "0,1,2,3" if mask is None else ",".join(mask.split(",")[:4])
+    assert select_cuda_devices(8, mask, dies=4, reserved_cards=8) == expected
+
+
+@pytest.mark.parametrize(
+    "available,mask,dies,reserved",
+    [(4, None, 4, 8), (16, None, 4, 8), (8, None, 9, 8), (8, "0,1,2,3", 4, 8), (8, "0," * 7 + "0", 4, 8)],
+)
+def test_reserved_cuda_allocation_rejects_incomplete_or_ambiguous_visibility(available, mask, dies, reserved):
+    from tests.dfx.lingbot_world.prepare import select_cuda_devices
+
+    with pytest.raises(RegressionError):
+        select_cuda_devices(available, mask, dies=dies, reserved_cards=reserved)
+
+
+def test_exclusive_allocation_preflight_records_all_reserved_devices(tmp_path, monkeypatch):
+    import torch
+
+    from tests.dfx.lingbot_world.prepare import prepare_cuda_allocation
+
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "7,6,5,4,3,2,1,0")
+    monkeypatch.setattr(torch.accelerator, "device_count", lambda: 8)
+    monkeypatch.setattr(torch.cuda, "get_device_name", lambda index: "H100")
+    monkeypatch.setattr(torch.cuda, "get_device_properties", lambda index: SimpleNamespace(uuid=f"GPU-{index}"))
+    output = tmp_path / "allocation.json"
+    assert (
+        prepare_cuda_allocation({"platform": "cuda", "cards": 4, "dies": 4, "reserved_cards": 8}, output) == "7,6,5,4"
+    )
+    evidence = json.loads(output.read_text())
+    assert evidence["reserved_cards"] == 8 and evidence["visible_dies"] == 4
+    assert [device["uuid"] for device in evidence["devices"]] == [f"GPU-{index}" for index in range(8)]
+
+
+def test_exclusive_hardware_contract_requires_matching_allocation_evidence(tmp_path, monkeypatch):
+    import vllm_omni.platforms
+    from tests.dfx.lingbot_world.runner import hardware_contract
+
+    monkeypatch.setattr(
+        vllm_omni.platforms,
+        "current_omni_platform",
+        SimpleNamespace(
+            device_type="cuda",
+            get_device_count=lambda: 4,
+            get_device_name=lambda index: "H100",
+            get_device_total_memory=lambda index: 80 * 1024**3,
+        ),
+    )
+    settings = {"platform": "cuda", "cards": 4, "dies": 4, "reserved_cards": 8}
+    monkeypatch.delenv("LINGBOT_ALLOCATION_FILE", raising=False)
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "0,1,2,3")
+    with pytest.raises(RegressionError, match="allocation preflight"):
+        hardware_contract(settings)
+    output = tmp_path / "allocation.json"
+    evidence = {
+        "reserved_cards": 8,
+        "visible_dies": 4,
+        "visible_devices": "0,1,2,3",
+        "devices": [{"uuid": f"GPU-{index}"} for index in range(8)],
+    }
+    output.write_text(json.dumps(evidence))
+    monkeypatch.setenv("LINGBOT_ALLOCATION_FILE", str(output))
+    assert hardware_contract(settings)["allocation"] == evidence
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "4,5,6,7")
+    with pytest.raises(RegressionError, match="allocation evidence"):
+        hardware_contract(settings)
+    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "0,1,2,3")
+    evidence["devices"] = [{"uuid": "GPU-duplicate"}] * 8
+    output.write_text(json.dumps(evidence))
+    with pytest.raises(RegressionError, match="allocation evidence"):
+        hardware_contract(settings)
 
 
 def test_reference_server_keeps_backend_import_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -147,6 +224,8 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
     keyed = {step.get("key"): step for step in steps}
     prefix = f"lingbot-{platform}-{level}"
     generate, evaluate = keyed[prefix + "-generation"], keyed[prefix + "-quality"]
+    if platform == "cuda":
+        assert generate["mirror_hardwares"] == "h100_4_exclusive"
     assert prefix + "-generation" in evaluate["depends_on"]
     assert evaluate["mirror_hardwares"] == "h100_1"
     for step in (generate, evaluate):
@@ -157,6 +236,8 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
         assert prefix + "-evaluator-image" in evaluate["depends_on"]
     if level == "weekly":
         assert prefix + "-long" in keyed
+        if platform == "cuda":
+            assert keyed[prefix + "-long"]["mirror_hardwares"] == "h100_4_exclusive"
 
 
 def test_selected_ci_skip_is_a_failed_pytest_job(tmp_path: Path):
@@ -251,6 +332,8 @@ def test_profiles_pin_inputs_and_use_distinct_reference_starts():
         assert len({case["id"] for case in profile["cases"]}) == len(profile["cases"])
         assert all(case["image"] in lock["images"] for case in profile["cases"])
         assert (ROOT / profile["deploy_config"]).is_file()
+        if profile["platform"] == "cuda" and profile["cards"] == 4:
+            assert profile["reserved_cards"] == 8 and profile["dies"] == 4
     assert len(lock["model_files"]) >= 20
 
 
