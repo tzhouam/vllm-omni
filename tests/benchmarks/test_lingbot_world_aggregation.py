@@ -254,3 +254,29 @@ def test_aggregate_launcher_executes_pytest_and_returns_nonzero_for_regression(m
         suites = list(ET.parse(output / "pytest.xml").getroot().iter("testsuite"))
         assert len(suites) == 1 and suites[0].get("tests") == "1" and suites[0].get("skipped") == "0"
         assert suites[0].get("failures") == ("1" if regressed else "0")
+
+
+@pytest.mark.parametrize(("selector", "expected_exit"), [("core_model and cpu", 5), ("full_model and cpu", 0)])
+def test_full_campaign_gate_is_selected_only_by_explicit_full_model_launcher(selector, expected_exit, tmp_path):
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "--collect-only",
+            "-q",
+            "tests/dfx/lingbot_world/test_aggregate.py",
+            "-m",
+            selector,
+            "--lingbot-output",
+            str(tmp_path / "output"),
+        ],
+        cwd=runner.ROOT,
+        env={**os.environ, "BUILDKITE": "true"},
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == expected_exit, result.stdout + result.stderr
+    nodeid = "test_aggregate.py::test_all_npu_measurement_pairs_pass_regression"
+    assert (nodeid in result.stdout) == (expected_exit == 0)

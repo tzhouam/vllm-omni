@@ -88,7 +88,7 @@ elif [[ "$STAGE" == "aggregate" ]]; then
     fi
     python -m pytest -sv tests/dfx/lingbot_world/test_aggregate.py \
         --lingbot-profile="$PROFILE" --lingbot-output="$OUTPUT" --lingbot-generation="$GENERATION" \
-        -m 'core_model and cpu' --run-level core_model --junitxml="$OUTPUT/pytest.xml"
+        -m 'full_model and cpu' --run-level full_model --junitxml="$OUTPUT/pytest.xml"
 elif [[ "$STAGE" == "evaluate" ]]; then
     GENERATION="${4:?generation artifact directory}"
     SOURCE_STEP="${5:?generation Buildkite step key}"
