@@ -517,7 +517,8 @@ def test_session_records_one_chunk_per_block_and_ignores_the_trailer() -> None:
     _run(scenario())
 
 
-def test_short_warmup_does_not_shorten_measured_rollout() -> None:
+@pytest.mark.parametrize("warmup_sessions", [0, 1, 2])
+def test_short_warmup_does_not_shorten_measured_rollout(tmp_path: Path, warmup_sessions: int) -> None:
     async def scenario() -> None:
         server = _serve(_emit_rollout)
         async with server as url:
@@ -531,17 +532,35 @@ def test_short_warmup_does_not_shorten_measured_rollout() -> None:
                         "--num-chunks",
                         "10",
                         "--warmup-sessions",
-                        "1",
+                        str(warmup_sessions),
                         "--warmup-num-chunks",
                         "8",
                         "--ping-interval",
                         "0",
+                        "--output-json",
+                        str(tmp_path / "benchmark.json"),
                     ]
                 )
             )
-        assert [chunks_for_num_frames(payload["num_frames"]) for payload in server.start_payloads] == [8, 10]
+        assert [chunks_for_num_frames(payload["num_frames"]) for payload in server.start_payloads] == [
+            *([8] * warmup_sessions),
+            10,
+        ]
         assert len(result["sessions"][0]["chunks"]) == 10
         assert result["config"]["warmup_num_chunks"] == 8
+        assert len(result["warmups"]) == warmup_sessions
+        for index, warmup in enumerate(result["warmups"]):
+            assert warmup["session_index"] == index
+            assert warmup["measured"] is False
+            assert len(warmup["chunks"]) == 8
+            assert warmup["ttfc_ms"] == warmup["chunks"][0]["arrival_s"] * 1000
+            assert 0 <= warmup["video_start_ms"] <= warmup["ttfc_ms"]
+            assert warmup["wall_seconds"] >= warmup["chunks"][-1]["arrival_s"]
+        assert result["metrics"]["sessions"] == 1
+        assert result["metrics"]["chunks_received"] == 10
+        assert result["metrics"]["total_frames"] == 117
+        assert result["metrics"]["ttfc_ms"] == result["sessions"][0]["metrics"]["ttfc_ms"]
+        assert json.loads((tmp_path / "benchmark.json").read_text())["warmups"] == result["warmups"]
 
     _run(scenario())
 
