@@ -206,6 +206,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                         psnr_drop_db=pixel_budgets["psnr_drop_db"],
                         min_psnr_db=limits["min_psnr_db"],
                         ssim_drop=pixel_budgets["ssim_drop"],
+                        reject_uniform_frames=limits["reject_uniform_frames"],
                     )
                     for row in candidate
                 ],

@@ -104,6 +104,7 @@ def compare_video_pair(
         frame_metrics: list[dict[str, Any]] = []
         ssim_values: list[float] = []
         windows: list[dict[str, Any]] = []
+        uniform_frames: dict[str, list[int]] = {"reference": [], "candidate": []}
         totals = {"absolute_sum": 0.0, "squared_sum": 0.0, "samples": 0, "different_frames": 0}
         window: dict[str, Any] | None = None
         index = 0
@@ -119,6 +120,9 @@ def compare_video_pair(
                 raise VideoQualityError(f"Decoded geometry changed at frame {index}")
             if ref_frame.dtype != np.uint8 or cand_frame.dtype != np.uint8:
                 raise VideoQualityError(f"Expected 8-bit decoded frames at frame {index}")
+            for role, frame in (("reference", ref_frame), ("candidate", cand_frame)):
+                if not np.any(frame != frame[0, 0]):
+                    uniform_frames[role].append(index)
             delta = ref_frame.astype(np.float64) - cand_frame
             if ssim_stride and index % ssim_stride == 0:
                 from skimage.metrics import structural_similarity
@@ -175,6 +179,7 @@ def compare_video_pair(
             "reference": ref,
             "candidate": cand,
             "decoded_frames": index,
+            "uniform_frame_indices": uniform_frames,
             "window_seconds": window_seconds,
             "total": {
                 "frame_count": index,

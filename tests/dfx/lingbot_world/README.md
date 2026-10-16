@@ -241,9 +241,19 @@ gives 0.04. Their maximum PSNR deficit was 2.535 dB, so the existing 3 dB margin
 is retained. Only failed reference-only budgets are adjusted; the CUDA values
 are not copied to NPU. These are approximate rollout-divergence budgets; the separate fixed-input
 VAE numerical gate still requires exact repeats. PSNR is also gated independently in every two-second
-window so a whole-video average cannot hide late corruption. Perfect repeats use
+window. Perfect repeats use
 an explicit minimum PSNR budget rather than arithmetic on infinity. Failed pixel
 checks retain the reference noise floors and every candidate result.
+
+The fixed-photograph CI profiles additionally reject any decoded frame whose
+pixels all have the same RGB value, in both reference and candidate outputs.
+A real 600-chunk reference population admitted an inserted 32-frame black
+window under relative pixel budgets (5.45 dB against a 4.69 dB floor). The
+independent spatial-content check catches that collapse without widening or
+tightening the measured noise budgets. Every decoded frame is checked; reports
+retain `uniform_frame_indices`, and missing coverage fails selected CI tests.
+Standalone comparison diagnostics retain support for intentionally uniform
+videos unless this CI policy is explicitly selected.
 
 These are fixed-input CI video-quality evaluations, not official leaderboard
 totals. WBench navigation, reconstruction and API/VLM dimensions are outside
