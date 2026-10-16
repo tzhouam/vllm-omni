@@ -20,6 +20,8 @@ _MEMORY_FILES = (
     "memory.swap.current",
     "io.pressure",
     "cpu.max",
+    "cpu.stat",
+    "cpu.pressure",
     "memory.limit_in_bytes",
     "memory.usage_in_bytes",
     "memory.max_usage_in_bytes",
