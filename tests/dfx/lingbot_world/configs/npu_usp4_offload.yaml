@@ -11,6 +11,9 @@ stages:
     devices: "0,1,2,3"
     max_num_seqs: 1
     enforce_eager: true
+    # Read one safetensors shard at a time on the shared checkpoint filesystem.
+    # Four ranks otherwise eagerly load four whole shards each concurrently.
+    enable_multithread_weight_load: false
     # 64GB A2 exposes ~60.96GiB: keep the DiT resident and release the text
     # encoder before denoising to leave activation space after KV allocation.
     diffusion_offload_config:
