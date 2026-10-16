@@ -220,6 +220,10 @@ def strict_json(value):
 
 try:
     if manifest["suite"] == "wbench":
+        if "hpsv3_quality" in manifest["dimensions"]:
+            # RAFT adds core/ (which contains datasets.py) to sys.path.
+            # Resolve the Hugging Face package before that native side effect.
+            import datasets
         from src.metrics.video_quality.evaluator import VideoQualityEvaluator
         evaluator = VideoQualityEvaluator(device="cuda", metrics=manifest["dimensions"])
     else:
@@ -248,6 +252,9 @@ try:
                     raise ValueError("WBench returned results for a different video")
                 if set(raw["metrics"]) != set(manifest["dimensions"]):
                     raise ValueError("Unexpected dimension coverage in WBench output")
+                failures = {dim: row["error"] for dim, row in raw["metrics"].items() if "error" in row}
+                if failures:
+                    raise ValueError("WBench metric failures: " + strict_json(failures))
                 scores = {dim: raw["metrics"][dim]["score"] for dim in manifest["dimensions"]}
             else:
                 stage = root / ("video_" + str(index))
