@@ -5,15 +5,21 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import shutil
 import subprocess
 import urllib.request
 from pathlib import Path
 
-from benchmarks.lingbot_world.regression import RegressionError, read_json, sha256, write_json
+from benchmarks.lingbot_world.regression import RegressionError, read_json, sha256, verify_environment, write_json
 
 ROOT = Path(__file__).resolve().parents[3]
+
+
+def evaluator_cache_key(root: Path = ROOT) -> str:
+    files = (root / "tests/dfx/lingbot_world/evaluators.lock.json", root / "requirements/lingbot-quality.txt")
+    return hashlib.sha256(b"\0".join(path.read_bytes() for path in files)).hexdigest()[:16]
 
 
 def checkout(path: Path, url: str, revision: str, *, submodules: bool = False) -> None:
@@ -33,6 +39,12 @@ def checkout(path: Path, url: str, revision: str, *, submodules: bool = False) -
 
 
 def _prepare_evaluators(root: Path) -> Path:
+    key = evaluator_cache_key(ROOT)
+    ready = root / "environment-ready"
+    if ready.exists() and ready.read_text().strip() != key:
+        raise RegressionError(
+            "Evaluator locks changed; use a fresh evaluator root instead of mutating a live environment"
+        )
     lock = read_json(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json")
     for name, repository in lock["repositories"].items():
         checkout(root / name, repository["url"], repository["revision"], submodules=name in {"wbench", "vbench"})
@@ -60,24 +72,28 @@ def _prepare_evaluators(root: Path) -> Path:
         if sha256(destination) != digest:
             raise RegressionError(f"Evaluator cache checksum mismatch: {relative}")
     venv = root / "venv"
-    if not (venv / "bin/python").exists():
-        subprocess.run(["uv", "venv", "--python", "3.12", str(venv)], check=True)
-    subprocess.run(
-        [
-            "uv",
-            "pip",
-            "sync",
-            "--python",
-            str(venv / "bin/python"),
-            "--extra-index-url",
-            "https://download.pytorch.org/whl/cu124",
-            "--index-strategy",
-            "unsafe-best-match",
-            str(ROOT / "requirements/lingbot-quality.txt"),
-        ],
-        check=True,
-        timeout=1800,
-    )
+    if not ready.exists():
+        # Only incomplete provisioning can be repaired. Once returned to a
+        # scorer, this interpreter is immutable even when jobs share a cache.
+        if not (venv / "bin/python").exists():
+            subprocess.run(["uv", "venv", "--python", "3.12", str(venv)], check=True)
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "sync",
+                "--python",
+                str(venv / "bin/python"),
+                "--extra-index-url",
+                "https://download.pytorch.org/whl/cu124",
+                "--index-strategy",
+                "unsafe-best-match",
+                str(ROOT / "requirements/lingbot-quality.txt"),
+            ],
+            check=True,
+            timeout=1800,
+        )
+    verify_environment(venv / "bin/python", ROOT / "requirements/lingbot-quality.txt")
     # Import the actual scoring stack before taking a GPU evaluator slot.
     # HPSv3 imports training helpers even during inference, so its dependencies
     # are not discovered by importing WBench's lazy evaluator alone.
@@ -98,6 +114,7 @@ def _prepare_evaluators(root: Path) -> Path:
         check=True,
         timeout=180,
     )
+    ready.write_text(key + "\n")
     return venv / "bin/python"
 
 
@@ -134,6 +151,9 @@ def main():
                     ["hf", "download", lock["model_id"], "--revision", lock["model_revision"], "--quiet"],
                     text=True,
                     timeout=7200,
+                    # NPU CI defaults to offline inference. This explicit,
+                    # pinned provisioning subprocess needs Hub access.
+                    env={**os.environ, "HF_HUB_OFFLINE": "0"},
                 )
                 .strip()
                 .splitlines()[-1]

@@ -13,6 +13,7 @@ import pytest
 from benchmarks.lingbot_world.regression import (
     RegressionError,
     check_quality,
+    check_video_precision,
     read_json,
     sha256,
     verify_environment,
@@ -118,11 +119,21 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             # Pixel divergence is calibrated against independent same-code
             # repeats. It is distinct from the fixed-input VAE precision gate.
             reference = [
-                compare_video_pair(directory("reference", 0), directory("reference", repeat), ssim_stride=24)
+                compare_video_pair(
+                    directory("reference", 0),
+                    directory("reference", repeat),
+                    window_seconds=limits["pixel_window_seconds"],
+                    ssim_stride=24,
+                )
                 for repeat in (1, 2)
             ]
             candidate = [
-                compare_video_pair(directory("reference", 0), directory("candidate", repeat), ssim_stride=24)
+                compare_video_pair(
+                    directory("reference", 0),
+                    directory("candidate", repeat),
+                    window_seconds=limits["pixel_window_seconds"],
+                    ssim_stride=24,
+                )
                 for repeat in range(3)
             ]
             for row in [*reference, *candidate]:
@@ -135,19 +146,23 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                     settings["mux_fps"],
                 ):
                     raise RegressionError("Decoded video does not match the pinned workload")
-            min_ssim = min(row["ssim"]["mean"] for row in reference) - limits["ssim_drop"]
-            finite_psnr = [row["total"]["psnr_db"] for row in reference if not row["total"]["psnr_is_infinite"]]
-            for row in candidate:
-                if row["ssim"]["mean"] < min_ssim:
-                    raise RegressionError(f"SSIM regression in {case['id']}")
-                if not row["total"]["psnr_is_infinite"]:
-                    minimum = min(finite_psnr) - limits["psnr_drop_db"] if finite_psnr else limits["min_psnr_db"]
-                    if row["total"]["psnr_db"] < minimum:
-                        raise RegressionError(f"PSNR regression in {case['id']}")
-            report["pixels"][case["id"]] = {"reference_repeat": reference, "candidate": candidate}
+            report["pixels"][case["id"]] = {
+                "reference_repeat": reference,
+                "candidate": candidate,
+                "checks": [
+                    check_video_precision(
+                        reference,
+                        row,
+                        psnr_drop_db=limits["psnr_drop_db"],
+                        min_psnr_db=limits["min_psnr_db"],
+                        ssim_drop=limits["ssim_drop"],
+                    )
+                    for row in candidate
+                ],
+            }
         report["passed"] = all(
             check["passed"] for suite in report["suites"].values() for checks in suite.values() for check in checks
-        )
+        ) and all(check["passed"] for case in report["pixels"].values() for check in case["checks"])
     finally:
         write_json(output / "quality.json", report)
     assert report["passed"], f"Quality regression; see {output}/quality.json"

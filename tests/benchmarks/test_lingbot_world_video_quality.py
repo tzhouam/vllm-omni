@@ -13,6 +13,7 @@ from typing import Any
 import pytest
 
 from benchmarks.lingbot_world import video_quality as quality
+from benchmarks.lingbot_world.regression import RegressionError, check_video_precision
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 
@@ -44,6 +45,35 @@ def test_video_windows_reveal_late_drift(tmp_path: Path) -> None:
     assert result["total"]["different_frames"] == 8
     assert result["baseline_repeat_required"] is True
     json.dumps(result, allow_nan=False)
+
+
+def test_late_corruption_fails_even_when_global_pixel_scores_pass(tmp_path: Path) -> None:
+    reference, candidate = tmp_path / "reference.avi", tmp_path / "candidate.avi"
+    _write_video(reference, [40] * 512, fps=16)
+    _write_video(candidate, [40] * 504 + [60] * 8, fps=16)
+    repeats = [quality.compare_video_pair(reference, reference, window_seconds=2, ssim_stride=16)] * 2
+    measured = quality.compare_video_pair(reference, candidate, window_seconds=2, ssim_stride=16)
+    assert measured["total"]["psnr_db"] > 40
+    assert measured["ssim"]["mean"] >= 0.99
+    result = check_video_precision(repeats, measured, min_psnr_db=40, psnr_drop_db=1, ssim_drop=0.01)
+    assert not result["passed"]
+    assert result["psnr"][0]["passed"]
+    assert "window 15" in result["violations"][0]
+
+
+def test_pixel_gate_rejects_incomplete_window_coverage(tmp_path: Path) -> None:
+    reference = tmp_path / "reference.avi"
+    _write_video(reference, [40] * 16)
+    measured = quality.compare_video_pair(reference, reference, ssim_stride=4)
+    assert check_video_precision([measured] * 2, measured, min_psnr_db=40, psnr_drop_db=1, ssim_drop=0.01)["passed"]
+    with pytest.raises(RegressionError, match="same frames"):
+        check_video_precision(
+            [measured, {**measured, "windows": []}],
+            measured,
+            min_psnr_db=40,
+            psnr_drop_db=1,
+            ssim_drop=0.01,
+        )
 
 
 @pytest.mark.parametrize("change", ["length", "fps", "geometry"])

@@ -21,6 +21,8 @@ pytest -q --confcutdir=tests/benchmarks \
 ```
 
 The launcher downloads the pinned checkpoint if `LINGBOT_MODEL_PATH` is unset.
+Only that explicit provisioning subprocess enables Hub access; inference keeps
+the runner's offline setting.
 For an existing local or mirrored checkpoint, export that path first. All model
 files and images must match `assets.lock.json`; directory names do not matter.
 
@@ -31,7 +33,7 @@ bash .buildkite/common/scripts/run-lingbot-ci.sh generate \
   tests/dfx/lingbot_world/configs/cuda_nightly.json lingbot-artifacts/cuda-nightly
 ```
 
-Source the CANN environment and substitute `npu_nightly.json` for Ascend.
+Source the CANN and ATB environments and substitute `npu_nightly.json` for Ascend.
 The script prepares a clean, separately checked-out reference revision and
 runs pytest with the correct platform/card selection and `--run-level full_model`.
 Direct equivalent after preparing `/tmp/lingbot-reference`:
@@ -81,6 +83,9 @@ in `requirements/lingbot-quality.txt`. `evaluators.lock.json` pins code revision
 submodules and asset checksums. Provisioning validates downloads before scoring.
 An optional `LINGBOT_EVALUATOR_CACHE` supplies files at the lock's relative
 paths; cached files still undergo checksum verification.
+The Buildkite cache key includes both the evaluator/weight lock and the resolved
+dependency lock. A completed interpreter is never resynchronized underneath an
+active scorer. If either lock changes, use a fresh custom evaluator root.
 
 ```bash
 export LINGBOT_EVALUATOR_ROOT=/path/to/evaluator-cache
@@ -100,12 +105,14 @@ profile and artifact checksums must match. Seven VBench custom-input dimensions
 and six WBench video-quality dimensions are checked per case and candidate
 repeat. Dynamic degree uses a two-sided activity bound. Excessive reference
 spread fails calibration; scores are never averaged across dimensions/scenes.
-Native units differ: VBench imaging is 0–100, WBench imaging is normalized.
+All selected scores from these pinned evaluator revisions use a 0–1 scale.
 
 Video diagnostics validate full frame/geometry/FPS coverage, compute PSNR on
 every frame and SSIM every 24 frames, and compare candidate divergence against
-same-code reference repeats. Perfect repeats use an explicit minimum PSNR
-budget rather than arithmetic on infinity.
+same-code reference repeats. PSNR is also gated independently in every two-second
+window so a whole-video average cannot hide late corruption. Perfect repeats use
+an explicit minimum PSNR budget rather than arithmetic on infinity. Failed pixel
+checks retain the reference noise floors and every candidate result.
 
 These are fixed-input CI video-quality evaluations, not official leaderboard
 totals. WBench navigation, reconstruction and API/VLM dimensions are outside
