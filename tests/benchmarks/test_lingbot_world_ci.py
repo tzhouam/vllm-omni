@@ -218,13 +218,14 @@ def test_every_configured_quality_dimension_rejects_a_collapse():
             assert not result["passed"], (suite, dimension)
 
 
-def test_launcher_setup_failure_retains_nonzero_exit_and_junit(tmp_path: Path):
+@pytest.mark.parametrize("stage", ["generate", "unit"])
+def test_launcher_setup_failure_retains_nonzero_exit_and_junit(tmp_path: Path, stage):
     output = tmp_path / "artifacts"
     result = subprocess.run(
         [
             "bash",
             str(ROOT / ".buildkite/common/scripts/run-lingbot-ci.sh"),
-            "generate",
+            stage,
             str(tmp_path / "missing-profile.json"),
             str(output),
         ],

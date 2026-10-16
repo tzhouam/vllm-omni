@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 set -euo pipefail
 
-STAGE="${1:?smoke, generate, or evaluate}"
+STAGE="${1:?unit, smoke, generate, or evaluate}"
 PROFILE="${2:?profile JSON}"
 OUTPUT="${3:?artifact directory}"
 mkdir -p "$OUTPUT"
@@ -31,7 +31,32 @@ PY
 }
 trap finish EXIT
 
-if [[ "$STAGE" == "evaluate" ]]; then
+if [[ "$STAGE" == "unit" ]]; then
+    export CUDA_VISIBLE_DEVICES=""
+    cp "$PROFILE" "$OUTPUT/policy.json"
+    python - "$OUTPUT" <<'UNIT_ENV'
+import importlib.metadata
+import platform
+import sys
+from pathlib import Path
+from benchmarks.lingbot_world.regression import write_json
+from tests.dfx.lingbot_world.runner import ROOT, git_revision
+write_json(Path(sys.argv[1]) / "environment.json", {
+    "python": sys.version,
+    "machine": platform.machine(),
+    "source_revision": git_revision(ROOT),
+    "accelerator_visibility": "",
+    "packages": {name: importlib.metadata.version(name)
+                 for name in ("pytest", "numpy", "torch", "vllm", "diffusers", "transformers")},
+})
+UNIT_ENV
+    python -m pytest -sv -p tests.dfx.lingbot_world.conftest \
+        tests/benchmarks/test_lingbot_world_*.py \
+        tests/diffusion/models/lingbot_world/test_offload_lingbot_world.py \
+        'tests/diffusion/offloader/test_backend_plan_contract.py::test_text_encoder_only_offload_keeps_early_dit_projections_resident[cpu]' \
+        --lingbot-output="$OUTPUT" -m 'core_model and cpu' --run-level core_model \
+        --junitxml="$OUTPUT/pytest.xml"
+elif [[ "$STAGE" == "evaluate" ]]; then
     GENERATION="${4:?generation artifact directory}"
     SOURCE_STEP="${5:?generation Buildkite step key}"
     if [[ "${BUILDKITE:-}" == "true" ]]; then
