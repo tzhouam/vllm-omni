@@ -24,6 +24,7 @@ from benchmarks.lingbot_world.regression import (
     sha256,
     verify_environment,
     verify_reference_calibration_contract,
+    write_json,
 )
 from benchmarks.lingbot_world.workload import ChunkRecord, compute_metrics
 
@@ -350,8 +351,55 @@ def test_cuda_quality_ceilings_reproduce_reference_only_calibration_and_keep_npu
                 ranges.append(max(values) - min(values))
             rounded = math.ceil(max(ranges) * (1 + calibration["margin_fraction"]) / calibration["round_up_step"])
             expected = max(evidence["previous_ceiling"], rounded * calibration["round_up_step"])
+            if name == "wbench" and dimension == "hpsv3_quality":
+                expected = max(expected, record["target_h100_hps_reference_calibration"]["selected_ceiling"])
             assert limits["max_reference_spreads"]["cuda"][name][dimension] == pytest.approx(expected)
             assert limits["max_reference_spreads"]["npu"][name][dimension] == evidence["previous_ceiling"]
+
+
+def test_h100_hps_reference_ceiling_uses_only_reference_scores_and_preserves_candidate_budget(tmp_path):
+    suite = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(suite / "calibration/cuda_nightly_reference.json")
+    evidence = record["target_h100_hps_reference_calibration"]
+    limits = read_json(suite / "quality.json")
+    assert evidence["evaluator_hardware"]["devices"][0]["name"] == "NVIDIA H100 80GB HBM3"
+    assert evidence["reference_revision"] == record["reference_revision"]
+    assert evidence["evaluator_lock_sha256"] == record["evaluator_lock_sha256"]
+    profile = tmp_path / "profile.json"
+    write_json(profile, record["workload"])
+    assert sha256(profile) == evidence["profile_sha256"]
+    ranges = []
+    tolerance = limits["candidate_tolerances"]["cuda"]["wbench"]["hpsv3_quality"]
+    assert tolerance == evidence["unchanged_candidate_tolerance"] == 0.02
+    for case, scores in evidence["reference_scores"].items():
+        values = scores["scores"]
+        assert len(values) == len(scores["video_sha256"]) == evidence["independent_reference_starts"] == 3
+        spread = max(values) - min(values)
+        assert spread == evidence["reference_ranges"][case]
+        ranges.append(spread)
+        reference = [{"hpsv3_quality": value} for value in values]
+        options = {
+            "tolerances": {"hpsv3_quality": tolerance},
+            "max_reference_spreads": {"hpsv3_quality": evidence["selected_ceiling"]},
+        }
+        minimum = min(values)
+        assert check_quality(reference, {"hpsv3_quality": minimum}, **options)["passed"]
+        assert not check_quality(reference, {"hpsv3_quality": minimum - tolerance - 0.001}, **options)["passed"]
+        if case == "boardwalk-42":
+            with pytest.raises(RegressionError, match="Unstable reference"):
+                check_quality(
+                    reference,
+                    {"hpsv3_quality": minimum},
+                    tolerances=options["tolerances"],
+                    max_reference_spreads={"hpsv3_quality": evidence["previous_ceiling"]},
+                )
+    selected = (
+        math.ceil(max(ranges) * (1 + evidence["margin_fraction"]) / evidence["round_up_step"])
+        * evidence["round_up_step"]
+    )
+    assert selected == pytest.approx(evidence["selected_ceiling"])
+    assert limits["max_reference_spreads"]["cuda"]["wbench"]["hpsv3_quality"] == evidence["selected_ceiling"]
+    assert limits["max_reference_spreads"]["npu"]["wbench"]["hpsv3_quality"] == evidence["previous_ceiling"]
 
 
 def test_aesthetic_budget_comes_from_reference_holdouts_and_still_rejects_degradation():

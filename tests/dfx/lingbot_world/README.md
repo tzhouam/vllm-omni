@@ -205,8 +205,16 @@ reference spread. Preliminary CUDA continuous ceilings use the maximum
 per-scene range across six frozen-reference starts, plus 25% reserve, rounded
 up to 0.005; an existing larger ceiling is retained. The calibration record
 contains the reference values and the exact calculation. VBench cohorts were
-scored on target H100 evaluators; WBench cohorts were scored independently on
-L20X and still need target-H100 confirmation. Every weekly/long profile also
+scored on target H100 evaluators; the historical WBench cohorts were scored
+independently on L20X. Build 17443 also executes all seven VBench and six WBench
+dimensions on H100. Its three frozen-reference boardwalk HPSv3 scores span
+0.064710581354398, exceeding the initial 0.05 reference ceiling. Applying the
+same 25% reserve and 0.005 rounding rule to these target-H100 references yields
+0.085. The HPSv3 candidate tolerance stays 0.02; candidate scores do not set
+either value. The calibration record retains the nine reference HPSv3 scores,
+video/score hashes and evaluator provenance. The original failed job remains
+failed; a fresh independent target-H100 campaign must validate this calibration.
+Every weekly/long profile also
 needs held-out target validation. NPU retains its existing separate ceilings
 until its own reference campaign completes. Reference ceilings must be verified on the target evaluator;
 local diagnostic scores alone do not establish hardware acceptance.
@@ -290,6 +298,9 @@ remain explicit because cgroup namespace layouts differ. Unavailable interfaces
 remain absent/null; read errors are retained without replacing the original
 test failure.
 These read-only snapshots run before serving or after failure, outside timing.
+An unstable reference remains a failed calibration in the complete generation
+manifest. Other cases, all seven VAE checks and video checksums are still
+retained, so independent scoring can inspect the failed population.
 Quality steps also run after a failed generation gate: when all videos and
 their checksums are retained, both native suites and pixel checks still record
 their evidence. `quality.json` separates `generation_passed` and

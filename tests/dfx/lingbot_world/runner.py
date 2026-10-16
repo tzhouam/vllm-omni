@@ -443,15 +443,22 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
     }
     for case in settings["cases"]:
         case_id = case["id"]
-        baseline = calibrate(
-            [row[case_id] for row in records["reference"]],
-            contract=contract,
-            reference_revision=settings["reference_revision"],
-            max_cv=settings["max_reference_cv"],
-            regression_fraction=settings["performance_regression_fraction"],
-            transient_noise_sigma=settings["transient_noise_sigma"],
-            startup_stall_jitter_floor_ms=startup_stall_floor,
-        )
+        try:
+            baseline = calibrate(
+                [row[case_id] for row in records["reference"]],
+                contract=contract,
+                reference_revision=settings["reference_revision"],
+                max_cv=settings["max_reference_cv"],
+                regression_fraction=settings["performance_regression_fraction"],
+                transient_noise_sigma=settings["transient_noise_sigma"],
+                startup_stall_jitter_floor_ms=startup_stall_floor,
+            )
+        except RegressionError as error:
+            # Invalid references still fail acceptance. Preserve the remaining
+            # cases, precision and hashes so independent scoring can diagnose it.
+            report["cases"][case_id] = {"baseline": None, "checks": [], "calibration_error": str(error)}
+            report["passed"] = False
+            continue
         checks = [check_performance(row[case_id], baseline, contract=contract) for row in records["candidate"]]
         report["cases"][case_id] = {"baseline": baseline, "checks": checks}
         report["passed"] &= all(check["passed"] for check in checks)

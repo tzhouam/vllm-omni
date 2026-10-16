@@ -190,6 +190,40 @@ def test_complete_but_regressed_population_fails_aggregate_gate(measurement_camp
         assert any(p["status"] != "passed" for p in report["precision"])
 
 
+@pytest.mark.parametrize("precision_failure", [False, True])
+def test_unstable_reference_retains_complete_failed_manifest_and_precision(measurement_campaign, precision_failure):
+    settings = measurement_campaign
+    root = settings["generation"] / "pair-2"
+    path = root / "reference/2/boardwalk-42/benchmark.json"
+    raw = json.loads(path.read_text())
+    for session in raw["sessions"]:
+        session["metrics"]["wall_seconds"] *= 2
+        for chunk in session["chunks"]:
+            chunk["arrival_s"] *= 2
+            chunk["inter_arrival_ms"] *= 2
+    write_json(path, raw)
+    manifest_path = root / "measurement.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["artifacts"][str(path.relative_to(root))] = sha256(path)
+    if precision_failure:
+        sample = root / "candidate/2/precision.npz"
+        save_tensor_sample(sample, inputs={"latent": np.ones(2)}, outputs={"decoded": np.full(2, 2)})
+        manifest["artifacts"][str(sample.relative_to(root))] = sha256(sample)
+    write_json(manifest_path, manifest)
+
+    report = runner.aggregate_measurements(settings)
+    assert report["passed"] is False
+    assert "Unstable reference" in report["cases"]["boardwalk-42"]["calibration_error"]
+    assert report["cases"]["boardwalk-42"]["baseline"] is None
+    assert len(report["precision"]) == 7
+    assert any(row["status"] != "passed" for row in report["precision"]) is precision_failure
+    for role in ("reference", "candidate"):
+        for repeat in range(3):
+            relative = f"{role}/{repeat}/boardwalk-42/rollout.mp4"
+            assert report["artifacts"][relative] == sha256(settings["output"] / relative)
+    assert json.loads((settings["output"] / "generation.json").read_text()) == report
+
+
 def test_final_gate_rejects_missing_candidate_start(measurement_campaign):
     settings = measurement_campaign
     records: dict[str, list[dict[str, dict[str, float]]]] = {
