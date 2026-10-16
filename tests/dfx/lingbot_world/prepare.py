@@ -131,7 +131,7 @@ def main():
             # model-loading stack, not another Python Hub API wrapper.
             model = (
                 subprocess.check_output(
-                    ["hf", "download", lock["model_id"], "--revision", lock["model_revision"]],
+                    ["hf", "download", lock["model_id"], "--revision", lock["model_revision"], "--quiet"],
                     text=True,
                     timeout=7200,
                 )
