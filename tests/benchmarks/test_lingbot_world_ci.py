@@ -28,6 +28,113 @@ class _DeviceProperties(NamedTuple):
     uuid: str
 
 
+class _MountInfo(NamedTuple):
+    mountpoint: str
+    fstype: str
+    opts: str = ""
+
+
+@pytest.mark.parametrize(
+    "membership,relative,limit_name,peak_name",
+    [
+        ("0::/pod", "pod", "memory.max", "memory.peak"),
+        ("5:memory:/pod", "memory/pod", "memory.limit_in_bytes", "memory.max_usage_in_bytes"),
+    ],
+)
+def test_resource_snapshot_retains_cgroup_limits_and_peaks(
+    tmp_path, monkeypatch, membership, relative, limit_name, peak_name
+):
+    from tests.dfx.lingbot_world import resources
+
+    proc = tmp_path / "cgroup-membership"
+    proc.write_text(membership + "\n")
+    root = tmp_path / "cgroups"
+    group = root / relative
+    group.mkdir(parents=True)
+    (group / limit_name).write_text("8589934592\n")
+    (group / peak_name).write_text("7516192768\n")
+    (group / "memory.pressure").write_text("some avg10=12.00 total=1234\n")
+    monkeypatch.setattr(resources, "_PROC_CGROUP", proc)
+    monkeypatch.setattr(resources, "_CGROUP_ROOT", root)
+
+    report = resources.collect_resources()
+    assert report["cgroup_membership"] == membership
+    kernel = report["kernel_memory"]
+    assert isinstance(kernel, dict)
+    assert kernel[str(group / limit_name)] == "8589934592"
+    assert kernel[str(group / peak_name)] == "7516192768"
+    assert "avg10=12.00" in kernel[str(group / "memory.pressure")]
+
+
+def test_resource_snapshot_resolves_weight_symlinks_and_keeps_only_mount_metadata(tmp_path, monkeypatch):
+    from tests.dfx.lingbot_world import resources
+
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    weight = cache / "blob"
+    weight.write_bytes(b"checkpoint")
+    link = tmp_path / "weight.safetensors"
+    link.symlink_to(weight)
+    monkeypatch.setattr(resources, "_PROC_CGROUP", tmp_path / "unavailable-proc")
+    monkeypatch.setattr(resources, "_CGROUP_ROOT", tmp_path / "unavailable-cgroup")
+    monkeypatch.setattr(
+        resources.psutil,
+        "disk_partitions",
+        lambda all: [
+            _MountInfo(str(tmp_path), "ext4"),
+            _MountInfo(str(cache), "nfs4", "test-option-must-not-be-retained"),
+        ],
+    )
+    report = resources.collect_resources(link)
+    assert report["model_storage"] == {"weight_path": str(weight), "filesystem": "nfs4", "mountpoint": str(cache)}
+    assert "test-option-must-not-be-retained" not in json.dumps(report)
+
+
+def test_unavailable_resource_probes_retain_errors_without_raising(tmp_path, monkeypatch):
+    from tests.dfx.lingbot_world import resources
+
+    def unavailable():
+        raise PermissionError("memory probe unavailable")
+
+    monkeypatch.setattr(resources, "_PROC_CGROUP", tmp_path / "unavailable-proc")
+    monkeypatch.setattr(resources, "_CGROUP_ROOT", tmp_path / "unavailable-cgroup")
+    monkeypatch.setattr(resources.psutil, "virtual_memory", unavailable)
+    report = resources.collect_resources()
+    assert report["host_memory"] is None and report["kernel_memory"] == {}
+    assert report["model_storage"] is None
+    errors = report["errors"]
+    assert isinstance(errors, dict)
+    assert "PermissionError" in errors["host_memory"]
+
+
+def test_failed_pytest_retains_original_error_and_resource_evidence(tmp_path):
+    test = tmp_path / "test_model_failure.py"
+    test.write_text('def test_model_failure():\n    raise RuntimeError("original model startup failure")\n')
+    output = tmp_path / "failure-artifacts"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "tests.dfx.lingbot_world.conftest",
+            str(test),
+            f"--lingbot-output={output}",
+        ],
+        cwd=ROOT,
+        env={**os.environ, "CUDA_VISIBLE_DEVICES": "", "BUILDKITE": "true", "PYTHONPATH": str(ROOT)},
+        capture_output=True,
+        text=True,
+        timeout=90,
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
+    failure = json.loads((output / "test_model_failure-call-failure.json").read_text())
+    assert failure["passed"] is False and "original model startup failure" in failure["error"]
+    assert "kernel_memory" in failure["resources"]
+    assert "excluded from performance measurements" in failure["resources"]["scope"]
+
+
 @pytest.mark.parametrize("reverse", [False, True])
 @pytest.mark.parametrize(
     "selection,expected_names",

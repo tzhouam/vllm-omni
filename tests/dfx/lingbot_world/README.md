@@ -280,6 +280,14 @@ scores and logs are retained through `artifact_paths`, including failed jobs.
 A failed placeholder JUnit report is written before provisioning so a forced
 SIGKILL still leaves failure evidence. Pytest replaces it on completion; normal
 failure and SIGTERM also retain structured launcher errors.
+Provisioning records host available/total RAM, cgroup membership, raw memory
+limits/peaks/pressure counters and the resolved checkpoint filesystem in
+`model.json`. Pytest failure JSON captures fresh kernel memory/pressure evidence
+after cleanup; peak counters can still expose load-time pressure. Kernel paths
+remain explicit because cgroup namespace layouts differ. Unavailable interfaces
+remain absent/null; read errors are retained without replacing the original
+test failure.
+These read-only snapshots run before serving or after failure, outside timing.
 
 To reproduce one weekly group, set `LINGBOT_CASE_SHARD=0/3` for CUDA or `0/6`
 for NPU when invoking both `generate` and `evaluate`. To reproduce NPU long
