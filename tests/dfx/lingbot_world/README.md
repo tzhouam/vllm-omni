@@ -231,3 +231,8 @@ topology or precision changes require reviewed lock/profile updates and fresh
 measurements. Include matching-head Buildkite URLs in the PR. Never drop failed
 observations, automatically widen budgets, or treat CPU tests and older hardware
 experiments as acceptance of the new commit.
+
+The pinned `startup_timeout_s` bounds both the outer server-readiness wait and
+the server's `--init-timeout` / `--stage-init-timeout`. This avoids silently using
+a shorter internal default while cold checkpoints load. Initialization timeouts
+still fail pytest and retain their evidence; measurement thresholds are separate.

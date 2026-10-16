@@ -42,6 +42,20 @@ def server_environment(source: Path) -> dict[str, str]:
     return {"PYTHONPATH": os.pathsep.join(paths), "VLLM_WORKER_MULTIPROC_METHOD": "spawn"}
 
 
+def server_arguments(settings: dict[str, Any]) -> list[str]:
+    # Keep the subprocess's inner initialization deadlines aligned with the
+    # explicit profile budget used by the outer readiness wait.
+    timeout = str(settings["startup_timeout_s"])
+    return [
+        "--deploy-config",
+        str(ROOT / settings["deploy_config"]),
+        "--init-timeout",
+        timeout,
+        "--stage-init-timeout",
+        timeout,
+    ]
+
+
 def git_revision(root: Path) -> str:
     if not (root / ".git").exists() and root == ROOT:
         # CI Docker contexts exclude .git; the image tag is the Buildkite SHA.
@@ -285,7 +299,7 @@ def generate(settings: dict[str, Any], *, measurement_repeat: int | None = None)
             _capture(source, model, arm / "precision.npz", settings)
             with OmniServer(
                 str(model),
-                ["--deploy-config", str(deployment)],
+                server_arguments(settings),
                 source_root=str(source),
                 env_dict=server_environment(source),
                 startup_timeout=settings["startup_timeout_s"],
