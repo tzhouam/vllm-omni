@@ -20,13 +20,16 @@ pytest -q --confcutdir=tests/benchmarks \
   tests/benchmarks/test_lingbot_world_ci.py
 ```
 
-The launcher downloads the pinned checkpoint if `LINGBOT_MODEL_PATH` is unset.
+The `unit` stage captures CPU test artifacts without loading a checkpoint.
+The model stages download the pinned checkpoint if `LINGBOT_MODEL_PATH` is unset.
 Only that explicit provisioning subprocess enables Hub access; inference keeps
 the runner's offline setting.
 For an existing local or mirrored checkpoint, export that path first. All model
 files and images must match `assets.lock.json`; directory names do not matter.
 
 ```bash
+BUILDKITE=true bash .buildkite/common/scripts/run-lingbot-ci.sh unit \
+  tests/dfx/lingbot_world/quality.json lingbot-artifacts/unit
 bash .buildkite/common/scripts/run-lingbot-ci.sh smoke \
   tests/dfx/lingbot_world/configs/cuda_smoke.json lingbot-artifacts/cuda-smoke
 bash .buildkite/common/scripts/run-lingbot-ci.sh generate \
@@ -149,7 +152,10 @@ this video-quality suite.
 
 ## Buildkite and baseline maintenance
 
-- READY: CPU gates and a one-GPU real-checkpoint stream/cancellation smoke.
+- READY: a dedicated CPU unit gate and a one-GPU real-checkpoint
+  stream/cancellation smoke. The unit job uses the standard L4 CI image with
+  accelerators masked, and retains JUnit, logs, the quality policy and package
+  versions. Selected skips fail through the same pytest hook as model jobs.
 - NIGHTLY: independent CUDA/NPU generation followed by one-GPU evaluation.
   The NPU build provisions its matching CUDA evaluator image in the same build.
 - WEEKLY/manual (`weekly-test`): three scenes, three camera patterns and two

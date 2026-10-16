@@ -294,9 +294,18 @@ steps:
             "
         mirror_hardwares: h100_1
 
-  - group: "LingBot World PR smoke"
+  - group: "LingBot World PR gates"
     depends_on: upload-ready-pipeline
     steps:
+      - label: "LingBot World · CPU regression gates"
+        key: ready-lingbot-world-unit
+        source_file_dependencies: lingbot_world_regression
+        timeout_in_minutes: 20
+        mirror_hardwares: l4_1
+        artifact_paths:
+          - "lingbot-artifacts/unit/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh unit tests/dfx/lingbot_world/quality.json lingbot-artifacts/unit
       - label: "LingBot World · real-checkpoint stream and cancellation"
         key: ready-lingbot-world-smoke
         source_file_dependencies: lingbot_world_regression
