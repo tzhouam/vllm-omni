@@ -9,6 +9,7 @@ leaderboard total. Same-code repeat rollouts are needed to interpret differences
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -219,6 +220,16 @@ def strict_json(value):
     return json.dumps(value, indent=2, allow_nan=False, default=native_scalar)
 
 try:
+    background_stats = None
+    if manifest["suite"] == "vbench" and "background_consistency" in manifest["dimensions"]:
+        sys.path.insert(0, manifest["adapter_root"])
+        import hashlib
+        import benchmarks.lingbot_world.encoder_inference as encoder_adapter
+        from benchmarks.lingbot_world.encoder_inference import install_vbench_background_inference
+        adapter_sha256 = hashlib.sha256(pathlib.Path(encoder_adapter.__file__).read_bytes()).hexdigest()
+        if adapter_sha256 != manifest["protocol"]["background_clip_inference"]["adapter_sha256"]:
+            raise ValueError("Background CLIP inference adapter differs from the recorded source")
+        background_stats = install_vbench_background_inference()
     if manifest["suite"] == "wbench":
         if "hpsv3_quality" in manifest["dimensions"]:
             # RAFT adds core/ (which contains datasets.py) to sys.path.
@@ -234,6 +245,9 @@ try:
             from vbench import VBench as Evaluator
     for index, (label, video) in enumerate(manifest["videos"].items()):
         try:
+            if background_stats is not None:
+                for key in ("encoded_images", "forward_batches", "max_forward_batch"):
+                    background_stats[key] = 0
             if manifest["suite"] == "wbench":
                 raw = evaluator.evaluate(video, metrics=manifest["dimensions"])
                 provenance = {}
@@ -312,6 +326,8 @@ try:
         except Exception as exc:
             traceback.print_exc()
             result["errors"].append(label + ": " + type(exc).__name__ + ": " + str(exc))
+        if background_stats is not None:
+            result["native_provenance"][label] = {"background_clip_inference": dict(background_stats)}
         (root / "worker_result.json").write_text(strict_json(result))
 except Exception as exc:
     traceback.print_exc()
@@ -387,6 +403,17 @@ def evaluate_video_quality(
             if suite == "vbench_long"
             else {"sampling": "native evaluator defaults"}
         )
+        if suite == "vbench" and "background_consistency" in dimensions:
+            from benchmarks.lingbot_world.encoder_inference import BACKGROUND_CLIP_BATCH_SIZE
+
+            report["protocol"]["background_clip_inference"] = {
+                "batch_size": BACKGROUND_CLIP_BATCH_SIZE,
+                "gradients": False,
+                "frame_selection": "unchanged native input population",
+                "adapter_sha256": hashlib.sha256(
+                    Path(__file__).with_name("encoder_inference.py").read_bytes()
+                ).hexdigest(),
+            }
         if not dimensions or len(set(dimensions)) != len(dimensions) or set(dimensions) - set(allowed):
             raise VideoQualityError(f"Invalid dimensions for {suite}: {dimensions}")
         if not math.isfinite(timeout_s) or timeout_s <= 0:
@@ -413,6 +440,7 @@ def evaluate_video_quality(
         run_dir = Path(tempfile.mkdtemp(prefix=f"{suite}-", dir=Path(output_dir).resolve()))
         manifest_path = run_dir / "inputs.json"
         manifest = {
+            "adapter_root": str(Path(__file__).resolve().parents[2]),
             "suite": suite,
             "mode": mode,
             "repo": str(repo),

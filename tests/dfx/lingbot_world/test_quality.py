@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from benchmarks.lingbot_world.encoder_inference import verify_background_coverage
 from benchmarks.lingbot_world.regression import (
     RegressionError,
     check_binary_activity,
@@ -118,6 +119,14 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         # Retain both native score populations even when one reference
         # calibration fails. Every failed calibration still blocks acceptance.
         for suite, evaluation in evaluations.items():
+            if suite == "vbench":
+                expected_frames = (settings["num_chunks"] * 3 - 1) * 4 + 1
+                for label in videos:
+                    stats = evaluation["native_provenance"].get(label, {}).get("background_clip_inference", {})
+                    try:
+                        verify_background_coverage(stats, expected_frames)
+                    except ValueError as error:
+                        raise RegressionError(f"{label}: {error}") from error
             binary_dimensions = limits["binary_activity_dimensions"]
             tolerances = {
                 name: value for name, value in candidate_tolerances[suite].items() if name not in binary_dimensions
