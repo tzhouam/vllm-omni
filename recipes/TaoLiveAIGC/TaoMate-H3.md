@@ -110,6 +110,12 @@ Send prompt updates using the interaction envelope:
 
 The update is processed at a chunk boundary and conditions the next generation window;
 it never changes the teacher or remaining phases of a window already in progress.
+The `started_event_ids`, `active_event_ids`, and `completed_event_ids` markers
+acknowledge installation of the prompt embeddings in session state. With TaoMate's
+immediate transition, these markers can appear before the window that uses the new
+prompt: a window snapshots conditioning when its first phase starts. They do not
+identify the first visibly changed frame; VAE temporal context and overlap blending
+can delay or spread that change across frame boundaries.
 Different prompt lengths are supported. Multiple pending updates use the latest prompt.
 Send `session.stop` to cancel, and `session.ping` to keep a deliberately held connection
 alive. A bounded hold may use the previous prompt or the configured fallback prompt;

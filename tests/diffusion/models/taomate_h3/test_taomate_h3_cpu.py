@@ -885,7 +885,7 @@ def _prompt_state(text_len: int):
 
 
 @pytest.mark.parametrize("new_len", [3, 7])
-def test_prompt_update_records_the_new_length_and_tags(new_len: int) -> None:
+def test_prompt_update_records_the_new_length_and_tags(new_len: int, monkeypatch, ahead_session) -> None:
     """A shorter or longer prompt must not be padded or truncated to the first prompt's length."""
     from vllm_omni.diffusion.interaction.modality_handlers.taomate_h3_prompt import (
         TaoMateH3PromptInteractionHandler,
@@ -904,6 +904,10 @@ def test_prompt_update_records_the_new_length_and_tags(new_len: int) -> None:
 
     handler = TaoMateH3PromptInteractionHandler(encode_prompt=encode, device=torch.device("cpu"), dtype=torch.bfloat16)
     state = _prompt_state(text_len=4)
+    session, transformer = ahead_session
+    previous = session.begin_request(
+        text_embeddings=state.prompt_embeds, text_tags=state.extra["text_tags"], device=torch.device("cpu")
+    )
     prompt = " ".join(["word"] * new_len)
     handler.enqueue(state, event_id="e1", received_at=0.0, payload={"prompt": prompt}, transition_chunks=5)
     event = state.interaction_sessions["prompt"].pending_event
@@ -911,7 +915,8 @@ def test_prompt_update_records_the_new_length_and_tags(new_len: int) -> None:
     assert calls == [prompt]
 
     metadata = handler.apply_at_chunk_boundary(state, boundary_at=1.0)
-    assert metadata is not None and metadata.completed_event_ids == ["e1"]
+    assert metadata is not None
+    assert metadata.started_event_ids == metadata.active_event_ids == metadata.completed_event_ids == ["e1"]
     assert state.prompt_embeds is not None and tuple(state.prompt_embeds.shape) == (new_len, 8)
     assert state.txt_seq_lens == [new_len] and state.prompt_embeds_mask is None
     assert torch.equal(state.extra["text_tags"], event.target_text_tags)
@@ -926,6 +931,21 @@ def test_prompt_update_records_the_new_length_and_tags(new_len: int) -> None:
     # A second boundary without a new prompt changes nothing.
     handler.apply_at_chunk_boundary(state, boundary_at=2.0)
     assert state.txt_seq_lens == [new_len]
+
+    # Acknowledgement precedes conditioning when installed inside an existing window.
+    pipe = _hold_pipeline(monkeypatch)
+    pipe._tm_hold_for_prompt = False
+    pipe.transformer = transformer
+    monkeypatch.setattr(pipe, "_session", lambda state: session)
+    state.total_chunks, state.chunk_num_steps, state.chunk_index = 8, 3, 3
+    pipe.prepare_next_chunk(state)
+    assert session.request is previous and session.phase.branch.text_len == 4
+    assert torch.equal(session.phase.branch.text_embeddings_dev, previous.text_embeddings)
+    session.finish_request()
+    state.chunk_index = 4
+    pipe.prepare_next_chunk(state)
+    assert session.request is not previous and session.phase.branch.text_len == new_len
+    assert torch.equal(session.phase.branch.text_embeddings_dev, event.target_prompt_embeds)
 
 
 def test_teacher_warm_shapes_cover_the_request_cycle(monkeypatch) -> None:
