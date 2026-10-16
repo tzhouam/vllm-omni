@@ -37,7 +37,6 @@ import torch
 from vllm_omni.diffusion.attention.backends.abstract import VideoTokenLayout
 from vllm_omni.diffusion.attention.backends.vdnh3_attn import VDNLayout
 from vllm_omni.diffusion.distributed.comm import SeqAllToAll4D, all_to_all_5D
-from vllm_omni.diffusion.layers.fused_qk_norm_rope import fused_qk_norm_rope
 from vllm_omni.diffusion.models.minimax_h3.minimax_h3_transformer import MiniMaxH3Attention
 from vllm_omni.experimental.ar_diffusion.kv_cache.segmented import ARDiffusionSegmentedKVState
 
@@ -179,21 +178,7 @@ class TaoMateH3StreamingAttention(MiniMaxH3Attention):
         if rope_table is None:
             raise ValueError("TaoMate-H3 streaming attention requires the phase RoPE table")
         total = x.shape[0]
-        qkv, _ = self.qkv_proj(x)
-        q_size = self.num_heads * self.head_dim
-        kv_size = self.num_kv_heads * self.head_dim
-        q, k, v = qkv.split([q_size, kv_size, kv_size], dim=-1)
-        q = q.view(total, self.num_heads, self.head_dim)
-        k = k.view(total, self.num_kv_heads, self.head_dim)
-        v = v.view(total, self.num_kv_heads, self.head_dim)
-        q, k = fused_qk_norm_rope(
-            q,
-            k,
-            self.q_norm.weight,
-            self.k_norm.weight,
-            rope_table,
-            self.q_norm.variance_epsilon,
-        )
+        q, k, v, _, _ = self._project_qkv(x, rope_table)
         if self.ulysses_world_size > 1:
             # One fused sequence->head all-to-all for q/k/v:
             # (1, S/N, 3, H, D) -> (1, S, 3, H/N, D).

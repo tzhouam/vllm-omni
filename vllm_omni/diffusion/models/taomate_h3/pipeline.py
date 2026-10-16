@@ -311,8 +311,18 @@ class _Session:
         video_noise, _ = official_request_noise(seed=video_seed, canvas=self.canvas)
         return official_audio, video_noise
 
-    def _layout_key(self, request_index: int, phase_index: int, text_len: int) -> tuple[Any, ...]:
-        return (request_index, phase_index, int(text_len), self.media_time_origin)
+    def _phase_layout(self, phase: StreamPhase, text_len: int, video_offset: int, audio_offset: int) -> dict[str, Any]:
+        assert self.media_time_origin is not None
+        return taomate_phase_packed_layout(
+            text_len=text_len,
+            phase=phase,
+            latent_h=self.canvas.latent_h,
+            latent_w=self.canvas.latent_w,
+            media_time_origin=self.media_time_origin,
+            video_latent_offset=video_offset,
+            audio_latent_offset=audio_offset,
+            seq_len=self.pinned_phase_seq_len(phase, text_len),
+        )
 
     def prepare_ahead(self, *, completed_phase_index: int) -> None:
         """Host work for the phase after ``completed_phase_index``, to overlap the device's decode.
@@ -335,18 +345,10 @@ class _Session:
             audio_offset = self.audio_latent_offset + request.plan.audio_latent_count
             plan = request_plan(request_index)
             self.noise_ahead = (request_index, *self._request_noise(request_index))
-        phase = plan.phases[phase_index]
-        packed = taomate_phase_packed_layout(
-            text_len=request.text_len,
-            phase=phase,
-            latent_h=self.canvas.latent_h,
-            latent_w=self.canvas.latent_w,
-            media_time_origin=self.media_time_origin,
-            video_latent_offset=video_offset,
-            audio_latent_offset=audio_offset,
-            seq_len=self.pinned_phase_seq_len(phase, request.text_len),
+        self.layout_ahead = (
+            (request_index, phase_index, request.text_len, self.media_time_origin),
+            self._phase_layout(plan.phases[phase_index], request.text_len, video_offset, audio_offset),
         )
-        self.layout_ahead = (self._layout_key(request_index, phase_index, request.text_len), packed)
 
     def finish_request(self) -> None:
         request = self.request
@@ -399,19 +401,10 @@ class _Session:
         phase = request.plan.phases[phase_index]
         ahead = self.layout_ahead
         self.layout_ahead = None
-        if ahead is not None and ahead[0] == self._layout_key(request.index, phase_index, request.text_len):
+        if ahead is not None and ahead[0] == (request.index, phase_index, request.text_len, self.media_time_origin):
             packed = ahead[1]
         else:
-            packed = taomate_phase_packed_layout(
-                text_len=request.text_len,
-                phase=phase,
-                latent_h=self.canvas.latent_h,
-                latent_w=self.canvas.latent_w,
-                media_time_origin=self.media_time_origin,
-                video_latent_offset=self.video_latent_offset,
-                audio_latent_offset=self.audio_latent_offset,
-                seq_len=self.pinned_phase_seq_len(phase, request.text_len),
-            )
+            packed = self._phase_layout(phase, request.text_len, self.video_latent_offset, self.audio_latent_offset)
         tags = packed["token_tags"].clone()
         tags[packed["text_pos"].view(-1)] = request.text_tags.detach().to("cpu", torch.long)
         branch = MiniMaxH3DenoiseBranch(
@@ -914,13 +907,12 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
             if prompt is None:
                 raise ValueError("encode_prompt needs prepared inputs or a prompt string")
             prepared = self._prepared_text_inputs(prompt, canvas=self._tm_default_canvas)
-        if not self._tm_log_timings:
-            return super().encode_prompt(prepared)
-        started = time.perf_counter()
+        started = time.perf_counter() if self._tm_log_timings else 0.0
         hidden, tags = super().encode_prompt(prepared)
-        if hidden.is_cuda:
-            torch.accelerator.synchronize()
-        logger.info("TaoMate-H3 prompt encode: %.3f s, %d tokens", time.perf_counter() - started, hidden.shape[0])
+        if self._tm_log_timings:
+            if hidden.is_cuda:
+                torch.accelerator.synchronize()
+            logger.info("TaoMate-H3 prompt encode: %.3f s, %d tokens", time.perf_counter() - started, hidden.shape[0])
         return hidden, tags
 
     # -- AR-Diffusion capability --------------------------------------------
@@ -1125,9 +1117,8 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         hidden, tags = self.encode_prompt(prompt=prompt_text)
         state.prompt_embeds = hidden
         session_id = self._bound_session_id(state)
-        previous = self._tm_sessions.pop(session_id, None)
-        if previous is not None:
-            previous.close()
+        if session_id in self._tm_sessions:
+            self._release_session(session_id)
             # Request mode may reuse the runner's default session ID for a
             # new rollout. Its prompt/RoPE timeline starts afresh as well.
             bound.reset()
@@ -1218,9 +1209,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         phase_state = session.begin_phase(phase_index, transformer=self.transformer, device=self.device)
         state.latents = request.phase_video_rows(phase_state.phase)
         state.extra["audio_rows"] = request.phase_audio_rows(phase_state.phase)
-        state.timesteps = torch.tensor(
-            [1.0 - sigma for sigma in session.sigmas_video[:-1]], dtype=torch.float32, device=self.device
-        )
         state.step_index = 0
         state.step_in_chunk = 0
 
@@ -1267,7 +1255,7 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
         if graph is None or not graph.enabled or self._tm_teacher is None:
             return
         lengths = self._tm_teacher_graph_text_lengths
-        if lengths is not None and self._is_warmup_session(session):
+        if lengths is not None and session.session_id in self._tm_warmup_session_ids:
             self._precapture_teacher_graphs(session, request, lengths)
         started = time.perf_counter()
         text_len = request.text_len
@@ -1285,9 +1273,6 @@ class TaoMateH3Pipeline(MiniMaxH3Pipeline, SupportsStepExecution, InteractionMix
                 text_len,
                 time.perf_counter() - started,
             )
-
-    def _is_warmup_session(self, session: _Session) -> bool:
-        return session.session_id in self._tm_warmup_session_ids
 
     def _precapture_teacher_graphs(self, session: _Session, request: _RequestState, lengths: range) -> None:
         """Capture the teacher graphs of every configured prompt length (load-time warmup only)."""

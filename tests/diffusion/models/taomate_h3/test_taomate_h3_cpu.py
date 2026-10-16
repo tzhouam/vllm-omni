@@ -11,7 +11,7 @@ from fractions import Fraction
 import pytest
 import torch
 import torch.nn as nn
-from safetensors.torch import save_file
+from safetensors.torch import load_file, save_file
 
 from vllm_omni.diffusion.models.taomate_h3 import geometry as geo
 from vllm_omni.diffusion.models.taomate_h3.kv_cache import (
@@ -154,28 +154,43 @@ def test_phase_layout_times_sit_on_the_global_timeline() -> None:
     assert (tags[used:] == -1).all()
 
 
-def test_audio_only_layouts() -> None:
-    plain = taomate_audio_only_packed_layout(text_len=9, audio_t=207, latent_h=54, latent_w=30)
+@pytest.mark.parametrize("text_len", [9, 34])
+def test_audio_only_layouts(text_len) -> None:
+    plain = taomate_audio_only_packed_layout(text_len=text_len, audio_t=207, latent_h=54, latent_w=30)
     assert plain["img_pos"].numel() == 0 and plain["update_mask"].numel() == 0
     assert plain["audio_pos"].numel() == 2 * 207
     assert plain["audio_update_mask"].all()
-    assert int(plain["cu_seqlens"][1]) == 9 + 414
+    assert int(plain["cu_seqlens"][1]) == text_len + 414
     frozen = taomate_audio_only_frozen_prefix_packed_layout(
-        text_len=9,
+        text_len=text_len,
         ref_audio_t=40,
         audio_t=198,
         latent_h=54,
         latent_w=30,
-        reference_time_start=9 + 207 - 40,
-        target_time_start=9 + 207,
+        reference_time_start=text_len + 207 - 40,
+        target_time_start=text_len + 207,
     )
     mask = frozen["audio_update_mask"]
     assert mask.shape[0] == 2 * (40 + 198)
     assert not mask[:80].any() and mask[80:].all()
     grid = frozen["img_position_ids"]
     audio_pos = frozen["audio_pos"].view(-1)
-    assert grid[audio_pos[0], 0].item() == pytest.approx(9 + 207 - 40)
-    assert grid[audio_pos[80], 0].item() == pytest.approx(9 + 207)
+    assert grid[audio_pos[0], 0].item() == pytest.approx(text_len + 207 - 40)
+    assert grid[audio_pos[80], 0].item() == pytest.approx(text_len + 207)
+
+
+def test_audio_only_shared_builder_rejects_visual_prefixes() -> None:
+    from vllm_omni.diffusion.models.minimax_h3.packed_sequence import minimax_h3_packed_sequence_ref2va_blocks
+
+    with pytest.raises(ValueError, match="audio-only"):
+        minimax_h3_packed_sequence_ref2va_blocks(
+            text_len=9,
+            latent_t=0,
+            latent_h=54,
+            latent_w=30,
+            audio_t=198,
+            ref_blocks=({"kind": "image", "latent_h": 54, "latent_w": 30},),
+        )
 
 
 # ----------------------------------------------------------------------------
@@ -415,13 +430,6 @@ def _write_adapter(tmp_path, model: nn.Module, rank: int = 3, alpha: float = 6.0
     return str(tmp_path)
 
 
-def _adapter_tensor(tmp_path, name: str) -> torch.Tensor:
-    from safetensors import safe_open
-
-    with safe_open(str(tmp_path / "adapter_model.safetensors"), framework="pt", device="cpu") as handle:
-        return handle.get_tensor(name)
-
-
 @pytest.mark.parametrize("scale", [0.5, 1.0, 1.5])
 def test_native_lora_preserves_fused_rows_and_unscaled_bf16_factors(tmp_path, scale) -> None:
     torch.manual_seed(0)
@@ -432,28 +440,33 @@ def test_native_lora_preserves_fused_rows_and_unscaled_bf16_factors(tmp_path, sc
     assert len(lora.loras) == 8 and bank is None
     assert set(peft.target_modules) == set(lora.loras)
     assert lora.clone(42).id == 42
+    artifact = load_file(str(tmp_path / "adapter_model.safetensors"))
     for name, weights in lora.loras.items():
         target = name.removeprefix("transformer.")
         assert weights.scaling == scale
         assert weights.lora_a.dtype == weights.lora_b.dtype == torch.bfloat16
         # Neither QKV/fc1 row order nor B's numerical values may change here.
-        assert torch.equal(weights.lora_a, _adapter_tensor(tmp_path, f"{target}.lora_a").bfloat16())
-        assert torch.equal(weights.lora_b, _adapter_tensor(tmp_path, f"{target}.lora_b").bfloat16())
+        assert torch.equal(weights.lora_a, artifact[f"{target}.lora_a"].bfloat16())
+        assert torch.equal(weights.lora_b, artifact[f"{target}.lora_b"].bfloat16())
         assert not model.get_submodule(target)._forward_hooks
 
 
-@pytest.mark.parametrize("artifact", ["peft_keys", "corrupt_file", "missing_file"])
+@pytest.mark.parametrize("artifact", ["peft_keys", "incomplete_inventory", "corrupt_file", "missing_file"])
 def test_native_lora_rejects_unrelated_or_unreadable_artifacts(tmp_path, artifact) -> None:
     model = _tiny_transformer()
     _write_adapter(tmp_path, model)
     path = tmp_path / "adapter_model.safetensors"
     if artifact == "peft_keys":
         save_file({"blocks.0.attn.qkv_proj.lora_A.weight": torch.zeros(3, 8)}, str(path))
+    elif artifact == "incomplete_inventory":
+        tensors = {key: value for key, value in load_file(str(path)).items() if not key.startswith("blocks.0.mlp.fc2")}
+        save_file(tensors, str(path))
     elif artifact == "corrupt_file":
         path.write_bytes(b"not a safetensors file")
     else:
         path.unlink()
-    with pytest.raises(TaoMateLoRAError, match="inventory|cannot read"):
+    match = "inventory" if artifact in {"peft_keys", "incomplete_inventory"} else "cannot read"
+    with pytest.raises(TaoMateLoRAError, match=match):
         prepare_taomate_lora(tmp_path, transformer=model, device=torch.device("cpu"))
 
 
@@ -572,21 +585,6 @@ def test_native_artifact_uses_real_manager_and_preserves_teacher(tmp_path, monke
         assert all(original.weight is base[name] for name, original in originals.items())
 
 
-def test_lora_adapter_rejects_incomplete_inventory(tmp_path) -> None:
-    model = _tiny_transformer()
-    _write_adapter(tmp_path, model)
-    tensors = {}
-    from safetensors import safe_open
-
-    with safe_open(str(tmp_path / "adapter_model.safetensors"), framework="pt", device="cpu") as handle:
-        for key in handle.keys():
-            if not key.startswith("blocks.0.mlp.fc2"):
-                tensors[key] = handle.get_tensor(key)
-    save_file(tensors, str(tmp_path / "adapter_model.safetensors"))
-    with pytest.raises(Exception, match="inventory"):
-        prepare_taomate_lora(str(tmp_path), transformer=model, device=torch.device("cpu"))
-
-
 # ----------------------------------------------------------------------------
 # streaming audio decoder tail handling
 
@@ -620,28 +618,32 @@ def test_audio_decoder_pads_the_rounded_tail_but_rejects_missing_audio() -> None
 # pinned packed lengths
 
 
-def test_pinned_lengths_cover_every_phase_and_teacher_document() -> None:
-    from vllm_omni.diffusion.models.taomate_h3 import pipeline as pipeline_module
-    from vllm_omni.diffusion.models.taomate_h3.audio_teacher import ROLLOVER_LATENTS_PER_CHANNEL
+def _session(*, cache=None, pad_text_tokens=128):
+    from vllm_omni.diffusion.models.taomate_h3.pipeline import _Session
 
-    canvas = geo.CanvasGeometry(height=864, width=480)
-    session = pipeline_module._Session(
+    return _Session(
         session_id="s",
-        canvas=canvas,
-        seed=1,
-        cache=None,  # type: ignore[arg-type]
+        canvas=geo.CanvasGeometry(height=864, width=480),
+        seed=7,
+        cache=cache,
         video_decoder=None,  # type: ignore[arg-type]
         audio_decoder=None,  # type: ignore[arg-type]
         audio_kv_reset_requests=12,
-        pad_text_tokens=128,
+        pad_text_tokens=pad_text_tokens,
     )
+
+
+def test_pinned_lengths_cover_every_phase_and_teacher_document() -> None:
+    from vllm_omni.diffusion.models.taomate_h3.audio_teacher import ROLLOVER_LATENTS_PER_CHANNEL
+
+    session = _session()
     seen: set[tuple[int, int]] = set()
     for request_index in range(6):
         plan = geo.request_plan(request_index)
         for phase in plan.phases:
             pinned = session.pinned_phase_seq_len(phase, text_len=40)
             assert pinned is not None and pinned % 64 == 0
-            used = 40 + 2 * phase.audio_latent_count + phase.video_latent_count * canvas.frame_rows
+            used = 40 + 2 * phase.audio_latent_count + phase.video_latent_count * session.canvas.frame_rows
             assert used <= pinned < used + 64 + 64  # one 64-token bucket of text padding plus the 64-row alignment
             seen.add((phase.index, pinned))
     # Two shapes for phase 0 (12 latents once, then 10) and one per later phase.
@@ -691,18 +693,14 @@ def _hold_pipeline(monkeypatch):
 def _hold_state(chunk_index: int, applied_version: int):
     from types import SimpleNamespace
 
-    from vllm_omni.diffusion.worker.utils import StepRequestState
-    from vllm_omni.inputs.data import OmniDiffusionSamplingParams
-
-    state = StepRequestState(request_id="r", sampling=OmniDiffusionSamplingParams())
+    state = _prompt_state(text_len=4)
     state.chunk_index = chunk_index
     state.total_chunks = 400
     state.chunk_num_steps = 3
     state.step_in_chunk = 3
     state.step_index = 3  # end of the previous phase, as the runner leaves it
     state.timesteps = torch.tensor([1.0, 0.6, 0.3])
-    state.prompt_embeds = torch.zeros(4, 8)
-    state.extra = {"taomate_prompt_version": applied_version, "text_tags": torch.ones(4, dtype=torch.long)}
+    state.extra["taomate_prompt_version"] = applied_version
     state.interaction_sessions["prompt"] = SimpleNamespace(version=applied_version)
     return state
 
@@ -785,30 +783,29 @@ def prepare_encode_pipeline(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    ("fps", "frame_rate"),
-    [(30, None), (None, 30), (30, 24), (24, 30), (0, None), (float("nan"), None), (None, float("inf"))],
+    ("fps", "frame_rate", "modality"),
+    [
+        (30, None, None),
+        (None, 30, None),
+        (30, 24, None),
+        (24, 30, None),
+        (0, None, None),
+        (float("nan"), None, None),
+        (None, float("inf"), None),
+        (None, None, "image"),
+        (None, None, "video"),
+        (None, None, "audio"),
+    ],
 )
-def test_prepare_encode_rejects_non_native_rates_before_encoding(prepare_encode_pipeline, fps, frame_rate):
+def test_prepare_encode_rejects_invalid_requests_before_encoding(prepare_encode_pipeline, fps, frame_rate, modality):
     from vllm_omni.errors import OmniClientError
 
     pipe, state, previous = prepare_encode_pipeline
     state.sampling.fps = fps
     state.sampling.frame_rate = frame_rate
-    with pytest.raises(OmniClientError, match="24 fps"):
-        pipe.prepare_encode(state)
-    pipe.encode_prompt.assert_not_called()
-    previous.close.assert_not_called()
-    assert pipe._tm_sessions == {"session": previous}
-    assert state.prompt_embeds is None and state.extra == {}
-
-
-@pytest.mark.parametrize("modality", ["image", "video", "audio"])
-def test_prepare_encode_rejects_references_before_encoding(prepare_encode_pipeline, modality):
-    from vllm_omni.errors import OmniClientError
-
-    pipe, state, previous = prepare_encode_pipeline
-    state.prompt = {"prompt": state.prompt, "multi_modal_data": {modality: object()}}
-    with pytest.raises(OmniClientError, match="text prompts only"):
+    if modality:
+        state.prompt = {"prompt": state.prompt, "multi_modal_data": {modality: object()}}
+    with pytest.raises(OmniClientError, match="text prompts only" if modality else "24 fps"):
         pipe.prepare_encode(state)
     pipe.encode_prompt.assert_not_called()
     previous.close.assert_not_called()
@@ -990,31 +987,22 @@ def test_teacher_graph_text_length_range_parses() -> None:
 # host preparation of the next phase overlapped with the device decode
 
 
-def _ahead_session(pad_text_tokens: int = 128):
+@pytest.fixture
+def ahead_session():
     from types import SimpleNamespace
 
-    from vllm_omni.diffusion.models.taomate_h3.pipeline import _Session
-
-    canvas = geo.CanvasGeometry(height=864, width=480)
-    _, cache = _segmented_cache(num_layers=1, heads=1, head_dim=8, capacity=20000)
-    session = _Session(
-        session_id="s",
-        canvas=canvas,
-        seed=7,
-        cache=lambda: cache,
-        video_decoder=None,  # type: ignore[arg-type]
-        audio_decoder=None,  # type: ignore[arg-type]
-        audio_kv_reset_requests=12,
-        pad_text_tokens=pad_text_tokens,
-    )
-    return session, SimpleNamespace()
+    state, cache = _segmented_cache(num_layers=1, heads=1, head_dim=8, capacity=20000)
+    try:
+        yield _session(cache=lambda: cache), SimpleNamespace()
+    finally:
+        state.close()
 
 
-def test_prepare_ahead_layout_matches_a_fresh_one_and_noise_is_reused() -> None:
+def test_prepare_ahead_layout_matches_a_fresh_one_and_noise_is_reused(ahead_session) -> None:
     from vllm_omni.diffusion.models.taomate_h3 import geometry as geo
     from vllm_omni.diffusion.models.taomate_h3.packed import taomate_phase_packed_layout
 
-    session, transformer = _ahead_session()
+    session, transformer = ahead_session
     device = torch.device("cpu")
     session.begin_request(
         text_embeddings=torch.zeros(40, 5120), text_tags=torch.ones(40, dtype=torch.long), device=device

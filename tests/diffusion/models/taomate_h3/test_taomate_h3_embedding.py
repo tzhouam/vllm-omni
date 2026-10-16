@@ -57,13 +57,17 @@ def _plan(inputs):
     )
 
 
-@pytest.mark.parametrize("local_span", [(0, 16), (0, 8), (8, 8), *((index * 2, 2) for index in range(8))])
-def test_prepared_and_unprepared_embeddings_match_minimax(local_span):
+@pytest.mark.parametrize(
+    ("local_span", "plan_span"),
+    [(span, span) for span in [(0, 16), (0, 8), (8, 8), *((index * 2, 2) for index in range(8))]]
+    + [((8, 8), (0, 8))],  # A plan for another span must fall back to the current rank's selection.
+)
+def test_prepared_and_unprepared_embeddings_match_minimax(local_span, plan_span):
     inputs = _inputs(local_span)
     expected = _model(MiniMaxH3DiTModel)._embed(**inputs)
     model = _model(TaoMateH3DiTModel)
     actual = model._embed(**inputs)
-    with local_embed_plan(_plan(inputs)):
+    with local_embed_plan(_plan(_inputs(plan_span))):
         prepared = model._embed(**inputs)
     for reference, eager, graphed in zip(expected, actual, prepared, strict=True):
         assert torch.equal(reference, eager)
@@ -79,15 +83,6 @@ def test_prepared_embedding_uses_static_indices(monkeypatch):
 
     monkeypatch.setattr(MiniMaxH3DiTModel, "_embed_row_indices", unexpected_selection)
     with local_embed_plan(_plan(inputs)):
-        actual = _model(TaoMateH3DiTModel)._embed(**inputs)
-    for reference, value in zip(expected, actual, strict=True):
-        assert torch.equal(reference, value)
-
-
-def test_embedding_plan_for_another_span_falls_back_to_current_span():
-    inputs = _inputs((8, 8))
-    expected = _model(MiniMaxH3DiTModel)._embed(**inputs)
-    with local_embed_plan(_plan(_inputs((0, 8)))):
         actual = _model(TaoMateH3DiTModel)._embed(**inputs)
     for reference, value in zip(expected, actual, strict=True):
         assert torch.equal(reference, value)
