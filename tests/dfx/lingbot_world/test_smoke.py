@@ -8,7 +8,7 @@ import pytest
 
 from benchmarks.lingbot_world.benchmark_lingbot_world_realtime import parse_args, run_benchmark
 from benchmarks.lingbot_world.regression import write_json
-from tests.dfx.lingbot_world.runner import ROOT, checked_assets, hardware_contract
+from tests.dfx.lingbot_world.runner import checked_assets, hardware_contract, server_arguments
 from tests.helpers.mark import hardware_test
 
 pytestmark = [pytest.mark.full_model, pytest.mark.diffusion]
@@ -25,7 +25,7 @@ def test_cuda_smoke(lingbot_settings):
     model, images = checked_assets(settings)
     with OmniServer(
         str(model),
-        ["--deploy-config", str(ROOT / settings["deploy_config"])],
+        server_arguments(settings),
         startup_timeout=settings["startup_timeout_s"],
     ) as server:
         with pytest.MonkeyPatch.context() as patch:

@@ -18,10 +18,21 @@ import pytest
 import yaml
 
 from benchmarks.lingbot_world.regression import RegressionError, check_quality
-from tests.dfx.lingbot_world.runner import server_environment
+from tests.dfx.lingbot_world.runner import server_arguments, server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.mark.parametrize("timeout", [37, 1200])
+def test_server_initialization_and_stage_deadlines_use_the_explicit_profile_budget(timeout):
+    settings = {"deploy_config": "tests/dfx/lingbot_world/configs/npu_usp4_offload.yaml", "startup_timeout_s": timeout}
+    arguments = server_arguments(settings)
+    assert dict(zip(arguments[::2], arguments[1::2])) == {
+        "--deploy-config": str(ROOT / settings["deploy_config"]),
+        "--init-timeout": str(timeout),
+        "--stage-init-timeout": str(timeout),
+    }
 
 
 @pytest.mark.parametrize("platform,count", [("cuda", 3), ("npu", 6)])
