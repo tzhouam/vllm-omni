@@ -17,7 +17,7 @@ from types import SimpleNamespace
 import pytest
 import yaml
 
-from benchmarks.lingbot_world.regression import RegressionError, check_quality
+from benchmarks.lingbot_world.regression import RegressionError, check_binary_activity, check_quality
 from tests.dfx.lingbot_world.runner import server_arguments, server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
@@ -335,20 +335,28 @@ def test_activity_is_not_a_higher_is_better_quality_score():
     assert not result["passed"]
 
 
-def test_every_configured_quality_dimension_rejects_a_collapse():
+@pytest.mark.parametrize("platform", ["cuda", "npu"])
+def test_every_configured_quality_dimension_rejects_a_collapse(platform):
     limits = json.loads((ROOT / "tests/dfx/lingbot_world/quality.json").read_text())
     # Both pinned evaluators return these dimensions on a [0, 1] scale.
     # A tolerance accidentally expressed as percentage points must not make
     # a dimension incapable of blocking a regression.
     for suite in ("vbench", "wbench"):
-        assert limits[suite].keys() == limits["max_reference_spreads"][suite].keys()
-        for dimension, tolerance in limits[suite].items():
+        binary_dimensions = set(limits["binary_activity_dimensions"])
+        assert binary_dimensions == {"dynamic_degree"}
+        tolerances = limits["candidate_tolerances"][platform][suite]
+        assert set(tolerances) - binary_dimensions == set(limits["max_reference_spreads"][platform][suite])
+        for dimension, tolerance in tolerances.items():
+            if dimension in binary_dimensions:
+                assert not check_binary_activity([1, 1, 1], [0, 0, 0], tolerance=tolerance)["passed"]
+                assert not check_binary_activity([0, 0, 0], [1, 1, 1], tolerance=tolerance)["passed"]
+                continue
             result = check_quality(
                 [{dimension: 0.9}] * 3,
                 {dimension: 0.0},
                 tolerances={dimension: tolerance},
                 activity_dimensions=("dynamic_degree",),
-                max_reference_spreads={dimension: limits["max_reference_spreads"][suite][dimension]},
+                max_reference_spreads={dimension: limits["max_reference_spreads"][platform][suite][dimension]},
             )
             assert not result["passed"], (suite, dimension)
 

@@ -47,7 +47,8 @@ def test_video_windows_reveal_late_drift(tmp_path: Path) -> None:
     json.dumps(result, allow_nan=False)
 
 
-def test_late_corruption_fails_even_when_global_pixel_scores_pass(tmp_path: Path) -> None:
+@pytest.mark.parametrize("platform", ["cuda", "npu"])
+def test_late_corruption_fails_even_when_global_pixel_scores_pass(tmp_path: Path, platform: str) -> None:
     reference, candidate = tmp_path / "reference.avi", tmp_path / "candidate.avi"
     _write_video(reference, [40] * 512, fps=16)
     _write_video(candidate, [40] * 504 + [60] * 8, fps=16)
@@ -60,8 +61,7 @@ def test_late_corruption_fails_even_when_global_pixel_scores_pass(tmp_path: Path
         repeats,
         measured,
         min_psnr_db=limits["min_psnr_db"],
-        psnr_drop_db=limits["psnr_drop_db"],
-        ssim_drop=limits["ssim_drop"],
+        **limits["pixel_budgets"][platform],
     )
     assert not result["passed"]
     assert result["psnr"][0]["passed"]
@@ -377,7 +377,10 @@ def test_worker_rejects_hps_nonfinite_details_and_records_flow_backend(
         ([30.0] * 3, [0.3195815, 0.2982344, 0.3221995], 30.0, 0.2779404),
     ],
 )
-def test_full_rollout_pixel_calibration_remains_bounded(reference_psnr, reference_ssim, candidate_psnr, candidate_ssim):
+@pytest.mark.parametrize("platform", ["cuda", "npu"])
+def test_full_rollout_pixel_calibration_remains_bounded(
+    reference_psnr, reference_ssim, candidate_psnr, candidate_ssim, platform
+):
     # Observed H100-generated boardwalk window 3 and street SSIM comparisons.
     # The input populations are retained; target-runner calibration is separate.
     def row(psnr, ssim):
@@ -392,9 +395,10 @@ def test_full_rollout_pixel_calibration_remains_bounded(reference_psnr, referenc
     candidate = row(candidate_psnr, candidate_ssim)
     assert not check_video_precision(reference, candidate, min_psnr_db=40, psnr_drop_db=1, ssim_drop=0.01)["passed"]
     limits = json.loads((Path(__file__).parents[2] / "tests/dfx/lingbot_world/quality.json").read_text())
-    options = {key: limits[key] for key in ("min_psnr_db", "psnr_drop_db", "ssim_drop")}
+    budgets = limits["pixel_budgets"][platform]
+    options = {"min_psnr_db": limits["min_psnr_db"], **budgets}
     assert check_video_precision(reference, candidate, **options)["passed"]
-    worse_psnr = row(min(reference_psnr) - limits["psnr_drop_db"] - 0.1, candidate_ssim)
-    worse_ssim = row(candidate_psnr, min(reference_ssim) - limits["ssim_drop"] - 0.001)
+    worse_psnr = row(min(reference_psnr) - budgets["psnr_drop_db"] - 0.1, candidate_ssim)
+    worse_ssim = row(candidate_psnr, min(reference_ssim) - budgets["ssim_drop"] - 0.001)
     assert not check_video_precision(reference, worse_psnr, **options)["passed"]
     assert not check_video_precision(reference, worse_ssim, **options)["passed"]
