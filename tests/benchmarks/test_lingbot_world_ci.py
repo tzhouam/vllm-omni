@@ -249,3 +249,18 @@ def test_profiles_pin_inputs_and_use_distinct_reference_starts():
         assert all(case["image"] in lock["images"] for case in profile["cases"])
         assert (ROOT / profile["deploy_config"]).is_file()
     assert len(lock["model_files"]) >= 20
+
+
+def test_npu_profiles_offload_only_text_encoder_without_reducing_workload():
+    from vllm_omni.diffusion.offloader.config import OffloadMode, parse_diffusion_offload_config
+
+    for name in ("npu_nightly", "npu_weekly", "npu_long"):
+        profile = json.loads((ROOT / f"tests/dfx/lingbot_world/configs/{name}.json").read_text())
+        deployment = yaml.safe_load((ROOT / profile["deploy_config"]).read_text())
+        stage = deployment["stages"][0]
+        offload = parse_diffusion_offload_config(stage["diffusion_offload_config"])
+        assert offload is not None and offload.mode == OffloadMode.MODULE
+        assert offload.components == {"text_encoder"}
+        assert stage["parallel_config"]["sequence_parallel_size"] == 4
+        assert (profile["height"], profile["width"]) == (480, 832)
+        assert not {"window_chunks", "sink_chunks"} & stage["model_config"]["ar_diffusion_kv_config"].keys()

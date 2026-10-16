@@ -47,6 +47,14 @@ pytest -sv tests/dfx/lingbot_world/test_generate.py \
   --junitxml=lingbot-artifacts/cuda-nightly/pytest.xml
 ```
 
+NPU profiles use four A2 cards with eager execution and component-level CPU
+text-encoder offload; DiT/VAE stay on the NPU. The all-resident configuration
+OOMed on the target runner at the first warmup (64GB cards expose 60.96GiB).
+The CI deployment retains the full resolution, KV window and rollout lengths;
+`gpu_memory_fraction=0.1` avoids allocating extra pages above the one-session
+minimum after offloading frees device memory. This placement is identical for
+reference/candidate and is included in the hashed deployment contract.
+
 ## Performance, precision and lifecycle
 
 Three reference and three candidate server starts run in alternating AB/BA

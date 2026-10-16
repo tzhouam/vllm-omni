@@ -45,7 +45,7 @@
   "platform": "npu",
   "cards": 4,
   "dies": 4,
-  "deploy_config": "benchmarks/lingbot_world/configs/npu_usp4_eager.yaml",
+  "deploy_config": "tests/dfx/lingbot_world/configs/npu_usp4_offload.yaml",
   "memory_growth_budget_bytes": 268435456,
   "warmup_num_chunks": 8,
   "transient_noise_sigma": 3.0
