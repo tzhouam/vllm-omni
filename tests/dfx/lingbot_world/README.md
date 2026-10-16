@@ -166,22 +166,58 @@ pytest -sv tests/dfx/lingbot_world/test_quality.py \
 
 Transfer the complete generation directory to a GPU evaluator. Candidate commit,
 profile and artifact checksums must match. Seven VBench custom-input dimensions
-and six WBench video-quality dimensions are checked per case and candidate
-repeat. Dynamic degree uses a two-sided activity bound. Excessive reference
+and six WBench video-quality dimensions are checked per case. Continuous scores
+are checked for every candidate repeat. Both pinned dynamic-degree evaluators
+return a binary classification for each complete video. Activity therefore uses
+a two-sided difference in active counts across three independent starts: the
+unchanged 0.34 fractional budget permits one changed classification, while two
+or three changes fail. All six individual classifications remain in the report.
+H100 reference cohorts from builds [17426](https://buildkite.com/vllm/vllm-omni/builds/17426)
+and [17431](https://buildkite.com/vllm/vllm-omni/builds/17431) differed by at most one
+classification per scene; the latter returned `[0, 1, 0]` for both reference
+and candidate in the blossom case. A fractional per-video range limit cannot
+represent that binary trial noise. This count budget is not a confidence test;
+target-runner validation is still required for every profile and platform.
+The [reference-only calibration record](calibration/cuda_nightly_reference.json)
+retains all six reference scores, the matching contracts and raw-score hashes;
+candidate scores do not enter that record.
+Excessive continuous reference
 spread fails calibration; scores are never averaged across dimensions/scenes.
-`quality.json` separately pins `max_reference_spreads` for reproducibility and
+`quality.json` separately pins `max_reference_spreads` by generation platform for reproducibility and
 per-suite candidate tolerances for degradation. The candidate floor remains the
 worst reference minus its candidate tolerance; a larger reference-spread ceiling
 never increases that tolerance. Reports retain both budgets and the measured
-reference spread. Reference ceilings must be verified on the target evaluator;
+reference spread. Preliminary CUDA continuous ceilings use the maximum
+per-scene range across six frozen-reference starts, plus 25% reserve, rounded
+up to 0.005; an existing larger ceiling is retained. The calibration record
+contains the reference values and the exact calculation. VBench cohorts were
+scored on target H100 evaluators; WBench cohorts were scored independently on
+L20X and still need target-H100 confirmation. Every weekly/long profile also
+needs held-out target validation. NPU retains its existing separate ceilings
+until its own reference campaign completes. Reference ceilings must be verified on the target evaluator;
 local diagnostic scores alone do not establish hardware acceptance.
+Candidate tolerances are also keyed by generation platform. CUDA VBench
+aesthetic uses 0.025: independent same-code reference deficits reached
+0.018552, exceeding the initial 0.01 budget, before adding 25% reserve and rounding
+up to 0.005. Other native candidate budgets stay at 0.01 (HPSv3: 0.02).
+NPU retains its initial native budgets. These reference-only calculations are
+recorded separately from the reference-spread ceilings and still require fresh
+target-runner validation; candidate observations never set their own limits.
+Both native score populations are saved before calibration checks. A reference
+calibration error is recorded as a failed case check; remaining cases and pixel
+checks still run and retain their evidence. The final pytest assertion fails
+if any native calibration, candidate score or pixel check fails.
 All selected scores from these pinned evaluator revisions use a 0–1 scale.
 
 Video diagnostics validate full frame/geometry/FPS coverage, compute PSNR on
 every frame and SSIM every 24 frames, and compare candidate divergence against
 all three pairs of independent same-code reference repeats. Candidate PSNR
-must stay within 3 dB of the worst reference distance, and sampled SSIM within
-0.03. These are approximate rollout-divergence budgets; the separate fixed-input
+must stay within 3 dB of the worst reference distance. Sampled SSIM may drop by
+0.04 on CUDA or 0.03 on NPU. Independent CUDA reference SSIM deficits reached
+0.031969, exceeding the initial 0.03 margin; 25% reserve rounded upward to 0.005
+gives 0.04. Their maximum PSNR deficit was 2.535 dB, so the existing 3 dB margin
+is retained. Only failed reference-only budgets are adjusted; the CUDA values
+are not copied to NPU. These are approximate rollout-divergence budgets; the separate fixed-input
 VAE numerical gate still requires exact repeats. PSNR is also gated independently in every two-second
 window so a whole-video average cannot hide late corruption. Perfect repeats use
 an explicit minimum PSNR budget rather than arithmetic on infinity. Failed pixel
@@ -236,6 +272,17 @@ topology or precision changes require reviewed lock/profile updates and fresh
 measurements. Include matching-head Buildkite URLs in the PR. Never drop failed
 observations, automatically widen budgets, or treat CPU tests and older hardware
 experiments as acceptance of the new commit.
+
+For a quality calibration update, retain two independent three-start reference
+cohorts, their raw-score hashes and matching numerical contracts. Evaluate
+each cohort as held-out reference data against the other before adjusting any
+failed budget. Candidate outputs do not enter this calculation. Update the
+reference-only record and its platform's policy together, then run
+`pytest tests/benchmarks/test_lingbot_world_regression.py -m 'core_model and cpu'`
+and a fresh target-runner campaign. CUDA quality jobs reject calibration reuse
+after deployment, hardware, runtime package, precision or model/reference changes;
+they retain the applied policy, generation profile and calibration record.
+The preliminary CUDA record does not establish NPU or weekly/long acceptance.
 
 The pinned `startup_timeout_s` bounds both the outer server-readiness wait and
 the server's `--init-timeout` / `--stage-init-timeout`. This avoids silently using

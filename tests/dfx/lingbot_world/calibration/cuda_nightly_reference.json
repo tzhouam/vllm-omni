@@ -1,0 +1,777 @@
+{
+  "asset_lock_sha256": "18f352ed2b20b48ca8ccf5de3489d961571f3d180d2abe710828bb5c2613fa81",
+  "binary_activity": {
+    "allowed_count_change": 1,
+    "candidate_fractional_tolerance": 0.34,
+    "interpretation": "Native scores are binary. Compare three-trial activity incidence per scene; do not apply a fractional range ceiling to individual binary classifications. This is not a confidence test.",
+    "maximum_between_cohort_count_change": 1.0,
+    "reference_active_counts": {
+      "blossom-42": [
+        0.0,
+        1.0
+      ],
+      "boardwalk-42": [
+        0.0,
+        0.0
+      ],
+      "street-42": [
+        3.0,
+        3.0
+      ]
+    }
+  },
+  "candidate_budget_calibration": {
+    "cuda_pixels": {
+      "calibration_build": 17431,
+      "current_reference_video_sha256": [
+        {
+          "path": "reference/0/street-42/rollout.mp4",
+          "sha256": "2919f9871a062a588e6c7bd8285eaec03951542338bd5168b1222ffa83bea291"
+        },
+        {
+          "path": "reference/2/street-42/rollout.mp4",
+          "sha256": "704db194a3e65a111f9889f5ab4e02385ba92dcd348c7e146b10b42f1d00d3a3"
+        },
+        {
+          "path": "reference/1/street-42/rollout.mp4",
+          "sha256": "ae46db1326e4490f67dbcc56381027b1436d5576a2006a8f283fa9acfcab477d"
+        },
+        {
+          "path": "reference/0/boardwalk-42/rollout.mp4",
+          "sha256": "8bc30672286b7115fff0457f608bc6339711517ee01de579bec3b2b0a0b88bb4"
+        },
+        {
+          "path": "reference/0/blossom-42/rollout.mp4",
+          "sha256": "21c2541608eeeef4d8141c8fa976f96a999a07d2b7ab4da65d730400be2914c0"
+        },
+        {
+          "path": "reference/1/boardwalk-42/rollout.mp4",
+          "sha256": "3f3785575b40ede6c900f367bfac500e322d95245907931e3c55c41f8144ee41"
+        },
+        {
+          "path": "reference/2/boardwalk-42/rollout.mp4",
+          "sha256": "918de8c0e81a14133b0ca9438c46c662fcc6d6170ecb68fe7070e425888a5dca"
+        },
+        {
+          "path": "reference/2/blossom-42/rollout.mp4",
+          "sha256": "098259b0535688b560b34f157df8aebeee4f5a68418f603d2be27e8e3bd03a95"
+        },
+        {
+          "path": "reference/1/blossom-42/rollout.mp4",
+          "sha256": "8e83262b7cc3e877051bae22786441884f34788b3451e353ce2750db9349e340"
+        }
+      ],
+      "heldout_reference_video_sha256": [
+        {
+          "path": "reference/1/street-42/rollout.mp4",
+          "sha256": "3fe8d0a7792118d25ca6c16cd46704413b4e0f7af4628edff61c68e85a031671"
+        },
+        {
+          "path": "reference/0/street-42/rollout.mp4",
+          "sha256": "6f660477c1c9f8ec35f505f4d7b81edbffb419a967203cc3f691253973746fef"
+        },
+        {
+          "path": "reference/2/street-42/rollout.mp4",
+          "sha256": "c72c40b99dc602aac90b17d011df75f64bd6a1d2b6611ae2a76122b2f7949c9c"
+        },
+        {
+          "path": "reference/2/blossom-42/rollout.mp4",
+          "sha256": "078ccc71d1e8da4a38dff97a5bbfcef2b9dd031e6fe0f054a74d8798869d66e3"
+        },
+        {
+          "path": "reference/2/boardwalk-42/rollout.mp4",
+          "sha256": "ce8b86b9b7c0ec5f759776f25ba0fda8fdd7ade997bda97cbc694b57c364fd5d"
+        },
+        {
+          "path": "reference/0/blossom-42/rollout.mp4",
+          "sha256": "c8cc91047606f0ab414c01cc74e9ad7cc22b27e921855953ddf7ab944d00d0cc"
+        },
+        {
+          "path": "reference/1/boardwalk-42/rollout.mp4",
+          "sha256": "ab3a4db9bc43d2e96dbdfe4364a85bdc9a6396f1ddca3b3d1039d0e59fc27c3e"
+        },
+        {
+          "path": "reference/0/boardwalk-42/rollout.mp4",
+          "sha256": "6adcdd9c7ae4f72c35abcc008bdde4a91a22b54b19a0f9b3dd47d2cda751b186"
+        },
+        {
+          "path": "reference/1/blossom-42/rollout.mp4",
+          "sha256": "067b270c200714c97bc4fa8f50c41cb682cd92be9c592f0bcc0b6da4238deb0b"
+        }
+      ],
+      "maximum_reference_only_psnr_deficit_db": 2.5349972806994217,
+      "maximum_reference_only_ssim_deficit": 0.031969425636848126,
+      "previous_psnr_drop_db": 3,
+      "previous_ssim_drop": 0.03,
+      "reason": "All reference-only PSNR holdouts pass3dB; one reference-only SSIM holdout exceeds0.03.",
+      "reference_holdout_build": 17426,
+      "reference_ssim_samples": {
+        "blossom-42": {
+          "heldout_reference_metric_sha256": [
+            "a4183dab19de0564cfb7d823e0d278a72449d2c30f369bd59b36e0e13c071fd8",
+            "3cf24c6a69397cc6650c47daa4c63b297f6e323c755e1dc38cf8a6196c7fd9ba",
+            "ab2e30f07401fac5d321ac97e457d2fc0794c765b0286fd3685e2c99fa6c3da0"
+          ],
+          "heldout_reference_ssim": [
+            0.40316479016692053,
+            0.3578233443583207,
+            0.3222544450341252
+          ],
+          "reference_metric_sha256": [
+            "91437e924157681f276e1ec5884f0dd765bda59238d0127f8258a28c429799d7",
+            "9aa86e8cc9b0ef4a0d81131be8dc11d5fe60b67f2d021ac4558f4f8ef0113a1c",
+            "ba6c1c8bcd5e399ae946fefe2839698573239d44a3d12d727eea63efeb9fa7f6"
+          ],
+          "reference_ssim": [
+            0.28894405789732075,
+            0.3876007253812473,
+            0.30557278504646995
+          ]
+        },
+        "boardwalk-42": {
+          "heldout_reference_metric_sha256": [
+            "a8bb698b7b8fd000bfb37a70b4b705107519d3539768a3e586fa11d4885a0654",
+            "96ac19aea4c489e53b5c30ac243faf89a47ae3c0f76fa8cb3faf4c591c440954",
+            "b9cfddeaf0837fa7950cc6d4f159f80b48a459b08ecfe2d1ce0684179050e93b"
+          ],
+          "heldout_reference_ssim": [
+            0.4146077200964361,
+            0.47112555613762275,
+            0.5328211487734605
+          ],
+          "reference_metric_sha256": [
+            "b7fc6a51d272795cd7fb79dcda6a78546cff3bfe2b7a27b5932513638628dfe7",
+            "93ca7dba9fdd2c018e0559decef411b980b280bb729b20535845c3748584c87b",
+            "79049fe817d9b65b2f1750dec8b12ba000539ac0ffd22ff0d9381c2492eefe2b"
+          ],
+          "reference_ssim": [
+            0.48844435409774534,
+            0.4909667820823819,
+            0.4465771457332842
+          ]
+        },
+        "street-42": {
+          "heldout_reference_metric_sha256": [
+            "0271c33326d15e1470e639e251ddb3f19bd85ff5fabf9b6948f0e9359925664d",
+            "d007197fc7573d5d0bfdb01bd6223f03d8d653f496414c1b0b60459084dc56f5",
+            "fc2cf8dc3ddb339d30715a4a2cd4ae6eb6158c87130c6a2696e9a69d358c25f9"
+          ],
+          "heldout_reference_ssim": [
+            0.2547907928797005,
+            0.2626963820365233,
+            0.3103147055635111
+          ],
+          "reference_metric_sha256": [
+            "1a530b26d067bdc5577d372fabe1f145e8f92d2afa8218d9ac585961a3afa9c3",
+            "b89a0f2572cbf845f01290a38973dc8dc54a0787e7d491133cae0e4390225fed",
+            "47953a53549bdd91bf73c6b604224d7d4cd22857f95462701588b944335cb309"
+          ],
+          "reference_ssim": [
+            0.2719940550806502,
+            0.2717086143120291,
+            0.28815763759143004
+          ]
+        }
+      },
+      "selected_psnr_drop_db": 3,
+      "selected_ssim_drop": 0.04
+    },
+    "cuda_vbench_aesthetic_quality": {
+      "maximum_reference_only_deficit": 0.018552005290985107,
+      "previous_tolerance": 0.01,
+      "selected_tolerance": 0.025
+    },
+    "npu": "Unchanged; requires independent NPU reference-only calibration.",
+    "rule": "For a failed budget, multiply maximum reference-only deficit by1.25 and round upward (native scores0.005,SSIM0.005). Retain budgets whose held-out references already pass. This is not a confidence interval.",
+    "scope": "Reference-only cross-cohort holdouts. Candidate videos and scores excluded. Existing budgets change only when held-out same-code references exceed them. Preliminary until fresh target-head validation."
+  },
+  "continuous_reference_calibration": {
+    "dimensions": {
+      "vbench": {
+        "aesthetic_quality": {
+          "derived_ceiling": 0.03,
+          "previous_ceiling": 0.02,
+          "selected_ceiling": 0.03,
+          "six_reference_ranges": {
+            "blossom-42": 0.011408567428588867,
+            "boardwalk-42": 0.021547257900238037,
+            "street-42": 0.018325597047805786
+          }
+        },
+        "background_consistency": {
+          "derived_ceiling": 0.02,
+          "previous_ceiling": 0.03,
+          "selected_ceiling": 0.03,
+          "six_reference_ranges": {
+            "blossom-42": 0.009448139607405426,
+            "boardwalk-42": 0.00859826352415971,
+            "street-42": 0.015417275308560963
+          }
+        },
+        "imaging_quality": {
+          "derived_ceiling": 0.015,
+          "previous_ceiling": 0.02,
+          "selected_ceiling": 0.02,
+          "six_reference_ranges": {
+            "blossom-42": 0.011494040179302556,
+            "boardwalk-42": 0.007220429394479977,
+            "street-42": 0.006105638260111679
+          }
+        },
+        "motion_smoothness": {
+          "derived_ceiling": 0.015,
+          "previous_ceiling": 0.01,
+          "selected_ceiling": 0.015,
+          "six_reference_ranges": {
+            "blossom-42": 0.003792919786614335,
+            "boardwalk-42": 0.0030312050112276667,
+            "street-42": 0.011301264109134679
+          }
+        },
+        "subject_consistency": {
+          "derived_ceiling": 0.03,
+          "previous_ceiling": 0.02,
+          "selected_ceiling": 0.03,
+          "six_reference_ranges": {
+            "blossom-42": 0.009483779303166018,
+            "boardwalk-42": 0.015609290043846924,
+            "street-42": 0.02209966582786127
+          }
+        },
+        "temporal_flickering": {
+          "derived_ceiling": 0.02,
+          "previous_ceiling": 0.01,
+          "selected_ceiling": 0.02,
+          "six_reference_ranges": {
+            "blossom-42": 0.00442848205566404,
+            "boardwalk-42": 0.01065362294514971,
+            "street-42": 0.012058710584453514
+          }
+        }
+      },
+      "wbench": {
+        "aesthetic_quality": {
+          "derived_ceiling": 0.025,
+          "previous_ceiling": 0.01,
+          "selected_ceiling": 0.025,
+          "six_reference_ranges": {
+            "blossom-42": 0.008788940906524711,
+            "boardwalk-42": 0.014709691206614361,
+            "street-42": 0.018366435368855738
+          }
+        },
+        "hpsv3_quality": {
+          "derived_ceiling": 0.05,
+          "previous_ceiling": 0.05,
+          "selected_ceiling": 0.05,
+          "six_reference_ranges": {
+            "blossom-42": 0.015114150758072542,
+            "boardwalk-42": 0.039359619234474064,
+            "street-42": 0.038802383950063524
+          }
+        },
+        "imaging_quality": {
+          "derived_ceiling": 0.02,
+          "previous_ceiling": 0.01,
+          "selected_ceiling": 0.02,
+          "six_reference_ranges": {
+            "blossom-42": 0.005886909484863367,
+            "boardwalk-42": 0.0068831596374512305,
+            "street-42": 0.013899133046468282
+          }
+        },
+        "motion_smoothness": {
+          "derived_ceiling": 0.025,
+          "previous_ceiling": 0.01,
+          "selected_ceiling": 0.025,
+          "six_reference_ranges": {
+            "blossom-42": 0.002584220544049609,
+            "boardwalk-42": 0.0007713193804105289,
+            "street-42": 0.017995664156185365
+          }
+        },
+        "temporal_flickering": {
+          "derived_ceiling": 0.025,
+          "previous_ceiling": 0.01,
+          "selected_ceiling": 0.025,
+          "six_reference_ranges": {
+            "blossom-42": 0.007669224458582202,
+            "boardwalk-42": 0.009796740962009887,
+            "street-42": 0.017892964680989665
+          }
+        }
+      }
+    },
+    "margin_fraction": 0.25,
+    "pending_validation": [
+      "fresh final-head CUDA nightly and all weekly/long target profiles",
+      "target-H100 native WBench scoring",
+      "NPU reference calibration on its own platform; no CUDA override applied"
+    ],
+    "round_up_step": 0.005,
+    "rule": "For each continuous dimension, take the maximum six-reference range across scenes, multiply by1.25, round upward to0.005, and retain the larger existing ceiling. This calculation does not set candidate or pixel budgets; their independent reference-only holdout calibration is recorded separately.",
+    "scope": "Reference-only preliminary CUDA nightly ceilings; no candidate scores used. Not a confidence interval. Other CUDA profiles and target H100 WBench scoring need held-out validation. NPU keeps separate existing ceilings until its own calibration. The older WBench reference cohort reserved four H100 slots, while the newer cohort reserved all eight and exposed four; this preliminary reference ceiling is not evidence of final isolated-run acceptance."
+  },
+  "deploy_sha256": "021744799f41f1cdcda6fd2fed86fd5ff5def62463397ac437d9d62506a51339",
+  "evaluator_lock_sha256": "3944139af9027ddbb45f73bcaa14718405b77e15436f301df18b35a5bc16775c",
+  "evaluator_requirements_sha256": "06474312fc6285ca1a0227d36dcb0aab9dffa11ed8d3f135e38a75d50ade7f8a",
+  "hardware": {
+    "cards": 4,
+    "devices": [
+      {
+        "name": "NVIDIA H100 80GB HBM3",
+        "total_bytes": 85017624576
+      },
+      {
+        "name": "NVIDIA H100 80GB HBM3",
+        "total_bytes": 85017624576
+      },
+      {
+        "name": "NVIDIA H100 80GB HBM3",
+        "total_bytes": 85017624576
+      },
+      {
+        "name": "NVIDIA H100 80GB HBM3",
+        "total_bytes": 85017624576
+      }
+    ],
+    "dies": 4,
+    "packages": {
+      "diffusers": "0.40.0",
+      "torch": "2.13.0+cu130",
+      "transformers": "5.14.1",
+      "vllm": "0.31.0"
+    },
+    "platform": "cuda"
+  },
+  "model_revision": "59cccf49f2d2dd27418ae7a04b82b10868d455c2",
+  "reference_cohorts": [
+    {
+      "build_url": "https://buildkite.com/vllm/vllm-omni/builds/17426",
+      "evaluator_device": "NVIDIA H100 80GB HBM3",
+      "generation_reserved_cards": 8,
+      "quality_job_id": "01a1446f-5c0e-4e4a-8b37-3b1a531fe030",
+      "raw_scores_sha256": "101acbdf503ab6f91563aeba2b531356796519e528ab7c44028a5c9fe153e3d6",
+      "reference_scores": {
+        "blossom-42": [
+          {
+            "aesthetic_quality": 0.8130990862846375,
+            "background_consistency": 0.9305589179030987,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7694880599495749,
+            "motion_smoothness": 0.9796959518983875,
+            "subject_consistency": 0.939613218067073,
+            "temporal_flickering": 0.9477358126172832
+          },
+          {
+            "aesthetic_quality": 0.8214132785797119,
+            "background_consistency": 0.9303681189272585,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7619087910202315,
+            "motion_smoothness": 0.9767908138521717,
+            "subject_consistency": 0.9390999912088659,
+            "temporal_flickering": 0.9449010101019167
+          },
+          {
+            "aesthetic_quality": 0.8228815793991089,
+            "background_consistency": 0.9292130670627626,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.771997596212903,
+            "motion_smoothness": 0.980583733638786,
+            "subject_consistency": 0.9452014119059098,
+            "temporal_flickering": 0.9493294921575808
+          }
+        ],
+        "boardwalk-42": [
+          {
+            "aesthetic_quality": 0.6691150665283203,
+            "background_consistency": 0.9586838153230042,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7904589739785505,
+            "motion_smoothness": 0.979329194575329,
+            "subject_consistency": 0.9334461480504325,
+            "temporal_flickering": 0.94596279742671
+          },
+          {
+            "aesthetic_quality": 0.6794388294219971,
+            "background_consistency": 0.9616114512211135,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7926256671641607,
+            "motion_smoothness": 0.9800011844760371,
+            "subject_consistency": 0.9409085606076136,
+            "temporal_flickering": 0.9478472466562309
+          },
+          {
+            "aesthetic_quality": 0.6905967593193054,
+            "background_consistency": 0.9604379349396008,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7954700897024862,
+            "motion_smoothness": 0.9810579014493712,
+            "subject_consistency": 0.9413303848074264,
+            "temporal_flickering": 0.9497282215193206
+          }
+        ],
+        "street-42": [
+          {
+            "aesthetic_quality": 0.47482141852378845,
+            "background_consistency": 0.8904701040572479,
+            "dynamic_degree": 1.0,
+            "imaging_quality": 0.7945558523182099,
+            "motion_smoothness": 0.9565547284481446,
+            "subject_consistency": 0.8811228154774975,
+            "temporal_flickering": 0.9283578760483686
+          },
+          {
+            "aesthetic_quality": 0.4830860495567322,
+            "background_consistency": 0.879547888491334,
+            "dynamic_degree": 1.0,
+            "imaging_quality": 0.7948546889842931,
+            "motion_smoothness": 0.9574416409034705,
+            "subject_consistency": 0.8860473667247957,
+            "temporal_flickering": 0.9294403599757775
+          },
+          {
+            "aesthetic_quality": 0.4647604525089264,
+            "background_consistency": 0.894965163799895,
+            "dynamic_degree": 1.0,
+            "imaging_quality": 0.7970862707302006,
+            "motion_smoothness": 0.9617848124198145,
+            "subject_consistency": 0.9012267162569431,
+            "temporal_flickering": 0.9330842036826937
+          }
+        ]
+      }
+    },
+    {
+      "build_url": "https://buildkite.com/vllm/vllm-omni/builds/17431",
+      "evaluator_device": "NVIDIA H100 80GB HBM3",
+      "generation_reserved_cards": 8,
+      "quality_job_id": "01a1449f-079f-4795-b793-b23b3a34aa66",
+      "raw_scores_sha256": "274c593cf4706365ca2a96171200a354bcbc84f1b7cf842bc461c21103c483e5",
+      "reference_scores": {
+        "blossom-42": [
+          {
+            "aesthetic_quality": 0.8245076537132263,
+            "background_consistency": 0.9289335363051471,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7686568212609122,
+            "motion_smoothness": 0.9795027498905702,
+            "subject_consistency": 0.9357176326027438,
+            "temporal_flickering": 0.9482575771855373
+          },
+          {
+            "aesthetic_quality": 0.816409170627594,
+            "background_consistency": 0.9211107782956933,
+            "dynamic_degree": 1.0,
+            "imaging_quality": 0.7655702241461733,
+            "motion_smoothness": 0.9772272689772081,
+            "subject_consistency": 0.9389146902606267,
+            "temporal_flickering": 0.9449710247563381
+          },
+          {
+            "aesthetic_quality": 0.8226545453071594,
+            "background_consistency": 0.9274948504792542,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.773402831199534,
+            "motion_smoothness": 0.980237512991622,
+            "subject_consistency": 0.9382056702836221,
+            "temporal_flickering": 0.9478287004957012
+          }
+        ],
+        "boardwalk-42": [
+          {
+            "aesthetic_quality": 0.689387857913971,
+            "background_consistency": 0.9643226431197479,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7952452036219824,
+            "motion_smoothness": 0.981461515224491,
+            "subject_consistency": 0.9421354979276657,
+            "temporal_flickering": 0.9537210015689626
+          },
+          {
+            "aesthetic_quality": 0.6906623244285583,
+            "background_consistency": 0.9666004341189601,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7976794033730304,
+            "motion_smoothness": 0.9823603995865566,
+            "subject_consistency": 0.9490554380942794,
+            "temporal_flickering": 0.9566164203718597
+          },
+          {
+            "aesthetic_quality": 0.6876670718193054,
+            "background_consistency": 0.9580021705948004,
+            "dynamic_degree": 0.0,
+            "imaging_quality": 0.7931957619145231,
+            "motion_smoothness": 0.9809584875538325,
+            "subject_consistency": 0.9414073859317964,
+            "temporal_flickering": 0.9505350673899932
+          }
+        ],
+        "street-42": [
+          {
+            "aesthetic_quality": 0.48256611824035645,
+            "background_consistency": 0.8921478015034139,
+            "dynamic_degree": 1.0,
+            "imaging_quality": 0.7959298771632293,
+            "motion_smoothness": 0.9606395757598383,
+            "subject_consistency": 0.9018108152291354,
+            "temporal_flickering": 0.9328676410749847
+          },
+          {
+            "aesthetic_quality": 0.4661608636379242,
+            "background_consistency": 0.8864982027967437,
+            "dynamic_degree": 1.0,
+            "imaging_quality": 0.7988018328588714,
+            "motion_smoothness": 0.9674940599609785,
+            "subject_consistency": 0.9032224813053588,
+            "temporal_flickering": 0.9404165866328221
+          },
+          {
+            "aesthetic_quality": 0.474180668592453,
+            "background_consistency": 0.8826155462184874,
+            "dynamic_degree": 1.0,
+            "imaging_quality": 0.7926961945987597,
+            "motion_smoothness": 0.9561927958518438,
+            "subject_consistency": 0.8812431246042252,
+            "temporal_flickering": 0.9286153232350068
+          }
+        ]
+      }
+    }
+  ],
+  "reference_revision": "ebe2c18271db4fdd12221fbb4def6061e14a9379",
+  "schema_version": 1,
+  "scope": "Reference-only CUDA nightly calibration evidence. This does not establish final-head hardware acceptance or calibrate other profiles/platforms.",
+  "vbench_revision": "fd18b3d055cb0fc6f066ca90fe2c3c8cbb698490",
+  "wbench_reference_cohorts": [
+    {
+      "build_url": "https://buildkite.com/vllm/vllm-omni/builds/17394",
+      "evaluator_device": "NVIDIA L20X",
+      "generation_reserved_cards": 4,
+      "raw_scores_sha256": "decc989072eb13fede3baefdd777e807dbbcaba35b168e4dbef2e3e366f46012",
+      "reference_scores": {
+        "blossom-42": [
+          {
+            "aesthetic_quality": 0.8085547471046446,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8349307201015621,
+            "imaging_quality": 0.6811857477823894,
+            "motion_smoothness": 0.9688209021510817,
+            "temporal_flickering": 0.9181458641501034
+          },
+          {
+            "aesthetic_quality": 0.8064824891090393,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8282416953709295,
+            "imaging_quality": 0.6830886395772298,
+            "motion_smoothness": 0.9691169854026012,
+            "temporal_flickering": 0.9182294882980048
+          },
+          {
+            "aesthetic_quality": 0.8061018411318462,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8277495697507292,
+            "imaging_quality": 0.6832051315307617,
+            "motion_smoothness": 0.9698223269440694,
+            "temporal_flickering": 0.9206979265400007
+          }
+        ],
+        "boardwalk-42": [
+          {
+            "aesthetic_quality": 0.6896912185351053,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8504192277077481,
+            "imaging_quality": 0.7197980066935222,
+            "motion_smoothness": 0.9777894509558788,
+            "temporal_flickering": 0.9283668966854319
+          },
+          {
+            "aesthetic_quality": 0.6953577995300293,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8110596084732741,
+            "imaging_quality": 0.7177646268208822,
+            "motion_smoothness": 0.9773086847507668,
+            "temporal_flickering": 0.9293277216892616
+          },
+          {
+            "aesthetic_quality": 0.6984590403238932,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8325942473542672,
+            "imaging_quality": 0.7193088849385579,
+            "motion_smoothness": 0.9779766561798489,
+            "temporal_flickering": 0.9368636636173024
+          }
+        ],
+        "street-42": [
+          {
+            "aesthetic_quality": 0.48368048191070556,
+            "dynamic_degree": 1.0,
+            "hpsv3_quality": 0.9134334082541348,
+            "imaging_quality": 0.7324947725931803,
+            "motion_smoothness": 0.9444998080578071,
+            "temporal_flickering": 0.8942429037655101
+          },
+          {
+            "aesthetic_quality": 0.4842900013923645,
+            "dynamic_degree": 1.0,
+            "hpsv3_quality": 0.9008543120451843,
+            "imaging_quality": 0.7254427235921224,
+            "motion_smoothness": 0.944031366262254,
+            "temporal_flickering": 0.8973958482929304
+          },
+          {
+            "aesthetic_quality": 0.486151282787323,
+            "dynamic_degree": 1.0,
+            "hpsv3_quality": 0.8943545945991483,
+            "imaging_quality": 0.7291483910878499,
+            "motion_smoothness": 0.9465301139977421,
+            "temporal_flickering": 0.8999538646024816
+          }
+        ]
+      },
+      "scope": "H100-generated videos; independently scored with pinned WBench on L20X; target-H100 scoring validation remains pending",
+      "wbench_revision": "fdd7e74c400d7b5f8310e07dd94c129eaf6c6f61"
+    },
+    {
+      "build_url": "https://buildkite.com/vllm/vllm-omni/builds/17431",
+      "evaluator_device": "NVIDIA L20X",
+      "generation_reserved_cards": 8,
+      "raw_scores_sha256": "c2634fe2022ebd4abf98227fa7e5dd031a6ef7135ca20ad6013771fede5acef1",
+      "reference_scores": {
+        "blossom-42": [
+          {
+            "aesthetic_quality": 0.8025863019625346,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8384112811468099,
+            "imaging_quality": 0.6802690416971842,
+            "motion_smoothness": 0.9690958283569524,
+            "temporal_flickering": 0.917606637992111
+          },
+          {
+            "aesthetic_quality": 0.8041338801383973,
+            "dynamic_degree": 1.0,
+            "hpsv3_quality": 0.8372021901452248,
+            "imaging_quality": 0.6861559511820475,
+            "motion_smoothness": 0.9672381064000198,
+            "temporal_flickering": 0.9130287020814185
+          },
+          {
+            "aesthetic_quality": 0.8113752428690593,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8232971303887373,
+            "imaging_quality": 0.6840494092305501,
+            "motion_smoothness": 0.9685262816948046,
+            "temporal_flickering": 0.9170685263241038
+          }
+        ],
+        "boardwalk-42": [
+          {
+            "aesthetic_quality": 0.6996754574775697,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8433663041132748,
+            "imaging_quality": 0.7171819801330567,
+            "motion_smoothness": 0.9774988497826543,
+            "temporal_flickering": 0.931474079805262
+          },
+          {
+            "aesthetic_quality": 0.7044009097417196,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8454582149489053,
+            "imaging_quality": 0.7218591295878092,
+            "motion_smoothness": 0.9780630837758054,
+            "temporal_flickering": 0.9354734158983418
+          },
+          {
+            "aesthetic_quality": 0.6973098929723104,
+            "dynamic_degree": 0.0,
+            "hpsv3_quality": 0.8261187737308949,
+            "imaging_quality": 0.714975969950358,
+            "motion_smoothness": 0.9772917643953949,
+            "temporal_flickering": 0.9270669226552926
+          }
+        ],
+        "street-42": [
+          {
+            "aesthetic_quality": 0.5020469172795613,
+            "dynamic_degree": 1.0,
+            "hpsv3_quality": 0.9115739917617114,
+            "imaging_quality": 0.7300586827596028,
+            "motion_smoothness": 0.9444188953272674,
+            "temporal_flickering": 0.9022380978453393
+          },
+          {
+            "aesthetic_quality": 0.49536964893341057,
+            "dynamic_degree": 1.0,
+            "hpsv3_quality": 0.9148117298672753,
+            "imaging_quality": 0.7393418566385906,
+            "motion_smoothness": 0.9563152879615898,
+            "temporal_flickering": 0.9121358684464997
+          },
+          {
+            "aesthetic_quality": 0.4879542529582977,
+            "dynamic_degree": 1.0,
+            "hpsv3_quality": 0.9331569785492119,
+            "imaging_quality": 0.7283145847320558,
+            "motion_smoothness": 0.9383196238054045,
+            "temporal_flickering": 0.8975757299685011
+          }
+        ]
+      },
+      "scope": "H100-generated videos; independently scored with pinned WBench on L20X; target-H100 scoring validation remains pending",
+      "wbench_revision": "fdd7e74c400d7b5f8310e07dd94c129eaf6c6f61"
+    }
+  ],
+  "workload": {
+    "cards": 4,
+    "cases": [
+      {
+        "camera_pattern": "forward",
+        "id": "boardwalk-42",
+        "image": "2560px-Gfp-wisconsin-madison-the-nature-boardwalk",
+        "prompt": "The camera moves through a wooden boardwalk in a green wetland.",
+        "seed": 42
+      },
+      {
+        "camera_pattern": "orbit",
+        "id": "blossom-42",
+        "image": "cherry_blossom",
+        "prompt": "Cherry blossoms in a quiet park, detailed natural scenery.",
+        "seed": 42
+      },
+      {
+        "camera_pattern": "hold",
+        "id": "street-42",
+        "image": "stop_sign",
+        "prompt": "A street corner with a stop sign and surrounding buildings.",
+        "seed": 42
+      }
+    ],
+    "chunk_timeout_s": 120,
+    "deploy_config": "benchmarks/lingbot_world/configs/usp4_compiled.yaml",
+    "dies": 4,
+    "first_chunk_timeout_s": 900,
+    "height": 480,
+    "lifecycle_checks": true,
+    "max_reference_cv": 0.03,
+    "memory_growth_budget_bytes": 268435456,
+    "min_steady_samples": 33,
+    "model_revision": "59cccf49f2d2dd27418ae7a04b82b10868d455c2",
+    "mux_fps": 16,
+    "num_chunks": 40,
+    "performance_regression_fraction": 0.05,
+    "platform": "cuda",
+    "precision": "bfloat16",
+    "precision_atol": 0.0,
+    "precision_rtol": 0.0,
+    "precision_timeout_s": 600,
+    "reference_revision": "ebe2c18271db4fdd12221fbb4def6061e14a9379",
+    "reserved_cards": 8,
+    "schema_version": 1,
+    "startup_timeout_s": 1200,
+    "target_fps": 12,
+    "transient_noise_sigma": 3.0,
+    "warmup_chunks": 6,
+    "warmup_num_chunks": 8,
+    "width": 832
+  }
+}

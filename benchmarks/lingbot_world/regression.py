@@ -299,6 +299,55 @@ def check_quality(
     return {"passed": not violations, "violations": violations, "dimensions": dimensions}
 
 
+def verify_quality_calibration_contract(contract: Mapping[str, Any], calibration: Mapping[str, Any]) -> None:
+    """Reject reuse of numerical noise budgets after runtime/model changes.
+
+    New scenes and rollout lengths remain held-out test inputs. Hardware,
+    deployment, precision and model/runtime revisions must match calibration.
+    """
+    if contract["deploy_sha256"] != calibration["deploy_sha256"]:
+        raise RegressionError("Quality calibration deployment changed")
+    for field in ("reference_revision", "model_revision", "height", "width", "precision"):
+        if contract["profile"][field] != calibration["workload"][field]:
+            raise RegressionError(f"Quality calibration profile changed: {field}")
+    for field in ("platform", "cards", "dies", "devices", "packages"):
+        if contract["hardware"][field] != calibration["hardware"][field]:
+            raise RegressionError(f"Quality calibration hardware/runtime changed: {field}")
+
+
+def check_binary_activity(
+    reference: Sequence[float], candidate: Sequence[float], *, tolerance: float
+) -> dict[str, Any]:
+    """Compare native binary activity incidence across independent starts.
+
+    A per-video 0/1 classification has no intermediate score: applying a
+    fractional tolerance to each video rejects any classification change.
+    Preserve every classification and apply that budget to the three-trial
+    activity rate instead. This is a fixed count budget, not a confidence test.
+    """
+    if len(reference) != 3 or len(candidate) != 3:
+        raise RegressionError("Binary activity requires three reference and candidate starts")
+    rows = [[number(value, "binary activity") for value in values] for values in (reference, candidate)]
+    if any(value not in (0.0, 1.0) for values in rows for value in values):
+        raise RegressionError("Native binary activity classifications must be exactly zero or one")
+    tolerance = number(tolerance, "binary activity tolerance")
+    if tolerance >= 1:
+        raise RegressionError("Binary activity tolerance must reject a complete activity change")
+    reference_count, candidate_count = [int(sum(values)) for values in rows]
+    allowed_count_change = math.floor(tolerance * 3)
+    passed = abs(candidate_count - reference_count) <= allowed_count_change
+    return {
+        "passed": passed,
+        "protocol": "binary activity incidence over three independent starts",
+        "reference": rows[0],
+        "candidate": rows[1],
+        "reference_active_count": reference_count,
+        "candidate_active_count": candidate_count,
+        "allowed_count_change": allowed_count_change,
+        "candidate_tolerance": tolerance,
+    }
+
+
 def check_video_precision(
     reference: Sequence[Mapping[str, Any]],
     candidate: Mapping[str, Any],

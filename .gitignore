@@ -248,6 +248,7 @@ datasets/
 !tests/dfx/lingbot_world/*.lock.json
 !tests/dfx/lingbot_world/quality.json
 !tests/dfx/lingbot_world/configs/*.json
+!tests/dfx/lingbot_world/calibration/*.json
 !apps/ComfyUI-vLLM-Omni/example_workflows/*.json
 !apps/ComfyUI-ABC-Preview/example_workflows/*.json
 # Omni-DuplexEval CI config JSON (e.g. accuracy/omni_duplex_eval)

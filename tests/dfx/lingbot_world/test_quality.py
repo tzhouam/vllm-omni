@@ -13,11 +13,13 @@ import pytest
 
 from benchmarks.lingbot_world.regression import (
     RegressionError,
+    check_binary_activity,
     check_quality,
     check_video_precision,
     read_json,
     sha256,
     verify_environment,
+    verify_quality_calibration_contract,
     write_json,
 )
 from benchmarks.lingbot_world.video_quality import compare_video_pair, evaluate_video_quality
@@ -46,6 +48,14 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         if sha256(generation / relative) != digest:
             raise RegressionError(f"Generation artifact checksum mismatch: {relative}")
     limits = read_json(ROOT / "tests/dfx/lingbot_world/quality.json")
+    candidate_tolerances = limits["candidate_tolerances"][settings["platform"]]
+    pixel_budgets = limits["pixel_budgets"][settings["platform"]]
+    write_json(output / "quality-policy.json", limits)
+    write_json(output / "profile.json", manifest["contract"]["profile"])
+    if settings["platform"] == "cuda":
+        calibration = read_json(ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json")
+        write_json(output / "reference-calibration.json", calibration)
+        verify_quality_calibration_contract(manifest["contract"], calibration)
     lock = read_json(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json")
     evaluator_root = Path(os.environ["LINGBOT_EVALUATOR_ROOT"]).resolve()
     python = Path(os.environ["LINGBOT_EVALUATOR_PYTHON"])
@@ -69,6 +79,9 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     report = {
         "passed": False,
         "generation": str(generation),
+        "generation_manifest_sha256": sha256(generation / "generation.json"),
+        "generation_platform": settings["platform"],
+        "quality_policy_sha256": sha256(ROOT / "tests/dfx/lingbot_world/quality.json"),
         "suites": {},
         "pixels": {},
         "evaluator_packages": packages,
@@ -84,8 +97,9 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 for repeat in range(3):
                     path = generation / role / str(repeat) / case["id"] / "rollout.mp4"
                     videos[f"case{index}_{role}{repeat}"] = path
+        evaluations = {}
         for suite in ("vbench", "wbench"):
-            tolerances = limits[suite]
+            tolerances = candidate_tolerances[suite]
             evaluation = evaluate_video_quality(
                 videos,
                 output / suite,
@@ -100,19 +114,40 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 raise RegressionError(f"{suite} evaluation failed: {evaluation['errors']}")
             if suite == "wbench" and evaluation["protocol"].get("dynamic_degree_backend") != "raft":
                 raise RegressionError("WBench must use the pinned RAFT backend; fallback scores are not comparable")
+            evaluations[suite] = evaluation
+        # Retain both native score populations even when one reference
+        # calibration fails. Every failed calibration still blocks acceptance.
+        for suite, evaluation in evaluations.items():
+            binary_dimensions = limits["binary_activity_dimensions"]
+            tolerances = {
+                name: value for name, value in candidate_tolerances[suite].items() if name not in binary_dimensions
+            }
             cases = {}
             for index, case in enumerate(settings["cases"]):
-                reference = [evaluation["scores"][f"case{index}_reference{repeat}"] for repeat in range(3)]
-                checks = [
-                    check_quality(
-                        reference,
-                        evaluation["scores"][f"case{index}_candidate{repeat}"],
-                        tolerances=tolerances,
-                        activity_dimensions=("dynamic_degree",),
-                        max_reference_spreads=limits["max_reference_spreads"][suite],
-                    )
-                    for repeat in range(3)
-                ]
+                reference_scores = [evaluation["scores"][f"case{index}_reference{repeat}"] for repeat in range(3)]
+                reference = [{name: row[name] for name in tolerances} for row in reference_scores]
+                checks = []
+                for dimension in binary_dimensions:
+                    try:
+                        check = check_binary_activity(
+                            [row[dimension] for row in reference_scores],
+                            [evaluation["scores"][f"case{index}_candidate{repeat}"][dimension] for repeat in range(3)],
+                            tolerance=candidate_tolerances[suite][dimension],
+                        )
+                    except RegressionError as error:
+                        check = {"passed": False, "error": str(error)}
+                    checks.append({"dimension": dimension, **check})
+                for repeat in range(3):
+                    try:
+                        check = check_quality(
+                            reference,
+                            {name: evaluation["scores"][f"case{index}_candidate{repeat}"][name] for name in tolerances},
+                            tolerances=tolerances,
+                            max_reference_spreads=limits["max_reference_spreads"][settings["platform"]][suite],
+                        )
+                    except RegressionError as error:
+                        check = {"passed": False, "error": str(error)}
+                    checks.append({"candidate_repeat": repeat, **check})
                 cases[case["id"]] = checks
             report["suites"][suite] = cases
         for case in settings["cases"]:
@@ -159,9 +194,9 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                     check_video_precision(
                         reference,
                         row,
-                        psnr_drop_db=limits["psnr_drop_db"],
+                        psnr_drop_db=pixel_budgets["psnr_drop_db"],
                         min_psnr_db=limits["min_psnr_db"],
-                        ssim_drop=limits["ssim_drop"],
+                        ssim_drop=pixel_budgets["ssim_drop"],
                     )
                     for row in candidate
                 ],
