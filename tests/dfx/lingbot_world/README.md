@@ -291,8 +291,9 @@ A failed placeholder JUnit report is written before provisioning so a forced
 SIGKILL still leaves failure evidence. Pytest replaces it on completion; normal
 failure and SIGTERM also retain structured launcher errors.
 Provisioning records host available/total RAM, cgroup membership, raw memory
-limits/peaks/pressure counters and the resolved checkpoint filesystem in
-`model.json`. Pytest failure JSON captures fresh kernel memory/pressure evidence
+limits/peaks/pressure counters, available CPU quota/throttling/pressure counters
+and the resolved checkpoint filesystem in `model.json`.
+Pytest failure JSON captures fresh kernel resource evidence
 after cleanup; peak counters can still expose load-time pressure. Kernel paths
 remain explicit because cgroup namespace layouts differ. Unavailable interfaces
 remain absent/null; read errors are retained without replacing the original

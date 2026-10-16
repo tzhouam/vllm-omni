@@ -54,6 +54,17 @@ def test_resource_snapshot_retains_cgroup_limits_and_peaks(
     (group / limit_name).write_text("8589934592\n")
     (group / peak_name).write_text("7516192768\n")
     (group / "memory.pressure").write_text("some avg10=12.00 total=1234\n")
+    cpu = (
+        {
+            "cpu.max": "3200000 100000",
+            "cpu.stat": "nr_periods 100\nnr_throttled 12\nthrottled_usec 456",
+            "cpu.pressure": "some avg10=8.00 total=5678",
+        }
+        if membership.startswith("0::")
+        else {}
+    )
+    for name, value in cpu.items():
+        (group / name).write_text(value + "\n")
     monkeypatch.setattr(resources, "_PROC_CGROUP", proc)
     monkeypatch.setattr(resources, "_CGROUP_ROOT", root)
 
@@ -64,6 +75,8 @@ def test_resource_snapshot_retains_cgroup_limits_and_peaks(
     assert kernel[str(group / limit_name)] == "8589934592"
     assert kernel[str(group / peak_name)] == "7516192768"
     assert "avg10=12.00" in kernel[str(group / "memory.pressure")]
+    for name, value in cpu.items():
+        assert kernel[str(group / name)] == value
 
 
 def test_resource_snapshot_resolves_weight_symlinks_and_keeps_only_mount_metadata(tmp_path, monkeypatch):
