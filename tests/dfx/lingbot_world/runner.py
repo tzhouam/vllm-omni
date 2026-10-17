@@ -34,13 +34,20 @@ from benchmarks.lingbot_world.regression import (
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def server_environment(source: Path) -> dict[str, str]:
+def server_environment(source: Path, *, cpu_threads: int | None = None) -> dict[str, str]:
     # Keep CANN's compiler modules (tbe/te) and any other backend import paths.
     # The selected checkout must still win over an inherited candidate path.
     paths = [str(source)]
     if inherited := os.environ.get("PYTHONPATH"):
         paths.append(inherited)
-    return {"PYTHONPATH": os.pathsep.join(paths), "VLLM_WORKER_MULTIPROC_METHOD": "spawn"}
+    environment = {"PYTHONPATH": os.pathsep.join(paths), "VLLM_WORKER_MULTIPROC_METHOD": "spawn"}
+    if cpu_threads is not None:
+        if type(cpu_threads) is not int or cpu_threads < 1:
+            raise RegressionError("CPU threads per worker must be a positive integer")
+        environment.update(
+            {name: str(cpu_threads) for name in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")}
+        )
+    return environment
 
 
 def server_arguments(settings: dict[str, Any]) -> list[str]:
@@ -169,6 +176,7 @@ def _capture(source: Path, model: Path, destination: Path, settings: dict[str, A
         check=True,
         timeout=settings["precision_timeout_s"],
         cwd=source,
+        env={**os.environ, **server_environment(source, cpu_threads=settings.get("cpu_threads_per_worker"))},
     )
 
 
@@ -304,7 +312,7 @@ def generate(settings: dict[str, Any], *, measurement_repeat: int | None = None)
                 str(model),
                 server_arguments(settings),
                 source_root=str(source),
-                env_dict=server_environment(source),
+                env_dict=server_environment(source, cpu_threads=settings.get("cpu_threads_per_worker")),
                 startup_timeout=settings["startup_timeout_s"],
             ) as server:
                 process = server.proc

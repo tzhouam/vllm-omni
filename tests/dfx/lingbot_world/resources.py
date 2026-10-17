@@ -22,6 +22,13 @@ _MEMORY_FILES = (
     "cpu.max",
     "cpu.stat",
     "cpu.pressure",
+    "cpu.cfs_quota_us",
+    "cpu.cfs_period_us",
+    "cpu.shares",
+    "cpuacct.usage",
+    "cpuacct.stat",
+    "cpuset.cpus",
+    "cpuset.effective_cpus",
     "memory.limit_in_bytes",
     "memory.usage_in_bytes",
     "memory.max_usage_in_bytes",
@@ -43,7 +50,8 @@ def collect_resources(model_weight: Path | None = None) -> dict[str, object]:
             return None
 
     membership = read(_PROC_CGROUP)
-    roots = {_CGROUP_ROOT, _CGROUP_ROOT / "memory"}
+    cpu_roots = {_CGROUP_ROOT / name for name in ("cpu", "cpuacct", "cpu,cpuacct")}
+    roots = {_CGROUP_ROOT, _CGROUP_ROOT / "memory", _CGROUP_ROOT / "cpuset", *cpu_roots}
     for row in (membership or "").splitlines():
         fields = row.split(":", 2)
         if len(fields) != 3:
@@ -56,6 +64,10 @@ def collect_resources(model_weight: Path | None = None) -> dict[str, object]:
             roots.add(_CGROUP_ROOT / path.relative_to("/"))
         elif "memory" in controllers.split(","):
             roots.add(_CGROUP_ROOT / "memory" / path.relative_to("/"))
+        if {"cpu", "cpuacct"}.intersection(controllers.split(",")):
+            roots.update(root / path.relative_to("/") for root in cpu_roots)
+        if "cpuset" in controllers.split(","):
+            roots.add(_CGROUP_ROOT / "cpuset" / path.relative_to("/"))
     kernel = {}
     for root in sorted(roots):
         for name in _MEMORY_FILES:

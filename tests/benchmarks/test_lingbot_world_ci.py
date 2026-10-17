@@ -102,6 +102,34 @@ def test_resource_snapshot_retains_cgroup_limits_and_peaks(
         assert kernel[str(group / name)] == value
 
 
+@pytest.mark.parametrize("relative", ["", "pod/container"])
+def test_resource_snapshot_retains_v1_cpu_quota_and_throttling(tmp_path: Path, monkeypatch, relative: str):
+    from tests.dfx.lingbot_world import resources
+
+    proc = tmp_path / "cgroup"
+    proc.write_text("3:cpu,cpuacct:/pod/container\n2:cpuset:/pod/container\n")
+    root = tmp_path / "controllers"
+    cpu = root / "cpu,cpuacct" / relative
+    cpuset = root / "cpuset" / relative
+    cpu.mkdir(parents=True)
+    cpuset.mkdir(parents=True)
+    fields = {
+        cpu / "cpu.cfs_quota_us": "3200000",
+        cpu / "cpu.cfs_period_us": "100000",
+        cpu / "cpu.stat": "nr_periods 100\nnr_throttled 81\nthrottled_time 123456789",
+        cpu / "cpuacct.usage": "987654321",
+        cpuset / "cpuset.cpus": "0-63",
+    }
+    for path, value in fields.items():
+        path.write_text(value + "\n")
+    monkeypatch.setattr(resources, "_PROC_CGROUP", proc)
+    monkeypatch.setattr(resources, "_CGROUP_ROOT", root)
+    kernel = resources.collect_resources()["kernel_memory"]
+    assert isinstance(kernel, dict)
+    for path, value in fields.items():
+        assert kernel[str(path)] == value
+
+
 def test_resource_snapshot_resolves_weight_symlinks_and_keeps_only_mount_metadata(tmp_path, monkeypatch):
     from tests.dfx.lingbot_world import resources
 
@@ -333,6 +361,53 @@ def test_reference_server_keeps_backend_import_paths(tmp_path: Path, monkeypatch
         timeout=30,
     )
     assert result.stdout.strip() == "reference backend"
+
+
+def test_fixed_worker_threads_apply_before_torch_import(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("OMP_NUM_THREADS", "19")
+    monkeypatch.setenv("MKL_NUM_THREADS", "23")
+    monkeypatch.setenv("OPENBLAS_NUM_THREADS", "29")
+    env = server_environment(tmp_path / "reference", cpu_threads=1)
+    assert all(env[name] == "1" for name in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"))
+    result = subprocess.run(
+        [sys.executable, "-c", "import torch; print(torch.get_num_threads())"],
+        env={**os.environ, **env},
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=60,
+    )
+    assert result.stdout.strip() == "1"
+
+
+@pytest.mark.parametrize("threads", [0, True])
+def test_invalid_worker_thread_count_fails_before_launch(tmp_path: Path, threads):
+    with pytest.raises(RegressionError, match="positive integer"):
+        server_environment(tmp_path, cpu_threads=threads)
+
+
+@pytest.mark.parametrize("role", ["reference", "candidate"])
+def test_fixed_worker_threads_also_reach_precision_capture(tmp_path: Path, monkeypatch, role: str):
+    from tests.dfx.lingbot_world import runner
+
+    calls = []
+    monkeypatch.setattr(runner.subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs)))
+    source = tmp_path / role
+    runner._capture(
+        source,
+        tmp_path / "model",
+        tmp_path / "precision.npz",
+        {
+            "height": 480,
+            "width": 832,
+            "precision_timeout_s": 600,
+            "cpu_threads_per_worker": 1,
+        },
+    )
+    assert len(calls) == 1
+    options = calls[0][1]
+    assert options["cwd"] == source
+    assert all(options["env"][name] == "1" for name in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"))
 
 
 def evaluator_repository(root: Path):
