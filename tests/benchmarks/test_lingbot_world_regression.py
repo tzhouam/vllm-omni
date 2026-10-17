@@ -347,6 +347,8 @@ def test_invalid_p95_reference_cv_ceiling_fails_closed(ceiling):
         ("cuda", "ttfc_ms", "missing", False),
         ("cuda", "ttfc_ms", "changed", False),
         ("cuda", "ttfc_ms", "missing", True),
+        ("cuda", "ttfc_ms", "warmup_changed", False),
+        ("cuda", "ttfc_ms", "warmup_missing", False),
     ],
 )
 def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(
@@ -375,6 +377,10 @@ def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(
     output = tmp_path / "output"
     profile = read_json(root / f"configs/{platform}_nightly.json")
     profile["cases"] = profile["cases"][:1]
+    if calibration_state == "warmup_changed":
+        profile["warmup_num_chunks"] += 1
+    elif calibration_state == "warmup_missing":
+        del profile["warmup_num_chunks"]
     contract = {
         "profile": profile,
         "hardware": calibration["hardware"] if platform == "cuda" else {"platform": "npu"},
@@ -415,7 +421,8 @@ def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(
     assert evidence.exists() is (platform == "cuda" and calibrated)
     if not calibrated:
         assert report["cases"][case]["baseline"] is None and report["cases"][case]["checks"] == []
-        assert "engine environment" in report["cases"][case]["calibration_error"]
+        expected_error = "warmup_num_chunks" if calibration_state.startswith("warmup_") else "engine environment"
+        assert expected_error in report["cases"][case]["calibration_error"]
         assert read_json(output / "calibration-error.json")["reference_record_sha256"] == sha256(calibration_path)
     elif platform == "cuda":
         assert read_json(evidence)["reference_record_sha256"] == sha256(calibration_path)
@@ -726,6 +733,10 @@ def test_ssim_budget_covers_independent_reference_holdouts_and_remains_bounded()
         ("profile", "height"),
         ("profile", "width"),
         ("profile", "precision"),
+        ("profile", "target_fps"),
+        ("profile", "mux_fps"),
+        ("profile", "warmup_chunks"),
+        ("profile", "warmup_num_chunks"),
         ("hardware", "platform"),
         ("hardware", "cards"),
         ("hardware", "dies"),
@@ -752,6 +763,24 @@ def test_quality_calibration_cannot_be_reused_after_numerical_contract_changes(g
     (changed if group is None else changed[group])[field] = "unreviewed change"
     with pytest.raises(RegressionError, match="Reference calibration"):
         verify_reference_calibration_contract(changed, record)
+
+
+@pytest.mark.parametrize("field", ["target_fps", "mux_fps", "warmup_chunks", "warmup_num_chunks"])
+def test_reference_calibration_rejects_unrecorded_playback_or_warmup_policy(field):
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    # Synthetic fixtures only: historical calibration provenance is not changed.
+    record["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    contract = {
+        "deploy_sha256": record["deploy_sha256"],
+        "profile": copy.deepcopy(record["workload"]),
+        "hardware": record["hardware"],
+        "engine_environment": dict(_RECORDED_ENGINE_ENVIRONMENT),
+    }
+    del record["workload"][field]
+    del contract["profile"][field]
+    with pytest.raises(RegressionError, match=f"Reference calibration profile changed: {field}"):
+        verify_reference_calibration_contract(contract, record)
 
 
 def test_reference_quality_spread_does_not_widen_candidate_budget():

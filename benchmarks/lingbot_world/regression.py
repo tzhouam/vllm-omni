@@ -343,12 +343,27 @@ def verify_reference_calibration_contract(contract: Mapping[str, Any], calibrati
     """Reject reuse of reference-noise budgets after runtime/model changes.
 
     New scenes and rollout lengths remain held-out test inputs. Hardware,
-    deployment, precision and model/runtime revisions must match calibration.
+    deployment, precision, playback/warmup policy and model/runtime revisions
+    must match calibration.
     """
     if contract["deploy_sha256"] != calibration["deploy_sha256"]:
         raise RegressionError("Reference calibration deployment changed")
-    for field in ("reference_revision", "model_revision", "height", "width", "precision"):
-        if contract["profile"][field] != calibration["workload"][field]:
+    for field in (
+        "reference_revision",
+        "model_revision",
+        "height",
+        "width",
+        "precision",
+        "target_fps",
+        "mux_fps",
+        "warmup_chunks",
+        "warmup_num_chunks",
+    ):
+        if (
+            field not in contract["profile"]
+            or field not in calibration["workload"]
+            or contract["profile"][field] != calibration["workload"][field]
+        ):
             raise RegressionError(f"Reference calibration profile changed: {field}")
     for field in ("platform", "cards", "dies", "devices", "packages"):
         if contract["hardware"][field] != calibration["hardware"][field]:

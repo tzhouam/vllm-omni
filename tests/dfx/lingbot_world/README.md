@@ -519,6 +519,11 @@ with string keys and values matching the measured contract. Missing or changed
 settings reject reuse, including when both records omit the field. Historical
 records without recorded switches therefore remain diagnostic inputs until
 replacement reference cohorts establish their provenance.
+Reference-noise calibration also requires recorded and matching `target_fps`,
+`mux_fps`, `warmup_chunks` and `warmup_num_chunks`. Changing playback or either
+warmup policy invalidates calibration; missing fields cannot establish a match.
+Scene/seed cases and rollout lengths remain held-out inputs under the same
+runtime and playback/warmup policy.
 Fixed quality populations also require every reference pixel summary to record
 `pixel_environment.packages` matching the verified evaluator's NumPy, OpenCV and
 scikit-image versions. Missing or changed decoder metadata rejects reuse.
