@@ -244,6 +244,13 @@ same 25% reserve and 0.005 rounding rule to these target-H100 references yields
 either value. The calibration record retains the nine reference HPSv3 scores,
 video/score hashes and evaluator provenance. The original failed job remains
 failed; a fresh independent target-H100 campaign must validate this calibration.
+The first completed target-H100 600-chunk WBench reference population also
+has imaging-quality range 0.02171683116488965, above its preliminary 0.02
+reference ceiling. The same reference-only rule yields 0.03; the candidate
+imaging tolerance stays 0.01 and NPU limits stay separate. The calibration
+record retains the three reference scores, actual video hashes, frozen source,
+long-profile hash and native evaluator provenance. The ongoing independent
+long campaign is the holdout; these calibration inputs do not accept it.
 Every weekly/long profile also
 needs held-out target validation. NPU retains its existing separate ceilings
 until its own reference campaign completes. Reference ceilings must be verified on the target evaluator;
