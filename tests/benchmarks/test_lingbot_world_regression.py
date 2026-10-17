@@ -31,6 +31,11 @@ from benchmarks.lingbot_world.workload import ChunkRecord, compute_metrics
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 
+_RECORDED_ENGINE_ENVIRONMENT = {
+    "AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH": "0",
+    "VLLM_OMNI_AR_DIFFUSION_KV_GATHER": "0",
+}
+
 
 def document(interval=0.5, num_chunks=40):
     records = [ChunkRecord(i, (i + 1) * interval, interval, 1024, 9 if i == 0 else 12) for i in range(num_chunks)]
@@ -331,23 +336,49 @@ def test_invalid_p95_reference_cv_ceiling_fails_closed(ceiling):
         calibrate([row] * 3, contract={}, reference_revision="a" * 40, p95_max_cv=ceiling)
 
 
-@pytest.mark.parametrize("platform", ["cuda", "npu"])
-@pytest.mark.parametrize("metric", ["ttfc_ms", "p95_ms"])
-def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(tmp_path, platform, metric):
+@pytest.mark.parametrize(
+    "platform,metric,calibration_state,precision_damage",
+    [
+        ("cuda", "ttfc_ms", "matching", False),
+        ("cuda", "p95_ms", "matching", False),
+        ("npu", "ttfc_ms", "matching", False),
+        ("npu", "p95_ms", "matching", False),
+        ("cuda", "ttfc_ms", "missing", False),
+        ("cuda", "ttfc_ms", "changed", False),
+        ("cuda", "ttfc_ms", "missing", True),
+    ],
+)
+def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(
+    tmp_path, monkeypatch, platform, metric, calibration_state, precision_damage
+):
     import numpy as np
 
     from benchmarks.lingbot_world.precision import save_tensor_sample
-    from tests.dfx.lingbot_world.runner import _finalize_measurements
+    from tests.dfx.lingbot_world import runner
 
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    calibration_path = root / "calibration/cuda_nightly_reference.json"
-    calibration = read_json(calibration_path)
+    calibration = read_json(root / "calibration/cuda_nightly_reference.json")
+    # This repository and calibration are synthetic fixtures, not measurements.
+    calibration["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    calibration["ttfc_calibration"]["selected_floor_ms"] = 220
+    calibration["p95_reference_cv_calibration"]["selected_ceiling"] = 0.045
+    if calibration_state == "missing":
+        del calibration["engine_environment"]
+    elif calibration_state == "changed":
+        calibration["engine_environment"]["VLLM_OMNI_AR_DIFFUSION_KV_GATHER"] = "1"
+    source = tmp_path / "repository"
+    calibration_path = source / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json"
+    write_json(calibration_path, calibration)
+    monkeypatch.setattr(runner, "ROOT", source)
+    monkeypatch.setattr(runner, "git_revision", lambda path: "b" * 40)
+    output = tmp_path / "output"
     profile = read_json(root / f"configs/{platform}_nightly.json")
     profile["cases"] = profile["cases"][:1]
     contract = {
         "profile": profile,
         "hardware": calibration["hardware"] if platform == "cuda" else {"platform": "npu"},
         "deploy_sha256": sha256(Path(__file__).resolve().parents[2] / profile["deploy_config"]),
+        "engine_environment": dict(_RECORDED_ENGINE_ENVIRONMENT),
     }
     case = profile["cases"][0]["id"]
     row = performance_metrics(document(), num_chunks=40, min_steady=30)
@@ -355,25 +386,41 @@ def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(
     for role in records:
         for repeat in range(3):
             save_tensor_sample(
-                tmp_path / role / str(repeat) / "precision.npz",
+                output / role / str(repeat) / "precision.npz",
                 inputs={"latent": np.ones(2)},
-                outputs={"decoded": np.ones(2)},
+                outputs={
+                    "decoded": np.ones(2) * (2 if precision_damage and role == "candidate" and repeat == 0 else 1)
+                },
             )
+            directory = output / role / str(repeat) / case
+            directory.mkdir()
+            (directory / "rollout.mp4").write_bytes(b"synthetic media; decoding is covered separately")
             if metric == "ttfc_ms":
                 measured = dict(row, ttfc_ms=1000 if role == "reference" else 1100)
             else:
                 measured = dict(row, p95_ms=(800, 850, 880)[repeat] if role == "reference" else 880, p99_ms=1000)
             records[role].append({case: measured})
-    settings = {**profile, "output": tmp_path}
-    report = _finalize_measurements(settings, contract, records)
-    assert report["passed"] is (platform == "cuda")
-    evidence = tmp_path / ("ttfc-calibration.json" if metric == "ttfc_ms" else "p95-cv-calibration.json")
-    assert evidence.exists() is (platform == "cuda")
-    if platform == "cuda":
+    settings = {**profile, "output": output}
+    write_json(output / "progress.json", {"records": records, "contract": contract})
+    report = runner._finalize_measurements(settings, contract, records)
+    calibrated = calibration_state == "matching"
+    assert report["passed"] is (platform == "cuda" and calibrated and not precision_damage)
+    assert len(report["precision"]) == 7
+    assert any(row["status"] != "passed" for row in report["precision"]) is precision_damage
+    assert len(report["artifacts"]) == 12
+    assert read_json(output / "generation.json") == report
+    assert read_json(output / "progress.json")["records"] == records
+    evidence = output / ("ttfc-calibration.json" if metric == "ttfc_ms" else "p95-cv-calibration.json")
+    assert evidence.exists() is (platform == "cuda" and calibrated)
+    if not calibrated:
+        assert report["cases"][case]["baseline"] is None and report["cases"][case]["checks"] == []
+        assert "engine environment" in report["cases"][case]["calibration_error"]
+        assert read_json(output / "calibration-error.json")["reference_record_sha256"] == sha256(calibration_path)
+    elif platform == "cuda":
         assert read_json(evidence)["reference_record_sha256"] == sha256(calibration_path)
         limit = report["cases"][case]["baseline"]["limits"][metric]
         records["candidate"][0][case][metric] = limit["value"] + 1
-        assert not _finalize_measurements(settings, contract, records)["passed"]
+        assert not runner._finalize_measurements(settings, contract, records)["passed"]
 
 
 def test_startup_noise_allowance_cannot_hide_a_later_stall_or_forged_summary():
@@ -688,7 +735,14 @@ def test_ssim_budget_covers_independent_reference_holdouts_and_remains_bounded()
 def test_quality_calibration_cannot_be_reused_after_numerical_contract_changes(group, field):
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
     record = read_json(root / "calibration/cuda_nightly_reference.json")
-    contract = {"deploy_sha256": record["deploy_sha256"], "profile": record["workload"], "hardware": record["hardware"]}
+    # Synthetic contract fixture: this does not add provenance to the on-disk record.
+    record["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    contract = {
+        "deploy_sha256": record["deploy_sha256"],
+        "profile": record["workload"],
+        "hardware": record["hardware"],
+        "engine_environment": dict(_RECORDED_ENGINE_ENVIRONMENT),
+    }
     verify_reference_calibration_contract(contract, record)
     heldout = copy.deepcopy(contract)
     heldout["profile"].update(num_chunks=600, cases=[{"id": "new-heldout-scene", "seed": 123}])
@@ -746,6 +800,8 @@ def test_frozen_quality_population_uses_complete_reference_only_cohorts(chunks):
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
     population = quality_population(chunks)
+    # Supply recorded settings only in this synthetic validation fixture.
+    population["contract"]["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
     verify_quality_population_contract(
         population,
         population["contract"],
@@ -768,6 +824,7 @@ def test_frozen_quality_population_rejects_contract_or_population_changes(mutati
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
     population = quality_population(chunks)
+    population["contract"]["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
     contract = copy.deepcopy(population["contract"])
     packages = copy.deepcopy(quality_packages())
     lock, assets = population["evaluator_lock_sha256"], population["asset_lock_sha256"]
@@ -794,6 +851,64 @@ def test_frozen_quality_population_rejects_contract_or_population_changes(mutati
         verify_quality_population_contract(
             population, contract, evaluator_packages=packages, evaluator_lock_sha256=lock, asset_lock_sha256=assets
         )
+
+
+@pytest.mark.parametrize("kind", ["performance", "population40", "population600"])
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "missing_both",
+        "missing_observed",
+        "missing_calibration",
+        "changed_observed",
+        "changed_calibration",
+        "empty",
+        "malformed",
+        "non_mapping",
+    ],
+)
+def test_calibration_rejects_missing_or_changed_engine_environment(kind, mutation):
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    if kind == "performance":
+        root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+        calibration = read_json(root / "calibration/cuda_nightly_reference.json")
+        expected = calibration
+        contract = {
+            "deploy_sha256": calibration["deploy_sha256"],
+            "profile": copy.deepcopy(calibration["workload"]),
+            "hardware": copy.deepcopy(calibration["hardware"]),
+        }
+    else:
+        calibration = quality_population(600 if kind == "population600" else 40)
+        expected = calibration["contract"]
+        contract = copy.deepcopy(expected)
+    # All edits are local synthetic fixtures; historical records stay untouched.
+    expected["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    contract["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    if mutation in {"missing_both", "missing_observed"}:
+        del contract["engine_environment"]
+    if mutation in {"missing_both", "missing_calibration"}:
+        del expected["engine_environment"]
+    if mutation == "changed_observed":
+        contract["engine_environment"]["VLLM_OMNI_AR_DIFFUSION_KV_GATHER"] = "1"
+    if mutation == "changed_calibration":
+        expected["engine_environment"]["VLLM_OMNI_AR_DIFFUSION_KV_GATHER"] = "1"
+    if mutation in {"empty", "malformed", "non_mapping"}:
+        value = {} if mutation == "empty" else {"flag": None} if mutation == "malformed" else "unrecorded"
+        expected["engine_environment"] = copy.deepcopy(value)
+        contract["engine_environment"] = copy.deepcopy(value)
+    with pytest.raises(RegressionError, match="engine environment"):
+        if kind == "performance":
+            verify_reference_calibration_contract(contract, calibration)
+        else:
+            verify_quality_population_contract(
+                calibration,
+                contract,
+                evaluator_packages=quality_packages(),
+                evaluator_lock_sha256=calibration["evaluator_lock_sha256"],
+                asset_lock_sha256=calibration["asset_lock_sha256"],
+            )
 
 
 @pytest.mark.parametrize(

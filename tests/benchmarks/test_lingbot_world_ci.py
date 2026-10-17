@@ -20,7 +20,7 @@ import pytest
 import yaml
 
 from benchmarks.lingbot_world.regression import RegressionError, check_binary_activity, check_quality
-from tests.dfx.lingbot_world.runner import server_arguments, server_environment
+from tests.dfx.lingbot_world.runner import ENGINE_ENVIRONMENT, server_arguments, server_environment
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
@@ -679,6 +679,10 @@ def leaves(document):
         (True, "population_long_candidate"),
         (True, "population_long_pixels"),
         (True, "population_long_spread"),
+        (True, "population_unrecorded"),
+        (False, "population_unrecorded"),
+        (True, "population_long_unrecorded"),
+        (True, "population_general_unrecorded"),
     ],
 )
 def test_quality_retains_scores_after_generation_failure_without_passing(
@@ -798,6 +802,7 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             "profile": json.loads(profile.read_text()),
             "deploy_sha256": "deployment",
             "hardware": {"platform": "cuda", "cards": 4, "dies": 4, "devices": [], "packages": {}},
+            "engine_environment": dict(ENGINE_ENVIRONMENT),
         }
         manifest = json.loads((generation / "generation.json").read_text())
         manifest["contract"] = contract
@@ -807,6 +812,12 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         calibration.mkdir()
         write_json(calibration / "cuda_nightly_reference.json", {})
         monkeypatch.setattr(gate, "verify_reference_calibration_contract", lambda *args: None)
+        if mutation == "population_general_unrecorded":
+
+            def reject_unrecorded(*args):
+                raise RegressionError("Reference calibration engine environment is missing or changed")
+
+            monkeypatch.setattr(gate, "verify_reference_calibration_contract", reject_unrecorded)
         pixel = {
             "ssim": {"mean": 0.4},
             "total": {"psnr_db": 30.0, "psnr_is_infinite": False},
@@ -840,6 +851,13 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
                 "cases": {"scene": {"input": settings["cases"][0], "pixels": [pixel] * 6, "suites": suites}},
             },
         )
+        if mutation.endswith("_unrecorded") and mutation != "population_general_unrecorded":
+            path = calibration / (
+                "cuda_long_quality_population.json" if chunks == 600 else "cuda_nightly_quality_population.json"
+            )
+            unrecorded = json.loads(path.read_text())
+            del unrecorded["contract"]["engine_environment"]
+            write_json(path, unrecorded)
 
         def compare(first, second, **kwargs):
             row = json.loads(json.dumps(pixel))
@@ -854,7 +872,10 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             gate.test_wbench_vbench_and_video_precision(settings)
         assert calls == []
         return
-    quality_passed = not population_mode or not mutation.endswith(("_reference", "_candidate", "_pixels"))
+    uncalibrated = mutation is not None and mutation.endswith("_unrecorded")
+    quality_passed = (
+        not population_mode or not mutation.endswith(("_reference", "_candidate", "_pixels"))
+    ) and not uncalibrated
     if generation_passed and quality_passed:
         gate.test_wbench_vbench_and_video_precision(settings)
     else:
@@ -867,7 +888,14 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
     assert report["passed"] is (generation_passed and quality_passed)
     if population_mode:
         assert (output / "quality-reference-population.json").is_file()
-        assert len(report["pixels"]["scene"]["reference_checks"]) == 3
+        if not uncalibrated:
+            assert len(report["pixels"]["scene"]["reference_checks"]) == 3
+    if uncalibrated:
+        assert report["calibration_errors"] and all(
+            "engine environment" in row["error"] for row in report["calibration_errors"]
+        )
+        assert len(report["pixels"]["scene"]["reference_repeat"]) == len(report["pixels"]["scene"]["candidate"]) == 3
+        assert all(row["status"] == "unjudged" and not row["passed"] for row in report["pixels"]["scene"]["checks"])
     assert (output / "vbench-raw.json").is_file() and (output / "wbench-raw.json").is_file()
 
 

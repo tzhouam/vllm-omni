@@ -65,29 +65,52 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     pixel_budgets = limits["pixel_budgets"][settings["platform"]]
     write_json(output / "quality-policy.json", limits)
     write_json(output / "profile.json", manifest["contract"]["profile"])
+    calibration_errors = []
     if settings["platform"] == "cuda":
-        calibration = read_json(ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json")
+        calibration_path = ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json"
+        calibration = read_json(calibration_path)
         write_json(output / "reference-calibration.json", calibration)
-        verify_reference_calibration_contract(manifest["contract"], calibration)
+        try:
+            verify_reference_calibration_contract(manifest["contract"], calibration)
+        except RegressionError as error:
+            calibration_errors.append(
+                {
+                    "record": str(calibration_path.relative_to(ROOT)),
+                    "sha256": sha256(calibration_path),
+                    "error": str(error),
+                }
+            )
     lock = read_json(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json")
     evaluator_root = Path(os.environ["LINGBOT_EVALUATOR_ROOT"]).resolve()
     python = Path(os.environ["LINGBOT_EVALUATOR_PYTHON"])
     packages = verify_environment(python, ROOT / "requirements/lingbot-quality.txt")
     population = None
+    population_path = None
     population_files = {40: "cuda_nightly_quality_population.json", 600: "cuda_long_quality_population.json"}
     if settings["platform"] == "cuda" and settings["num_chunks"] in population_files:
         population_path = ROOT / "tests/dfx/lingbot_world/calibration" / population_files[settings["num_chunks"]]
         population = read_json(population_path)
-        verify_quality_population_contract(
-            population,
-            manifest["contract"],
-            evaluator_packages=packages,
-            evaluator_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
-            asset_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/assets.lock.json"),
-        )
-        if settings["num_chunks"] == 600:
-            reference_spreads = population["max_reference_spreads"]
         write_json(output / "quality-reference-population.json", population)
+        try:
+            verify_quality_population_contract(
+                population,
+                manifest["contract"],
+                evaluator_packages=packages,
+                evaluator_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
+                asset_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/assets.lock.json"),
+            )
+        except RegressionError as error:
+            calibration_errors.append(
+                {
+                    "record": str(population_path.relative_to(ROOT)),
+                    "sha256": sha256(population_path),
+                    "error": str(error),
+                }
+            )
+            population = None
+        else:
+            if settings["num_chunks"] == 600:
+                reference_spreads = population["max_reference_spreads"]
     for relative, digest in lock["files"].items():
         if sha256(evaluator_root / relative) != digest:
             raise RegressionError(f"Evaluator weight checksum mismatch: {relative}")
@@ -114,13 +137,14 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         "quality_policy_sha256": sha256(ROOT / "tests/dfx/lingbot_world/quality.json"),
         "suites": {},
         "pixels": {},
+        "calibration_errors": calibration_errors,
         "evaluator_packages": packages,
         "evaluator_hardware": hardware_contract(
             {**settings, "platform": "cuda", "cards": 1, "dies": 1, "reserved_cards": 1}
         ),
         "evaluator_lock_sha256": sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
     }
-    if population is not None:
+    if population_path is not None:
         report["reference_population_sha256"] = sha256(population_path)
     try:
         evaluations = {}
@@ -158,6 +182,11 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             }
             cases = {}
             for index, case in enumerate(settings["cases"]):
+                if calibration_errors:
+                    cases[case["id"]] = [
+                        {"passed": False, "status": "unjudged", "calibration_errors": calibration_errors}
+                    ]
+                    continue
                 reference_scores = [evaluation["scores"][f"case{index}_reference{repeat}"] for repeat in range(3)]
                 reference = [{name: row[name] for name in tolerances} for row in reference_scores]
                 checks = []
@@ -243,41 +272,36 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                     settings["mux_fps"],
                 ):
                     raise RegressionError("Decoded video does not match the pinned workload")
+
+            def check_pixel(row):
+                if calibration_errors:
+                    return {"passed": False, "status": "unjudged", "calibration_errors": calibration_errors}
+                return check_video_precision(
+                    quality_reference,
+                    row,
+                    psnr_drop_db=pixel_budgets["psnr_drop_db"],
+                    min_psnr_db=limits["min_psnr_db"],
+                    ssim_drop=pixel_budgets["ssim_drop"],
+                    reject_uniform_frames=limits["reject_uniform_frames"],
+                )
+
             report["pixels"][case["id"]] = {
                 "reference_pairs": reference_pairs,
                 "reference_repeat": reference,
-                "reference_checks": []
-                if population is None
-                else [
-                    check_video_precision(
-                        quality_reference,
-                        row,
-                        psnr_drop_db=pixel_budgets["psnr_drop_db"],
-                        min_psnr_db=limits["min_psnr_db"],
-                        ssim_drop=pixel_budgets["ssim_drop"],
-                        reject_uniform_frames=limits["reject_uniform_frames"],
-                    )
-                    for row in reference
-                ],
+                "reference_checks": [] if population is None else [check_pixel(row) for row in reference],
                 "candidate": candidate,
-                "checks": [
-                    check_video_precision(
-                        quality_reference,
-                        row,
-                        psnr_drop_db=pixel_budgets["psnr_drop_db"],
-                        min_psnr_db=limits["min_psnr_db"],
-                        ssim_drop=pixel_budgets["ssim_drop"],
-                        reject_uniform_frames=limits["reject_uniform_frames"],
-                    )
-                    for row in candidate
-                ],
+                "checks": [check_pixel(row) for row in candidate],
             }
-        report["quality_passed"] = all(
-            check["passed"] for suite in report["suites"].values() for checks in suite.values() for check in checks
-        ) and all(
-            check["passed"]
-            for case in report["pixels"].values()
-            for check in [*case["reference_checks"], *case["checks"]]
+        report["quality_passed"] = (
+            not calibration_errors
+            and all(
+                check["passed"] for suite in report["suites"].values() for checks in suite.values() for check in checks
+            )
+            and all(
+                check["passed"]
+                for case in report["pixels"].values()
+                for check in [*case["reference_checks"], *case["checks"]]
+            )
         )
         report["passed"] = report["generation_passed"] and report["quality_passed"]
     finally:
