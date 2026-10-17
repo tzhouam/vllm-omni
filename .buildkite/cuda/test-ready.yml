@@ -33,14 +33,15 @@ steps:
         artifact_paths:
           - "artifacts/cuda-other/*"
         commands:
-          - mkdir -p artifacts/cuda-other
           - |
             bash -o pipefail <<'BASH'
+            export CPU_OTHER_ARTIFACT_DIR="$${BUILDKITE_BUILD_CHECKOUT_PATH:?}/artifacts/cuda-other"
+            mkdir -p "$$CPU_OTHER_ARTIFACT_DIR"
             export PYTHONUNBUFFERED=1
             pytest -sv tests/ -m 'core_model and cpu' \
               --ignore=tests/diffusion --ignore=tests/model_executor \
               --ignore=tests/entrypoints --ignore=tests/engine \
-              --junitxml=artifacts/cuda-other/pytest.xml 2>&1 | tee artifacts/cuda-other/pytest.log
+              --junitxml="$$CPU_OTHER_ARTIFACT_DIR/pytest.xml" 2>&1 | tee "$$CPU_OTHER_ARTIFACT_DIR/pytest.log"
             BASH
         mirror_hardwares: l4_1
 
