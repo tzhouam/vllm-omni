@@ -64,6 +64,125 @@ def _write_textured_video(path: Path, base: int, *, corrupt_tail: bool = False) 
         writer.release()
 
 
+def _pixel_packages() -> dict[str, str]:
+    from importlib.metadata import version
+
+    return {name: version(name) for name in ("numpy", "opencv-python", "scikit-image")}
+
+
+def test_pixel_comparison_uses_isolated_evaluator_when_parent_decoder_is_unavailable(tmp_path, monkeypatch):
+    video = tmp_path / "reference.avi"
+    _write_textured_video(video, 20)
+    expected = _pixel_packages()
+    shadow = tmp_path / "shadow"
+    shadow.mkdir()
+    (shadow / "cv2.py").write_text('raise RuntimeError("uncontrolled parent decoder")\n')
+    monkeypatch.setenv("PYTHONPATH", str(shadow))
+    monkeypatch.setitem(sys.modules, "cv2", None)
+    result = quality.compare_video_pair_in_environment(
+        video,
+        video,
+        tmp_path / "pixels",
+        python=Path(sys.executable),
+        expected_packages=expected,
+        window_seconds=2,
+        ssim_stride=24,
+        timeout_s=30,
+    )
+    assert result["decoded_frames"] == 160 and result["total"]["psnr_is_infinite"]
+    assert result["pixel_environment"]["packages"] == expected
+    assert result["pixel_environment"]["python"] == sys.executable
+    assert len(result["pixel_environment"]["opencv_build_sha256"]) == 64
+    assert result["uniform_frame_indices"] == {"reference": [], "candidate": []}
+
+
+def test_pixel_dependency_drift_fails_and_retains_actual_environment(tmp_path):
+    video = tmp_path / "reference.avi"
+    _write_textured_video(video, 20)
+    expected = {**_pixel_packages(), "numpy": "0.0.0"}
+    output = tmp_path / "pixels"
+    with pytest.raises(quality.VideoQualityError, match="Pixel worker"):
+        quality.compare_video_pair_in_environment(
+            video,
+            video,
+            output,
+            python=Path(sys.executable),
+            expected_packages=expected,
+            window_seconds=2,
+            ssim_stride=24,
+            timeout_s=30,
+        )
+    result = json.loads(next(output.rglob("worker_result.json")).read_text())
+    assert result["status"] != "complete"
+    assert result["pixel_environment"]["packages"]["numpy"] == _pixel_packages()["numpy"]
+    assert "Pixel dependencies changed" in next(output.rglob("worker.log")).read_text()
+
+
+def test_pixel_worker_timeout_reaps_process_and_retains_incomplete_evidence(tmp_path, monkeypatch):
+    processes = []
+    original_popen = subprocess.Popen
+
+    def capture_process(*args, **kwargs):
+        process = original_popen(*args, **kwargs)
+        processes.append(process)
+        return process
+
+    monkeypatch.setattr(quality.subprocess, "Popen", capture_process)
+    monkeypatch.setattr(quality, "_PIXEL_WORKER", "import time;time.sleep(60)")
+    video = tmp_path / "reference.avi"
+    _write_textured_video(video, 20)
+    output = tmp_path / "pixels"
+    with pytest.raises(subprocess.TimeoutExpired):
+        quality.compare_video_pair_in_environment(
+            video,
+            video,
+            output,
+            python=Path(sys.executable),
+            expected_packages=_pixel_packages(),
+            window_seconds=2,
+            ssim_stride=24,
+            timeout_s=0.5,
+        )
+    assert len(processes) == 1 and processes[0].returncode is not None
+    assert next(output.rglob("worker.log")).is_file()
+    assert json.loads(next(output.rglob("worker_result.json")).read_text())["status"] != "complete"
+
+
+def test_pixel_worker_preserves_virtualenv_interpreter_path(tmp_path, monkeypatch):
+    executable = tmp_path / "venv/bin/python"
+    executable.parent.mkdir(parents=True)
+    executable.symlink_to(sys.executable)
+    video = tmp_path / "reference.avi"
+    _write_textured_video(video, 20)
+    packages = _pixel_packages()
+
+    def run(command, repo, log, timeout_s):
+        assert command[0] == str(executable) and command[1] == "-I"
+        inputs = json.loads(Path(command[-1]).read_text())
+        Path(inputs["result"]).write_text(
+            json.dumps(
+                {
+                    "status": "complete",
+                    "pixel_environment": {"python": str(executable), "packages": packages},
+                }
+            )
+        )
+        return 0
+
+    monkeypatch.setattr(quality, "_run_worker", run)
+    result = quality.compare_video_pair_in_environment(
+        video,
+        video,
+        tmp_path / "pixels",
+        python=executable,
+        expected_packages=packages,
+        window_seconds=2,
+        ssim_stride=24,
+        timeout_s=30,
+    )
+    assert result["pixel_environment"]["python"] == str(executable)
+
+
 @pytest.mark.parametrize("platform", ["cuda", "npu"])
 def test_noisy_reference_budget_cannot_hide_a_spatially_empty_window(tmp_path: Path, platform: str) -> None:
     paths = [tmp_path / f"reference-{index}.avi" for index in range(3)]

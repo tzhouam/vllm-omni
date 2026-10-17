@@ -17,6 +17,7 @@ import re
 import signal
 import subprocess
 import tempfile
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -354,6 +355,93 @@ def _run_worker(command: list[str], repo: Path, log: Path, timeout_s: float) -> 
                 os.killpg(process.pid, signal.SIGKILL)
                 process.wait()
             raise
+
+
+_PIXEL_WORKER = r"""
+import hashlib, importlib.metadata, json, sys
+from pathlib import Path
+inputs = json.loads(Path(sys.argv[1]).read_text())
+sys.path.insert(0, inputs["adapter_root"])
+import cv2
+from benchmarks.lingbot_world.video_quality import compare_video_pair
+environment = {
+    "python": sys.executable,
+    "packages": {name: importlib.metadata.version(name) for name in ("numpy", "opencv-python", "scikit-image")},
+    "opencv_version": cv2.__version__,
+    "opencv_build_sha256": hashlib.sha256(cv2.getBuildInformation().encode()).hexdigest(),
+}
+result = {"status": "failed", "pixel_environment": environment}
+try:
+    if environment["packages"] != inputs["expected_packages"]:
+        raise ValueError("Pixel dependencies changed from the verified evaluator environment")
+    result = {
+        **compare_video_pair(
+            Path(inputs["reference"]), Path(inputs["candidate"]),
+            window_seconds=inputs["window_seconds"], ssim_stride=inputs["ssim_stride"],
+        ),
+        "pixel_environment": environment,
+    }
+finally:
+    Path(inputs["result"]).write_text(json.dumps(result, allow_nan=False) + "\n")
+"""
+
+
+def compare_video_pair_in_environment(
+    reference: Path,
+    candidate: Path,
+    output_dir: Path,
+    *,
+    python: Path,
+    expected_packages: Mapping[str, str],
+    window_seconds: float,
+    ssim_stride: int,
+    timeout_s: float,
+) -> dict[str, Any]:
+    """Compare pixels in the verified evaluator interpreter and retain evidence."""
+    # Preserve the virtualenv path rather than resolving its interpreter symlink.
+    python = Path(python).expanduser().absolute()
+    names = ("numpy", "opencv-python", "scikit-image")
+    if any(not isinstance(expected_packages.get(name), str) or not expected_packages[name] for name in names):
+        raise VideoQualityError("Pixel environment requires verified decoder dependency versions")
+    if not python.is_file() or not math.isfinite(timeout_s) or timeout_s <= 0:
+        raise VideoQualityError("Pixel comparison requires an interpreter and a positive timeout")
+    expected = {name: expected_packages[name] for name in names}
+    output_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = Path(tempfile.mkdtemp(prefix="pixel-", dir=output_dir.resolve()))
+    result_path = run_dir / "worker_result.json"
+    result_path.write_text('{"status": "incomplete"}\n')
+    inputs = {
+        "adapter_root": str(Path(__file__).resolve().parents[2]),
+        "reference": str(reference.resolve()),
+        "candidate": str(candidate.resolve()),
+        "expected_packages": expected,
+        "window_seconds": window_seconds,
+        "ssim_stride": ssim_stride,
+        "result": str(result_path),
+    }
+    manifest = run_dir / "inputs.json"
+    manifest.write_text(json.dumps(inputs, allow_nan=False) + "\n")
+    log = run_dir / "worker.log"
+    # Isolated mode ignores the parent's PYTHONPATH and user site packages.
+    status = _run_worker(
+        [str(python), "-I", "-c", _PIXEL_WORKER, str(manifest)],
+        Path(inputs["adapter_root"]),
+        log,
+        timeout_s,
+    )
+    if status != 0:
+        raise VideoQualityError(f"Pixel worker exited with code {status}; see {log}")
+    result = json.loads(result_path.read_text())
+    if not isinstance(result, dict) or result.get("status") != "complete":
+        raise VideoQualityError(f"Pixel worker did not complete; see {result_path}")
+    environment = result.get("pixel_environment")
+    if (
+        not isinstance(environment, dict)
+        or environment.get("packages") != expected
+        or environment.get("python") != str(python)
+    ):
+        raise VideoQualityError(f"Pixel worker environment differs from the selected interpreter; see {result_path}")
+    return result
 
 
 def evaluate_video_quality(

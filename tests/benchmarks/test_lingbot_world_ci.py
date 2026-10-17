@@ -737,7 +737,8 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
     )
     monkeypatch.setattr(gate, "ROOT", source)
     monkeypatch.setattr(gate, "git_revision", lambda path: "snapshot")
-    monkeypatch.setattr(gate, "verify_environment", lambda *args: {})
+    packages = {"numpy": "1.26.4", "opencv-python": "4.11.0.86", "scikit-image": "0.25.2"}
+    monkeypatch.setattr(gate, "verify_environment", lambda *args: dict(packages))
     monkeypatch.setattr(gate, "hardware_contract", lambda settings: {"unit_test": True})
     monkeypatch.setattr(gate.subprocess, "run", lambda command, **kwargs: subprocess.CompletedProcess(command, 0))
     monkeypatch.setenv("LINGBOT_EVALUATOR_ROOT", str(tmp_path / "evaluators"))
@@ -779,6 +780,20 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
 
     monkeypatch.setattr(gate, "evaluate_video_quality", score)
     output = tmp_path / "quality"
+
+    def compare_in_environment(first, second, destination, *, python, expected_packages, **kwargs):
+        from benchmarks.lingbot_world.video_quality import compare_video_pair
+
+        # The coordinator test mocks the interpreter boundary; real isolated
+        # decoding/version/timeout checks live in test_lingbot_world_video_quality.
+        assert python == Path(sys.executable) and expected_packages == packages
+        assert destination == output / "pixels"
+        kwargs.pop("timeout_s")
+        row = compare_video_pair(first, second, **kwargs)
+        row["pixel_environment"] = {"packages": dict(packages), "synthetic_boundary": True}
+        return row
+
+    monkeypatch.setattr(gate, "compare_video_pair_in_environment", compare_in_environment)
     settings = {
         "output": output,
         "generation": generation,
@@ -819,6 +834,7 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
 
             monkeypatch.setattr(gate, "verify_reference_calibration_contract", reject_unrecorded)
         pixel = {
+            "pixel_environment": {"packages": dict(packages)},
             "ssim": {"mean": 0.4},
             "total": {"psnr_db": 30.0, "psnr_is_infinite": False},
             "windows": [
@@ -844,7 +860,9 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             {
                 "schema_version": 1,
                 "contract": contract,
-                "evaluator_packages_sha256": hashlib.sha256(b"{}").hexdigest(),
+                "evaluator_packages_sha256": hashlib.sha256(
+                    json.dumps(packages, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest(),
                 "evaluator_lock_sha256": sha256(policy / "evaluators.lock.json"),
                 "asset_lock_sha256": sha256(policy / "assets.lock.json"),
                 "max_reference_spreads": reference_spreads,
@@ -859,14 +877,16 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             del unrecorded["contract"]["engine_environment"]
             write_json(path, unrecorded)
 
-        def compare(first, second, **kwargs):
+        def compare(first, second, destination, *, python, expected_packages, **kwargs):
+            assert python == Path(sys.executable) and expected_packages == packages
+            assert destination == output / "pixels"
             row = json.loads(json.dumps(pixel))
             candidate = "candidate" in second.parts
             row["ssim"]["mean"] = (0.2 if mutation.endswith("_pixels") else 0.37) if candidate else 0.6
             row["reference"] = {"frame_count": frames, "width": 32, "height": 24, "fps": 16}
             return row
 
-        monkeypatch.setattr(gate, "compare_video_pair", compare)
+        monkeypatch.setattr(gate, "compare_video_pair_in_environment", compare)
     if mutation in ("unlisted", "corrupt"):
         with pytest.raises(RegressionError, match="checksum|Unhashed"):
             gate.test_wbench_vbench_and_video_precision(settings)

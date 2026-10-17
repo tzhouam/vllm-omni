@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.metadata
 import math
 import statistics
@@ -795,13 +796,23 @@ def quality_packages():
     )
 
 
+def synthetic_recorded_quality_population(chunks):
+    population = quality_population(chunks)
+    # Temporary validation metadata only; historical records remain untouched.
+    population["contract"]["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    packages = quality_packages()
+    pixel_packages = {name: packages[name] for name in ("numpy", "opencv-python", "scikit-image")}
+    for case in population["cases"].values():
+        for row in case["pixels"]:
+            row["pixel_environment"] = {"packages": dict(pixel_packages)}
+    return population
+
+
 @pytest.mark.parametrize("chunks", [40, 600])
 def test_frozen_quality_population_uses_complete_reference_only_cohorts(chunks):
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
-    population = quality_population(chunks)
-    # Supply recorded settings only in this synthetic validation fixture.
-    population["contract"]["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    population = synthetic_recorded_quality_population(chunks)
     verify_quality_population_contract(
         population,
         population["contract"],
@@ -823,8 +834,7 @@ def test_frozen_quality_population_uses_complete_reference_only_cohorts(chunks):
 def test_frozen_quality_population_rejects_contract_or_population_changes(mutation, chunks):
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
-    population = quality_population(chunks)
-    population["contract"]["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+    population = synthetic_recorded_quality_population(chunks)
     contract = copy.deepcopy(population["contract"])
     packages = copy.deepcopy(quality_packages())
     lock, assets = population["evaluator_lock_sha256"], population["asset_lock_sha256"]
@@ -850,6 +860,41 @@ def test_frozen_quality_population_rejects_contract_or_population_changes(mutati
     with pytest.raises(RegressionError, match="population"):
         verify_quality_population_contract(
             population, contract, evaluator_packages=packages, evaluator_lock_sha256=lock, asset_lock_sha256=assets
+        )
+
+
+@pytest.mark.parametrize("chunks", [40, 600])
+@pytest.mark.parametrize(
+    "mutation",
+    ["missing", "missing_packages", "empty", "numpy", "opencv-python", "scikit-image", "malformed", "missing_both"],
+)
+def test_quality_population_rejects_unrecorded_or_changed_pixel_environment(chunks, mutation):
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    population = synthetic_recorded_quality_population(chunks)
+    packages = quality_packages()
+    row = next(iter(population["cases"].values()))["pixels"][0]
+    if mutation == "missing":
+        del row["pixel_environment"]
+    elif mutation == "missing_packages":
+        row["pixel_environment"] = {}
+    elif mutation == "malformed":
+        row["pixel_environment"] = "unrecorded"
+    elif mutation == "empty":
+        row["pixel_environment"]["packages"] = {}
+    elif mutation == "missing_both":
+        packages = {}
+        row["pixel_environment"]["packages"] = {}
+        population["evaluator_packages_sha256"] = hashlib.sha256(b"{}").hexdigest()
+    else:
+        row["pixel_environment"]["packages"][mutation] = "changed"
+    with pytest.raises(RegressionError, match="pixel environment"):
+        verify_quality_population_contract(
+            population,
+            population["contract"],
+            evaluator_packages=packages,
+            evaluator_lock_sha256=population["evaluator_lock_sha256"],
+            asset_lock_sha256=population["asset_lock_sha256"],
         )
 
 

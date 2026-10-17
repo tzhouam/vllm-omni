@@ -238,6 +238,13 @@ child processes must exit after teardown.
 
 ## GPU evaluation, including NPU videos
 
+Selected CI pixel comparisons use the same verified `LINGBOT_EVALUATOR_PYTHON`
+as native scoring. Separate isolated Python workers compute PSNR and sampled
+SSIM with the locked NumPy, OpenCV and scikit-image versions. Each worker retains
+its inputs, log, result, actual dependency versions and OpenCV build hash;
+timeouts terminate its process group and leave an incomplete result. The
+comparison window, frame population, SSIM stride and candidate budgets stay fixed.
+
 The evaluator uses a separate Python 3.12 environment with resolved dependencies
 in `requirements/lingbot-quality.txt`. `evaluators.lock.json` pins code revisions,
 submodules and asset checksums. Provisioning validates downloads before scoring.
@@ -500,6 +507,13 @@ with string keys and values matching the measured contract. Missing or changed
 settings reject reuse, including when both records omit the field. Historical
 records without recorded switches therefore remain diagnostic inputs until
 replacement reference cohorts establish their provenance.
+Fixed quality populations also require every reference pixel summary to record
+`pixel_environment.packages` matching the verified evaluator's NumPy, OpenCV and
+scikit-image versions. Missing or changed decoder metadata rejects reuse.
+Recompute reference summaries from the actual reference videos in the locked
+evaluator environment; do not add current versions to historical summaries whose
+decoder environment was unrecorded. Native-score dependency verification alone
+does not establish the environment used for earlier pixel calculations.
 Run the same generation and GPU evaluation commands when collecting replacement
 calibration data. A compatibility failure keeps the gates failed while retaining
 complete generation manifests, numerical comparisons, raw native scores and

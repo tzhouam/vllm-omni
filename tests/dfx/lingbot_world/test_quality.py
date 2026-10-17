@@ -24,7 +24,7 @@ from benchmarks.lingbot_world.regression import (
     verify_reference_calibration_contract,
     write_json,
 )
-from benchmarks.lingbot_world.video_quality import compare_video_pair, evaluate_video_quality
+from benchmarks.lingbot_world.video_quality import compare_video_pair_in_environment, evaluate_video_quality
 from tests.dfx.lingbot_world.runner import ROOT, git_revision, hardware_contract
 from tests.helpers.mark import hardware_test
 
@@ -244,20 +244,28 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             # repeats. It is distinct from the fixed-input VAE precision gate.
             reference_pairs = list(combinations(range(3), 2))
             reference = [
-                compare_video_pair(
+                compare_video_pair_in_environment(
                     directory("reference", first),
                     directory("reference", second),
+                    output / "pixels",
+                    python=python,
+                    expected_packages=packages,
                     window_seconds=limits["pixel_window_seconds"],
                     ssim_stride=24,
+                    timeout_s=limits["timeout_s"],
                 )
                 for first, second in reference_pairs
             ]
             candidate = [
-                compare_video_pair(
+                compare_video_pair_in_environment(
                     directory("reference", 0),
                     directory("candidate", repeat),
+                    output / "pixels",
+                    python=python,
+                    expected_packages=packages,
                     window_seconds=limits["pixel_window_seconds"],
                     ssim_stride=24,
+                    timeout_s=limits["timeout_s"],
                 )
                 for repeat in range(3)
             ]
