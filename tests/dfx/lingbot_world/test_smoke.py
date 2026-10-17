@@ -7,8 +7,15 @@ import asyncio
 import pytest
 
 from benchmarks.lingbot_world.benchmark_lingbot_world_realtime import parse_args, run_benchmark
-from benchmarks.lingbot_world.regression import write_json
-from tests.dfx.lingbot_world.runner import checked_assets, hardware_contract, server_arguments
+from benchmarks.lingbot_world.regression import read_json, sha256, write_json
+from tests.dfx.lingbot_world.runner import (
+    ENGINE_ENVIRONMENT,
+    ROOT,
+    checked_assets,
+    hardware_contract,
+    server_arguments,
+    server_environment,
+)
 from tests.helpers.mark import hardware_test
 
 pytestmark = [pytest.mark.full_model, pytest.mark.diffusion]
@@ -21,11 +28,20 @@ def test_cuda_smoke(lingbot_settings):
 
     settings = lingbot_settings
     assert settings["platform"] == "cuda" and settings["dies"] == 1
+    write_json(
+        settings["output"] / "configuration.json",
+        {
+            "profile": read_json(settings["profile_path"]),
+            "deploy_sha256": sha256(ROOT / settings["deploy_config"]),
+            "engine_environment": dict(ENGINE_ENVIRONMENT),
+        },
+    )
     write_json(settings["output"] / "hardware.json", hardware_contract(settings))
     model, images = checked_assets(settings)
     with OmniServer(
         str(model),
         server_arguments(settings),
+        env_dict=server_environment(ROOT, cpu_threads=settings.get("cpu_threads_per_worker")),
         startup_timeout=settings["startup_timeout_s"],
     ) as server:
         with pytest.MonkeyPatch.context() as patch:
