@@ -467,10 +467,12 @@ limits before candidate quality can pass. Binary activity still compares the
 fresh three-start counts. Candidate HPS, PSNR and SSIM budgets are unchanged.
 This prevents an unusually favorable three-reference cohort from silently
 tightening the candidate gate. Model, deployment, inputs, hardware/runtime,
-asset or evaluator changes reject population reuse. NPU and longer profiles
-retain their own reference comparisons. Historical optimization overrides were
-not recorded in the calibration cohorts; independent final-source runs with
-the pinned switches are still required. A replay of calibration data cannot
+asset or evaluator changes reject population reuse. CUDA 600-chunk runs use the
+separate population described above; NPU and CUDA weekly profiles retain their
+own reference comparisons. Historical optimization overrides were not recorded
+in the calibration cohorts. Before final acceptance, recalibration must use
+reference cohorts with recorded pinned switches, followed by independent
+final-source target runs. A replay of historical calibration data cannot
 establish that acceptance.
 
 The pinned `startup_timeout_s` bounds both the outer server-readiness wait and
