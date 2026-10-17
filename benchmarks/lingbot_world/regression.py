@@ -392,6 +392,9 @@ def verify_quality_population_contract(
         or asset_lock_sha256 != population["asset_lock_sha256"]
     ):
         raise RegressionError("Quality reference population evaluator or assets changed")
+    pixel_packages = {name: evaluator_packages.get(name) for name in ("numpy", "opencv-python", "scikit-image")}
+    if any(not isinstance(value, str) or not value for value in pixel_packages.values()):
+        raise RegressionError("Quality reference population pixel environment requires pinned decoder dependencies")
     cases = {case["id"]: case for case in contract["profile"]["cases"]}
     if set(cases) != set(population["cases"]):
         raise RegressionError("Quality reference population case coverage changed")
@@ -400,6 +403,10 @@ def verify_quality_population_contract(
             raise RegressionError("Quality reference population requires both complete reference cohorts")
         if set(case["suites"]) != {"wbench", "vbench"} or any(len(rows) != 6 for rows in case["suites"].values()):
             raise RegressionError("Quality reference population requires six native reference scores per suite")
+        for row in case["pixels"]:
+            environment = row.get("pixel_environment")
+            if not isinstance(environment, Mapping) or environment.get("packages") != pixel_packages:
+                raise RegressionError("Quality reference population pixel environment is missing or changed")
 
 
 def check_binary_activity(

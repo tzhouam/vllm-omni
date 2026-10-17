@@ -57,6 +57,10 @@ Calibration reuse requires recorded optimization settings: its nonempty
 settings are invalid even when both records omit the field.
 Calibration compatibility errors retain raw measurements, numerical results and
 quality scores for review; candidate comparisons stay unjudged and block acceptance.
+CI pixel comparisons execute in the same verified dependency environment as
+native evaluators, using isolated Python workers with retained versions, logs and
+incomplete results on failure. Fixed reference pixel summaries require recorded
+decoder dependency versions matching that environment; missing metadata rejects reuse.
 NPU weekly collection separates each case shard's three independent
 reference/candidate pairs into bounded jobs. A mandatory CPU gate verifies the
 complete matching population per shard before quality evaluation; missing or
