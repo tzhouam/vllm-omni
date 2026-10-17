@@ -7,6 +7,7 @@ from __future__ import annotations
 import copy
 import importlib.metadata
 import math
+import statistics
 import sys
 from pathlib import Path
 
@@ -272,8 +273,67 @@ def test_ttfc_floor_does_not_hide_cadence_fps_or_stall_regressions(metric):
     assert not check_performance(candidate, gate, contract={})["passed"]
 
 
+def test_h100_p95_cv_calibration_uses_prior_references_and_independent_holdouts():
+    root = Path(__file__).resolve().parents[2]
+    record = read_json(root / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json")
+    evidence = record["p95_reference_cv_calibration"]
+    assert evidence["reference_revision"] == record["reference_revision"]
+    assert evidence["deploy_sha256"] == record["deploy_sha256"]
+    maxima = []
+    for cohort in [evidence["training_cohort"], *evidence["validation_cohorts"]]:
+        assert cohort["reference_revision"] == record["reference_revision"]
+        assert sha256(root / cohort["profile"]) == cohort["profile_sha256"]
+        cvs = []
+        for row in cohort["reference_cases"].values():
+            values = row["p95_values_ms"]
+            assert len(values) == len(row["benchmarks"]) == 3
+            assert all("/reference/" in item["artifact"] for item in row["benchmarks"])
+            cv = statistics.pstdev(values) / statistics.mean(values)
+            assert cv == pytest.approx(row["p95_cv"])
+            cvs.append(cv)
+        maxima.append(max(cvs))
+    selected = math.ceil(maxima[0] * (1 + evidence["reserve_fraction"]) / evidence["round_up_cv"])
+    assert selected * evidence["round_up_cv"] == evidence["selected_ceiling"]
+    assert maxima[0] == pytest.approx(evidence["maximum_training_p95_cv"])
+    assert max(maxima[1:]) == pytest.approx(evidence["validation_maximum_p95_cv"])
+    assert max(maxima[1:]) <= evidence["selected_ceiling"]
+    assert evidence["mean_p50_ceiling"] == 0.03 and evidence["candidate_regression_fraction"] == 0.05
+
+
+def test_p95_reference_cv_allowance_does_not_widen_candidate_latency_budget():
+    row = performance_metrics(document(interval=0.75, num_chunks=1020), num_chunks=1020, min_steady=1000)
+    reference = [dict(row, p95_ms=value, p99_ms=1000) for value in (800, 850, 880)]
+    with pytest.raises(RegressionError, match="Unstable reference p95_ms"):
+        calibrate(reference, contract={}, reference_revision="a" * 40)
+    gate = calibrate(reference, contract={}, reference_revision="a" * 40, p95_max_cv=0.045)
+    limit = gate["limits"]["p95_ms"]
+    assert limit["max_reference_cv"] == 0.045
+    assert limit["value"] == 880 * 1.05
+    assert not check_performance(dict(row, p95_ms=limit["value"] + 1), gate, contract={})["passed"]
+    with pytest.raises(RegressionError, match="Unstable reference p95_ms"):
+        calibrate(
+            [dict(row, p95_ms=v) for v in (800, 900, 1000)], contract={}, reference_revision="a" * 40, p95_max_cv=0.045
+        )
+
+
+@pytest.mark.parametrize("metric", ["mean_ms", "p50_ms"])
+def test_p95_reference_cv_allowance_does_not_change_mean_or_median_stability(metric):
+    row = performance_metrics(document(), num_chunks=40, min_steady=30)
+    reference = [dict(row, **{metric: row[metric] * factor}) for factor in (0.9, 1.0, 1.1)]
+    with pytest.raises(RegressionError, match=f"Unstable reference {metric}"):
+        calibrate(reference, contract={}, reference_revision="a" * 40, p95_max_cv=0.045)
+
+
+@pytest.mark.parametrize("ceiling", [0, -1, True, float("nan"), float("inf"), 1])
+def test_invalid_p95_reference_cv_ceiling_fails_closed(ceiling):
+    row = performance_metrics(document(), num_chunks=40, min_steady=30)
+    with pytest.raises(RegressionError):
+        calibrate([row] * 3, contract={}, reference_revision="a" * 40, p95_max_cv=ceiling)
+
+
 @pytest.mark.parametrize("platform", ["cuda", "npu"])
-def test_final_generation_gate_applies_ttfc_calibration_only_to_cuda(tmp_path, platform):
+@pytest.mark.parametrize("metric", ["ttfc_ms", "p95_ms"])
+def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(tmp_path, platform, metric):
     import numpy as np
 
     from benchmarks.lingbot_world.precision import save_tensor_sample
@@ -299,16 +359,20 @@ def test_final_generation_gate_applies_ttfc_calibration_only_to_cuda(tmp_path, p
                 inputs={"latent": np.ones(2)},
                 outputs={"decoded": np.ones(2)},
             )
-            records[role].append({case: dict(row, ttfc_ms=1000 if role == "reference" else 1100)})
+            if metric == "ttfc_ms":
+                measured = dict(row, ttfc_ms=1000 if role == "reference" else 1100)
+            else:
+                measured = dict(row, p95_ms=(800, 850, 880)[repeat] if role == "reference" else 880, p99_ms=1000)
+            records[role].append({case: measured})
     settings = {**profile, "output": tmp_path}
     report = _finalize_measurements(settings, contract, records)
     assert report["passed"] is (platform == "cuda")
-    evidence = tmp_path / "ttfc-calibration.json"
+    evidence = tmp_path / ("ttfc-calibration.json" if metric == "ttfc_ms" else "p95-cv-calibration.json")
     assert evidence.exists() is (platform == "cuda")
     if platform == "cuda":
         assert read_json(evidence)["reference_record_sha256"] == sha256(calibration_path)
-        limit = report["cases"][case]["baseline"]["limits"]["ttfc_ms"]
-        records["candidate"][0][case]["ttfc_ms"] = limit["value"] + 1
+        limit = report["cases"][case]["baseline"]["limits"][metric]
+        records["candidate"][0][case][metric] = limit["value"] + 1
         assert not _finalize_measurements(settings, contract, records)["passed"]
 
 
