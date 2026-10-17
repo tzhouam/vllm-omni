@@ -50,7 +50,7 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/npu-weekly-quality/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/npu_weekly.json lingbot-artifacts/npu-weekly-quality/shard-{{matrix.shard}} lingbot-artifacts/npu-weekly/shard-{{matrix.shard}} lingbot-npu-weekly-generation
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/npu_weekly.json lingbot-artifacts/npu-weekly-quality/shard-{{matrix.shard}} lingbot-artifacts/npu-weekly/shard-{{matrix.shard}}
       - label: "LingBot World · NPU long session and bounded memory"
         key: lingbot-npu-weekly-long
         matrix:
@@ -83,7 +83,7 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/npu-long/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh aggregate tests/dfx/lingbot_world/configs/npu_long.json lingbot-artifacts/npu-long lingbot-artifacts/npu-long-measurements lingbot-npu-weekly-long
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh aggregate tests/dfx/lingbot_world/configs/npu_long.json lingbot-artifacts/npu-long lingbot-artifacts/npu-long-measurements
       - label: "LingBot World · NPU long-rollout WBench/VBench gate"
         key: lingbot-npu-weekly-long-quality
         source_file_dependencies: lingbot_world_regression
@@ -96,4 +96,4 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/npu-long-quality/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/npu_long.json lingbot-artifacts/npu-long-quality lingbot-artifacts/npu-long lingbot-npu-weekly-long-gate
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/npu_long.json lingbot-artifacts/npu-long-quality lingbot-artifacts/npu-long

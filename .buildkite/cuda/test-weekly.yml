@@ -704,7 +704,7 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/cuda-weekly-quality/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly-quality/shard-{{matrix.shard}} lingbot-artifacts/cuda-weekly/shard-{{matrix.shard}} lingbot-cuda-weekly-generation
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_weekly.json lingbot-artifacts/cuda-weekly-quality/shard-{{matrix.shard}} lingbot-artifacts/cuda-weekly/shard-{{matrix.shard}}
       - label: "LingBot World · CUDA long session and bounded memory"
         key: lingbot-cuda-weekly-long
         source_file_dependencies: lingbot_world_regression
@@ -725,4 +725,4 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/cuda-long-quality/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_long.json lingbot-artifacts/cuda-long-quality lingbot-artifacts/cuda-long lingbot-cuda-weekly-long
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_long.json lingbot-artifacts/cuda-long-quality lingbot-artifacts/cuda-long

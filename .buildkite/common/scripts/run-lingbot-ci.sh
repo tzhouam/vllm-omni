@@ -83,18 +83,17 @@ UNIT_ENV
 elif [[ "$STAGE" == "aggregate" ]]; then
     export CUDA_VISIBLE_DEVICES=""
     GENERATION="${4:?measurement artifact directory}"
-    SOURCE_STEP="${5:?measurement Buildkite step key}"
     if [[ "${BUILDKITE:-}" == "true" ]]; then
-        buildkite-agent artifact download "$GENERATION/**" . --step "$SOURCE_STEP"
+        # Matrix jobs share logical step keys; their artifact prefixes are unique.
+        buildkite-agent artifact download "$GENERATION/**" .
     fi
     python -m pytest -sv tests/dfx/lingbot_world/test_aggregate.py \
         --lingbot-profile="$PROFILE" --lingbot-output="$OUTPUT" --lingbot-generation="$GENERATION" \
         -m 'full_model and cpu' --run-level full_model --junitxml="$OUTPUT/pytest.xml"
 elif [[ "$STAGE" == "evaluate" ]]; then
     GENERATION="${4:?generation artifact directory}"
-    SOURCE_STEP="${5:?generation Buildkite step key}"
     if [[ "${BUILDKITE:-}" == "true" ]]; then
-        buildkite-agent artifact download "$GENERATION/**" . --step "$SOURCE_STEP"
+        buildkite-agent artifact download "$GENERATION/**" .
     fi
     EVALUATOR_LOCK="$(python -c 'from tests.dfx.lingbot_world.prepare import evaluator_cache_key; print(evaluator_cache_key())')"
     export LINGBOT_EVALUATOR_ROOT="${LINGBOT_EVALUATOR_ROOT:-${HF_HOME:-${TMPDIR:-/tmp}}/lingbot-evaluators-$EVALUATOR_LOCK}"

@@ -446,4 +446,4 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/npu-nightly-quality/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly-quality lingbot-artifacts/npu-nightly lingbot-npu-nightly-generation
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly-quality lingbot-artifacts/npu-nightly
