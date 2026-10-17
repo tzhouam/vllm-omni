@@ -413,11 +413,20 @@ def verify_quality_population_contract(
     cases = {case["id"]: case for case in contract["profile"]["cases"]}
     if set(cases) != set(population["cases"]):
         raise RegressionError("Quality reference population case coverage changed")
+    reference_spreads = population.get("max_reference_spreads")
+    if not isinstance(reference_spreads, Mapping) or set(reference_spreads) != {"wbench", "vbench"}:
+        raise RegressionError("Quality reference population requires recorded reference spread limits")
     for name, case in population["cases"].items():
         if case["input"] != cases[name] or len(case["pixels"]) != 6:
             raise RegressionError("Quality reference population requires both complete reference cohorts")
         if set(case["suites"]) != {"wbench", "vbench"} or any(len(rows) != 6 for rows in case["suites"].values()):
             raise RegressionError("Quality reference population requires six native reference scores per suite")
+        for suite, rows in case["suites"].items():
+            limits = reference_spreads[suite]
+            if not isinstance(limits, Mapping) or set(limits) != set(rows[0]):
+                raise RegressionError("Quality reference population reference spread dimensions changed")
+            for value in limits.values():
+                number(value, "Quality reference population reference spread limit")
         for row in case["pixels"]:
             environment = row.get("pixel_environment")
             if not isinstance(environment, Mapping) or environment.get("packages") != pixel_packages:

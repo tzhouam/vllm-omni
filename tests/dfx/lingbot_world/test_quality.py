@@ -109,8 +109,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             )
             population = None
         else:
-            if settings["num_chunks"] == 600:
-                reference_spreads = population["max_reference_spreads"]
+            reference_spreads = population["max_reference_spreads"]
     for relative, digest in lock["files"].items():
         if sha256(evaluator_root / relative) != digest:
             raise RegressionError(f"Evaluator weight checksum mismatch: {relative}")
