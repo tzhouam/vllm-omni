@@ -26,16 +26,20 @@ pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
 
 
-@pytest.mark.parametrize("shell", ["/bin/sh", "/bin/bash"])
+@pytest.mark.parametrize(
+    "platform,shell",
+    [("cuda", "/bin/sh"), ("cuda", "/bin/bash"), ("amd-other", "/bin/bash"), ("amd-executor", "/bin/bash")],
+)
 @pytest.mark.parametrize("status", [0, 1, 2, 134])
-def test_cuda_cpu_logging_preserves_pytest_exit_and_artifacts(tmp_path: Path, shell: str, status: int):
-    pipeline = yaml.safe_load((ROOT / ".buildkite/cuda/test-ready.yml").read_text())
-    step = next(
-        step
-        for group in pipeline["steps"]
-        for step in group.get("steps", [])
-        if step.get("label") == "Simple · Other Test"
-    )
+def test_cpu_logging_preserves_pytest_exit_and_agent_artifacts(tmp_path: Path, platform: str, shell: str, status: int):
+    source = ".buildkite/cuda/test-ready.yml" if platform == "cuda" else ".buildkite/amd/test-amd-ready.yml"
+    pipeline = yaml.safe_load((ROOT / source).read_text())
+    label = "Simple · Model Executor Test · Shard %N/%t" if platform == "amd-executor" else "Simple · Other Test"
+    step = next(step for group in pipeline["steps"] for step in group.get("steps", []) if step.get("label") == label)
+    application = tmp_path / "application"
+    checkout = tmp_path / "agent-checkout"
+    application.mkdir()
+    checkout.mkdir()
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     pytest_cli = bin_dir / "pytest"
@@ -51,18 +55,26 @@ def test_cuda_cpu_logging_preserves_pytest_exit_and_artifacts(tmp_path: Path, sh
     )
     pytest_cli.chmod(0o755)
     result = subprocess.run(
-        [shell, "-e", "-c", "\n".join(step["commands"])],
-        cwd=tmp_path,
-        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ["PATH"]},
+        [shell, "-e", "-c", "\n".join(step["commands"]).replace("$$", "$")],
+        cwd=application,
+        env={
+            **os.environ,
+            "PATH": str(bin_dir) + os.pathsep + os.environ["PATH"],
+            "BUILDKITE_BUILD_CHECKOUT_PATH": str(checkout),
+            "BUILDKITE_PARALLEL_JOB": "2",
+            "BUILDKITE_PARALLEL_JOB_COUNT": "3",
+        },
         capture_output=True,
         text=True,
         timeout=30,
     )
     assert result.returncode == status, result.stdout + result.stderr
-    output = tmp_path / "artifacts/cuda-other"
-    log = (output / "pytest.log").read_text()
+    directory = {"cuda": "cuda-other", "amd-other": "amd-other", "amd-executor": "amd-model-executor-cpu"}[platform]
+    output = checkout / "artifacts" / directory
+    stem = "pytest-2" if platform == "amd-executor" else "pytest"
+    log = (output / (stem + ".log")).read_text()
     assert "pytest stdout" in log and "pytest stderr" in log
-    assert ET.parse(output / "pytest.xml").getroot().tag == "testsuite"
+    assert ET.parse(output / (stem + ".xml")).getroot().tag == "testsuite"
 
 
 def test_lifecycle_playhead_blocks_second_admission_before_inference() -> None:
