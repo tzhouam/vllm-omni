@@ -912,7 +912,7 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
         assert generate["mirror_hardwares"] == "h100_4_exclusive"
     else:
         assert generate["mirror_hardwares"] == "a2b3_npu_8"
-    producer = prefix + ("-gate" if platform == "npu" and level == "nightly" else "-generation")
+    producer = prefix + ("-gate" if platform == "npu" else "-generation")
     assert {"step": producer, "allow_failure": True} in evaluate["depends_on"]
     assert evaluate["mirror_hardwares"] == "h100_1"
     for step in (generate, evaluate):
@@ -935,15 +935,39 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
     if level == "weekly":
         assert prefix + "-long" in keyed
         count = 3 if platform == "cuda" else 6
-        assert generate["matrix"] == evaluate["matrix"] == {"setup": {"shard": [str(i) for i in range(count)]}}
+        shard_matrix = {"setup": {"shard": [str(i) for i in range(count)]}}
+        assert evaluate["matrix"] == shard_matrix
         assert (
             generate["env"]["LINGBOT_CASE_SHARD"]
             == evaluate["env"]["LINGBOT_CASE_SHARD"]
             == ("{{matrix.shard}}/" + str(count))
         )
         if platform == "cuda":
+            assert generate["matrix"] == shard_matrix
             assert keyed[prefix + "-long"]["mirror_hardwares"] == "h100_4_exclusive"
         else:
+            assert generate["matrix"] == {"setup": {"shard": [str(i) for i in range(count)], "repeat": ["0", "1", "2"]}}
+            assert generate["env"]["LINGBOT_MEASUREMENT_REPEAT"] == "{{matrix.repeat}}"
+            assert generate["timeout_in_minutes"] == 240
+            assert " collect " in generate["commands"][0]
+            assert generate["commands"][0].endswith(
+                "lingbot-artifacts/npu-weekly-measurements/shard-{{matrix.shard}}/pair-{{matrix.repeat}}"
+            )
+            weekly_gate = keyed[prefix + "-gate"]
+            assert weekly_gate["matrix"] == shard_matrix
+            assert weekly_gate["env"]["LINGBOT_CASE_SHARD"] == "{{matrix.shard}}/6"
+            assert {"step": prefix + "-generation", "allow_failure": True} in weekly_gate["depends_on"]
+            assert prefix + "-evaluator-image" in weekly_gate["depends_on"]
+            assert weekly_gate["mirror_hardwares"] == "l4_1" and not weekly_gate.get("soft_fail")
+            assert weekly_gate["timeout_in_minutes"] == 60
+            assert (
+                weekly_gate["artifact_paths"] and weekly_gate["source_file_dependencies"] == "lingbot_world_regression"
+            )
+            assert " aggregate " in weekly_gate["commands"][0]
+            assert weekly_gate["commands"][0].endswith(
+                "lingbot-artifacts/npu-weekly/shard-{{matrix.shard}} "
+                "lingbot-artifacts/npu-weekly-measurements/shard-{{matrix.shard}}"
+            )
             collection = keyed[prefix + "-long"]
             assert collection["mirror_hardwares"] == "a2b3_npu_8"
             gate = keyed[prefix + "-long-gate"]

@@ -200,8 +200,14 @@ bound. P99 remains report-only below 1,000 steady samples.
 The three pairs reuse the existing collector and aggregate, retain all
 independent starts and keep each nightly collection timeout at 240 minutes.
 The same guard gives NPU weekly two 160-chunk sessions (306 steady samples)
-per start; all 18 cases and six shards remain. Its 1,440-minute job budgets
-stay unchanged. The long profile still has two 600-chunk sessions
+per start; all 18 cases and six shards remain. Weekly also collects three
+independent pairs per shard, with a 240-minute collection deadline and a
+separate 60-minute CPU gate per shard. The original serial weekly job was
+[timed out after 300 minutes](https://buildkite.com/vllm/vllm-omni-npu-ci/builds/9202#01a1497f-717f-4416-8f01-8e323f49d042)
+despite requesting 1,440 minutes, retaining only two complete starts per role.
+Splitting collection preserves the full population and all measurements; it
+does not increase deadlines or resolve unstable reference P95 calibration.
+The long profile still has two 600-chunk sessions
 and at least 1,186 steady observations. The first pair also runs both complete
 600-chunk memory/control diagnostics. Pairs may run on different nodes, but the
 aggregate rejects different hardware/dependency contracts and unstable reference
@@ -408,8 +414,25 @@ their evidence. `quality.json` separates `generation_passed` and
 incompatible generation populations fail before scoring. The generation job
 remains blocking, and evaluator-image failures still prevent scoring.
 
-To reproduce one weekly group, set `LINGBOT_CASE_SHARD=0/3` for CUDA or `0/6`
-for NPU when invoking both `generate` and `evaluate`. To reproduce NPU long
+To reproduce one CUDA weekly group, set `LINGBOT_CASE_SHARD=0/3` when
+invoking both `generate` and `evaluate`. For one NPU weekly group:
+
+```bash
+for repeat in 0 1 2; do
+  LINGBOT_CASE_SHARD=0/6 LINGBOT_MEASUREMENT_REPEAT="$repeat" \
+    bash .buildkite/common/scripts/run-lingbot-ci.sh collect \
+    tests/dfx/lingbot_world/configs/npu_weekly.json \
+    "lingbot-artifacts/npu-weekly-measurements/shard-0/pair-$repeat"
+done
+LINGBOT_CASE_SHARD=0/6 bash .buildkite/common/scripts/run-lingbot-ci.sh aggregate \
+  tests/dfx/lingbot_world/configs/npu_weekly.json lingbot-artifacts/npu-weekly/shard-0 \
+  lingbot-artifacts/npu-weekly-measurements/shard-0
+```
+
+Use `LINGBOT_CASE_SHARD=0/6` for its subsequent `evaluate` invocation too.
+Each CPU gate consumes only its shard's three pair prefixes. A failed pair
+keeps that shard failed; complete shards still retain their own results.
+To reproduce NPU long
 collection, invoke `collect` three times with `LINGBOT_MEASUREMENT_REPEAT=0`,
 `1` and `2`, writing to `lingbot-artifacts/npu-long-measurements/pair-0`,
 `pair-1` and `pair-2`. Each invocation reserves eight NPU slots and uses four
