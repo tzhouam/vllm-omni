@@ -379,18 +379,23 @@ To reproduce one weekly group, set `LINGBOT_CASE_SHARD=0/3` for CUDA or `0/6`
 for NPU when invoking both `generate` and `evaluate`. To reproduce NPU long
 collection, invoke `collect` three times with `LINGBOT_MEASUREMENT_REPEAT=0`,
 `1` and `2`, writing to `lingbot-artifacts/npu-long-measurements/pair-0`,
-`pair-1` and `pair-2`. Each invocation requires the usual four-NPU reservation.
+`pair-1` and `pair-2`. Each invocation reserves eight NPU slots and uses four
+visible devices.
 Then run the CPU gate without loading a checkpoint:
 
 ```bash
 bash .buildkite/common/scripts/run-lingbot-ci.sh aggregate \
   tests/dfx/lingbot_world/configs/npu_long.json lingbot-artifacts/npu-long \
-  lingbot-artifacts/npu-long-measurements lingbot-npu-weekly-long
+  lingbot-artifacts/npu-long-measurements
 ```
 
 For a local run, leave `BUILDKITE` unset so the already collected directories
-are used directly. On CI the launcher downloads every pair from the named
-matrix step. Use the aggregate's output directory for the subsequent GPU evaluator.
+are used directly. On CI the launcher downloads the unique generation prefix
+from the current build, so every matrix pair is available. Quality jobs use
+their matching platform/profile/shard prefix. Pipeline dependencies and
+source/contract/checksum validation still bind the downloaded data to its
+producer. See the [agent artifact download reference](https://buildkite.com/docs/agent/cli/reference/artifact).
+Use the aggregate's output directory for the subsequent GPU evaluator.
 
 For source attribution, use `candidate_revision` from the retained
 `generation.json`. Buildkite can test a synthetic merge containing upstream

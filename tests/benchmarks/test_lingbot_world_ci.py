@@ -732,6 +732,7 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
     keyed = {step.get("key"): step for step in steps}
     prefix = f"lingbot-{platform}-{level}"
     generate, evaluate = keyed[prefix + "-generation"], keyed[prefix + "-quality"]
+    assert len(evaluate["commands"][0].split()) == 6
     if platform == "cuda":
         assert generate["mirror_hardwares"] == "h100_4_exclusive"
     else:
@@ -765,7 +766,8 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
             assert prefix + "-long" in gate["depends_on"]
             assert gate["mirror_hardwares"] == "l4_1" and not gate.get("soft_fail")
             assert {"step": prefix + "-long-gate", "allow_failure": True} in quality["depends_on"]
-            assert quality["commands"][0].endswith(prefix + "-long-gate")
+            assert quality["commands"][0].endswith("lingbot-artifacts/npu-long")
+            assert len(gate["commands"][0].split()) == len(quality["commands"][0].split()) == 6
         assert {"step": prefix + "-long" + ("-gate" if platform == "npu" else ""), "allow_failure": True} in keyed[
             prefix + "-long-quality"
         ]["depends_on"]
@@ -836,6 +838,69 @@ def test_every_configured_quality_dimension_rejects_a_collapse(platform):
                 max_reference_spreads={dimension: limits["max_reference_spreads"][platform][suite][dimension]},
             )
             assert not result["passed"], (suite, dimension)
+
+
+@pytest.mark.parametrize("stage", ["aggregate", "evaluate"])
+def test_matrix_artifact_handoff_uses_unique_build_prefix(tmp_path, stage):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    generation = "generation/pairs" if stage == "aggregate" else "generation/shard-1"
+    expected = (
+        [f"{generation}/pair-{i}.json" for i in range(3)] if stage == "aggregate" else [f"{generation}/manifest.json"]
+    )
+    artifacts = (
+        [[path] for path in expected] if stage == "aggregate" else [["generation/shard-0/manifest.json"], expected]
+    )
+    agent = bin_dir / "buildkite-agent"
+    trace = tmp_path / "download.json"
+    agent.write_text(
+        f"#!{sys.executable}\nimport fnmatch,json,sys\nfrom pathlib import Path\n"
+        f"jobs={artifacts!r}\n"
+        "paths=jobs[0] if '--step' in sys.argv else [p for job in jobs for p in job]\n"
+        "matches=[p for p in paths if fnmatch.fnmatch(p,sys.argv[3])]\n"
+        f"Path({str(trace)!r}).write_text(json.dumps({{'args':sys.argv[1:],'paths':matches}}))\n"
+        "if not matches: sys.exit(23)\n"
+        "for value in matches:\n    p=Path(value); p.parent.mkdir(parents=True,exist_ok=True); p.write_text('{}')\n"
+    )
+    consumed = tmp_path / "consumed"
+    python = bin_dir / "python"
+    python.write_text(
+        f"#!{sys.executable}\nimport os,sys\nfrom pathlib import Path\n"
+        "if sys.argv[1:3]==['-m','pytest'] or "
+        "sys.argv[1:4]==['-m','tests.dfx.lingbot_world.prepare','evaluators']:\n"
+        f"    if not all(Path(p).exists() for p in {expected!r}): sys.exit(29)\n"
+        f"    Path({str(consumed)!r}).touch()\n    sys.exit(17)\n"
+        "else:\n    os.execv(sys.executable,[sys.executable,*sys.argv[1:]])\n"
+    )
+    for path in (agent, python):
+        path.chmod(0o755)
+    env = {
+        **os.environ,
+        "BUILDKITE": "true",
+        "PYTHONPATH": str(ROOT),
+        "PATH": str(bin_dir) + os.pathsep + os.environ["PATH"],
+    }
+    env.pop("LINGBOT_CASE_SHARD", None)
+    output = tmp_path / "output"
+    result = subprocess.run(
+        [
+            "bash",
+            str(ROOT / ".buildkite/common/scripts/run-lingbot-ci.sh"),
+            stage,
+            str(ROOT / "tests/dfx/lingbot_world/configs/npu_long.json"),
+            str(output),
+            generation,
+        ],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 17, result.stdout + result.stderr
+    assert consumed.exists()
+    assert json.loads(trace.read_text())["paths"] == expected
+    assert ET.parse(output / "pytest.xml").find("testcase/failure") is not None
 
 
 @pytest.mark.parametrize("stage", ["generate", "unit"])

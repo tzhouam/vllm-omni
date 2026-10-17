@@ -298,7 +298,6 @@ def test_aggregate_launcher_executes_pytest_and_returns_nonzero_for_regression(m
                 str(settings["profile_path"]),
                 str(output),
                 str(settings["generation"]),
-                "source-step",
             ],
             cwd=runner.ROOT,
             env=environment,

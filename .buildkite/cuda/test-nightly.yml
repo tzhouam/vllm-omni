@@ -655,4 +655,4 @@ steps:
         artifact_paths:
           - "lingbot-artifacts/cuda-nightly-quality/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_nightly.json lingbot-artifacts/cuda-nightly-quality lingbot-artifacts/cuda-nightly lingbot-cuda-nightly-generation
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh evaluate tests/dfx/lingbot_world/configs/cuda_nightly.json lingbot-artifacts/cuda-nightly-quality lingbot-artifacts/cuda-nightly
