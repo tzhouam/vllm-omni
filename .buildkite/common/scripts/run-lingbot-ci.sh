@@ -110,6 +110,10 @@ elif [[ "$STAGE" == "generate" || "$STAGE" == "smoke" || "$STAGE" == "collect" ]
         CUDA_VISIBLE_DEVICES="$(python -m tests.dfx.lingbot_world.prepare devices --profile "$PROFILE" --root "$OUTPUT")"
         export CUDA_VISIBLE_DEVICES
         export LINGBOT_ALLOCATION_FILE="$OUTPUT/allocation.json"
+    elif [[ "$PLATFORM" == "npu" && ( "$STAGE" == "generate" || "$STAGE" == "collect" ) ]]; then
+        ASCEND_RT_VISIBLE_DEVICES="$(python -m tests.dfx.lingbot_world.prepare devices --profile "$PROFILE" --root "$OUTPUT")"
+        export ASCEND_RT_VISIBLE_DEVICES
+        export LINGBOT_ALLOCATION_FILE="$OUTPUT/allocation.json"
     fi
     REFERENCE="${TMPDIR:-/tmp}/lingbot-reference-${BUILDKITE_JOB_ID:-$$}"
     python -m tests.dfx.lingbot_world.prepare reference --profile "$PROFILE" \

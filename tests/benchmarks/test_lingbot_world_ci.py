@@ -342,6 +342,59 @@ def test_exclusive_hardware_contract_requires_matching_allocation_evidence(tmp_p
         hardware_contract(settings)
 
 
+@pytest.mark.parametrize("mask", [None, "7,6,5,4,3,2,1,0", "8,9,10,11,12,13,14,15"])
+def test_npu_allocation_preserves_cann_runtime_mapping(mask):
+    from tests.dfx.lingbot_world.prepare import select_npu_devices
+
+    expected = "0,1,2,3" if mask is None else ",".join(mask.split(",")[:4])
+    assert select_npu_devices(8, mask, dies=4, reserved_cards=8) == expected
+
+
+@pytest.mark.parametrize(
+    "available,mask", [(4, None), (16, None), (8, "0,1,2,3"), (8, "0," * 7 + "0"), (8, "-1,1,2,3,4,5,6,7")]
+)
+def test_npu_allocation_rejects_partial_or_ambiguous_reservations(available, mask):
+    from tests.dfx.lingbot_world.prepare import select_npu_devices
+
+    with pytest.raises(RegressionError):
+        select_npu_devices(available, mask, dies=4, reserved_cards=8)
+
+
+def test_npu_preflight_and_contract_verify_mask_and_actual_device_properties(tmp_path, monkeypatch):
+    import vllm_omni.platforms
+    from tests.dfx.lingbot_world import runner
+    from tests.dfx.lingbot_world.prepare import prepare_npu_allocation
+
+    platform = vllm_omni.platforms.current_omni_platform
+    count = [8]
+    monkeypatch.setattr(platform, "device_type", "npu")
+    monkeypatch.setattr(platform, "get_device_count", lambda: count[0])
+    monkeypatch.setattr(platform, "get_device_name", lambda index: "Ascend910B3")
+    monkeypatch.setattr(platform, "get_device_total_memory", lambda index: 64 * 1024**3)
+    monkeypatch.setattr(runner.importlib.metadata, "version", lambda package: "test-version")
+    monkeypatch.setenv("ASCEND_RT_VISIBLE_DEVICES", "7,6,5,4,3,2,1,0")
+    settings = {"platform": "npu", "cards": 4, "dies": 4, "reserved_cards": 8}
+    output = tmp_path / "allocation.json"
+    assert prepare_npu_allocation(settings, output) == "7,6,5,4"
+    evidence = json.loads(output.read_text())
+    assert [device["runtime_id"] for device in evidence["devices"]] == list("76543210")
+    count[0] = 4
+    monkeypatch.setenv("ASCEND_RT_VISIBLE_DEVICES", "7,6,5,4")
+    monkeypatch.delenv("LINGBOT_ALLOCATION_FILE", raising=False)
+    with pytest.raises(RegressionError, match="allocation preflight"):
+        runner.hardware_contract(settings)
+    monkeypatch.setenv("LINGBOT_ALLOCATION_FILE", str(output))
+    assert runner.hardware_contract(settings)["allocation"] == evidence
+    monkeypatch.setenv("ASCEND_RT_VISIBLE_DEVICES", "0,1,2,3")
+    with pytest.raises(RegressionError, match="allocation evidence"):
+        runner.hardware_contract(settings)
+    monkeypatch.setenv("ASCEND_RT_VISIBLE_DEVICES", "7,6,5,4")
+    evidence["devices"][0]["total_bytes"] -= 1
+    output.write_text(json.dumps(evidence))
+    with pytest.raises(RegressionError, match="visible hardware"):
+        runner.hardware_contract(settings)
+
+
 def test_reference_server_keeps_backend_import_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     backend = tmp_path / "cann"
     backend.mkdir()
@@ -632,6 +685,8 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
     generate, evaluate = keyed[prefix + "-generation"], keyed[prefix + "-quality"]
     if platform == "cuda":
         assert generate["mirror_hardwares"] == "h100_4_exclusive"
+    else:
+        assert generate["mirror_hardwares"] == "a2b3_npu_8"
     assert {"step": prefix + "-generation", "allow_failure": True} in evaluate["depends_on"]
     assert evaluate["mirror_hardwares"] == "h100_1"
     for step in (generate, evaluate):
@@ -653,6 +708,7 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
             assert keyed[prefix + "-long"]["mirror_hardwares"] == "h100_4_exclusive"
         else:
             collection = keyed[prefix + "-long"]
+            assert collection["mirror_hardwares"] == "a2b3_npu_8"
             gate = keyed[prefix + "-long-gate"]
             quality = keyed[prefix + "-long-quality"]
             assert collection["matrix"] == {"setup": {"repeat": ["0", "1", "2"]}}
@@ -755,6 +811,54 @@ def test_launcher_setup_failure_retains_nonzero_exit_and_junit(tmp_path: Path, s
     assert not json.loads((output / "setup-failure.json").read_text())["passed"]
 
 
+@pytest.mark.parametrize("stage", ["generate", "collect"])
+@pytest.mark.parametrize("preflight_status", [0, 19])
+def test_npu_launcher_limits_visibility_before_model_preparation(tmp_path, stage, preflight_status):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    python = bin_dir / "python"
+    reached = tmp_path / "reference-environment.json"
+    python.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, sys\nfrom pathlib import Path\n"
+        "if sys.argv[1:4] == ['-m', 'tests.dfx.lingbot_world.prepare', 'devices']:\n"
+        f"    if {preflight_status}: sys.exit({preflight_status})\n"
+        "    root = Path(sys.argv[sys.argv.index('--root')+1])\n"
+        "    (root/'allocation.json').write_text('{}')\n"
+        "    print('7,6,5,4')\n"
+        "elif sys.argv[1:4] == ['-m', 'tests.dfx.lingbot_world.prepare', 'reference']:\n"
+        f"    Path({str(reached)!r}).write_text(json.dumps({{key: os.environ.get(key) for key in "
+        "['ASCEND_RT_VISIBLE_DEVICES', 'LINGBOT_ALLOCATION_FILE']}))\n"
+        "    sys.exit(17)\n"
+        "else:\n    os.execv(sys.executable, [sys.executable, *sys.argv[1:]])\n"
+    )
+    python.chmod(0o755)
+    output = tmp_path / "artifacts"
+    env = {**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ["PATH"]}
+    env.pop("LINGBOT_CASE_SHARD", None)
+    result = subprocess.run(
+        [
+            "bash",
+            str(ROOT / ".buildkite/common/scripts/run-lingbot-ci.sh"),
+            stage,
+            str(ROOT / "tests/dfx/lingbot_world/configs/npu_nightly.json"),
+            str(output),
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == (preflight_status or 17), result.stdout + result.stderr
+    assert reached.exists() is (preflight_status == 0)
+    if reached.exists():
+        environment = json.loads(reached.read_text())
+        assert environment["ASCEND_RT_VISIBLE_DEVICES"] == "7,6,5,4"
+        assert Path(environment["LINGBOT_ALLOCATION_FILE"]) == output / "allocation.json"
+    assert ET.parse(output / "pytest.xml").find("testcase/failure") is not None
+
+
 @pytest.mark.parametrize("cancel_signal", [signal.SIGTERM, signal.SIGKILL])
 def test_launcher_cancellation_retains_failure_junit(tmp_path: Path, cancel_signal):
     bin_dir = tmp_path / "bin"
@@ -763,14 +867,21 @@ def test_launcher_cancellation_retains_failure_junit(tmp_path: Path, cancel_sign
     python.write_text(
         f"#!{sys.executable}\n"
         "import json, os, sys\nfrom pathlib import Path\n"
-        "if sys.argv[1:4] == ['-m', 'tests.dfx.lingbot_world.prepare', 'reference']:\n"
+        "if sys.argv[1:4] == ['-m', 'tests.dfx.lingbot_world.prepare', 'devices']:\n"
+        "    root = Path(sys.argv[sys.argv.index('--root')+1])\n"
+        "    (root/'allocation.json').write_text('{}')\n"
+        "    print('0,1,2,3')\n"
+        "elif sys.argv[1:4] == ['-m', 'tests.dfx.lingbot_world.prepare', 'reference']:\n"
         "    Path(sys.argv[sys.argv.index('--env-output')+1]).write_text(json.dumps({'model_path':'unused'}))\n"
         "else:\n    os.execv(sys.executable, [sys.executable, *sys.argv[1:]])\n"
     )
     pytest_cli = bin_dir / "pytest"
     ready = tmp_path / "ready"
     pytest_cli.write_text(
-        f"#!{sys.executable}\nimport time\nfrom pathlib import Path\nPath({str(ready)!r}).touch()\ntime.sleep(120)\n"
+        f"#!{sys.executable}\nimport os, time\nfrom pathlib import Path\n"
+        "assert os.environ['ASCEND_RT_VISIBLE_DEVICES'] == '0,1,2,3'\n"
+        "assert Path(os.environ['LINGBOT_ALLOCATION_FILE']).is_file()\n"
+        f"Path({str(ready)!r}).touch()\ntime.sleep(120)\n"
     )
     python.chmod(0o755)
     pytest_cli.chmod(0o755)
@@ -812,7 +923,7 @@ def test_profiles_pin_inputs_and_use_distinct_reference_starts():
         assert len({case["id"] for case in profile["cases"]}) == len(profile["cases"])
         assert all(case["image"] in lock["images"] for case in profile["cases"])
         assert (ROOT / profile["deploy_config"]).is_file()
-        if profile["platform"] == "cuda" and profile["cards"] == 4:
+        if profile["cards"] == 4:
             assert profile["reserved_cards"] == 8 and profile["dies"] == 4
     assert len(lock["model_files"]) >= 20
 

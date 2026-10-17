@@ -21,7 +21,7 @@ steps:
           LINGBOT_CASE_SHARD: "{{matrix.shard}}/6"
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 1440
-        mirror_hardwares: a2b3_npu_4
+        mirror_hardwares: a2b3_npu_8
         # Match existing infra retry codes; pytest and OOM still fail.
         retry:
           automatic:
@@ -60,7 +60,7 @@ steps:
           LINGBOT_MEASUREMENT_REPEAT: "{{matrix.repeat}}"
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 1440
-        mirror_hardwares: a2b3_npu_4
+        mirror_hardwares: a2b3_npu_8
         # Match existing infra retry codes; pytest and OOM still fail.
         retry:
           automatic:
