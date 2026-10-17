@@ -111,7 +111,8 @@ elif [[ "$STAGE" == "generate" || "$STAGE" == "smoke" || "$STAGE" == "collect" ]
         export CUDA_VISIBLE_DEVICES
         export LINGBOT_ALLOCATION_FILE="$OUTPUT/allocation.json"
     elif [[ "$PLATFORM" == "npu" && ( "$STAGE" == "generate" || "$STAGE" == "collect" ) ]]; then
-        ASCEND_RT_VISIBLE_DEVICES="$(python -m tests.dfx.lingbot_world.prepare devices --profile "$PROFILE" --root "$OUTPUT")"
+        python -m tests.dfx.lingbot_world.prepare devices --profile "$PROFILE" --root "$OUTPUT"
+        ASCEND_RT_VISIBLE_DEVICES="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["visible_devices"])' "$OUTPUT/allocation.json")"
         export ASCEND_RT_VISIBLE_DEVICES
         export LINGBOT_ALLOCATION_FILE="$OUTPUT/allocation.json"
     fi
