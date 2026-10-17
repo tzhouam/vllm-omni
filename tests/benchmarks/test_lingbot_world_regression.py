@@ -726,9 +726,10 @@ def test_invalid_quality_reference_spread_limits_fail_closed(limits):
         )
 
 
-def quality_population():
+def quality_population(chunks=40):
     root = Path(__file__).resolve().parents[2]
-    return read_json(root / "tests/dfx/lingbot_world/calibration/cuda_nightly_quality_population.json")
+    name = "cuda_long_quality_population.json" if chunks == 600 else "cuda_nightly_quality_population.json"
+    return read_json(root / "tests/dfx/lingbot_world/calibration" / name)
 
 
 def quality_packages():
@@ -740,10 +741,11 @@ def quality_packages():
     )
 
 
-def test_frozen_quality_population_uses_complete_reference_only_cohorts():
+@pytest.mark.parametrize("chunks", [40, 600])
+def test_frozen_quality_population_uses_complete_reference_only_cohorts(chunks):
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
-    population = quality_population()
+    population = quality_population(chunks)
     verify_quality_population_contract(
         population,
         population["contract"],
@@ -761,16 +763,17 @@ def test_frozen_quality_population_uses_complete_reference_only_cohorts():
 @pytest.mark.parametrize(
     "mutation", ["chunks", "prompt", "runtime", "topology", "evaluator", "lock", "assets", "pixels", "native"]
 )
-def test_frozen_quality_population_rejects_contract_or_population_changes(mutation):
+@pytest.mark.parametrize("chunks", [40, 600])
+def test_frozen_quality_population_rejects_contract_or_population_changes(mutation, chunks):
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
-    population = quality_population()
+    population = quality_population(chunks)
     contract = copy.deepcopy(population["contract"])
     packages = copy.deepcopy(quality_packages())
     lock, assets = population["evaluator_lock_sha256"], population["asset_lock_sha256"]
     case = population["cases"]["boardwalk-42"]
     if mutation == "chunks":
-        contract["profile"]["num_chunks"] = 600
+        contract["profile"]["num_chunks"] = 600 if chunks == 40 else 40
     elif mutation == "prompt":
         contract["profile"]["cases"][0]["prompt"] = "changed"
     elif mutation == "runtime":
@@ -793,14 +796,18 @@ def test_frozen_quality_population_rejects_contract_or_population_changes(mutati
         )
 
 
-@pytest.mark.parametrize("case_id", ["boardwalk-42", "blossom-42", "street-42"])
-def test_frozen_quality_population_preserves_candidate_budgets_and_negative_controls(case_id):
+@pytest.mark.parametrize(
+    "chunks,case_id", [(40, "boardwalk-42"), (40, "blossom-42"), (40, "street-42"), (600, "boardwalk-42")]
+)
+def test_frozen_quality_population_preserves_candidate_budgets_and_negative_controls(chunks, case_id):
     root = Path(__file__).resolve().parents[2]
     policy = read_json(root / "tests/dfx/lingbot_world/quality.json")
-    case = quality_population()["cases"][case_id]
+    population = quality_population(chunks)
+    case = population["cases"][case_id]
+    reference_spreads = population.get("max_reference_spreads", policy["max_reference_spreads"]["cuda"])
     for suite, reference in case["suites"].items():
         tolerances = {name: policy["candidate_tolerances"]["cuda"][suite][name] for name in reference[0]}
-        spreads = {name: policy["max_reference_spreads"]["cuda"][suite][name] for name in reference[0]}
+        spreads = {name: reference_spreads[suite][name] for name in reference[0]}
         for row in reference:
             assert check_quality(reference, row, tolerances=tolerances, max_reference_spreads=spreads)["passed"]
         for name, tolerance in tolerances.items():

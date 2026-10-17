@@ -279,8 +279,23 @@ has imaging-quality range 0.02171683116488965, above its preliminary 0.02
 reference ceiling. The same reference-only rule yields 0.03; the candidate
 imaging tolerance stays 0.01 and NPU limits stay separate. The calibration
 record retains the three reference scores, actual video hashes, frozen source,
-long-profile hash and native evaluator provenance. The ongoing independent
-long campaign is the holdout; these calibration inputs do not accept it.
+long-profile hash and native evaluator provenance. The next independent long
+campaign failed reference aesthetic-spread checks in both suites. Cross-cohort
+null tests also reject frozen-reference HPS scores and decoded PSNR windows
+at the unchanged candidate budgets.
+The separate [600-chunk reference population](calibration/cuda_long_quality_population.json)
+therefore fixes six reference starts from these two H100 cohorts, with six
+within-cohort pixel-distance summaries. Its reference ceilings follow the same
+six-reference range times 1.25 rule, rounded upward to 0.005 and retaining any
+larger existing ceiling. Only this exact CUDA long profile uses these ceilings;
+nightly, weekly and NPU limits do not change. Fresh references must pass both
+their own spread checks and the fixed population's native and pixel gates
+before candidates can pass. Candidate native budgets and PSNR/SSIM tolerances
+stay unchanged. The record binds source artifacts, all six actual video hashes,
+the exact profile/deployment/hardware/runtime, assets and evaluator packages.
+Historical engine overrides were unrecorded; independent final-source hardware
+validation with pinned switches remains required. These calibration cohorts
+do not establish acceptance of the updated gate.
 Every weekly/long profile also
 needs held-out target validation. NPU retains its existing separate ceilings
 until its own reference campaign completes. Reference ceilings must be verified on the target evaluator;
