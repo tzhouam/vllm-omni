@@ -213,6 +213,105 @@ def test_recorded_reference_startup_noise_is_covered_without_a_steady_stall_allo
     assert evidence["selected_floor_ms"] == math.ceil(required * 1.25)
 
 
+def test_recorded_ttfc_floor_covers_independent_reference_holdouts_and_remains_bounded():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    evidence = read_json(root / "calibration/cuda_nightly_reference.json")["ttfc_calibration"]
+    base = performance_metrics(document(), num_chunks=40, min_steady=30)
+    largest_excess = 0.0
+    counts = {}
+    for population in ("training_cohorts", "holdout_cohorts"):
+        cohorts = evidence[population]
+        old_rejections = new_rejections = comparisons = 0
+        for source, heldout in ((cohorts[0], cohorts[1]), (cohorts[1], cohorts[0])):
+            for case, rows in source["reference_cases"].items():
+                values = [row["ttfc_ms"] for row in rows]
+                holdout = [row["ttfc_ms"] for row in heldout["reference_cases"][case]]
+                assert len(values) == len(holdout) == 3
+                assert all("/reference/" in row["artifact"] for row in rows)
+                if population == "training_cohorts":
+                    largest_excess = max(largest_excess, max(holdout) - max(values))
+                reference = [dict(base, ttfc_ms=value) for value in values]
+                old = calibrate(reference, contract={}, reference_revision="a" * 40)
+                gate = calibrate(
+                    reference,
+                    contract={},
+                    reference_revision="a" * 40,
+                    ttfc_jitter_floor_ms=evidence["selected_floor_ms"],
+                )
+                for value in holdout:
+                    measured = dict(base, ttfc_ms=value)
+                    old_rejections += not check_performance(measured, old, contract={})["passed"]
+                    new_rejections += not check_performance(measured, gate, contract={})["passed"]
+                    comparisons += 1
+                excessive = dict(base, ttfc_ms=gate["limits"]["ttfc_ms"]["value"] + 1)
+                assert not check_performance(excessive, gate, contract={})["passed"]
+        counts[population] = (comparisons, old_rejections, new_rejections)
+    selected = math.ceil(largest_excess * (1 + evidence["reserve_fraction"]) / evidence["round_up_ms"])
+    assert selected * evidence["round_up_ms"] == evidence["selected_floor_ms"]
+    assert largest_excess == pytest.approx(evidence["maximum_reference_excess_ms"])
+    assert counts["training_cohorts"] == (evidence["training_reference_comparisons"], 1, 0)
+    assert counts["holdout_cohorts"] == (
+        evidence["holdout_reference_comparisons"],
+        evidence["old_holdout_false_rejections"],
+        evidence["holdout_false_rejections"],
+    )
+
+
+@pytest.mark.parametrize(
+    "metric", ["mean_ms", "p50_ms", "p95_ms", "p99_ms", "generated_fps", "stall_ms", "steady_stall_ms"]
+)
+def test_ttfc_floor_does_not_hide_cadence_fps_or_stall_regressions(metric):
+    row = performance_metrics(document(num_chunks=1020), num_chunks=1020, min_steady=1000)
+    options = {"contract": {}, "reference_revision": "a" * 40, "startup_stall_jitter_floor_ms": 135}
+    original = calibrate([row] * 3, **options)
+    gate = calibrate([row] * 3, **options, ttfc_jitter_floor_ms=220)
+    assert gate["limits"][metric] == original["limits"][metric]
+    candidate = dict(row)
+    limit = gate["limits"][metric]
+    candidate[metric] = limit["value"] + (1 if limit["direction"] == "max" else -1)
+    assert not check_performance(candidate, gate, contract={})["passed"]
+
+
+@pytest.mark.parametrize("platform", ["cuda", "npu"])
+def test_final_generation_gate_applies_ttfc_calibration_only_to_cuda(tmp_path, platform):
+    import numpy as np
+
+    from benchmarks.lingbot_world.precision import save_tensor_sample
+    from tests.dfx.lingbot_world.runner import _finalize_measurements
+
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    calibration_path = root / "calibration/cuda_nightly_reference.json"
+    calibration = read_json(calibration_path)
+    profile = read_json(root / f"configs/{platform}_nightly.json")
+    profile["cases"] = profile["cases"][:1]
+    contract = {
+        "profile": profile,
+        "hardware": calibration["hardware"] if platform == "cuda" else {"platform": "npu"},
+        "deploy_sha256": sha256(Path(__file__).resolve().parents[2] / profile["deploy_config"]),
+    }
+    case = profile["cases"][0]["id"]
+    row = performance_metrics(document(), num_chunks=40, min_steady=30)
+    records: dict[str, list[dict[str, dict[str, float]]]] = {role: [] for role in ("reference", "candidate")}
+    for role in records:
+        for repeat in range(3):
+            save_tensor_sample(
+                tmp_path / role / str(repeat) / "precision.npz",
+                inputs={"latent": np.ones(2)},
+                outputs={"decoded": np.ones(2)},
+            )
+            records[role].append({case: dict(row, ttfc_ms=1000 if role == "reference" else 1100)})
+    settings = {**profile, "output": tmp_path}
+    report = _finalize_measurements(settings, contract, records)
+    assert report["passed"] is (platform == "cuda")
+    evidence = tmp_path / "ttfc-calibration.json"
+    assert evidence.exists() is (platform == "cuda")
+    if platform == "cuda":
+        assert read_json(evidence)["reference_record_sha256"] == sha256(calibration_path)
+        limit = report["cases"][case]["baseline"]["limits"]["ttfc_ms"]
+        records["candidate"][0][case]["ttfc_ms"] = limit["value"] + 1
+        assert not _finalize_measurements(settings, contract, records)["passed"]
+
+
 def test_startup_noise_allowance_cannot_hide_a_later_stall_or_forged_summary():
     def measured(first_gap_jitter=0.0, later_gap_jitter=0.0):
         doc = document(interval=0.8)
@@ -253,10 +352,11 @@ def test_startup_noise_floor_does_not_change_other_performance_limits(metric):
 
 
 @pytest.mark.parametrize("floor", [-1, True, float("nan"), float("inf")])
-def test_invalid_startup_stall_floor_fails_closed(floor):
+@pytest.mark.parametrize("parameter", ["startup_stall_jitter_floor_ms", "ttfc_jitter_floor_ms"])
+def test_invalid_transient_floor_fails_closed(floor, parameter):
     row = performance_metrics(document(), num_chunks=40, min_steady=30)
     with pytest.raises(RegressionError):
-        calibrate([row] * 3, contract={}, reference_revision="a" * 40, startup_stall_jitter_floor_ms=floor)
+        calibrate([row] * 3, contract={}, reference_revision="a" * 40, **{parameter: floor})
 
 
 def test_startup_stall_floor_requires_separate_raw_steady_measurements():
