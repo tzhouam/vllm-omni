@@ -222,7 +222,7 @@ def test_recorded_reference_startup_noise_is_covered_without_a_steady_stall_allo
 
 def test_recorded_ttfc_floor_covers_independent_reference_holdouts_and_remains_bounded():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    evidence = read_json(root / "calibration/cuda_nightly_reference.json")["ttfc_calibration"]
+    evidence = read_json(root / "calibration/history/cuda_nightly_reference_unrecorded.json")["ttfc_calibration"]
     base = performance_metrics(document(), num_chunks=40, min_steady=30)
     largest_excess = 0.0
     counts = {}
@@ -281,7 +281,7 @@ def test_ttfc_floor_does_not_hide_cadence_fps_or_stall_regressions(metric):
 
 def test_h100_p95_cv_calibration_uses_prior_references_and_independent_holdouts():
     root = Path(__file__).resolve().parents[2]
-    record = read_json(root / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json")
+    record = read_json(root / "tests/dfx/lingbot_world/calibration/history/cuda_nightly_reference_unrecorded.json")
     evidence = record["p95_reference_cv_calibration"]
     assert evidence["reference_revision"] == record["reference_revision"]
     assert evidence["deploy_sha256"] == record["deploy_sha256"]
@@ -553,7 +553,7 @@ def test_recorded_independent_h100_reference_cohorts_fit_the_binary_noise_budget
 def test_cuda_quality_ceilings_reproduce_reference_only_calibration_and_keep_npu_separate():
     root = Path(__file__).resolve().parents[2]
     suite = root / "tests/dfx/lingbot_world"
-    record = read_json(suite / "calibration/cuda_nightly_reference.json")
+    record = read_json(suite / "calibration/history/cuda_nightly_reference_unrecorded.json")
     limits = read_json(suite / "quality.json")
     assert record["workload"] == read_json(suite / "configs/cuda_nightly.json")
     assert record["deploy_sha256"] == sha256(root / record["workload"]["deploy_config"])
@@ -580,7 +580,7 @@ def test_cuda_quality_ceilings_reproduce_reference_only_calibration_and_keep_npu
 
 def test_h100_hps_reference_ceiling_uses_only_reference_scores_and_preserves_candidate_budget(tmp_path):
     suite = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    record = read_json(suite / "calibration/cuda_nightly_reference.json")
+    record = read_json(suite / "calibration/history/cuda_nightly_reference_unrecorded.json")
     evidence = record["target_h100_hps_reference_calibration"]
     limits = read_json(suite / "quality.json")
     assert evidence["evaluator_hardware"]["devices"][0]["name"] == "NVIDIA H100 80GB HBM3"
@@ -626,7 +626,7 @@ def test_h100_hps_reference_ceiling_uses_only_reference_scores_and_preserves_can
 def test_h100_long_imaging_calibration_preserves_candidate_budget_and_rejects_unstable_references():
     root = Path(__file__).resolve().parents[2]
     suite = root / "tests/dfx/lingbot_world"
-    record = read_json(suite / "calibration/cuda_nightly_reference.json")
+    record = read_json(suite / "calibration/history/cuda_nightly_reference_unrecorded.json")
     evidence = record["target_h100_long_imaging_reference_calibration"]
     limits = read_json(suite / "quality.json")
     assert evidence["profile_sha256"] == sha256(root / evidence["profile"])
@@ -667,7 +667,7 @@ def test_h100_long_imaging_calibration_preserves_candidate_budget_and_rejects_un
 
 def test_aesthetic_budget_comes_from_reference_holdouts_and_still_rejects_degradation():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    record = read_json(root / "calibration/history/cuda_nightly_reference_unrecorded.json")
     limits = read_json(root / "quality.json")
     evidence = record["candidate_budget_calibration"]["cuda_vbench_aesthetic_quality"]
     tolerance = limits["candidate_tolerances"]["cuda"]["vbench"]["aesthetic_quality"]
@@ -693,9 +693,9 @@ def test_aesthetic_budget_comes_from_reference_holdouts_and_still_rejects_degrad
 
 def test_ssim_budget_covers_independent_reference_holdouts_and_remains_bounded():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    evidence = read_json(root / "calibration/cuda_nightly_reference.json")["candidate_budget_calibration"][
-        "cuda_pixels"
-    ]
+    evidence = read_json(root / "calibration/history/cuda_nightly_reference_unrecorded.json")[
+        "candidate_budget_calibration"
+    ]["cuda_pixels"]
     limits = read_json(root / "quality.json")
     budget = limits["pixel_budgets"]["cuda"]
 
@@ -857,7 +857,23 @@ def test_frozen_quality_population_uses_complete_reference_only_cohorts(chunks):
 
 
 @pytest.mark.parametrize(
-    "mutation", ["chunks", "prompt", "runtime", "topology", "evaluator", "lock", "assets", "pixels", "native"]
+    "mutation",
+    [
+        "chunks",
+        "prompt",
+        "runtime",
+        "topology",
+        "evaluator",
+        "lock",
+        "assets",
+        "pixels",
+        "native",
+        "spreads_missing",
+        "spreads_dimensions",
+        "spreads_nonfinite",
+        "spreads_negative",
+        "spreads_boolean",
+    ],
 )
 @pytest.mark.parametrize("chunks", [40, 600])
 def test_frozen_quality_population_rejects_contract_or_population_changes(mutation, chunks):
@@ -886,6 +902,14 @@ def test_frozen_quality_population_rejects_contract_or_population_changes(mutati
         case["pixels"].pop()
     elif mutation == "native":
         case["suites"]["wbench"].pop()
+    elif mutation == "spreads_missing":
+        del population["max_reference_spreads"]
+    elif mutation == "spreads_dimensions":
+        population["max_reference_spreads"]["wbench"].pop("hpsv3_quality")
+    elif mutation.startswith("spreads_"):
+        value = float("nan") if mutation == "spreads_nonfinite" else -1 if mutation == "spreads_negative" else True
+        population["max_reference_spreads"]["wbench"]["hpsv3_quality"] = value
+
     with pytest.raises(RegressionError, match="population"):
         verify_quality_population_contract(
             population, contract, evaluator_packages=packages, evaluator_lock_sha256=lock, asset_lock_sha256=assets
@@ -1017,3 +1041,183 @@ def test_frozen_quality_population_preserves_candidate_budgets_and_negative_cont
         min(row["windows"][0]["psnr_db"] for row in case["pixels"]) - budgets["psnr_drop_db"] - 0.001
     )
     assert not check_video_precision(case["pixels"], candidate, **kwargs)["passed"]
+
+
+def test_active_recorded_zero_reference_calibration_matches_pinned_workload():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    assert record["engine_environment"] == _RECORDED_ENGINE_ENVIRONMENT
+    assert record["workload"] == read_json(root / "configs/cuda_nightly.json")
+    contract = {
+        "deploy_sha256": record["deploy_sha256"],
+        "profile": record["workload"],
+        "hardware": record["hardware"],
+        "engine_environment": dict(_RECORDED_ENGINE_ENVIRONMENT),
+    }
+    verify_reference_calibration_contract(contract, record)
+    assert not record["independent_validation_complete"]
+
+
+def test_active_nightly_population_records_both_real_cohorts_and_decoder():
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    population = quality_population(40)
+    assert population["contract"]["engine_environment"] == _RECORDED_ENGINE_ENVIRONMENT
+    verify_quality_population_contract(
+        population,
+        population["contract"],
+        evaluator_packages=quality_packages(),
+        evaluator_lock_sha256=population["evaluator_lock_sha256"],
+        asset_lock_sha256=population["asset_lock_sha256"],
+    )
+    assert {row["build_url"].rsplit("/", 1)[-1] for row in population["inputs"]} == {"17464", "17478"}
+    for case in population["cases"].values():
+        assert len(case["reference_videos"]) == len({v["sha256"] for v in case["reference_videos"]}) == 6
+        assert all("opencv_build_sha256" in row["pixel_environment"] for row in case["pixels"])
+
+
+@pytest.mark.parametrize(
+    "filename,digest,kind",
+    [
+        (
+            "cuda_nightly_reference_unrecorded.json",
+            "c986fc146ed596af8b93becbd054fb5c878293b80f02363181be42a50a22d921",
+            "performance",
+        ),
+        (
+            "cuda_nightly_quality_population_unrecorded.json",
+            "3a5af27900992300f1b2357f15ece1f156ad9d11ce4ba1b60e3fa87de984de8d",
+            "population",
+        ),
+    ],
+)
+def test_archived_unrecorded_calibration_remains_unchanged_and_rejected(filename, digest, kind):
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world/calibration/history"
+    path = root / filename
+    assert sha256(path) == digest
+    record = read_json(path)
+    if kind == "performance":
+        contract = {
+            "deploy_sha256": record["deploy_sha256"],
+            "profile": record["workload"],
+            "hardware": record["hardware"],
+            "engine_environment": dict(_RECORDED_ENGINE_ENVIRONMENT),
+        }
+        with pytest.raises(RegressionError, match="engine environment"):
+            verify_reference_calibration_contract(contract, record)
+    else:
+        contract = copy.deepcopy(record["contract"])
+        contract["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
+        with pytest.raises(RegressionError, match="engine environment"):
+            verify_quality_population_contract(
+                record,
+                contract,
+                evaluator_packages=quality_packages(),
+                evaluator_lock_sha256=record["evaluator_lock_sha256"],
+                asset_lock_sha256=record["asset_lock_sha256"],
+            )
+
+
+@pytest.mark.parametrize(
+    "field,metric,maximum,step",
+    [
+        ("startup_stall_calibration", "startup_stall_ms", "maximum_reference_startup_excess_ms", 1),
+        ("ttfc_calibration", "ttfc_ms", "maximum_reference_excess_ms", 5),
+    ],
+)
+def test_active_transient_calibration_reproduces_reference_only_rule_and_full_null_checks(field, metric, maximum, step):
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    evidence = record[field]
+    excess = 0.0
+    comparisons = 0
+    for groups in evidence["cases"].values():
+        assert len(groups) == 2 and all(len(group) == 3 for group in groups)
+        for training, heldout in ((groups[0], groups[1]), (groups[1], groups[0])):
+            excess = max(excess, max(row[metric] for row in heldout) - max(row[metric] for row in training))
+            gate = calibrate(
+                training,
+                contract={},
+                reference_revision=record["reference_revision"],
+                max_cv=0.03,
+                regression_fraction=0.05,
+                startup_stall_jitter_floor_ms=record["startup_stall_calibration"]["selected_floor_ms"],
+                ttfc_jitter_floor_ms=record["ttfc_calibration"]["selected_floor_ms"],
+                p95_max_cv=record["p95_reference_cv_calibration"]["selected_ceiling"],
+            )
+            assert gate["limits"]["steady_stall_ms"]["value"] == 0
+            for row in heldout:
+                assert check_performance(row, gate, contract={})["passed"]
+                comparisons += 1
+            damaged = dict(
+                heldout[0],
+                **{metric: gate["limits"]["stall_ms" if metric == "startup_stall_ms" else metric]["value"] + 1},
+            )
+            if metric == "startup_stall_ms":
+                damaged["stall_ms"] = damaged[metric]
+            assert not check_performance(damaged, gate, contract={})["passed"]
+    assert excess == pytest.approx(evidence[maximum])
+    assert evidence["selected_floor_ms"] == math.ceil(excess * (1 + evidence["reserve_fraction"]) / step) * step
+    assert comparisons == evidence["fitted_reference_null_checks"] == 18
+    assert not evidence["independent_holdout_validation_complete"]
+
+
+def test_active_p95_cv_calibration_preserves_training_failure_and_unseen_case_controls():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    evidence = read_json(root / "calibration/cuda_nightly_reference.json")["p95_reference_cv_calibration"]
+    assert evidence["original_job_exit"] == -1 and not evidence["original_generation_passed"]
+    assert evidence["all18_reference_benchmarks_complete"] and len(evidence["reference_inputs"]) == 18
+    assert len(evidence["cases"]) == 6
+    cvs = []
+    for row in evidence["cases"].values():
+        values = row["p95_values_ms"]
+        assert len(values) == 3
+        cv = statistics.pstdev(values) / statistics.mean(values)
+        assert cv == pytest.approx(row["p95_cv"])
+        cvs.append(cv)
+    expected = max(
+        0.03,
+        math.ceil(max(cvs) * (1 + evidence["reserve_fraction"]) / evidence["round_up_cv"]) * evidence["round_up_cv"],
+    )
+    assert evidence["selected_ceiling"] == pytest.approx(expected)
+    controls = evidence["independent_case_controls"]
+    assert controls["all_cases"] == 18 and controls["heldout_cases"] == 12 and not controls["failed_cases"]
+    assert len(controls["inputs"]) == 54
+    for case in controls["cases"].values():
+        assert case["reference_cv"]["mean_ms"] <= 0.03 and case["reference_cv"]["p50_ms"] <= 0.03
+        assert case["reference_cv"]["p95_ms"] <= evidence["selected_ceiling"]
+    assert not evidence["independent_full_weekly_cohort_complete"]
+
+
+@pytest.mark.parametrize("suite", ["vbench", "wbench"])
+def test_active_nightly_reference_ceilings_are_scoped_and_preserve_candidate_boundaries(suite):
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    policy = read_json(root / "quality.json")
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    population = quality_population(40)
+    calibration = record["continuous_reference_calibration"]
+    caps = population["max_reference_spreads"][suite]
+    assert caps == calibration["max_reference_spreads"][suite]
+    for dimension, cap in caps.items():
+        ranges = [
+            max(row[dimension] for row in case["suites"][suite]) - min(row[dimension] for row in case["suites"][suite])
+            for case in population["cases"].values()
+        ]
+        expected = max(
+            policy["max_reference_spreads"]["cuda"][suite][dimension],
+            math.ceil(max(ranges) * (1 + calibration["margin_fraction"]) / calibration["round_up_step"])
+            * calibration["round_up_step"],
+        )
+        assert cap == pytest.approx(expected)
+        for case in population["cases"].values():
+            values = [row[dimension] for row in case["suites"][suite]]
+            tolerance = policy["candidate_tolerances"]["cuda"][suite][dimension]
+            measured = min(values) - tolerance - 1e-6
+            assert not check_quality(
+                [{dimension: value} for value in values],
+                {dimension: measured},
+                tolerances={dimension: tolerance},
+                max_reference_spreads={dimension: cap},
+            )["passed"]

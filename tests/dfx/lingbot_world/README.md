@@ -149,41 +149,34 @@ eight-chunk warmup session. The first six and terminal chunks stay in raw result
 playback/FPS accounting, but are excluded from steady cadence by `workload.py`.
 
 Reference mean/P50 CV above 3% invalidates calibration. NPU P95 retains the
-same 3% limit. H100 P95 uses a separately calibrated 4.5% reference-CV ceiling:
-the prior six-case frozen-reference cohort reaches 3.248%, and the fixed 25%
-reserve rounded up to 0.005 yields 4.5%. All 18 independent newer weekly cases
-plus nightly and long reference cases fit that ceiling. Their raw benchmark
-hashes and reference values are retained in the calibration record;
-`p95-cv-calibration.json` records the rule and record hash in CUDA results.
-This changes only the reference stability check. Each candidate must
-meet measured reference limits with the profile's 5% regression allowance.
+same 3% limit. H100 P95 uses a 3.5% reference-CV ceiling fitted from six
+predeclared weekly hold cases with three complete reference starts. Their
+maximum P95 CV is 2.6194%; the existing 25% reserve rounded up to 0.005 gives
+3.5%. The original job was interrupted during candidate collection and remains
+failed. Twelve unseen weekly cases also fit that ceiling; these case controls
+are not a second independent complete weekly cohort or hardware acceptance.
+Raw reference hashes and values are retained in the calibration record;
+`p95-cv-calibration.json` records its rule and hash in CUDA results.
+Each candidate still receives the profile's 5% regression allowance.
+
 For TTFC and accumulated playback stalls only, the allowance is the greater of
 5% of the worst reference and three reference population standard deviations.
-The profile pins this multiplier (at most three); both allowances are reported.
-H100 TTFC also uses a reference-only 220 ms jitter floor. Two matching nightly
-reference cohorts have maximum cross-cohort excess 174.791 ms; adding 25%
-reserve and rounding up to 5 ms gives 220 ms. On 36 separate weekly reference
-comparisons this removes three same-code false rejections. The calibration
-record retains all 54 reference measurements and artifact hashes; candidate
-values never enter that calculation. `ttfc-calibration.json` retains the rule
-and record hash with each CUDA generation result. Cadence, FPS, P99 and stall
-limits do not receive this TTFC allowance. NPU uses no TTFC floor. Independent
-final-head hardware validation remains required.
-CUDA additionally uses a 135 ms floor for the total-stall allowance. Two
-independent three-start reference cohorts falsely rejected two same-code
-reference runs under the original rule. All their stalls occurred during
-startup; their largest cross-cohort startup excess was 107.778 ms. Adding 25%
-reserve and rounding up to 1 ms gives 135 ms, using reference inputs only.
-This floor requires a second, independent post-startup stall gate without
-the floor: later stalls cannot hide behind initial playback jitter. The
-startup boundary is `max(2, warmup_chunks)` media blocks (six in CI), so the
-first nine-frame block and the configured attention ramp are distinguished
-from steady playback. Both components stay in total-stall accounting. The
-one-chunk playback buffer is explicitly passed and checked. NPU retains its
-own calibration with zero constant floor. TTFC and cadence limits are unchanged.
-This accounts for startup/discrete-stall jitter observed in real H100 runs, and
-is a fixed calibration rule, not a confidence interval or a retry of a failed
-candidate. Stationary cadence limits and the 3% reference CV cap are unchanged.
+The profile pins this multiplier to at most three. H100 additionally uses
+reference-only jitter floors of **85 ms for TTFC** and **106 ms for total stalls**.
+Two recorded-zero nightly reference cohorts supply the maximum cross-cohort
+excess; the existing 25% reserve rounds upward to 5 ms and 1 ms respectively.
+The record retains all 18 reference observations, raw artifact hashes and
+fitted null controls. Candidate observations never select either floor.
+Those fitted controls are not independent validation after selecting the floors.
+`ttfc-calibration.json` and `startup-stall-calibration.json` retain the applied
+rule and record hash. NPU uses neither constant floor.
+
+The total-stall floor requires an independent post-startup stall gate without
+that floor, so later stalls cannot hide behind startup jitter. The startup
+boundary is `max(2, warmup_chunks)` media blocks (six in CI); both components
+remain in total-stall accounting. The one-chunk playback buffer is explicitly
+passed and checked. TTFC floors do not change cadence, FPS, P99 or stall limits.
+Independent final-source target validation remains required for every profile.
 Candidate measurements never calibrate their own limits. This is a relative
 regression gate, not a promise of 12 FPS. The MP4 label and playback FPS basis
 are recorded separately. P99 is always reported but gates only when each
@@ -287,66 +280,46 @@ return a binary classification for each complete video. Activity therefore uses
 a two-sided difference in active counts across three independent starts: the
 unchanged 0.34 fractional budget permits one changed classification, while two
 or three changes fail. All six individual classifications remain in the report.
-H100 reference cohorts from builds [17426](https://buildkite.com/vllm/vllm-omni/builds/17426)
-and [17431](https://buildkite.com/vllm/vllm-omni/builds/17431) differed by at most one
-classification per scene; the latter returned `[0, 1, 0]` for both reference
-and candidate in the blossom case. A fractional per-video range limit cannot
-represent that binary trial noise. This count budget is not a confidence test;
-target-runner validation is still required for every profile and platform.
-The [reference-only calibration record](calibration/cuda_nightly_reference.json)
-retains all six reference scores, the matching contracts and raw-score hashes;
-candidate scores do not enter that record.
-Excessive continuous reference
-spread fails calibration; scores are never averaged across dimensions/scenes.
-`quality.json` separately pins `max_reference_spreads` by generation platform for reproducibility and
-per-suite candidate tolerances for degradation. The candidate floor remains the
-worst reference minus its candidate tolerance; a larger reference-spread ceiling
-never increases that tolerance. Reports retain both budgets and the measured
-reference spread. Preliminary CUDA continuous ceilings use the maximum
-per-scene range across six frozen-reference starts, plus 25% reserve, rounded
-up to 0.005; an existing larger ceiling is retained. The calibration record
-contains the reference values and the exact calculation. VBench cohorts were
-scored on target H100 evaluators; the historical WBench cohorts were scored
-independently on L20X. Build 17443 also executes all seven VBench and six WBench
-dimensions on H100. Its three frozen-reference boardwalk HPSv3 scores span
-0.064710581354398, exceeding the initial 0.05 reference ceiling. Applying the
-same 25% reserve and 0.005 rounding rule to these target-H100 references yields
-0.085. The HPSv3 candidate tolerance stays 0.02; candidate scores do not set
-either value. The calibration record retains the nine reference HPSv3 scores,
-video/score hashes and evaluator provenance. The original failed job remains
-failed; a fresh independent target-H100 campaign must validate this calibration.
-The first completed target-H100 600-chunk WBench reference population also
-has imaging-quality range 0.02171683116488965, above its preliminary 0.02
-reference ceiling. The same reference-only rule yields 0.03; the candidate
-imaging tolerance stays 0.01 and NPU limits stay separate. The calibration
-record retains the three reference scores, actual video hashes, frozen source,
-long-profile hash and native evaluator provenance. The next independent long
-campaign failed reference aesthetic-spread checks in both suites. Cross-cohort
-null tests also reject frozen-reference HPS scores and decoded PSNR windows
-at the unchanged candidate budgets.
-The separate [600-chunk reference population](calibration/cuda_long_quality_population.json)
-therefore fixes six reference starts from these two H100 cohorts, with six
-within-cohort pixel-distance summaries. Its reference ceilings follow the same
-six-reference range times 1.25 rule, rounded upward to 0.005 and retaining any
-larger existing ceiling. Only this exact CUDA long profile uses these ceilings;
-nightly, weekly and NPU limits do not change. Fresh references must pass both
-their own spread checks and the fixed population's native and pixel gates
-before candidates can pass. Candidate native budgets and PSNR/SSIM tolerances
-stay unchanged. The record binds source artifacts, all six actual video hashes,
-the exact profile/deployment/hardware/runtime, assets and evaluator packages.
-Historical engine overrides were unrecorded; independent final-source hardware
-validation with pinned switches remains required. These calibration cohorts
-do not establish acceptance of the updated gate.
-Every weekly/long profile also
-needs held-out target validation. NPU retains its existing separate ceilings
-until its own reference campaign completes. Reference ceilings must be verified on the target evaluator;
-local diagnostic scores alone do not establish hardware acceptance.
+The active [reference-only record](calibration/cuda_nightly_reference.json)
+uses independent three-start H100 cohorts from builds
+[17464](https://buildkite.com/vllm/vllm-omni/builds/17464) and
+[17478](https://buildkite.com/vllm/vllm-omni/builds/17478), with matching models,
+deployment, runtime, playback/warmup policy and recorded zero optimization
+switches. Both suites execute on H100 with all 127 pinned dependencies.
+The record retains all six native reference scores per scene/dimension, public
+Buildkite identities and raw hashes. Binary reference activity differs by at
+most one classification; its unchanged 0.34 candidate budget still rejects two.
+
+Excessive continuous reference spread fails calibration; scores are never
+averaged across dimensions or scenes. The 40-chunk fixed population owns its
+reference ceilings: six-reference per-scene ranges receive the existing 25%
+reserve, rounded up to 0.005, retaining any larger global ceiling. The resulting
+nightly subject-consistency ceiling is 0.065 and WBench HPSv3 is 0.1. These are
+reference-stability limits; candidate tolerances do not change. Fresh reference
+spread checks and fixed-population comparisons use the same profile-owned
+ceilings. Weekly and NPU policies retain their separate global limits.
+The candidate floor remains the worst reference minus its unchanged tolerance.
+
+Both original nightly gates remain failed. Before fitting the new population,
+two-way reference-only controls fail 8/36 native continuous checks and 4/18
+pixel checks; all 12 binary controls pass. The new six-reference construction
+passes 54 fitted checks and rejects 87 individual native/pixel boundary
+perturbations. These checks are not independent acceptance: a fresh final-source
+H100 campaign must pass the gates and retain its complete evidence.
+
+The separate [600-chunk population](calibration/cuda_long_quality_population.json)
+still contains historical measurements without recorded optimization switches
+or decoder provenance. The strict guard rejects it. Its replacement requires
+independent complete long reference/native cohorts; nightly measurements cannot
+establish long acceptance. Weekly and NPU profiles likewise need their own target
+validation. Local diagnostic scores do not establish hardware acceptance.
 Candidate tolerances are also keyed by generation platform. CUDA VBench
 aesthetic uses 0.025: independent same-code reference deficits reached
 0.018552, exceeding the initial 0.01 budget, before adding 25% reserve and rounding
 up to 0.005. Other native candidate budgets stay at 0.01 (HPSv3: 0.02).
-NPU retains its initial native budgets. These reference-only calculations are
-recorded separately from the reference-spread ceilings and still require fresh
+NPU retains its initial native budgets. Historical candidate-budget derivations
+remain in the archived record; this nightly recalibration leaves them unchanged.
+They are separate from reference-spread ceilings and still require fresh
 target-runner validation; candidate observations never set their own limits.
 Standard VBench background consistency encodes every native-selected frame
 through CLIP in batches of 32 with gradients disabled. The pinned native
@@ -491,7 +464,8 @@ For a quality calibration update, retain two independent three-start reference
 cohorts, their raw-score hashes and matching numerical contracts. Evaluate
 each cohort as held-out reference data against the other before adjusting any
 failed budget. Candidate outputs do not enter this calculation. Update the
-reference-only record and its platform's policy together, then run
+reference-only record and its profile-owned population policy together, retaining
+original failed observations and unchanged candidate budgets, then run
 `pytest tests/benchmarks/test_lingbot_world_regression.py -m 'core_model and cpu'`
 and a fresh target-runner campaign. CUDA quality jobs reject calibration reuse
 after deployment, hardware, runtime package, precision or model/reference changes;
@@ -509,11 +483,17 @@ limits before candidate quality can pass. Binary activity still compares the
 fresh three-start counts. Candidate HPS, PSNR and SSIM budgets are unchanged.
 This prevents an unusually favorable three-reference cohort from silently
 tightening the candidate gate. Model, deployment, inputs, hardware/runtime,
-asset or evaluator changes reject population reuse. NPU and longer profiles
-retain their own reference comparisons. Historical optimization overrides were
-not recorded in the calibration cohorts; independent final-source runs with
-the pinned switches are still required. A replay of calibration data cannot
-establish that acceptance.
+asset or evaluator changes reject population reuse. CUDA 600-chunk runs use the
+separate population described above; NPU and CUDA weekly profiles retain their
+own reference comparisons. The active nightly record binds both recorded-zero
+cohorts and freshly recomputed pixel summaries from their actual reference
+videos, using NumPy 1.26.4, OpenCV 4.11.0.86 and scikit-image 0.25.2; the OpenCV
+build hash is retained. No local interpreter paths are required by the record.
+The original unrecorded nightly records remain byte-identical under
+[calibration/history](calibration/history/README.md) for historical method and
+rejection tests. They are not loaded by CI. The long record still requires
+replacement. Independent final-source target runs remain required; neither
+fitted data nor replaying old scores establishes acceptance.
 Both calibration validators require a nonempty `engine_environment` mapping
 with string keys and values matching the measured contract. Missing or changed
 settings reject reuse, including when both records omit the field. Historical

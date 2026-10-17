@@ -65,6 +65,11 @@ settings are invalid even when both records omit the field.
 Reference-noise calibration also binds recorded playback/mux frame rates and
 both the measurement warmup and inference warmup lengths. Missing or changed
 values reject reuse; held-out scenes and rollout lengths remain supported.
+Nightly CUDA uses two recorded-zero H100 reference cohorts and pinned-decoder
+pixel summaries. Its fixed population owns reference-spread ceilings; loading
+that policy must preserve global weekly/NPU limits and candidate tolerances.
+Historical unrecorded records remain separate diagnostic fixtures. Fitted
+calibration and negative controls do not replace fresh target-hardware acceptance.
 Calibration compatibility errors retain raw measurements, numerical results and
 quality scores for review; candidate comparisons stay unjudged and block acceptance.
 CI pixel comparisons execute in the same verified dependency environment as

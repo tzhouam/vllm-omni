@@ -805,6 +805,9 @@ def leaves(document):
         (True, "population_long_candidate"),
         (True, "population_long_pixels"),
         (True, "population_long_spread"),
+        (True, "population_spread"),
+        (True, "population_spread_candidate"),
+        (True, "population_missing_spreads"),
         (True, "population_unrecorded"),
         (False, "population_unrecorded"),
         (True, "population_long_unrecorded"),
@@ -882,10 +885,20 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
                 row["hpsv3_quality"] = 0.81 if "reference" in label else 0.79
                 if mutation.endswith("_reference") and "reference" in label:
                     row["hpsv3_quality"] = 0.7
-                if mutation.endswith("_candidate") and "candidate" in label:
+                if (
+                    mutation.endswith("_candidate")
+                    and mutation != "population_spread_candidate"
+                    and "candidate" in label
+                ):
                     row["hpsv3_quality"] = 0.7
-                if mutation == "population_long_spread":
-                    row["aesthetic_quality"] = 0.83 if label.endswith("reference1") else 0.8
+                if mutation in ("population_long_spread", "population_spread", "population_spread_candidate"):
+                    row["aesthetic_quality"] = (
+                        0.78
+                        if mutation == "population_spread_candidate" and "candidate" in label
+                        else 0.83
+                        if label.endswith("reference1")
+                        else 0.8
+                    )
         return {
             "status": "passed",
             "protocol": {"dynamic_degree_backend": "raft"},
@@ -974,12 +987,12 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             row = {name: 1.0 for name in limits["candidate_tolerances"]["cuda"][suite] if name != "dynamic_degree"}
             if suite == "wbench":
                 row["hpsv3_quality"] = 0.8
-                if mutation == "population_long_spread":
+                if mutation in ("population_long_spread", "population_spread", "population_spread_candidate"):
                     row["aesthetic_quality"] = 0.8
             suites[suite] = [row] * 6
         reference_spreads = json.loads(json.dumps(limits["max_reference_spreads"]["cuda"]))
-        if mutation == "population_long_spread":
-            reference_spreads["wbench"]["aesthetic_quality"] = 0.05
+        if mutation in ("population_long_spread", "population_spread", "population_spread_candidate"):
+            reference_spreads["wbench"]["aesthetic_quality"] = 0.05 if mutation == "population_long_spread" else 0.035
         write_json(
             calibration
             / ("cuda_long_quality_population.json" if chunks == 600 else "cuda_nightly_quality_population.json"),
@@ -995,6 +1008,11 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
                 "cases": {"scene": {"input": settings["cases"][0], "pixels": [pixel] * 6, "suites": suites}},
             },
         )
+        if mutation == "population_missing_spreads":
+            population_path = calibration / "cuda_nightly_quality_population.json"
+            invalid = json.loads(population_path.read_text())
+            del invalid["max_reference_spreads"]
+            write_json(population_path, invalid)
         if mutation.endswith("_unrecorded") and mutation != "population_general_unrecorded":
             path = calibration / (
                 "cuda_long_quality_population.json" if chunks == 600 else "cuda_nightly_quality_population.json"
@@ -1018,7 +1036,9 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             gate.test_wbench_vbench_and_video_precision(settings)
         assert calls == []
         return
-    uncalibrated = mutation is not None and mutation.endswith("_unrecorded")
+    uncalibrated = mutation is not None and (
+        mutation.endswith("_unrecorded") or mutation == "population_missing_spreads"
+    )
     quality_passed = (
         not population_mode or not mutation.endswith(("_reference", "_candidate", "_pixels"))
     ) and not uncalibrated
@@ -1032,13 +1052,24 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
     assert report["quality_passed"] is quality_passed
     assert report["generation_passed"] is generation_passed
     assert report["passed"] is (generation_passed and quality_passed)
+    if mutation in ("population_spread", "population_spread_candidate"):
+        checks = report["suites"]["wbench"]["scene"]
+        assert all(row["passed"] for row in checks if "reference_repeat" in row)
+        if mutation == "population_spread_candidate":
+            for gate_check in checks:
+                if "candidate_repeat" in gate_check:
+                    dimension_result = gate_check["dimensions"]["aesthetic_quality"]
+                    assert not gate_check["passed"] and not dimension_result["passed"]
+                    assert dimension_result["minimum"] == pytest.approx(0.79)
+                    assert dimension_result["candidate_tolerance"] == 0.01
     if population_mode:
         assert (output / "quality-reference-population.json").is_file()
         if not uncalibrated:
             assert len(report["pixels"]["scene"]["reference_checks"]) == 3
     if uncalibrated:
+        expected_error = "reference spread" if mutation == "population_missing_spreads" else "engine environment"
         assert report["calibration_errors"] and all(
-            "engine environment" in row["error"] for row in report["calibration_errors"]
+            expected_error in row["error"] for row in report["calibration_errors"]
         )
         assert len(report["pixels"]["scene"]["reference_repeat"]) == len(report["pixels"]["scene"]["candidate"]) == 3
         assert all(row["status"] == "unjudged" and not row["passed"] for row in report["pixels"]["scene"]["checks"])
