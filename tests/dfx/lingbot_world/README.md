@@ -423,6 +423,23 @@ after deployment, hardware, runtime package, precision or model/reference change
 they retain the applied policy, generation profile and calibration record.
 The preliminary CUDA record does not establish NPU or weekly/long acceptance.
 
+The CUDA 40-chunk quality profile also retains a fixed reference population in
+`calibration/cuda_nightly_quality_population.json`: six reference starts from
+two target-H100 cohorts, native continuous scores and six decoded reference-pair
+summaries per scene. Its provenance records the Buildkite jobs, raw artifact and
+reference-video hashes. Candidate scores do not enter this population. Three
+fresh references still run in every campaign: their native spread must remain
+bounded, and their native and pixel results must pass the fixed population's
+limits before candidate quality can pass. Binary activity still compares the
+fresh three-start counts. Candidate HPS, PSNR and SSIM budgets are unchanged.
+This prevents an unusually favorable three-reference cohort from silently
+tightening the candidate gate. Model, deployment, inputs, hardware/runtime,
+asset or evaluator changes reject population reuse. NPU and longer profiles
+retain their own reference comparisons. Historical optimization overrides were
+not recorded in the calibration cohorts; independent final-source runs with
+the pinned switches are still required. A replay of calibration data cannot
+establish that acceptance.
+
 The pinned `startup_timeout_s` bounds both the outer server-readiness wait and
 the server's `--init-timeout` / `--stage-init-timeout`. This avoids silently using
 a shorter internal default while cold checkpoints load. Initialization timeouts

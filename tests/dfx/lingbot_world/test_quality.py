@@ -20,6 +20,7 @@ from benchmarks.lingbot_world.regression import (
     read_json,
     sha256,
     verify_environment,
+    verify_quality_population_contract,
     verify_reference_calibration_contract,
     write_json,
 )
@@ -71,6 +72,18 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     evaluator_root = Path(os.environ["LINGBOT_EVALUATOR_ROOT"]).resolve()
     python = Path(os.environ["LINGBOT_EVALUATOR_PYTHON"])
     packages = verify_environment(python, ROOT / "requirements/lingbot-quality.txt")
+    population = None
+    if settings["platform"] == "cuda" and settings["num_chunks"] == 40:
+        population_path = ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_quality_population.json"
+        population = read_json(population_path)
+        verify_quality_population_contract(
+            population,
+            manifest["contract"],
+            evaluator_packages=packages,
+            evaluator_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
+            asset_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/assets.lock.json"),
+        )
+        write_json(output / "quality-reference-population.json", population)
     for relative, digest in lock["files"].items():
         if sha256(evaluator_root / relative) != digest:
             raise RegressionError(f"Evaluator weight checksum mismatch: {relative}")
@@ -103,6 +116,8 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         ),
         "evaluator_lock_sha256": sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
     }
+    if population is not None:
+        report["reference_population_sha256"] = sha256(population_path)
     try:
         evaluations = {}
         for suite in ("vbench", "wbench"):
@@ -142,6 +157,28 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 reference_scores = [evaluation["scores"][f"case{index}_reference{repeat}"] for repeat in range(3)]
                 reference = [{name: row[name] for name in tolerances} for row in reference_scores]
                 checks = []
+                quality_reference = reference
+                if population is not None:
+                    quality_reference = population["cases"][case["id"]]["suites"][suite]
+                    # Keep the fresh cohort's spread gate, then reject fresh
+                    # references that degrade beyond the reviewed population.
+                    for repeat, measured in enumerate(reference):
+                        try:
+                            check_quality(
+                                reference,
+                                measured,
+                                tolerances=tolerances,
+                                max_reference_spreads=limits["max_reference_spreads"]["cuda"][suite],
+                            )
+                            check = check_quality(
+                                quality_reference,
+                                measured,
+                                tolerances=tolerances,
+                                max_reference_spreads=limits["max_reference_spreads"]["cuda"][suite],
+                            )
+                        except RegressionError as error:
+                            check = {"passed": False, "error": str(error)}
+                        checks.append({"reference_repeat": repeat, **check})
                 for dimension in binary_dimensions:
                     try:
                         check = check_binary_activity(
@@ -155,7 +192,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 for repeat in range(3):
                     try:
                         check = check_quality(
-                            reference,
+                            quality_reference,
                             {name: evaluation["scores"][f"case{index}_candidate{repeat}"][name] for name in tolerances},
                             tolerances=tolerances,
                             max_reference_spreads=limits["max_reference_spreads"][settings["platform"]][suite],
@@ -191,6 +228,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 )
                 for repeat in range(3)
             ]
+            quality_reference = reference if population is None else population["cases"][case["id"]]["pixels"]
             for row in [*reference, *candidate]:
                 metadata = row["reference"]
                 expected_frames = (settings["num_chunks"] * 3 - 1) * 4 + 1
@@ -204,10 +242,23 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             report["pixels"][case["id"]] = {
                 "reference_pairs": reference_pairs,
                 "reference_repeat": reference,
+                "reference_checks": []
+                if population is None
+                else [
+                    check_video_precision(
+                        quality_reference,
+                        row,
+                        psnr_drop_db=pixel_budgets["psnr_drop_db"],
+                        min_psnr_db=limits["min_psnr_db"],
+                        ssim_drop=pixel_budgets["ssim_drop"],
+                        reject_uniform_frames=limits["reject_uniform_frames"],
+                    )
+                    for row in reference
+                ],
                 "candidate": candidate,
                 "checks": [
                     check_video_precision(
-                        reference,
+                        quality_reference,
                         row,
                         psnr_drop_db=pixel_budgets["psnr_drop_db"],
                         min_psnr_db=limits["min_psnr_db"],
@@ -219,7 +270,11 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             }
         report["quality_passed"] = all(
             check["passed"] for suite in report["suites"].values() for checks in suite.values() for check in checks
-        ) and all(check["passed"] for case in report["pixels"].values() for check in case["checks"])
+        ) and all(
+            check["passed"]
+            for case in report["pixels"].values()
+            for check in [*case["reference_checks"], *case["checks"]]
+        )
         report["passed"] = report["generation_passed"] and report["quality_passed"]
     finally:
         write_json(output / "quality.json", report)

@@ -345,6 +345,47 @@ def verify_reference_calibration_contract(contract: Mapping[str, Any], calibrati
             raise RegressionError(f"Reference calibration hardware/runtime changed: {field}")
 
 
+def verify_quality_population_contract(
+    population: Mapping[str, Any],
+    contract: Mapping[str, Any],
+    *,
+    evaluator_packages: Mapping[str, str],
+    evaluator_lock_sha256: str,
+    asset_lock_sha256: str,
+) -> None:
+    """Bind a reviewed reference population to its exact short-video workload.
+
+    Physical allocation identifiers vary between runners. Device properties,
+    topology, runtime packages and deployment must still match exactly.
+    Fresh reference scores must separately pass the frozen population's gates.
+    """
+    expected = population["contract"]
+    if population.get("schema_version") != 1 or contract["profile"] != expected["profile"]:
+        raise RegressionError("Quality reference population profile changed")
+    if contract["profile"].get("platform") != "cuda" or contract["profile"].get("num_chunks") != 40:
+        raise RegressionError("Quality reference population requires the CUDA 40-chunk workload")
+    if contract["deploy_sha256"] != expected["deploy_sha256"]:
+        raise RegressionError("Quality reference population deployment changed")
+    for key in ("platform", "cards", "dies", "devices", "packages"):
+        if contract["hardware"][key] != expected["hardware"][key]:
+            raise RegressionError(f"Quality reference population hardware/runtime changed: {key}")
+    if (
+        hashlib.sha256(json.dumps(dict(evaluator_packages), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        != population["evaluator_packages_sha256"]
+        or evaluator_lock_sha256 != population["evaluator_lock_sha256"]
+        or asset_lock_sha256 != population["asset_lock_sha256"]
+    ):
+        raise RegressionError("Quality reference population evaluator or assets changed")
+    cases = {case["id"]: case for case in contract["profile"]["cases"]}
+    if set(cases) != set(population["cases"]):
+        raise RegressionError("Quality reference population case coverage changed")
+    for name, case in population["cases"].items():
+        if case["input"] != cases[name] or len(case["pixels"]) != 6:
+            raise RegressionError("Quality reference population requires both complete reference cohorts")
+        if set(case["suites"]) != {"wbench", "vbench"} or any(len(rows) != 6 for rows in case["suites"].values()):
+            raise RegressionError("Quality reference population requires six native reference scores per suite")
+
+
 def check_binary_activity(
     reference: Sequence[float], candidate: Sequence[float], *, tolerance: float
 ) -> dict[str, Any]:
