@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD001 MD025 -->
+
 # --8<-- [start:requirements]
 
 - GPU: compute capability 7.5 or higher (e.g., T4, RTX20xx, A100, L4, H100, etc.)
@@ -7,7 +9,11 @@
 # --8<-- [start:set-up-using-python]
 
 vLLM-Omni depends on the matching major/minor release of vLLM. This source
-checkout targets vLLM 0.31.0. The pre-built Omni wheel instructions below install
+checkout targets vLLM 0.32.0rc3 at commit
+`82eb574d959031c670ecbc9930ed7b756a119bfe` on `releases/v0.32.0`.
+The tested CUDA runtime uses Python 3.12, PyTorch 2.13.0 and CUDA 13.0
+(`cu130`); the vLLM wheel requires Python 3.11 or newer, below 3.15.
+The pre-built Omni wheel instructions below install
 the published 0.30.0 release with its matching vLLM dependency.
 
 !!! note
@@ -47,17 +53,19 @@ uv pip install 'vllm-omni[demo]==0.30.0'
 
 #### Installation of vLLM
 
-If you do not need to modify source code of vLLM, install the final 0.31.0
-release wheel from its commit-pinned index:
+If you do not need to modify source code of vLLM, install the release-branch
+0.32.0rc3 wheel directly from the tested commit:
 
 ```bash
-uv pip install vllm==0.31.0 --torch-backend=auto \
-  --extra-index-url https://wheels.vllm.ai/db9527a46873454610df6dbedf79a36d6bf1a7f6
+uv pip install --torch-backend=cu130 \
+  "vllm @ https://wheels.vllm.ai/82eb574d959031c670ecbc9930ed7b756a119bfe/vllm-0.32.0rc3-cp38-abi3-manylinux_2_28_x86_64.whl"
 ```
 
-The default 0.31.0 wheel contains CUDA 12.9 binaries. If you need a different
-CUDA variant or want to reuse an existing PyTorch installation, build vLLM
-from source instead.
+This command selects the Linux x86_64 CUDA 13.0 wheel and matching PyTorch
+backend. It requires a CUDA 13 compatible driver. For another architecture,
+CUDA variant or an existing incompatible PyTorch installation, build vLLM
+from source instead. A final vLLM 0.32.0 release and a published vLLM-Omni
+0.32 wheel are not yet available.
 
 #### Installation of vLLM-Omni
 
@@ -81,20 +89,20 @@ If you want to check, modify or debug with source code of vLLM, install the libr
 ```bash
 git clone https://github.com/vllm-project/vllm.git
 cd vllm
-git checkout v0.31.0
+git checkout 82eb574d959031c670ecbc9930ed7b756a119bfe
 ```
 
 Set up environment variables to get pre-built wheels. If there are internet problems, just download the whl file manually. And set `VLLM_PRECOMPILED_WHEEL_LOCATION` as your local absolute path of whl file.
 
 ```bash
-# Default CUDA 12.9 wheel for v0.31.0 on x86_64
-export VLLM_PRECOMPILED_WHEEL_LOCATION=https://wheels.vllm.ai/db9527a46873454610df6dbedf79a36d6bf1a7f6/vllm-0.31.0-cp38-abi3-manylinux_2_28_x86_64.whl
+# CUDA 13.0 release-branch wheel for the exact source commit on x86_64
+export VLLM_PRECOMPILED_WHEEL_LOCATION=https://wheels.vllm.ai/82eb574d959031c670ecbc9930ed7b756a119bfe/vllm-0.32.0rc3-cp38-abi3-manylinux_2_28_x86_64.whl
 ```
 
 Install vllm with command below (If you have no existing PyTorch).
 
 ```bash
-VLLM_USE_PRECOMPILED=1 uv pip install --editable . --torch-backend=auto
+VLLM_USE_PRECOMPILED=1 uv pip install --editable . --torch-backend=cu130
 ```
 
 Install vllm with command below (If you already have PyTorch).
@@ -145,12 +153,17 @@ docker run --runtime nvidia --gpus 2 \
 
 #### Build docker image
 
+The production Dockerfile still defaults to `vllm/vllm-openai:v0.31.0`.
+The upstream `v0.32.0` CUDA image is not yet published, so this default is
+not a validated runtime for the 0.32 source checkout. The CI Dockerfile
+selects the same 0.32.0rc3 wheel as the tested local runtime and installs it
+on a digest-pinned CUDA 13 base:
+
 ```bash
-DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.cuda -t vllm-omni-cuda .
+DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.ci -t vllm-omni-cuda .
 ```
 
-The source build defaults to `vllm/vllm-openai:v0.31.0`. To select that
-upstream release image explicitly:
+For a 0.31-compatible Omni checkout, select the older upstream image explicitly:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build \
