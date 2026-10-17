@@ -18,7 +18,7 @@
       },
       "wbench": {
         "aesthetic_quality": 0.025,
-        "imaging_quality": 0.02,
+        "imaging_quality": 0.03,
         "temporal_flickering": 0.025,
         "motion_smoothness": 0.025,
         "hpsv3_quality": 0.085

@@ -541,7 +541,7 @@
   ],
   "reference_revision": "ebe2c18271db4fdd12221fbb4def6061e14a9379",
   "schema_version": 1,
-  "scope": "Reference-only CUDA nightly calibration evidence. This does not establish final-head hardware acceptance or calibrate other profiles/platforms.",
+  "scope": "Reference-only CUDA nightly calibration and target-H100 long WBench imaging evidence. This does not establish final-head hardware acceptance or calibrate NPU.",
   "startup_stall_calibration": {
     "cases": {
       "blossom-42": [
@@ -854,6 +854,62 @@
     "scope": "Reference-only target-H100 nightly HPSv3 calibration. Candidate scores excluded; fresh independent target-runner validation and all weekly/long profiles remain required.",
     "selected_ceiling": 0.085,
     "unchanged_candidate_tolerance": 0.02
+  },
+  "target_h100_long_imaging_reference_calibration": {
+    "build_url": "https://buildkite.com/vllm/vllm-omni/builds/17443",
+    "deploy_sha256": "021744799f41f1cdcda6fd2fed86fd5ff5def62463397ac437d9d62506a51339",
+    "evaluator_hardware": {
+      "cards": 1,
+      "devices": [
+        {
+          "name": "NVIDIA H100 80GB HBM3",
+          "total_bytes": 85017624576
+        }
+      ],
+      "dies": 1,
+      "packages": {
+        "diffusers": "0.40.0",
+        "torch": "2.13.0+cu130",
+        "transformers": "5.14.1",
+        "vllm": "0.31.0"
+      },
+      "platform": "cuda"
+    },
+    "evaluator_lock_sha256": "3944139af9027ddbb45f73bcaa14718405b77e15436f301df18b35a5bc16775c",
+    "evaluator_requirements_sha256": "06474312fc6285ca1a0227d36dcb0aab9dffa11ed8d3f135e38a75d50ade7f8a",
+    "evaluator_torch_version": "2.4.0+cu124",
+    "generation_job": "01a145df-c54b-4e10-a84d-c70760ced662",
+    "generation_manifest_sha256": "bae0bfa46b23883413c3d4f82a19129113b8fb28ca52b59b94dd890dde2b53ec",
+    "independent_reference_starts": 3,
+    "margin_fraction": 0.25,
+    "maximum_reference_range": 0.02171683116488965,
+    "pending_validation": "Independent target-H100 long reference starts at the final published source.",
+    "previous_ceiling": 0.02,
+    "profile": "tests/dfx/lingbot_world/configs/cuda_long.json",
+    "profile_sha256": "d87c90461e91c8d23511f33bdc8e3b115d50c668847f8c893d30177f76ac2063",
+    "published_head": "95f438a598241945f65c6af58e0896bc2ed08b1a",
+    "quality_job": "01a145df-c54c-4da4-9184-5924ef7ca79a",
+    "quality_report_sha256": "7325ac15823f3a21eae69ebc3145926497ac54802186cfb5c72778e4ef8495d0",
+    "raw_scores_sha256": "c74c3d61539a4138b3199e8ccf4b0a384d14464def56fb6df1046ac1bf82b368",
+    "reference_revision": "ebe2c18271db4fdd12221fbb4def6061e14a9379",
+    "reference_scores": {
+      "boardwalk-42": {
+        "scores": [
+          0.668117504204644,
+          0.6464006730397543,
+          0.6607238544887966
+        ],
+        "video_sha256": [
+          "83d8778c4f2bed0dc2082c38538c0d8e4eebd19edc7fcb918b963566af7ab54d",
+          "d1a98f61209448074ea570d2d17ff633e36e6e0ace35c8fca7743fba841a5a6b",
+          "b851597f352b48ac0b8555f18886820cb8fa4902518a35908b3273a4ee5e0848"
+        ]
+      }
+    },
+    "round_up_step": 0.005,
+    "scope": "Frozen-reference H100 600-chunk WBench imaging calibration only; candidate scores are excluded. Current independent long campaign remains the holdout. This does not establish final-head acceptance.",
+    "selected_ceiling": 0.03,
+    "unchanged_candidate_tolerance": 0.01
   },
   "vbench_revision": "fd18b3d055cb0fc6f066ca90fe2c3c8cbb698490",
   "wbench_reference_cohorts": [
