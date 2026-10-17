@@ -353,7 +353,7 @@ def verify_quality_population_contract(
     evaluator_lock_sha256: str,
     asset_lock_sha256: str,
 ) -> None:
-    """Bind a reviewed reference population to its exact short-video workload.
+    """Bind a reviewed reference population to its exact rollout workload.
 
     Physical allocation identifiers vary between runners. Device properties,
     topology, runtime packages and deployment must still match exactly.
@@ -362,8 +362,8 @@ def verify_quality_population_contract(
     expected = population["contract"]
     if population.get("schema_version") != 1 or contract["profile"] != expected["profile"]:
         raise RegressionError("Quality reference population profile changed")
-    if contract["profile"].get("platform") != "cuda" or contract["profile"].get("num_chunks") != 40:
-        raise RegressionError("Quality reference population requires the CUDA 40-chunk workload")
+    if contract["profile"].get("platform") != "cuda" or contract["profile"].get("num_chunks") not in (40, 600):
+        raise RegressionError("Quality reference population requires a calibrated CUDA workload")
     if contract["deploy_sha256"] != expected["deploy_sha256"]:
         raise RegressionError("Quality reference population deployment changed")
     for key in ("platform", "cards", "dies", "devices", "packages"):

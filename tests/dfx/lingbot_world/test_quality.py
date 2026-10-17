@@ -61,6 +61,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             raise RegressionError(f"Generation artifact checksum mismatch: {relative}")
     limits = read_json(ROOT / "tests/dfx/lingbot_world/quality.json")
     candidate_tolerances = limits["candidate_tolerances"][settings["platform"]]
+    reference_spreads = limits["max_reference_spreads"][settings["platform"]]
     pixel_budgets = limits["pixel_budgets"][settings["platform"]]
     write_json(output / "quality-policy.json", limits)
     write_json(output / "profile.json", manifest["contract"]["profile"])
@@ -73,8 +74,9 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     python = Path(os.environ["LINGBOT_EVALUATOR_PYTHON"])
     packages = verify_environment(python, ROOT / "requirements/lingbot-quality.txt")
     population = None
-    if settings["platform"] == "cuda" and settings["num_chunks"] == 40:
-        population_path = ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_quality_population.json"
+    population_files = {40: "cuda_nightly_quality_population.json", 600: "cuda_long_quality_population.json"}
+    if settings["platform"] == "cuda" and settings["num_chunks"] in population_files:
+        population_path = ROOT / "tests/dfx/lingbot_world/calibration" / population_files[settings["num_chunks"]]
         population = read_json(population_path)
         verify_quality_population_contract(
             population,
@@ -83,6 +85,8 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             evaluator_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/evaluators.lock.json"),
             asset_lock_sha256=sha256(ROOT / "tests/dfx/lingbot_world/assets.lock.json"),
         )
+        if settings["num_chunks"] == 600:
+            reference_spreads = population["max_reference_spreads"]
         write_json(output / "quality-reference-population.json", population)
     for relative, digest in lock["files"].items():
         if sha256(evaluator_root / relative) != digest:
@@ -168,13 +172,13 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                                 reference,
                                 measured,
                                 tolerances=tolerances,
-                                max_reference_spreads=limits["max_reference_spreads"]["cuda"][suite],
+                                max_reference_spreads=reference_spreads[suite],
                             )
                             check = check_quality(
                                 quality_reference,
                                 measured,
                                 tolerances=tolerances,
-                                max_reference_spreads=limits["max_reference_spreads"]["cuda"][suite],
+                                max_reference_spreads=reference_spreads[suite],
                             )
                         except RegressionError as error:
                             check = {"passed": False, "error": str(error)}
@@ -195,7 +199,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                             quality_reference,
                             {name: evaluation["scores"][f"case{index}_candidate{repeat}"][name] for name in tolerances},
                             tolerances=tolerances,
-                            max_reference_spreads=limits["max_reference_spreads"][settings["platform"]][suite],
+                            max_reference_spreads=reference_spreads[suite],
                         )
                     except RegressionError as error:
                         check = {"passed": False, "error": str(error)}

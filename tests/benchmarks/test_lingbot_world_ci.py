@@ -622,6 +622,12 @@ def leaves(document):
         (True, "population_reference"),
         (True, "population_candidate"),
         (True, "population_pixels"),
+        (True, "population_long"),
+        (False, "population_long"),
+        (True, "population_long_reference"),
+        (True, "population_long_candidate"),
+        (True, "population_long_pixels"),
+        (True, "population_long_spread"),
     ],
 )
 def test_quality_retains_scores_after_generation_failure_without_passing(
@@ -692,10 +698,12 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         if population_mode and suite == "wbench":
             for label, row in scores.items():
                 row["hpsv3_quality"] = 0.81 if "reference" in label else 0.79
-                if mutation == "population_reference" and "reference" in label:
+                if mutation.endswith("_reference") and "reference" in label:
                     row["hpsv3_quality"] = 0.7
-                if mutation == "population_candidate" and "candidate" in label:
+                if mutation.endswith("_candidate") and "candidate" in label:
                     row["hpsv3_quality"] = 0.7
+                if mutation == "population_long_spread":
+                    row["aesthetic_quality"] = 0.83 if label.endswith("reference1") else 0.8
         return {
             "status": "passed",
             "protocol": {"dynamic_degree_backend": "raft"},
@@ -731,8 +739,10 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
     if population_mode:
         # Synthetic coordinator inputs exercise baseline selection and the
         # final AND gate. Real decoding is covered by the NPU cases above.
-        settings.update(platform="cuda", num_chunks=40)
-        write_json(profile, {"platform": "cuda", "num_chunks": 40, "cases": settings["cases"]})
+        chunks = 600 if mutation.startswith("population_long") else 40
+        frames = (chunks * 3 - 1) * 4 + 1
+        settings.update(platform="cuda", num_chunks=chunks)
+        write_json(profile, {"platform": "cuda", "num_chunks": chunks, "cases": settings["cases"]})
         contract = {
             "profile": json.loads(profile.read_text()),
             "deploy_sha256": "deployment",
@@ -749,8 +759,10 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         pixel = {
             "ssim": {"mean": 0.4},
             "total": {"psnr_db": 30.0, "psnr_is_infinite": False},
-            "windows": [{"index": 0, "start_frame": 0, "frame_count": 477, "psnr_db": 30.0, "psnr_is_infinite": False}],
-            "decoded_frames": 477,
+            "windows": [
+                {"index": 0, "start_frame": 0, "frame_count": frames, "psnr_db": 30.0, "psnr_is_infinite": False}
+            ],
+            "decoded_frames": frames,
             "uniform_frame_indices": {"reference": [], "candidate": []},
         }
         suites = {}
@@ -758,15 +770,22 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             row = {name: 1.0 for name in limits["candidate_tolerances"]["cuda"][suite] if name != "dynamic_degree"}
             if suite == "wbench":
                 row["hpsv3_quality"] = 0.8
+                if mutation == "population_long_spread":
+                    row["aesthetic_quality"] = 0.8
             suites[suite] = [row] * 6
+        reference_spreads = json.loads(json.dumps(limits["max_reference_spreads"]["cuda"]))
+        if mutation == "population_long_spread":
+            reference_spreads["wbench"]["aesthetic_quality"] = 0.05
         write_json(
-            calibration / "cuda_nightly_quality_population.json",
+            calibration
+            / ("cuda_long_quality_population.json" if chunks == 600 else "cuda_nightly_quality_population.json"),
             {
                 "schema_version": 1,
                 "contract": contract,
                 "evaluator_packages_sha256": hashlib.sha256(b"{}").hexdigest(),
                 "evaluator_lock_sha256": sha256(policy / "evaluators.lock.json"),
                 "asset_lock_sha256": sha256(policy / "assets.lock.json"),
+                "max_reference_spreads": reference_spreads,
                 "cases": {"scene": {"input": settings["cases"][0], "pixels": [pixel] * 6, "suites": suites}},
             },
         )
@@ -774,8 +793,8 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         def compare(first, second, **kwargs):
             row = json.loads(json.dumps(pixel))
             candidate = "candidate" in second.parts
-            row["ssim"]["mean"] = (0.2 if mutation == "population_pixels" else 0.37) if candidate else 0.6
-            row["reference"] = {"frame_count": 477, "width": 32, "height": 24, "fps": 16}
+            row["ssim"]["mean"] = (0.2 if mutation.endswith("_pixels") else 0.37) if candidate else 0.6
+            row["reference"] = {"frame_count": frames, "width": 32, "height": 24, "fps": 16}
             return row
 
         monkeypatch.setattr(gate, "compare_video_pair", compare)
@@ -784,7 +803,7 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
             gate.test_wbench_vbench_and_video_precision(settings)
         assert calls == []
         return
-    quality_passed = mutation not in ("population_reference", "population_candidate", "population_pixels")
+    quality_passed = not population_mode or not mutation.endswith(("_reference", "_candidate", "_pixels"))
     if generation_passed and quality_passed:
         gate.test_wbench_vbench_and_video_precision(settings)
     else:
