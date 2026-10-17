@@ -52,6 +52,11 @@ wraps the served realtime workload in blocking pytest jobs. It measures a frozen
 reference on the same hardware/dependencies, calibrates from three independent
 server starts, and checks candidate performance separately. Fixed-input VAE
 replay and instrumented lifecycle/memory checks run outside timing windows.
+Calibration reuse requires recorded optimization settings: its nonempty
+`engine_environment` string mapping must match the measured contract. Missing
+settings are invalid even when both records omit the field.
+Calibration compatibility errors retain raw measurements, numerical results and
+quality scores for review; candidate comparisons stay unjudged and block acceptance.
 GPU evaluators consume checksum-verified CUDA or NPU videos and enforce native
 per-dimension quality limits. Incomplete populations, unstable references,
 missing prerequisites and skipped selected CI tests cannot establish acceptance.

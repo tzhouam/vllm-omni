@@ -474,6 +474,17 @@ in the calibration cohorts. Before final acceptance, recalibration must use
 reference cohorts with recorded pinned switches, followed by independent
 final-source target runs. A replay of historical calibration data cannot
 establish that acceptance.
+Both calibration validators require a nonempty `engine_environment` mapping
+with string keys and values matching the measured contract. Missing or changed
+settings reject reuse, including when both records omit the field. Historical
+records without recorded switches therefore remain diagnostic inputs until
+replacement reference cohorts establish their provenance.
+Run the same generation and GPU evaluation commands when collecting replacement
+calibration data. A compatibility failure keeps the gates failed while retaining
+complete generation manifests, numerical comparisons, raw native scores and
+pixel comparisons. Candidate checks are marked unjudged until calibration is
+valid. Preserve those failed results, derive replacement records from the
+reference inputs only, and run a fresh independent campaign after review.
 
 The pinned `startup_timeout_s` bounds both the outer server-readiness wait and
 the server's `--init-timeout` / `--stage-init-timeout`. This avoids silently using

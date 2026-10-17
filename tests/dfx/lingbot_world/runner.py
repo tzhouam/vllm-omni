@@ -460,30 +460,40 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
     startup_stall_floor = 0.0
     ttfc_floor = 0.0
     p95_max_cv: float | None = None
+    calibration_error: str | None = None
     if settings.get("platform") == "cuda":
         calibration_path = ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json"
         calibration = read_json(calibration_path)
-        verify_reference_calibration_contract(contract, calibration)
-        if any(settings[key] != calibration["workload"][key] for key in ("target_fps", "warmup_chunks")):
-            raise RegressionError("Startup-stall calibration playback rate/window changed")
-        startup_stall_floor = calibration["startup_stall_calibration"]["selected_floor_ms"]
-        ttfc_floor = calibration["ttfc_calibration"]["selected_floor_ms"]
-        p95_max_cv = calibration["p95_reference_cv_calibration"]["selected_ceiling"]
-        write_json(
-            output / "p95-cv-calibration.json",
-            {"reference_record_sha256": sha256(calibration_path), **calibration["p95_reference_cv_calibration"]},
-        )
-        write_json(
-            output / "ttfc-calibration.json",
-            {"reference_record_sha256": sha256(calibration_path), **calibration["ttfc_calibration"]},
-        )
-        write_json(
-            output / "startup-stall-calibration.json",
-            {
-                "reference_record_sha256": sha256(calibration_path),
-                **calibration["startup_stall_calibration"],
-            },
-        )
+        write_json(output / "reference-calibration.json", calibration)
+        try:
+            verify_reference_calibration_contract(contract, calibration)
+            if any(settings[key] != calibration["workload"][key] for key in ("target_fps", "warmup_chunks")):
+                raise RegressionError("Startup-stall calibration playback rate/window changed")
+        except RegressionError as error:
+            calibration_error = str(error)
+            write_json(
+                output / "calibration-error.json",
+                {"error": calibration_error, "reference_record_sha256": sha256(calibration_path)},
+            )
+        else:
+            startup_stall_floor = calibration["startup_stall_calibration"]["selected_floor_ms"]
+            ttfc_floor = calibration["ttfc_calibration"]["selected_floor_ms"]
+            p95_max_cv = calibration["p95_reference_cv_calibration"]["selected_ceiling"]
+            write_json(
+                output / "p95-cv-calibration.json",
+                {"reference_record_sha256": sha256(calibration_path), **calibration["p95_reference_cv_calibration"]},
+            )
+            write_json(
+                output / "ttfc-calibration.json",
+                {"reference_record_sha256": sha256(calibration_path), **calibration["ttfc_calibration"]},
+            )
+            write_json(
+                output / "startup-stall-calibration.json",
+                {
+                    "reference_record_sha256": sha256(calibration_path),
+                    **calibration["startup_stall_calibration"],
+                },
+            )
     report: dict[str, Any] = {
         "contract": contract,
         "cases": {},
@@ -494,6 +504,8 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
     for case in settings["cases"]:
         case_id = case["id"]
         try:
+            if calibration_error is not None:
+                raise RegressionError(calibration_error)
             baseline = calibrate(
                 [row[case_id] for row in records["reference"]],
                 contract=contract,

@@ -329,6 +329,16 @@ def check_quality(
     return {"passed": not violations, "violations": violations, "dimensions": dimensions}
 
 
+def _verify_engine_environment(actual: object, expected: object, description: str) -> None:
+    if (
+        not isinstance(expected, Mapping)
+        or not expected
+        or any(not isinstance(key, str) or not isinstance(value, str) for key, value in expected.items())
+        or actual != expected
+    ):
+        raise RegressionError(f"{description} engine environment is missing or changed")
+
+
 def verify_reference_calibration_contract(contract: Mapping[str, Any], calibration: Mapping[str, Any]) -> None:
     """Reject reuse of reference-noise budgets after runtime/model changes.
 
@@ -343,6 +353,9 @@ def verify_reference_calibration_contract(contract: Mapping[str, Any], calibrati
     for field in ("platform", "cards", "dies", "devices", "packages"):
         if contract["hardware"][field] != calibration["hardware"][field]:
             raise RegressionError(f"Reference calibration hardware/runtime changed: {field}")
+    _verify_engine_environment(
+        contract.get("engine_environment"), calibration.get("engine_environment"), "Reference calibration"
+    )
 
 
 def verify_quality_population_contract(
@@ -369,6 +382,9 @@ def verify_quality_population_contract(
     for key in ("platform", "cards", "dies", "devices", "packages"):
         if contract["hardware"][key] != expected["hardware"][key]:
             raise RegressionError(f"Quality reference population hardware/runtime changed: {key}")
+    _verify_engine_environment(
+        contract.get("engine_environment"), expected.get("engine_environment"), "Quality reference population"
+    )
     if (
         hashlib.sha256(json.dumps(dict(evaluator_packages), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
         != population["evaluator_packages_sha256"]
