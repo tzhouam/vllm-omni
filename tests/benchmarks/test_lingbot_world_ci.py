@@ -1045,6 +1045,25 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
     assert (output / "vbench-raw.json").is_file() and (output / "wbench-raw.json").is_file()
 
 
+@pytest.mark.parametrize(
+    "level,key",
+    [
+        ("nightly", "lingbot-cuda-nightly-generation"),
+        ("weekly", "lingbot-cuda-weekly-generation"),
+        ("weekly", "lingbot-cuda-weekly-long"),
+    ],
+)
+def test_cuda_generation_retries_only_one_lost_agent(level, key):
+    steps = leaves(yaml.safe_load((ROOT / f".buildkite/cuda/test-{level}.yml").read_text()))
+    step = next(item for item in steps if item.get("key") == key)
+    assert step["retry"] == {"automatic": [{"exit_status": -1, "limit": 1}]}
+    assert step["mirror_hardwares"] == "h100_4_exclusive" and not step.get("soft_fail")
+    rules = step["retry"]["automatic"]
+    # Numerical/quality assertions, OOM, cancellation and timeout stay failed.
+    for status in (1, 2, 124, 128, 130, 137, 143):
+        assert not any(rule["exit_status"] in ("*", status) for rule in rules)
+
+
 @pytest.mark.parametrize("platform", ["cuda", "npu"])
 @pytest.mark.parametrize("level", ["nightly", "weekly"])
 def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, level):

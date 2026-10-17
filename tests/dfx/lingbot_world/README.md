@@ -114,6 +114,12 @@ target runs must validate the pinned setup.
 The NPU aggregate rejects missing or changed values even when all three
 measurement pairs agree with each other.
 
+CUDA nightly, weekly and long generation jobs retry a lost Buildkite agent
+(`exit_status=-1`) at most once. The original attempt and its artifacts remain
+retained. Pytest failures, OOM, cancellation and timeout are excluded from this
+retry policy; required gates still fail. Artifact consumers use the current
+attempt and verify the complete matching manifest before acceptance.
+
 The NPU bootstrap reference is `8d7c354674c7e1dc57544f248689574fccb71af9`,
 which places unselected DiT weights before direct AR projections and releases
 selected text weights before video conditioning. Those placement fixes are

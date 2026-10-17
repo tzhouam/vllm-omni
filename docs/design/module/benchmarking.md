@@ -56,6 +56,9 @@ The PR smoke executes its recorded chunk/warmup/frame-rate/timeout settings
 explicitly, validates raw output with the shared metric checker, and retains
 those metrics. CLI defaults must not silently change the recorded workload;
 short smoke timings are functional diagnostics rather than calibrated limits.
+CUDA generation may retry a lost Buildkite agent once while retaining the
+original attempt. Numerical/quality failures, OOM, cancellation and timeout
+remain blocking; consumers validate the current attempt's complete artifacts.
 Calibration reuse requires recorded optimization settings: its nonempty
 `engine_environment` string mapping must match the measured contract. Missing
 settings are invalid even when both records omit the field.
