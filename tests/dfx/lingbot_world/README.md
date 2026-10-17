@@ -94,6 +94,16 @@ backend import paths. This bounds host-side parallelism across the four ranks.
 The setting is part of the hashed profile; changing it requires fresh
 independent reference calibration and target-hardware validation.
 
+Both server roles and numerical captures explicitly disable
+`VLLM_OMNI_AR_DIFFUSION_KV_GATHER` and set
+`AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH=0`, retaining the model-declared
+scratch minimum. Host overrides cannot change these optimization settings.
+The effective values are retained in `contract.json` as `engine_environment`
+before capture or inference starts. Historical campaigns did not record these
+environment switches; final-source target runs must validate the pinned setup.
+The NPU aggregate rejects missing or changed values even when all three
+measurement pairs agree with each other.
+
 The NPU bootstrap reference is `8d7c354674c7e1dc57544f248689574fccb71af9`,
 which places unselected DiT weights before direct AR projections and releases
 selected text weights before video conditioning. Those placement fixes are
