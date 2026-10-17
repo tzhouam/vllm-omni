@@ -57,6 +57,11 @@ Calibration reuse requires recorded optimization settings: its nonempty
 settings are invalid even when both records omit the field.
 Calibration compatibility errors retain raw measurements, numerical results and
 quality scores for review; candidate comparisons stay unjudged and block acceptance.
+NPU weekly collection separates each case shard's three independent
+reference/candidate pairs into bounded jobs. A mandatory CPU gate verifies the
+complete matching population per shard before quality evaluation; missing or
+cross-shard pairs fail that gate. Partitioning jobs must preserve all cases,
+sessions, chunks, starts, hardware and regression budgets.
 GPU evaluators consume checksum-verified CUDA or NPU videos and enforce native
 per-dimension quality limits. Incomplete populations, unstable references,
 missing prerequisites and skipped selected CI tests cannot establish acceptance.

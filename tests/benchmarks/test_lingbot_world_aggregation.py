@@ -27,7 +27,14 @@ def measurement_campaign(tmp_path, monkeypatch, request):
     revision = "b" * 40
     monkeypatch.setattr(runner, "git_revision", lambda root: revision)
     name = getattr(request, "param", "npu_long")
+    shard = None
+    if isinstance(name, tuple):
+        name, shard = name
     profile = json.loads((runner.ROOT / f"tests/dfx/lingbot_world/configs/{name}.json").read_text())
+    if shard is not None:
+        from tests.dfx.lingbot_world.prepare import profile_for_case_shard
+
+        profile = profile_for_case_shard(profile, f"{shard}/6")
     profile_path = tmp_path / "profile.json"
     write_json(profile_path, profile)
     source = tmp_path / "measurements"
@@ -100,6 +107,32 @@ def test_aggregate_recomputes_all_six_populations_and_gates_p99(measurement_camp
     assert all(check["measured"]["steady_samples"] == 1186 for check in case["checks"])
     assert all(check["measured"]["mean_ms"] == 500 for check in case["checks"])
     assert len(report["precision"]) == 7 and all(p["status"] == "passed" for p in report["precision"])
+
+
+@pytest.mark.parametrize("measurement_campaign", [("npu_weekly", shard) for shard in range(6)], indirect=True)
+@pytest.mark.parametrize("change", [None, "missing_pair", "other_shard"])
+def test_weekly_shard_aggregate_requires_three_matching_pairs(measurement_campaign, change):
+    settings = measurement_campaign
+    assert len(settings["cases"]) == 3 and settings["measured_sessions"] == 2
+    manifest = settings["generation"] / "pair-2/measurement.json"
+    if change == "missing_pair":
+        manifest.unlink()
+    elif change == "other_shard":
+        value = json.loads(manifest.read_text())
+        value["contract"]["profile"]["case_shard"]["index"] = (settings["case_shard"]["index"] + 1) % 6
+        write_json(manifest, value)
+    if change is not None:
+        with pytest.raises(RegressionError, match="Missing measurement pair|profile or hardware mismatch"):
+            runner.aggregate_measurements(settings)
+        assert not json.loads((settings["output"] / "generation.json").read_text())["passed"]
+        return
+    report = runner.aggregate_measurements(settings)
+    assert report["passed"] and set(report["cases"]) == {case["id"] for case in settings["cases"]}
+    assert len(report["measurement_jobs"]) == 3
+    for case in report["cases"].values():
+        assert case["baseline"]["independent_starts"] == 3 and len(case["checks"]) == 3
+        assert all(check["passed"] and check["measured"]["steady_samples"] == 306 for check in case["checks"])
+    assert len(report["precision"]) == 7 and all(row["status"] == "passed" for row in report["precision"])
 
 
 @pytest.mark.parametrize("measurement_campaign", ["npu_nightly"], indirect=True)
