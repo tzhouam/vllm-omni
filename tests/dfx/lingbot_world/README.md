@@ -30,6 +30,8 @@ rechecks the device count, mapping and properties. These identifiers are not
 physical UUIDs. The eight-slot reservation reduces device co-location while
 retaining SP4, the workload and the reference/candidate regression limits.
 It does not prove exclusive access to host CPU, storage or networking.
+The launcher reads the selected identifiers from `allocation.json`, so backend
+startup messages on stdout cannot become part of the device mask.
 
 ```bash
 pytest -q --confcutdir=tests/benchmarks \
