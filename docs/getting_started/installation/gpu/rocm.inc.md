@@ -11,7 +11,9 @@
 For ROCm, vLLM-Omni currently recommends the setup steps through Docker Images.
 
 vLLM-Omni depends on the matching major/minor release of vLLM. This source
-checkout targets vLLM 0.31.0. The pre-built Omni wheel instructions below install
+checkout targets vLLM 0.32.0rc3. The matching ROCm wheel and final 0.32.0
+ROCm base image are not yet available; ROCm compatibility for this source
+checkout has not been validated. The pre-built Omni wheel instructions below install
 the published 0.30.0 release with its matching vLLM dependency.
 
 The Dockerfile's `BASE_IMAGE` pin applies only to Docker builds. The
@@ -50,14 +52,10 @@ uv pip install onnxruntime-rocm
 
 #### Installation of vLLM
 
-If you do not need to modify source code of vLLM, install the final 0.31.0
-release wheel for ROCm 7.2.3:
-
-```bash
-uv pip install vllm==0.31.0+rocm723 --extra-index-url https://wheels.vllm.ai/rocm/0.31.0/rocm723
-```
-
-The pre-built 0.31.0 vLLM wheel targets ROCm 7.2.3. If you need a different ROCm stack or want to reuse an existing PyTorch installation, build vLLM from source instead.
+There is no published 0.32.0 ROCm wheel for this checkout yet. The older
+0.31.0 ROCm wheel is not a validated substitute. An experimental source
+build must use the exact release-branch commit below and upstream's matching
+ROCm/PyTorch requirements; it still needs ROCm runtime validation.
 
 #### Installation of vLLM-Omni
 
@@ -77,7 +75,7 @@ If you want to check, modify or debug with source code of vLLM, install the libr
 ```bash
 git clone https://github.com/vllm-project/vllm.git
 cd vllm
-git checkout v0.31.0
+git checkout 82eb574d959031c670ecbc9930ed7b756a119bfe
 python3 -m pip install -r requirements/rocm.txt
 python3 setup.py develop
 ```
@@ -89,7 +87,9 @@ python3 setup.py develop
 #### Build docker image
 
 The source build defaults to the published upstream base image
-`vllm/vllm-openai-rocm:v0.31.0`, aligned with this source checkout.
+`vllm/vllm-openai-rocm:v0.31.0`. The upstream `v0.32.0` ROCm image is not yet
+published, so the default remains for 0.31-compatible Omni revisions and is
+not a validated runtime for this source checkout.
 Older or custom bases must provide the vLLM APIs checked by the Dockerfile's
 image-build canary. This upstream base is distinct from the prebuilt
 `vllm/vllm-omni-rocm` images discussed below; their published-tag availability
