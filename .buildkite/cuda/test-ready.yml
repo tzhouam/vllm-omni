@@ -35,12 +35,13 @@ steps:
         commands:
           - mkdir -p artifacts/cuda-other
           - |
-            set -o pipefail
+            bash -o pipefail <<'BASH'
             export PYTHONUNBUFFERED=1
             pytest -sv tests/ -m 'core_model and cpu' \
               --ignore=tests/diffusion --ignore=tests/model_executor \
               --ignore=tests/entrypoints --ignore=tests/engine \
               --junitxml=artifacts/cuda-other/pytest.xml 2>&1 | tee artifacts/cuda-other/pytest.log
+            BASH
         mirror_hardwares: l4_1
 
   - group: ":card_index_dividers: Diffusion Test"

@@ -26,6 +26,45 @@ pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
 
 
+@pytest.mark.parametrize("shell", ["/bin/sh", "/bin/bash"])
+@pytest.mark.parametrize("status", [0, 1, 2, 134])
+def test_cuda_cpu_logging_preserves_pytest_exit_and_artifacts(tmp_path: Path, shell: str, status: int):
+    pipeline = yaml.safe_load((ROOT / ".buildkite/cuda/test-ready.yml").read_text())
+    step = next(
+        step
+        for group in pipeline["steps"]
+        for step in group.get("steps", [])
+        if step.get("label") == "Simple · Other Test"
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    pytest_cli = bin_dir / "pytest"
+    pytest_cli.write_text(
+        f"#!{sys.executable}\n"
+        "import sys\n"
+        "from pathlib import Path\n"
+        "print('pytest stdout', flush=True)\n"
+        "print('pytest stderr', file=sys.stderr, flush=True)\n"
+        "report = next(arg.split('=', 1)[1] for arg in sys.argv if arg.startswith('--junitxml='))\n"
+        "Path(report).write_text('<testsuite/>')\n"
+        f"sys.exit({status})\n"
+    )
+    pytest_cli.chmod(0o755)
+    result = subprocess.run(
+        [shell, "-e", "-c", "\n".join(step["commands"])],
+        cwd=tmp_path,
+        env={**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ["PATH"]},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == status, result.stdout + result.stderr
+    output = tmp_path / "artifacts/cuda-other"
+    log = (output / "pytest.log").read_text()
+    assert "pytest stdout" in log and "pytest stderr" in log
+    assert ET.parse(output / "pytest.xml").getroot().tag == "testsuite"
+
+
 def test_lifecycle_playhead_blocks_second_admission_before_inference() -> None:
     from benchmarks.lingbot_world.workload import pixel_frames_in_chunk
     from tests.e2e.online_serving import test_lingbot_world_v2_stepwise as lifecycle
