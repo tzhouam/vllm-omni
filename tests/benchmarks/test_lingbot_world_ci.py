@@ -13,8 +13,10 @@ import sys
 import threading
 import time
 import xml.etree.ElementTree as ET
+from argparse import Namespace
+from contextlib import contextmanager
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, TypedDict
 
 import pytest
 import yaml
@@ -24,6 +26,130 @@ from tests.dfx.lingbot_world.runner import ENGINE_ENVIRONMENT, server_arguments,
 
 pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.fixture
+def smoke_entry(tmp_path, monkeypatch):
+    from benchmarks.lingbot_world.workload import ChunkRecord, compute_metrics
+    from tests.dfx.lingbot_world import test_smoke as smoke
+    from tests.e2e.online_serving import test_lingbot_world_v2_stepwise as lifecycle
+    from tests.helpers import runtime
+
+    settings = json.loads((ROOT / "tests/dfx/lingbot_world/configs/cuda_smoke.json").read_text())
+    settings.update(output=tmp_path / "output", profile_path=ROOT / "tests/dfx/lingbot_world/configs/cuda_smoke.json")
+    settings["output"].mkdir()
+
+    class Calls(TypedDict):
+        arguments: list[Namespace]
+        cleanup: int
+        lifecycle: int
+        corruption: str | None
+
+    calls: Calls = {"arguments": [], "cleanup": 0, "lifecycle": 0, "corruption": None}
+
+    class Endpoint(NamedTuple):
+        port: int
+
+    @contextmanager
+    def server(model, arguments, *, env_dict, startup_timeout):
+        try:
+            yield Endpoint(12345)
+        finally:
+            calls["cleanup"] += 1
+
+    async def benchmark(args):
+        # Keep CLI parsing and raw metric validation real; inference is the unit boundary.
+        calls["arguments"].append(args)
+        target_fps = args.target_fps if args.target_fps is not None else args.fps_override or 16
+        records = [ChunkRecord(i, (i + 1) * 0.5, 0.5, 1024, 9 if i == 0 else 12) for i in range(args.num_chunks)]
+        metrics = compute_metrics(records, fps=target_fps, warmup_chunks=args.warmup_chunks, ttfc_s=0.5)
+        chunks = [record.to_dict() for record in records]
+        change = calls["corruption"]
+        if change == "missing":
+            chunks.pop()
+        elif change == "reordered":
+            chunks[0], chunks[1] = chunks[1], chunks[0]
+        elif change == "frames":
+            chunks[1]["num_frames"] = 0
+        elif change == "empty":
+            chunks[1]["byte_length"] = 0
+        elif change == "nonfinite":
+            chunks[1]["arrival_s"] = float("nan")
+        elif change == "policy":
+            target_fps += 1
+        return {
+            "config": {
+                "target_fps": target_fps,
+                "warmup_chunks": args.warmup_chunks,
+                "chunk_slo_ms": args.chunk_slo_ms,
+                "playback_buffer_chunks": args.playback_buffer_chunks,
+            },
+            "sessions": [
+                {"session_index": 0, "request_id": "smoke-unit-boundary", "chunks": chunks, "metrics": metrics}
+            ],
+        }
+
+    def lifecycle_check(server):
+        calls["lifecycle"] += 1
+
+    monkeypatch.setattr(runtime, "OmniServer", server)
+    monkeypatch.setattr(smoke, "hardware_contract", lambda _: {"platform": "cuda", "cards": 1})
+    image = tmp_path / "image.png"
+    monkeypatch.setattr(smoke, "checked_assets", lambda _: (tmp_path / "model", {settings["cases"][0]["image"]: image}))
+    monkeypatch.setattr(smoke, "run_benchmark", benchmark)
+    monkeypatch.setattr(
+        lifecycle, "test_lingbot_world_v2_stepwise_stop_during_paced_wait_releases_session", lifecycle_check
+    )
+    return smoke.test_cuda_smoke, settings, calls
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {},
+        {
+            "num_chunks": 5,
+            "warmup_chunks": 2,
+            "mux_fps": 20,
+            "target_fps": 9,
+            "first_chunk_timeout_s": 11,
+            "chunk_timeout_s": 7,
+        },
+    ],
+)
+def test_smoke_executes_the_recorded_profile_and_retains_raw_metrics(smoke_entry, overrides):
+    run, settings, calls = smoke_entry
+    settings.update(overrides)
+    run(settings)
+    (args,) = calls["arguments"]
+    assert (
+        args.num_chunks,
+        args.warmup_chunks,
+        args.fps_override,
+        args.target_fps,
+        args.first_chunk_timeout,
+        args.chunk_timeout,
+    ) == (
+        settings["num_chunks"],
+        settings["warmup_chunks"],
+        settings["mux_fps"],
+        settings["target_fps"],
+        settings["first_chunk_timeout_s"],
+        settings["chunk_timeout_s"],
+    )
+    assert calls["cleanup"] == calls["lifecycle"] == 1
+    metrics = json.loads((settings["output"] / "metrics.json").read_text())
+    assert metrics["steady_samples"] == settings["num_chunks"] - settings["warmup_chunks"] - 1
+
+
+@pytest.mark.parametrize("change", ["missing", "reordered", "frames", "empty", "nonfinite", "policy"])
+def test_smoke_rejects_invalid_raw_output_and_releases_server(smoke_entry, change):
+    run, settings, calls = smoke_entry
+    calls["corruption"] = change
+    with pytest.raises(RegressionError):
+        run(settings)
+    assert calls["cleanup"] == 1 and calls["lifecycle"] == 0
+    assert not (settings["output"] / "metrics.json").exists()
 
 
 @pytest.mark.parametrize(

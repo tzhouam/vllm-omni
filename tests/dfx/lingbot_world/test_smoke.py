@@ -11,6 +11,7 @@ from benchmarks.lingbot_world.regression import read_json, sha256, write_json
 from tests.dfx.lingbot_world.runner import (
     ENGINE_ENVIRONMENT,
     ROOT,
+    _measured_metrics,
     checked_assets,
     hardware_contract,
     server_arguments,
@@ -49,7 +50,7 @@ def test_cuda_smoke(lingbot_settings):
             patch.setattr(lifecycle, "_HEIGHT", settings["height"])
             patch.setattr(lifecycle, "_WIDTH", settings["width"])
             output = settings["output"]
-            asyncio.run(
+            document = asyncio.run(
                 run_benchmark(
                     parse_args(
                         [
@@ -70,9 +71,17 @@ def test_cuda_smoke(lingbot_settings):
                             "--width",
                             str(settings["width"]),
                             "--num-chunks",
-                            "3",
+                            str(settings["num_chunks"]),
                             "--warmup-chunks",
-                            "1",
+                            str(settings["warmup_chunks"]),
+                            "--fps",
+                            str(settings["mux_fps"]),
+                            "--target-fps",
+                            str(settings["target_fps"]),
+                            "--first-chunk-timeout",
+                            str(settings["first_chunk_timeout_s"]),
+                            "--chunk-timeout",
+                            str(settings["chunk_timeout_s"]),
                             "--output-json",
                             str(output / "benchmark.json"),
                             "--save-video",
@@ -81,4 +90,5 @@ def test_cuda_smoke(lingbot_settings):
                     )
                 )
             )
+            write_json(output / "metrics.json", _measured_metrics(document, settings))
             lifecycle.test_lingbot_world_v2_stepwise_stop_during_paced_wait_releases_session(server)

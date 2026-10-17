@@ -52,6 +52,10 @@ wraps the served realtime workload in blocking pytest jobs. It measures a frozen
 reference on the same hardware/dependencies, calibrates from three independent
 server starts, and checks candidate performance separately. Fixed-input VAE
 replay and instrumented lifecycle/memory checks run outside timing windows.
+The PR smoke executes its recorded chunk/warmup/frame-rate/timeout settings
+explicitly, validates raw output with the shared metric checker, and retains
+those metrics. CLI defaults must not silently change the recorded workload;
+short smoke timings are functional diagnostics rather than calibrated limits.
 Calibration reuse requires recorded optimization settings: its nonempty
 `engine_environment` string mapping must match the measured contract. Missing
 settings are invalid even when both records omit the field.
