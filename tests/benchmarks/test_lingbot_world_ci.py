@@ -416,6 +416,51 @@ def test_reference_server_keeps_backend_import_paths(tmp_path: Path, monkeypatch
     assert result.stdout.strip() == "reference backend"
 
 
+@pytest.mark.parametrize("role", ["reference", "candidate"])
+def test_engine_switches_override_inherited_environment_before_import(tmp_path, monkeypatch, role):
+    monkeypatch.setenv("VLLM_OMNI_AR_DIFFUSION_KV_GATHER", "1")
+    monkeypatch.setenv("AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH", "999")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import os,runpy,sys; config=runpy.run_path(sys.argv[1]); "
+            "print(config['contiguous_kv_gather_enabled']()); "
+            "print(os.environ['AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH'])",
+            str(ROOT / "vllm_omni/experimental/ar_diffusion/kv_cache/config.py"),
+        ],
+        env={**os.environ, **server_environment(tmp_path / role)},
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30,
+    )
+    assert result.stdout.splitlines() == ["False", "0"]
+
+
+def test_generation_records_fixed_engine_environment_before_capture_failure(tmp_path, monkeypatch):
+    from tests.dfx.lingbot_world import runner
+
+    output = tmp_path / "output"
+    profile = tmp_path / "profile.json"
+    config = json.loads((ROOT / "tests/dfx/lingbot_world/configs/npu_nightly.json").read_text())
+    profile.write_text(json.dumps(config))
+    monkeypatch.setattr(runner, "checked_assets", lambda settings: (tmp_path / "model", {}))
+    monkeypatch.setattr(runner, "validate_reference", lambda settings: tmp_path / "reference")
+    monkeypatch.setattr(runner, "hardware_contract", lambda settings: {"platform": "npu"})
+
+    def fail_capture(*args):
+        raise RuntimeError("precision provisioning failed")
+
+    monkeypatch.setattr(runner, "_capture", fail_capture)
+    with pytest.raises(RuntimeError, match="precision provisioning failed"):
+        runner.generate({"output": output, "profile_path": profile, "deploy_config": config["deploy_config"]})
+    assert json.loads((output / "contract.json").read_text())["engine_environment"] == {
+        "VLLM_OMNI_AR_DIFFUSION_KV_GATHER": "0",
+        "AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH": "0",
+    }
+
+
 def test_fixed_worker_threads_apply_before_torch_import(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("OMP_NUM_THREADS", "19")
     monkeypatch.setenv("MKL_NUM_THREADS", "23")
@@ -444,6 +489,8 @@ def test_fixed_worker_threads_also_reach_precision_capture(tmp_path: Path, monke
     from tests.dfx.lingbot_world import runner
 
     calls = []
+    monkeypatch.setenv("VLLM_OMNI_AR_DIFFUSION_KV_GATHER", "1")
+    monkeypatch.setenv("AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH", "999")
     monkeypatch.setattr(runner.subprocess, "run", lambda *args, **kwargs: calls.append((args, kwargs)))
     source = tmp_path / role
     runner._capture(
@@ -461,6 +508,8 @@ def test_fixed_worker_threads_also_reach_precision_capture(tmp_path: Path, monke
     options = calls[0][1]
     assert options["cwd"] == source
     assert all(options["env"][name] == "1" for name in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"))
+    assert options["env"]["VLLM_OMNI_AR_DIFFUSION_KV_GATHER"] == "0"
+    assert options["env"]["AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH"] == "0"
 
 
 def evaluator_repository(root: Path):

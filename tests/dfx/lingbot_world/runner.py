@@ -32,6 +32,10 @@ from benchmarks.lingbot_world.regression import (
 )
 
 ROOT = Path(__file__).resolve().parents[3]
+ENGINE_ENVIRONMENT = {
+    "VLLM_OMNI_AR_DIFFUSION_KV_GATHER": "0",
+    "AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH": "0",
+}
 
 
 def server_environment(source: Path, *, cpu_threads: int | None = None) -> dict[str, str]:
@@ -40,7 +44,11 @@ def server_environment(source: Path, *, cpu_threads: int | None = None) -> dict[
     paths = [str(source)]
     if inherited := os.environ.get("PYTHONPATH"):
         paths.append(inherited)
-    environment = {"PYTHONPATH": os.pathsep.join(paths), "VLLM_WORKER_MULTIPROC_METHOD": "spawn"}
+    environment = {
+        "PYTHONPATH": os.pathsep.join(paths),
+        "VLLM_WORKER_MULTIPROC_METHOD": "spawn",
+        **ENGINE_ENVIRONMENT,
+    }
     if cpu_threads is not None:
         if type(cpu_threads) is not int or cpu_threads < 1:
             raise RegressionError("CPU threads per worker must be a positive integer")
@@ -314,7 +322,12 @@ def generate(settings: dict[str, Any], *, measurement_repeat: int | None = None)
     hardware = hardware_contract(settings)
     deployment = ROOT / settings["deploy_config"]
     config = read_json(settings["profile_path"])
-    contract = {"hardware": hardware, "profile": config, "deploy_sha256": sha256(deployment)}
+    contract = {
+        "hardware": hardware,
+        "profile": config,
+        "deploy_sha256": sha256(deployment),
+        "engine_environment": dict(ENGINE_ENVIRONMENT),
+    }
     write_json(output / "contract.json", contract)
     records: dict[str, Any] = {"reference": [], "candidate": []}
     for repeat in [measurement_repeat] if measurement_repeat is not None else range(3):
@@ -558,6 +571,8 @@ def aggregate_measurements(settings: dict[str, Any]) -> dict[str, Any]:
         ):
             raise RegressionError(f"Incomplete, duplicate or wrong-revision measurement pair {repeat}")
         current = manifest["contract"]
+        if current.get("engine_environment") != ENGINE_ENVIRONMENT:
+            raise RegressionError(f"Measurement engine environment is missing or changed in pair {repeat}")
         hardware = current["hardware"]
         if (
             current["profile"] != profile

@@ -32,6 +32,10 @@ def measurement_campaign(tmp_path, monkeypatch):
     source = tmp_path / "measurements"
     contract = {
         "profile": profile,
+        "engine_environment": {
+            "VLLM_OMNI_AR_DIFFUSION_KV_GATHER": "0",
+            "AR_DIFFUSION_KV_SCRATCH_BLOCKS_PER_BRANCH": "0",
+        },
         "hardware": {
             "platform": "npu",
             "cards": 4,
@@ -90,6 +94,21 @@ def test_aggregate_recomputes_all_six_populations_and_gates_p99(measurement_camp
     assert all(check["measured"]["steady_samples"] == 1186 for check in case["checks"])
     assert all(check["measured"]["mean_ms"] == 500 for check in case["checks"])
     assert len(report["precision"]) == 7 and all(p["status"] == "passed" for p in report["precision"])
+
+
+@pytest.mark.parametrize("change", ["missing", "enabled"])
+def test_aggregate_rejects_unpinned_engine_switches_even_when_all_pairs_agree(measurement_campaign, change):
+    settings = measurement_campaign
+    for repeat in range(3):
+        path = settings["generation"] / f"pair-{repeat}/measurement.json"
+        manifest = json.loads(path.read_text())
+        if change == "missing":
+            manifest["contract"].pop("engine_environment")
+        else:
+            manifest["contract"]["engine_environment"]["VLLM_OMNI_AR_DIFFUSION_KV_GATHER"] = "1"
+        write_json(path, manifest)
+    with pytest.raises(RegressionError, match="engine environment"):
+        runner.aggregate_measurements(settings)
 
 
 @pytest.mark.parametrize(
