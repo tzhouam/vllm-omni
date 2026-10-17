@@ -30,8 +30,17 @@ steps:
 
       - label: "Simple · Other Test"
         timeout_in_minutes: 20
+        artifact_paths:
+          - "artifacts/cuda-other/*"
         commands:
-          - "pytest -sv tests/ -m 'core_model and cpu' --ignore=tests/diffusion --ignore=tests/model_executor --ignore=tests/entrypoints --ignore=tests/engine"
+          - mkdir -p artifacts/cuda-other
+          - |
+            set -o pipefail
+            export PYTHONUNBUFFERED=1
+            pytest -sv tests/ -m 'core_model and cpu' \
+              --ignore=tests/diffusion --ignore=tests/model_executor \
+              --ignore=tests/entrypoints --ignore=tests/engine \
+              --junitxml=artifacts/cuda-other/pytest.xml 2>&1 | tee artifacts/cuda-other/pytest.log
         mirror_hardwares: l4_1
 
   - group: ":card_index_dividers: Diffusion Test"
