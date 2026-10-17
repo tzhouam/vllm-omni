@@ -833,7 +833,8 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
         assert generate["mirror_hardwares"] == "h100_4_exclusive"
     else:
         assert generate["mirror_hardwares"] == "a2b3_npu_8"
-    assert {"step": prefix + "-generation", "allow_failure": True} in evaluate["depends_on"]
+    producer = prefix + ("-gate" if platform == "npu" and level == "nightly" else "-generation")
+    assert {"step": producer, "allow_failure": True} in evaluate["depends_on"]
     assert evaluate["mirror_hardwares"] == "h100_1"
     for step in (generate, evaluate):
         assert not step.get("soft_fail")
@@ -841,6 +842,17 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
         assert step["source_file_dependencies"] == "lingbot_world_regression"
     if platform == "npu":
         assert prefix + "-evaluator-image" in evaluate["depends_on"]
+        if level == "nightly":
+            assert generate["matrix"] == {"setup": {"repeat": ["0", "1", "2"]}}
+            assert generate["env"]["LINGBOT_MEASUREMENT_REPEAT"] == "{{matrix.repeat}}"
+            assert " collect " in generate["commands"][0] and generate["timeout_in_minutes"] == 240
+            gate = keyed[producer]
+            assert prefix + "-generation" in gate["depends_on"]
+            assert prefix + "-evaluator-image" in gate["depends_on"]
+            assert gate["mirror_hardwares"] == "l4_1" and not gate.get("soft_fail")
+            assert gate["artifact_paths"] and gate["source_file_dependencies"] == "lingbot_world_regression"
+            assert " aggregate " in gate["commands"][0] and len(gate["commands"][0].split()) == 6
+            assert evaluate["commands"][0].endswith("lingbot-artifacts/npu-nightly")
     if level == "weekly":
         assert prefix + "-long" in keyed
         count = 3 if platform == "cuda" else 6
