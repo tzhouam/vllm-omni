@@ -62,6 +62,9 @@ remain blocking; consumers validate the current attempt's complete artifacts.
 Calibration reuse requires recorded optimization settings: its nonempty
 `engine_environment` string mapping must match the measured contract. Missing
 settings are invalid even when both records omit the field.
+Reference-noise calibration also binds recorded playback/mux frame rates and
+both the measurement warmup and inference warmup lengths. Missing or changed
+values reject reuse; held-out scenes and rollout lengths remain supported.
 Calibration compatibility errors retain raw measurements, numerical results and
 quality scores for review; candidate comparisons stay unjudged and block acceptance.
 CI pixel comparisons execute in the same verified dependency environment as

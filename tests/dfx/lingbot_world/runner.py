@@ -467,8 +467,6 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
         write_json(output / "reference-calibration.json", calibration)
         try:
             verify_reference_calibration_contract(contract, calibration)
-            if any(settings[key] != calibration["workload"][key] for key in ("target_fps", "warmup_chunks")):
-                raise RegressionError("Startup-stall calibration playback rate/window changed")
         except RegressionError as error:
             calibration_error = str(error)
             write_json(
