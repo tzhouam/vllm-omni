@@ -1,9 +1,9 @@
-# Align with the exact releases/v0.32.0 tip (also tagged v0.32.0rc2).
-# Upstream has published its cu130 wheel but no matching Docker image.
+# Align with the exact releases/v0.32.0 tip using its release-candidate wheel.
+# Install the upstream cu130 wheel on a compatible Docker base.
 # Reuse the CUDA 13 / torch 2.13 / FlashInfer 0.7 nightly stack by digest,
 # then install the exact release wheel and its updated dependencies below.
-ARG VLLM_PRECOMPILED_WHEEL_COMMIT=7960eeb9de293137b7fca35cd4ae92c4c50ea286
-ARG VLLM_VERSION=0.32.0rc2
+ARG VLLM_PRECOMPILED_WHEEL_COMMIT=82eb574d959031c670ecbc9930ed7b756a119bfe
+ARG VLLM_VERSION=0.32.0rc3
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
 ARG VLLM_BASE_TAG=nightly-fe4df3df0eb703862c686b256e9fe44fa94c8945@sha256:8e5e3042302f29e63b1722ceb1db8edf96beafc5dfc19f5eebb5a668470b71b4
 
