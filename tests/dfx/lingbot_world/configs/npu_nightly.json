@@ -45,6 +45,7 @@
   "platform": "npu",
   "cpu_threads_per_worker": 1,
   "cards": 4,
+  "reserved_cards": 8,
   "dies": 4,
   "deploy_config": "tests/dfx/lingbot_world/configs/npu_usp4_offload.yaml",
   "memory_growth_budget_bytes": 268435456,

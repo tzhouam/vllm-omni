@@ -70,6 +70,57 @@ def prepare_cuda_allocation(settings: dict, output: Path) -> str:
     return visible
 
 
+def select_npu_devices(available: int, mask: str | None, *, dies: int, reserved_cards: int) -> str:
+    """Preserve CANN runtime ordinals while keeping the scheduler reservation."""
+    for value in (available, dies, reserved_cards):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise RegressionError("NPU allocation counts must be positive integers")
+    if available != reserved_cards or dies > reserved_cards:
+        raise RegressionError(f"Expected {reserved_cards} reserved NPUs, found {available}; requested {dies} dies")
+    identifiers = mask.split(",") if mask is not None else [str(index) for index in range(available)]
+    identifiers = [identifier.strip() for identifier in identifiers]
+    if (
+        len(identifiers) != available
+        or any(re.fullmatch(r"0|[1-9][0-9]*", identifier) is None for identifier in identifiers)
+        or len(set(identifiers)) != available
+    ):
+        raise RegressionError("NPU visibility does not match the scheduler allocation")
+    return ",".join(identifiers[:dies])
+
+
+def prepare_npu_allocation(settings: dict, output: Path) -> str:
+    if settings["platform"] != "npu":
+        raise RegressionError("NPU allocation preparation requires an NPU profile")
+    from vllm_omni.platforms import current_omni_platform as platform
+
+    if platform.device_type != "npu":
+        raise RegressionError("NPU allocation preparation requires the Ascend runtime")
+    reserved = settings.get("reserved_cards", settings["cards"])
+    available = platform.get_device_count()
+    original = os.environ.get("ASCEND_RT_VISIBLE_DEVICES")
+    visible = select_npu_devices(available, original, dies=settings["dies"], reserved_cards=reserved)
+    runtime_ids = original.split(",") if original is not None else [str(i) for i in range(available)]
+    write_json(
+        output,
+        {
+            "platform": "npu",
+            "reserved_cards": reserved,
+            "visible_dies": settings["dies"],
+            "visible_devices": visible,
+            # These are CANN runtime identifiers, not physical UUIDs.
+            "devices": [
+                {
+                    "runtime_id": identifier.strip(),
+                    "name": platform.get_device_name(index),
+                    "total_bytes": platform.get_device_total_memory(index),
+                }
+                for index, identifier in enumerate(runtime_ids)
+            ],
+        },
+    )
+    return visible
+
+
 def evaluator_cache_key(root: Path = ROOT) -> str:
     files = (root / "tests/dfx/lingbot_world/evaluators.lock.json", root / "requirements/lingbot-quality.txt")
     return hashlib.sha256(b"\0".join(path.read_bytes() for path in files)).hexdigest()[:16]
@@ -201,7 +252,9 @@ def main():
     elif args.stage == "devices":
         if args.profile is None:
             parser.error("devices needs --profile")
-        print(prepare_cuda_allocation(read_json(args.profile), args.root.resolve() / "allocation.json"))
+        settings = read_json(args.profile)
+        prepare = prepare_npu_allocation if settings["platform"] == "npu" else prepare_cuda_allocation
+        print(prepare(settings, args.root.resolve() / "allocation.json"))
     else:
         if args.profile is None:
             parser.error("reference needs --profile")

@@ -107,21 +107,38 @@ def hardware_contract(settings: dict[str, Any]) -> dict[str, Any]:
     if settings.get("reserved_cards", settings["cards"]) != settings["cards"]:
         path = os.environ.get("LINGBOT_ALLOCATION_FILE")
         if path is None:
-            raise RegressionError("Exclusive CUDA profiles require the launcher allocation preflight")
+            raise RegressionError("Reserved-device profiles require the launcher allocation preflight")
         allocation = read_json(Path(path))
+        npu = settings["platform"] == "npu"
+        identity_key = "runtime_id" if npu else "uuid"
+        visibility_key = "ASCEND_RT_VISIBLE_DEVICES" if npu else "CUDA_VISIBLE_DEVICES"
         identities = {
-            device.get("uuid")
+            device.get(identity_key)
             for device in allocation.get("devices", [])
-            if isinstance(device, dict) and isinstance(device.get("uuid"), str) and device.get("uuid")
+            if isinstance(device, dict) and isinstance(device.get(identity_key), str) and device.get(identity_key)
         }
         if (
             allocation.get("reserved_cards") != settings["reserved_cards"]
             or allocation.get("visible_dies") != settings["dies"]
             or len(allocation.get("devices", [])) != settings["reserved_cards"]
             or len(identities) != settings["reserved_cards"]
-            or allocation.get("visible_devices") != os.environ.get("CUDA_VISIBLE_DEVICES")
+            or allocation.get("visible_devices") != os.environ.get(visibility_key)
         ):
-            raise RegressionError("CUDA allocation evidence does not match the requested profile/visibility")
+            raise RegressionError("Device allocation evidence does not match the requested profile/visibility")
+        if npu:
+            from tests.dfx.lingbot_world.prepare import select_npu_devices
+
+            original = ",".join(device["runtime_id"] for device in allocation["devices"])
+            selected = select_npu_devices(
+                len(allocation["devices"]), original, dies=settings["dies"], reserved_cards=settings["reserved_cards"]
+            )
+            if allocation.get("platform") != "npu" or selected != os.environ.get(visibility_key):
+                raise RegressionError("NPU allocation evidence does not preserve the original device mapping")
+            for index, device in enumerate(allocation["devices"][: settings["dies"]]):
+                if device.get("name") != platform.get_device_name(index) or device.get(
+                    "total_bytes"
+                ) != platform.get_device_total_memory(index):
+                    raise RegressionError("NPU allocation evidence does not match the visible hardware")
     devices = []
     for index in range(settings["dies"]):
         devices.append(

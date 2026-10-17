@@ -8,7 +8,7 @@ gate logic separately and are not model performance evidence.
 Use the inference environment matching `docker/Dockerfile.ci` (vLLM 0.31.0)
 and development dependencies. Reserve devices with the host scheduler before
 inference. Full CUDA profiles use four GPUs while reserving all eight GPU slots
-of a node in the H100 pool; NPU uses the four-device Ascend A2 pool. The smoke
+of a node in the H100 pool; NPU reserves eight Ascend A2 devices and uses four. The smoke
 uses the real 14B checkpoint at 192×320 on one GPU. Full performance/quality
 profiles remain 480×832. CI provides exclusive devices.
 
@@ -20,6 +20,16 @@ and precision settings. It changes scheduling isolation rather than regression
 thresholds. A four-GPU allocation cannot silently run an exclusive profile.
 For a local full CUDA run, reserve eight devices with `gpu run --gpus 8 -- ...`
 before invoking the launcher.
+
+NPU generation and long-pair collection use the existing `a2b3_npu_8`
+scheduler preset. Before model preparation, a separate preflight process
+requires eight runtime-visible devices and records their names, memory sizes
+and CANN runtime identifiers in `allocation.json`. The launcher then exports
+the first four identifiers through `ASCEND_RT_VISIBLE_DEVICES`; inference
+rechecks the device count, mapping and properties. These identifiers are not
+physical UUIDs. The eight-slot reservation reduces device co-location while
+retaining SP4, the workload and the reference/candidate regression limits.
+It does not prove exclusive access to host CPU, storage or networking.
 
 ```bash
 pytest -q --confcutdir=tests/benchmarks \
