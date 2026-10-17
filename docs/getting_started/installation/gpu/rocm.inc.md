@@ -11,7 +11,7 @@
 For ROCm, vLLM-Omni currently recommends the setup steps through Docker Images.
 
 vLLM-Omni depends on the matching major/minor release of vLLM. This source
-checkout targets vLLM 0.32.0rc3. The matching ROCm wheel and final 0.32.0
+checkout targets vLLM 0.32.0. The matching ROCm wheel and final 0.32.0
 ROCm base image are not yet available; ROCm compatibility for this source
 checkout has not been validated. The pre-built Omni wheel instructions below install
 the published 0.30.0 release with its matching vLLM dependency.
@@ -75,7 +75,7 @@ If you want to check, modify or debug with source code of vLLM, install the libr
 ```bash
 git clone https://github.com/vllm-project/vllm.git
 cd vllm
-git checkout 82eb574d959031c670ecbc9930ed7b756a119bfe
+git checkout 5df63a7203cdb9328d824a27b682e77c7b9928be
 python3 -m pip install -r requirements/rocm.txt
 python3 setup.py develop
 ```
