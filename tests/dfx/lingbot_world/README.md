@@ -77,6 +77,12 @@ roles: four ranks otherwise read up to sixteen whole shards concurrently from
 the shared checkpoint filesystem. The serial iterator preserves the checkpoint
 tensors and leaves the 1,200-second initialization budget unchanged. Startup
 success must still be established on the target runner.
+The NPU profiles pin `cpu_threads_per_worker=1`. Both reference and candidate
+servers and fixed-input captures receive `OMP_NUM_THREADS`, `MKL_NUM_THREADS`
+and `OPENBLAS_NUM_THREADS` before importing Torch, while retaining CANN's
+backend import paths. This bounds host-side parallelism across the four ranks.
+The setting is part of the hashed profile; changing it requires fresh
+independent reference calibration and target-hardware validation.
 
 The NPU bootstrap reference is `8d7c354674c7e1dc57544f248689574fccb71af9`,
 which places unselected DiT weights before direct AR projections and releases
@@ -305,7 +311,8 @@ A failed placeholder JUnit report is written before provisioning so a forced
 SIGKILL still leaves failure evidence. Pytest replaces it on completion; normal
 failure and SIGTERM also retain structured launcher errors.
 Provisioning records host available/total RAM, cgroup membership, raw memory
-limits/peaks/pressure counters, available CPU quota/throttling/pressure counters
+limits/peaks/pressure counters, available v1/v2 CPU quota/throttling/pressure
+counters and CPU-set masks,
 and the resolved checkpoint filesystem in `model.json`.
 Pytest failure JSON captures fresh kernel resource evidence
 after cleanup; peak counters can still expose load-time pressure. Kernel paths
