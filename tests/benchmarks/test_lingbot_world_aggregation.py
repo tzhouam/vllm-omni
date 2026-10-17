@@ -23,10 +23,11 @@ pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, pytest.mark.cpu]
 
 
 @pytest.fixture
-def measurement_campaign(tmp_path, monkeypatch):
+def measurement_campaign(tmp_path, monkeypatch, request):
     revision = "b" * 40
     monkeypatch.setattr(runner, "git_revision", lambda root: revision)
-    profile = json.loads((runner.ROOT / "tests/dfx/lingbot_world/configs/npu_long.json").read_text())
+    name = getattr(request, "param", "npu_long")
+    profile = json.loads((runner.ROOT / f"tests/dfx/lingbot_world/configs/{name}.json").read_text())
     profile_path = tmp_path / "profile.json"
     write_json(profile_path, profile)
     source = tmp_path / "measurements"
@@ -45,22 +46,27 @@ def measurement_campaign(tmp_path, monkeypatch):
         },
         "deploy_sha256": sha256(runner.ROOT / profile["deploy_config"]),
     }
-    case = profile["cases"][0]["id"]
+    cases = [case["id"] for case in profile["cases"]]
     for repeat in range(3):
         root = source / f"pair-{repeat}"
         for role in ("reference", "candidate"):
             arm = root / role / str(repeat)
-            destination = arm / case
-            destination.mkdir(parents=True)
-            raw = document(num_chunks=600)
-            raw["sessions"] = [
-                {**copy.deepcopy(raw["sessions"][0]), "session_index": index, "request_id": f"{role}-{repeat}-{index}"}
-                for index in range(2)
-            ]
-            raw["git_revision"] = revision
-            raw["server_revision"] = profile["reference_revision"] if role == "reference" else revision
-            write_json(destination / "benchmark.json", raw)
-            (destination / "rollout.mp4").write_bytes(b"synthetic media; decoder is checked by the quality job")
+            for case in cases:
+                destination = arm / case
+                destination.mkdir(parents=True)
+                raw = document(num_chunks=profile["num_chunks"])
+                raw["sessions"] = [
+                    {
+                        **copy.deepcopy(raw["sessions"][0]),
+                        "session_index": index,
+                        "request_id": f"{role}-{repeat}-{case}-{index}",
+                    }
+                    for index in range(profile["measured_sessions"])
+                ]
+                raw["git_revision"] = revision
+                raw["server_revision"] = profile["reference_revision"] if role == "reference" else revision
+                write_json(destination / "benchmark.json", raw)
+                (destination / "rollout.mp4").write_bytes(b"synthetic media; decoder is checked by the quality job")
             save_tensor_sample(arm / "precision.npz", inputs={"latent": np.ones(2)}, outputs={"decoded": np.ones(2)})
             if repeat == 0:
                 write_json(arm / "diagnostic.json", {"synthetic": True})
@@ -72,7 +78,7 @@ def measurement_campaign(tmp_path, monkeypatch):
             "candidate_revision": revision,
             "reference_revision": profile["reference_revision"],
             "buildkite_job_id": f"pair-{repeat}",
-            "records": {role: [{case: {"mean_ms": 0}}] for role in ("reference", "candidate")},
+            "records": {role: [{case: {"mean_ms": 0} for case in cases}] for role in ("reference", "candidate")},
             "artifacts": {
                 str(path.relative_to(root)): sha256(path)
                 for role in ("reference", "candidate")
@@ -93,6 +99,49 @@ def test_aggregate_recomputes_all_six_populations_and_gates_p99(measurement_camp
     assert len(case["checks"]) == 3
     assert all(check["measured"]["steady_samples"] == 1186 for check in case["checks"])
     assert all(check["measured"]["mean_ms"] == 500 for check in case["checks"])
+    assert len(report["precision"]) == 7 and all(p["status"] == "passed" for p in report["precision"])
+
+
+@pytest.mark.parametrize("measurement_campaign", ["npu_nightly"], indirect=True)
+@pytest.mark.parametrize("change", [None, "missing_session", "p95_regression"])
+def test_nightly_aggregate_pools_complete_sessions_and_preserves_p95_gate(measurement_campaign, change):
+    settings = measurement_campaign
+    assert settings["measured_sessions"] == 7 and settings["min_steady_samples"] == 231
+    if change is not None:
+        root = settings["generation"] / "pair-2"
+        path = root / "candidate/2/boardwalk-42/benchmark.json"
+        raw = json.loads(path.read_text())
+        if change == "missing_session":
+            raw["sessions"].pop()
+        else:
+            for session in raw["sessions"]:
+                arrival = 0.0
+                for chunk in session["chunks"]:
+                    if chunk["index"] in (30, 31):
+                        chunk["inter_arrival_ms"] = 900
+                    arrival += chunk["inter_arrival_ms"] / 1000
+                    chunk["arrival_s"] = arrival
+                session["metrics"]["wall_seconds"] = arrival
+        write_json(path, raw)
+        manifest_path = root / "measurement.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["artifacts"][str(path.relative_to(root))] = sha256(path)
+        write_json(manifest_path, manifest)
+    if change == "missing_session":
+        with pytest.raises(RegressionError, match="measured sessions"):
+            runner.aggregate_measurements(settings)
+        return
+    report = runner.aggregate_measurements(settings)
+    assert report["passed"] is (change is None)
+    assert set(report["cases"]) == {case["id"] for case in settings["cases"]}
+    for case in report["cases"].values():
+        assert case["baseline"]["independent_starts"] == 3
+        assert "p95_ms" in case["baseline"]["limits"] and "p99_ms" not in case["baseline"]["limits"]
+        assert all(check["measured"]["steady_samples"] == 231 for check in case["checks"])
+    if change == "p95_regression":
+        check = report["cases"]["boardwalk-42"]["checks"][2]
+        assert check["measured"]["mean_ms"] < report["cases"]["boardwalk-42"]["baseline"]["limits"]["mean_ms"]["value"]
+        assert any("p95_ms" in violation for violation in check["violations"])
     assert len(report["precision"]) == 7 and all(p["status"] == "passed" for p in report["precision"])
 
 

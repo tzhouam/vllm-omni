@@ -420,6 +420,11 @@ steps:
           - bash .buildkite/cuda/scripts/build-ci-image.sh
       - label: "LingBot World · NPU measured reference/candidate"
         key: lingbot-npu-nightly-generation
+        matrix:
+          setup:
+            repeat: ["0", "1", "2"]
+        env:
+          LINGBOT_MEASUREMENT_REPEAT: "{{matrix.repeat}}"
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 240
         mirror_hardwares: a2b3_npu_8
@@ -431,14 +436,26 @@ steps:
             - exit_status: 128
               limit: 1
         artifact_paths:
+          - "lingbot-artifacts/npu-nightly-measurements/**/*"
+        commands:
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh collect tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly-measurements/pair-{{matrix.repeat}}
+      - label: "LingBot World · NPU nightly performance and precision gate"
+        key: lingbot-npu-nightly-gate
+        source_file_dependencies: lingbot_world_regression
+        depends_on:
+          - lingbot-npu-nightly-generation
+          - lingbot-npu-nightly-evaluator-image
+        timeout_in_minutes: 60
+        mirror_hardwares: l4_1
+        artifact_paths:
           - "lingbot-artifacts/npu-nightly/**/*"
         commands:
-          - bash .buildkite/common/scripts/run-lingbot-ci.sh generate tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly
+          - bash .buildkite/common/scripts/run-lingbot-ci.sh aggregate tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly lingbot-artifacts/npu-nightly-measurements
       - label: "LingBot World · NPU videos WBench/VBench gate on GPU"
         key: lingbot-npu-nightly-quality
         source_file_dependencies: lingbot_world_regression
         depends_on:
-          - step: lingbot-npu-nightly-generation
+          - step: lingbot-npu-nightly-gate
             allow_failure: true
           - lingbot-npu-nightly-evaluator-image
         timeout_in_minutes: 480

@@ -184,8 +184,24 @@ candidate starts. Generated effective profiles retain the source profile SHA256;
 generation and evaluation use the same `LINGBOT_CASE_SHARD=INDEX/COUNT` selection.
 No scene, seed, rollout length or measurement is removed.
 
-NPU long collection runs as three independent reference/candidate pairs, followed
-by a blocking CPU aggregation job. Each start still has two 600-chunk sessions
+NPU nightly and long collection each run as three independent reference/candidate
+pairs, followed by a blocking CPU aggregation job. Nightly retains its three
+scenes, 40-chunk rollouts and 477-frame quality clips, with seven measured
+sessions per start. Its 231 steady samples exceed the P95 sampling guard of
+200 (ten expected observations in the upper 5% tail). Three-start reference
+P95 CV remains capped at 3%, and candidate cadence degradation at 5%.
+This follows [recorded zero-switch reference-only measurements](calibration/npu_cadence_sampling.json):
+33-sample nightly reference P95 CV reaches 7.141%, while mean/P50 stay below
+1.21%. Nonoverlapping windows within one long reference start also show
+5.743% P95 CV at 33 samples, versus 1.396% at 198 samples. Those cropped
+windows diagnose sample dispersion; independent seven-session target runs
+still must validate this protocol. This sampling guard is not a confidence
+bound. P99 remains report-only below 1,000 steady samples.
+The three pairs reuse the existing collector and aggregate, retain all
+independent starts and keep each nightly collection timeout at 240 minutes.
+The same guard gives NPU weekly two 160-chunk sessions (306 steady samples)
+per start; all 18 cases and six shards remain. Its 1,440-minute job budgets
+stay unchanged. The long profile still has two 600-chunk sessions
 and at least 1,186 steady observations. The first pair also runs both complete
 600-chunk memory/control diagnostics. Pairs may run on different nodes, but the
 aggregate rejects different hardware/dependency contracts and unstable reference

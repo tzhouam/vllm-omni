@@ -7,7 +7,7 @@
   "precision": "bfloat16",
   "num_chunks": 40,
   "warmup_chunks": 6,
-  "min_steady_samples": 33,
+  "min_steady_samples": 231,
   "mux_fps": 16,
   "target_fps": 12,
   "startup_timeout_s": 1200,
@@ -50,5 +50,6 @@
   "deploy_config": "tests/dfx/lingbot_world/configs/npu_usp4_offload.yaml",
   "memory_growth_budget_bytes": 268435456,
   "warmup_num_chunks": 8,
-  "transient_noise_sigma": 3.0
+  "transient_noise_sigma": 3.0,
+  "measured_sessions": 7
 }
