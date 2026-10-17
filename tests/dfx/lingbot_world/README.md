@@ -134,7 +134,14 @@ Each case receives an unmeasured
 eight-chunk warmup session. The first six and terminal chunks stay in raw results and
 playback/FPS accounting, but are excluded from steady cadence by `workload.py`.
 
-Reference cadence CV above 3% invalidates calibration. Each candidate must
+Reference mean/P50 CV above 3% invalidates calibration. NPU P95 retains the
+same 3% limit. H100 P95 uses a separately calibrated 4.5% reference-CV ceiling:
+the prior six-case frozen-reference cohort reaches 3.248%, and the fixed 25%
+reserve rounded up to 0.005 yields 4.5%. All 18 independent newer weekly cases
+plus nightly and long reference cases fit that ceiling. Their raw benchmark
+hashes and reference values are retained in the calibration record;
+`p95-cv-calibration.json` records the rule and record hash in CUDA results.
+This changes only the reference stability check. Each candidate must
 meet measured reference limits with the profile's 5% regression allowance.
 For TTFC and accumulated playback stalls only, the allowance is the greater of
 5% of the worst reference and three reference population standard deviations.

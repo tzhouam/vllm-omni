@@ -174,6 +174,7 @@ def calibrate(
     transient_noise_sigma: float = 3.0,
     startup_stall_jitter_floor_ms: float = 0.0,
     ttfc_jitter_floor_ms: float = 0.0,
+    p95_max_cv: float | None = None,
 ) -> dict[str, Any]:
     """Freeze limits from >=3 independent reference server starts.
 
@@ -194,6 +195,10 @@ def calibrate(
         raise RegressionError("Transient noise allowance cannot exceed three reference standard deviations")
     number(startup_stall_jitter_floor_ms, "startup stall jitter floor")
     number(ttfc_jitter_floor_ms, "TTFC jitter floor")
+    if p95_max_cv is not None:
+        number(p95_max_cv, "P95 reference CV ceiling", positive=True)
+        if p95_max_cv >= 1:
+            raise RegressionError("P95 reference CV ceiling must be below one")
     if startup_stall_jitter_floor_ms and any("steady_stall_ms" not in row for row in reference):
         raise RegressionError("Startup jitter calibration requires separately recomputed steady stalls")
     limits = {}
@@ -207,8 +212,9 @@ def calibrate(
         # Startup and discrete playback stalls have measured reference jitter,
         # unlike stationary cadence. Calibrate their allowance from references
         # only; never use a failed candidate to raise a limit.
-        if metric in {"mean_ms", "p50_ms", "p95_ms"} and cv > max_cv:
-            raise RegressionError(f"Unstable reference {metric}: CV={cv:.3%} > {max_cv:.3%}")
+        cv_ceiling = p95_max_cv if metric == "p95_ms" and p95_max_cv is not None else max_cv
+        if metric in {"mean_ms", "p50_ms", "p95_ms"} and cv > cv_ceiling:
+            raise RegressionError(f"Unstable reference {metric}: CV={cv:.3%} > {cv_ceiling:.3%}")
         lower_is_better = metric != "generated_fps"
         worst = max(values) if lower_is_better else min(values)
         relative_allowance = worst * regression_fraction
@@ -230,6 +236,7 @@ def calibrate(
             "reference_jitter_allowance": jitter_allowance,
             "startup_jitter_floor_ms": startup_floor,
             **({"ttfc_jitter_floor_ms": ttfc_floor} if ttfc_floor else {}),
+            **({"max_reference_cv": cv_ceiling} if metric == "p95_ms" and p95_max_cv is not None else {}),
         }
     if all(row["steady_samples"] >= 1000 for row in reference):
         limits["p99_ms"] = {
