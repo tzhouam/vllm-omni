@@ -724,3 +724,100 @@ def test_invalid_quality_reference_spread_limits_fail_closed(limits):
         check_quality(
             [{"imaging": 0.8}] * 3, {"imaging": 0.8}, tolerances={"imaging": 0.01}, max_reference_spreads=limits
         )
+
+
+def quality_population():
+    root = Path(__file__).resolve().parents[2]
+    return read_json(root / "tests/dfx/lingbot_world/calibration/cuda_nightly_quality_population.json")
+
+
+def quality_packages():
+    root = Path(__file__).resolve().parents[2]
+    return dict(
+        line.strip().split("==")
+        for line in (root / "requirements/lingbot-quality.txt").read_text().splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    )
+
+
+def test_frozen_quality_population_uses_complete_reference_only_cohorts():
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    population = quality_population()
+    verify_quality_population_contract(
+        population,
+        population["contract"],
+        evaluator_packages=quality_packages(),
+        evaluator_lock_sha256=population["evaluator_lock_sha256"],
+        asset_lock_sha256=population["asset_lock_sha256"],
+    )
+    for case in population["cases"].values():
+        assert len(case["reference_videos"]) == 6
+        assert all(row["path"].startswith("reference/") for row in case["reference_videos"])
+        assert len({row["sha256"] for row in case["reference_videos"]}) == 6
+    assert all(not row["artifact_path"].startswith("/") for row in population["inputs"])
+
+
+@pytest.mark.parametrize(
+    "mutation", ["chunks", "prompt", "runtime", "topology", "evaluator", "lock", "assets", "pixels", "native"]
+)
+def test_frozen_quality_population_rejects_contract_or_population_changes(mutation):
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    population = quality_population()
+    contract = copy.deepcopy(population["contract"])
+    packages = copy.deepcopy(quality_packages())
+    lock, assets = population["evaluator_lock_sha256"], population["asset_lock_sha256"]
+    case = population["cases"]["boardwalk-42"]
+    if mutation == "chunks":
+        contract["profile"]["num_chunks"] = 600
+    elif mutation == "prompt":
+        contract["profile"]["cases"][0]["prompt"] = "changed"
+    elif mutation == "runtime":
+        contract["hardware"]["packages"]["torch"] = "changed"
+    elif mutation == "topology":
+        contract["hardware"]["cards"] = 1
+    elif mutation == "evaluator":
+        packages["torch"] = "changed"
+    elif mutation == "lock":
+        lock = "changed"
+    elif mutation == "assets":
+        assets = "changed"
+    elif mutation == "pixels":
+        case["pixels"].pop()
+    elif mutation == "native":
+        case["suites"]["wbench"].pop()
+    with pytest.raises(RegressionError, match="population"):
+        verify_quality_population_contract(
+            population, contract, evaluator_packages=packages, evaluator_lock_sha256=lock, asset_lock_sha256=assets
+        )
+
+
+@pytest.mark.parametrize("case_id", ["boardwalk-42", "blossom-42", "street-42"])
+def test_frozen_quality_population_preserves_candidate_budgets_and_negative_controls(case_id):
+    root = Path(__file__).resolve().parents[2]
+    policy = read_json(root / "tests/dfx/lingbot_world/quality.json")
+    case = quality_population()["cases"][case_id]
+    for suite, reference in case["suites"].items():
+        tolerances = {name: policy["candidate_tolerances"]["cuda"][suite][name] for name in reference[0]}
+        spreads = {name: policy["max_reference_spreads"]["cuda"][suite][name] for name in reference[0]}
+        for row in reference:
+            assert check_quality(reference, row, tolerances=tolerances, max_reference_spreads=spreads)["passed"]
+        for name, tolerance in tolerances.items():
+            candidate = copy.deepcopy(reference[0])
+            candidate[name] = min(row[name] for row in reference) - tolerance - 0.001
+            assert not check_quality(reference, candidate, tolerances=tolerances, max_reference_spreads=spreads)[
+                "passed"
+            ]
+    budgets = policy["pixel_budgets"]["cuda"]
+    kwargs = {**budgets, "min_psnr_db": policy["min_psnr_db"], "reject_uniform_frames": True}
+    for row in case["pixels"]:
+        assert check_video_precision(case["pixels"], row, **kwargs)["passed"]
+    candidate = copy.deepcopy(case["pixels"][0])
+    candidate["ssim"]["mean"] = min(row["ssim"]["mean"] for row in case["pixels"]) - budgets["ssim_drop"] - 0.001
+    assert not check_video_precision(case["pixels"], candidate, **kwargs)["passed"]
+    candidate = copy.deepcopy(case["pixels"][0])
+    candidate["windows"][0]["psnr_db"] = (
+        min(row["windows"][0]["psnr_db"] for row in case["pixels"]) - budgets["psnr_drop_db"] - 0.001
+    )
+    assert not check_video_precision(case["pixels"], candidate, **kwargs)["passed"]

@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import signal
@@ -610,7 +611,18 @@ def leaves(document):
 
 
 @pytest.mark.parametrize(
-    "generation_passed,mutation", [(True, None), (False, None), (False, "unlisted"), (False, "corrupt")]
+    "generation_passed,mutation",
+    [
+        (True, None),
+        (False, None),
+        (False, "unlisted"),
+        (False, "corrupt"),
+        (True, "population"),
+        (False, "population"),
+        (True, "population_reference"),
+        (True, "population_candidate"),
+        (True, "population_pixels"),
+    ],
 )
 def test_quality_retains_scores_after_generation_failure_without_passing(
     tmp_path, monkeypatch, generation_passed, mutation
@@ -675,17 +687,26 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
 
     def score(videos, output, *, suite, dimensions, **kwargs):
         calls.append(suite)
+        frames = (settings["num_chunks"] * 3 - 1) * 4 + 1
+        scores = {label: {name: 1.0 for name in dimensions} for label in videos}
+        if population_mode and suite == "wbench":
+            for label, row in scores.items():
+                row["hpsv3_quality"] = 0.81 if "reference" in label else 0.79
+                if mutation == "population_reference" and "reference" in label:
+                    row["hpsv3_quality"] = 0.7
+                if mutation == "population_candidate" and "candidate" in label:
+                    row["hpsv3_quality"] = 0.7
         return {
             "status": "passed",
             "protocol": {"dynamic_degree_backend": "raft"},
-            "scores": {label: {name: 1.0 for name in dimensions} for label in videos},
+            "scores": scores,
             "native_provenance": {
                 label: {
                     "background_clip_inference": {
                         "batch_size": 32,
-                        "encoded_images": 9,
-                        "forward_batches": 1,
-                        "max_forward_batch": 9,
+                        "encoded_images": frames,
+                        "forward_batches": (frames + 31) // 32,
+                        "max_forward_batch": min(frames, 32),
                         "gradients": False,
                     }
                 }
@@ -706,21 +727,77 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         "mux_fps": 16,
         "cases": [{"id": "scene"}],
     }
-    if mutation:
+    population_mode = mutation is not None and mutation.startswith("population")
+    if population_mode:
+        # Synthetic coordinator inputs exercise baseline selection and the
+        # final AND gate. Real decoding is covered by the NPU cases above.
+        settings.update(platform="cuda", num_chunks=40)
+        write_json(profile, {"platform": "cuda", "num_chunks": 40, "cases": settings["cases"]})
+        contract = {
+            "profile": json.loads(profile.read_text()),
+            "deploy_sha256": "deployment",
+            "hardware": {"platform": "cuda", "cards": 4, "dies": 4, "devices": [], "packages": {}},
+        }
+        manifest = json.loads((generation / "generation.json").read_text())
+        manifest["contract"] = contract
+        write_json(generation / "generation.json", manifest)
+        write_json(policy / "assets.lock.json", {})
+        calibration = policy / "calibration"
+        calibration.mkdir()
+        write_json(calibration / "cuda_nightly_reference.json", {})
+        monkeypatch.setattr(gate, "verify_reference_calibration_contract", lambda *args: None)
+        pixel = {
+            "ssim": {"mean": 0.4},
+            "total": {"psnr_db": 30.0, "psnr_is_infinite": False},
+            "windows": [{"index": 0, "start_frame": 0, "frame_count": 477, "psnr_db": 30.0, "psnr_is_infinite": False}],
+            "decoded_frames": 477,
+            "uniform_frame_indices": {"reference": [], "candidate": []},
+        }
+        suites = {}
+        for suite in ("vbench", "wbench"):
+            row = {name: 1.0 for name in limits["candidate_tolerances"]["cuda"][suite] if name != "dynamic_degree"}
+            if suite == "wbench":
+                row["hpsv3_quality"] = 0.8
+            suites[suite] = [row] * 6
+        write_json(
+            calibration / "cuda_nightly_quality_population.json",
+            {
+                "schema_version": 1,
+                "contract": contract,
+                "evaluator_packages_sha256": hashlib.sha256(b"{}").hexdigest(),
+                "evaluator_lock_sha256": sha256(policy / "evaluators.lock.json"),
+                "asset_lock_sha256": sha256(policy / "assets.lock.json"),
+                "cases": {"scene": {"input": settings["cases"][0], "pixels": [pixel] * 6, "suites": suites}},
+            },
+        )
+
+        def compare(first, second, **kwargs):
+            row = json.loads(json.dumps(pixel))
+            candidate = "candidate" in second.parts
+            row["ssim"]["mean"] = (0.2 if mutation == "population_pixels" else 0.37) if candidate else 0.6
+            row["reference"] = {"frame_count": 477, "width": 32, "height": 24, "fps": 16}
+            return row
+
+        monkeypatch.setattr(gate, "compare_video_pair", compare)
+    if mutation in ("unlisted", "corrupt"):
         with pytest.raises(RegressionError, match="checksum|Unhashed"):
             gate.test_wbench_vbench_and_video_precision(settings)
         assert calls == []
         return
-    if generation_passed:
+    quality_passed = mutation not in ("population_reference", "population_candidate", "population_pixels")
+    if generation_passed and quality_passed:
         gate.test_wbench_vbench_and_video_precision(settings)
     else:
         with pytest.raises(AssertionError, match="Quality regression"):
             gate.test_wbench_vbench_and_video_precision(settings)
     report = json.loads((output / "quality.json").read_text())
     assert calls == ["vbench", "wbench"]
-    assert report["quality_passed"] is True
+    assert report["quality_passed"] is quality_passed
     assert report["generation_passed"] is generation_passed
-    assert report["passed"] is generation_passed
+    assert report["passed"] is (generation_passed and quality_passed)
+    if population_mode:
+        assert (output / "quality-reference-population.json").is_file()
+        assert len(report["pixels"]["scene"]["reference_checks"]) == 3
     assert (output / "vbench-raw.json").is_file() and (output / "wbench-raw.json").is_file()
 
 
