@@ -103,6 +103,12 @@ scratch minimum. Host overrides cannot change these optimization settings.
 The effective values are retained in `contract.json` as `engine_environment`
 before capture or inference starts. The smoke retains its profile, deployment
 hash and the same switch whitelist in `configuration.json` before provisioning.
+The smoke passes the profile's chunk count, warmup exclusion, mux/target frame
+rates and receive deadlines explicitly to the benchmark. It recomputes raw
+chunk/session metrics with the shared validator and retains `metrics.json`;
+incomplete, malformed or policy-mismatched output fails before cancellation
+checks, while the server context still cleans up. Its short timings are
+functional diagnostics and do not establish a calibrated performance baseline.
 Historical campaigns did not record these environment switches; final-source
 target runs must validate the pinned setup.
 The NPU aggregate rejects missing or changed values even when all three
