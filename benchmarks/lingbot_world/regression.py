@@ -173,11 +173,13 @@ def calibrate(
     regression_fraction: float = 0.05,
     transient_noise_sigma: float = 3.0,
     startup_stall_jitter_floor_ms: float = 0.0,
+    ttfc_jitter_floor_ms: float = 0.0,
 ) -> dict[str, Any]:
     """Freeze limits from >=3 independent reference server starts.
 
-    A noisy baseline is rejected instead of silently widening the gate. The
-    observed worst reference value receives a configured regression allowance.
+    Unstable cadence rejects calibration. The worst reference value receives
+    a regression allowance; transient floors require separately frozen
+    reference-noise calibration.
     """
     if len(reference) < 3:
         raise RegressionError("Calibration needs three independent server starts")
@@ -191,6 +193,7 @@ def calibrate(
     if transient_noise_sigma > 3:
         raise RegressionError("Transient noise allowance cannot exceed three reference standard deviations")
     number(startup_stall_jitter_floor_ms, "startup stall jitter floor")
+    number(ttfc_jitter_floor_ms, "TTFC jitter floor")
     if startup_stall_jitter_floor_ms and any("steady_stall_ms" not in row for row in reference):
         raise RegressionError("Startup jitter calibration requires separately recomputed steady stalls")
     limits = {}
@@ -214,7 +217,9 @@ def calibrate(
             if metric in {"ttfc_ms", "stall_ms", "steady_stall_ms"}
             else 0.0
         )
-        floor = startup_stall_jitter_floor_ms if metric == "stall_ms" else 0.0
+        startup_floor = startup_stall_jitter_floor_ms if metric == "stall_ms" else 0.0
+        ttfc_floor = ttfc_jitter_floor_ms if metric == "ttfc_ms" else 0.0
+        floor = max(startup_floor, ttfc_floor)
         allowance = max(relative_allowance, jitter_allowance, floor)
         limits[metric] = {
             "direction": "max" if lower_is_better else "min",
@@ -223,7 +228,8 @@ def calibrate(
             "cv": cv,
             "relative_allowance": relative_allowance,
             "reference_jitter_allowance": jitter_allowance,
-            "startup_jitter_floor_ms": floor,
+            "startup_jitter_floor_ms": startup_floor,
+            **({"ttfc_jitter_floor_ms": ttfc_floor} if ttfc_floor else {}),
         }
     if all(row["steady_samples"] >= 1000 for row in reference):
         limits["p99_ms"] = {

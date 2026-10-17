@@ -127,6 +127,15 @@ meet measured reference limits with the profile's 5% regression allowance.
 For TTFC and accumulated playback stalls only, the allowance is the greater of
 5% of the worst reference and three reference population standard deviations.
 The profile pins this multiplier (at most three); both allowances are reported.
+H100 TTFC also uses a reference-only 220 ms jitter floor. Two matching nightly
+reference cohorts have maximum cross-cohort excess 174.791 ms; adding 25%
+reserve and rounding up to 5 ms gives 220 ms. On 36 separate weekly reference
+comparisons this removes three same-code false rejections. The calibration
+record retains all 54 reference measurements and artifact hashes; candidate
+values never enter that calculation. `ttfc-calibration.json` retains the rule
+and record hash with each CUDA generation result. Cadence, FPS, P99 and stall
+limits do not receive this TTFC allowance. NPU uses no TTFC floor. Independent
+final-head hardware validation remains required.
 CUDA additionally uses a 135 ms floor for the total-stall allowance. Two
 independent three-start reference cohorts falsely rejected two same-code
 reference runs under the original rule. All their stalls occurred during

@@ -445,6 +445,7 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
     if any(set(row) != cases for role in ("reference", "candidate") for row in records[role]):
         raise RegressionError("Measurement cases do not cover the complete profile")
     startup_stall_floor = 0.0
+    ttfc_floor = 0.0
     if settings.get("platform") == "cuda":
         calibration_path = ROOT / "tests/dfx/lingbot_world/calibration/cuda_nightly_reference.json"
         calibration = read_json(calibration_path)
@@ -452,6 +453,11 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
         if any(settings[key] != calibration["workload"][key] for key in ("target_fps", "warmup_chunks")):
             raise RegressionError("Startup-stall calibration playback rate/window changed")
         startup_stall_floor = calibration["startup_stall_calibration"]["selected_floor_ms"]
+        ttfc_floor = calibration["ttfc_calibration"]["selected_floor_ms"]
+        write_json(
+            output / "ttfc-calibration.json",
+            {"reference_record_sha256": sha256(calibration_path), **calibration["ttfc_calibration"]},
+        )
         write_json(
             output / "startup-stall-calibration.json",
             {
@@ -477,6 +483,7 @@ def _finalize_measurements(settings: dict[str, Any], contract: dict, records: di
                 regression_fraction=settings["performance_regression_fraction"],
                 transient_noise_sigma=settings["transient_noise_sigma"],
                 startup_stall_jitter_floor_ms=startup_stall_floor,
+                ttfc_jitter_floor_ms=ttfc_floor,
             )
         except RegressionError as error:
             # Invalid references still fail acceptance. Preserve the remaining
