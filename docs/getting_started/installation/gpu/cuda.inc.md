@@ -156,25 +156,20 @@ docker run --runtime nvidia --gpus 2 \
 
 #### Build docker image
 
-The production Dockerfile still defaults to `vllm/vllm-openai:v0.31.0`.
-The upstream `v0.32.0` CUDA image is published and identifies release commit
-`5df63a7203cdb9328d824a27b682e77c7b9928be`, but the final production image
-has not been validated with this checkout. The 0.31.0 default is not a
-validated runtime for the 0.32 source checkout. The CI Dockerfile
-selects the same 0.32.0 wheel as the tested local runtime and installs it
-on a digest-pinned CUDA 13 base:
+The production Dockerfile defaults to the published
+`vllm/vllm-openai:v0.32.0` CUDA 13 image, which identifies release commit
+`5df63a7203cdb9328d824a27b682e77c7b9928be`:
 
 ```bash
-DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.ci -t vllm-omni-cuda .
+DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.cuda -t vllm-omni-cuda .
 ```
 
-For a 0.31-compatible Omni checkout, select the older upstream image explicitly:
+The CI Dockerfile pins the final CUDA base by digest and installs the exact
+0.32.0 commit-index wheel used by the tested local runtime. Full CI validation
+of this final image stack remains pending:
 
 ```bash
-DOCKER_BUILDKIT=1 docker build \
-  -f docker/Dockerfile.cuda \
-  --build-arg BASE_IMAGE=vllm/vllm-openai:v0.31.0 \
-  -t vllm-omni-cuda .
+DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.ci -t vllm-omni-cuda-ci .
 ```
 
 #### Launch the docker image

@@ -32,8 +32,8 @@ def _line_index(lines: list[str], prefix: str) -> int:
 
 
 def test_rocm_base_tracks_cuda_vllm_release() -> None:
-    # CI installs the exact v0.32 release-candidate wheel on a compatible
-    # nightly stack; production CUDA/ROCm images still track a stable release.
+    # CI installs the exact final wheel on its digest-pinned release image;
+    # production CUDA/ROCm images track the same stable release.
     assert _docker_arg(CUDA_CI_DOCKERFILE, "VLLM_BASE_IMAGE") == "vllm/vllm-openai"
     assert "@sha256:" in _docker_arg(CUDA_CI_DOCKERFILE, "VLLM_BASE_TAG")
     assert len(_docker_arg(CUDA_CI_DOCKERFILE, "VLLM_PRECOMPILED_WHEEL_COMMIT")) == 40
@@ -112,7 +112,7 @@ def test_rocm_build_context_excludes_git_history() -> None:
 
 def test_rocm_source_ref_tracks_cuda_vllm_release() -> None:
     # The opt-in ROCm source rebuild defaults to the released CUDA vLLM tag;
-    # CI itself pins a release-candidate wheel via VLLM_PRECOMPILED_WHEEL_COMMIT.
+    # CI itself pins the release wheel via VLLM_PRECOMPILED_WHEEL_COMMIT.
     cuda_release_tag = _docker_arg(CUDA_RELEASE_DOCKERFILE, "BASE_IMAGE").rpartition(":")[2]
     rocm_source_ref = _docker_arg(ROCM_DOCKERFILE, "VLLM_VERSION_OR_COMMIT_HASH")
 
