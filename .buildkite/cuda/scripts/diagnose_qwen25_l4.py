@@ -35,18 +35,27 @@ def prepare_configs(output: Path) -> list[tuple[str, Path]]:
     import yaml
 
     from tests.helpers.stage_config import get_deploy_config_path
+    from vllm_omni.config.omni_config import VllmOmniConfig
+    from vllm_omni.config.pipeline_registry import resolve_pipeline_config
     from vllm_omni.config.stage_config import load_deploy_config
 
     source = Path(get_deploy_config_path("ci/qwen2_5_omni.yaml"))
+    pipeline = resolve_pipeline_config("qwen2_5_omni")
+    assert pipeline is not None
     configs = []
-    for variant in ("control", "vision_sdpa", "cuda_sync"):
+    for variant in ("control", "vision_sdpa", "audio_soundfile", "cuda_sync"):
         config = yaml.safe_load(source.read_text())
         if variant == "vision_sdpa":
             thinker = next(stage for stage in config["stages"] if stage["stage_id"] == 0)
             thinker.setdefault("engine_extras", {})["mm_encoder_attn_backend"] = "TORCH_SDPA"
+        elif variant == "audio_soundfile":
+            thinker = next(stage for stage in config["stages"] if stage["stage_id"] == 0)
+            thinker.setdefault("engine_extras", {}).setdefault("media_io_kwargs", {}).setdefault("audio", {})[
+                "audio_backend"
+            ] = "soundfile"
         path = output / f"{variant}.yaml"
         path.write_text(yaml.safe_dump(config, sort_keys=False))
-        load_deploy_config(path)
+        VllmOmniConfig.from_pipeline_config(pipeline, user_deploy_config=load_deploy_config(path))
         configs.append((variant, path))
     return configs
 
