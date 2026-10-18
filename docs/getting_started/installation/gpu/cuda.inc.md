@@ -11,8 +11,9 @@
 vLLM-Omni depends on the matching major/minor release of vLLM. This source
 checkout targets vLLM 0.32.0 at commit
 `5df63a7203cdb9328d824a27b682e77c7b9928be` at the `v0.32.0` tag on `releases/v0.32.0`.
-The tested CUDA runtime uses Python 3.12, PyTorch 2.13.0 and CUDA 13.0
-(`cu130`); the vLLM wheel requires Python 3.11 or newer, below 3.15.
+The combined Python metadata range for this checkout and vLLM is
+`>=3.11,<3.14`. The tested CUDA runtime uses Python 3.12, PyTorch 2.13.0 and
+CUDA 13.0 (`cu130`).
 The pre-built Omni wheel instructions below install
 the published 0.30.0 release with its matching vLLM dependency.
 
