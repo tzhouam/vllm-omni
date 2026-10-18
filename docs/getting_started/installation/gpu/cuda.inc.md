@@ -65,8 +65,10 @@ This command selects the Linux x86_64 CUDA 13.0 wheel and matching PyTorch
 backend. It requires a CUDA 13 compatible driver. For another architecture,
 CUDA variant or an existing incompatible PyTorch installation, build vLLM
 from source instead. The [vLLM 0.32.0 release](https://github.com/vllm-project/vllm/releases/tag/v0.32.0)
-and its commit-index wheel are available; the PyPI wheel and published
-vLLM-Omni 0.32 wheel are not yet available.
+and its commit-index and PyPI wheels are available. The PyPI x86_64 wheel
+embeds the same release commit and CUDA/PyTorch requirements. The command
+above retains the exact tested artifact. A vLLM-Omni 0.32 wheel is not yet
+published; install Omni from this source checkout.
 
 #### Installation of vLLM-Omni
 
@@ -155,8 +157,10 @@ docker run --runtime nvidia --gpus 2 \
 #### Build docker image
 
 The production Dockerfile still defaults to `vllm/vllm-openai:v0.31.0`.
-The upstream `v0.32.0` CUDA image is not yet published, so this default is
-not a validated runtime for the 0.32 source checkout. The CI Dockerfile
+The upstream `v0.32.0` CUDA image is published and identifies release commit
+`5df63a7203cdb9328d824a27b682e77c7b9928be`, but the final production image
+has not been validated with this checkout. The 0.31.0 default is not a
+validated runtime for the 0.32 source checkout. The CI Dockerfile
 selects the same 0.32.0 wheel as the tested local runtime and installs it
 on a digest-pinned CUDA 13 base:
 

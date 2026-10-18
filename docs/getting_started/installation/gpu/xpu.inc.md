@@ -30,8 +30,11 @@ DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.xpu -t vllm-omni-xpu --shm-s
 
 This layers vLLM-Omni on top of the published `vllm/vllm-openai-xpu:<VLLM_VERSION>`
 base image, which Docker pulls automatically. The Dockerfile defaults to
-v0.31.0. The upstream `v0.32.0` XPU image is not yet published, and XPU
+v0.31.0. The upstream `v0.32.0` XPU image is published, but XPU
 compatibility with this checkout's 0.32.0 target has not been validated.
+Its matching vLLM wheel requires PyTorch 2.14.0 and `triton==3.8.0+xpu`;
+the current Omni Dockerfile's `triton-xpu==3.7.2` overlay must be reconciled
+and validated before selecting the 0.32.0 base.
 The default above is for 0.31-compatible Omni revisions. To target a different vLLM release, pass
 `--build-arg VLLM_VERSION=<tag>`. If that tag has not been published yet, build
 the base from upstream's own Dockerfile first and point the build at it:
