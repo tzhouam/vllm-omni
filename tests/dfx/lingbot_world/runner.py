@@ -316,7 +316,10 @@ def generate(settings: dict[str, Any], *, measurement_repeat: int | None = None)
     output.mkdir(parents=True, exist_ok=True)
     if (output / "reference").exists() or (output / "candidate").exists():
         raise RegressionError("Use a fresh output directory; never mix independent campaigns")
-    write_json(output / "generation.json", {"passed": False, "status": "running"})
+    write_json(
+        output / "generation.json",
+        {"passed": False, "status": "running", "candidate_revision": git_revision(ROOT)},
+    )
     model, images = checked_assets(settings)
     reference = validate_reference(settings)
     hardware = hardware_contract(settings)

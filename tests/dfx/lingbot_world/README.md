@@ -201,6 +201,9 @@ The quality coordinator checkpoints evaluator versions, hardware, input manifest
 and policy hashes before launching native workers. A forced job termination can
 bypass Python cleanup, so this checkpoint stays failed until the complete gate
 finishes; it also retains provenance when only one native suite completed.
+The initial failed generation report records the actual candidate source revision
+before asset checks, numerical capture or server startup. Initialization failures
+retain that revision even when no complete measurement manifest can be written.
 
 NPU nightly and long collection each run as three independent reference/candidate
 pairs, followed by a blocking CPU aggregation job. Nightly retains its three

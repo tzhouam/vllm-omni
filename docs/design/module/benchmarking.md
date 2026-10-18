@@ -94,3 +94,5 @@ per-dimension quality limits. Persist evaluator hardware, dependencies and input
 hashes before native workers start, so forced termination retains a failed report
 with its provenance. Incomplete populations, unstable references,
 missing prerequisites and skipped selected CI tests cannot establish acceptance.
+Generation records its actual candidate source revision in the initial failed
+report before asset validation, numerical capture and server initialization.

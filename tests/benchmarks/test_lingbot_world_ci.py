@@ -628,6 +628,9 @@ def test_generation_records_fixed_engine_environment_before_capture_failure(tmp_
     monkeypatch.setattr(runner, "hardware_contract", lambda settings: {"platform": "npu"})
 
     def fail_capture(*args):
+        checkpoint = json.loads((output / "generation.json").read_text())
+        assert checkpoint["candidate_revision"] == runner.git_revision(ROOT)
+        assert not checkpoint["passed"] and checkpoint["status"] == "running"
         raise RuntimeError("precision provisioning failed")
 
     monkeypatch.setattr(runner, "_capture", fail_capture)
