@@ -347,7 +347,9 @@ async def test_malformed_video_options_fail_only_the_request(cache_pipeline, mon
     renderer = processor.renderer
     renderer.model_config = SimpleNamespace(hf_config=SimpleNamespace(model_type="qwen3_vl"))
     renderer.get_mm_processor = mocker.Mock(
-        return_value=SimpleNamespace(info=SimpleNamespace(ctx=SimpleNamespace(get_merged_mm_kwargs=lambda kw, **_: kw)))
+        return_value=mocker.Mock(
+            info=mocker.Mock(_merge_and_resolve_mm_processor_kwargs=lambda kw: {"videos_kwargs": kw})
+        )
     )
     original = processor.process_inputs
 

@@ -61,7 +61,8 @@ class OmniRenderer:
         if getattr(renderer.model_config.hf_config, "model_type", None) not in ("qwen3_vl", "qwen3_vl_moe"):
             return
         processor = renderer.get_mm_processor()
-        kwargs = processor.info.ctx.get_merged_mm_kwargs(prompt.get("mm_processor_kwargs") or {}, modality="video")
+        merged_kwargs = processor.info._merge_and_resolve_mm_processor_kwargs(prompt.get("mm_processor_kwargs") or {})
+        kwargs = merged_kwargs.get("videos_kwargs", {})
         # Qwen3-VL merges this dict before entering its HF error wrapper.
         # Reject malformed request options here; unrelated TypeErrors still
         # propagate as internal failures rather than being hidden as bad input.
