@@ -5,7 +5,10 @@ set -euo pipefail
 
 root="${PWD}/drama3-diagnostic"
 mkdir -p "$root"
-python3 .buildkite/cuda/scripts/diagnose_drama3_hnr.py --expected-version 0.32.0 --output-dir "$root/v032" 2>&1 | tee "$root/v032.log"
+hf download fishaudio/drama-3 --revision b2b5ee998034b2975720906c815e7fb0e9f007bd
+model_snapshot="${HF_HOME:?}/hub/models--fishaudio--drama-3/snapshots/b2b5ee998034b2975720906c815e7fb0e9f007bd"
+test -d "$model_snapshot"
+python3 .buildkite/cuda/scripts/diagnose_drama3_hnr.py --model-path "$model_snapshot" --expected-version 0.32.0 --output-dir "$root/v032" 2>&1 | tee "$root/v032.log"
 
 git fetch --no-tags origin 1c0bde507dfbffd25b32f6092dbe4526c945b7dd
 mkdir -p "$root/baseline-source"
@@ -26,4 +29,4 @@ dsl = shared / 'nvidia_cutlass_dsl' / 'dsl_packages'
 assert dsl.is_dir(), dsl
 (site / 'cutlass_dsl_path.pth').write_text(str(dsl) + '\n')
 PY
-"$root/baseline-env/bin/python" .buildkite/cuda/scripts/diagnose_drama3_hnr.py --source-root "$root/baseline-source" --expected-version 0.31.0 --output-dir "$root/v031" 2>&1 | tee "$root/v031.log"
+"$root/baseline-env/bin/python" .buildkite/cuda/scripts/diagnose_drama3_hnr.py --source-root "$root/baseline-source" --model-path "$model_snapshot" --expected-version 0.31.0 --output-dir "$root/v031" 2>&1 | tee "$root/v031.log"

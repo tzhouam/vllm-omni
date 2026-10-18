@@ -20,6 +20,7 @@ def main():
     parser.add_argument("--source-root", type=Path, default=Path.cwd())
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--expected-version", required=True)
+    parser.add_argument("--model-path", type=Path, required=True)
     args = parser.parse_args()
     source = args.source_root.resolve()
     output = args.output_dir.resolve()
@@ -48,6 +49,9 @@ def main():
     )
     report = {
         "diagnostic_only": True,
+        "model_snapshot": str(args.model_path.resolve()),
+        "model_revision": "b2b5ee998034b2975720906c815e7fb0e9f007bd",
+        "model_config_sha256": hashlib.sha256((args.model_path / "config.json").read_bytes()).hexdigest(),
         "source": str(source),
         "source_module": vllm_omni.__file__,
         "runtime_module": vllm.__file__,
@@ -83,6 +87,8 @@ def main():
         ("seed0-repeat", True, 0, True),
     ]
     server_args = [
+        "--served-model-name",
+        model,
         "--deploy-config",
         str(deploy),
         "--disable-log-stats",
@@ -91,7 +97,7 @@ def main():
         "--init-timeout",
         "900",
     ]
-    with OmniServer(model, server_args, startup_timeout=1200) as server:
+    with OmniServer(str(args.model_path.resolve()), server_args, startup_timeout=1200) as server:
         with httpx.Client(base_url=f"http://{server.host}:{server.port}", timeout=400) as client:
             for name, stream, seed, clone in cases:
                 request = {
