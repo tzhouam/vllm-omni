@@ -96,3 +96,6 @@ with its provenance. Incomplete populations, unstable references,
 missing prerequisites and skipped selected CI tests cannot establish acceptance.
 Generation records its actual candidate source revision in the initial failed
 report before asset validation, numerical capture and server initialization.
+Failed server initialization retains a bounded process-state snapshot in logs
+before cleanup, outside successful measurement paths. Unavailable process and
+Linux wait-channel data remain explicit without hiding the original failure.

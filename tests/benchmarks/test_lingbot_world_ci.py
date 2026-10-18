@@ -17,6 +17,7 @@ from argparse import Namespace
 from contextlib import contextmanager
 from pathlib import Path
 from typing import NamedTuple, TypedDict
+from unittest.mock import MagicMock
 
 import pytest
 import yaml
@@ -233,6 +234,81 @@ class _MountInfo(NamedTuple):
     mountpoint: str
     fstype: str
     opts: str = ""
+
+
+@pytest.mark.parametrize("unavailable", [None, "parent", "child"])
+def test_startup_failure_records_process_state_before_cleanup(monkeypatch, unavailable):
+    from tests.helpers import runtime
+
+    events = []
+
+    class Process:
+        def __init__(self, pid):
+            self.pid = pid
+            if unavailable == "parent":
+                raise runtime.psutil.NoSuchProcess(pid)
+
+        def children(self, *, recursive):
+            assert recursive
+            return [Process(pid) for pid in range(101, 141)]
+
+        def as_dict(self, *, attrs, ad_value):
+            assert "cmdline" not in attrs and "environ" not in attrs
+            assert "io_counters" not in attrs  # Not all psutil platforms expose it.
+            assert {"pid", "status", "cpu_times", "memory_info"} <= set(attrs)
+            if unavailable == "child" and self.pid == 101:
+                raise runtime.psutil.AccessDenied(self.pid)
+            return {"pid": self.pid, "status": "disk-sleep", "num_threads": 4}
+
+    monkeypatch.setattr(runtime, "cleanup_test_environment", lambda: None)
+    server = runtime.OmniServer("fake-model", [])
+    server.proc = MagicMock(spec=runtime.subprocess.Popen)
+    server.proc.pid = 100
+    original_error = RuntimeError("original startup timeout")
+
+    def start():
+        raise original_error
+
+    def wait_channel(path, *args, **kwargs):
+        assert str(path).startswith("/proc/") and path.name == "wchan"
+        if unavailable == "child" and path.parent.name == "101":
+            raise PermissionError("wait channel unavailable")
+        return "io_schedule\n"
+
+    monkeypatch.setattr(server, "_start_server", start)
+    monkeypatch.setattr(server, "_kill_process_tree", lambda pid: events.append(("cleanup", pid)))
+    monkeypatch.setattr(runtime.psutil, "Process", Process)
+    monkeypatch.setattr(Path, "read_text", wait_channel)
+    monkeypatch.setattr(runtime.logger, "warning", lambda message, data: events.append(("snapshot", data)))
+    with pytest.raises(RuntimeError, match="original startup timeout") as caught:
+        with server:
+            pytest.fail("failed startup cannot enter the test body")
+    assert caught.value is original_error
+    assert [event[0] for event in events] == ["snapshot", "cleanup"]
+    snapshot = events[0][1]
+    if unavailable == "parent":
+        assert snapshot["processes"] == [] and "error" in snapshot
+    else:
+        assert len(snapshot["processes"]) == 32 and snapshot["omitted_processes"] == 9
+        assert snapshot["processes"][0]["status"] == "disk-sleep"
+        assert snapshot["processes"][0]["wait_channel"] == "io_schedule"
+        if unavailable == "child":
+            assert "error" in snapshot["processes"][1]
+            assert "wait_channel_error" in snapshot["processes"][1]
+
+
+def test_successful_startup_does_not_collect_process_diagnostics(monkeypatch):
+    from tests.helpers import runtime
+
+    monkeypatch.setattr(runtime, "cleanup_test_environment", lambda: None)
+    server = runtime.OmniServer("fake-model", [])
+    server.proc = MagicMock(spec=runtime.subprocess.Popen)
+    server.proc.pid = 100
+    monkeypatch.setattr(server, "_start_server", lambda: None)
+    monkeypatch.setattr(server, "_kill_process_tree", lambda pid: None)
+    monkeypatch.setattr(runtime.psutil, "Process", lambda pid: pytest.fail("successful startup must not be probed"))
+    with server as ready:
+        assert ready is server
 
 
 @pytest.mark.parametrize(

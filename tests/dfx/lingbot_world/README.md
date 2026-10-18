@@ -412,6 +412,12 @@ remain explicit because cgroup namespace layouts differ. Unavailable interfaces
 remain absent/null; read errors are retained without replacing the original
 test failure.
 These read-only snapshots run before serving or after failure, outside timing.
+Failed server startup also logs up to 32 process records before cleanup,
+including status, CPU time, memory, available I/O counters and Linux wait channels.
+Unavailable processes or interfaces retain errors/null values; omitted process
+counts remain explicit. Command lines and environment variables are not captured.
+This failure-only snapshot preserves the original startup error and cleanup;
+it supplies diagnostic evidence without identifying a stall's cause by itself.
 An unstable reference remains a failed calibration in the complete generation
 manifest. Other cases, all seven VAE checks and video checksums are still
 retained, so independent scoring can inspect the failed population.
