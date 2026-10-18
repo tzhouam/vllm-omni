@@ -1,11 +1,10 @@
-# Align with the v0.32.0 tag using its commit-index wheel.
-# Install the upstream cu130 wheel on a compatible Docker base.
-# Reuse the CUDA 13 / torch 2.13 / FlashInfer 0.7 nightly stack by digest,
-# then install the exact release wheel and its updated dependencies below.
+# Align the CUDA base and commit-index wheel with the final v0.32.0 release.
+# Pin the published multi-platform image digest so CI uses the same release
+# stack even if the upstream tag is updated.
 ARG VLLM_PRECOMPILED_WHEEL_COMMIT=5df63a7203cdb9328d824a27b682e77c7b9928be
 ARG VLLM_VERSION=0.32.0
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
-ARG VLLM_BASE_TAG=nightly-fe4df3df0eb703862c686b256e9fe44fa94c8945@sha256:8e5e3042302f29e63b1722ceb1db8edf96beafc5dfc19f5eebb5a668470b71b4
+ARG VLLM_BASE_TAG=v${VLLM_VERSION}@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34
 
 # We use registry-based layer caching for the dependencies,
 # where the tag is determined based on the hash of the contents

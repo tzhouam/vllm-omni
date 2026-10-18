@@ -91,10 +91,9 @@ python3 setup.py develop
 #### Build docker image
 
 The source build defaults to the published upstream base image
-`vllm/vllm-openai-rocm:v0.31.0`. The upstream `v0.32.0` ROCm image is now
-published, but its runtime has not been validated with this checkout.
-The default remains for 0.31-compatible Omni revisions and is not a
-validated runtime for this source checkout.
+`vllm/vllm-openai-rocm:v0.32.0`, matching this checkout's target release.
+The optional vLLM source rebuild also defaults to `v0.32.0`. ROCm runtime
+validation with this checkout remains pending.
 Older or custom bases must provide the vLLM APIs checked by the Dockerfile's
 image-build canary. This upstream base is distinct from the prebuilt
 `vllm/vllm-omni-rocm` images discussed below; their published-tag availability
@@ -109,7 +108,7 @@ To select the upstream ROCm base explicitly, pass `BASE_IMAGE`:
 ```bash
 DOCKER_BUILDKIT=1 docker build \
   -f docker/Dockerfile.rocm \
-  --build-arg BASE_IMAGE=vllm/vllm-openai-rocm:v0.31.0 \
+  --build-arg BASE_IMAGE=vllm/vllm-openai-rocm:v0.32.0 \
   -t vllm-omni-rocm .
 ```
 

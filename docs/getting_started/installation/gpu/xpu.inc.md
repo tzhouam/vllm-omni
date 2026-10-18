@@ -23,19 +23,18 @@ vLLM-Omni currently recommends using the Docker image setup steps below.
 #### Build docker image
 
 ```bash
-export VLLM_VERSION=v0.31.0
+export VLLM_VERSION=v0.32.0
 DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.xpu -t vllm-omni-xpu --shm-size=4g \
   --build-arg VLLM_VERSION="$VLLM_VERSION" .
 ```
 
 This layers vLLM-Omni on top of the published `vllm/vllm-openai-xpu:<VLLM_VERSION>`
 base image, which Docker pulls automatically. The Dockerfile defaults to
-v0.31.0. The upstream `v0.32.0` XPU image is published, but XPU
-compatibility with this checkout's 0.32.0 target has not been validated.
-Its matching vLLM wheel requires PyTorch 2.14.0 and `triton==3.8.0+xpu`;
-the current Omni Dockerfile's `triton-xpu==3.7.2` overlay must be reconciled
-and validated before selecting the 0.32.0 base.
-The default above is for 0.31-compatible Omni revisions. To target a different vLLM release, pass
+v0.32.0. Its matching vLLM wheel requires PyTorch 2.14.0 and
+`triton==3.8.0+xpu`. The Dockerfile retains the upstream runtime instead of
+replacing Triton with the older `triton-xpu` package, and checks installed
+dependency requirements after adding Omni. XPU runtime validation with this
+checkout remains pending. To target a different vLLM release, pass
 `--build-arg VLLM_VERSION=<tag>`. If that tag has not been published yet, build
 the base from upstream's own Dockerfile first and point the build at it:
 
