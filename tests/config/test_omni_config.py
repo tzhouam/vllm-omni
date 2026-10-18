@@ -469,6 +469,7 @@ _MODEL_CLI_FLAGS = {
     "logprobs_mode": "processed_logprobs",
     "mm_processor_kwargs": {"max_slice_nums": 1},
     "mm_processor_cache_type": "shm",
+    "mm_encoder_attn_backend": "TORCH_SDPA",
     "hf_token": "hf_test",
     "hf_config_path": "/models/config",
     "generation_config": "vllm",
@@ -497,6 +498,27 @@ def test_model_cli_fields_reach_typed_engine_args(monkeypatch):
     engine_args = build_engine_args_dict_from_omni_stage_config(config.stage_by_id(0), model="test-model")
 
     assert {field: engine_args.get(field) for field in _MODEL_CLI_FLAGS} == _MODEL_CLI_FLAGS
+
+
+def test_deploy_mm_encoder_backend_reaches_engine_args(monkeypatch):
+    from vllm_omni.engine import stage_init_utils
+    from vllm_omni.engine.arg_utils import OmniEngineArgs
+    from vllm_omni.engine.stage_init_utils import build_engine_args_dict_from_omni_stage_config
+    from vllm_omni.entrypoints.utils import filter_dataclass_kwargs
+
+    monkeypatch.setattr(stage_init_utils, "resolve_worker_cls", lambda engine_args: None)
+    pipeline = _resolve_pipeline_or_skip("qwen2_5_omni")
+    deploy = DeployConfig(
+        stages=[StageDeployConfig(stage_id=0, engine_extras={"mm_encoder_attn_backend": "TORCH_SDPA"})]
+    )
+    config = VllmOmniConfig.from_pipeline_config(pipeline, user_deploy_config=deploy)
+    stage = config.stage_by_id(0)
+    projected = build_engine_args_dict_from_omni_stage_config(stage, model="test-model")
+    engine_args = OmniEngineArgs(**filter_dataclass_kwargs(OmniEngineArgs, projected))
+
+    assert stage.model_config.mm_encoder_attn_backend == "TORCH_SDPA"
+    assert engine_args.mm_encoder_attn_backend == "TORCH_SDPA"
+    assert config.stage_by_id(1).model_config.mm_encoder_attn_backend is None
 
 
 @pytest.mark.parametrize("stage_id", [0, 2], ids=["ar", "generation"])
@@ -533,7 +555,7 @@ def test_minicpmo_npu_additional_config_reaches_engine_args(monkeypatch, deploy_
     monkeypatch.setattr(current_omni_platform, "device_name", "npu")
     monkeypatch.setattr(stage_init_utils, "resolve_worker_cls", lambda engine_args: None)
     stage = _from_pipeline_key("minicpmo_4_5", deploy_config_path=deploy_name).stage_by_id(2)
-    expected = {"code2wav_enable_npu_graph": True, "code2wav_max_npu_graphs": 32}
+    expected: dict[str, bool | int | list[int]] = {"code2wav_enable_npu_graph": True, "code2wav_max_npu_graphs": 32}
     if deploy_name == "minicpmo_4_5":
         # Single-card deploy: batch sizes round up to a capture bucket so the
         # 32-entry pool covers the shape space.
@@ -1185,6 +1207,7 @@ def test_sub_config_fields_match_structured_scopes():
         "logprobs_mode",
         "mm_processor_kwargs",
         "mm_processor_cache_type",
+        "mm_encoder_attn_backend",
         "hf_token",
         "hf_config_path",
         "generation_config",
