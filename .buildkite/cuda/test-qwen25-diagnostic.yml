@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+steps:
+  - label: "Qwen2.5-Omni · L4 execution diagnostic · 4-GPU"
+    key: qwen25-l4-diagnostic
+    depends_on: upload-nightly-pipeline
+    mirror_hardwares: l4_4
+    source_file_dependencies: omni_qwen2_5_omni_doc
+    timeout_in_minutes: 60
+    artifact_paths:
+      - qwen25-diagnostic/**
+    commands:
+      - export VLLM_ALLOW_LONG_MAX_MODEL_LEN="1"
+      - python3 .buildkite/cuda/scripts/diagnose_qwen25_l4.py --output-dir qwen25-diagnostic
