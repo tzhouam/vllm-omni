@@ -1061,10 +1061,12 @@ def test_lingbot_npu_infra_retry_does_not_retry_test_failures(filename: str) -> 
     steps = [
         step
         for step in _iter_steps(rendered)
-        if str(step.get("key", "")).startswith("lingbot-npu-")
-        and step.get("agents", {}).get("resource_class") == "npu-4"
+        if step.get("key")
+        in {"lingbot-npu-nightly-generation", "lingbot-npu-weekly-generation", "lingbot-npu-weekly-long"}
     ]
     assert len(steps) == (1 if "nightly" in filename else 2)
     for step in steps:
+        assert step["agents"]["queue"] == "ascend-a2b3"
+        assert step["agents"]["resource_class"] == "npu-8"
         assert step["retry"] == {"automatic": [{"exit_status": -1, "limit": 1}, {"exit_status": 128, "limit": 1}]}
         assert not step.get("soft_fail")

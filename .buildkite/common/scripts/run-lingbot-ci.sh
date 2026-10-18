@@ -75,6 +75,7 @@ write_json(Path(sys.argv[1]) / "environment.json", {
 UNIT_ENV
     python -m pytest -sv -p tests.dfx.lingbot_world.conftest \
         tests/benchmarks/test_lingbot_world_*.py \
+        tests/buildkite/test_upload_pipeline.py tests/buildkite/test_amd_pipeline.py \
         tests/diffusion/models/lingbot_world/test_offload_lingbot_world.py \
         'tests/diffusion/offloader/test_backend_plan_contract.py::test_text_encoder_only_offload_keeps_early_dit_projections_resident[cpu]' \
         'tests/diffusion/offloader/test_backend_plan_contract.py::test_text_encoder_only_offload_handles_cached_dit_owner_references[cpu]' \

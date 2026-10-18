@@ -56,6 +56,9 @@ The PR smoke executes its recorded chunk/warmup/frame-rate/timeout settings
 explicitly, validates raw output with the shared metric checker, and retains
 those metrics. CLI defaults must not silently change the recorded workload;
 short smoke timings are functional diagnostics rather than calibrated limits.
+The CPU gate also executes uploader and AMD pipeline contract tests. Shell
+logging and device-reservation changes must preserve selected tests, shard
+coverage, blocking status and infrastructure-only retry rules.
 CUDA generation may retry a lost Buildkite agent once while retaining the
 original attempt. Numerical/quality failures, OOM, cancellation and timeout
 remain blocking; consumers validate the current attempt's complete artifacts.

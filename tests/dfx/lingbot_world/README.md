@@ -43,6 +43,9 @@ pytest -q --confcutdir=tests/benchmarks \
 ```
 
 The `unit` stage captures CPU test artifacts without loading a checkpoint.
+It also runs the shared pipeline uploader and AMD pipeline contract tests, so
+changes to reservations, retry rules, shell setup or artifact capture must retain
+the existing CI selections and failure semantics.
 The model stages download the pinned checkpoint if `LINGBOT_MODEL_PATH` is unset.
 Only that explicit provisioning subprocess enables Hub access; inference keeps
 the runner's offline setting.
