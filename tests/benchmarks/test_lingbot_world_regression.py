@@ -1221,3 +1221,136 @@ def test_active_nightly_reference_ceilings_are_scoped_and_preserve_candidate_bou
                 tolerances={dimension: tolerance},
                 max_reference_spreads={dimension: cap},
             )["passed"]
+
+
+def pooled_pixel_population():
+    population = quality_population(40)
+    population["schema_version"] = 2
+    population["reference_pixel_calibration"] = {"protocol": "all_unordered_pairs_of_six_references"}
+    for case in population["cases"].values():
+        case["pixel_pairs"] = [[first, second] for first in range(6) for second in range(first + 1, 6)]
+        case["pixels"] = [copy.deepcopy(case["pixels"][0]) for _ in case["pixel_pairs"]]
+    return population
+
+
+def test_complete_pixel_pair_population_preserves_six_native_references():
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    population = pooled_pixel_population()
+    verify_quality_population_contract(
+        population,
+        population["contract"],
+        evaluator_packages=quality_packages(),
+        evaluator_lock_sha256=population["evaluator_lock_sha256"],
+        asset_lock_sha256=population["asset_lock_sha256"],
+    )
+    for case in population["cases"].values():
+        assert len(case["pixels"]) == 15
+        assert all(len(rows) == 6 for rows in case["suites"].values())
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "missing_pair",
+        "duplicate_pair",
+        "boolean_pair",
+        "missing_video",
+        "candidate_video",
+        "one_cohort",
+        "digest",
+        "protocol",
+        "protocol_type",
+        "path_type",
+        "pairs_type",
+        "schema",
+        "long",
+    ],
+)
+def test_complete_pixel_pair_population_rejects_incomplete_or_mixed_provenance(mutation):
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    population = pooled_pixel_population()
+    case = next(iter(population["cases"].values()))
+    if mutation == "missing_pair":
+        case["pixels"].pop()
+    elif mutation == "duplicate_pair":
+        case["pixel_pairs"][-1] = case["pixel_pairs"][0]
+    elif mutation == "boolean_pair":
+        case["pixel_pairs"][0][1] = True
+    elif mutation == "missing_video":
+        case["reference_videos"].pop()
+    elif mutation == "candidate_video":
+        case["reference_videos"][0]["path"] = case["reference_videos"][0]["path"].replace("reference/", "candidate/")
+    elif mutation == "one_cohort":
+        for video in case["reference_videos"]:
+            video["generation_job_id"] = case["reference_videos"][0]["generation_job_id"]
+    elif mutation == "digest":
+        case["reference_videos"][0]["sha256"] = "missing"
+    elif mutation == "protocol":
+        population["reference_pixel_calibration"]["protocol"] = "within_cohort_only"
+    elif mutation == "protocol_type":
+        population["reference_pixel_calibration"] = []
+    elif mutation == "path_type":
+        case["reference_videos"][0]["path"] = []
+    elif mutation == "pairs_type":
+        case["pixel_pairs"] = None
+    elif mutation == "schema":
+        population["schema_version"] = True
+    elif mutation == "long":
+        population["contract"]["profile"]["num_chunks"] = 600
+    with pytest.raises(RegressionError):
+        verify_quality_population_contract(
+            population,
+            population["contract"],
+            evaluator_packages=quality_packages(),
+            evaluator_lock_sha256=population["evaluator_lock_sha256"],
+            asset_lock_sha256=population["asset_lock_sha256"],
+        )
+
+
+def test_active_pooled_pixels_preserve_archived_native_scores_and_existing_pairs():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world/calibration"
+    archived = root / "history/cuda_nightly_quality_population_within_cohort.json"
+    assert sha256(archived) == "16fe10e90f0f13d8ac5ea7aea8100764f15a47703962af429fbc80aed8afea4e"
+    previous = read_json(archived)
+    population = quality_population(40)
+    assert population["schema_version"] == 2
+    for field in (
+        "contract",
+        "max_reference_spreads",
+        "evaluator_packages_sha256",
+        "evaluator_lock_sha256",
+        "asset_lock_sha256",
+    ):
+        assert population[field] == previous[field]
+    expected_pairs = [[first, second] for first in range(6) for second in range(first + 1, 6)]
+    original_pairs = [[0, 1], [0, 2], [1, 2], [3, 4], [3, 5], [4, 5]]
+    for name, case in population["cases"].items():
+        assert case["suites"] == previous["cases"][name]["suites"]
+        assert case["pixel_pairs"] == expected_pairs and len(case["pixels"]) == 15
+        for pair, old in zip(original_pairs, previous["cases"][name]["pixels"]):
+            new = case["pixels"][expected_pairs.index(pair)]
+            assert new["decoded_frames"] == old["decoded_frames"] == 477
+            assert new["ssim"] == pytest.approx(old["ssim"])
+            assert new["total"]["psnr_db"] == pytest.approx(old["total"]["psnr_db"], abs=1e-12)
+            assert len(new["windows"]) == len(old["windows"])
+            for measured, earlier in zip(new["windows"], old["windows"]):
+                for key in ("index", "start_frame", "frame_count", "psnr_is_infinite"):
+                    assert measured[key] == earlier[key]
+                assert measured["psnr_db"] == pytest.approx(earlier["psnr_db"], abs=1e-12)
+        assert all(
+            row["pixel_environment"]["opencv_build_sha256"]
+            == "9ab83ff35436756434918aba371ddde3c7fef67822791a25c473d7e374802667"
+            for row in case["pixels"]
+        )
+    evidence = population["reference_pixel_calibration"]
+    assert evidence["third_cohort_validation"]["new_cross_reference_pairs"] == 54
+    assert evidence["third_cohort_validation"]["failed_new_cross_reference_pairs"] == 0
+    assert evidence["physical_controls"] == {
+        "normal_reencodes_pass": 3,
+        "nonuniform_first_window_degradations_rejected": 3,
+        "truncated_videos_rejected": 3,
+    }
+    assert not evidence["candidate_budgets_changed"] and not evidence["candidate_model_data_used"]
+    assert not population["full_acceptance"]

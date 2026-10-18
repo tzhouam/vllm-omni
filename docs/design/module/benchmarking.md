@@ -71,6 +71,12 @@ values reject reuse; held-out scenes and rollout lengths remain supported.
 Nightly CUDA uses two recorded-zero H100 reference cohorts and pinned-decoder
 pixel summaries. Its fixed population owns reference-spread ceilings; loading
 that policy must preserve global weekly/NPU limits and candidate tolerances.
+The nightly pixel population records all 15 unordered comparisons among its six
+reference videos, including cross-cohort pairs. Version 2 validates both
+three-start reference cohorts and the complete ordered pair list while retaining
+six native scores per dimension. Reference-only held-out comparisons and actual
+reencode, localized-degradation and truncation controls qualify the pixel method;
+they do not turn earlier failed candidate jobs green or replace final-source CI.
 Historical unrecorded records remain separate diagnostic fixtures. Fitted
 calibration and negative controls do not replace fresh target-hardware acceptance.
 Calibration compatibility errors retain raw measurements, numerical results and

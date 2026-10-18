@@ -318,6 +318,19 @@ switches. Both suites execute on H100 with all 127 pinned dependencies.
 The record retains all six native reference scores per scene/dimension, public
 Buildkite identities and raw hashes. Binary reference activity differs by at
 most one classification; its unchanged 0.34 candidate budget still rejects two.
+Pixel calibration uses all 15 unordered pairs of the same six reference videos,
+including nine cross-cohort pairs. Version 2 requires two complete three-start
+reference cohorts and records every pair exactly once; native scores remain six
+per scene/dimension. The original six within-cohort summaries remain archived.
+This method was selected after earlier candidate failures, before examining the
+new cross-pair values; candidate data did not select its bounds or budgets.
+All 108 reference comparisons reproduce in the full 127-package environment.
+The frozen training population passes 54 new cross comparisons against nine
+third-cohort reference videos (three independent starts per case); these share
+videos and are not 54 independent starts. Nine physical video controls pass:
+three intact reencodes pass, three nonuniform first-window degradations fail that
+window's PSNR gate, and three truncated videos fail decoding. These offline
+reference checks do not replace successful final-source target-hardware gates.
 
 Excessive continuous reference spread fails calibration; scores are never
 averaged across dimensions or scenes. The 40-chunk fixed population owns its
@@ -518,7 +531,7 @@ The preliminary CUDA record does not establish NPU or weekly/long acceptance.
 
 The CUDA 40-chunk quality profile also retains a fixed reference population in
 `calibration/cuda_nightly_quality_population.json`: six reference starts from
-two target-H100 cohorts, native continuous scores and six decoded reference-pair
+two target-H100 cohorts, native continuous scores and all 15 decoded reference-pair
 summaries per scene. Its provenance records the Buildkite jobs, raw artifact and
 reference-video hashes. Candidate scores do not enter this population. Three
 fresh references still run in every campaign: their native spread must remain
@@ -533,6 +546,47 @@ own reference comparisons. The active nightly record binds both recorded-zero
 cohorts and freshly recomputed pixel summaries from their actual reference
 videos, using NumPy 1.26.4, OpenCV 4.11.0.86 and scikit-image 0.25.2; the OpenCV
 build hash is retained. No local interpreter paths are required by the record.
+To replay the 15 pairs for a case, first provision the pinned evaluator as above
+and download its six recorded reference videos from their public Buildkite jobs.
+Place them under `reference-videos/<build-number>/<recorded-reference-path>`.
+The following example verifies their recorded hashes and retains the complete
+comparison outputs; review the summaries and independent controls before updating
+the active record. Collect new cohorts with three independent reference starts,
+never by copying or relabeling an existing video.
+
+```bash
+export LINGBOT_CALIBRATION_CASE=street-42
+python - <<'PY'
+import itertools
+import os
+from pathlib import Path
+from benchmarks.lingbot_world.regression import read_json, sha256, verify_environment, write_json
+from benchmarks.lingbot_world.video_quality import compare_video_pair_in_environment
+
+root = Path("tests/dfx/lingbot_world")
+population = read_json(root / "calibration/cuda_nightly_quality_population.json")
+case = population["cases"][os.environ["LINGBOT_CALIBRATION_CASE"]]
+policy = read_json(root / "quality.json")
+python = Path(os.environ["LINGBOT_EVALUATOR_PYTHON"])
+packages = verify_environment(python, Path("requirements/lingbot-quality.txt"))
+videos = []
+for video in case["reference_videos"]:
+    path = Path("reference-videos") / video["build_url"].rsplit("/", 1)[-1] / video["path"]
+    assert sha256(path) == video["sha256"]
+    videos.append(path)
+rows = []
+for first, second in itertools.combinations(range(6), 2):
+    pixels = compare_video_pair_in_environment(
+        videos[first], videos[second], Path("reference-pixel-replay"),
+        python=python, expected_packages=packages,
+        window_seconds=policy["pixel_window_seconds"], ssim_stride=24,
+        timeout_s=policy["timeout_s"],
+    )
+    rows.append({"pair": [first, second], "pixels": pixels})
+write_json(Path("reference-pair-replay.json"), {"comparisons": rows})
+PY
+```
+
 The original unrecorded nightly records remain byte-identical under
 [calibration/history](calibration/history/README.md) for historical method and
 rejection tests. They are not loaded by CI. The long record still requires

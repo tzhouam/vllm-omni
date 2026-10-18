@@ -388,10 +388,18 @@ def verify_quality_population_contract(
     Fresh reference scores must separately pass the frozen population's gates.
     """
     expected = population["contract"]
-    if population.get("schema_version") != 1 or contract["profile"] != expected["profile"]:
+    schema = population.get("schema_version")
+    if type(schema) is not int or schema not in (1, 2) or contract["profile"] != expected["profile"]:
         raise RegressionError("Quality reference population profile changed")
     if contract["profile"].get("platform") != "cuda" or contract["profile"].get("num_chunks") not in (40, 600):
         raise RegressionError("Quality reference population requires a calibrated CUDA workload")
+    pixel_calibration = population.get("reference_pixel_calibration")
+    if schema == 2 and (
+        contract["profile"]["num_chunks"] != 40
+        or not isinstance(pixel_calibration, Mapping)
+        or pixel_calibration.get("protocol") != "all_unordered_pairs_of_six_references"
+    ):
+        raise RegressionError("Pooled reference pixels require the recorded nightly calibration protocol")
     if contract["deploy_sha256"] != expected["deploy_sha256"]:
         raise RegressionError("Quality reference population deployment changed")
     for key in ("platform", "cards", "dies", "devices", "packages"):
@@ -417,8 +425,37 @@ def verify_quality_population_contract(
     if not isinstance(reference_spreads, Mapping) or set(reference_spreads) != {"wbench", "vbench"}:
         raise RegressionError("Quality reference population requires recorded reference spread limits")
     for name, case in population["cases"].items():
-        if case["input"] != cases[name] or len(case["pixels"]) != 6:
+        if case["input"] != cases[name] or len(case["pixels"]) != (15 if schema == 2 else 6):
             raise RegressionError("Quality reference population requires both complete reference cohorts")
+        if schema == 2:
+            videos = case.get("reference_videos")
+            pairs = case.get("pixel_pairs")
+            expected_pairs = [[first, second] for first in range(6) for second in range(first + 1, 6)]
+            if pairs != expected_pairs or any(type(index) is not int for pair in pairs for index in pair):
+                raise RegressionError("Pooled reference pixels require every unordered pair exactly once")
+            if not isinstance(videos, list) or len(videos) != 6:
+                raise RegressionError("Pooled reference pixels require six recorded reference videos")
+            cohorts: dict[str, list[str]] = {}
+            for video in videos:
+                if not isinstance(video, Mapping):
+                    raise RegressionError("Pooled reference video provenance is invalid")
+                job, path, digest = (video.get(key) for key in ("generation_job_id", "path", "sha256"))
+                if (
+                    not isinstance(job, str)
+                    or not job
+                    or not isinstance(path, str)
+                    or path not in {f"reference/{repeat}/{name}/rollout.mp4" for repeat in range(3)}
+                    or not isinstance(digest, str)
+                    or len(digest) != 64
+                    or any(character not in "0123456789abcdef" for character in digest)
+                ):
+                    raise RegressionError("Pooled reference videos require reference roles and recorded hashes")
+                cohorts.setdefault(job, []).append(path)
+            if len(cohorts) != 2 or any(
+                sorted(paths) != [f"reference/{repeat}/{name}/rollout.mp4" for repeat in range(3)]
+                for paths in cohorts.values()
+            ):
+                raise RegressionError("Pooled reference videos require two complete three-start cohorts")
         if set(case["suites"]) != {"wbench", "vbench"} or any(len(rows) != 6 for rows in case["suites"].values()):
             raise RegressionError("Quality reference population requires six native reference scores per suite")
         for suite, rows in case["suites"].items():
