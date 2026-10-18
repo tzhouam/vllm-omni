@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -14,6 +15,7 @@ import urllib.request
 from pathlib import Path
 
 from benchmarks.lingbot_world.regression import RegressionError, read_json, sha256, verify_environment, write_json
+from tests.dfx.lingbot_world.opencv_provider import PROVIDER, validate_opencv_provider_record
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -122,7 +124,11 @@ def prepare_npu_allocation(settings: dict, output: Path) -> str:
 
 
 def evaluator_cache_key(root: Path = ROOT) -> str:
-    files = (root / "tests/dfx/lingbot_world/evaluators.lock.json", root / "requirements/lingbot-quality.txt")
+    files = (
+        root / "tests/dfx/lingbot_world/evaluators.lock.json",
+        root / "requirements/lingbot-quality.txt",
+        root / "tests/dfx/lingbot_world/opencv_provider.py",
+    )
     return hashlib.sha256(b"\0".join(path.read_bytes() for path in files)).hexdigest()[:16]
 
 
@@ -197,7 +203,59 @@ def _prepare_evaluators(root: Path) -> Path:
             check=True,
             timeout=1800,
         )
-    verify_environment(venv / "bin/python", ROOT / "requirements/lingbot-quality.txt")
+    python = (venv / "bin/python").absolute()
+    packages = verify_environment(python, ROOT / "requirements/lingbot-quality.txt")
+    version = packages.get(PROVIDER)
+    if not version or version != packages.get("opencv-python"):
+        raise RegressionError("Evaluator OpenCV distributions must have matching pinned versions")
+    if not ready.exists():
+        # Both distributions satisfy upstream dependencies but overwrite cv2.
+        # Select one owner after sync, before making this interpreter immutable.
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                str(python),
+                "--index-url",
+                "https://pypi.org/simple",
+                "--no-deps",
+                "--only-binary",
+                ":all:",
+                "--reinstall-package",
+                PROVIDER,
+                f"{PROVIDER}=={version}",
+            ],
+            check=True,
+            timeout=300,
+        )
+    try:
+        probe = subprocess.run(
+            [
+                str(python),
+                "-I",
+                str(ROOT / "tests/dfx/lingbot_world/opencv_provider.py"),
+                "--expected-version",
+                version,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            env={**os.environ, "CUDA_VISIBLE_DEVICES": ""},
+        )
+    except subprocess.CalledProcessError as error:
+        raise RegressionError(
+            f"Canonical OpenCV provider verification failed: {(error.stderr or '')[-4000:]}"
+        ) from error
+    provider = validate_opencv_provider_record(json.loads(probe.stdout), expected_version=version, python=str(python))
+    provider_path = root / "opencv-provider.json"
+    if ready.exists():
+        if not provider_path.is_file() or read_json(provider_path) != provider:
+            raise RegressionError("OpenCV provider changed; use a fresh evaluator root")
+    else:
+        write_json(provider_path, provider)
     # Import the actual scoring stack before taking a GPU evaluator slot.
     # HPSv3 imports training helpers even during inference, so its dependencies
     # are not discovered by importing WBench's lazy evaluator alone.

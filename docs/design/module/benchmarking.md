@@ -79,6 +79,13 @@ CI pixel comparisons execute in the same verified dependency environment as
 native evaluators, using isolated Python workers with retained versions, logs and
 incomplete results on failure. Fixed reference pixel summaries require recorded
 decoder dependency versions matching that environment; missing metadata rejects reuse.
+The two pinned OpenCV distributions share `cv2`. Fresh provisioning selects the
+headless provider after dependency sync and verifies its imported files against
+wheel `RECORD` hashes. Include provider-verification code in the evaluator cache
+key; validate completed caches without reinstalling or rewriting their provenance.
+Retain the verified provider in quality artifacts and require each pixel worker's
+build fingerprint to match it. Package-version equality alone does not prove
+which distribution owns the loaded native module.
 CUDA weekly generation and evaluation use six matching case shards, each with
 three of the 18 fixed cases. Each GPU evaluator processes 18 videos within a
 240-minute job budget after six-case scoring exceeded an observed 300-minute
@@ -94,8 +101,10 @@ per-dimension quality limits. Persist evaluator hardware, dependencies and input
 hashes before native workers start, so forced termination retains a failed report
 with its provenance. Incomplete populations, unstable references,
 missing prerequisites and skipped selected CI tests cannot establish acceptance.
-Generation records its actual candidate source revision in the initial failed
-report before asset validation, numerical capture and server initialization.
+Generation, aggregation and quality record their actual candidate source revision
+in the initial failed report before input validation or model work. Incomplete
+artifact handoffs must retain the consumer's own source identity, distinct from
+the revisions of any copied producer files.
 Failed server initialization retains a bounded process-state snapshot in logs
 before cleanup, outside successful measurement paths. Unavailable process and
 Linux wait-channel data remain explicit without hiding the original failure.

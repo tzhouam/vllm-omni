@@ -588,8 +588,8 @@ def aggregate_measurements(settings: dict[str, Any]) -> dict[str, Any]:
     output.mkdir(parents=True, exist_ok=True)
     if any((output / role).exists() for role in ("reference", "candidate")):
         raise RegressionError("Use a fresh aggregate output directory")
-    write_json(output / "generation.json", {"passed": False, "status": "aggregating"})
     revision = git_revision(ROOT)
+    write_json(output / "generation.json", {"passed": False, "status": "aggregating", "candidate_revision": revision})
     profile = read_json(settings["profile_path"])
     cases = {case["id"] for case in settings["cases"]}
     contract = None

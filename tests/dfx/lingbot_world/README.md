@@ -204,6 +204,9 @@ finishes; it also retains provenance when only one native suite completed.
 The initial failed generation report records the actual candidate source revision
 before asset checks, numerical capture or server startup. Initialization failures
 retain that revision even when no complete measurement manifest can be written.
+Aggregation and quality also record their own actual revision before validating
+inputs. A partial handoff must not force diagnosis to infer the consumer's
+version from copied producer files.
 
 NPU nightly and long collection each run as three independent reference/candidate
 pairs, followed by a blocking CPU aggregation job. Nightly retains its three
@@ -271,9 +274,19 @@ in `requirements/lingbot-quality.txt`. `evaluators.lock.json` pins code revision
 submodules and asset checksums. Provisioning validates downloads before scoring.
 An optional `LINGBOT_EVALUATOR_CACHE` supplies files at the lock's relative
 paths; cached files still undergo checksum verification.
-The Buildkite cache key includes both the evaluator/weight lock and the resolved
-dependency lock. A completed interpreter is never resynchronized underneath an
-active scorer. If either lock changes, use a fresh custom evaluator root.
+Upstream dependencies install both `opencv-python` and `opencv-python-headless`,
+which share the `cv2` namespace. Matching package versions alone cannot identify
+the imported implementation. Fresh provisioning reinstalls the pinned headless
+wheel after dependency sync, then verifies its imported loader, native module
+and bundled files against the headless distribution's SHA256 `RECORD` entries.
+The selected interpreter and binary/build fingerprints are retained in
+`opencv-provider.json` and the quality report. Pixel workers must match that
+verified build before their results can pass.
+The Buildkite cache key includes the evaluator/weight lock, resolved dependency
+lock and provider-verification code. A completed interpreter is never
+resynchronized underneath an active scorer. Cached interpreters are reverified;
+changed ownership or provenance fails without repair. If any cache input changes,
+use a fresh custom evaluator root.
 
 ```bash
 export LINGBOT_EVALUATOR_ROOT=/path/to/evaluator-cache

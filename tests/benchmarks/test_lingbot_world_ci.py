@@ -850,6 +850,7 @@ def evaluator_repository(root: Path):
     directory = root / "tests/dfx/lingbot_world"
     directory.mkdir(parents=True)
     (directory / "evaluators.lock.json").write_text('{"repositories": {}, "files": {}}')
+    (directory / "opencv_provider.py").write_text("# canonical provider policy\n")
     (root / "requirements").mkdir()
     (root / "requirements/lingbot-quality.txt").write_text("example==1\n")
 
@@ -905,6 +906,9 @@ def test_evaluator_cache_isolated_by_code_weights_and_dependencies(tmp_path: Pat
     (tmp_path / "requirements/lingbot-quality.txt").write_text("example==1\n")
     (tmp_path / "tests/dfx/lingbot_world/evaluators.lock.json").write_text('{"revision": "different"}')
     assert evaluator_cache_key(tmp_path) != initial
+    (tmp_path / "tests/dfx/lingbot_world/evaluators.lock.json").write_text('{"repositories": {}, "files": {}}')
+    (tmp_path / "tests/dfx/lingbot_world/opencv_provider.py").write_text("# changed canonical provider policy\n")
+    assert evaluator_cache_key(tmp_path) != initial
 
 
 def test_ready_evaluator_is_never_resynced(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -913,7 +917,11 @@ def test_ready_evaluator_is_never_resynced(tmp_path: Path, monkeypatch: pytest.M
     repository = tmp_path / "repository"
     evaluator_repository(repository)
     monkeypatch.setattr(prepare, "ROOT", repository)
-    monkeypatch.setattr(prepare, "verify_environment", lambda *args: {})
+    monkeypatch.setattr(
+        prepare,
+        "verify_environment",
+        lambda *args: {"opencv-python": "4.11.0.86", "opencv-python-headless": "4.11.0.86"},
+    )
     calls = []
 
     def provision(command, **kwargs):
@@ -922,6 +930,24 @@ def test_ready_evaluator_is_never_resynced(tmp_path: Path, monkeypatch: pytest.M
             python = Path(command[-1]) / "bin/python"
             python.parent.mkdir(parents=True)
             python.touch()
+        if len(command) > 2 and command[1] == "-I":
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout=json.dumps(
+                    {
+                        "schema_version": 1,
+                        "provider": "opencv-python-headless",
+                        "provider_version": "4.11.0.86",
+                        "opencv_version": "4.11.0",
+                        "opencv_build_sha256": "a" * 64,
+                        "native_module_sha256": "b" * 64,
+                        "module_path": str(tmp_path / "cv2/__init__.py"),
+                        "python": command[0],
+                        "verified_files": 2,
+                    }
+                ),
+            )
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr(prepare.subprocess, "run", provision)
@@ -929,6 +955,7 @@ def test_ready_evaluator_is_never_resynced(tmp_path: Path, monkeypatch: pytest.M
     prepare._prepare_evaluators(root)
     prepare._prepare_evaluators(root)
     assert sum(command[:3] == ["uv", "pip", "sync"] for command in calls) == 1
+    assert sum(command[:3] == ["uv", "pip", "install"] for command in calls) == 1
     (repository / "requirements/lingbot-quality.txt").write_text("example==2\n")
     with pytest.raises(RegressionError, match="fresh evaluator root"):
         prepare._prepare_evaluators(root)
@@ -968,6 +995,8 @@ def leaves(document):
         (False, "population_unrecorded"),
         (True, "population_long_unrecorded"),
         (True, "population_general_unrecorded"),
+        (True, "opencv_provider_missing"),
+        (True, "opencv_worker_build"),
     ],
 )
 def test_quality_retains_scores_after_generation_failure_without_passing(
@@ -1022,12 +1051,31 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
     )
     monkeypatch.setattr(gate, "ROOT", source)
     monkeypatch.setattr(gate, "git_revision", lambda path: "snapshot")
-    packages = {"numpy": "1.26.4", "opencv-python": "4.11.0.86", "scikit-image": "0.25.2"}
+    packages = {
+        "numpy": "1.26.4",
+        "opencv-python": "4.11.0.86",
+        "opencv-python-headless": "4.11.0.86",
+        "scikit-image": "0.25.2",
+    }
+    pixel_packages = {name: packages[name] for name in ("numpy", "opencv-python", "scikit-image")}
     monkeypatch.setattr(gate, "verify_environment", lambda *args: dict(packages))
     monkeypatch.setattr(gate, "hardware_contract", lambda settings: {"unit_test": True})
     monkeypatch.setattr(gate.subprocess, "run", lambda command, **kwargs: subprocess.CompletedProcess(command, 0))
     monkeypatch.setenv("LINGBOT_EVALUATOR_ROOT", str(tmp_path / "evaluators"))
     monkeypatch.setenv("LINGBOT_EVALUATOR_PYTHON", sys.executable)
+    provider_record = {
+        "schema_version": 1,
+        "provider": "opencv-python-headless",
+        "provider_version": "4.11.0.86",
+        "opencv_version": "4.11.0",
+        "opencv_build_sha256": "a" * 64,
+        "native_module_sha256": "b" * 64,
+        "module_path": str(tmp_path / "cv2/__init__.py"),
+        "python": sys.executable,
+        "verified_files": 2,
+    }
+    if mutation != "opencv_provider_missing":
+        write_json(tmp_path / "evaluators/opencv-provider.json", provider_record)
     for name in ("VBENCH_CACHE_DIR", "WBENCH_WEIGHTS_DIR", "HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"):
         monkeypatch.setenv(name, os.environ.get(name, ""))
     calls = []
@@ -1037,6 +1085,8 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         # A job-level kill can prevent the coordinator's finally block from running.
         checkpoint = json.loads((output.parent / "quality.json").read_text())
         assert checkpoint["evaluator_packages"] == packages
+        assert checkpoint["candidate_revision"] == "snapshot"
+        assert checkpoint["evaluator_opencv_provider"] == provider_record
         assert checkpoint["evaluator_hardware"] == {"unit_test": True}
         assert checkpoint["generation_manifest_sha256"] == sha256(generation / "generation.json")
         assert checkpoint["generation_passed"] is generation_passed
@@ -1092,7 +1142,11 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         assert destination == output / "pixels"
         kwargs.pop("timeout_s")
         row = compare_video_pair(first, second, **kwargs)
-        row["pixel_environment"] = {"packages": dict(packages), "synthetic_boundary": True}
+        row["pixel_environment"] = {
+            "packages": dict(pixel_packages),
+            "synthetic_boundary": True,
+            "opencv_build_sha256": ("c" if mutation == "opencv_worker_build" else "a") * 64,
+        }
         return row
 
     monkeypatch.setattr(gate, "compare_video_pair_in_environment", compare_in_environment)
@@ -1136,7 +1190,7 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
 
             monkeypatch.setattr(gate, "verify_reference_calibration_contract", reject_unrecorded)
         pixel = {
-            "pixel_environment": {"packages": dict(packages)},
+            "pixel_environment": {"packages": dict(pixel_packages), "opencv_build_sha256": "a" * 64},
             "ssim": {"mean": 0.4},
             "total": {"psnr_db": 30.0, "psnr_is_infinite": False},
             "windows": [
@@ -1198,6 +1252,18 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         with pytest.raises(RegressionError, match="checksum|Unhashed"):
             gate.test_wbench_vbench_and_video_precision(settings)
         assert calls == []
+        assert json.loads((output / "quality.json").read_text())["candidate_revision"] == "snapshot"
+        return
+    if mutation == "opencv_provider_missing":
+        with pytest.raises(FileNotFoundError, match="opencv-provider"):
+            gate.test_wbench_vbench_and_video_precision(settings)
+        assert calls == []
+        return
+    if mutation == "opencv_worker_build":
+        with pytest.raises(RegressionError, match="Pixel worker OpenCV build"):
+            gate.test_wbench_vbench_and_video_precision(settings)
+        assert calls == ["vbench", "wbench"]
+        assert not json.loads((output / "quality.json").read_text())["passed"]
         return
     uncalibrated = mutation is not None and (
         mutation.endswith("_unrecorded") or mutation == "population_missing_spreads"
@@ -1635,3 +1701,138 @@ def test_npu_profiles_offload_only_text_encoder_without_reducing_workload():
         assert stage["parallel_config"]["sequence_parallel_size"] == 4
         assert (profile["height"], profile["width"]) == (480, 832)
         assert not {"window_chunks", "sink_chunks"} & stage["model_config"]["ar_diffusion_kv_config"].keys()
+
+
+def opencv_provider_installation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    import binascii
+    from importlib.metadata import PathDistribution
+    from types import ModuleType
+
+    from tests.dfx.lingbot_world import opencv_provider
+
+    site = tmp_path / "site"
+    module = site / "cv2"
+    module.mkdir(parents=True)
+    expected = {"__init__.py": b"# headless loader\n", "cv2.abi3.so": b"headless native binary\n"}
+    for name, value in expected.items():
+        (module / name).write_bytes(value)
+    info = site / "opencv_python_headless-4.11.0.86.dist-info"
+    info.mkdir()
+    (info / "METADATA").write_text("Name: opencv-python-headless\nVersion: 4.11.0.86\n")
+    records = []
+    for name, value in expected.items():
+        digest = binascii.b2a_base64(hashlib.sha256(value).digest(), newline=False).decode().rstrip("=")
+        digest = digest.replace("+", "-").replace("/", "_")
+        records.append(f"cv2/{name},sha256={digest},{len(value)}")
+    (info / "RECORD").write_text("\n".join(records) + "\n")
+    distribution = PathDistribution(info)
+    lookup = opencv_provider.metadata.distribution
+    monkeypatch.setattr(
+        opencv_provider.metadata,
+        "distribution",
+        lambda name: distribution if name == opencv_provider.PROVIDER else lookup(name),
+    )
+    cv2 = ModuleType("cv2")
+    cv2.__dict__.update(
+        __file__=str(module / "__init__.py"),
+        __version__="4.11.0",
+        getBuildInformation=lambda: "canonical headless build",
+    )
+    monkeypatch.setitem(sys.modules, "cv2", cv2)
+    return opencv_provider, module, info, cv2
+
+
+def test_opencv_provider_verifies_imported_files_not_only_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    provider, module, _, _ = opencv_provider_installation(tmp_path, monkeypatch)
+    result = provider.verify_opencv_provider("4.11.0.86")
+    assert result["provider"] == "opencv-python-headless"
+    assert result["provider_version"] == "4.11.0.86"
+    assert result["module_path"] == str((module / "__init__.py").resolve())
+    assert result["native_module_sha256"] == hashlib.sha256((module / "cv2.abi3.so").read_bytes()).hexdigest()
+    assert result["verified_files"] == 2
+
+
+@pytest.mark.parametrize("overwritten", ["__init__.py", "cv2.abi3.so"])
+def test_opencv_provider_rejects_shared_namespace_overwrite(tmp_path, monkeypatch, overwritten):
+    provider, module, _, _ = opencv_provider_installation(tmp_path, monkeypatch)
+    (module / overwritten).write_bytes(b"GUI distribution overwrote this file; package versions stayed the same")
+    with pytest.raises(ValueError, match="provider file mismatch"):
+        provider.verify_opencv_provider("4.11.0.86")
+
+
+def test_opencv_provider_rejects_import_from_another_location(tmp_path, monkeypatch):
+    provider, _, _, cv2 = opencv_provider_installation(tmp_path, monkeypatch)
+    cv2.__file__ = str(tmp_path / "other/cv2/__init__.py")
+    with pytest.raises(ValueError, match="imported module"):
+        provider.verify_opencv_provider("4.11.0.86")
+
+
+def test_opencv_provider_requires_recorded_native_binary(tmp_path, monkeypatch):
+    provider, _, info, _ = opencv_provider_installation(tmp_path, monkeypatch)
+    record = info / "RECORD"
+    record.write_text("\n".join(row for row in record.read_text().splitlines() if "cv2.abi3.so" not in row) + "\n")
+    with pytest.raises(ValueError, match="native module"):
+        provider.verify_opencv_provider("4.11.0.86")
+
+
+def test_opencv_provider_rejects_wrong_pinned_version(tmp_path, monkeypatch):
+    provider, _, _, _ = opencv_provider_installation(tmp_path, monkeypatch)
+    with pytest.raises(ValueError, match="provider version"):
+        provider.verify_opencv_provider("4.12.0.88")
+
+
+@pytest.mark.parametrize("field,value", [("provider", "opencv-python"), ("verified_files", 0), ("python", "other")])
+def test_opencv_provider_record_rejects_incompatible_interpreter_or_owner(tmp_path, monkeypatch, field, value):
+    provider, _, _, _ = opencv_provider_installation(tmp_path, monkeypatch)
+    record = provider.verify_opencv_provider("4.11.0.86")
+    record[field] = value
+    with pytest.raises(ValueError, match="OpenCV provider"):
+        provider.validate_opencv_provider_record(record, expected_version="4.11.0.86", python=sys.executable)
+
+
+@pytest.mark.parametrize("mutation", ["binary", "record"])
+def test_ready_evaluator_rejects_changed_opencv_without_reinstall(tmp_path, monkeypatch, mutation):
+    from tests.dfx.lingbot_world import prepare
+
+    repository = tmp_path / "repository"
+    evaluator_repository(repository)
+    monkeypatch.setattr(prepare, "ROOT", repository)
+    monkeypatch.setattr(
+        prepare,
+        "verify_environment",
+        lambda *args: {"opencv-python": "4.11.0.86", "opencv-python-headless": "4.11.0.86"},
+    )
+    root = tmp_path / "ready"
+    python = root / "venv/bin/python"
+    python.parent.mkdir(parents=True)
+    python.touch()
+    (root / "environment-ready").write_text(prepare.evaluator_cache_key(repository) + "\n")
+    provider = {
+        "schema_version": 1,
+        "provider": "opencv-python-headless",
+        "provider_version": "4.11.0.86",
+        "opencv_version": "4.11.0",
+        "opencv_build_sha256": "a" * 64,
+        "native_module_sha256": "b" * 64,
+        "module_path": str(tmp_path / "cv2/__init__.py"),
+        "python": str(python),
+        "verified_files": 2,
+    }
+    stored = {**provider, "opencv_build_sha256": "c" * 64} if mutation == "record" else provider
+    (root / "opencv-provider.json").write_text(json.dumps(stored))
+    original = {p: p.read_bytes() for p in (root / "environment-ready", root / "opencv-provider.json")}
+    calls = []
+
+    def probe(command, **kwargs):
+        calls.append(command)
+        if len(command) > 2 and command[1] == "-I":
+            if mutation == "binary":
+                raise subprocess.CalledProcessError(1, command, stderr="OpenCV provider file mismatch: cv2/cv2.abi3.so")
+            return subprocess.CompletedProcess(command, 0, stdout=json.dumps(provider))
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(prepare.subprocess, "run", probe)
+    with pytest.raises(RegressionError, match="OpenCV provider"):
+        prepare._prepare_evaluators(root)
+    assert not any(command[:2] == ["uv", "pip"] for command in calls)
+    assert all(p.read_bytes() == value for p, value in original.items())

@@ -261,6 +261,7 @@ def test_incomplete_or_incompatible_pairs_cannot_pass(measurement_campaign, chan
     with pytest.raises(RegressionError):
         runner.aggregate_measurements(settings)
     assert not json.loads((settings["output"] / "generation.json").read_text())["passed"]
+    assert json.loads((settings["output"] / "generation.json").read_text())["candidate_revision"] == "b" * 40
 
 
 @pytest.mark.parametrize("regression", ["performance", "precision"])

@@ -25,6 +25,7 @@ from benchmarks.lingbot_world.regression import (
     write_json,
 )
 from benchmarks.lingbot_world.video_quality import compare_video_pair_in_environment, evaluate_video_quality
+from tests.dfx.lingbot_world.opencv_provider import validate_opencv_provider_record
 from tests.dfx.lingbot_world.runner import ROOT, git_revision, hardware_contract
 from tests.helpers.mark import hardware_test
 
@@ -36,7 +37,8 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     settings = lingbot_settings
     output = settings["output"]
     output.mkdir(parents=True, exist_ok=True)
-    write_json(output / "quality.json", {"passed": False, "status": "running"})
+    revision = git_revision(ROOT)
+    write_json(output / "quality.json", {"passed": False, "status": "running", "candidate_revision": revision})
     generation = settings["generation"]
     if generation is None:
         raise RegressionError("--lingbot-generation must name the downloaded generation artifact directory")
@@ -46,7 +48,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         settings["profile_path"]
     ):
         raise RegressionError("Generation is incomplete or belongs to a different profile")
-    if manifest["candidate_revision"] != git_revision(ROOT):
+    if manifest["candidate_revision"] != revision:
         raise RegressionError("Generation artifacts belong to a different candidate commit")
     videos = {}
     for index, case in enumerate(settings["cases"]):
@@ -84,6 +86,16 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     evaluator_root = Path(os.environ["LINGBOT_EVALUATOR_ROOT"]).resolve()
     python = Path(os.environ["LINGBOT_EVALUATOR_PYTHON"])
     packages = verify_environment(python, ROOT / "requirements/lingbot-quality.txt")
+    if not packages.get("opencv-python-headless") or packages["opencv-python-headless"] != packages.get(
+        "opencv-python"
+    ):
+        raise RegressionError("Evaluator OpenCV distributions must have matching pinned versions")
+    opencv_provider = validate_opencv_provider_record(
+        read_json(evaluator_root / "opencv-provider.json"),
+        expected_version=packages["opencv-python-headless"],
+        python=str(python.expanduser().absolute()),
+    )
+    write_json(output / "opencv-provider.json", opencv_provider)
     population = None
     population_path = None
     population_files = {40: "cuda_nightly_quality_population.json", 600: "cuda_long_quality_population.json"}
@@ -128,6 +140,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
     report = {
         "passed": False,
+        "candidate_revision": revision,
         "generation_passed": manifest["passed"],
         "quality_passed": False,
         "generation": str(generation),
@@ -138,6 +151,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         "pixels": {},
         "calibration_errors": calibration_errors,
         "evaluator_packages": packages,
+        "evaluator_opencv_provider": opencv_provider,
         "evaluator_hardware": hardware_contract(
             {**settings, "platform": "cuda", "cards": 1, "dies": 1, "reserved_cards": 1}
         ),
@@ -272,6 +286,11 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
             ]
             quality_reference = reference if population is None else population["cases"][case["id"]]["pixels"]
             for row in [*reference, *candidate]:
+                if (
+                    row.get("pixel_environment", {}).get("opencv_build_sha256")
+                    != opencv_provider["opencv_build_sha256"]
+                ):
+                    raise RegressionError("Pixel worker OpenCV build differs from the verified provider")
                 metadata = row["reference"]
                 expected_frames = (settings["num_chunks"] * 3 - 1) * 4 + 1
                 if (metadata["frame_count"], metadata["width"], metadata["height"], metadata["fps"]) != (
