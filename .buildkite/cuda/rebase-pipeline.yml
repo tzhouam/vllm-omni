@@ -10,6 +10,7 @@ steps:
   - label: "Upload Ready Pipeline"
     depends_on: image-build
     key: upload-ready-pipeline
+    if: build.env("DRAMA3_HNR_DIAGNOSTIC") != "1"
     commands:
       - python3 .buildkite/common/scripts/upload_pipeline.py --upload --all .buildkite/cuda/test-ready.yml
     agents:
@@ -19,6 +20,7 @@ steps:
   - label: "Upload Merge Pipeline"
     depends_on: image-build
     key: upload-merge-pipeline
+    if: build.env("DRAMA3_HNR_DIAGNOSTIC") != "1"
     commands:
       - python3 .buildkite/common/scripts/upload_pipeline.py --upload --all .buildkite/cuda/test-merge.yml
     agents:
@@ -30,6 +32,11 @@ steps:
     key: upload-nightly-pipeline
     if: build.env("NIGHTLY") == "1"
     commands:
-      - python3 .buildkite/common/scripts/upload_pipeline.py --upload --all .buildkite/cuda/test-nightly.yml
+      - |
+        if [ "${DRAMA3_HNR_DIAGNOSTIC:-0}" = "1" ]; then
+          python3 .buildkite/common/scripts/upload_pipeline.py --upload --all .buildkite/cuda/test-drama3-diagnostic.yml
+        else
+          python3 .buildkite/common/scripts/upload_pipeline.py --upload --all .buildkite/cuda/test-nightly.yml
+        fi
     agents:
       queue: "medium_cpu_queue_premerge"

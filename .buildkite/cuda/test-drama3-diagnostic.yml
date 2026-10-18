@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+steps:
+  - label: "Drama3 · paired vLLM H100 HNR diagnostic"
+    key: drama3-hnr-diagnostic
+    depends_on: upload-nightly-pipeline
+    mirror_hardwares: h100_1
+    timeout_in_minutes: 90
+    artifact_paths:
+      - drama3-diagnostic/v032/**
+      - drama3-diagnostic/v031/**
+      - drama3-diagnostic/*.log
+    commands:
+      - bash .buildkite/cuda/scripts/run-drama3-hnr-diagnostic.sh
