@@ -12,6 +12,7 @@ from tests.dfx.lingbot_world.runner import (
     ENGINE_ENVIRONMENT,
     ROOT,
     _measured_metrics,
+    assert_device_cleanup,
     checked_assets,
     hardware_contract,
     server_arguments,
@@ -92,3 +93,4 @@ def test_cuda_smoke(lingbot_settings):
             )
             write_json(output / "metrics.json", _measured_metrics(document, settings))
             lifecycle.test_lingbot_world_v2_stepwise_stop_during_paced_wait_releases_session(server)
+    assert_device_cleanup(settings["dies"], settings["output"] / "cleanup.json")

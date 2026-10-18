@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 from argparse import Namespace
 from contextlib import contextmanager
 from pathlib import Path
+from types import SimpleNamespace
 from typing import NamedTuple, TypedDict
 from unittest.mock import MagicMock
 
@@ -44,9 +45,10 @@ def smoke_entry(tmp_path, monkeypatch):
         arguments: list[Namespace]
         cleanup: int
         lifecycle: int
+        device_cleanup: int
         corruption: str | None
 
-    calls: Calls = {"arguments": [], "cleanup": 0, "lifecycle": 0, "corruption": None}
+    calls: Calls = {"arguments": [], "cleanup": 0, "lifecycle": 0, "device_cleanup": 0, "corruption": None}
 
     class Endpoint(NamedTuple):
         port: int
@@ -93,11 +95,19 @@ def smoke_entry(tmp_path, monkeypatch):
     def lifecycle_check(server):
         calls["lifecycle"] += 1
 
+    def device_cleanup_check(dies, output):
+        assert dies == settings["dies"] and output == settings["output"] / "cleanup.json"
+        assert calls["cleanup"] == 1, "device cleanup must be checked after the server context exits"
+        calls["device_cleanup"] += 1
+        if calls["corruption"] == "device_leak":
+            raise ValueError("Device Memory Timeout")
+
     monkeypatch.setattr(runtime, "OmniServer", server)
     monkeypatch.setattr(smoke, "hardware_contract", lambda _: {"platform": "cuda", "cards": 1})
     image = tmp_path / "image.png"
     monkeypatch.setattr(smoke, "checked_assets", lambda _: (tmp_path / "model", {settings["cases"][0]["image"]: image}))
     monkeypatch.setattr(smoke, "run_benchmark", benchmark)
+    monkeypatch.setattr(smoke, "assert_device_cleanup", device_cleanup_check)
     monkeypatch.setattr(
         lifecycle, "test_lingbot_world_v2_stepwise_stop_during_paced_wait_releases_session", lifecycle_check
     )
@@ -138,7 +148,7 @@ def test_smoke_executes_the_recorded_profile_and_retains_raw_metrics(smoke_entry
         settings["first_chunk_timeout_s"],
         settings["chunk_timeout_s"],
     )
-    assert calls["cleanup"] == calls["lifecycle"] == 1
+    assert calls["cleanup"] == calls["lifecycle"] == calls["device_cleanup"] == 1
     metrics = json.loads((settings["output"] / "metrics.json").read_text())
     assert metrics["steady_samples"] == settings["num_chunks"] - settings["warmup_chunks"] - 1
 
@@ -150,7 +160,17 @@ def test_smoke_rejects_invalid_raw_output_and_releases_server(smoke_entry, chang
     with pytest.raises(RegressionError):
         run(settings)
     assert calls["cleanup"] == 1 and calls["lifecycle"] == 0
+    assert calls["device_cleanup"] == 0
     assert not (settings["output"] / "metrics.json").exists()
+
+
+def test_smoke_propagates_device_cleanup_failure_after_valid_inference(smoke_entry):
+    run, settings, calls = smoke_entry
+    calls["corruption"] = "device_leak"
+    with pytest.raises(ValueError, match="Device Memory Timeout"):
+        run(settings)
+    assert calls["cleanup"] == calls["lifecycle"] == calls["device_cleanup"] == 1
+    assert (settings["output"] / "metrics.json").exists(), "retain successful inference evidence when cleanup fails"
 
 
 @pytest.mark.parametrize(
@@ -234,6 +254,63 @@ class _MountInfo(NamedTuple):
     mountpoint: str
     fstype: str
     opts: str = ""
+
+
+@pytest.mark.parametrize("device_env", ["CUDA_VISIBLE_DEVICES", "ASCEND_RT_VISIBLE_DEVICES"])
+@pytest.mark.parametrize("state", ["released", "leaked", "unavailable"])
+def test_device_cleanup_is_a_blocking_single_probe(tmp_path, monkeypatch, mocker, device_env, state):
+    from tests.dfx.lingbot_world import runner
+    from tests.helpers import clean
+
+    queried = []
+
+    @contextmanager
+    def device(index):
+        queried.append(index)
+        yield
+
+    def memory():
+        if state == "unavailable":
+            raise OSError("device disappeared")
+        used = 4 if state == "leaked" and queried[-1] == 1 else 1
+        return ((64 - used) * 2**30, 64 * 2**30)
+
+    monkeypatch.setenv(device_env, "4,5")
+    monkeypatch.setattr(clean.current_omni_platform, "device_control_env_var", device_env)
+    mocker.patch.object(clean.current_omni_platform, "device", side_effect=device)
+    mocker.patch.object(clean.current_omni_platform, "mem_get_info", side_effect=memory)
+    monkeypatch.setattr(clean, "_whisper_vram_allowance", lambda: (0.0, None))
+    wall = iter((100.0, 0.0))
+    monkeypatch.setattr(
+        clean,
+        "time",
+        SimpleNamespace(
+            time=lambda: next(wall),
+            monotonic=lambda: 100.0,
+            sleep=lambda _: pytest.fail("post-cleanup assertion must not add another wait"),
+        ),
+    )
+    report = tmp_path / "cleanup.json"
+    if state == "released":
+        runner.assert_device_cleanup(2, report)
+    else:
+        expected = OSError if state == "unavailable" else ValueError
+        with pytest.raises(expected, match="device disappeared|Device Memory Timeout"):
+            runner.assert_device_cleanup(2, report)
+    result = json.loads(report.read_text())
+    assert result["passed"] is (state == "released")
+    assert result["logical_devices"] == [0, 1] and result["threshold_ratio"] == 0.05
+    assert queried == ([0] if state == "unavailable" else [0, 1])
+
+
+@pytest.mark.parametrize("dies", [0, True, 1.0])
+def test_device_cleanup_cannot_accept_empty_or_invalid_device_populations(tmp_path, dies):
+    from tests.dfx.lingbot_world import runner
+
+    report = tmp_path / "cleanup.json"
+    with pytest.raises(RegressionError, match="positive integer die count"):
+        runner.assert_device_cleanup(dies, report)
+    assert json.loads(report.read_text())["passed"] is False
 
 
 @pytest.mark.parametrize("unavailable", [None, "parent", "child"])

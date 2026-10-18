@@ -72,6 +72,25 @@ def server_arguments(settings: dict[str, Any]) -> list[str]:
     ]
 
 
+def assert_device_cleanup(dies: int, output: Path) -> None:
+    """Gate the shared cleanup condition without granting another wait."""
+    from tests.helpers.clean import wait_for_gpu_memory_to_clear
+
+    devices = list(range(dies)) if type(dies) is int and dies > 0 else []
+    record = {
+        "passed": False,
+        "logical_devices": devices,
+        "threshold_ratio": 0.05,
+        "timeout_s": 0,
+        "scope": "shared helper engine-memory view after server cleanup; excluded from performance",
+    }
+    write_json(output, record)
+    if not devices:
+        raise RegressionError("Device cleanup requires a positive integer die count")
+    wait_for_gpu_memory_to_clear(devices=devices, threshold_ratio=0.05, timeout_s=0)
+    write_json(output, {**record, "passed": True})
+
+
 def git_revision(root: Path) -> str:
     if not (root / ".git").exists() and root == ROOT:
         # CI Docker contexts exclude .git; the image tag is the Buildkite SHA.
@@ -428,6 +447,7 @@ def generate(settings: dict[str, Any], *, measurement_repeat: int | None = None)
                         lingering.append(pid)
             if lingering:
                 raise RegressionError(f"Server children survived teardown: {lingering}")
+            assert_device_cleanup(settings["dies"], arm / "cleanup.json")
             records[role].append(case_results)
             write_json(output / "progress.json", {"records": records, "contract": contract})
     if measurement_repeat is not None:

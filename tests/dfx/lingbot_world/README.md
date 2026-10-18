@@ -418,6 +418,15 @@ Unavailable processes or interfaces retain errors/null values; omitted process
 counts remain explicit. Command lines and environment variables are not captured.
 This failure-only snapshot preserves the original startup error and cleanup;
 it supplies diagnostic evidence without identifying a stall's cause by itself.
+After a successful server context exits, smoke and full collectors explicitly
+assert the shared cleanup helper's 5% engine-memory condition on every selected
+logical device. This check uses a zero wait budget after normal cleanup and sits
+outside performance measurements. The shared helper uses a monotonic deadline,
+so clock corrections cannot add a wait. A failed `cleanup.json` checkpoint is
+written before the probe; residual allocations, unavailable devices and invalid
+device populations fail pytest and retain that checkpoint. This strict call
+preserves the shared helper's existing Whisper-worker accounting; LingBot does
+not load a Whisper worker.
 An unstable reference remains a failed calibration in the complete generation
 manifest. Other cases, all seven VAE checks and video checksums are still
 retained, so independent scoring can inspect the failed population.

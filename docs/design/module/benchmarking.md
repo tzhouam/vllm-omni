@@ -99,3 +99,9 @@ report before asset validation, numerical capture and server initialization.
 Failed server initialization retains a bounded process-state snapshot in logs
 before cleanup, outside successful measurement paths. Unavailable process and
 Linux wait-channel data remain explicit without hiding the original failure.
+After successful server teardown, LingBot smoke and full collectors assert the
+shared 5% engine-memory cleanup condition for every selected logical device.
+Use a zero wait budget outside performance, retain a failed checkpoint before
+querying, and propagate device errors or residual allocations to pytest. Shared
+memory-wait deadlines use a monotonic clock; a clock correction cannot extend
+the cleanup assertion.

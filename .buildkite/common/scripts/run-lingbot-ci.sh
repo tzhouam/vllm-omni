@@ -78,6 +78,7 @@ UNIT_ENV
         tests/buildkite/test_upload_pipeline.py tests/buildkite/test_amd_pipeline.py \
         tests/helpers/tests/test_runtime_startup_timeout.py \
         tests/helpers/tests/test_runtime_server_ports.py tests/helpers/tests/test_runtime_stage_cli.py \
+        tests/helpers/tests/test_clean.py \
         tests/diffusion/models/lingbot_world/test_offload_lingbot_world.py \
         'tests/diffusion/offloader/test_backend_plan_contract.py::test_text_encoder_only_offload_keeps_early_dit_projections_resident[cpu]' \
         'tests/diffusion/offloader/test_backend_plan_contract.py::test_text_encoder_only_offload_handles_cached_dit_owner_references[cpu]' \
