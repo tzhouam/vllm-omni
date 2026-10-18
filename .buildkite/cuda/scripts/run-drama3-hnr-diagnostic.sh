@@ -11,8 +11,9 @@ baseline_commit="a965251bf1a3db3ab6871307ec39c938c0634479"
 test_path="tests/e2e/online_serving/test_drama_3.py"
 mkdir -p "$root"
 # Preserve the original canonical model identity and its current immutable weights.
-model_snapshot="$(hf download fishaudio/drama-3 --revision main)"
+model_snapshot="$(hf download fishaudio/drama-3 --revision main --quiet)"
 test "$(basename "$model_snapshot")" = b2b5ee998034b2975720906c815e7fb0e9f007bd
+test -f "${model_snapshot}/config.json"
 export DRAMA3_MODEL_SNAPSHOT="$model_snapshot"
 export DRAMA3_ORIGINAL_TEST_HASH
 DRAMA3_ORIGINAL_TEST_HASH="$(sha256sum "$test_path" | cut -d' ' -f1)"
@@ -60,5 +61,5 @@ dsl = shared / 'nvidia_cutlass_dsl' / 'dsl_packages'
 assert dsl.is_dir(), dsl
 (site / 'cutlass_dsl_path.pth').write_text(str(dsl) + '\n')
 PY
-test "$(hf download fishaudio/drama-3 --revision main)" = "$model_snapshot"
+test "$(hf download fishaudio/drama-3 --revision main --quiet)" = "$model_snapshot"
 run_phase v031 "$root/baseline-env/bin/python" "$root/baseline-source" "$baseline_commit"
