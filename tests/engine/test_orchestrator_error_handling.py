@@ -1172,8 +1172,8 @@ async def test_bad_video_sampling_options_keep_orchestrator_alive(orchestrator_f
     output_processor = FakeOutputProcessor(request_outputs=[_build_request_output("valid-video")])
     fixture = orchestrator_factory([stage0, stage1], output_processors=[FakeOutputProcessor(), output_processor])
     info = SimpleNamespace(
+        _merge_and_resolve_mm_processor_kwargs=lambda kw: {"videos_kwargs": kw},
         ctx=SimpleNamespace(
-            get_merged_mm_kwargs=lambda kw, **_: kw,
             get_mm_config=lambda: SimpleNamespace(get_video_pruning_spec=lambda: None),
         ),
         get_hf_config=lambda: SimpleNamespace(
