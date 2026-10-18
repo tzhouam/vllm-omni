@@ -64,9 +64,9 @@ uv pip install --torch-backend=cu130 \
 This command selects the Linux x86_64 CUDA 13.0 wheel and matching PyTorch
 backend. It requires a CUDA 13 compatible driver. For another architecture,
 CUDA variant or an existing incompatible PyTorch installation, build vLLM
-from source instead. The vLLM 0.32.0 tag and its commit-index wheel are
-available; the GitHub release page, PyPI wheel and published vLLM-Omni
-0.32 wheel are not yet available.
+from source instead. The [vLLM 0.32.0 release](https://github.com/vllm-project/vllm/releases/tag/v0.32.0)
+and its commit-index wheel are available; the PyPI wheel and published
+vLLM-Omni 0.32 wheel are not yet available.
 
 #### Installation of vLLM-Omni
 
