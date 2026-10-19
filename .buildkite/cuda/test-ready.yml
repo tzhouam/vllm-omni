@@ -310,6 +310,10 @@ steps:
     steps:
       - label: "LingBot World · CPU regression gates"
         key: ready-lingbot-world-unit
+        concurrency: 1
+        concurrency_group: vllm-omni/lingbot-world/l4-cpu
+        concurrency_method: eager
+        priority: 0
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 20
         mirror_hardwares: l4_1
@@ -319,6 +323,10 @@ steps:
           - bash .buildkite/common/scripts/run-lingbot-ci.sh unit tests/dfx/lingbot_world/quality.json lingbot-artifacts/unit
       - label: "LingBot World · real-checkpoint stream and cancellation"
         key: ready-lingbot-world-smoke
+        concurrency: 1
+        concurrency_group: vllm-omni/lingbot-world/cuda-generation
+        concurrency_method: eager
+        priority: 0
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 45
         mirror_hardwares: h100_1

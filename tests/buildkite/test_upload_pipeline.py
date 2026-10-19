@@ -1050,6 +1050,54 @@ def test_qwen_image_21_accuracy_model_dependencies(
     assert "tests/e2e/accuracy/artifacts/qwen_image_21/**/*" in step["artifact_paths"]
 
 
+@pytest.mark.parametrize("changed_files", [None, ["tests/dfx/lingbot_world/runner.py"]])
+@pytest.mark.parametrize(
+    "pipeline_path,expected_jobs",
+    [
+        (Path(".buildkite/cuda/test-ready.yml"), 2),
+        (Path(".buildkite/cuda/test-nightly.yml"), 2),
+        (Path(".buildkite/cuda/test-weekly.yml"), 4),
+        (Path(".buildkite/npu/test-npu-nightly.yml"), 3),
+        (Path(".buildkite/npu/test-npu-weekly.yml"), 6),
+    ],
+)
+def test_lingbot_resource_budget_survives_pipeline_expansion(
+    monkeypatch: pytest.MonkeyPatch, pipeline_path: Path, expected_jobs: int, changed_files: list[str] | None
+) -> None:
+    monkeypatch.delenv("MIRROR_HW", raising=False)
+    source = yaml.safe_load(pipeline_path.read_text())
+    rendered = _render_test_pipeline(source, changed_files, pipeline_path=pipeline_path)
+    original = {step.get("key"): step for step in _iter_steps(source) if "key" in step}
+    jobs = [
+        step
+        for step in _iter_steps(rendered)
+        if any("run-lingbot-ci.sh " in command for command in step.get("commands", []))
+    ]
+    assert len(jobs) == expected_jobs
+    for step in jobs:
+        command = next(command for command in step["commands"] if "run-lingbot-ci.sh " in command)
+        role = command.split("run-lingbot-ci.sh ", 1)[1].split()[0]
+        platform = pipeline_path.parent.name
+        # Stable organization-wide groups: no build, branch, level or matrix suffix.
+        if role in {"smoke", "generate", "collect"}:
+            group, limit = f"vllm-omni/lingbot-world/{platform}-generation", 1
+        elif role == "evaluate":
+            group, limit = "vllm-omni/lingbot-world/quality", 2
+        else:
+            assert role in {"unit", "aggregate"}
+            group, limit = "vllm-omni/lingbot-world/l4-cpu", 1
+        assert step["concurrency_group"] == group
+        assert step["concurrency"] == limit
+        # Eager admission lets ready PR jobs take precedence over queued benchmarks.
+        assert step["concurrency_method"] == "eager"
+        assert step["priority"] == (0 if role in {"unit", "smoke"} else -10)
+        assert "mirror_hardwares" not in step and "agents" in step
+        # Throttling must preserve every case/repeat and the blocking dependency DAG.
+        for field in ("matrix", "depends_on", "env", "timeout_in_minutes"):
+            assert step.get(field) == original[step["key"]].get(field)
+        assert not step.get("soft_fail") and not step.get("skip")
+
+
 @pytest.mark.parametrize("filename", ["test-npu-nightly.yml", "test-npu-weekly.yml"])
 def test_lingbot_npu_infra_retry_does_not_retry_test_failures(filename: str) -> None:
     path = Path(".buildkite/npu") / filename

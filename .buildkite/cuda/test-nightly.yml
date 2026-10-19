@@ -637,6 +637,10 @@ steps:
     steps:
       - label: "LingBot World · CUDA measured reference/candidate"
         key: lingbot-cuda-nightly-generation
+        concurrency: 1
+        concurrency_group: vllm-omni/lingbot-world/cuda-generation
+        concurrency_method: eager
+        priority: -10
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 240
         mirror_hardwares: h100_4_exclusive
@@ -651,6 +655,10 @@ steps:
           - bash .buildkite/common/scripts/run-lingbot-ci.sh generate tests/dfx/lingbot_world/configs/cuda_nightly.json lingbot-artifacts/cuda-nightly
       - label: "LingBot World · CUDA videos WBench/VBench gate on GPU"
         key: lingbot-cuda-nightly-quality
+        concurrency: 2
+        concurrency_group: vllm-omni/lingbot-world/quality
+        concurrency_method: eager
+        priority: -10
         source_file_dependencies: lingbot_world_regression
         depends_on:
           - step: lingbot-cuda-nightly-generation

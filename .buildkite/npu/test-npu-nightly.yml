@@ -420,6 +420,10 @@ steps:
           - bash .buildkite/cuda/scripts/build-ci-image.sh
       - label: "LingBot World · NPU measured reference/candidate"
         key: lingbot-npu-nightly-generation
+        concurrency: 1
+        concurrency_group: vllm-omni/lingbot-world/npu-generation
+        concurrency_method: eager
+        priority: -10
         matrix:
           setup:
             repeat: ["0", "1", "2"]
@@ -441,6 +445,10 @@ steps:
           - bash .buildkite/common/scripts/run-lingbot-ci.sh collect tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly-measurements/pair-{{matrix.repeat}}
       - label: "LingBot World · NPU nightly performance and precision gate"
         key: lingbot-npu-nightly-gate
+        concurrency: 1
+        concurrency_group: vllm-omni/lingbot-world/l4-cpu
+        concurrency_method: eager
+        priority: -10
         source_file_dependencies: lingbot_world_regression
         depends_on:
           - lingbot-npu-nightly-generation
@@ -453,6 +461,10 @@ steps:
           - bash .buildkite/common/scripts/run-lingbot-ci.sh aggregate tests/dfx/lingbot_world/configs/npu_nightly.json lingbot-artifacts/npu-nightly lingbot-artifacts/npu-nightly-measurements
       - label: "LingBot World · NPU videos WBench/VBench gate on GPU"
         key: lingbot-npu-nightly-quality
+        concurrency: 2
+        concurrency_group: vllm-omni/lingbot-world/quality
+        concurrency_method: eager
+        priority: -10
         source_file_dependencies: lingbot_world_regression
         depends_on:
           - step: lingbot-npu-nightly-gate

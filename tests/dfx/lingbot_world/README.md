@@ -474,6 +474,31 @@ this video-quality suite.
   600-chunk long profile. NPU long quality waits for all three collected pairs
   and their CPU performance/precision aggregation gate.
 
+The regression suite uses organization-wide Buildkite concurrency groups shared
+across PR, nightly, weekly and manually triggered builds. Matrix shards and
+retries consume the same slots; group names must never include a build, branch,
+schedule or matrix identifier.
+
+| Work | Shared group (`vllm-omni/lingbot-world/` prefix) | Maximum jobs | Reserved devices at maximum |
+| --- | --- | --- | --- |
+| CUDA generation and PR smoke | `cuda-generation` | 1 | 8 H100 (smoke uses 1) |
+| NPU collection | `npu-generation` | 1 | 8 NPU |
+| CUDA and NPU video quality together | `quality` | 2 | 2 H100 |
+| CPU unit and aggregation on L4 workers | `l4-cpu` | 1 | 1 L4, masked during tests |
+
+Benchmark generation, aggregation and quality use `priority: -10`, below the
+normal PR priority of `0`; the unit and smoke gates retain `0`. All four groups
+use `concurrency_method: eager`, allowing ready higher-priority jobs to claim
+available slots without waiting behind earlier dependency-blocked jobs.
+Priority does not preempt running jobs or reserve capacity for other PRs.
+These limits bound this suite's peak reservation, not its total device-hours:
+all cases, starts and quality dimensions remain required. They apply to newly
+uploaded jobs; already queued jobs and their retries retain their old settings.
+Direct local shell invocations are outside Buildkite's concurrency control.
+See Buildkite's [concurrency](https://buildkite.com/docs/pipelines/configure/workflows/controlling-concurrency)
+and [priority](https://buildkite.com/docs/pipelines/configure/workflows/job-priority)
+semantics.
+
 Selected jobs are blocking. Missing prerequisites and skipped CI tests fail.
 NPU generation uses the existing infrastructure retry codes (`-1`, `128`),
 with one retry per code. Pytest failures and OOM are never automatically retried.
