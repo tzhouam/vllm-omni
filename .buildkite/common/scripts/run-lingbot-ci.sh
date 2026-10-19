@@ -103,10 +103,14 @@ elif [[ "$STAGE" == "evaluate" ]]; then
     export LINGBOT_EVALUATOR_ROOT="${LINGBOT_EVALUATOR_ROOT:-${HF_HOME:-${TMPDIR:-/tmp}}/lingbot-evaluators-$EVALUATOR_LOCK}"
     python -m tests.dfx.lingbot_world.prepare evaluators --root "$LINGBOT_EVALUATOR_ROOT"
     export LINGBOT_EVALUATOR_PYTHON="$LINGBOT_EVALUATOR_ROOT/venv/bin/python"
+    QUALITY_ARGS=()
+    if [[ -n "${LINGBOT_QUALITY_CASE_INDEX:-}" ]]; then
+        QUALITY_ARGS+=(--lingbot-quality-case-index="$LINGBOT_QUALITY_CASE_INDEX")
+    fi
     pytest -sv tests/dfx/lingbot_world/test_quality.py \
         --lingbot-profile="$PROFILE" --lingbot-output="$OUTPUT" --lingbot-generation="$GENERATION" \
         -m 'full_model and diffusion and cuda and H100 and cards_1' --run-level full_model \
-        --junitxml="$OUTPUT/pytest.xml"
+        --junitxml="$OUTPUT/pytest.xml" "${QUALITY_ARGS[@]}"
 elif [[ "$STAGE" == "generate" || "$STAGE" == "smoke" || "$STAGE" == "collect" ]]; then
     PLATFORM="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["platform"])' "$PROFILE")"
     if [[ "$STAGE" == "generate" && "$PLATFORM" == "cuda" ]]; then

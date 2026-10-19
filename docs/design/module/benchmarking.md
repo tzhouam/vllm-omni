@@ -92,11 +92,14 @@ key; validate completed caches without reinstalling or rewriting their provenanc
 Retain the verified provider in quality artifacts and require each pixel worker's
 build fingerprint to match it. Package-version equality alone does not prove
 which distribution owns the loaded native module.
-CUDA weekly generation and evaluation use six matching case shards, each with
-three of the 18 fixed cases. Each GPU evaluator processes 18 videos within a
-240-minute job budget after six-case scoring exceeded an observed 300-minute
-limit. Job partitioning preserves three independent starts per role, every
-case, rollout length, warmup and regression budget.
+Weekly generation uses six case shards, each with three of the 18 fixed cases.
+Quality evaluation splits each generation shard into three required case jobs,
+so each GPU evaluator scores six videos under the unchanged job deadline. The
+CUDA three-case evaluator exceeded its 240-minute budget. Preserve all 18 cases,
+three independent starts per role, rollout lengths, warmups and regression
+budgets. Record the evaluated case while retaining the complete producer
+profile and manifest hash; verify all producer artifact hashes and preserve the
+producer's failure in the final gate. Use distinct per-case output directories.
 NPU weekly collection separates each case shard's three independent
 reference/candidate pairs into bounded jobs. A mandatory CPU gate verifies the
 complete matching population per shard before quality evaluation; missing or

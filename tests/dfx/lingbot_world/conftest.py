@@ -15,6 +15,9 @@ def pytest_addoption(parser):
     group.addoption("--lingbot-reference-root", type=Path, help="Clean checkout at profile.reference_revision")
     group.addoption("--lingbot-generation", type=Path, help="Downloaded generation artifacts for GPU evaluation")
     group.addoption("--lingbot-measurement-repeat", type=int, choices=(0, 1, 2))
+    group.addoption(
+        "--lingbot-quality-case-index", type=int, help="Evaluate one case of the complete generation profile"
+    )
 
 
 @pytest.fixture(scope="module")
@@ -32,6 +35,7 @@ def lingbot_settings(request):
     settings["generation"] = request.config.getoption("--lingbot-generation")
     settings["profile_path"] = path.resolve()
     settings["measurement_repeat"] = request.config.getoption("--lingbot-measurement-repeat")
+    settings["quality_case_index"] = request.config.getoption("--lingbot-quality-case-index")
     return settings
 
 

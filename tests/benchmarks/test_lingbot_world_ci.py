@@ -997,6 +997,12 @@ def leaves(document):
         (True, "population_general_unrecorded"),
         (True, "opencv_provider_missing"),
         (True, "opencv_worker_build"),
+        (True, "quality_case_0"),
+        (True, "quality_case_1"),
+        (True, "quality_case_2"),
+        (False, "quality_case_2"),
+        (True, "quality_case_invalid"),
+        (True, "quality_case_corrupt"),
     ],
 )
 def test_quality_retains_scores_after_generation_failure_without_passing(
@@ -1082,6 +1088,9 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
 
     def score(videos, output, *, suite, dimensions, **kwargs):
         calls.append(suite)
+        if mutation and mutation.startswith("quality_case_"):
+            assert len(videos) == 6
+            assert {path.parent.name for path in videos.values()} == {f"scene-{settings['quality_case_index']}"}
         # A job-level kill can prevent the coordinator's finally block from running.
         checkpoint = json.loads((output.parent / "quality.json").read_text())
         assert checkpoint["evaluator_packages"] == packages
@@ -1161,6 +1170,33 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
         "mux_fps": 16,
         "cases": [{"id": "scene"}],
     }
+    if mutation and mutation.startswith("quality_case_"):
+        settings["cases"] = [{"id": f"scene-{index}"} for index in range(3)]
+        settings["quality_case_index"] = (
+            3
+            if mutation == "quality_case_invalid"
+            else (1 if mutation == "quality_case_corrupt" else int(mutation.rsplit("_", 1)[1]))
+        )
+        manifest = json.loads((generation / "generation.json").read_text())
+        manifest["artifacts"] = {}
+        for relative in artifacts:
+            for case in settings["cases"]:
+                target = generation / relative.replace("scene/", case["id"] + "/")
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((generation / relative).read_bytes())
+                manifest["artifacts"][str(target.relative_to(generation))] = sha256(target)
+        write_json(profile, {"platform": "npu", "num_chunks": 1, "cases": settings["cases"]})
+        manifest["contract"]["profile"] = json.loads(profile.read_text())
+        write_json(generation / "generation.json", manifest)
+        if mutation == "quality_case_corrupt":
+            # Even an unselected case must retain the producer's manifest integrity.
+            (generation / "candidate/2/scene-0/rollout.mp4").write_bytes(b"corrupt")
+        if mutation in ("quality_case_invalid", "quality_case_corrupt"):
+            with pytest.raises(RegressionError, match="Quality case index|checksum"):
+                gate.test_wbench_vbench_and_video_precision(settings)
+            assert calls == []
+            assert not json.loads((output / "quality.json").read_text())["passed"]
+            return
     population_mode = mutation is not None and mutation.startswith("population")
     if population_mode:
         # Synthetic coordinator inputs exercise baseline selection and the
@@ -1281,6 +1317,13 @@ def test_quality_retains_scores_after_generation_failure_without_passing(
     assert report["quality_passed"] is quality_passed
     assert report["generation_passed"] is generation_passed
     assert report["passed"] is (generation_passed and quality_passed)
+    if mutation and mutation.startswith("quality_case_"):
+        selected = f"scene-{settings['quality_case_index']}"
+        assert report["evaluated_cases"] == [selected]
+        assert report["quality_case_index"] == settings["quality_case_index"]
+        assert set(report["pixels"]) == {selected}
+        assert all(set(rows) == {selected} for rows in report["suites"].values())
+        assert len(json.loads((output / "profile.json").read_text())["cases"]) == 3
     if mutation in ("population_spread", "population_spread_candidate"):
         checks = report["suites"]["wbench"]["scene"]
         assert all(row["passed"] for row in checks if "reference_repeat" in row)
@@ -1361,7 +1404,9 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
         assert prefix + "-long" in keyed
         count = 6
         shard_matrix = {"setup": {"shard": [str(i) for i in range(count)]}}
-        assert evaluate["matrix"] == shard_matrix
+        assert evaluate["matrix"] == {"setup": {**shard_matrix["setup"], "case": ["0", "1", "2"]}}
+        assert evaluate["env"]["LINGBOT_QUALITY_CASE_INDEX"] == "{{matrix.case}}"
+        assert "quality/shard-{{matrix.shard}}/case-{{matrix.case}} " in evaluate["commands"][0]
         assert (
             generate["env"]["LINGBOT_CASE_SHARD"]
             == evaluate["env"]["LINGBOT_CASE_SHARD"]
@@ -1369,7 +1414,7 @@ def test_generation_and_gpu_evaluation_are_blocking_and_connected(platform, leve
         )
         if platform == "cuda":
             assert generate["matrix"] == shard_matrix
-            # Keep 18 quality videos per job below the observed 300-minute limit.
+            # Six videos per evaluator; all 18 cases remain required matrix jobs.
             assert evaluate["timeout_in_minutes"] == 240
             assert keyed[prefix + "-long"]["mirror_hardwares"] == "h100_4_exclusive"
         else:
@@ -1538,6 +1583,53 @@ def test_matrix_artifact_handoff_uses_unique_build_prefix(tmp_path, stage):
     assert result.returncode == 17, result.stdout + result.stderr
     assert consumed.exists()
     assert json.loads(trace.read_text())["paths"] == expected
+    assert ET.parse(output / "pytest.xml").find("testcase/failure") is not None
+
+
+@pytest.mark.parametrize("case_index", [None, "0", "2"])
+def test_quality_launcher_forwards_case_selection(tmp_path: Path, case_index):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    arguments = tmp_path / "pytest-arguments.json"
+    python = bin_dir / "python"
+    python.write_text(
+        f"#!{sys.executable}\nimport os,sys\n"
+        "if sys.argv[1:4] == ['-m','tests.dfx.lingbot_world.prepare','evaluators']: sys.exit(0)\n"
+        "if sys.argv[1:2] == ['-c']: print('test-cache'); sys.exit(0)\n"
+        "os.execv(sys.executable,[sys.executable,*sys.argv[1:]])\n"
+    )
+    pytest_command = bin_dir / "pytest"
+    pytest_command.write_text(
+        f"#!{sys.executable}\nimport json,sys\nfrom pathlib import Path\n"
+        f"Path({str(arguments)!r}).write_text(json.dumps(sys.argv[1:]))\n"
+        "sys.exit(17)\n"
+    )
+    for executable in (python, pytest_command):
+        executable.chmod(0o755)
+    environment = {**os.environ, "PATH": str(bin_dir) + os.pathsep + os.environ["PATH"]}
+    for name in ("BUILDKITE", "LINGBOT_CASE_SHARD", "LINGBOT_QUALITY_CASE_INDEX"):
+        environment.pop(name, None)
+    if case_index is not None:
+        environment["LINGBOT_QUALITY_CASE_INDEX"] = case_index
+    output = tmp_path / "quality"
+    result = subprocess.run(
+        [
+            "bash",
+            str(ROOT / ".buildkite/common/scripts/run-lingbot-ci.sh"),
+            "evaluate",
+            "profile.json",
+            str(output),
+            "generation",
+        ],
+        env=environment,
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 17, result.stdout + result.stderr
+    forwarded = [arg for arg in json.loads(arguments.read_text()) if arg.startswith("--lingbot-quality-case-index")]
+    assert forwarded == ([] if case_index is None else [f"--lingbot-quality-case-index={case_index}"])
     assert ET.parse(output / "pytest.xml").find("testcase/failure") is not None
 
 

@@ -50,8 +50,14 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         raise RegressionError("Generation is incomplete or belongs to a different profile")
     if manifest["candidate_revision"] != revision:
         raise RegressionError("Generation artifacts belong to a different candidate commit")
+    selected_cases = settings["cases"]
+    case_index = settings.get("quality_case_index")
+    if case_index is not None:
+        if type(case_index) is not int or not 0 <= case_index < len(selected_cases):
+            raise RegressionError("Quality case index must select a case in the generation profile")
+        selected_cases = [selected_cases[case_index]]
     videos = {}
-    for index, case in enumerate(settings["cases"]):
+    for index, case in enumerate(selected_cases):
         for role in ("reference", "candidate"):
             for repeat in range(3):
                 videos[f"case{index}_{role}{repeat}"] = generation / role / str(repeat) / case["id"] / "rollout.mp4"
@@ -146,6 +152,8 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
         "generation": str(generation),
         "generation_manifest_sha256": sha256(generation / "generation.json"),
         "generation_platform": settings["platform"],
+        "quality_case_index": case_index,
+        "evaluated_cases": [case["id"] for case in selected_cases],
         "quality_policy_sha256": sha256(ROOT / "tests/dfx/lingbot_world/quality.json"),
         "suites": {},
         "pixels": {},
@@ -196,7 +204,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 name: value for name, value in candidate_tolerances[suite].items() if name not in binary_dimensions
             }
             cases = {}
-            for index, case in enumerate(settings["cases"]):
+            for index, case in enumerate(selected_cases):
                 if calibration_errors:
                     cases[case["id"]] = [
                         {"passed": False, "status": "unjudged", "calibration_errors": calibration_errors}
@@ -250,7 +258,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                     checks.append({"candidate_repeat": repeat, **check})
                 cases[case["id"]] = checks
             report["suites"][suite] = cases
-        for case in settings["cases"]:
+        for case in selected_cases:
 
             def directory(role, repeat):
                 return generation / role / str(repeat) / case["id"] / "rollout.mp4"

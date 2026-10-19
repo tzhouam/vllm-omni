@@ -190,13 +190,21 @@ CI partitions weekly's 18 cases into six CUDA and six NPU groups of three cases.
 candidate starts. Generated effective profiles retain the source profile SHA256;
 generation and evaluation use the same `LINGBOT_CASE_SHARD=INDEX/COUNT` selection.
 No scene, seed, rollout length or measurement is removed.
-CUDA weekly scoring now evaluates 18 videos per shard, with a 240-minute job
-limit. The earlier six-case/36-video orbit shard
-[timed out after approximately 300 minutes](https://buildkite.com/vllm/vllm-omni/builds/17464#01a1485e-e82e-4b98-8f8a-b4893af2d460)
-despite requesting 1,440 minutes. Its failed JUnit and partial native scores
-remain failure evidence. The smaller shards retain the same generation and
-quality profiles, warmups, starts and regression budgets; fresh target runs
-must confirm that the complete evaluation finishes within the job limit.
+Weekly scoring splits each generation shard into three required evaluator jobs,
+selected by `LINGBOT_QUALITY_CASE_INDEX=0`, `1` or `2` (pytest option
+`--lingbot-quality-case-index`). Each evaluator scores one case's six videos:
+three independent reference starts and three candidate starts. All 18 cases
+remain mandatory for both CUDA and NPU, and each result records its selected
+case and the complete, unchanged generation profile and manifest hash. Every
+producer artifact is still checksum-verified; a failed generation gate keeps
+its evaluator failed even when native quality passes. Evaluator outputs use
+separate `shard-N/case-M` directories.
+The CUDA evaluator keeps its 240-minute job limit. Three-case/18-video jobs
+[timed out in build 17498](https://buildkite.com/vllm/vllm-omni/builds/17498#01a14c3f-4df0-425a-98f4-05f93e00f899),
+after the earlier six-case layout also exceeded the effective CI limit. These
+failed runs remain evidence; fresh target runs must establish that the per-case
+layout finishes. Generation profiles, warmups, starts, rollout lengths and
+regression budgets are unchanged.
 The quality coordinator checkpoints evaluator versions, hardware, input manifest
 and policy hashes before launching native workers. A forced job termination can
 bypass Python cleanup, so this checkpoint stays failed until the complete gate
