@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import importlib
 import re
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 
@@ -32,6 +33,20 @@ def main() -> None:
         f"expected={expected_version} torch={torch.__version__} "
         f"cuda={torch.version.cuda} device={torch.cuda.get_device_name()}"
     )
+    for package in (
+        "transformers",
+        "tokenizers",
+        "torchvision",
+        "pillow",
+        "opencv-python-headless",
+        "numpy",
+        "flashinfer-python",
+    ):
+        try:
+            installed_version = version(package)
+        except PackageNotFoundError:
+            installed_version = "not installed"
+        print(f"Runtime dependency: {package}=={installed_version}")
 
 
 if __name__ == "__main__":

@@ -41,6 +41,8 @@ steps:
       - label: ":full_moon: Omni · Doc Test with L4 · 4-GPU"
         source_file_dependencies: omni_qwen2_5_omni_doc
         timeout_in_minutes: 90
+        artifact_paths:
+          - audio_*.wav
         commands:
           - export VLLM_ALLOW_LONG_MAX_MODEL_LEN="1"
           - pytest -s -v tests/examples/ -m "full_model and omni and L4 and B200 and cards_4" --run-level "full_model"
