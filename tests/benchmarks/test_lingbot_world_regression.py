@@ -288,7 +288,10 @@ def test_h100_p95_cv_calibration_uses_prior_references_and_independent_holdouts(
     maxima = []
     for cohort in [evidence["training_cohort"], *evidence["validation_cohorts"]]:
         assert cohort["reference_revision"] == record["reference_revision"]
-        assert sha256(root / cohort["profile"]) == cohort["profile_sha256"]
+        historical_profile = (
+            root / "tests/dfx/lingbot_world/calibration/history/profiles" / Path(cohort["profile"]).name
+        )
+        assert sha256(historical_profile) == cohort["profile_sha256"]
         cvs = []
         for row in cohort["reference_cases"].values():
             values = row["p95_values_ms"]
@@ -376,6 +379,10 @@ def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(
     monkeypatch.setattr(runner, "git_revision", lambda path: "b" * 40)
     output = tmp_path / "output"
     profile = read_json(root / f"configs/{platform}_nightly.json")
+    if platform == "cuda":
+        # Exercise the historical calibration algorithm with its own reference,
+        # independently of the newly selected production reference epoch.
+        profile["reference_revision"] = calibration["workload"]["reference_revision"]
     profile["cases"] = profile["cases"][:1]
     if calibration_state == "warmup_changed":
         profile["warmup_num_chunks"] += 1
@@ -555,7 +562,7 @@ def test_cuda_quality_ceilings_reproduce_reference_only_calibration_and_keep_npu
     suite = root / "tests/dfx/lingbot_world"
     record = read_json(suite / "calibration/history/cuda_nightly_reference_unrecorded.json")
     limits = read_json(suite / "quality.json")
-    assert record["workload"] == read_json(suite / "configs/cuda_nightly.json")
+    assert record["workload"] == read_json(suite / "calibration/history/profiles/cuda_nightly.json")
     assert record["deploy_sha256"] == sha256(root / record["workload"]["deploy_config"])
     assert record["evaluator_lock_sha256"] == sha256(suite / "evaluators.lock.json")
     assert record["asset_lock_sha256"] == sha256(suite / "assets.lock.json")
@@ -629,7 +636,8 @@ def test_h100_long_imaging_calibration_preserves_candidate_budget_and_rejects_un
     record = read_json(suite / "calibration/history/cuda_nightly_reference_unrecorded.json")
     evidence = record["target_h100_long_imaging_reference_calibration"]
     limits = read_json(suite / "quality.json")
-    assert evidence["profile_sha256"] == sha256(root / evidence["profile"])
+    historical_profile = suite / "calibration/history/profiles" / Path(evidence["profile"]).name
+    assert evidence["profile_sha256"] == sha256(historical_profile)
     assert evidence["deploy_sha256"] == record["deploy_sha256"]
     assert evidence["reference_revision"] == record["reference_revision"]
     assert evidence["evaluator_lock_sha256"] == record["evaluator_lock_sha256"]
@@ -1043,11 +1051,13 @@ def test_frozen_quality_population_preserves_candidate_budgets_and_negative_cont
     assert not check_video_precision(case["pixels"], candidate, **kwargs)["passed"]
 
 
-def test_active_recorded_zero_reference_calibration_matches_pinned_workload():
+def test_older_recorded_zero_calibration_rejects_new_production_reference():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
     record = read_json(root / "calibration/cuda_nightly_reference.json")
     assert record["engine_environment"] == _RECORDED_ENGINE_ENVIRONMENT
-    assert record["workload"] == read_json(root / "configs/cuda_nightly.json")
+    profile = read_json(root / "configs/cuda_nightly.json")
+    assert record["workload"] == read_json(root / "calibration/history/profiles/cuda_nightly.json")
+    assert record["workload"]["reference_revision"] != profile["reference_revision"]
     contract = {
         "deploy_sha256": record["deploy_sha256"],
         "profile": record["workload"],
@@ -1055,7 +1065,42 @@ def test_active_recorded_zero_reference_calibration_matches_pinned_workload():
         "engine_environment": dict(_RECORDED_ENGINE_ENVIRONMENT),
     }
     verify_reference_calibration_contract(contract, record)
+    contract["profile"] = profile
+    with pytest.raises(RegressionError, match="Reference calibration profile changed: reference_revision"):
+        verify_reference_calibration_contract(contract, record)
     assert not record["independent_validation_complete"]
+
+
+def test_current_production_reference_is_pinned_for_both_platforms_and_all_profiles():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world/configs"
+    names = ["cuda_smoke", "cuda_nightly", "cuda_weekly", "cuda_long", "npu_nightly", "npu_weekly", "npu_long"]
+    assert {read_json(root / f"{name}.json")["reference_revision"] for name in names} == {
+        "1cc64011cee7ed4860f8a3849511130df747bc50"
+    }
+    for name in names:
+        historical = read_json(root.parent / f"calibration/history/profiles/{name}.json")
+        assert read_json(root / f"{name}.json") == {
+            **historical,
+            "reference_revision": "1cc64011cee7ed4860f8a3849511130df747bc50",
+        }
+
+
+@pytest.mark.parametrize("chunks,profile_name", [(40, "cuda_nightly"), (600, "cuda_long")])
+def test_older_quality_population_cannot_qualify_current_production_reference(chunks, profile_name):
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    population = quality_population(chunks)
+    contract = copy.deepcopy(population["contract"])
+    contract["profile"] = read_json(root / f"configs/{profile_name}.json")
+    with pytest.raises(RegressionError, match="Quality reference population profile changed"):
+        verify_quality_population_contract(
+            population,
+            contract,
+            evaluator_packages=quality_packages(),
+            evaluator_lock_sha256=population["evaluator_lock_sha256"],
+            asset_lock_sha256=population["asset_lock_sha256"],
+        )
 
 
 def test_active_nightly_population_records_both_real_cohorts_and_decoder():

@@ -14,3 +14,16 @@ checks; archiving it does not change original hardware pass/fail results.
 Archived records are not loaded by the CI runner.
 The active nightly records use independent recorded-zero H100 reference cohorts;
 independent final-source target-hardware validation is still required.
+
+The production reference was advanced to `1cc64011cee7ed4860f8a3849511130df747bc50`
+before fresh collection on 2026-10-19. The earlier records retained outside
+`history/` are now incompatible with that pin and intentionally fail contract
+validation. Their original data and failures remain unchanged; qualified fresh
+replacements must archive those predecessors byte for byte. See the suite's
+[current production protocol](../../README.md#current-production-reference-calibration-pending).
+
+`profiles/` preserves all seven earlier profiles byte for byte from
+`7d1dfdafbec699b8fb327bd5375a23281dfba2df`. Historical evidence hashes bind to
+these snapshots after the active reference pins advance; the active profiles
+differ only in `reference_revision`. Do not rewrite archived profile hashes to
+make old observations appear to have used the new production reference.

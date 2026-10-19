@@ -3,6 +3,50 @@
 The suite drives the real `WS /v1/realtime/video` endpoint. CPU tests validate
 gate logic separately and are not model performance evidence.
 
+## Current production reference: calibration pending
+
+The initial production baseline is pinned to
+`1cc64011cee7ed4860f8a3849511130df747bc50` for both CUDA and NPU. It contains the
+accepted main implementation and the NPU offload fix; its `vllm_omni` tree is
+`72eed157935029713ff0d08cdcbc84de841dc747`, identical to the implementation being
+introduced into CI. This baseline choice was explicitly approved before fresh
+reference collection on 2026-10-19. Future candidate changes remain compared
+against the frozen reference; updating a candidate must not advance this pin.
+
+Calibration is **pending**. Existing calibration JSON files retain the earlier
+reference revisions and their original evidence. CUDA gates reject their use
+with the new revision, while still retaining complete measurements and native
+scores for calibration. These expected calibration failures do not qualify the
+new baseline. Preserve every earlier failed job, including the old-reference
+motion/quality differences; historical candidate videos cannot become new
+reference videos even if their production source tree matches.
+
+Before collecting new values, use this reference-only protocol:
+
+1. Collect two complete fresh three-start reference cohorts per platform and
+   profile, covering every weekly case and the exact nightly/600-chunk lengths.
+   Record source, deployment, inputs, hardware, packages and artifact hashes.
+2. Freeze calibration from those six reference starts. Native continuous
+   reference-spread ceilings are per case and dimension: the larger of the
+   existing conservative ceiling and the six-value range plus 25%, rounded up
+   to 0.005. The earlier proposal sharing ceilings across weekly cases failed
+   independent controls and is not adopted. Keep candidate score tolerances
+   and binary-activity limits unchanged.
+3. Use all 15 unordered reference-video pairs for pixel calibration. Retain
+   full-frame/window coverage, the canonical pinned decoder, and existing
+   candidate PSNR/SSIM allowances.
+4. For performance, retain the 5% candidate allowance and existing statistics.
+   Derive startup-stall/TTFC noise floors from the maximum excess between the
+   two reference cohorts, add 25%, and round up to 1/5 ms respectively. Derive
+   each platform/profile's P95 reference-CV ceiling from its largest training
+   case/cohort CV plus 25%, rounded up to 0.005 and at least 3%. Mean/P50 CV and
+   steady-stall limits remain unchanged. These are proposed reference-noise
+   limits until independent validation passes.
+5. Freeze records before a third independent reference cohort and final-source
+   candidate acceptance. Require every held-out case to pass, retain all
+   negative controls, and investigate failures without refitting to them.
+   Promote qualified records and archive their predecessors byte for byte.
+
 ## Prerequisites and commands
 
 Use the inference environment matching `docker/Dockerfile.ci` (vLLM 0.31.0)

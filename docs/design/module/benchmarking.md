@@ -100,6 +100,14 @@ three independent starts per role, rollout lengths, warmups and regression
 budgets. Record the evaluated case while retaining the complete producer
 profile and manifest hash; verify all producer artifact hashes and preserve the
 producer's failure in the final gate. Use distinct per-case output directories.
+The initial CUDA/NPU production reference is frozen at
+`1cc64011cee7ed4860f8a3849511130df747bc50`. Its fresh calibration is pending:
+older-reference records remain immutable and must fail contract validation
+against the new pin. Collect fresh reference-role data, freeze training records,
+then validate independent held-out references and final-source candidates.
+Historical candidate artifacts cannot substitute for new references. Native
+reference-spread calibration is scoped per platform, profile, case and dimension;
+reference calibration cannot change candidate regression allowances.
 NPU weekly collection separates each case shard's three independent
 reference/candidate pairs into bounded jobs. A mandatory CPU gate verifies the
 complete matching population per shard before quality evaluation; missing or
