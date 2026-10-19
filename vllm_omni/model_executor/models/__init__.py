@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 from .registry import OmniModelRegistry  # noqa: F401
 
 # Model classes are lazily loaded via OmniModelRegistry.

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Regression tests for OmniRequest substitutability with the base Request.
 
 vllm-omni rebinds ``vllm.v1.request.Request`` to ``OmniRequest`` at import

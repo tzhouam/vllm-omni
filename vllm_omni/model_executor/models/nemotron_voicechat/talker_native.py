@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Native-vLLM building blocks for the NemotronVoiceChat talker.
 
 The eager/CUDA-graph talker executes the vendored HF Gemma3 backbone inside the

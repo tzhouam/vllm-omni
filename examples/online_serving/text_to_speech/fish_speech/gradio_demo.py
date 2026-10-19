@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 """Gradio demo for Fish Speech S2 Pro online serving via /v1/audio/speech API.
 
 Supports:

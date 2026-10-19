@@ -1,7 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 # HunyuanVideo-1.5 text-to-video curl example using the async video job API.
 
 set -euo pipefail

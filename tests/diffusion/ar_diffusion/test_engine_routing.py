@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tests for the generic engine-backend dispatcher + AR-Diffusion runner wiring.
 
 ``DiffusionEngine.resolve_engine_class`` is a generic dispatcher (``"default"`` / a

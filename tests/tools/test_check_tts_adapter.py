@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tests for the TTS adapter migration ratchet.
 
 The gate only earns its place if it actually catches the ways a per-model branch

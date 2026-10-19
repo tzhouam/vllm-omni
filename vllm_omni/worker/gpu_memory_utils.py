@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 """NVML-based per-process GPU memory utilities.
 
 Shared across worker types (OmniGPUWorkerBase, DiffusionWorker, etc.)

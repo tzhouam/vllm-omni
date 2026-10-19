@@ -1,6 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
 BASE_URL="${BASE_URL:-http://localhost:8091}"
 OUTPUT_PATH="${OUTPUT_PATH:-sana_video.mp4}"

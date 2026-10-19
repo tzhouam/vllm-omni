@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """GLM-TTS voice cloning frontend: speech tokenizer, speaker embedding, mel features.
 
 Lazy-loads external models (WhisperVQ, CampPlus ONNX) and provides extraction

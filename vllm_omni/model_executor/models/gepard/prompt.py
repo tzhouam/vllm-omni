@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Gepard-1.0 prompt layout.
 
 ``preprocess`` only consumes this layout — it injects the speaker prefix at the

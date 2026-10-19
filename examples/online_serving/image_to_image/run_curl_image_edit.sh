@@ -1,7 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 # Qwen-Image image-edit (image-to-image) curl example
 
 set -euo pipefail

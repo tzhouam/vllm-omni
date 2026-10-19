@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Cosmos3 guardrail hooks for vllm-omni.
 
 Thin adapter around the ``cosmos_guardrail`` package's ``CosmosSafetyChecker``

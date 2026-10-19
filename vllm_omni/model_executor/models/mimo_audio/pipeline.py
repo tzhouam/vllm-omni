@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """MiMo Audio pipeline topology (frozen).
 
 Stage 0: fused thinker+talker — multimodal understanding + text + RVQ codes.

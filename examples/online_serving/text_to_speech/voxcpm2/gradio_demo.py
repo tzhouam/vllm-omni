@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 """Gradio demo for VoxCPM2 TTS with gapless streaming audio playback.
 
 Uses a custom AudioWorklet-based player for gap-free streaming

@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Stage input processor for Step-Audio2: Thinker → Token2Wav transition."""
 
 from typing import Any

@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 """
 Stability-specific conftest: when pytest is executed under this directory,
 resource monitoring is started before each test and finalized after each test,

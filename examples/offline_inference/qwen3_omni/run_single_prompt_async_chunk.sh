@@ -1,7 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 # Run a single Qwen3-Omni request with async_chunk enabled.
 #
 # This uses AsyncOmni (async orchestrator) so that downstream stages

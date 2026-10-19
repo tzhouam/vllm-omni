@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """The AR-Diffusion Engine (AR-Diffusion)."""
 
 from __future__ import annotations

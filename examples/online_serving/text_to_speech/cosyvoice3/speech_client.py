@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 """Client for CosyVoice3 TTS via /v1/audio/speech endpoint.
 
 CosyVoice3 has no built-in voice presets: every request is voice cloning

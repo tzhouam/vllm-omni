@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Guard the public accessor that examples and docs use to read omni outputs.
 
 ``OmniRequestOutput`` used to hold a nested ``RequestOutput`` in a

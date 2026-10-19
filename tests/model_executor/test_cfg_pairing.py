@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Unit tests for the model-neutral CFG request-pairing scheduler patches.
 
 The patches keep a cond/uncond request pair step-locked inside one engine:

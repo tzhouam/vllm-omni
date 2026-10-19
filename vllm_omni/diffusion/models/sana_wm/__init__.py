@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """SANA-WM diffusion model integration."""
 
 from vllm_omni.diffusion.models.sana_wm.config import SanaWmConfig

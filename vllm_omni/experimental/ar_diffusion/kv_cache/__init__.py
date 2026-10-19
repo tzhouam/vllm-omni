@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """AR-Diffusion engine-level KV cache helpers.
 
 Thin glue over vLLM's paged KV stack (``KVCacheManager`` / ``BlockPool`` /

@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 set -euo pipefail
 
 # Push every .mp4 in a directory as its own RTSP stream (one ffmpeg per file),

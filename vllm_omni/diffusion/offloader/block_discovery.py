@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Block discovery for layerwise offload.
 
 Shared between LayerWiseOffloadBackend and DistributedLayerwiseOffloadBackend.

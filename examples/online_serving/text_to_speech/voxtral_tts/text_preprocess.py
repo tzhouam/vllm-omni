@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 """Text preprocessing utilities for the Voxtral TTS demo.
 
 Provides text normalization and cleanup before sending input to the TTS model,

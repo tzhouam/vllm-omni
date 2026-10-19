@@ -1,7 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 # SenseNova-U1 online serving startup script
 
 MODEL="${MODEL:-SenseNova/SenseNova-U1-8B-MoT}"

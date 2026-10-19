@@ -1,7 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 # vllm-omni Intel bootstrap
 # Uses static pipeline-intel.yml for Intel XPU tests
 

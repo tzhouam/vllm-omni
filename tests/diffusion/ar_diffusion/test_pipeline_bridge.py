@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tests for the ARDiffusionKVState paged-attention pipeline bridge."""
 
 import pytest

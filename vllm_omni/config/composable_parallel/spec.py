@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Core declarative types for parallel-strategy specification.
 
 A :class:`StrategySpec` declares one parallelism scheme: the mesh axis it sizes

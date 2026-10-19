@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """OmniVoice serving adapter (AR engine_client path).
 
 OmniVoice can also be served through the pure-diffusion engine via

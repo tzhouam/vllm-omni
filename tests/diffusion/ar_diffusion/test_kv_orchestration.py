@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """Tests for ARDiffusionKVCache — the engine-level KV orchestration body (Phase 1)."""
 
 import pytest

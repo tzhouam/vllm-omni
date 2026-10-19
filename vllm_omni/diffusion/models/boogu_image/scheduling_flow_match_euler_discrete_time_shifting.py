@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 #
 # Ported for vLLM-Omni native Boogu-Image support from
 # boogu/schedulers/scheduling_flow_match_euler_discrete_time_shifting.py

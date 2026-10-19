@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 """CUDA graph wrapper for BigVGAN vocoding in IndexTTS2 Stage 1.
 
 BigVGAN is heavily CPU launch-bound (Snake/AliasFree small-op storm:

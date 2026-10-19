@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 """MiniMax H3 audio-video diffusion support."""
 
 from vllm_omni.model_executor.models.minimax_h3 import reference_video

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """FP8 scaled-MM with a fused bias epilogue, backed by quack's CuteDSL GEMM."""
 
 from __future__ import annotations

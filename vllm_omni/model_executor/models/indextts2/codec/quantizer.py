@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: Apache-2.0
-# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-
 # SPDX-License-Identifier: MIT
 # SPDX-FileCopyrightText: Copyright contributors to the Amphion project
 """Decode-only factorized residual vector quantizer.
