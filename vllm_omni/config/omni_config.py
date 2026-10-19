@@ -34,6 +34,7 @@ from vllm.engine.arg_utils import EngineArgs as VllmEngineArgs
 from vllm.logger import init_logger
 from vllm.model_executor.layers.quantization.base_config import QuantizationConfig
 from vllm.pooling_params import PoolingParams
+from vllm.v1.attention.backends.registry import AttentionBackendEnum
 
 from vllm_omni.config.stage_config import (
     _DEPLOY_DIR,
@@ -206,6 +207,7 @@ class _ModelEngineOverrides(TypedDict, total=False):
     logprobs_mode: str
     mm_processor_kwargs: dict[str, Any]
     mm_processor_cache_type: str
+    mm_encoder_attn_backend: AttentionBackendEnum | str
     hf_token: bool | str
     hf_config_path: str
     generation_config: str
@@ -527,6 +529,7 @@ class OmniStageModelConfig(_TrackExplicitConfigFields):
     logprobs_mode: str | None = None
     mm_processor_kwargs: dict[str, Any] | None = None
     mm_processor_cache_type: str | None = None
+    mm_encoder_attn_backend: AttentionBackendEnum | str | None = None
     hf_token: bool | str | None = None
     hf_config_path: str | None = None
     generation_config: str | None = None
