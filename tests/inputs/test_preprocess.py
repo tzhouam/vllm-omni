@@ -240,6 +240,14 @@ def test_qwen_video_sampling_lists_count_videos_not_frames(renderer, mocker, vid
     "options,valid",
     [
         ({}, True),
+        ({"videos_kwargs": None}, True),
+        ({"videos_kwargs": []}, False),
+        ({"videos_kwargs": 123}, False),
+        ({"fps": 2.0, "videos_kwargs": None}, True),
+        ({"fps": 2.0, "videos_kwargs": []}, False),
+        ({"fps": 2.0, "videos_kwargs": 123}, False),
+        ({"size": {"shortest_edge": 4096}, "videos_kwargs": []}, False),
+        ({"size": {"shortest_edge": 4096}, "videos_kwargs": 123}, False),
         ({"size": 123, "videos_kwargs": {"size": {"shortest_edge": 4096}}}, True),
         ({"size": {"shortest_edge": 4096}, "images_kwargs": {"size": 123}}, True),
         ({"fps": "bad", "videos_kwargs": {"fps": 2.0}}, True),
@@ -269,6 +277,42 @@ def test_qwen_video_validation_uses_resolved_video_scope(renderer, mocker, async
         renderer._process_multimodal.assert_called_once()
     else:
         with pytest.raises(VLLMValidationError, match="Video processor"):
+            render()
+        renderer._process_multimodal.assert_not_called()
+
+
+@pytest.mark.parametrize("async_mode", [False, True])
+@pytest.mark.parametrize(
+    "config_scope,request_scope,valid",
+    [
+        ([], {"fps": 3.0}, True),
+        ({"fps": 3.0}, 123, False),
+        ([], None, False),
+        ({"fps": 3.0}, None, True),
+    ],
+)
+def test_qwen_video_scope_validation_keeps_merge_precedence(
+    renderer, mocker, async_mode, config_scope, request_scope, valid
+):
+    renderer.model_config.hf_config = SimpleNamespace(model_type="qwen3_vl")
+    info = _video_processing_info(mocker, {"fps": 2.0, "videos_kwargs": config_scope})
+    renderer.get_mm_processor = lambda: mocker.Mock(info=info)
+    prompt = {
+        "prompt": "video",
+        "multi_modal_data": {"video": ["frames"]},
+        "mm_processor_kwargs": {"videos_kwargs": request_scope},
+    }
+
+    def render():
+        if async_mode:
+            return asyncio.run(renderer.render_cmpl_async([prompt]))
+        return renderer.render_cmpl([prompt])
+
+    if valid:
+        render()
+        renderer._process_multimodal.assert_called_once()
+    else:
+        with pytest.raises(VLLMValidationError, match="videos_kwargs must be a mapping"):
             render()
         renderer._process_multimodal.assert_not_called()
 

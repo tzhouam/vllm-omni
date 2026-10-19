@@ -28,9 +28,11 @@ uv pip install -e .
 ```
 
 These commands install the vLLM 0.32.0 release-branch wheel at the exact
-tested tag commit, with PyTorch 2.13.0 and CUDA 13.0. The GitHub release
-page, PyPI wheel and matching ROCm wheel are not yet available; the previous 0.31 ROCm command
-does not provide a validated runtime for this checkout. For published
+tested tag commit, with PyTorch 2.13.0 and CUDA 13.0. The
+[vLLM 0.32.0 release](https://github.com/vllm-project/vllm/releases/tag/v0.32.0),
+PyPI wheel and matching ROCm wheel are published. ROCm runtime validation
+with this checkout remains pending. A vLLM-Omni 0.32 wheel is not yet
+published; install Omni from source as shown above. For published
 vLLM-Omni wheels and additional installation methods, see the
 [installation guide](installation/README.md).
 

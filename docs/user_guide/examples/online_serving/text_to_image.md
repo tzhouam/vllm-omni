@@ -2,6 +2,7 @@
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/online_serving/text_to_image>.
 
+
 This example demonstrates how to deploy Qwen-Image model for online image generation service using vLLM-Omni.
 
 ## Start Server
@@ -11,7 +12,6 @@ This example demonstrates how to deploy Qwen-Image model for online image genera
 ```bash
 vllm serve Qwen/Qwen-Image --omni --port 8091
 ```
-
 !!! note
     If you encounter Out-of-Memory (OOM) issues or have limited GPU memory, you can enable VAE slicing and tiling to reduce memory usage, --vae-use-slicing --vae-use-tiling
 

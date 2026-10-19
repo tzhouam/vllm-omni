@@ -21,7 +21,6 @@ CUDA_VISIBLE_DEVICES=0 vllm serve tencent/Covo-Audio-Chat --omni \
 ### Send Request
 
 Get into the example folder:
-
 ```bash
 cd examples/online_serving/covo_audio
 ```
@@ -29,13 +28,11 @@ cd examples/online_serving/covo_audio
 #### Audio input chat
 
 Using the default audio asset:
-
 ```bash
 python openai_chat_completion_client.py
 ```
 
 Using a custom audio file:
-
 ```bash
 python openai_chat_completion_client.py --audio-path /path/to/audio.wav
 ```
@@ -84,7 +81,6 @@ The full system prompt is defined in `vllm_omni/model_executor/models/covo_audio
 ## FAQ
 
 If you encounter `ModuleNotFoundError: No module named 'librosa'`, install it with:
-
 ```bash
 pip install librosa
 ```

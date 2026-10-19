@@ -2,6 +2,7 @@
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/online_serving/chart-helm>.
 
+
 Helm chart for deploying [vLLM-Omni](https://github.com/vllm-project/vllm-omni) on Kubernetes. vLLM-Omni extends vLLM with omni-modality model serving, supporting text-to-image, multimodal chat, text-to-speech, and more.
 
 ## Prerequisites
@@ -24,7 +25,7 @@ helm install my-release ./chart-helm \
 Set the `model` value to any supported HuggingFace model ID:
 
 | Model | Type | GPUs | Notes |
-| ------- | ------ | ------ | ------- |
+|-------|------|------|-------|
 | `Tongyi-MAI/Z-Image-Turbo` | text-to-image | 1 | Small, fast (default) |
 | `stabilityai/stable-diffusion-3.5-medium` | text-to-image | 1 | ~6GB VRAM |
 | `Qwen/Qwen-Image` | text-to-image | 1 | Large, ~40GB+ VRAM |
@@ -108,7 +109,7 @@ helm install my-release ./chart-helm \
 Once deployed, vLLM-Omni exposes the following OpenAI-compatible endpoints:
 
 | Endpoint | Method | Description |
-| ---------- | -------- | ------------- |
+|----------|--------|-------------|
 | `/health` | GET | Health check |
 | `/v1/models` | GET | List available models |
 | `/v1/chat/completions` | POST | Chat completions (text/multimodal) |
@@ -119,7 +120,7 @@ Once deployed, vLLM-Omni exposes the following OpenAI-compatible endpoints:
 ## Files
 
 | File | Description |
-| ------ | ------------- |
+|------|-------------|
 | `Chart.yaml` | Chart metadata (name, version, maintainers) |
 | `values.yaml` | Default configuration values |
 | `values.schema.json` | JSON schema for validating values |
@@ -149,7 +150,7 @@ helm unittest .
 
 ??? abstract ".helmignore"
     ``````
---8<-- "examples/online_serving/chart-helm/.helmignore"
+    --8<-- "examples/online_serving/chart-helm/.helmignore"
     ``````
 ??? abstract "Chart.yaml"
     ``````yaml

@@ -1,5 +1,6 @@
 # CFG-Parallel Guide
 
+
 ## Table of Content
 
 - [Overview](#overview)
@@ -97,8 +98,10 @@ In `DiffusionParallelConfig`
 |-----------|------|---------|-------------|
 | `cfg_parallel_size` | int | 1 | Number of GPUs for CFG parallelism. Set to 2 to enable CFG-Parallel (rank 0 for positive, rank 1 for negative branch) |
 
+
 !!! info
     Most models support `cfg_parallel_size=2` (positive branch on rank 0, negative branch on rank 1). **Bagel** and **Boogu-Image-Edit double guidance** also support `cfg_parallel_size=3` for full three-way branch execution. Boogu double guidance additionally supports size 2 via round-robin assignment of its three branches.
+
 
 ---
 
@@ -136,7 +139,6 @@ In `DiffusionParallelConfig`
 **Solutions**:
 
 1. **Ensure CFG scale is set correctly:**
-
 ```python
 # Bad: No CFG effect
 sampling_params = OmniDiffusionSamplingParams(num_inference_steps=50)
@@ -148,8 +150,7 @@ sampling_params = OmniDiffusionSamplingParams(
 )
 ```
 
-1. **Add negative prompt:**
-
+2. **Add negative prompt:**
 ```python
 outputs = omni.generate(
     {
@@ -161,7 +162,7 @@ outputs = omni.generate(
 )
 ```
 
-1. **Check model support:**
+3. **Check model support:**
    - Verify your model in [supported models](../../diffusion_features.md#supported-models)
    - Some models don't support CFG-Parallel
 

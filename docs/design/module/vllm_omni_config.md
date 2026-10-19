@@ -75,11 +75,6 @@ fields are terminal internals. These exclusions prevent one input from being
 constructed or projected through two config concerns. Effective-engine-argument
 tests cover both the dynamic mapping and this exclusion boundary.
 
-The model concern owns `mm_encoder_attn_backend`. Global CLI overrides and
-per-stage `engine_extras` preserve this value through `OmniEngineArgs` to
-upstream multimodal configuration. An omitted value leaves backend selection
-to upstream vLLM.
-
 `CompilationConfig` and `ProfilerConfig` are direct structured-stage fields:
 `stage.compilation_config` and `stage.profiler_config`. They accept mapping/YAML
 inputs and complete upstream value objects. Mapping inputs are validated and

@@ -10,7 +10,8 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 import torch
-from vllm.outputs import PoolingRequestOutput
+from vllm.outputs import PoolingRequestOutput, RequestOutput
+from vllm.pooling_params import PoolingParams
 from vllm.sampling_params import RequestOutputKind
 from vllm.v1.engine import EngineCoreEvent, EngineCoreEventType, FinishReason
 from vllm.v1.engine.detokenizer import IncrementalDetokenizer
@@ -24,7 +25,7 @@ from vllm.v1.metrics.stats import (
 )
 from vllm.v1.serial_utils import MsgpackDecoder, MsgpackEncoder
 
-from vllm_omni.engine import OmniEngineCoreOutput
+from vllm_omni.engine import OmniEngineCoreOutput, OmniEngineCoreRequest
 from vllm_omni.outputs import output_processor
 from vllm_omni.outputs.output_modality import OutputModality, OutputModalityNames
 from vllm_omni.outputs.output_processor import MultimodalOutputProcessor, OmniRequestState
@@ -838,6 +839,83 @@ def test_no_detokenizer_make_request_output():
     assert result is not None
     assert not isinstance(result, PoolingRequestOutput)
     assert AUDIO in result.outputs[0].multimodal_output
+
+
+@pytest.mark.parametrize("cache_miss", [False, True])
+def test_pooling_completion_uses_upstream_output_and_finishes_request(cache_miss):
+    """Native pooling success and cache-miss errors retain their output types."""
+    processor = MultimodalOutputProcessor(tokenizer=None, log_stats=False)
+    request = OmniEngineCoreRequest(
+        request_id="aligner-internal",
+        external_req_id="aligner-external",
+        prompt_token_ids=[10, 11],
+        mm_features=None,
+        sampling_params=None,
+        pooling_params=PoolingParams(task="token_classify"),
+        arrival_time=0.0,
+        lora_request=None,
+        cache_salt=None,
+        data_parallel_rank=None,
+    )
+    processor.add_request(request, prompt=None, parent_req=None, request_index=0, queue=None)
+    timestamps = torch.tensor([[0, 125], [125, 300]], dtype=torch.int32)
+
+    processed = processor.process_outputs(
+        [
+            OmniEngineCoreOutput(
+                request_id=request.request_id,
+                new_token_ids=[],
+                pooling_output=None if cache_miss else timestamps,
+                finish_reason=FinishReason.ERROR if cache_miss else FinishReason.STOP,
+                mm_cache_miss_hashes=["audio-feature"] if cache_miss else None,
+            )
+        ]
+    )
+
+    assert len(processed.request_outputs) == 1
+    output = processed.request_outputs[0]
+    assert isinstance(output, PoolingRequestOutput)
+    assert output.request_id == request.external_req_id
+    assert output.prompt_token_ids == request.prompt_token_ids
+    assert output.finished
+    if cache_miss:
+        assert output.error is not None
+        assert output.error.code == "multimodal_cache_miss"
+        assert output.error.retryable
+        assert output.outputs.data.numel() == 0
+    else:
+        assert output.error is None
+        torch.testing.assert_close(output.outputs.data, timestamps)
+    assert request.request_id not in processor.request_states
+    assert request.external_req_id not in processor.external_req_ids
+
+
+def test_no_detokenizer_generation_cache_miss_keeps_multimodal_completion():
+    """A generation-stage error must retain its completion type and payload."""
+    processor = MultimodalOutputProcessor(tokenizer=None, log_stats=False, output_modality=OutputModality.AUDIO)
+    state = _make_no_detok_state(RequestOutputKind.CUMULATIVE)
+    processor.request_states[state.request_id] = state
+    processor.external_req_ids[state.external_req_id].append(state.request_id)
+    audio = torch.tensor([0.1, 0.2])
+
+    processed = processor.process_outputs(
+        [
+            OmniEngineCoreOutput(
+                request_id=state.request_id,
+                new_token_ids=[],
+                multimodal_output={AUDIO: audio},
+                finish_reason=FinishReason.ERROR,
+                mm_cache_miss_hashes=["audio-feature"],
+            )
+        ]
+    )
+
+    assert len(processed.request_outputs) == 1
+    output = processed.request_outputs[0]
+    assert isinstance(output, RequestOutput)
+    assert output.finished
+    torch.testing.assert_close(output.outputs[0].multimodal_output[AUDIO], audio)
+    assert state.request_id not in processor.request_states
 
 
 def test_no_detokenizer_process_outputs_returns_nonterminal_audio_chunk(monkeypatch):

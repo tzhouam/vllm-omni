@@ -133,8 +133,8 @@ class OmniGPUWorkerBase(GPUWorker):
             delay_iterations: Optional per-session delayed start (vLLM compat).
             max_iterations: Optional per-session iteration cap (vLLM compat).
 
-        vLLM's profile() only passes is_start, so we generate a descriptive
-        trace filename here before delegating to the profiler.
+        Generate a stage-specific trace filename before delegating the
+        lifecycle and iteration controls to the profiler.
         """
         if self.profiler is None:
             raise RuntimeError(
@@ -150,10 +150,12 @@ class OmniGPUWorkerBase(GPUWorker):
                 stage_id = getattr(self.vllm_config.model_config, "stage_id", 0)
                 filename = profile_prefix or f"stage{stage_id}_rank{self.rank}_{int(time.time())}"
                 self.profiler.set_trace_filename(filename)
-            self.profiler.start(
-                delay_iterations=delay_iterations,
-                max_iterations=max_iterations,
-            )
+            kwargs: dict[str, int] = {}
+            if delay_iterations is not None:
+                kwargs["delay_iterations"] = delay_iterations
+            if max_iterations is not None:
+                kwargs["max_iterations"] = max_iterations
+            self.profiler.start(**kwargs)
         else:
             self.profiler.stop()
 

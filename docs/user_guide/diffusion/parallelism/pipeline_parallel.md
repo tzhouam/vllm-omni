@@ -134,6 +134,7 @@ The value must be a comma-separated list of integers whose length equals `pipeli
 the total number of transformer layers. This is useful when you want to balance memory or compute asymmetrically across
 ranks.
 
+
 ---
 
 ## Best Practices
@@ -176,11 +177,11 @@ primarily a latency optimization.
 parallel_config = DiffusionParallelConfig(pipeline_parallel_size=2)
 ```
 
-1. **Check model support:**
+2. **Check model support:**
     - Verify your model in [supported models](../../diffusion_features.md#supported-models)
     - PP is currently validated only on selected pipelines
 
-2. **Combine with other methods when appropriate:**
+3. **Combine with other methods when appropriate:**
     - PP can be combined with CFG-Parallel, Tensor Parallelism, or Sequence Parallelism on supported models
 
 ### Common Issue 2: PP pipeline fails at import

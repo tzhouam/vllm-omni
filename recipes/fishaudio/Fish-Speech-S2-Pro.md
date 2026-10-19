@@ -76,6 +76,7 @@ Notes:
 - The default deploy config `vllm_omni/deploy/fish_qwen3_omni.yaml` is loaded
   automatically by model registry (HF `model_type=fish_qwen3_omni`).
 
+
 #### Verification
 
 Basic TTS:
@@ -89,7 +90,6 @@ curl -X POST http://localhost:8091/v1/audio/speech \
         "response_format": "wav"
     }' --output output.wav
 ```
-
 [output.wav](https://github.com/user-attachments/files/27134970/output.wav)
 
 Voice cloning:
@@ -104,9 +104,10 @@ curl -X POST http://localhost:8091/v1/audio/speech \
         "ref_text": "Transcript of the reference audio."
     }' --output cloned.wav
 ```
-
 [reference.wav](https://github.com/user-attachments/files/27134971/reference.wav) <br>
 [cloned.wav](https://github.com/user-attachments/files/27134969/cloned.wav)
+
+
 
 #### Notes
 

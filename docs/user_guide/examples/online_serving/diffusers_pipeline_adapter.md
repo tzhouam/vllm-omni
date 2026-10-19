@@ -2,6 +2,7 @@
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/online_serving/diffusers_pipeline_adapter>.
 
+
 vLLM-Omni supports running diffusion models with the diffusers backend, directly serving any 🤗 Diffusers pipeline online without implementing them natively.
 
 ## Limitations

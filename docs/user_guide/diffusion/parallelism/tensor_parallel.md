@@ -1,5 +1,6 @@
 # Tensor Parallelism Guide
 
+
 ## Table of Content
 
 - [Overview](#overview)
@@ -29,6 +30,7 @@ See supported models list in [Supported Models](../../diffusion_features.md#supp
 ---
 
 ## Quick Start
+
 
 ### Basic Usage
 
@@ -96,6 +98,7 @@ In `DiffusionParallelConfig`:
 |-----------|------|---------|-------------|
 | `tensor_parallel_size` | int | 1 | Number of GPUs to shard model weights across. Must divide number of heads. |
 
+
 ---
 
 ## Best Practices
@@ -112,6 +115,7 @@ In `DiffusionParallelConfig`:
 - When maximum throughput is needed and memory is sufficient
 - Models with incompatible dimensions (e.g., Z-Image `num_heads=30`, which now supports `tensor_parallel_size=2`)
 
+
 ## Troubleshooting
 
 ### Common Issue 1: Out of Memory (OOM)
@@ -119,7 +123,6 @@ In `DiffusionParallelConfig`:
 **Symptoms**: CUDA OOM errors during model loading or inference, process crashes with memory errors
 
 **Solution**:
-
 ```python
 # Step 1: Enable TP with smallest degree
 parallel_config=DiffusionParallelConfig(tensor_parallel_size=2)
@@ -134,10 +137,10 @@ parallel_config=DiffusionParallelConfig(tensor_parallel_size=4)
 **Symptoms**: Error like "Model dimension X not divisible by tensor_parallel_size Y"
 
 **Solutions**:
-
 1. Check model-specific constraints (e.g., Z-Image only supports TP=2)
 2. Use a smaller TP size that divides model dimensions
 3. Consult [Supported Models](../../diffusion_features.md#supported-models) for compatible TP sizes
+
 
 ---
 
