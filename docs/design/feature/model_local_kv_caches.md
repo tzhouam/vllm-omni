@@ -27,7 +27,7 @@ The consumer therefore reports and does not subtract.
 ## What the four models declare
 
 | Model | Cache | Bounded by | Per row | Rows |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | Qwen3-TTS codec decoder (async-chunk only) | sliding `DynamicCache` | `sliding_window - 1 = 71` | 4.44 MiB | `max_num_seqs`, x2 for the working copy |
 | Qwen3-TTS graph pool | retained captures | same | 4.44 MiB | fixed, from captured shapes |
 | MiMo-Audio local transformer | `DynamicCache` | `group_size + max(delay_pattern) = 11` | 704 KiB | `max_num_seqs` |

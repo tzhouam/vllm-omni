@@ -46,7 +46,7 @@ NeMo modules (`nemo_vendored/`), so no `nemo_toolkit` install is needed.
 ## Pipeline
 
 | stage | arch | dtype | role |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 0 thinker | `NemotronVoiceChatThinkerForConditionalGeneration` (LLM_AR) | bf16 (PARITY: fp32) | WAV + system prompt -> frame-locked text-token timeline (+ function channel) |
 | 1 talker | `NemotronVoiceChatTalker` (LLM_AR) | fp32 | text timeline -> 31-quantizer RVQ code stacks (one per 80 ms frame) |
 | 2 code2wav | `NemotronVoiceChatCode2Wav` (LLM_GENERATION) | fp32 | RVQ-VAE decode -> 22.05 kHz PCM |

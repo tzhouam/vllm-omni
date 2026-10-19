@@ -1,9 +1,10 @@
-# --8<-- [start:requirements]
+<!-- --8<-- [start:requirements] -->
 
 For detailed hardware and software requirements, please refer to the [vLLM-Ascend installation documentation](https://docs.vllm.ai/projects/ascend/en/latest/installation.html).
 
-# --8<-- [end:requirements]
-# --8<-- [start:installation-release]
+<!-- --8<-- [end:requirements] -->
+
+<!-- --8<-- [start:installation-release] -->
 
 The recommended way to use vLLM-Omni on NPU is through the vLLM-Ascend pre-built Docker images:
 
@@ -67,9 +68,9 @@ For other installation methods (pip installation, building from source, custom D
 
 We are keeping [issue #886](https://github.com/vllm-project/vllm-omni/issues/886) up to date with the aligned versions of vLLM, vLLM-Ascend, and vLLM-Omni, and also outlining the Q1 roadmap there.
 
-# --8<-- [end:installation-release]
+<!-- --8<-- [end:installation-release] -->
 
-# --8<-- [start:installation-main]
+<!-- --8<-- [start:installation-main] -->
 
 You can also install vLLM-Omni from source if you want to use the latest features
 or bug fixes. This source checkout targets vLLM 0.31.0 and needs a matching
@@ -87,16 +88,16 @@ pip install -v -e . --no-build-isolation
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 ```
 
-# --8<-- [end:installation-main]
+<!-- --8<-- [end:installation-main] -->
 
-# --8<-- [start:pre-built-images]
+<!-- --8<-- [start:pre-built-images] -->
 
 vLLM-Omni offers Docker images for Ascend NPU deployment. You can just pull the **prebuilt image** from the image repository [ascend/vllm-omni](https://quay.io/repository/ascend/vllm-omni?tab=tags) and run it with bash.
 
 Supported images as following.
 
 | image name | Hardware | OS |
-|-|-|-|
+| - | - | - |
 | image-tag | A2 | Ubuntu |
 | image-tag-a3 | A3 | Ubuntu |
 | image-tag-a5 | A5 | Ubuntu |
@@ -239,4 +240,4 @@ All hardware variants use `docker/Dockerfile.npu`. Choose the device suffix for 
         --build-arg VLLM_ASCEND_DEVICE_SUFFIX=-310p .
     ```
 
-# --8<-- [end:pre-built-images]
+<!-- --8<-- [end:pre-built-images] -->

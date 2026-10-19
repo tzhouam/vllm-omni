@@ -116,7 +116,7 @@ edges:
 Important fields:
 
 | Parameter | Recommended Value | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `host` | `"auto"` | Advertises a routable local host IP for ZMQ metadata exchange. |
 | `zmq_port` | `50051` | Base ZMQ port. The runtime applies stage/rank offsets. |
 | `rpc_port` | `"auto"` | Lets TransferEngine choose an available RPC port. |
@@ -196,7 +196,7 @@ and metadata. The actual P2P data transfer happens on the receiver side during
 ## Troubleshooting
 
 | Symptom | Likely Cause | Action |
-|---|---|---|
+| --- | --- | --- |
 | `IPv4 device IP not found` | NPU HCCN IPv4 is missing. | Run `hccn_tool -i <id> -ip -g` and configure IPv4 for every participating NPU. |
 | `P2PCommInitRootInfo failed`, `ra init failed`, `RA_QP_STATUS_TIMEOUT` | Ascend P2P/RDMA/QP setup failed. | First verify device IPv4, link health, and device-to-device ping. Then test a minimal Yuanrong TE pair outside vLLM. |
 | `fftsplus sdma error`, `context is abort` | Runtime SDMA/FFTS failure, often after an invalid or failed P2P transfer. | Use `memory_pool_device: "npu"` for Ascend TE, reduce `memory_pool_size` if OOM occurs, and isolate the failing NPU pair with a Yuanrong TE demo. |

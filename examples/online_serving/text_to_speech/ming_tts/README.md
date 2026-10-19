@@ -94,7 +94,7 @@ REF_AUDIO=/path/to/reference.wav REF_TEXT="在此奉劝大家别乱打美白针�
 ## Request Fields
 
 | Field | Ming meaning |
-|-------|--------------|
+| ------- | -------------- |
 | `input` | target text |
 | `instructions` | plain style text, or JSON object for structured Ming controls |
 | `voice` | Ming IP voice label unless it resolves to an uploaded speaker |

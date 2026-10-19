@@ -263,8 +263,6 @@ because their preset defaults to 1536x1024:
 Each command writes its `--output` MP4. Confirm it decodes and that the sampled
 frames match the prompt.
 
-
-
 ## Guidance
 
 One-stage and ordinary Stage 1 support independent video/audio CFG,

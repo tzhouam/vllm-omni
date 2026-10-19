@@ -2,7 +2,6 @@
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/text_to_audio>.
 
-
 The `stabilityai/stable-audio-open-1.0` pipeline generates audio from text prompts.
 
 ## Prerequisites

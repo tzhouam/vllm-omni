@@ -60,7 +60,7 @@ python end2end.py --query-type use_mixed_modalities \
 Supported `--query-type` values:
 
 | Query type | Inputs |
-|---|---|
+| --- | --- |
 | `text` | Text only |
 | `use_image` | Image + text |
 | `use_audio` | Audio + text |

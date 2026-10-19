@@ -12,7 +12,7 @@ before vLLM-Omni inference starts.
 ## Hardware Support
 
 | Device | Support |
-|--------|---------|
+| -------- | --------- |
 | NVIDIA Blackwell GPU (SM 100+) | ❌ |
 | NVIDIA Ada/Hopper GPU (SM 89+) | ❌ |
 | NVIDIA Ampere GPU (SM 80+) | ❌ |
@@ -28,7 +28,7 @@ guide.
 ### Diffusion Model (Qwen-Image, Wan2.2)
 
 | Model | Base model | Scope | Hardware | Notes |
-|-------|------------|-------|----------|-------|
+| ------- | ------------ | ------- | ---------- | ------- |
 | Wan2.2 | Wan2.2 diffusion weights | DiT or diffusion stage | Ascend NPU | Upstream msModelSlim provides a Wan2.2 quantization recipe; vLLM-Omni inference validation is not listed |
 | Qwen-Image | `Qwen/Qwen-Image`, `Qwen/Qwen-Image-2512` | DiT or diffusion stage | Ascend NPU | Not validated in this guide |
 | HunyuanImage-3.0 | `tencent/HunyuanImage-3.0`, `tencent/HunyuanImage-3.0-Instruct` | DiT or diffusion stage | Ascend A2/A3 NPU | Generate quantized weights with the HunyuanImage-3.0 msModelSlim adaptation |

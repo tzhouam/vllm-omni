@@ -45,7 +45,7 @@ If you run the DROID client on Python < 3.12, also install `typing-extensions`.
 The bundled DreamZero configs intentionally keep only:
 
 | Config | Purpose |
-|---|---|
+| --- | --- |
 | `vllm_omni/deploy/dreamzero.yaml` | Default TP=1, CFG parallel disabled |
 | `vllm_omni/deploy/dreamzero_tp1_cfg2.yaml` | TP=1, CFG parallel size=2 |
 

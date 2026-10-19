@@ -23,7 +23,6 @@ Use this recipe when you want a known-good starting point for serving
 - Related example under `examples/`:
   [`examples/online_serving/text_to_image/README.md`](../../examples/online_serving/text_to_image/README.md)
 
-
 ## Hardware Support
 
 This recipe currently documents one CUDA GPU serving configuration.
@@ -54,7 +53,6 @@ vllm serve ${MODEL_NAME_OR_PATH} \
    --vae_use_slicing \
    --vae_use_tiling
 ```
-
 
 You can also use the example launcher and pass the extra flags through:
 
@@ -98,8 +96,6 @@ curl -s http://localhost:8092/v1/chat/completions   -H "Content-Type: applicatio
     }
   }' | jq -r '.choices[0].message.content[0].image_url.url' | cut -d',' -f2- | base64 -d > output_online.png
 ```
-
-
 
 #### Notes
 

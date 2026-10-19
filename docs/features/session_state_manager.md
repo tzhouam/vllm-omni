@@ -136,7 +136,7 @@ Sizes measured on one A100 at the shipped deploy config (`180x320` per camera,
 three cameras stitched to `352x640`, bfloat16), over a 400-step session.
 
 | Value | Bucket | Size | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `vae_enc_feat_map` | `attrs` | **603 MiB** | Wan encoder causal-conv cache, 24 entries. Constant from ~step 50. The largest thing a session holds: 64 sessions is 37.7 GiB. Counted, not releasable — see the rule above. |
 | `video_latents_across_time` | `LatentBuffer` | grows | AR video latent chunks, host memory (`.cpu()`), kept for decode. |
 | `stitched_buffer` | `LatentBuffer` | bounded | Stitched pixel frames, host memory, ring of `FRAMES_PER_CHUNK`. |

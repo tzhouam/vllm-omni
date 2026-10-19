@@ -31,13 +31,13 @@ checkpoint config must identify ModelOpt as the quantization method or producer,
 and the quantization algorithm must be one of the validated algorithms below.
 
 | Checkpoint field | Supported value |
-|------------------|-----------------|
+| ------------------ | ----------------- |
 | `method` / `quant_method` | `modelopt`, `modelopt_fp4`, `modelopt_mixed` |
 | `producer.name` | `modelopt` |
 | `quant_algo` | `FP8`, `FP8_PER_CHANNEL_PER_TOKEN`, `NVFP4`, `MIXED_PRECISION` |
 
 | `quant_algo` | Runtime method | Typical use |
-|--------------|----------------|-------------|
+| -------------- | ---------------- | ------------- |
 | `FP8`, `FP8_PER_CHANNEL_PER_TOKEN` | `modelopt` | FP8 diffusion transformer checkpoints |
 | `NVFP4` | `modelopt_fp4` | NVFP4 diffusion transformer checkpoints |
 | `MIXED_PRECISION` | `modelopt_mixed` | Mixed FP8/NVFP4 checkpoints with a ModelOpt per-layer policy |
@@ -50,7 +50,7 @@ stay unquantized unless the model-specific recipe validates otherwise.
 ## Hardware Support
 
 | Device | Support |
-|--------|---------|
+| -------- | --------- |
 | NVIDIA Blackwell GPU (SM 100+) | ✅ |
 | NVIDIA Ada/Hopper GPU (SM 89+) | ✅ |
 | NVIDIA Ampere GPU (SM 80+) | ⭕ |
@@ -69,7 +69,7 @@ backend and quality validation.
 ### Diffusion Model
 
 | Model | HF checkpoint | Scope | Status |
-|-------|---------------|-------|--------|
+| ------- | --------------- | ------- | -------- |
 | Qwen-Image 2512 | `feizhai123/qwen-image-2512-modelopt-fp8-dynamic-all` | Diffusion transformer | Validated for ModelOpt FP8 checkpoints |
 | Qwen-Image 2512 | `feizhai123/qwen-image-2512-modelopt-mixed-fp8-sensitive-nvfp4-heavy` | Diffusion transformer | Validated for ModelOpt mixed FP8/NVFP4 checkpoints |
 | Z-Image | `feizhai123/z-image-modelopt-fp8-conservative` | Diffusion transformer | Validated for ModelOpt FP8 checkpoints |
@@ -87,7 +87,7 @@ and
 ### Multi-Stage Omni/TTS Model
 
 | Model | Scope | Status |
-|-------|-------|--------|
+| ------- | ------- | -------- |
 | Qwen3-Omni | Thinker language-model stage | ModelOpt FP8 checkpoint path |
 | Qwen3-Omni | Thinker language-model stage (W4A4 NVFP4) | Validated; see [Qwen3-Omni NVFP4 W4A4](#qwen3-omni-nvfp4-w4a4-thinker) below |
 | Qwen3-TTS | TTS language-model stage | Not validated |
@@ -199,7 +199,7 @@ omni = Omni(
 ## Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `force_cutlass_fp8` / `--force-cutlass-fp8` | bool | `False` | Force CUTLASS FP8 linear kernels for supported ModelOpt FP8 diffusion stages on CUDA SM89+ |
 | `--linear-backend cutlass` | str | auto | Select the validated CUTLASS linear backend for supported ModelOpt NVFP4 or mixed FP8/NVFP4 diffusion stages |
 | `--moe-backend cutlass` | str | auto | Select the validated CUTLASS MoE backend for supported ModelOpt mixed MoE checkpoints |

@@ -12,7 +12,7 @@ quantize during model loading via the `bitsandbytes` CUDA kernels.
 ## Hardware Support
 
 | Device | Support |
-|--------|---------|
+| -------- | --------- |
 | NVIDIA CUDA GPU (SM 75+) | ✅ |
 | NVIDIA Blackwell GPU (SM 100+) | ✅ |
 | NVIDIA Ada/Hopper GPU (SM 89+) | ✅ |
@@ -31,7 +31,7 @@ Requires the optional `bitsandbytes` package (`pip install bitsandbytes`).
 ### Diffusion Model (Qwen-Image, Wan2.2)
 
 | Model | HF models | CUDA | Mode | Recommendation |
-|-------|-----------|:----:|------|----------------|
+| ------- | ----------- | :----: | ------ | ---------------- |
 | Z-Image | `Tongyi-MAI/Z-Image-Turbo` | Yes | Online W4 weight-only | All heavy linear layers; sensitive embedders stay BF16 |
 | Qwen-Image | `Qwen/Qwen-Image`, `Qwen/Qwen-Image-2512` | Not validated | Online W4 weight-only | Compare vs BF16 before enabling |
 | Wan2.2 | Wan2.2 diffusion pipelines | Not validated | Online W4 weight-only | Validate before enabling in docs |
@@ -88,7 +88,7 @@ vllm serve Tongyi-MAI/Z-Image-Turbo --omni --quantization bitsandbytes
 ## Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `method` | str | - | Quantization method (`"bitsandbytes"`) |
 | `quant_type` | str | `"nf4"` | 4-bit data type: `"nf4"` (recommended) or `"fp4"` |
 | `compress_statistics` | bool | `True` | Double-quantize block scaling statistics for better accuracy |

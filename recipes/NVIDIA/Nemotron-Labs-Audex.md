@@ -19,7 +19,7 @@ the thinker: the 2B is a dense LM, the 30B-A3B is a hybrid Mamba + MoE
 NemotronH (~3B active parameters). Pick the pipeline by task:
 
 | pipeline (`vllm_omni/deploy/<name>[_30b].yaml`) | audio in | text out | speech out | general audio out | endpoint |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `audex_tts` | ❌ | ❌ | ✅ | ❌ | `/v1/audio/speech` |
 | `audex_tta` | ❌ | ❌ | ❌ | ✅ | `/v1/audio/speech` |
 | `audex_thinker_only` | ✅ | ✅ | ❌ | ❌ | `/v1/chat/completions` |

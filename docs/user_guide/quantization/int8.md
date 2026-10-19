@@ -11,7 +11,7 @@ Only online activation scaling is currently supported.
 ## Hardware Support
 
 | Device | Support |
-|--------|---------|
+| -------- | --------- |
 | NVIDIA Blackwell GPU (SM 100+) | ✅ |
 | NVIDIA Ada/Hopper GPU (SM 89+) | ✅ |
 | NVIDIA Ampere GPU (SM 80+) | ✅ |
@@ -27,7 +27,7 @@ guide.
 ### Diffusion Model (Qwen-Image, Wan2.2)
 
 | Model | HF models | CUDA | Ascend NPU | Mode | Recommendation |
-|-------|-----------|:----:|:----------:|------|----------------|
+| ------- | ----------- | :----: | :----------: | ------ | ---------------- |
 | Qwen-Image | `Qwen/Qwen-Image`, `Qwen/Qwen-Image-2512` | Yes | Yes | Online W8A8 | All layers |
 | Wan2.2 | Wan2.2 diffusion pipelines | Not validated | Not validated | Online W8A8 | Validate before enabling in docs |
 | Z-Image | `Tongyi-MAI/Z-Image-Turbo` | Yes | Yes | Online W8A8 | All layers |
@@ -84,7 +84,7 @@ vllm serve <your-model> --omni --quantization int8
 ## Parameters
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `method` | str | - | Quantization method (`"int8"`) |
 | `activation_scheme` | str | `"dynamic"` | `"dynamic"` selects online activation scaling; static is not supported |
 | `ignored_layers` | list[str] | `[]` | Layer name patterns to keep in BF16/FP16 |

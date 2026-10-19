@@ -34,7 +34,7 @@ Frame interpolation is currently supported for:
 The video APIs `/v1/videos` and `/v1/videos/sync` accept:
 
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| ----------- | ------ | --------- | ------------- |
 | `enable_frame_interpolation` | bool | `false` | Enable post-generation frame interpolation |
 | `frame_interpolation_exp` | int | `1` | Interpolation exponent. `1=2x`, `2=4x`, etc. |
 | `frame_interpolation_scale` | float | `1.0` | RIFE inference scale |

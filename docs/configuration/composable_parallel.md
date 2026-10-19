@@ -20,7 +20,7 @@ A strategy file has a single top-level mapping, `strategies`, keyed by the `mode
 Each entry in a stage's list becomes one `StrategySpec` (see `vllm_omni/config/composable_parallel/spec.py`). The loader fills in `routing` and `aggregation` from per-kind defaults, so the file stays compact.
 
 | Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
+| ------- | ------ | ---------- | --------- | ------------- |
 | `axis` | str | required | — | Mesh-axis kind. One of `tp`, `dp`, `pp`, `ep`, `stage_replica` (wired today) or `sp_ulysses`, `sp_ring`, `cfg`, `vae_pp`, `hsdp`, `stage_pp`, `cp` (reserved; declaring one raises `AxisTranslationError` at translate time). See `MeshAxisKind` in `vllm_omni/config/composable_parallel/spec.py`. |
 | `size` | int | required | — | Axis degree. Must be `> 0`. |
 | `routing` | str | optional | per-kind default | Stateless routing policy. Accepted only for `dp` / `stage_replica`; other kinds reject it. Values: `random`, `round_robin`, `least_queue`. (`hash` is recognised but currently raises `NotImplementedError`.) See `RouteByStage` in `vllm_omni/config/composable_parallel/routing.py`. |
@@ -76,7 +76,7 @@ routing: least_queue    # send to the replica with the smallest backlog
 Aggregation is filled in automatically by the loader (`_default_aggregation` in `vllm_omni/config/composable_parallel/strategy_loader.py`) from the axis kind, so users do not author it:
 
 | Axis kind | Aggregation pattern |
-|-----------|---------------------|
+| ----------- | --------------------- |
 | `tp`, `ep` | `TakeRank` (all ranks agree; pick one) |
 | `dp`, ep (in some flows) | `Union` (disjoint replica results) |
 | `pp` | `StitchPipeline` |

@@ -240,8 +240,8 @@ The consumer-side flow is:
 client.get([key], False, self.get_sub_timeout_ms)
 ```
 
-4. take the first returned element if present
-5. deserialize it and return `(data, payload_size)`
+1. take the first returned element if present
+2. deserialize it and return `(data, payload_size)`
 
 If the returned list is empty or contains no data for the key, `get()` returns `None`.
 

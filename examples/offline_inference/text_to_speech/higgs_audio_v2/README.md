@@ -13,6 +13,7 @@ pip install -U "transformers>=5.3.0"
 ## Quick start
 
 Plain TTS:
+
 ```bash
 python examples/offline_inference/text_to_speech/higgs_audio_v2/end2end.py \
     --texts "Hello world." "The quick brown fox jumps over the lazy dog." \
@@ -22,6 +23,7 @@ python examples/offline_inference/text_to_speech/higgs_audio_v2/end2end.py \
 ## Voice cloning
 
 Pass both `--ref-audio` and `--ref-text` together:
+
 ```bash
 python examples/offline_inference/text_to_speech/higgs_audio_v2/end2end.py \
     --texts "Hello, this is a cloned voice." \

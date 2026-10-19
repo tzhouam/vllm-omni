@@ -149,7 +149,7 @@ curl -L "http://localhost:8091/v1/videos/${video_id}/content" -o lingbot_t2v.mp4
 ## Key Parameters
 
 | Parameter | Suggested smoke value | Notes |
-|-----------|-----------------------|-------|
+| ----------- | ----------------------- | ------- |
 | `height` | `192` | Must be a multiple of 16 |
 | `width` | `320` | Must be a multiple of 16 |
 | `num_frames` | `9` | Must be `1` or `4n + 1`; this PR validates T2V with video outputs |

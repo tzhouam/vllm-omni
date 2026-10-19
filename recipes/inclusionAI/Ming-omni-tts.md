@@ -16,7 +16,6 @@
 - [Huggingface: inclusionAI/Ming-omni-tts-0.5B](https://huggingface.co/inclusionAI/Ming-omni-tts-0.5B)
 - Upstream repository [inclusionAI/Ming-omni-tts](https://github.com/inclusionAI/Ming-omni-tts)
 
-
 ## Hardware Support
 
 This recipe documents a validated ROCm configuration and a CUDA configuration for the dense 0.5B and the MoE 16.8B two-stage TTS pipeline deployment.

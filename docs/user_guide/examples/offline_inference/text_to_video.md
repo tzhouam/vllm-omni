@@ -2,7 +2,6 @@
 
 Source <https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/text_to_video>.
 
-
 A unified script for text-to-video generation. Supports multiple models with model-aware defaults.
 
 For backend selection and SageAttention usage, see the [Diffusion Attention Backends](../../diffusion/attention_backends.md) guide.
@@ -10,7 +9,7 @@ For backend selection and SageAttention usage, see the [Diffusion Attention Back
 ## Supported Models
 
 | Model | Default Resolution | Default Frames | Default Steps | Guidance | VRAM (BF16) |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | `Wan-AI/Wan2.2-T2V-A14B-Diffusers` | 720x1280 | 81 | 40 | 4.0 | ~60 GiB |
 | `robbyant/lingbot-video-dense-1.3b` / `robbyant/lingbot-video-moe-30b-a3b` | 192x320 | 9 | 2 | 3.0 | ~68 GiB (MoE smoke) |
 | `Lightricks/LTX-2` | 512x768 | 121 | 40 | video 3.0 / audio 7.0 | Model-dependent |
@@ -187,7 +186,7 @@ accepts `motion_score`, `clean_caption`, and `use_resolution_binning` through
 ### HunyuanVideo-1.5 Optimal Configs
 
 | Variant | flow_shift | guidance_scale | steps |
-|---------|-----------|----------------|-------|
+| --------- | ----------- | ---------------- | ------- |
 | 480p T2V | 5.0 | 6.0 | 50 |
 | 720p T2V | 9.0 | 6.0 | 50 |
 | 480p I2V | 5.0 | 6.0 | 50 |
