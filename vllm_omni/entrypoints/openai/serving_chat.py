@@ -19,6 +19,7 @@ from fastapi import Request
 from openai.types.chat.chat_completion_audio import ChatCompletionAudio as OpenAIChatCompletionAudio
 from PIL import Image
 from pydantic import TypeAdapter
+from vllm.exceptions import RetryableRequestError
 from vllm.parser.utils import (
     count_chat_history_tool_calls as get_history_tool_calls_cnt,
 )
@@ -2522,7 +2523,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                 final_outputs.append(res)
         except asyncio.CancelledError:
             return self.create_error_response("Client disconnected")
-        except ValueError as e:
+        except (ValueError, RetryableRequestError) as e:
             return self.create_error_response(e)
 
         assert final_outputs is not None

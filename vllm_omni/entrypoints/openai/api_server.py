@@ -429,6 +429,13 @@ async def omni_run_server_worker(
 
         await omni_init_app_state(engine_client, app.state, args)
 
+        # The inherited routes assume a tokenization handler. Pure diffusion
+        # has none; omit those capabilities instead of dereferencing None.
+        if getattr(app.state, "serving_tokenization", None) is None:
+            remove_route_from_app(app, "/tokenize", {"POST"})
+            remove_route_from_app(app, "/detokenize", {"POST"})
+            remove_route_from_app(app, "/tokenizer_info", {"GET"})
+
         # After initializing the app state, shut down any endpoints that are model specific
         if hasattr(engine_client, "endpoint_restrictions"):
             shutdown_unsupported_routes(app, engine_client.endpoint_restrictions)
