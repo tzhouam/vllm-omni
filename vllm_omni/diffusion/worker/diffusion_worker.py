@@ -1254,6 +1254,14 @@ class DiffusionWorker:
                 allocator = CuMemAllocator.get_instance()
                 if allocator.get_current_usage():
                     gc.collect()
+                from vllm_omni.patch import release_cumem_allocations_for_shutdown
+
+                retired_bytes = release_cumem_allocations_for_shutdown(allocator)
+                if retired_bytes:
+                    logger.info(
+                        "Diffusion shutdown retired %.2f GiB of remaining CuMem allocations",
+                        retired_bytes / GiB_bytes,
+                    )
                 allocator.release_pools()
                 self._owns_sleep_pool = False
                 # Re-collect after dropping the pool references so their

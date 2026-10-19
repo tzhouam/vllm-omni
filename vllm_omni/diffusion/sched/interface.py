@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from vllm.distributed.kv_transfer.kv_connector.v1.base import KVConnectorMetadata
 
     from vllm_omni.diffusion.diffusion_kv.request import DiffusionKVRequest
+    from vllm_omni.diffusion.interaction.types import InteractionBoundaryContext
 
 
 class DiffusionRequestStatus(enum.IntEnum):
@@ -267,6 +268,7 @@ class DiffusionSchedulerOutput:
     kv_finished_request_ids: set[str] = field(default_factory=set)
     # A single host-selected boundary decision is delivered to every Worker.
     step_resumes: dict[str, Literal["interaction", "timeout"]] = field(default_factory=dict)
+    interaction_boundaries: dict[str, InteractionBoundaryContext] = field(default_factory=dict)
 
     @property
     def has_sync_kv_loads(self) -> bool:

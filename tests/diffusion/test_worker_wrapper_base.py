@@ -434,7 +434,11 @@ class TestWorkerWrapperBaseDelegation:
             assert engine_ref() is None
             events.append("pools")
 
-        allocator = SimpleNamespace(get_current_usage=lambda: 0, release_pools=release_pools)
+        allocator = SimpleNamespace(
+            pointer_to_data={},
+            get_current_usage=lambda: 0,
+            release_pools=release_pools,
+        )
         mocker.patch(
             "vllm_omni.diffusion.worker.diffusion_worker._get_cumem_allocator_class",
             return_value=SimpleNamespace(get_instance=lambda: allocator),

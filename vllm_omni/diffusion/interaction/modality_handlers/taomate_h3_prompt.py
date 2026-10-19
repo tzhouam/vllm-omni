@@ -100,6 +100,11 @@ class TaoMateH3PromptInteractionHandler(PromptInteractionHandler):
         assert isinstance(session, PromptSession)
         with session.lock:
             # Chunk-level last-write-wins: replace any prior pending event.
+            if session.pending_event is not None:
+                if session.pending_event.received_at > received_at:
+                    session.coalesced_event_ids.append(event_id)
+                    return
+                session.coalesced_event_ids.append(session.pending_event.event_id)
             session.pending_event = TaoMateQueuedPromptEvent(
                 event_id=event_id,
                 received_at=received_at,
