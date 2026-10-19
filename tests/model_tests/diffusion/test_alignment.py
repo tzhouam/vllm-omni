@@ -85,6 +85,9 @@ EXCLUDED_MODELS = [
     # Requires camera/action assets and persistent AR state; covered by its
     # dedicated CPU contract tests and manual real-checkpoint smoke tests instead.
     "ABotWorldCausalPipeline",
+    # Requires full MiniMax-H3 FL2VA weights, the TaoMate LoRA, and AR sessions;
+    # covered by tests/diffusion/models/taomate_h3 and manual real-checkpoint E2E.
+    "TaoMateH3Pipeline",
     # The 270+ GiB multimodal checkpoint needs 4/8-way native sequence/head
     # parallel execution; covered by focused native contract and GPU tests.
     "Magi2Pipeline",
@@ -96,7 +99,6 @@ EXCLUDED_MODELS = [
     "Cosmos3OmniDiffusersPipeline",
     "Cosmos3OmniPipeline",
     "DiffusersAdapterPipeline",
-    "HiDreamImagePipeline",
     "HiDreamO1ImagePipeline",
     "DreamZeroPipeline",
     # Experimental Noisy KV / cell path; covered by tests/diffusion/models/causvid_wan
@@ -105,7 +107,6 @@ EXCLUDED_MODELS = [
     "StableDiffusionXLPipeline",
     "Gr00tN1d7Pipeline",
     "Pi0Pipeline",
-    "Pi05Pipeline",
     "SanaWmPipeline",
     # Audio pipeline conditioned by a separate Qwen2.5-Omni encoder stage;
     # covered by tests/diffusion/models/auk (CPU pipeline tests, parity) and
