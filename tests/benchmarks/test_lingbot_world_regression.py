@@ -1075,13 +1075,13 @@ def test_current_production_reference_is_pinned_for_both_platforms_and_all_profi
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world/configs"
     names = ["cuda_smoke", "cuda_nightly", "cuda_weekly", "cuda_long", "npu_nightly", "npu_weekly", "npu_long"]
     assert {read_json(root / f"{name}.json")["reference_revision"] for name in names} == {
-        "1cc64011cee7ed4860f8a3849511130df747bc50"
+        "4134c7f421a195407da6f779f21c3e40c93a2440"
     }
     for name in names:
         historical = read_json(root.parent / f"calibration/history/profiles/{name}.json")
         assert read_json(root / f"{name}.json") == {
             **historical,
-            "reference_revision": "1cc64011cee7ed4860f8a3849511130df747bc50",
+            "reference_revision": "4134c7f421a195407da6f779f21c3e40c93a2440",
         }
 
 

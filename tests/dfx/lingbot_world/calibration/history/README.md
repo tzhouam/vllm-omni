@@ -15,7 +15,7 @@ Archived records are not loaded by the CI runner.
 The active nightly records use independent recorded-zero H100 reference cohorts;
 independent final-source target-hardware validation is still required.
 
-The production reference was advanced to `1cc64011cee7ed4860f8a3849511130df747bc50`
+The production reference was advanced to `4134c7f421a195407da6f779f21c3e40c93a2440`
 before fresh collection on 2026-10-19. The earlier records retained outside
 `history/` are now incompatible with that pin and intentionally fail contract
 validation. Their original data and failures remain unchanged; qualified fresh
@@ -27,3 +27,9 @@ replacements must archive those predecessors byte for byte. See the suite's
 these snapshots after the active reference pins advance; the active profiles
 differ only in `reference_revision`. Do not rewrite archived profile hashes to
 make old observations appear to have used the new production reference.
+
+The intermediate `1cc64011cee7ed4860f8a3849511130df747bc50` pin was superseded
+before collecting any fresh hardware data: the actual GitHub merge included
+newer accepted main changes. The final production snapshot includes upstream
+`990d4c1061124bb87ba3b57a8c1095c2799b41aa`; the reference-only protocol and
+candidate regression allowances are unchanged.

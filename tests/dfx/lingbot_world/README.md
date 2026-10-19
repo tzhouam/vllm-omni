@@ -6,11 +6,13 @@ gate logic separately and are not model performance evidence.
 ## Current production reference: calibration pending
 
 The initial production baseline is pinned to
-`1cc64011cee7ed4860f8a3849511130df747bc50` for both CUDA and NPU. It contains the
+`4134c7f421a195407da6f779f21c3e40c93a2440` for both CUDA and NPU. It contains the
 accepted main implementation and the NPU offload fix; its `vllm_omni` tree is
-`72eed157935029713ff0d08cdcbc84de841dc747`, identical to the implementation being
+`17f2bb16a58de8d695f9b5de1649fe6a4ab0d6d9`, identical to the implementation being
 introduced into CI. This baseline choice was explicitly approved before fresh
-reference collection on 2026-10-19. Future candidate changes remain compared
+reference collection on 2026-10-19. The pin includes upstream main
+`990d4c1061124bb87ba3b57a8c1095c2799b41aa`, verified against the actual GitHub
+merge tree before collection. Future candidate changes remain compared
 against the frozen reference; updating a candidate must not advance this pin.
 
 Calibration is **pending**. Existing calibration JSON files retain the earlier
