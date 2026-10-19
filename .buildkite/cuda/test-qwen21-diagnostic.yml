@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
-# Diagnostic branch only: original model/runtime/config, with bounded repeats.
+# Diagnostic branch only; original runtime and workload with bounded repeats.
 env:
   VLLM_WORKER_MULTIPROC_METHOD: spawn
   HF_HUB_DOWNLOAD_TIMEOUT: 300
@@ -13,21 +13,10 @@ steps:
     timeout_in_minutes: 120
     env:
       DIFFUSION_ATTENTION_BACKEND: TORCH_SDPA
-      CUDA_LAUNCH_BLOCKING: "0"
     artifact_paths:
       - qwen21-diagnostic/async/**/*
     commands:
-      - |
-        set -euo pipefail
-        mkdir -p qwen21-diagnostic/async
-        nvidia-smi --query-gpu=name,uuid,driver_version,memory.total --format=csv > qwen21-diagnostic/async/hardware.txt
-        pip freeze > qwen21-diagnostic/async/packages.txt
-        sha256sum tests/dfx/perf/tests/test_qwen_image_21_vllm_omni.json > qwen21-diagnostic/async/config.sha256
-        for attempt in 1 2; do
-          export BENCHMARK_DIR="qwen21-diagnostic/async/attempt-$${attempt}"
-          mkdir -p "$${BENCHMARK_DIR}"
-          pytest -s -v tests/dfx/perf/scripts/run_benchmark.py --test-config-file tests/dfx/perf/tests/test_qwen_image_21_vllm_omni.json -m "H100 and B200 and cards_1" --junitxml="$${BENCHMARK_DIR}/results.xml" 2>&1 | tee "$${BENCHMARK_DIR}/pytest.log"
-        done
+      - bash .buildkite/cuda/scripts/run-qwen21-diagnostic.sh async
   - label: "Qwen-Image-2.1 H100 original workload (blocking)"
     key: qwen21-blocking
     depends_on: upload-nightly-pipeline
@@ -35,18 +24,7 @@ steps:
     timeout_in_minutes: 120
     env:
       DIFFUSION_ATTENTION_BACKEND: TORCH_SDPA
-      CUDA_LAUNCH_BLOCKING: "1"
     artifact_paths:
       - qwen21-diagnostic/blocking/**/*
     commands:
-      - |
-        set -euo pipefail
-        mkdir -p qwen21-diagnostic/blocking
-        nvidia-smi --query-gpu=name,uuid,driver_version,memory.total --format=csv > qwen21-diagnostic/blocking/hardware.txt
-        pip freeze > qwen21-diagnostic/blocking/packages.txt
-        sha256sum tests/dfx/perf/tests/test_qwen_image_21_vllm_omni.json > qwen21-diagnostic/blocking/config.sha256
-        for attempt in 1 2; do
-          export BENCHMARK_DIR="qwen21-diagnostic/blocking/attempt-$${attempt}"
-          mkdir -p "$${BENCHMARK_DIR}"
-          pytest -s -v tests/dfx/perf/scripts/run_benchmark.py --test-config-file tests/dfx/perf/tests/test_qwen_image_21_vllm_omni.json -m "H100 and B200 and cards_1" --junitxml="$${BENCHMARK_DIR}/results.xml" 2>&1 | tee "$${BENCHMARK_DIR}/pytest.log"
-        done
+      - bash .buildkite/cuda/scripts/run-qwen21-diagnostic.sh blocking
