@@ -1,0 +1,522 @@
+{
+  "schema": "omni-cuda-vision-builds-v1",
+  "builds": {
+    "1": {
+      "schema": "omni-cuda-vision-build-v1",
+      "phase": "completed",
+      "pid": 222112,
+      "created": 1792533174.5919528,
+      "steps": [
+        {
+          "name": "strata-clone",
+          "command": [
+            "git",
+            "clone",
+            "--no-hardlinks",
+            "--no-checkout",
+            "C:\\Users\\zhout\\w2\\strata-omni\\source-vision-cpu-v2",
+            "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 1.6090000001713634,
+          "log_sha256": "85a9e5abfd43157d736dddd68f86f065b7fe1e1575354713a7abf1acfa6e999c"
+        },
+        {
+          "name": "strata-checkout",
+          "command": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1",
+            "checkout",
+            "--detach",
+            "d5ea7133741e67743c0e886bb426c0ce8d69cf6c"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 1.1719999997876585,
+          "log_sha256": "853e3d9b8ea6983c4fdfa4a5e830ed5c7caf980806623c5b7ab28d7cb052ef6b"
+        },
+        {
+          "name": "strata-baseline-patch",
+          "command": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1",
+            "apply",
+            "C:\\Users\\zhout\\w2\\strata-omni\\patches\\vision-cpu-v2\\strata-actual.diff"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.06199999991804361,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "llama-clone",
+          "command": [
+            "git",
+            "clone",
+            "--no-hardlinks",
+            "--no-checkout",
+            "C:\\Users\\zhout\\w2\\strata-omni\\dependencies\\llama.cpp-3cf03257-vision-cpu-v2",
+            "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 2.094000000040978,
+          "log_sha256": "792e760be1a126b5e80d7c0d473bca077ab0e2277d22f980682b8d4e0c1261ea"
+        },
+        {
+          "name": "llama-checkout",
+          "command": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+            "checkout",
+            "--detach",
+            "3cf03257f219afbe7334045ff7c6a06ac68c627d"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 2.0779999997466803,
+          "log_sha256": "c40548ba073c6c227cdda442dd4ead69c7300a2b04ef1ff619d3ac0bc5de4fc3"
+        },
+        {
+          "name": "llama-baseline-patch",
+          "command": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+            "apply",
+            "C:\\Users\\zhout\\w2\\strata-omni\\patches\\vision-cpu-v2\\llama-actual.diff"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.04700000025331974,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "device-patch-check",
+          "command": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+            "apply",
+            "--check",
+            "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_vision_device_binding_v1.patch"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.07799999974668026,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "device-patch",
+          "command": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+            "apply",
+            "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_vision_device_binding_v1.patch"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.06300000008195639,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "configure",
+          "command": [
+            "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+            "-S",
+            "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1\\tools\\vision",
+            "-B",
+            "C:\\Users\\zhout\\w2\\strata-omni\\bv-gpu-v1",
+            "-G",
+            "Ninja",
+            "-DLLAMA_DIR=C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+            "-DSTRATA_VISION_CUDA=ON",
+            "-DSTRATA_PORTABLE=ON",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_CUDA_ARCHITECTURES=120",
+            "-DCMAKE_CUDA_COMPILER=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\bin\\nvcc.exe",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+            "-DCMAKE_MAKE_PROGRAM=C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 19.515999999828637,
+          "log_sha256": "8d6debaaa2731945b8ea80d8cb2c951f80e73fc1248b6a0cd87c63ae93448ef8"
+        },
+        {
+          "name": "build",
+          "command": [
+            "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+            "--build",
+            "C:\\Users\\zhout\\w2\\strata-omni\\bv-gpu-v1",
+            "--target",
+            "strata-vision",
+            "--parallel",
+            "2"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 1494.4530000002123,
+          "log_sha256": "eb3b8fcd3a27635af44811d9e9d4fe0689e7db8fe5c604cef6f83a97b1a57e41"
+        }
+      ],
+      "neural_execution": false,
+      "production_runtime_modified": false,
+      "input_patch_sha256": "ff7d8fb0a84dc731a88ba121a31aa9e6e4e1b0a36cdb68cf4cbebfdbdb8d4160",
+      "compiler_environment": {
+        "VCToolsVersion": "14.44.35207",
+        "WindowsSDKVersion": "10.0.26100.0\\",
+        "VCToolsInstallDir": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\"
+      },
+      "tools": {
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe": "6fe2e6431b45cf32b9b2f3e50a8efae046a2366eb34d0fb36da027cf56102aec",
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\Ninja\\ninja.exe": "ff29bcb5f547174bae6b73c84278cce9b674e8ebc2f3c3926ab21030b33f34b8",
+        "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\bin\\nvcc.exe": "187f3d386c014d79d8f1f72c779c316758bc89e97e47d7b86994f35404b8c0c1"
+      },
+      "selected_sources_before": {
+        "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1\\tools\\vision\\strata_vision.cpp": "455bd8edb1a60e12960542e55116c0f98022cfc70ac604fe14dff59b23300787",
+        "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1\\tools\\vision\\CMakeLists.txt": "2f513c4b8346d146863723c059246678ec84043fd61f663b3728abb01964fa53",
+        "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd\\clip.cpp": "d9a8cb808aa0a07fdab46515867b0a364b9f1a1d88d956eceb7f5dab7f480da4",
+        "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd\\omni_vision_device_binding.h": "46dea254506ec1cc00a48567eaedaa0021c15f1edc07bde6c42938c0c4756c76"
+      },
+      "selected_sources_after": {
+        "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1\\tools\\vision\\strata_vision.cpp": "455bd8edb1a60e12960542e55116c0f98022cfc70ac604fe14dff59b23300787",
+        "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1\\tools\\vision\\CMakeLists.txt": "2f513c4b8346d146863723c059246678ec84043fd61f663b3728abb01964fa53",
+        "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd\\clip.cpp": "d9a8cb808aa0a07fdab46515867b0a364b9f1a1d88d956eceb7f5dab7f480da4",
+        "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd\\omni_vision_device_binding.h": "46dea254506ec1cc00a48567eaedaa0021c15f1edc07bde6c42938c0c4756c76"
+      },
+      "encoder": {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\bv-gpu-v1\\bin\\strata-vision.exe",
+        "sha256": "098e47247b17ed68c62b2445a4b8703eb045702f3bf4b73bf441cd0c8b6f6402",
+        "size_bytes": 59535360
+      }
+    },
+    "2": {
+      "schema": "omni-cuda-vision-build-v2",
+      "pid": 213008,
+      "created": 1792534315.6815367,
+      "phase": "completed",
+      "parent_pid": 222112,
+      "parent_created": 1792533174.5919528,
+      "neural_execution": false,
+      "production_modified": false,
+      "steps": [
+        {
+          "name": "strata_vision_warmup_v2.patch-check",
+          "argv": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1",
+            "apply",
+            "--check",
+            "--ignore-space-change",
+            "C:\\Users\\zhout\\w2\\strata-omni\\runs\\cuda-vision-build-v2-20261021\\strata_vision_warmup_v2.patch"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.07799999974668026,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "strata_vision_tensor_budget_v1.patch-check",
+          "argv": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+            "apply",
+            "--check",
+            "--ignore-space-change",
+            "C:\\Users\\zhout\\w2\\strata-omni\\runs\\cuda-vision-build-v2-20261021\\strata_vision_tensor_budget_v1.patch"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.07799999974668026,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "strata_vision_warmup_v2.patch-apply",
+          "argv": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1",
+            "apply",
+            "--ignore-space-change",
+            "C:\\Users\\zhout\\w2\\strata-omni\\runs\\cuda-vision-build-v2-20261021\\strata_vision_warmup_v2.patch"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.06300000008195639,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "strata_vision_tensor_budget_v1.patch-apply",
+          "argv": [
+            "git",
+            "-C",
+            "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+            "apply",
+            "--ignore-space-change",
+            "C:\\Users\\zhout\\w2\\strata-omni\\runs\\cuda-vision-build-v2-20261021\\strata_vision_tensor_budget_v1.patch"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 0.07799999974668026,
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "name": "incremental-build",
+          "argv": [
+            "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+            "--build",
+            "C:\\Users\\zhout\\w2\\strata-omni\\bv-gpu-v1",
+            "--target",
+            "strata-vision",
+            "--parallel",
+            "2"
+          ],
+          "exit_code": 0,
+          "elapsed_s": 8.186999999918044,
+          "log_sha256": "c3757f11334933dc4c3bf29adcc9d4a128f3e68c96bd228f3152079f4c4b5f68"
+        }
+      ],
+      "v1_receipt_sha256": "70d253f6a0b71b08ecbf99702426ae24e5ffcf17840f504f91892fc6be069e46",
+      "inputs": [
+        {
+          "tree": "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1",
+          "source": "C:\\Users\\zhout\\w2\\strata-omni\\sv-gpu-v1\\tools\\vision\\strata_vision.cpp",
+          "before_sha256": "455bd8edb1a60e12960542e55116c0f98022cfc70ac604fe14dff59b23300787",
+          "patch_sha256": "4936a6f5cc07510f2c10b0226b7a966b8598ee1bd75bf828d0bb7b10517d92df",
+          "after_sha256": "20e1bc8f5a59f01f3184357ab89d64eab6e4ff1d1ee941ff842957e4ed5f66f2"
+        },
+        {
+          "tree": "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1",
+          "source": "C:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd\\clip.cpp",
+          "before_sha256": "d9a8cb808aa0a07fdab46515867b0a364b9f1a1d88d956eceb7f5dab7f480da4",
+          "patch_sha256": "cf23bbd219bd012ad1bc473cf37bdb64771630fcf2a3a2cf48b44749ff87e4e7",
+          "after_sha256": "030795eac79c3ada87d7f64d2b82ed1aa511bcee2f1734a62e9a04b78f67da91"
+        }
+      ],
+      "encoder": {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\cuda-vision-build-v2-20261021\\strata-vision-v2.exe",
+        "sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a",
+        "size_bytes": 59539968
+      }
+    }
+  },
+  "profiling": {
+    "1": {
+      "metadata.json": {
+        "schema": 2,
+        "include_thread_count": false,
+        "started": "2026-10-20T21:56:00.179342+00:00",
+        "root_pid": 222112,
+        "root_created": 1792533174.59195,
+        "run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\cuda-vision-build-v1-20261021",
+        "cadence_seconds": 1,
+        "psutil": "7.2.2",
+        "observer_pid": 211048,
+        "script_sha256": "26e17fec2760cf9ce0aa3291c019ad2f7c77346ee8d86f39e4a02121d1aeef68",
+        "limits": [
+          "Starts mid-loading; does not cover complete cold startup",
+          "Process I/O is logical I/O, not attributable physical SSD reads",
+          "System disk counters include unrelated workloads and devices",
+          "Process RSS can double-count shared pages; do not sum as physical RAM",
+          "No GPU kernel timing, cache hit attribution or power instrumentation",
+          "Sampling has overhead; collection wall time and observer CPU are recorded",
+          "threads=null means disabled, not zero; use --include-thread-count for diagnostic runs"
+        ]
+      },
+      "completion.json": {
+        "ended": "2026-10-20T22:18:20.145648+00:00",
+        "samples": 1339,
+        "observation_errors": 3,
+        "reason": "bound root process exited",
+        "elapsed_seconds": 1339.969000000041
+      },
+      "samples_sha256": "4da9267d57e7e39fc59b991b2120c94040f408140cd93a262d3356465ed70237"
+    },
+    "2": {
+      "metadata.json": {
+        "schema": 2,
+        "include_thread_count": false,
+        "started": "2026-10-20T22:12:13.720510+00:00",
+        "root_pid": 213008,
+        "root_created": 1792534315.68154,
+        "run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\cuda-vision-build-v2-20261021",
+        "cadence_seconds": 1,
+        "psutil": "7.2.2",
+        "observer_pid": 188068,
+        "script_sha256": "6f561244edf7057f2abbf7c76384f16f7cfc5b81a1890e69128a5f39c86e1c40",
+        "limits": [
+          "Starts mid-loading; does not cover complete cold startup",
+          "Process I/O is logical I/O, not attributable physical SSD reads",
+          "System disk counters include unrelated workloads and devices",
+          "Process RSS can double-count shared pages; do not sum as physical RAM",
+          "No GPU kernel timing, cache hit attribution or power instrumentation",
+          "Sampling has overhead; collection wall time and observer CPU are recorded",
+          "threads=null means disabled, not zero; use --include-thread-count for diagnostic runs"
+        ]
+      },
+      "completion.json": {
+        "ended": "2026-10-20T22:18:32.979359+00:00",
+        "samples": 379,
+        "observation_errors": 0,
+        "reason": "bound root process exited",
+        "elapsed_seconds": 379.23400000017136
+      },
+      "samples_sha256": "80634c7b92ae031245f1f58cd9e501b419f9083253511c73512cea2be1165318"
+    }
+  },
+  "neural_execution": false,
+  "release_qualified": false,
+  "archives": {
+    "strata_cuda_build_1_20261021_build.log.gz": "ac3fdd826b2bc441a82dcbb9d4ffca9d02a429d5675bdc68de878a27558abf15",
+    "strata_cuda_build_1_20261021_configure.log.gz": "f6a184bc7d85583bb5983f0ca301a0bfdbb775de3839bdc22eccaea6c8dddc8b",
+    "strata_cuda_build_1_20261021_device-patch-check.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "strata_cuda_build_1_20261021_device-patch.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "strata_cuda_build_1_20261021_llama-baseline-patch.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "strata_cuda_build_1_20261021_llama-checkout.log.gz": "897d2649df11dce55857c1c81e6bf95f8306669dc0992a91f1d9959339e4afcf",
+    "strata_cuda_build_1_20261021_llama-clone.log.gz": "5bb24d37828289549059e691343675cd7ceaf8aaff2d959a3746ee5b17809719",
+    "strata_cuda_build_1_20261021_strata-baseline-patch.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "strata_cuda_build_1_20261021_strata-checkout.log.gz": "a22b728854089f30e844e677531a1494ace659d02c72d200f599786acbb1e173",
+    "strata_cuda_build_1_20261021_strata-clone.log.gz": "96cf72eb8007bb10fac05a2435795c7266b1c7764f049fd1e6f73f5c4f7ce4f3",
+    "strata_cuda_build_2_20261021_incremental-build.log.gz": "7b5bbbdc9b57c3ab33110aeaa4e5546db56b9947b5c4b0a796be1e7956069ba0",
+    "strata_cuda_build_2_20261021_strata_vision_tensor_budget_v1.patch-apply.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "strata_cuda_build_2_20261021_strata_vision_tensor_budget_v1.patch-check.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "strata_cuda_build_2_20261021_strata_vision_warmup_v2.patch-apply.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e",
+    "strata_cuda_build_2_20261021_strata_vision_warmup_v2.patch-check.log.gz": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e"
+  },
+  "pe_tests": {
+    "passed": 9,
+    "deselected": 85,
+    "warnings": 14,
+    "reported_seconds": 4.21
+  },
+  "pe_closure": {
+    "schema": "omni-strata-pe-closure-v1",
+    "scope": "recursive_PE_normal_and_delay_imports_live_LoadLibrary_requires_separate_snapshot",
+    "files": [
+      {
+        "path": "cublas64_13.dll",
+        "size_bytes": 54942320,
+        "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+        "normal": [
+          "cublaslt64_13.dll",
+          "kernel32.dll"
+        ],
+        "delay": [],
+        "non_system": [
+          "cublaslt64_13.dll"
+        ],
+        "system": [
+          "kernel32.dll"
+        ]
+      },
+      {
+        "path": "cublasLt64_13.dll",
+        "size_bytes": 492752496,
+        "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+        "normal": [
+          "kernel32.dll"
+        ],
+        "delay": [],
+        "non_system": [],
+        "system": [
+          "kernel32.dll"
+        ]
+      },
+      {
+        "path": "strata-vision.exe",
+        "size_bytes": 59539968,
+        "sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a",
+        "normal": [
+          "advapi32.dll",
+          "cublas64_13.dll",
+          "kernel32.dll"
+        ],
+        "delay": [],
+        "non_system": [
+          "cublas64_13.dll"
+        ],
+        "system": [
+          "advapi32.dll",
+          "kernel32.dll"
+        ]
+      }
+    ],
+    "required_at_load": [
+      "cublas64_13.dll",
+      "cublaslt64_13.dll",
+      "strata-vision.exe"
+    ],
+    "all_dynamic_loads_covered": false,
+    "system_dependencies_pinned": false,
+    "explicit_max_file_bytes": 536870912,
+    "identity_sha256": "ba48dd161c35c995afa3d9802c7438186dff6ebbafa3486f0372fa52248c4188"
+  },
+  "vendor_staging": {
+    "schema": "omni-vision-cuda-vendor-staging-v1",
+    "files": {
+      "cublaslt64_13.dll": {
+        "source": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\bin\\x64\\cublasLt64_13.dll",
+        "size_bytes": 492752496,
+        "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+        "imports": {
+          "normal": [
+            "kernel32.dll"
+          ],
+          "delay": []
+        },
+        "unresolved": []
+      },
+      "cublas64_13.dll": {
+        "source": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\bin\\x64\\cublas64_13.dll",
+        "size_bytes": 54942320,
+        "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+        "imports": {
+          "normal": [
+            "cublaslt64_13.dll",
+            "kernel32.dll"
+          ],
+          "delay": []
+        },
+        "unresolved": []
+      },
+      "cudart64_13.dll": {
+        "source": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\bin\\x64\\cudart64_13.dll",
+        "size_bytes": 551024,
+        "sha256": "05bfafcb97bd53b0089568a96e1e5bd6921637bd0853ff7f5342bd31a6a16890",
+        "imports": {
+          "normal": [
+            "api-ms-win-core-console-l1-1-0.dll",
+            "api-ms-win-core-datetime-l1-1-0.dll",
+            "api-ms-win-core-debug-l1-1-0.dll",
+            "api-ms-win-core-errorhandling-l1-1-0.dll",
+            "api-ms-win-core-file-l1-1-0.dll",
+            "api-ms-win-core-handle-l1-1-0.dll",
+            "api-ms-win-core-heap-l1-1-0.dll",
+            "api-ms-win-core-interlocked-l1-1-0.dll",
+            "api-ms-win-core-libraryloader-l1-2-0.dll",
+            "api-ms-win-core-localization-l1-2-0.dll",
+            "api-ms-win-core-processenvironment-l1-1-0.dll",
+            "api-ms-win-core-processthreads-l1-1-0.dll",
+            "api-ms-win-core-processthreads-l1-1-1.dll",
+            "api-ms-win-core-profile-l1-1-0.dll",
+            "api-ms-win-core-rtlsupport-l1-1-0.dll",
+            "api-ms-win-core-string-l1-1-0.dll",
+            "api-ms-win-core-synch-l1-1-0.dll",
+            "api-ms-win-core-synch-l1-2-0.dll",
+            "api-ms-win-core-sysinfo-l1-1-0.dll",
+            "api-ms-win-core-util-l1-1-0.dll"
+          ],
+          "delay": []
+        },
+        "unresolved": []
+      }
+    },
+    "inspector_sha256": "c6f42ec7fd99aad99c8a29bf549bf9b54ba13145e6b3e1944f9b6527c200dafc",
+    "explicit_pe_limit_bytes": 536870912,
+    "initial_attempt": "Default 256 MiB PE size bound rejected 492752496-byte cublasLt; no execution attempted",
+    "encoder_present": false,
+    "full_encoder_closure_verified": false,
+    "dynamic_loads_verified": false,
+    "production_runtime_modified": false,
+    "scope": "Locally installed CUDA 13.4 dependencies copied and hashed; no executable or model launched"
+  },
+  "limits": [
+    "Build v1 profiler attached after start; initial resource interval missing",
+    "PE normal/delay closure does not cover dynamic LoadLibrary; staged cublasLt requires live module verification",
+    "No CUDA model output, task quality or performance qualification yet"
+  ]
+}

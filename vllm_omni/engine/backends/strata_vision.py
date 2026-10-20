@@ -81,12 +81,14 @@ def _windows_system_directory():
     return Path(buffer.value).resolve(strict=True)
 
 
-def pe_imports(path):
+def pe_imports(path, *, max_file_bytes=256 << 20):
     """Bounded PE32/PE32+ normal and delay-import scan; never executes code."""
     import mmap
 
     path = Path(path)
-    if not 64 <= path.stat().st_size <= 256 << 20:
+    if type(max_file_bytes) is not int or not 64 <= max_file_bytes <= 1 << 30:
+        raise ValueError("invalid explicit PE file bound")
+    if not 64 <= path.stat().st_size <= max_file_bytes:
         raise ValueError("PE input size outside reviewed bound")
     with path.open("rb") as source, mmap.mmap(source.fileno(), 0, access=mmap.ACCESS_READ) as data:
 
@@ -179,7 +181,7 @@ def pe_imports(path):
         return result
 
 
-def scan_pe_closure(executable, runtime_root, verified_files):
+def scan_pe_closure(executable, runtime_root, verified_files, *, max_file_bytes=256 << 20):
     """Recompute deployed non-system normal/delay closure from PE bytes.
 
     Explicit LoadLibrary calls are covered only by the separate live snapshot.
@@ -198,7 +200,7 @@ def scan_pe_closure(executable, runtime_root, verified_files):
             continue
         if path not in verified or path.parent != executable.parent:
             raise ValueError("PE dependency is outside verified isolated engine directory")
-        imports = pe_imports(path)
+        imports = pe_imports(path, max_file_bytes=max_file_bytes)
         node = {
             "path": relative,
             "size_bytes": path.stat().st_size,
@@ -241,6 +243,8 @@ def scan_pe_closure(executable, runtime_root, verified_files):
         "all_dynamic_loads_covered": False,
         "system_dependencies_pinned": False,
     }
+    if max_file_bytes != 256 << 20:
+        closure["explicit_max_file_bytes"] = max_file_bytes
     closure["identity_sha256"] = hashlib.sha256(canonical(closure).encode()).hexdigest()
     return closure
 

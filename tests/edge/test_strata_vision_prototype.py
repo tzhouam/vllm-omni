@@ -1419,3 +1419,29 @@ def test_real_shaped_patch_source_lineage_is_required_even_when_resigned(loaded_
     ).hexdigest()
     with pytest.raises(RuntimeError, match="experimental CPU image"):
         multimodal.validate_strata_multimodal_load_plan(loaded_image_plan, "cpu+cuda:0")
+
+
+def test_pe_large_vendor_requires_explicit_bounded_opt_in(tmp_path):
+    file = tmp_path / "large.dll"
+    file.write_bytes(pe_bytes())
+    with file.open("r+b") as stream:
+        stream.truncate((256 << 20) + 1)
+    with pytest.raises(ValueError, match="outside reviewed bound"):
+        vision.pe_imports(file)
+    assert vision.pe_imports(file, max_file_bytes=512 << 20) == {"normal": [], "delay": []}
+    for invalid in (True, 0, -1, (1 << 30) + 1, 512.0):
+        with pytest.raises(ValueError, match="invalid explicit PE"):
+            vision.pe_imports(file, max_file_bytes=invalid)
+
+
+def test_pe_explicit_scan_bound_is_bound_into_closure(tmp_path, monkeypatch):
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    file = runtime / "encoder.exe"
+    file.write_bytes(pe_bytes())
+    monkeypatch.setattr(vision, "_windows_system_directory", lambda: tmp_path)
+    default = vision.scan_pe_closure(file, runtime, [file])
+    larger = vision.scan_pe_closure(file, runtime, [file], max_file_bytes=512 << 20)
+    assert "explicit_max_file_bytes" not in default
+    assert larger["explicit_max_file_bytes"] == 512 << 20
+    assert larger["identity_sha256"] != default["identity_sha256"]
