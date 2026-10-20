@@ -120,8 +120,10 @@ steps:
     key: upload-weekly-pipeline
     commands:
       - |
+        # shellcheck disable=SC1091
+        source .buildkite/common/scripts/release_line_branch.sh
         EXTRA=""
-        if [ "${BUILDKITE_BRANCH}" = "main" ]; then
+        if [ "${WEEKLY:-}" = "1" ] && is_release_line_push; then
           EXTRA="--all"
         fi
         python3 .buildkite/common/scripts/upload_pipeline.py --upload $$EXTRA .buildkite/npu/test-npu-weekly.yml

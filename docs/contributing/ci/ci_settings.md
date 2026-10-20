@@ -142,7 +142,7 @@ Canonical layout (prefer these paths for new changes):
 
     **L2 trigger:** PR label `ready` (CUDA/AMD L2). PR labels `ready` + `npu-test` trigger NPU CI only.
 
-    **L5 trigger:** PR label `weekly-test`, or scheduled `main` with `WEEKLY=1`. NPU weekly does not run under `NON_CRITICAL=1` alone. Docs-only PR labels still honor `skip_all`; scheduled main weekly retains coverage.
+    **L5 trigger:** PR label `weekly-test`, or a scheduled release line (`main` or `release/vX.Y.Z`) with `WEEKLY=1`. NPU weekly does not run under `NON_CRITICAL=1` alone. Docs-only PR labels still honor `skip_all`; scheduled release-line weekly retains coverage.
 
     **Upload:** same as CUDA—`upload_pipeline.py --upload`.
 

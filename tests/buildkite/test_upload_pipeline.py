@@ -136,7 +136,11 @@ def test_npu_weekly_is_admitted_for_schedule_and_pr_label(changed_files: list[st
     condition = by_key["upload-weekly-pipeline"]["if"]
     assert 'build.env("WEEKLY") == "1"' in condition
     assert 'labels includes "weekly-test"' in condition
+    assert "build.branch =~" in condition and "build.pull_request.id == null" in condition
     assert "NON_CRITICAL" not in condition
+    command = by_key["upload-weekly-pipeline"]["commands"][0]
+    assert "source .buildkite/common/scripts/release_line_branch.sh" in command
+    assert '[ "${WEEKLY:-}" = "1" ] && is_release_line_push' in command
     image_condition = by_key["image-build-a2"].get("if")
     if image_condition is not None:
         assert 'labels includes "weekly-test"' in image_condition
