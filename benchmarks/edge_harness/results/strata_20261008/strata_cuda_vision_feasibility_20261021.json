@@ -1,0 +1,47 @@
+{
+  "schema": "omni-strata-cuda-vision-feasibility-v1",
+  "captured_unix": 1792532915.4909308,
+  "scope": "static source and build provenance; no CUDA encoder execution",
+  "build_receipt_sha256": "66ffdecf4e28255c096a6d9a5a8c1580239c83b935cd9a52298875d08f52df26",
+  "verified_source_records": {
+    "strata_patched": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\source-vision-cpu-v2\\tools\\vision\\strata_vision.cpp",
+      "size_bytes": 14751,
+      "sha256": "455bd8edb1a60e12960542e55116c0f98022cfc70ac604fe14dff59b23300787"
+    },
+    "llama_patched": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\dependencies\\llama.cpp-3cf03257-vision-cpu-v2\\tools\\mtmd\\clip.cpp",
+      "size_bytes": 325592,
+      "sha256": "09015eb469da190858ec6cd50cd442ca5d9eb59c1ff8ab9e7c240c8b98cea163"
+    }
+  },
+  "inspected_files": {
+    "C:\\Users\\zhout\\w2\\strata-omni\\dependencies\\llama.cpp-3cf03257-vision-cpu-v2\\ggml\\include\\ggml-backend.h": {
+      "sha256": "0305a9742164ae118ef0490a720971934938c9e62cb174ccd68babf1992fa9c0",
+      "size_bytes": 25811
+    },
+    "C:\\Users\\zhout\\w2\\strata-omni\\dependencies\\llama.cpp-3cf03257-vision-cpu-v2\\ggml\\src\\ggml-cuda\\ggml-cuda.cu": {
+      "sha256": "ac62469a381ade7127b5bdaad5b9decd10606b5836e1ff4e25dda2e0d276ee64",
+      "size_bytes": 242597
+    },
+    "vllm-omni-edge\\vllm_omni\\engine\\backends\\strata_vision.py": {
+      "sha256": "63b6f4edfe337b67acd0c075bb98f1f4ce6ed61f9c0391ffb83b6983751348a7",
+      "size_bytes": 52468
+    }
+  },
+  "findings": [
+    "Actual audited encoder build has STRATA_VISION_CUDA=OFF and STRATA_PORTABLE=ON.",
+    "Runtime top-level tools/vision source is not the patched build source; build receipt identifies source-vision-cpu-v2.",
+    "Pinned ggml_backend_dev_props.device_id supports PCI bus identity; CUDA fills it using cudaDeviceGetPCIBusId.",
+    "Current Omni route rejects CUDA pending physical identity and startup warmup admission.",
+    "Native GPU startup encodes a 2048-square image before READY; must include it in loading and workspace budgets."
+  ],
+  "next_implementation": [
+    "Versioned native selected-device observation sourced from ggml backend properties.",
+    "Bind actual PCI identity to the admitted GPU pool before neural dispatch; reject unknown/mismatch rather than infer CUDA ordinal.",
+    "Account for and verify native warmup before enabling GPU route.",
+    "Build isolated candidate, compare real SVE numerics and complete requests, test cancellation and recovery."
+  ],
+  "cuda_route_enabled": false,
+  "neural_execution": false
+}
