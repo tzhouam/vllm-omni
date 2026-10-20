@@ -1,0 +1,50 @@
+{
+  "schema": "omni-closed-run-resource-summary-v1",
+  "source": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-full-6g-20261020-v7\\telemetry.jsonl",
+  "source_sha256": "f681ab3ad607a7866b2ae7ccf9bd86bbd07a07ca4fd8c65d171d9e40dd33da6c",
+  "source_size_bytes": 1477576316,
+  "receipt_sha256": "71292d2528b613e2de7871c6d2832c8ac6b4eee1c589b1d701a22606b107649a",
+  "samples": 37281,
+  "first_unix": 1792501573.2541423,
+  "last_unix": 1792511883.8534904,
+  "observed_span_s": 10310.599348068237,
+  "peak_observed_values": {
+    "host.available_ram_bytes": 24713105408,
+    "host.used_ram_bytes": 57665232896,
+    "host.process_tree_rss_sum_bytes": 14085066752,
+    "host.swap_used_bytes": 3272404992,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.used_vram_bytes": 17595125760,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.power_mw": 168003,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.temperature_c": 73,
+    "process_gpu.local_current_usage_bytes": 14440988672,
+    "process_gpu.nonlocal_current_usage_bytes": 8287944704
+  },
+  "minimum_observed_values": {
+    "host.available_ram_bytes": 10108276736
+  },
+  "valid_sample_counts": {
+    "host.available_ram_bytes": 37280,
+    "host.used_ram_bytes": 37280,
+    "host.process_tree_rss_sum_bytes": 37280,
+    "host.swap_used_bytes": 37280,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.used_vram_bytes": 37280,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.power_mw": 37280,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.temperature_c": 37280,
+    "process_gpu.local_current_usage_bytes": 34110,
+    "process_gpu.nonlocal_current_usage_bytes": 34110
+  },
+  "limitations": [
+    "Sampled peaks, not guaranteed instantaneous maxima",
+    "Whole-system RAM and GPU usage include other applications",
+    "Process RSS sum double-counts shared pages; not physical RAM attribution",
+    "System swap usage does not prove model paging",
+    "WDDM nonlocal usage is shared host RAM, not proof of GPU spill",
+    "GPU power is not whole-device power; no physical SSD attribution",
+    "Fixed screenshot task family; no default route qualification"
+  ],
+  "producer_sha256": "ef95257699f1577dd02e48ed89ab5efa3fb1cef7aa975d87450c44d7c83bec6d",
+  "producer_archive": {
+    "path": "strata_q4_image_v7_resource_summary_producer_20261021.py.gz",
+    "sha256": "4442d163ccf1c142a30171832cc7f3eb5545f41a453878487318dc97823c5a4d"
+  }
+}
