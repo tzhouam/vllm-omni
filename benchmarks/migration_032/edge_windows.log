@@ -1,0 +1,26 @@
+........................................................................ [ 20%]
+..............................................................s......... [ 41%]
+............................s........................................... [ 62%]
+........................................................................ [ 82%]
+...........................................................              [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/zhout/project/edge_infer/vllm-omni-029/.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+tests/edge/local/external/test_client.py::test_handshake_and_round_trip
+  /home/zhout/project/edge_infer/vllm-omni-029/.venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:916: PytestDeprecationWarning: Overriding the "event_loop_policy" fixture is deprecated and will be removed in a future version of pytest-asyncio. Use the "pytest_asyncio_loop_factories" hook to customize event loop creation.
+    warnings.warn(
+
+tests/edge/test_qnn_export.py::test_export_onnx_is_clean_for_the_qualcomm_toolchains
+tests/edge/test_qnn_export.py::test_exported_graph_reproduces_eager
+  /home/zhout/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/copyreg.py:99: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+    return cls.__new__(cls, *args)
+
+tests/config/test_deploy_profiles.py::test_edge_profile_carries_parallel_stage_init
+  /home/zhout/project/edge_infer/vllm-omni-029/.venv/lib/python3.12/site-packages/transformers/modeling_rope_utils.py:1126: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--- Running Summary
+345 passed, 2 skipped, 18 warnings in 108.57s (0:01:48)

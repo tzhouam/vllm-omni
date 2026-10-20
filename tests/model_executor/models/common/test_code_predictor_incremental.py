@@ -40,10 +40,10 @@ def test_forward_cached_matches_full_prefix():
     full = model(x, pos)  # [B, 17, H], causal over the whole prefix
 
     caches = model.new_kv_caches(bsz, max_seq, x.device, x.dtype)
-    out_prefill = model.forward_cached(x[:, :2], pos[:, :2], caches, 0)
+    out_prefill = model.forward_cached_edge(x[:, :2], pos[:, :2], caches, 0)
     assert torch.allclose(out_prefill, full[:, :2], atol=1e-4, rtol=1e-4)
     for step in range(2, max_seq):
-        out_step = model.forward_cached(x[:, step : step + 1], pos[:, step : step + 1], caches, step)
+        out_step = model.forward_cached_edge(x[:, step : step + 1], pos[:, step : step + 1], caches, step)
         assert torch.allclose(out_step[:, 0], full[:, step], atol=1e-4, rtol=1e-4), step
     # caches hold exactly the prefix K/V that a fresh full pass would produce
     assert caches[0][0].shape == (bsz, 2, max_seq, 16)
@@ -55,9 +55,9 @@ def test_forward_cached_rejects_multi_token_append():
     x = torch.randn(1, 2, 64)
     pos = torch.arange(2).unsqueeze(0)
     caches = model.new_kv_caches(1, 17, x.device, x.dtype)
-    model.forward_cached(x, pos, caches, 0)
+    model.forward_cached_edge(x, pos, caches, 0)
     with pytest.raises(ValueError):
-        model.forward_cached(x, pos + 2, caches, 2)
+        model.forward_cached_edge(x, pos + 2, caches, 2)
 
 
 @torch.inference_mode()
@@ -71,7 +71,7 @@ def test_forward_static_step_matches_full_prefix():
     pos = torch.arange(max_seq).unsqueeze(0).expand(bsz, -1)
     full = model(x, pos)
     caches = model.new_kv_caches(bsz, max_seq, x.device, x.dtype)
-    model.forward_cached(x[:, :2], pos[:, :2], caches, 0)  # eager 2-token prefill
+    model.forward_cached_edge(x[:, :2], pos[:, :2], caches, 0)  # eager 2-token prefill
     for step in range(2, max_seq):
         pos_t = torch.tensor([step])
         mask = (torch.arange(max_seq) <= step).view(1, 1, 1, max_seq).expand(bsz, 1, 1, max_seq)
@@ -91,7 +91,7 @@ def test_compiled_static_step_matches_eager():
     full = model(x, pos)
     step_fn = torch.compile(model.forward_static_step, dynamic=False)
     caches = model.new_kv_caches(bsz, max_seq, x.device, x.dtype)
-    model.forward_cached(x[:, :2], pos[:, :2], caches, 0)
+    model.forward_cached_edge(x[:, :2], pos[:, :2], caches, 0)
     for step in range(2, max_seq):
         pos_t = torch.tensor([step])
         mask = (torch.arange(max_seq) <= step).view(1, 1, 1, max_seq).expand(bsz, 1, 1, max_seq)
@@ -125,3 +125,35 @@ def test_post_step_sample_matches_eager_gumbel():
     compiled = torch.compile(_post_step_sample, dynamic=False)
     code_c, proj_c = compiled(h, head_w, embed_w, proj_w, proj_b, u, 1 / 0.9, 5, True)
     assert torch.equal(code_c, ref_code) and torch.allclose(proj_c, ref_proj, atol=1e-4)
+
+@pytest.mark.parametrize("stored", [False, True])
+@torch.inference_mode()
+def test_edge_incremental_preserves_supplied_sampling_and_request_state(monkeypatch, stored):
+    from vllm_omni.model_executor.models.common import qwen3_code_predictor as cp
+
+    monkeypatch.setenv("VLLM_OMNI_PREDICTOR_CPU_INT8", "off")
+    monkeypatch.setattr(cp.current_omni_platform, "supports_torch_inductor", lambda: False)
+    config = SimpleNamespace(
+        model_config=SimpleNamespace(stage_connector_config={}),
+        additional_config={}, scheduler_config=SimpleNamespace(max_num_seqs=1),
+    )
+    torch.manual_seed(123)
+    predictor = cp.CodePredictorWrapper(
+        vllm_config=config, cp_config=_tiny_config(),
+        wrapper_config=cp.CodePredictorWrapperConfig(sampling_mode="stored" if stored else "per_call"),
+    ).eval()
+    predictor._top_k = 5
+    monkeypatch.setattr(predictor, "_setup_cpu_fast_path", lambda device: None)
+    monkeypatch.setattr(predictor, "_setup_incremental_compile", lambda: None)
+    monkeypatch.setattr(predictor, "_incremental_threads", lambda: 0)
+    ids = torch.zeros(1, 1, dtype=torch.long)
+    hidden, embeds = torch.randn(1, 1, 64), torch.randn(1, 1, 64)
+    uniforms = torch.rand(1, 15, 32).clamp_(1e-6, 1 - 1e-6)
+    monkeypatch.setenv("VLLM_OMNI_PREDICTOR_INCREMENTAL", "0")
+    expected = predictor(ids, embeds, hidden, top_k=5, sample_uniforms=uniforms).clone()
+    monkeypatch.setenv("VLLM_OMNI_PREDICTOR_INCREMENTAL", "1")
+    actual = predictor(ids, embeds, hidden, top_k=5, sample_uniforms=uniforms).clone()
+    torch.testing.assert_close(actual, expected, atol=0, rtol=0)
+    predictor(ids, embeds * 2, hidden * 2, top_k=5, sample_uniforms=1-uniforms)
+    repeat = predictor(ids, embeds, hidden, top_k=5, sample_uniforms=uniforms)
+    torch.testing.assert_close(repeat, expected, atol=0, rtol=0)

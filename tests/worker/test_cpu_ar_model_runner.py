@@ -36,7 +36,7 @@ def test_ar_runner_mro():
     assert CPUARModelRunner._capture_talker_mtp_graphs is _CPUOmniRunnerMixin._capture_talker_mtp_graphs
     # vLLM CPU shims (triton/tensor post-processing, warm-up) are reachable
     assert CPUARModelRunner.warming_up_model is CPUModelRunner.warming_up_model
-    assert CPUARModelRunner._postprocess_triton is CPUModelRunner._postprocess_triton
+    assert CPUARModelRunner._postprocess_tensors is CPUModelRunner._postprocess_tensors
     # omni connector mixin is present for the worker-class validation
     assert issubclass(CPUARModelRunner, OmniConnectorModelRunnerMixin)
 

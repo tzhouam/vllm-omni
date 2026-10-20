@@ -1,0 +1,28 @@
+........................................................................ [ 59%]
+..................................................                       [100%]
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: 14 warnings
+  /home/zhout/project/edge_infer/vllm-omni-029/.venv/lib/python3.12/site-packages/torch/jit/_script.py:365: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+.venv/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py:24
+  /home/zhout/project/edge_infer/vllm-omni-029/.venv/lib/python3.12/site-packages/vllm/entrypoints/openai/api_server.py:24: DeprecationWarning: `vllm.entrypoints.openai.api_server` is deprecated and will likely beunsupported in a future version. Use the corresponding function from `vllm.entrypoints.launchers` instead.
+    warnings.warn(
+
+vllm_omni/protocol/realtime/audio.py:17
+  /home/zhout/project/edge_infer/vllm-omni-029/vllm_omni/protocol/realtime/audio.py:17: DeprecationWarning: 'audioop' is deprecated and slated for removal in Python 3.13
+    from audioop import alaw2lin, lin2alaw, lin2ulaw, ulaw2lin
+
+tests/model_executor/models/qwen3_tts/test_code_predictor_sampling.py::test_fused_predictor_warmup_with_capacity_one
+tests/model_executor/models/qwen3_tts/test_code_predictor_sampling.py::test_fused_predictor_matches_full_reference_with_fixed_uniforms[1-1]
+tests/model_executor/models/qwen3_tts/test_code_predictor_sampling.py::test_fused_predictor_matches_full_reference_with_fixed_uniforms[1-4]
+tests/model_executor/models/qwen3_tts/test_code_predictor_sampling.py::test_fused_predictor_matches_full_reference_with_fixed_uniforms[50-1]
+tests/model_executor/models/qwen3_tts/test_code_predictor_sampling.py::test_fused_predictor_matches_full_reference_with_fixed_uniforms[50-4]
+tests/model_executor/models/qwen3_tts/test_cached_code_predictor.py::test_cached_frames_match_causal_prefill_after_graph_replay[dtype0]
+tests/model_executor/models/qwen3_tts/test_cached_code_predictor.py::test_cached_frames_match_causal_prefill_after_graph_replay[dtype1]
+  /home/zhout/project/edge_infer/vllm-omni-029/.venv/lib/python3.12/site-packages/transformers/modeling_rope_utils.py:1126: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--- Running Summary
+122 passed, 23 warnings in 19.81s

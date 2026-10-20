@@ -427,15 +427,16 @@ class StageRuntime:
                     if not self._parallel_stage_init:
                         # Never hold the spawn-env lock while waiting for a GPU:
                         # its current holder may need that lock to spawn.
-                        lock_fds.extend(
-                            acquire_device_locks(
-                                replica.metadata.stage_id,
-                                replica.engine_args_dict,
-                                timeout,
-                                locked_devices,
-                                visible_devices=physical_devices,
+                        with worker_phase("g3_device_lock", stage_id=replica.metadata.stage_id):
+                            lock_fds.extend(
+                                acquire_device_locks(
+                                    replica.metadata.stage_id,
+                                    replica.engine_args_dict,
+                                    timeout,
+                                    locked_devices,
+                                    visible_devices=physical_devices,
+                                )
                             )
-                        )
 
                     with self._replica_launch_lock:
                         mps_env = self._mps_environment(physical_devices, replica.metadata.runtime_cfg)
@@ -463,7 +464,9 @@ class StageRuntime:
                             stage_runtime_env(replica.metadata.stage_id, replica.metadata.runtime_cfg),
                             stage_runtime_env(replica.metadata.stage_id, {"env": mps_env}),
                         ):
-                            with worker_phase("g2_spawn", stage_id=replica.metadata.stage_id, replica_id=replica.replica_id):
+                            with worker_phase(
+                                "g2_spawn", stage_id=replica.metadata.stage_id, replica_id=replica.replica_id
+                            ):
                                 stage_resources = launch_context.__enter__()
                         entered_contexts.append(launch_context)
                         if stage_resources is None:
@@ -471,7 +474,9 @@ class StageRuntime:
                         resources.append(stage_resources)
                     if num_api_servers == 1:
                         exited_contexts.add(len(entered_contexts) - 1)
-                        with worker_phase("g2_ready_wait", stage_id=replica.metadata.stage_id, replica_id=replica.replica_id):
+                        with worker_phase(
+                            "g2_ready_wait", stage_id=replica.metadata.stage_id, replica_id=replica.replica_id
+                        ):
                             launch_context.__exit__(None, None, None)
                     addresses = stage_resources.addresses
                     # The generic resource bundle allows no addresses (e.g.
@@ -1103,8 +1108,7 @@ class StageRuntime:
         if local and all(self._cpu_placed(r) for r in local):
             import psutil
 
-            self._run_host_admission(stage_plans, check_host_admission,
-                                     lambda: int(psutil.virtual_memory().available))
+            self._run_host_admission(stage_plans, check_host_admission, lambda: int(psutil.virtual_memory().available))
             return
 
         def _resolve(replica: ReplicaInitPlan) -> list[int] | AdmissionExempt | None:

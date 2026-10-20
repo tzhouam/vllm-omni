@@ -87,5 +87,5 @@ def test_deploy_overlay_for_cpu_platform():
     assert s0.enforce_eager is True and s1.enforce_eager is True
     assert s0.async_scheduling is False
     assert s0.engine_extras["dtype"] == "bfloat16"
-    assert s0.engine_extras["kv_cache_memory_bytes"] == 4 * 2**30
+    assert s0.engine_extras["kv_cache_memory_bytes"] == 640 * 2**20
     assert s0.env["VLLM_CPU_OMP_THREADS_BIND"] != s1.env["VLLM_CPU_OMP_THREADS_BIND"]

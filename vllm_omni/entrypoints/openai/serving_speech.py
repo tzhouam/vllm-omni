@@ -326,6 +326,8 @@ class _SpeechStreamingResponse(StreamingResponse):
             # Close it explicitly, even inside Starlette's cancelled scope.
             with anyio.CancelScope(shield=True):
                 await cast(Any, self.body_iterator).aclose()
+
+
 def _coerce_codec_snapshots(codes: Any) -> Any:
     """Normalize the per-step ``codes.audio`` payload to one ``[rows, codebooks]`` array.
 
@@ -3115,3 +3117,94 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
             succeeded=succeeded,
             failed=len(final_results) - succeeded,
         )
+
+    @staticmethod
+    def _extract_codec_output(res) -> Any:
+        """Return the cumulative ``codes.audio`` tensor from an engine output, or ``None``."""
+        outputs = getattr(res, "outputs", None)
+        if not outputs:
+            return None
+        mm = getattr(outputs[0], "multimodal_output", None)
+        if mm is None:
+            return None
+        getter = mm.get if hasattr(mm, "get") else None
+        codes = getter("codes") if getter else None
+        if codes is None:
+            return None
+        if hasattr(codes, "get"):
+            return _coerce_codec_snapshots(codes.get("audio"))
+        return None
+
+    async def _generate_codec_chunks(
+        self,
+        generator,
+        request_id: str,
+        *,
+        tts_params: dict[str, Any] | None = None,
+        min_frames: int = 1,
+    ):
+        """Yield ``(codes[int64, n, codebooks], eos)`` deltas from a talker-only pipeline.
+
+        The AR stage publishes ``codes.audio`` on every step
+        (``omni_client_multimodal_output_keys``): in DELTA output mode only the
+        newest row(s), and a consolidated cumulative matrix on the final
+        output. ``accumulate_codec_rows`` folds both shapes into one growing
+        matrix; this generator aligns its rows to the output token ids
+        (dropping the prefill placeholder and the EOS row) and emits only the
+        new rows. The final item always carries ``eos=True`` (possibly with
+        zero frames).
+        """
+        from vllm_omni.entrypoints.openai.codec_stream import accumulate_codec_rows, align_codec_rows
+
+        adapter = self._get_tts_adapter()
+        spec = getattr(adapter, "codec_stream_spec", None) or {}
+        codebook_size = int(spec.get("codebook_size", 2048))
+        usage_acc = SpeechOutputTokenCounter() if (adapter is not None and adapter.validates_generation) else None
+        token_ids: list[int] = []
+        codes_cum: np.ndarray | None = None
+        sent = 0
+        finished = False
+        n_outputs = 0
+        n_with_codes = 0
+        first_codes_at = -1
+        try:
+            async for res in generator:
+                n_outputs += 1
+                if usage_acc is not None:
+                    usage_acc.observe(res)
+                outputs = getattr(res, "outputs", None)
+                if outputs:
+                    new_ids = getattr(outputs[0], "token_ids", None) or []
+                    # DELTA outputs carry per-step ids; CUMULATIVE ones carry the whole prefix.
+                    if len(new_ids) > len(token_ids) and list(new_ids[: len(token_ids)]) == token_ids:
+                        token_ids = list(new_ids)
+                    else:
+                        token_ids.extend(int(t) for t in new_ids)
+                codes_step = self._extract_codec_output(res)
+                done = bool(getattr(res, "finished", False))
+                if codes_step is not None:
+                    n_with_codes += 1
+                    if first_codes_at < 0:
+                        first_codes_at = n_outputs
+                    codes_cum = accumulate_codec_rows(codes_cum, codes_step)
+                    aligned = align_codec_rows(codes_cum, token_ids, codebook_size)
+                    delta = aligned[sent:]
+                    if delta.shape[0] >= min_frames or (done and delta.shape[0] > 0):
+                        sent = int(aligned.shape[0])
+                        yield delta, done
+                        if done:
+                            finished = True
+                if done and not finished:
+                    finished = True
+                    yield None, True
+        finally:
+            logger.info(
+                "[codec_stream] req=%s engine outputs=%d with codes=%d first codes at output #%d rows sent=%d",
+                request_id,
+                n_outputs,
+                n_with_codes,
+                first_codes_at,
+                sent,
+            )
+            if usage_acc is not None and tts_params is not None and finished:
+                self._validate_tts_generation(tts_params, usage_acc)

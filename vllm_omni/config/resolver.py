@@ -16,7 +16,6 @@ from vllm_omni.config.endpoint_policy import EndpointRestriction
 from vllm_omni.config.omni_config import VllmOmniConfig
 from vllm_omni.config.stage_config import PipelineConfig
 from vllm_omni.diffusion.data import resolve_model_class_name
-from vllm_omni.diffusion.registry import DiffusionModelRegistry, resolve_native_single_file
 from vllm_omni.diffusion.utils.hf_utils import is_diffusion_model
 
 logger = init_logger(__name__)
@@ -186,6 +185,8 @@ def _resolve_generic_diffusion_model_class(
     # model stack; AR-only (TTS) pipelines resolve through the registry branch
     # above and must not pay for it (tests/config/test_import_guard.py).
 
+    from vllm_omni.diffusion.registry import DiffusionModelRegistry
+
     model_class_name = cli_overrides.get("model_class_name") or resolve_model_class_name(
         model,
         str(cli_overrides.get("diffusion_load_format") or "default"),
@@ -209,7 +210,11 @@ def resolve_omni_config(
     """Resolve registry/deploy inputs through the single public entrypoint."""
     normalized_overrides = _convert_dataclasses_to_dict(dict(cli_overrides or {}))
     normalized_overrides = with_trust_remote_code_override(normalized_overrides, trust_remote_code)
-    native_single_file_model = resolve_native_single_file(normalized_overrides.get("model_class_name"))
+    native_single_file_model = None
+    if normalized_overrides.get("model_class_name") and Path(model).is_file():
+        from vllm_omni.diffusion.registry import resolve_native_single_file
+
+        native_single_file_model = resolve_native_single_file(normalized_overrides["model_class_name"])
     is_native_single_file = native_single_file_model is not None and Path(model).is_file()
     if is_native_single_file:
         normalized_overrides["model_class_name"] = native_single_file_model

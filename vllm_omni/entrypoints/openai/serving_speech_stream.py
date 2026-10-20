@@ -392,6 +392,9 @@ class OmniStreamingSpeechHandler:
                     utterance_open = False
 
                 elif msg_type == "input.cancel":
+                    if commitment is not None:
+                        await self._cleanup_commitment_utterance(commitment)
+                        commitment = None
                     # Nothing is streaming at this point (cancels that arrive
                     # during generation are handled in ``_iter_with_cancel``).
                     # Drop whatever text is still buffered for this utterance;
@@ -871,12 +874,14 @@ class OmniStreamingSpeechHandler:
                 "PCM audio.chunk stream)."
             )
         return None
+
     async def _iter_with_cancel(
         self,
         websocket: WebSocket,
         stream,
         request_id: str,
         inbox: "_SessionInbox | None",
+        cancellation_event: asyncio.Event,
     ):
         """Yield items from ``stream`` while watching the session inbox.
 
@@ -885,7 +890,6 @@ class OmniStreamingSpeechHandler:
         a disconnect raises ``WebSocketDisconnect`` like a plain send would;
         any other message is left queued for the session loop.
         """
-        self._last_cancelled = False
         if inbox is None:
             async for item in stream:
                 yield item
@@ -901,7 +905,7 @@ class OmniStreamingSpeechHandler:
                         next_task.cancel()
                         raise WebSocketDisconnect(code=1006)
                     if kind == "cancel":
-                        self._last_cancelled = True
+                        cancellation_event.set()
                         try:
                             await self._speech_service.engine_client.abort(request_id)
                         except Exception:
@@ -946,18 +950,21 @@ class OmniStreamingSpeechHandler:
         request_arrival_ts = time.time()
         request_start_s = time.perf_counter()
         response_format = config.response_format or "wav"
-        self._last_cancelled = False
 
+        cancellation_event = cancellation_event if cancellation_event is not None else asyncio.Event()
         if getattr(config, "output_mode", "pcm") == "codec_tokens":
-            await self._generate_and_send_codec(
+            return await self._generate_and_send_codec(
                 websocket,
                 config,
                 sentence_text,
                 utterance_index=utterance_index,
                 sentence_index=sentence_index,
                 inbox=inbox,
+                active_request_ids=active_request_ids,
+                aborted_request_ids=aborted_request_ids,
+                suppress_done_on_cancel=suppress_done_on_cancel,
+                cancellation_event=cancellation_event,
             )
-            return
 
         # Reject unmet word-timestamps preconditions early with a clear reason.
         precondition_error = self._generation_precondition_error(config)
@@ -1060,7 +1067,9 @@ class OmniStreamingSpeechHandler:
                             audio_format=audio_format,
                         )
                     ) as stream:
-                        async for chunk in self._iter_with_cancel(websocket, stream, request_id, inbox):
+                        async for chunk in self._iter_with_cancel(
+                            websocket, stream, request_id, inbox, cancellation_event
+                        ):
                             await send_start()
                             total_bytes += len(chunk)
                             await websocket.send_bytes(chunk)
@@ -1121,11 +1130,12 @@ class OmniStreamingSpeechHandler:
                             "sentence_index": sentence_index,
                             "total_bytes": total_bytes,
                             "error": generation_failed,
+                            **({"cancelled": True} if generation_cancelled or cancellation_requested else {}),
                         }
                     )
             except Exception:
                 logger.debug("Failed to send audio.done for sentence %d", sentence_index, exc_info=True)
-        return not generation_failed and not generation_cancelled
+        return not generation_failed and not generation_cancelled and not cancellation_event.is_set()
 
     async def _generate_and_send_codec(
         self,
@@ -1136,7 +1146,11 @@ class OmniStreamingSpeechHandler:
         utterance_index: int,
         sentence_index: int,
         inbox: "_SessionInbox | None" = None,
-    ) -> None:
+        active_request_ids: set[str] | None = None,
+        aborted_request_ids: set[str] | None = None,
+        suppress_done_on_cancel: bool = False,
+        cancellation_event: asyncio.Event | None = None,
+    ) -> bool:
         """Stream the talker's codec frames (no server-side decoding).
 
         Protocol: ``codec.start`` (JSON, codec description) → binary frames
@@ -1148,7 +1162,8 @@ class OmniStreamingSpeechHandler:
         adapter = self._speech_service._get_tts_adapter()
         if adapter is None or not getattr(adapter, "supports_codec_stream", False):
             await self._send_error(websocket, "output_mode='codec_tokens' is not supported by the loaded TTS model.")
-            return
+            return False
+        cancellation_event = cancellation_event if cancellation_event is not None else asyncio.Event()
         spec = dict(adapter.codec_stream_spec)
         request = OpenAICreateSpeechRequest(
             input=sentence_text,
@@ -1180,14 +1195,24 @@ class OmniStreamingSpeechHandler:
         total_frames = 0
         seq = 0
         generation_failed = False
-        request_id = None
+        request_id = f"speech-stream-{random_uuid()}"
+        if active_request_ids is not None:
+            active_request_ids.add(request_id)
         eos_sent = False
         try:
-            request_id, generator, tts_params = await self._speech_service._prepare_speech_generation(request)
+            prepared_id, generator, tts_params = await self._speech_service._prepare_speech_generation(
+                request, request_id=request_id
+            )
+            if prepared_id != request_id and active_request_ids is not None:
+                active_request_ids.discard(request_id)
+                active_request_ids.add(prepared_id)
+            request_id = prepared_id
             async with aclosing(
                 self._speech_service._generate_codec_chunks(generator, request_id, tts_params=tts_params)
             ) as stream:
-                async for codes, eos in self._iter_with_cancel(websocket, stream, request_id, inbox):
+                async for codes, eos in self._iter_with_cancel(
+                    websocket, stream, request_id, inbox, cancellation_event
+                ):
                     n = 0 if codes is None else int(codes.shape[0])
                     total_frames += n
                     await websocket.send_bytes(pack_codec_frame(seq, codes, eos=eos, codebooks=int(spec["codebooks"])))
@@ -1200,6 +1225,9 @@ class OmniStreamingSpeechHandler:
                 except Exception:
                     logger.debug("Failed to abort codec stream request %s", request_id, exc_info=True)
             raise
+        except asyncio.CancelledError:
+            cancellation_event.set()
+            raise
         except Exception as e:
             generation_failed = True
             logger.error("Codec stream failed for utterance %d: %s", utterance_index, e)
@@ -1207,27 +1235,32 @@ class OmniStreamingSpeechHandler:
                 websocket, f"Codec stream failed for utterance {utterance_index}: {e}", partial_audio=total_frames > 0
             )
         finally:
-            cancelled = bool(getattr(self, "_last_cancelled", False))
-            if not eos_sent and not generation_failed:
+            if active_request_ids is not None:
+                active_request_ids.discard(request_id)
+            cancelled = cancellation_event.is_set()
+            if not eos_sent and not generation_failed and not (suppress_done_on_cancel and cancelled):
                 try:
                     await websocket.send_bytes(pack_codec_frame(seq, None, eos=True, codebooks=int(spec["codebooks"])))
                     seq += 1
                 except Exception:
                     logger.debug("Failed to send terminal codec frame", exc_info=True)
             try:
-                await websocket.send_json(
-                    {
-                        "type": "codec.done",
-                        "utterance_index": utterance_index,
-                        "sentence_index": sentence_index,
-                        "total_frames": total_frames,
-                        "seq_last": seq - 1,
-                        "error": generation_failed,
-                        "cancelled": cancelled,
-                    }
-                )
+                if not (suppress_done_on_cancel and cancelled):
+                    await websocket.send_json(
+                        {
+                            "type": "codec.done",
+                            "utterance_index": utterance_index,
+                            "sentence_index": sentence_index,
+                            "total_frames": total_frames,
+                            "seq_last": seq - 1,
+                            "error": generation_failed,
+                            "cancelled": cancelled,
+                        }
+                    )
             except Exception:
                 logger.debug("Failed to send codec.done", exc_info=True)
+
+        return not generation_failed and not cancellation_event.is_set()
 
     async def _stream_audio_with_alignments(
         self,

@@ -1,0 +1,22 @@
+{
+  "ast_parse": "passed",
+  "distributed_reexports": {
+    "divide": true,
+    "get_dcp_group": true,
+    "get_dp_group": true,
+    "get_ep_group": true,
+    "get_pp_group": true,
+    "get_tensor_model_parallel_rank": true,
+    "get_tensor_model_parallel_world_size": true,
+    "get_tp_group": true,
+    "split_tensor_along_last_dim": true,
+    "tensor_model_parallel_all_gather": true,
+    "tensor_model_parallel_all_reduce": true
+  },
+  "old_branch": "00510ce38",
+  "base": "v0.32.0rc1",
+  "missing_local_functions": {
+    "async_omni_engine._report_init_timeline": "moved to omni_engine_base",
+    "async_omni_engine._initialize_stages_impl": "upstream OmniEngineBase._initialize_stages + StageRuntime"
+  }
+}

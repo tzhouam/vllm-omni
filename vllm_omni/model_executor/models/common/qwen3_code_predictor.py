@@ -1513,6 +1513,7 @@ class CodePredictorWrapper(nn.Module):
                 raise ValueError(
                     f"sample_uniforms must have shape {expected_shape}, got {tuple(sample_uniforms.shape)}"
                 )
+
     # ------------------------------------------------------------------
     #  Incremental (KV-cached) residual decoding
     # ------------------------------------------------------------------
@@ -1529,12 +1530,14 @@ class CodePredictorWrapper(nn.Module):
         bsz = proj_row.shape[0]
         if step == 1:
             x = proj_row.to(rdtype)  # [B, 2, H] prefill rows
-            h = ref_model.forward_cached_edge(x, self._incremental_pos_ids(bsz, 0, 2, proj_row.device), ref_caches, 0)[:, 1]
+            h = ref_model.forward_cached_edge(x, self._incremental_pos_ids(bsz, 0, 2, proj_row.device), ref_caches, 0)[
+                :, 1
+            ]
         else:
             x = proj_row.to(rdtype)  # [B, 1, H]
-            h = ref_model.forward_cached_edge(x, self._incremental_pos_ids(bsz, step, 1, proj_row.device), ref_caches, step)[
-                :, 0
-            ]
+            h = ref_model.forward_cached_edge(
+                x, self._incremental_pos_ids(bsz, step, 1, proj_row.device), ref_caches, step
+            )[:, 0]
         ref_logits = ref_heads[step - 1](h).float()
         stats = StepStats.get()
         test_logits = logits_int8.float()
@@ -1678,6 +1681,7 @@ class CodePredictorWrapper(nn.Module):
         logits: torch.Tensor,
         sample_generator: _GeneratorLike,
         *,
+        uniforms: torch.Tensor | None = None,
         stored_mode: bool,
         s_top_k: int,
         s_top_p: float,
@@ -1687,6 +1691,8 @@ class CodePredictorWrapper(nn.Module):
     ) -> torch.Tensor:
         """Same sampling as the re-prefill loop body (kept identical so codes match)."""
         if stored_mode:
+            if not self._do_sample:
+                return logits.argmax(dim=-1, keepdim=True)
             if s_top_k > 0:
                 topk_vals, _ = logits.topk(s_top_k, dim=-1)
                 logits = logits.masked_fill(logits < topk_vals[:, -1:], float("-inf"))
@@ -1697,13 +1703,13 @@ class CodePredictorWrapper(nn.Module):
                 remove_mask = (cumulative_probs - sorted_probs) >= s_top_p
                 sorted_logits[remove_mask] = float("-inf")
                 logits = sorted_logits.scatter(1, sorted_idx, sorted_logits)
-            return self._sample_codes_gumbel(logits, generator=sample_generator)
+            return self._sample_codes_gumbel(logits, generator=sample_generator, uniforms=uniforms)
         if use_sampling:
             scaled = logits * inv_temperature
             if top_k > 0:
                 topk_vals, _ = scaled.topk(top_k, dim=-1)
                 scaled = scaled.masked_fill(scaled < topk_vals[:, -1:], float("-inf"))
-            return self._sample_codes_gumbel(scaled, generator=sample_generator)
+            return self._sample_codes_gumbel(scaled, generator=sample_generator, uniforms=uniforms)
         return logits.argmax(dim=-1, keepdim=True)
 
     @torch.inference_mode()
@@ -1855,13 +1861,10 @@ class CodePredictorWrapper(nn.Module):
                     head = lm_heads[step - 1]
                     proj_w = projection.weight if isinstance(projection, nn.Linear) else None
                     proj_b = projection.bias if isinstance(projection, nn.Linear) else None
-                    u = torch.empty(bsz, head.weight.shape[0], dtype=torch.float32, device=device)
-                    row_generators = self._normalize_generators(sample_generator, bsz)
-                    if isinstance(row_generators, list):
-                        for row, row_generator in enumerate(row_generators):
-                            u[row : row + 1].uniform_(_UNIFORM_EPS, 1.0 - _UNIFORM_EPS, generator=row_generator)
-                    else:
-                        u.uniform_(_UNIFORM_EPS, 1.0 - _UNIFORM_EPS, generator=row_generators)
+                    step_uniforms = sample_uniforms[:, step - 1, :] if sample_uniforms is not None else None
+                    u = self._sampling_uniforms(
+                        hidden_step.new_empty((bsz, head.weight.shape[0])), sample_generator, step_uniforms
+                    )
                     code, proj_row = post_step(
                         hidden_step,
                         head.weight,
@@ -1883,13 +1886,18 @@ class CodePredictorWrapper(nn.Module):
                 if getattr(self, "_parity_ref", None) is not None:
                     if step == 1:
                         ref_model = self._parity_ref[0]
-                        self._parity_caches = ref_model.new_edge_kv_caches(
+                        self._parity_caches = ref_model.new_kv_caches(
                             bsz, max_seq, device, next(ref_model.parameters()).dtype
                         )
                         self._parity_check(step, proj_buf[:bsz, :2, :], logits, self._parity_caches)
                     else:
                         self._parity_check(step, proj_buf[:bsz, step : step + 1, :], logits, self._parity_caches)
-                code = self._sample_step_code(logits, sample_generator, **sample_kwargs)
+                code = self._sample_step_code(
+                    logits,
+                    sample_generator,
+                    uniforms=sample_uniforms[:, step - 1, :] if sample_uniforms is not None else None,
+                    **sample_kwargs,
+                )
                 if self._wrapper_config.return_proj_buf:
                     all_codes[:, step] = code
                 else:
