@@ -1,0 +1,478 @@
+{
+  "schema": "omni-strata-tree-refresh-v1",
+  "status": "prototype_cost_measured_production_contract_tests_passed_neural_rerun_pending",
+  "component_cost": {
+    "baseline": {
+      "repetitions": 3,
+      "cpu_s_median": 2.1875,
+      "wall_s_median": 4.175018900074065,
+      "cpu_core_equivalent_median": 0.5178267817130678
+    },
+    "cached": {
+      "repetitions": 3,
+      "cpu_s_median": 0.40625,
+      "wall_s_median": 4.093230799771845,
+      "cpu_core_equivalent_median": 0.09924922875657151
+    }
+  },
+  "raw_cost": {
+    "schema": "omni-process-tree-refresh-cost-v1",
+    "runs": [
+      {
+        "mode": "baseline",
+        "wall_s": 4.2243856000714,
+        "cpu_s": 2.1875,
+        "polls": 19,
+        "collections": [
+          {
+            "elapsed_s": 0.11177119985222816,
+            "processes": 10,
+            "rss_sum_bytes": 92377088
+          },
+          {
+            "elapsed_s": 0.1137267998419702,
+            "processes": 10,
+            "rss_sum_bytes": 98078720
+          },
+          {
+            "elapsed_s": 0.14773739967495203,
+            "processes": 10,
+            "rss_sum_bytes": 98078720
+          },
+          {
+            "elapsed_s": 0.11892669973894954,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.10382800037041306,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.09869429981335998,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.16169360000640154,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.10883080027997494,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.10949459997937083,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.1023186999373138,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.12358170002698898,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.10069619957357645,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.1110066999681294,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.13281690003350377,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.11232789978384972,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.11745729995891452,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.1490182001143694,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.13357190042734146,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          },
+          {
+            "elapsed_s": 0.15980600006878376,
+            "processes": 10,
+            "rss_sum_bytes": 98082816
+          }
+        ],
+        "max_returned_sample_age_s": 0.0
+      },
+      {
+        "mode": "cached",
+        "wall_s": 4.093230799771845,
+        "cpu_s": 0.40625,
+        "polls": 36,
+        "collections": [
+          {
+            "elapsed_s": 0.11727449996396899,
+            "processes": 10,
+            "rss_sum_bytes": 98086912
+          },
+          {
+            "elapsed_s": 0.11789260013028979,
+            "processes": 10,
+            "rss_sum_bytes": 98086912
+          },
+          {
+            "elapsed_s": 0.1246587997302413,
+            "processes": 10,
+            "rss_sum_bytes": 98086912
+          },
+          {
+            "elapsed_s": 0.11660230020061135,
+            "processes": 10,
+            "rss_sum_bytes": 98086912
+          }
+        ],
+        "max_returned_sample_age_s": 1.0309999999590218
+      },
+      {
+        "mode": "cached",
+        "wall_s": 4.061434399802238,
+        "cpu_s": 0.53125,
+        "polls": 35,
+        "collections": [
+          {
+            "elapsed_s": 0.13157139997929335,
+            "processes": 10,
+            "rss_sum_bytes": 98091008
+          },
+          {
+            "elapsed_s": 0.1232863999903202,
+            "processes": 10,
+            "rss_sum_bytes": 98091008
+          },
+          {
+            "elapsed_s": 0.1446905001066625,
+            "processes": 10,
+            "rss_sum_bytes": 98095104
+          },
+          {
+            "elapsed_s": 0.14550419989973307,
+            "processes": 10,
+            "rss_sum_bytes": 98099200
+          }
+        ],
+        "max_returned_sample_age_s": 1.0470000002533197
+      },
+      {
+        "mode": "baseline",
+        "wall_s": 4.175018900074065,
+        "cpu_s": 2.25,
+        "polls": 18,
+        "collections": [
+          {
+            "elapsed_s": 0.14368199976161122,
+            "processes": 10,
+            "rss_sum_bytes": 98099200
+          },
+          {
+            "elapsed_s": 0.13699709996581078,
+            "processes": 10,
+            "rss_sum_bytes": 98099200
+          },
+          {
+            "elapsed_s": 0.12962680030614138,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.1685539004392922,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.13212529988959432,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.11831359984353185,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.13762659998610616,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.146388900000602,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.13015449978411198,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12084989994764328,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.13744750013574958,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.1404471001587808,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12405960028991103,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.13331309985369444,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.10665580024942756,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.11433640029281378,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12707750033587217,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.1204657000489533,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          }
+        ],
+        "max_returned_sample_age_s": 0.0
+      },
+      {
+        "mode": "baseline",
+        "wall_s": 4.143232199829072,
+        "cpu_s": 2.140625,
+        "polls": 18,
+        "collections": [
+          {
+            "elapsed_s": 0.16116750007495284,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.11521570011973381,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.14436719985678792,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.14185129990801215,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.10232320008799434,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12782900035381317,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.1675411998294294,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12801059987396002,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12247479986399412,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12193810008466244,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.15156379994004965,
+            "processes": 10,
+            "rss_sum_bytes": 98103296
+          },
+          {
+            "elapsed_s": 0.12142040021717548,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.11625640001147985,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.14913969999179244,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.11585529986768961,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.11767790000885725,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.12151250010356307,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.11064450023695827,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          }
+        ],
+        "max_returned_sample_age_s": 0.0
+      },
+      {
+        "mode": "cached",
+        "wall_s": 4.094064800068736,
+        "cpu_s": 0.390625,
+        "polls": 36,
+        "collections": [
+          {
+            "elapsed_s": 0.14163330011069775,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.12165230000391603,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.10949960025027394,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          },
+          {
+            "elapsed_s": 0.10947880009189248,
+            "processes": 10,
+            "rss_sum_bytes": 98107392
+          }
+        ],
+        "max_returned_sample_age_s": 1.0320000001229346
+      }
+    ],
+    "psutil": "7.2.2",
+    "controlled_children": 3,
+    "children_retired": true,
+    "source_sha256": {
+      "tree_sample.py": "eb0309b0120fff2ba040965d052f2755e54dcf6b361f3cfcecd1dd4806393ad7",
+      "benchmark_tree.py": "6174046f09fbba161b583921fbea51f9c0f27c7828c7d11287de7bb01c2cc3d7"
+    },
+    "limits": [
+      "Observer microbenchmark only; no neural model or Agent request",
+      "Baseline calls existing psutil tree/RSS operation every loop with 100 ms sleep",
+      "Candidate refreshes whole tree RSS at one-second intervals after completion",
+      "Cached values are older, with explicit timestamps and age; not 10 Hz tree peak measurement",
+      "Three alternating repetitions per mode; host background activity is uncontrolled",
+      "Small idle child tree does not represent every application topology"
+    ]
+  },
+  "production_tests": {
+    "passed": 46,
+    "elapsed_s": 36.269,
+    "junit": "production-tests-v2.junit.xml",
+    "earlier_failure": "Two worker tests replaced psutil before optional dependencies imported; fixed test initialization order. Earlier 44-pass/2-fail report retained."
+  },
+  "production_sources": {
+    "benchmarks/edge_harness/strata_profile.py": "7b24a29559c29087ca2978fd4fee0048d3ed5a615c82514fc29c973ec826423f",
+    "benchmarks/edge_harness/test_strata_telemetry.py": "c3ef475c3ce27e51279372dfa4fc21aa6b34f2d6b037a9f31444370958df81a7"
+  },
+  "archive": {
+    "file": "strata_tree_refresh_20261021.zip",
+    "sha256": "ceeaa147212e9601063ae7677dfde2fd6ba2428afacae05bb0d79c948f1f517b"
+  },
+  "raw_files": {
+    "benchmark_tree.py": {
+      "bytes": 3818,
+      "sha256": "6174046f09fbba161b583921fbea51f9c0f27c7828c7d11287de7bb01c2cc3d7"
+    },
+    "correctness-results.json": {
+      "bytes": 868,
+      "sha256": "9cc48bc4a3a99803aea0dc2b155d1f846e11444d915d9d3c175ba4fe9bebb567"
+    },
+    "cost-results.json": {
+      "bytes": 10591,
+      "sha256": "6ef2030fc0c4c7fbe59ae69a11300036d75c72c5b914421929936f2533a33596"
+    },
+    "production-tests-v2.junit.xml": {
+      "bytes": 6985,
+      "sha256": "4a55b88b7689b03754f1dad0d217a7816e7dd6c00a63871ebc6ba9eaa1581526"
+    },
+    "production-tests.junit.xml": {
+      "bytes": 18345,
+      "sha256": "711a66f2bce884041c50eca12159692b88ee74a619b9e1f4191bc17b5b9df110"
+    },
+    "test_tree_sample.py": {
+      "bytes": 3183,
+      "sha256": "af146190ff17d2f238e5d8ed192806135cc093d6daca068ee07eec474f089280"
+    },
+    "tree_sample.py": {
+      "bytes": 2023,
+      "sha256": "eb0309b0120fff2ba040965d052f2755e54dcf6b361f3cfcecd1dd4806393ad7"
+    }
+  },
+  "limits": [
+    "Cost results apply to isolated prototype tree enumeration, not complete Agent latency",
+    "Production worker correctness tests passed; new neural lifecycle and Agent validation pending",
+    "RSS is refreshed about once per second after collection completes; age and errors are explicit",
+    "Host RAM and GPU observation interval remains unchanged",
+    "No inherited default/performance qualification"
+  ]
+}

@@ -508,11 +508,55 @@ def require_drained_ledger(snapshot: dict[str, Any]) -> None:
         raise RuntimeError("retired route retains or quarantines resource claims; recovery is refused")
 
 
+class _ProcessTreeSample:
+    """Bound process enumeration cadence without presenting cached RSS as fresh."""
+
+    def __init__(self, collect, interval_s=1.0, *, monotonic=None, wall=None):
+        if type(interval_s) not in (int, float) or not math.isfinite(interval_s) or interval_s <= 0:
+            raise ValueError("refresh interval must be finite and positive")
+        self.collect = collect
+        self.interval_s = interval_s
+        self.monotonic = monotonic or time.monotonic
+        self.wall = wall or time.time
+        self.next_due = None
+        self.observation = None
+        self.started = None
+
+    def sample(self):
+        refreshed = self.next_due is None or self.monotonic() >= self.next_due
+        if refreshed:
+            self.started = self.monotonic()
+            started_unix = self.wall()
+            value, error = None, None
+            try:
+                value = self.collect()
+                if type(value) is not int or value < 0:
+                    raise ValueError("RSS sum must be a nonnegative integer")
+            except Exception as exc:
+                value, error = None, type(exc).__name__
+            completed = self.monotonic()
+            self.next_due = completed + self.interval_s
+            self.observation = {
+                "process_tree_rss_sum_bytes": value,
+                "process_tree_sample_started_unix": started_unix,
+                "process_tree_collection_s": completed - self.started,
+                "process_tree_error": error,
+            }
+        return {
+            **self.observation,
+            "process_tree_sample_age_s": max(0.0, self.monotonic() - self.started),
+            "process_tree_refresh_interval_s": self.interval_s,
+            "process_tree_refreshed": refreshed,
+            "process_tree_scope": "sampled RSS sum; shared pages may be counted multiple times",
+        }
+
+
 class Telemetry:
     """Sample all visible GPUs and host counters without choosing GPU index 0."""
 
     def __init__(self, path: Path, interval_s: float) -> None:
         self.path, self.interval_s = path, interval_s
+        self.process_tree_interval_s = 1.0
         self.stop_event = threading.Event()
         self.thread = None
         self.samples = 0
@@ -584,20 +628,28 @@ class Telemetry:
                 handles = [nvml.nvmlDeviceGetHandleByIndex(i) for i in range(nvml.nvmlDeviceGetCount())]
             except Exception as exc:
                 self.errors["gpu"] = f"{type(exc).__name__}: {exc}"
+
+            def collect_tree_rss():
+                root = psutil.Process()
+                tree = [root] + root.children(recursive=True)
+                return sum(process.memory_info().rss for process in tree if process.is_running())
+
+            tree_sampler = _ProcessTreeSample(collect_tree_rss, self.process_tree_interval_s)
             try:
                 while not self.stop_event.is_set():
                     row: dict[str, Any] = {"unix": time.time(), "host": None, "gpus": []}
                     if psutil:
                         try:
                             memory = psutil.virtual_memory()
-                            tree = [psutil.Process()] + psutil.Process().children(recursive=True)
-                            rss = sum(process.memory_info().rss for process in tree if process.is_running())
+                            tree_sample = tree_sampler.sample()
+                            if tree_sample["process_tree_error"] is not None:
+                                self.errors["host_tree_sample"] = tree_sample["process_tree_error"]
                             disk = psutil.disk_io_counters()
                             row["host"] = {
                                 "total_ram_bytes": memory.total,
                                 "available_ram_bytes": memory.available,
                                 "used_ram_bytes": memory.total - memory.available,
-                                "process_tree_rss_sum_bytes": rss,
+                                **tree_sample,
                                 "system_disk_read_bytes": disk.read_bytes if disk else None,
                                 "swap_used_bytes": psutil.swap_memory().used,
                             }
@@ -640,12 +692,14 @@ class Telemetry:
             "samples_this_attempt": self.samples,
             "errors": self.errors,
             "interval_s": self.interval_s,
+            "process_tree_refresh_interval_s": self.process_tree_interval_s,
             "sampling_thread_stopped": self.thread is None or not self.thread.is_alive(),
             "scope": "whole host/visible GPUs plus separately identified owned native WDDM process",
             "process_gpu_generations": self.process_gpu_peaks.snapshot(),
             "limitations": [
                 "sampled peaks may miss transients",
                 "tree RSS can count shared pages twice",
+                "tree RSS is refreshed separately; inspect sample age and collection time, not row cadence",
                 "system disk reads include unrelated processes and storage devices",
                 "system disk reads do not establish model-attributable physical SSD bytes",
                 "GPU power is not whole-device power",
