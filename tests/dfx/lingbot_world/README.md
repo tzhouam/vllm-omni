@@ -78,6 +78,10 @@ neither `quay.io/atlas-ci/vllm-ascend` nor `quay.io/ascend/vllm-ascend`
 publishes a `v0.32.0` tag. Keep NPU collection pending until a compatible
 image is available; do not replace its integrated stack with a CUDA wheel.
 
+For PR builds, LingBot NPU jobs require `npu-test` together with `nightly-test`
+or `weekly-test`. A shared nightly/weekly label alone must not allocate NPU
+benchmark resources. Scheduled non-PR runs still use `NIGHTLY=1` or `WEEKLY=1`.
+
 The CUDA performance preset prevents other GPU jobs from sharing the eight-GPU
 node during paired measurements. The launcher verifies all eight reserved
 devices, records their UUIDs in `allocation.json`, then preserves the original

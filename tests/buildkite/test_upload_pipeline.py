@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 from __future__ import annotations
 
+import ast
 import copy
 import sys
 from pathlib import Path
@@ -1100,6 +1101,53 @@ def test_lingbot_resource_budget_survives_pipeline_expansion(
         for field in ("matrix", "depends_on", "env", "timeout_in_minutes"):
             assert step.get(field) == original[step["key"]].get(field)
         assert not step.get("soft_fail") and not step.get("skip")
+
+
+@pytest.mark.parametrize("level", ["nightly", "weekly"])
+@pytest.mark.parametrize(
+    "is_pr,opt_in,labeled,scheduled,selected",
+    [
+        (True, False, True, False, False),
+        (True, True, True, False, True),
+        (True, True, False, False, False),
+        (True, False, False, False, False),
+        (True, False, False, True, False),
+        (True, True, False, True, True),
+        (False, False, False, True, True),
+        (False, False, False, False, False),
+    ],
+)
+def test_lingbot_npu_admission_requires_pr_opt_in_after_pipeline_expansion(
+    monkeypatch, level, is_pr, opt_in, labeled, scheduled, selected
+):
+    monkeypatch.delenv("MIRROR_HW", raising=False)
+    path = Path(f".buildkite/npu/test-npu-{level}.yml")
+    source = yaml.safe_load(path.read_text())
+    rendered = _render_test_pipeline(source, ["tests/dfx/lingbot_world/runner.py"], pipeline_path=path)
+    group = next(step for step in rendered["steps"] if "LingBot World NPU" in step.get("group", ""))
+    condition = group["if"]
+    values = {
+        "build.pull_request.id == null": not is_pr,
+        'build.pull_request.labels includes "npu-test"': opt_in,
+        f'build.pull_request.labels includes "{level}-test"': labeled,
+        f'build.env("{level.upper()}") == "1"': scheduled,
+    }
+    for expression, value in values.items():
+        condition = condition.replace(expression, str(value))
+    parsed = ast.parse(condition.replace("&&", " and ").replace("||", " or "), mode="eval")
+
+    def boolean(node: ast.AST) -> bool:
+        if isinstance(node, ast.Constant) and isinstance(node.value, bool):
+            return node.value
+        if isinstance(node, ast.BoolOp):
+            operands = [boolean(value) for value in node.values]
+            if isinstance(node.op, ast.And):
+                return all(operands)
+            if isinstance(node.op, ast.Or):
+                return any(operands)
+        raise AssertionError(f"Unsupported Buildkite condition: {ast.dump(node)}")
+
+    assert boolean(parsed.body) is selected
 
 
 @pytest.mark.parametrize("filename", ["test-npu-nightly.yml", "test-npu-weekly.yml"])

@@ -408,7 +408,7 @@ steps:
 
   - group: "LingBot World NPU nightly regression"
     depends_on: upload-nightly-pipeline
-    if: build.env("NIGHTLY") == "1" || build.pull_request.labels includes "nightly-test"
+    if: (build.pull_request.id == null || build.pull_request.labels includes "npu-test") && (build.env("NIGHTLY") == "1" || build.pull_request.labels includes "nightly-test")
     steps:
       - label: "Build CUDA evaluator image for NPU artifacts"
         key: lingbot-npu-nightly-evaluator-image

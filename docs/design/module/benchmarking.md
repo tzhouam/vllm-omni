@@ -124,6 +124,10 @@ and triggers: one CUDA generation/smoke job, one NPU collector, two CUDA/NPU
 quality jobs combined, and one L4 worker for CPU unit/aggregation jobs. Keep
 group names independent of build, branch, schedule and matrix coordinates.
 All regression jobs use priority 0, the same as normal PR tests.
+On PR builds, NPU regression groups also require the explicit `npu-test` label;
+the shared nightly/weekly label alone cannot admit NPU collectors or evaluators.
+Scheduled non-PR nightly/weekly admission remains unchanged. Check the actual
+rendered group condition rather than relying on external pipeline admission.
 Use eager admission so dependency-blocked jobs do not impose ordered-group
 barriers on ready jobs. Limits bound peak reservation, preserve the full workload,
 and do not preempt running work or replace hardware acceptance.
