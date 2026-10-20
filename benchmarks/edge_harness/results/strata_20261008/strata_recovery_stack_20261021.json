@@ -1,0 +1,189 @@
+{
+  "schema": "omni-strata-recovery-stack-diagnostic-v1",
+  "status": "short_nonblocking_diagnostic_not_causal_performance_proof",
+  "official_tool_documentation": "https://github.com/benfred/py-spy",
+  "capture": {
+    "pid": 152612,
+    "created": 1792514121.5422595,
+    "started_unix": 1792516360.2134259,
+    "ended_unix": 1792516370.0561745,
+    "exit_code": 0,
+    "nonblocking": true,
+    "gil_only": true,
+    "rate_hz": 10,
+    "duration_s": 10,
+    "scope": "short diagnostic overlapping recovery startup; errors and incomplete samples retained"
+  },
+  "valid_stack_samples": 67,
+  "reported_sampling_errors": 7,
+  "top_leaf_frames": [
+    {
+      "frame": {
+        "name": "children",
+        "file": "C:\\Users\\zhout\\w2\\omni029venv\\Lib\\site-packages\\psutil\\__init__.py",
+        "line": 978,
+        "col": null
+      },
+      "valid_sample_count": 54
+    },
+    {
+      "frame": {
+        "name": "stat",
+        "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+        "line": 840,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "is_symlink",
+        "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+        "line": 914,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "walk",
+        "file": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6\\adapter\\strata_exec_runtime.py",
+        "line": 536,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "walk",
+        "file": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6\\adapter\\strata_exec_runtime.py",
+        "line": 538,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "relative",
+        "file": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6\\adapter\\strata_exec_runtime.py",
+        "line": 173,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "walk",
+        "file": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6\\adapter\\strata_exec_runtime.py",
+        "line": 530,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "walk",
+        "file": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6\\adapter\\strata_exec_runtime.py",
+        "line": 521,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "walk",
+        "file": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6\\adapter\\strata_exec_runtime.py",
+        "line": 533,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "realpath",
+        "file": "<frozen ntpath>",
+        "line": 727,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "open",
+        "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+        "line": 1013,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "_load_parts",
+        "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+        "line": 414,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "__getitem__",
+        "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+        "line": 285,
+        "col": null
+      },
+      "valid_sample_count": 1
+    },
+    {
+      "frame": {
+        "name": "is_junction",
+        "file": "C:\\Users\\zhout\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\pathlib.py",
+        "line": 928,
+        "col": null
+      },
+      "valid_sample_count": 1
+    }
+  ],
+  "interpretation": "54 of 67 valid GIL-holding stack samples were in the in-process telemetry thread psutil.children call. Runtime verification also appears. This suggests measurement overhead during this window; not 80.6 percent of total wall time or proof of full-run slowdown.",
+  "next_experiment": "After this frozen run closes, isolate process-tree enumeration cost and test a lower refresh frequency with explicit timestamps, while preserving host/GPU sampling and source evidence. No running-source change.",
+  "archive": {
+    "file": "strata_recovery_stack_20261021.zip",
+    "sha256": "a77ce6135d291b65ed60b5d17eba3a70b01638f1175b20297f06fb5a67b52e40"
+  },
+  "raw_files": {
+    "metadata.json": {
+      "bytes": 397,
+      "sha256": "8e348912390d4d4b16ddc85dc38d4e7affdef08515429d6860178d1e6a0c7076"
+    },
+    "record-metadata.json": {
+      "bytes": 335,
+      "sha256": "c23c9f0e6616ca63ff40017188ae6ae93a1092ed132d252282e23bc3a01f3ff3"
+    },
+    "record-stderr.txt": {
+      "bytes": 938,
+      "sha256": "4307057ee4c9d155726998e8c799bc7feedcff5e5b249c102cfba1902ff84279"
+    },
+    "record-stdout.txt": {
+      "bytes": 288,
+      "sha256": "581102a67f0de11d0d57a1d93ac03773b5c54fbfb4d75bfbabee8495a2cf1f0b"
+    },
+    "sampled-stack.json": {
+      "bytes": 9195,
+      "sha256": "7f52fb28b5c1440a350b1226818701440e317e55d49a88f4d07042c51a296e3e"
+    },
+    "stack.json": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr.txt": {
+      "bytes": 321,
+      "sha256": "5db6a68caf47c31ff8edfa167c8df01d2dc5d13d60e94b9c339e0a7440948eab"
+    }
+  },
+  "limits": [
+    "Nonblocking snapshot initially failed with OS error 299; retained in archive",
+    "Short GIL-only window has sampling errors and does not capture all native work",
+    "Tool preparation and capture overlapped recovery startup; not isolated performance",
+    "No model-default or release qualification"
+  ]
+}

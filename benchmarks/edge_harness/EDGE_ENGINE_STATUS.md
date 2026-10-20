@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **恢复启动的短时栈采样发现主 telemetry 开销线索**：独立目录中的 py-spy 0.4.2，经 PyPI SHA256 核验，使用非阻塞、GIL-only、10 Hz／10 s 采样；67 个有效栈中 54 个位于主 `strata-profile-telemetry` 线程的 `psutil.children()`，另有 7 次采样错误。初次单栈采样的 OS 299 失败同样保留。这不是总墙钟占比或整次运行减速证明；运行中源码未修改。下一项隔离实验是降低进程树刷新频率并显式记录样本时间，同时保留 RAM／GPU 采样；本次恢复校验仍待闭合。[原始栈、错误、工具哈希与诊断边界](results/strata_20261008/strata_recovery_stack_20261021.json)。
+
 2026-10-21 **20 GiB GPU 预算候选真实注册 EXIT 0**：四分片、转换产物、运行时与视觉投影校验通过，实时 RAM／VRAM／commit 准入通过；路线 `unsloth-q4-6g-20g-gpu-image-experimental-v1` 使用 6 GiB CPU 专家缓存与 11.5 GiB GPU 专家缓存。独立注册采样 881 次、零观察错误，保留全部进程采样哈希。注册仅生成实验配置，不授予神经输出、性能或默认路线资格；下一步为新配置的图像生命周期与 Agent 实测。[注册凭据摘要、预算和 profiling 索引](results/strata_20261008/strata_gpu_cache_20g_registration_20261021.json)。
 
 2026-10-21 **v7 资源 profiling 汇总完成**：流式核验 1,477,576,316 B 原始 telemetry 与已审计 receipt 哈希一致，共 37,281 条采样。整卡显存采样峰值约 **16.39 GiB**，GPU 功耗峰值 **168.003 W**、温度峰值 **73°C**；整机可用 RAM 最低约 **9.41 GiB**。这些是采样值，整卡／整机数据包含其他应用；WDDM nonlocal 不作为显存溢出证明，物理 SSD 归属仍未知。[精确字节数、有效样本数、源哈希及汇总代码归档](results/strata_20261008/strata_q4_image_v7_resources_20261021.json)。
