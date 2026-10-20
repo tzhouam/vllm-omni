@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **SVE 数值对照工具与 CPU 参考已准备**：新比较器拒绝非法形状／长度、超大小及 NaN／Inf，输出哈希、绝对误差、RMSE、relative L2 和 cosine，不自动授予质量资格。5 项测试通过；既有已审计 CPU 生命周期中的初次／恢复输出均为 792×2560，共 2,027,520 个数值，张量完全一致，原文件哈希与 receipt 匹配。这不是 CUDA 对照结果；待候选构建后使用同输入比较。[工具验证及 CPU 参考](results/strata_20261008/strata_sve_comparator_20261021.json)。
+
 2026-10-21 **真实 ggml 集成测试修正了预算候选的分配顺序**：初次链接缺 advapi32，补齐后真实 CPU graph 测试触发访问异常（3221225477）；此前 15 项假接口测试不足以证明真实调度器正确。候选现改为测量／预算通过后 reserve 实际 buffer，再 reset／alloc。16、1024、64 元素的真实加法结果与扩容／复用检查通过，三次零预算拒绝通过；Windows 语法检查及 15 项组件回归通过。保留两次失败与修正后源码／日志／库哈希。此结果仍非 CUDA 模型或内存资格，生产 gate 关闭。[失败及修正后的真实 ggml 证据](results/strata_20261008/strata_cuda_budget_real_v2_20261021.json)。
 
 2026-10-21 **CUDA 显式张量预算候选已实现，15 项组件测试通过**：在权重分配前复用 ggml aligned size，在预热 reserve 与每次图像 alloc_graph 前复用 scheduler reserve_size，按 GPU／主机池检查权重和 retained／planned 计算 buffer 的保守上界；缺预算、非法数字、溢出和任一池超限均拒绝。Windows MSVC 语法检查及 15 项假 ggml 故障注入通过，原始日志与测试源码归档。范围仅显式 ggml tensor buffer；CUDA context／库内部开销、host preprocessing 仍需共享账本独立准入。尚未链接或运行真实 GPU，也未改生产 gate。[补丁、语法与边界证据](results/strata_20261008/strata_cuda_tensor_budget_20261021.json)。

@@ -1,0 +1,43 @@
+{
+  "schema": "omni-sve-comparison-v1",
+  "reference": {
+    "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70",
+    "size_bytes": 8110100,
+    "shape": [
+      792,
+      33,
+      24,
+      2560
+    ]
+  },
+  "observed": {
+    "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70",
+    "size_bytes": 8110100,
+    "shape": [
+      792,
+      33,
+      24,
+      2560
+    ]
+  },
+  "elements": 2027520,
+  "max_absolute_error": 0.0,
+  "mean_absolute_error": 0.0,
+  "rmse": 0.0,
+  "relative_l2": 0.0,
+  "cosine_similarity": 0.9999999999999999,
+  "reference_l2": 37.15726034224152,
+  "observed_l2": 37.15726034224152,
+  "exact_tensor_equal": true,
+  "release_qualified": false,
+  "scope": "Tensor diagnostics only; no inherited checkpoint or task quality qualification",
+  "source_receipt_sha256": "b13d60d702a411cd0ce44bc1880a6db50a2cfc4a553d4249fb52ab35620e144b",
+  "reference_scope": "Previously audited CPU encoder before versus after cancellation/recovery; not CUDA comparison",
+  "validation": {
+    "tests": "tests/edge/test_strata_sve_compare.py",
+    "passed": 5,
+    "warnings": 14,
+    "reported_test_seconds": 4.24,
+    "exit_code": 0
+  }
+}
