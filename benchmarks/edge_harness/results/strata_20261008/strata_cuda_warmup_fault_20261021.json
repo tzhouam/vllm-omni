@@ -1,0 +1,29 @@
+{
+  "schema": "omni-warmup-fault-test-v1",
+  "scope": "Exact candidate warmup block compiled with fake mtmd failure injection; not real CUDA or model execution",
+  "cases": 11,
+  "exit_code": 0,
+  "elapsed_s": 1.0619999999180436,
+  "block_sha256": "c6c3a44e4d459bf9481db687dcb85ec280b01be97e7ae9efb7ba07dd07181b94",
+  "files": {
+    "warmup_fault_test.cpp": "75d6a6ca5117e067ac5474d53861f2f0ba5b2668921cd465158e439bbd5dc5d0",
+    "warmup_fault_test.exe": "25516e6382b00116962e9e6bf3d629c6a3e23be61ed5131d8365bf28220edea0",
+    "fault-compile.log": "b226b4976b0782eebd2ad06fd0101b79b6b21be8f75bd8b22bc30e2ba4644b38",
+    "fault-run.log": "36dedc267ae7ecd5828216e55fe408113bf1fa2b5d2c9f6cdaf0a8df0c68c1d5"
+  },
+  "compile_argv": [
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+    "/nologo",
+    "/EHsc",
+    "/std:c++17",
+    "/W4",
+    "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-warmup-v2\\warmup_fault_test.cpp",
+    "/Fe:C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-warmup-v2\\warmup_fault_test.exe",
+    "/Fo:C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-warmup-v2\\warmup_fault_test.obj"
+  ],
+  "archives": {
+    "strata_cuda_warmup_fault_20261021_warmup_fault_test.cpp.gz": "533053b18e957f3b31a5fe8c6edc9baa33fb7c8249daac5eae48b76171289745",
+    "strata_cuda_warmup_fault_20261021_fault-compile.log.gz": "5b9b7aaa7d2c37c39860381d3910ac50d24e76deab376770761b1cdd50a570a9",
+    "strata_cuda_warmup_fault_20261021_fault-run.log.gz": "b4dffbecfbe0f91032031079627dadd3885cd16bdf419dcaa45f9d544d3e5b41"
+  }
+}
