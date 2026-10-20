@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "receipt_sha256": "f6669d91a6adb115eac26c01a3cc5c25cb6eb413d74a961d97521172685e447e",
+  "runner_sha256": "25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9",
+  "auditor_sha256": "b88e7c8f4c46ab8e7ab0351d38cc321a478715cc3ec1ee7ec6c9e6c0c9cfd48c",
+  "verification": {
+    "schema": "omni-private-strata-cpu-image-lifecycle-v1-prerequisite",
+    "receipt_sha256": "f6669d91a6adb115eac26c01a3cc5c25cb6eb413d74a961d97521172685e447e",
+    "runner_sha256": "25b74a73ffd1ac57cbaa84a3271101976defc8d7171d0cf5d1a3777a2e85d5b9",
+    "raw_closure_verified": true,
+    "image_identity_sha256": "ba27d4c8e91c3c4aeafa3a2e16fa58f6e78c45b3cd6f261284ed7bf9f56b2230",
+    "route_controls_sha256": "cbe96f1099ca8ab81a553a1e754aae53e9cc0873c1eb562a0b353941178c9438",
+    "generations": [
+      "20c6b6ed2a4f4835937afc132c35780d",
+      "3161dabf732242a881b448f06c5059ec"
+    ],
+    "scope": "closed three narrow real-app image requests plus encoder-phase cancel/recovery; no default or performance qualification"
+  },
+  "guard": {
+    "checked_unix": 1792517020.7926602,
+    "owned_model_and_runner_absent": true
+  },
+  "qualified": false,
+  "scope": "Frozen production evidence gate replay for closed 20 GiB GPU lifecycle; no Agent or performance qualification"
+}

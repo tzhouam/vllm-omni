@@ -1,0 +1,259 @@
+{
+  "schema": "omni-strata-20g-gpu-image-lifecycle-v1",
+  "status": "scoped_lifecycle_and_closed_evidence_gate_passed",
+  "run_exit_code": 0,
+  "audit_exit_code": 0,
+  "receipt_sha256": "f6669d91a6adb115eac26c01a3cc5c25cb6eb413d74a961d97521172685e447e",
+  "audit_sha256": "28dd3e781df5c93b9ab90b92ac818f57530c7a958fb6a6dedd42dd789d0d5c92",
+  "requests": [
+    {
+      "phase": "initial",
+      "case_id": "approval_heading",
+      "request_id": "strata-f3e8f021696f4d4d9874d0e507d8ec42",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 60.04053930006921,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "20c6b6ed2a4f4835937afc132c35780d",
+      "loaded_plan_sha256": "92318bdaaee4ff37765de772132d5db44b975f832ee7989d31d1c4edad134e4d",
+      "proof_file": "initial-approval_heading-proof.json",
+      "proof_sha256": "d03927757d114ea1f8079800f85a07cd361e9a99dbe6e1d6b1bd943abb954f22",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    {
+      "phase": "initial",
+      "case_id": "bilingual_button_label",
+      "request_id": "strata-e51aa020b0934a49aa7b6727ba5a0652",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 71.29623459978029,
+      "native_seq": 2,
+      "encoder_seq": 2,
+      "generation": "20c6b6ed2a4f4835937afc132c35780d",
+      "loaded_plan_sha256": "92318bdaaee4ff37765de772132d5db44b975f832ee7989d31d1c4edad134e4d",
+      "proof_file": "initial-bilingual_button_label-proof.json",
+      "proof_sha256": "3271b045db1460ff854bca6ef9fa8fcf62bea56fd7dae5378cb00268540777bd",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    {
+      "phase": "recovery",
+      "case_id": "approval_heading",
+      "request_id": "strata-f3927d7581864e48832372ef641c1d72",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 58.72264169994742,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "3161dabf732242a881b448f06c5059ec",
+      "loaded_plan_sha256": "bf86f458c05920c1dabfe6091601c11655937f56f35d6e92796844946ec7dd5e",
+      "proof_file": "recovery-approval_heading-proof.json",
+      "proof_sha256": "f1567acfb41221c7b23d9be92b2e1d0f83d36cbe7e1762657a36fcbf1d635c50",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    }
+  ],
+  "batch_size": 1,
+  "concurrency": 1,
+  "initial_start_s": 764.3391173998825,
+  "recovery_start_s": 1552.6391449999064,
+  "encoder_phase_cancel_passed": true,
+  "fresh_generation_image_recovery_passed": true,
+  "resource_drain_verified": true,
+  "source_stable": true,
+  "input_stable": true,
+  "raw_files": {
+    "after-cancel-ledger.json": {
+      "size_bytes": 273,
+      "sha256": "755de7c4c23dc1a714b506de64cafcbba1fadd0c20075c2f688c833e4f16bb7d"
+    },
+    "after-cancel-loaded-plan.json": {
+      "size_bytes": 300403,
+      "sha256": "3ac7d1357fdb367dd26a45209cf2214128ee2c04ff0a2ef56d44660234d14803"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392744,
+      "sha256": "1dcf71e230e384c1f810500a4ea303ba2e760eebdbefc619c2452a5dc4f628ce"
+    },
+    "encoder-cancellation.json": {
+      "size_bytes": 12433,
+      "sha256": "bd73ccd3c3867dd08b0b7d0700fd9f3595fe19f1759e2d04604ac27c3e75a90a"
+    },
+    "initial-approval_heading-proof.json": {
+      "size_bytes": 90916,
+      "sha256": "bfecbf8feba0357485a17ab2de2b8f8c609d4522133683f87c46643b4be9b824"
+    },
+    "initial-approval_heading-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "initial-approval_heading.json": {
+      "size_bytes": 286724,
+      "sha256": "9fca17945de9d1214bfbf1a403f7c22d4bf98eb17b08a49b678c67ab575cf036"
+    },
+    "initial-approval_heading.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "initial-bilingual_button_label-proof.json": {
+      "size_bytes": 91106,
+      "sha256": "86f2c3d6386f8da6ccdce74bad5ea6c5eaf8e8bfe814f4bc506588807f0129fa"
+    },
+    "initial-bilingual_button_label-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "initial-bilingual_button_label.json": {
+      "size_bytes": 289981,
+      "sha256": "186cfc5d40a66a7d30728c1e03b14af2649a41bd56792fb1496e1df676c9b3da"
+    },
+    "initial-bilingual_button_label.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "initial-close.json": {
+      "size_bytes": 923,
+      "sha256": "e21cb06f49124013d21886f28c07d4bbcf5e92aa2580c851a4e0e4a00c53bcf6"
+    },
+    "initial-last-image.json": {
+      "size_bytes": 942,
+      "sha256": "871304fc44f4dcb23ad9cff39ac19564286bb1eb747741dfcec89daed7d55d97"
+    },
+    "initial-last-io.json": {
+      "size_bytes": 2228,
+      "sha256": "19497b5313502b9b091b73cb67b763835a3ab599d85663540d2e739c029637b8"
+    },
+    "initial-loaded-plan.json": {
+      "size_bytes": 316198,
+      "sha256": "4e86f6c8cec720c1ca73805a9467a14f0d719ac68b17247e70ba3e8a0befef78"
+    },
+    "input.png": {
+      "size_bytes": 59775,
+      "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e"
+    },
+    "recovery-approval_heading-proof.json": {
+      "size_bytes": 90911,
+      "sha256": "d213ecb5898ad7603c148f2e289efd21f8f15d3303516ee338f832147b85dfe5"
+    },
+    "recovery-approval_heading-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "recovery-approval_heading.json": {
+      "size_bytes": 286707,
+      "sha256": "540b5f001f7ac3019b03f00ed4fd39aa3fba52e34096e2d89b302de483a52d73"
+    },
+    "recovery-approval_heading.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "recovery-close.json": {
+      "size_bytes": 1791,
+      "sha256": "efbdf3ea7544362854654e9603129b87fc57dfb50fc65b42f9b68463b09e4066"
+    },
+    "recovery-last-image.json": {
+      "size_bytes": 1295,
+      "sha256": "2c1ed037dc9b9b93ac64bf0edbf9ee8259cd00f3671fd4c6bc467efee4b50d72"
+    },
+    "recovery-last-io.json": {
+      "size_bytes": 9945,
+      "sha256": "553ec567eefd7ae058f44083b95817ebc8087656e2e979a43a5907d3053ebfb7"
+    },
+    "recovery-loaded-plan.json": {
+      "size_bytes": 316195,
+      "sha256": "c05fa8784cb54e74fd7f6307744b02983df9c69db9e990ed759cab306155d997"
+    },
+    "reference.json": {
+      "size_bytes": 1058,
+      "sha256": "ae90056198d16d861d4cc9139e4df68684533c74a38b55606f2ed267af19f3ed"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 10188363,
+      "sha256": "24ed5e9b794f73294a3eb1577ca9a6783a06a5091d1aba6d856684d9721cbc42"
+    }
+  },
+  "telemetry": {
+    "path": "telemetry.jsonl",
+    "samples_this_attempt": 10404,
+    "errors": {},
+    "interval_s": 0.1,
+    "sampling_thread_stopped": true,
+    "scope": "whole host/visible GPUs plus separately identified owned native WDDM process",
+    "process_gpu_generations": [
+      {
+        "owner_identity": {
+          "creation_filetime_100ns": 134369886318344526,
+          "pid": 220256,
+          "status": "verified",
+          "worker_generation": "20c6b6ed2a4f4835937afc132c35780d",
+          "gpu": {
+            "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+            "pci_bus_id": "00000000:64:00.0",
+            "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+          }
+        },
+        "samples": 540,
+        "sampled_local_peak_bytes": 18735955968,
+        "sampled_nonlocal_peak_bytes": 8290041856,
+        "hard_cap_verified": false,
+        "scope": "separate sampled WDDM local/nonlocal accounting; do not add nonlocal to host RAM"
+      },
+      {
+        "owner_identity": {
+          "creation_filetime_100ns": 134369903301758667,
+          "pid": 11952,
+          "status": "verified",
+          "worker_generation": "3161dabf732242a881b448f06c5059ec",
+          "gpu": {
+            "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+            "pci_bus_id": "00000000:64:00.0",
+            "name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d"
+          }
+        },
+        "samples": 240,
+        "sampled_local_peak_bytes": 18735955968,
+        "sampled_nonlocal_peak_bytes": 8290041856,
+        "hard_cap_verified": false,
+        "scope": "separate sampled WDDM local/nonlocal accounting; do not add nonlocal to host RAM"
+      }
+    ],
+    "limitations": [
+      "sampled peaks may miss transients",
+      "tree RSS can count shared pages twice",
+      "system disk reads include unrelated processes and storage devices",
+      "system disk reads do not establish model-attributable physical SSD bytes",
+      "GPU power is not whole-device power",
+      "WSL RAM is not an extra RAM pool",
+      "process sampling starts after owner identity is available; loading peak and hard cap are unverified",
+      "WDDM nonlocal GPU memory shares host RAM and must not be added to host RSS"
+    ]
+  },
+  "sidecar_completion": {
+    "ended": "2026-10-20T17:23:08.009651+00:00",
+    "samples": 2840,
+    "observation_errors": 0,
+    "reason": "bound root process exited",
+    "elapsed_seconds": 2841.717999999877
+  },
+  "sidecar_files": {
+    "completion.json": {
+      "bytes": 182,
+      "sha256": "07562b96b45c52ac489746415eaf0f56ecb8fde7ede78d65645a7656cdd18d9b"
+    },
+    "metadata.json": {
+      "bytes": 972,
+      "sha256": "c56525c97374d5a2918baff30f5581e51edc675788dac20b0a62572ba7e53361"
+    },
+    "samples.jsonl": {
+      "bytes": 6579256,
+      "sha256": "33760fd89722d1bb54910f5b53aa1708287172be367a6f8e13a06b9dd57fd638"
+    }
+  },
+  "limits": [
+    "Three fixed screenshot requests, not broad image or Agent qualification",
+    "No performance gain asserted; only single lifecycle samples",
+    "Recovery startup overlapped explicitly recorded observer diagnostics and tool preparation",
+    "Runtime observer coverage excludes some operators; whole-model placement remains unknown",
+    "Logical and unbuffered I/O observations are not physical SSD attribution",
+    "No automatic/default route eligibility"
+  ]
+}
