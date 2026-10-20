@@ -1,0 +1,38 @@
+{
+  "schema": "omni-strata-cuda-runtime-package-progress-v1",
+  "scope": "isolated vision bundle completed; full runtime staging in progress",
+  "encoder_files": 20,
+  "encoder_package_bytes": 613529728,
+  "encoder_packaging_seconds": 3.5913531999103725,
+  "static_pe_closure_verified": true,
+  "neural_run": false,
+  "full_runtime_staging": {
+    "pid": 223856,
+    "session": 18447,
+    "status": "running_at_record_time",
+    "resource_sampler_session": 72060,
+    "sampling_scope": "attached during hash verification; prior preparation interval not sampled"
+  },
+  "evidence": [
+    {
+      "path": "strata_cuda-v3-isolated-bundle-20261021.json.gz",
+      "raw_sha256": "bf00013195e5f56a888007394721391ee943eafa14c9d75d58fea3edeb429c0b"
+    },
+    {
+      "path": "strata_package_cuda_v3_20261021.py.gz",
+      "raw_sha256": "fb918b779285c03bbe90cbbbcce0f3d58fdf29dfd2698855f71f1dca4b4e6047"
+    },
+    {
+      "path": "strata_stage_cuda_v3_20261021.py.gz",
+      "raw_sha256": "82d90953818e47f4d9ee9195a3a9c539ebb27606347160f7f9a3cfebc6a6b387"
+    },
+    {
+      "path": "strata_verify_cuda_v3_staging_20261021.py.gz",
+      "raw_sha256": "3e631276d74fcba296d95185cf293fbcab1febc1fe69f41c63def883c98a47df"
+    },
+    {
+      "path": "strata_profile_cuda_v3_staging_20261021.py.gz",
+      "raw_sha256": "3d4b9c29cce21e5dc988ddb3239d71a4f9358f685daf9b2cdae1151d18f7ace5"
+    }
+  ]
+}

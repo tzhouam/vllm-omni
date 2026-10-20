@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **CUDA v3 独立视觉运行包完成，完整包复制后核验中**：20 文件／613,529,728 B，包括已绑定编码器、两个实际 PE 必需 cuBLAS DLL 和构建证据，递归依赖闭合通过；原 CPU 包保留。完整 e39-v6 副本已复制，逐文件哈希核验仍在进行，附加进程 CPU／内存／逻辑 I/O 采样（挂接前有缺口）。尚无本轮模型实跑或 Agent 提速结论。[运行包记录和复现脚本](results/strata_20261008/strata_cuda_runtime_package_20261021.json)。
+
 2026-10-21 **CUDA v3 来源校验接入，运行注册仍关闭**：独立绑定修复后的编码器、实际源码和四个增量补丁，拒绝 v1／数值错误的 v2；CUDA PE 文件上限显式为 512 MiB，CPU 保持 256 MiB。重新哈希 10 份实际源码／补丁及 v3 二进制均匹配；视觉契约回归 **120 passed／1 skipped**。补充超大预热耗时拒绝，失败后状态不可继续。尚需完整运行包、CUDA load-plan 及真实 Agent 生命周期／profiling；本轮未新增模型实跑。[验证与原始记录](results/strata_20261008/strata_cuda_v3_provenance_20261021.json)。
 
 2026-10-21 **CUDA 共享租约和可信启动参数接线完成，注册仍关闭**：文本阶段实时内存准入后、spawn 前绑定视觉 PCI／GPU UUID 与同一资源池；分别预留视觉 tensor／额外开销及语言 workspace，拒绝重叠计账或不足的 reservation。可信启动器清除继承的视觉预算，设置已绑定 GPU UUID／PCI／tensor 限额，追加明确 attention 参数，并将 contract 传给 writer／observer。视觉＋文本测试 **183 passed／3 skipped**，另 2 项启动器注入测试通过。尚需 v3 运行包注册、完整 load-plan 校验及真实 Agent 生命周期，未开放 CUDA route。[源码和验证范围](results/strata_20261008/strata_cuda_lease_launcher_20261021.json)。
