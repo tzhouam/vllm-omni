@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "timing": {
+    "request_intervals_verified": 4,
+    "max_between_request_gap_s": 0.05772450007498264,
+    "endurance_active_request_s": 0,
+    "duration_scope": "submit-to-completion; active endurance excludes between-request bookkeeping"
+  },
+  "statistics": null,
+  "mode": "smoke",
+  "requests": 4,
+  "model_calls": 8,
+  "receipt_sha256": "bd3081d98c22b3d60536aa659c742ed0ef63954395dd223843ed261fb5d72e1e",
+  "raw_file_count": 33,
+  "qualified": false,
+  "scope": "closed sequential image task experiment; no broad task/default/physical SSD qualification"
+}
