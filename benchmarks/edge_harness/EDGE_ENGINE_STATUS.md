@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **20 GiB GPU 预算候选真实注册 EXIT 0**：四分片、转换产物、运行时与视觉投影校验通过，实时 RAM／VRAM／commit 准入通过；路线 `unsloth-q4-6g-20g-gpu-image-experimental-v1` 使用 6 GiB CPU 专家缓存与 11.5 GiB GPU 专家缓存。独立注册采样 881 次、零观察错误，保留全部进程采样哈希。注册仅生成实验配置，不授予神经输出、性能或默认路线资格；下一步为新配置的图像生命周期与 Agent 实测。[注册凭据摘要、预算和 profiling 索引](results/strata_20261008/strata_gpu_cache_20g_registration_20261021.json)。
+
 2026-10-21 **v7 资源 profiling 汇总完成**：流式核验 1,477,576,316 B 原始 telemetry 与已审计 receipt 哈希一致，共 37,281 条采样。整卡显存采样峰值约 **16.39 GiB**，GPU 功耗峰值 **168.003 W**、温度峰值 **73°C**；整机可用 RAM 最低约 **9.41 GiB**。这些是采样值，整卡／整机数据包含其他应用；WDDM nonlocal 不作为显存溢出证明，物理 SSD 归属仍未知。[精确字节数、有效样本数、源哈希及汇总代码归档](results/strata_20261008/strata_q4_image_v7_resources_20261021.json)。
 
 2026-10-21 **新增显式 GPU 专家缓存扩展注册，尚无新路线性能结论**：`strata_vision_register --gpu-expert-cache-bytes` 保留非缓存 GPU 预算，将增量同时计入 GPU 与 Windows commit，并重新检查继承容量及实时可用量；不继承父路线资格。44 项注册契约测试通过，包含父输入不变、无效扩展、显存和 commit 不足的拒绝路径。[测试与源码哈希](results/strata_20261008/strata_gpu_cache_registration_tests_20261021.json)。真实候选保持 CPU 专家缓存 6 GiB，将 GPU 专家缓存 7.5 → 11.5 GiB、总 GPU 预算 16 → 20 GiB；正在重新校验真实产物，尚未完成神经执行。注册进程附加独立 profiling，后续生命周期沿用 RAM／VRAM、GPU 功耗、逻辑 I/O 与原始输出采集；物理 SSD 归属仍单独待验证。

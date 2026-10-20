@@ -1,0 +1,170 @@
+{
+  "schema": "omni-strata-gpu-cache-alternate-registration-v1",
+  "status": "registered_experimental_image_not_executed",
+  "route_id": "unsloth-q4-6g-20g-gpu-image-experimental-v1",
+  "registration_exit_code": 0,
+  "batch_size": 1,
+  "concurrency": 1,
+  "resource_budget": {
+    "capacities": {
+      "host_ram": 22930124800,
+      "vram:0": 25651314688,
+      "ssd": 861586432140,
+      "windows_commit": 68113162240
+    },
+    "demands": {
+      "host_ram": 18329108480,
+      "vram:0": 21474836480,
+      "windows_commit": 52687798272,
+      "ssd": 120349115780
+    }
+  },
+  "budget": {
+    "gpu_weights_bytes": 6442450944,
+    "gpu_expert_cache_bytes": 12348030976,
+    "cpu_resident_weights_bytes": 268435456,
+    "cpu_mapped_weights_bytes": 1610612736,
+    "cpu_expert_cache_bytes": 6442450944,
+    "pinned_bytes": 805306368,
+    "host_kv_bytes": 0,
+    "gpu_kv_bytes": 536870912,
+    "host_workspace_bytes": 7046430720,
+    "gpu_workspace_bytes": 1073741824,
+    "host_transfer_bytes": 8388608,
+    "gpu_transfer_bytes": 268435456,
+    "host_headroom_bytes": 2147483648,
+    "gpu_headroom_bytes": 805306368,
+    "host_loading_peak_bytes": 18329108480,
+    "gpu_loading_peak_bytes": 21474836480,
+    "windows_commit_peak_bytes": 52687798272,
+    "ssd_artifact_bytes": 115970262404,
+    "ssd_temporary_bytes": 4378853376
+  },
+  "gpu_cache_derivation": {
+    "old_gpu_expert_cache_bytes": 8053063680,
+    "new_gpu_expert_cache_bytes": 12348030976,
+    "old_gpu_budget_bytes": 17179869184,
+    "new_gpu_budget_bytes": 21474836480,
+    "windows_commit_bytes_added": 4294967296,
+    "scope": "explicit alternate; fresh admission and execution validation required; no inherited qualification"
+  },
+  "fresh_admission": {
+    "admitted": true,
+    "over_budget_pools": [],
+    "probe_started_utc": "2026-10-20T16:33:25.519207+00:00",
+    "memory": {
+      "host_ram_available_bytes": 23710289920,
+      "host_ram_source": "GlobalMemoryStatusEx.ullAvailPhys",
+      "gpu_total_bytes": 25651314688,
+      "gpu_free_bytes": 22706876416,
+      "gpu_source": "NVML exact bytes",
+      "gpu_name_sha256": "5207c53c706af86d2ac3a1079927887f3e104ce98a6e7efe32f201135a69ed8d",
+      "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+      "gpu_pci_bus_id": "00000000:64:00.0",
+      "windows_commit_available_bytes": 73319706624,
+      "windows_host_available_bytes": 23710289920,
+      "wsl_ram_available_bytes": null,
+      "is_wsl": false,
+      "windows_host_verification": "measured",
+      "captured_unix_s": 1792514005.5192075
+    },
+    "disk_capacity": [
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 606915317760,
+        "used_bytes": 1406996856832
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 606915317760,
+        "used_bytes": 1406996856832
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\packs\\q4-compat-20261008-1840",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 606915317760,
+        "used_bytes": 1406996856832
+      },
+      {
+        "path": "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 606915317760,
+        "used_bytes": 1406996856832
+      },
+      {
+        "path": "C:\\Users\\zhout\\AppData\\Local\\Temp",
+        "filesystem_device": 9817999866247958652,
+        "total_bytes": 2013912174592,
+        "free_bytes": 606915317760,
+        "used_bytes": 1406996856832
+      }
+    ],
+    "scope": "fresh registration snapshot only; startup requires new probes and shared resource lease"
+  },
+  "qualification_created": false,
+  "default_route_created": false,
+  "neural_execution": "pending",
+  "registration_process_profile": {
+    "metadata": {
+      "schema": 2,
+      "include_thread_count": false,
+      "started": "2026-10-20T16:18:52.243391+00:00",
+      "root_pid": 182996,
+      "root_created": 1792513044.440262,
+      "run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-registration-20261021",
+      "cadence_seconds": 1,
+      "psutil": "7.2.2",
+      "observer_pid": 32888,
+      "script_sha256": "6f561244edf7057f2abbf7c76384f16f7cfc5b81a1890e69128a5f39c86e1c40",
+      "limits": [
+        "Starts mid-loading; does not cover complete cold startup",
+        "Process I/O is logical I/O, not attributable physical SSD reads",
+        "System disk counters include unrelated workloads and devices",
+        "Process RSS can double-count shared pages; do not sum as physical RAM",
+        "No GPU kernel timing, cache hit attribution or power instrumentation",
+        "Sampling has overhead; collection wall time and observer CPU are recorded",
+        "threads=null means disabled, not zero; use --include-thread-count for diagnostic runs"
+      ]
+    },
+    "completion": {
+      "ended": "2026-10-20T16:33:33.755347+00:00",
+      "samples": 881,
+      "observation_errors": 0,
+      "reason": "bound root process exited",
+      "elapsed_seconds": 881.5
+    }
+  },
+  "files": {
+    "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-registration-20261021\\launch.json": {
+      "size_bytes": 13392744,
+      "sha256": "1dcf71e230e384c1f810500a4ea303ba2e760eebdbefc619c2452a5dc4f628ce"
+    },
+    "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-registration-20261021\\launch.image-registration.json": {
+      "size_bytes": 8404,
+      "sha256": "aecefad240037b051b9bbfaab7f5b5ffd6bd6b199b75b1808905214268251027"
+    },
+    "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-registration-20261021-process-profile\\metadata.json": {
+      "size_bytes": 975,
+      "sha256": "e224c60e943256a581848f3a78f531e0cfda65cc67baae1481210dff0db872f4"
+    },
+    "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-registration-20261021-process-profile\\completion.json": {
+      "size_bytes": 169,
+      "sha256": "8e6fdcb9ad8acc7c55445b22692c378ad6c0d05eaa254c11a18497782593be10"
+    },
+    "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-registration-20261021-process-profile\\samples.jsonl": {
+      "size_bytes": 1717408,
+      "sha256": "d8e70f1fde04a6faf8e9010219c82e0c6a7a7af65fd45d36ebc67b3e6b3cf3ea"
+    }
+  },
+  "limits": [
+    "Registration is not neural execution or performance qualification",
+    "Observer starts after registration begins; no complete cold-start coverage",
+    "Logical process I/O is not model-attributable physical SSD I/O"
+  ]
+}
