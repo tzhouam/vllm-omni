@@ -67,14 +67,19 @@ Calibration reuse requires recorded optimization settings: its nonempty
 settings are invalid even when both records omit the field.
 Reference-noise calibration also binds recorded playback/mux frame rates and
 both the measurement warmup and inference warmup lengths. Missing or changed
-values reject reuse; held-out scenes and rollout lengths remain supported.
+values reject reuse. Fresh profile-owned records also bind a canonical digest
+of the complete measured profile; other scenes and rollout lengths need their
+own qualified calibration.
 Nightly CUDA uses two recorded-zero H100 reference cohorts and pinned-decoder
 pixel summaries. Its fixed population owns reference-spread ceilings; loading
 that policy must preserve global weekly/NPU limits and candidate tolerances.
 The nightly pixel population records all 15 unordered comparisons among its six
 reference videos, including cross-cohort pairs. Version 2 validates both
 three-start reference cohorts and the complete ordered pair list while retaining
-six native scores per dimension. Reference-only held-out comparisons and actual
+six native scores per dimension. Version 3 additionally requires complete
+per-case reference-spread limits. Fresh-reference and candidate checks use the
+selected case's limits, preserving candidate tolerances and other profiles.
+Reference-only held-out comparisons and actual
 reencode, localized-degradation and truncation controls qualify the pixel method;
 they do not turn earlier failed candidate jobs green or replace final-source CI.
 Historical unrecorded records remain separate diagnostic fixtures. Fitted

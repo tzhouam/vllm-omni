@@ -702,11 +702,19 @@ replacement reference cohorts establish their provenance.
 Reference-noise calibration also requires recorded and matching `target_fps`,
 `mux_fps`, `warmup_chunks` and `warmup_num_chunks`. Changing playback or either
 warmup policy invalidates calibration; missing fields cannot establish a match.
-Scene/seed cases and rollout lengths remain held-out inputs under the same
-runtime and playback/warmup policy.
+Legacy shared reference-noise records support held-out scene/seed cases and
+rollout lengths under the same runtime and playback/warmup policy.
 Fixed quality populations also require every reference pixel summary to record
 `pixel_environment.packages` matching the verified evaluator's NumPy, OpenCV and
 scikit-image versions. Missing or changed decoder metadata rejects reuse.
+Fresh performance records include `qualified_profile_sha256`, the canonical
+digest of the complete measured profile. Weekly and long workloads require
+their own reference cohorts instead of inheriting nightly qualification.
+Version 3 quality populations retain the complete six-start, 15-pair protocol
+and record `max_reference_spreads` in each case. Both fresh-reference and
+candidate native checks use that case's calibrated limits. Candidate score,
+binary-activity and pixel allowances remain unchanged.
+
 Recompute reference summaries from the actual reference videos in the locked
 evaluator environment; do not add current versions to historical summaries whose
 decoder environment was unrecorded. Native-score dependency verification alone

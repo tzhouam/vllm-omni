@@ -214,8 +214,12 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                 reference = [{name: row[name] for name in tolerances} for row in reference_scores]
                 checks = []
                 quality_reference = reference
+                case_spreads = reference_spreads[suite]
                 if population is not None:
-                    quality_reference = population["cases"][case["id"]]["suites"][suite]
+                    calibrated_case = population["cases"][case["id"]]
+                    quality_reference = calibrated_case["suites"][suite]
+                    if population["schema_version"] == 3:
+                        case_spreads = calibrated_case["max_reference_spreads"][suite]
                     # Keep the fresh cohort's spread gate, then reject fresh
                     # references that degrade beyond the reviewed population.
                     for repeat, measured in enumerate(reference):
@@ -224,13 +228,13 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                                 reference,
                                 measured,
                                 tolerances=tolerances,
-                                max_reference_spreads=reference_spreads[suite],
+                                max_reference_spreads=case_spreads,
                             )
                             check = check_quality(
                                 quality_reference,
                                 measured,
                                 tolerances=tolerances,
-                                max_reference_spreads=reference_spreads[suite],
+                                max_reference_spreads=case_spreads,
                             )
                         except RegressionError as error:
                             check = {"passed": False, "error": str(error)}
@@ -251,7 +255,7 @@ def test_wbench_vbench_and_video_precision(lingbot_settings):
                             quality_reference,
                             {name: evaluation["scores"][f"case{index}_candidate{repeat}"][name] for name in tolerances},
                             tolerances=tolerances,
-                            max_reference_spreads=reference_spreads[suite],
+                            max_reference_spreads=case_spreads,
                         )
                     except RegressionError as error:
                         check = {"passed": False, "error": str(error)}

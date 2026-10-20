@@ -1278,6 +1278,63 @@ def pooled_pixel_population():
     return population
 
 
+@pytest.mark.parametrize("change", [None, "num_chunks", "cases", "missing_digest", "wrong_digest"])
+def test_profile_owned_performance_calibration_cannot_qualify_other_workloads(change):
+    from benchmarks.lingbot_world.regression import contract_digest
+
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    contract = {
+        "profile": copy.deepcopy(record["workload"]),
+        "hardware": record["hardware"],
+        "deploy_sha256": record["deploy_sha256"],
+        "engine_environment": record["engine_environment"],
+    }
+    record["qualified_profile_sha256"] = contract_digest(contract["profile"])
+    if change == "num_chunks":
+        contract["profile"]["num_chunks"] = 600
+    elif change == "cases":
+        contract["profile"]["cases"] = [{"id": "unqualified-weekly-scene"}]
+    elif change == "missing_digest":
+        record["qualified_profile_sha256"] = None
+    elif change == "wrong_digest":
+        record["qualified_profile_sha256"] = "0" * 64
+    if change is None:
+        verify_reference_calibration_contract(contract, record)
+    else:
+        with pytest.raises(RegressionError, match="profile.*qualified"):
+            verify_reference_calibration_contract(contract, record)
+
+
+@pytest.mark.parametrize("mutation", [None, "missing", "suite", "dimension", "nan", "boolean"])
+def test_case_owned_quality_calibration_requires_complete_finite_spread_limits(mutation):
+    from benchmarks.lingbot_world.regression import verify_quality_population_contract
+
+    population = pooled_pixel_population()
+    population["schema_version"] = 3
+    for case in population["cases"].values():
+        case["max_reference_spreads"] = copy.deepcopy(population["max_reference_spreads"])
+    case = next(iter(population["cases"].values()))
+    if mutation == "missing":
+        del case["max_reference_spreads"]
+    elif mutation == "suite":
+        del case["max_reference_spreads"]["wbench"]
+    elif mutation == "dimension":
+        del case["max_reference_spreads"]["wbench"]["aesthetic_quality"]
+    elif mutation in ("nan", "boolean"):
+        case["max_reference_spreads"]["wbench"]["aesthetic_quality"] = float("nan") if mutation == "nan" else True
+    arguments = dict(
+        evaluator_packages=quality_packages(),
+        evaluator_lock_sha256=population["evaluator_lock_sha256"],
+        asset_lock_sha256=population["asset_lock_sha256"],
+    )
+    if mutation is None:
+        verify_quality_population_contract(population, population["contract"], **arguments)
+    else:
+        with pytest.raises(RegressionError, match="reference spread"):
+            verify_quality_population_contract(population, population["contract"], **arguments)
+
+
 def test_complete_pixel_pair_population_preserves_six_native_references():
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 

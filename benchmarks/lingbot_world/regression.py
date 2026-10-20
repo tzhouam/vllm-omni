@@ -371,6 +371,10 @@ def verify_reference_calibration_contract(contract: Mapping[str, Any], calibrati
     _verify_engine_environment(
         contract.get("engine_environment"), calibration.get("engine_environment"), "Reference calibration"
     )
+    if "qualified_profile_sha256" in calibration and calibration["qualified_profile_sha256"] != contract_digest(
+        contract["profile"]
+    ):
+        raise RegressionError("Reference calibration profile is not qualified")
 
 
 def verify_quality_population_contract(
@@ -389,12 +393,12 @@ def verify_quality_population_contract(
     """
     expected = population["contract"]
     schema = population.get("schema_version")
-    if type(schema) is not int or schema not in (1, 2) or contract["profile"] != expected["profile"]:
+    if type(schema) is not int or schema not in (1, 2, 3) or contract["profile"] != expected["profile"]:
         raise RegressionError("Quality reference population profile changed")
     if contract["profile"].get("platform") != "cuda" or contract["profile"].get("num_chunks") not in (40, 600):
         raise RegressionError("Quality reference population requires a calibrated CUDA workload")
     pixel_calibration = population.get("reference_pixel_calibration")
-    if schema == 2 and (
+    if schema in (2, 3) and (
         contract["profile"]["num_chunks"] != 40
         or not isinstance(pixel_calibration, Mapping)
         or pixel_calibration.get("protocol") != "all_unordered_pairs_of_six_references"
@@ -425,9 +429,9 @@ def verify_quality_population_contract(
     if not isinstance(reference_spreads, Mapping) or set(reference_spreads) != {"wbench", "vbench"}:
         raise RegressionError("Quality reference population requires recorded reference spread limits")
     for name, case in population["cases"].items():
-        if case["input"] != cases[name] or len(case["pixels"]) != (15 if schema == 2 else 6):
+        if case["input"] != cases[name] or len(case["pixels"]) != (15 if schema in (2, 3) else 6):
             raise RegressionError("Quality reference population requires both complete reference cohorts")
-        if schema == 2:
+        if schema in (2, 3):
             videos = case.get("reference_videos")
             pairs = case.get("pixel_pairs")
             expected_pairs = [[first, second] for first in range(6) for second in range(first + 1, 6)]
@@ -458,8 +462,11 @@ def verify_quality_population_contract(
                 raise RegressionError("Pooled reference videos require two complete three-start cohorts")
         if set(case["suites"]) != {"wbench", "vbench"} or any(len(rows) != 6 for rows in case["suites"].values()):
             raise RegressionError("Quality reference population requires six native reference scores per suite")
+        case_spreads = case.get("max_reference_spreads") if schema == 3 else reference_spreads
+        if not isinstance(case_spreads, Mapping) or set(case_spreads) != {"wbench", "vbench"}:
+            raise RegressionError("Quality reference population requires per-case reference spread limits")
         for suite, rows in case["suites"].items():
-            limits = reference_spreads[suite]
+            limits = case_spreads[suite]
             if not isinstance(limits, Mapping) or set(limits) != set(rows[0]):
                 raise RegressionError("Quality reference population reference spread dimensions changed")
             for value in limits.values():
