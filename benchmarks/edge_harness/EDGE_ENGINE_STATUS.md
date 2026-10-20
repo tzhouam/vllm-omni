@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **真实 ggml 集成测试修正了预算候选的分配顺序**：初次链接缺 advapi32，补齐后真实 CPU graph 测试触发访问异常（3221225477）；此前 15 项假接口测试不足以证明真实调度器正确。候选现改为测量／预算通过后 reserve 实际 buffer，再 reset／alloc。16、1024、64 元素的真实加法结果与扩容／复用检查通过，三次零预算拒绝通过；Windows 语法检查及 15 项组件回归通过。保留两次失败与修正后源码／日志／库哈希。此结果仍非 CUDA 模型或内存资格，生产 gate 关闭。[失败及修正后的真实 ggml 证据](results/strata_20261008/strata_cuda_budget_real_v2_20261021.json)。
+
 2026-10-21 **CUDA 显式张量预算候选已实现，15 项组件测试通过**：在权重分配前复用 ggml aligned size，在预热 reserve 与每次图像 alloc_graph 前复用 scheduler reserve_size，按 GPU／主机池检查权重和 retained／planned 计算 buffer 的保守上界；缺预算、非法数字、溢出和任一池超限均拒绝。Windows MSVC 语法检查及 15 项假 ggml 故障注入通过，原始日志与测试源码归档。范围仅显式 ggml tensor buffer；CUDA context／库内部开销、host preprocessing 仍需共享账本独立准入。尚未链接或运行真实 GPU，也未改生产 gate。[补丁、语法与边界证据](results/strata_20261008/strata_cuda_tensor_budget_20261021.json)。
 
 2026-10-21 **GPU 预热候选的 Windows 原生故障注入 11/11 通过**：从候选源码原样提取预热代码块，以假的 mtmd 接口注入 bitmap／chunk 分配失败、tokenize／encode 失败、零 token、超界、缺图像和多图像；失败均在 READY 之前返回并释放上下文，正常与恰好上限路径通过。保存 C++ 测试源码、编译／执行原始日志及哈希。这是控制流组件验证，未执行真实 CUDA／模型，也不证明显存预算约束；独立 CUDA 构建及进程 profiling 仍在运行。[11 项结果与原始证据](results/strata_20261008/strata_cuda_warmup_fault_20261021.json)。

@@ -48,7 +48,7 @@
          flash_attn_type = ctx_params.flash_attn_type;
          no_alloc = ctx_params.no_alloc;
          backend_cpu = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU, nullptr);
-@@ -266,6 +298,29 @@
+@@ -266,6 +298,31 @@
          return model.proj_type;
      }
  };
@@ -73,12 +73,14 @@
 +        "\"gpu_limit\":%zu,\"host_limit\":%zu,\"phase\":\"before_graph_allocation\"}\n",
 +        gpu, host, ctx.omni_gpu_limit, ctx.omni_host_limit);
 +    std::fflush(stdout);
++    if (!ggml_backend_sched_reserve(ctx.sched.get(), graph))
++        throw std::runtime_error("vision admitted graph reserve failed");
 +    ggml_backend_sched_reset(ctx.sched.get());
 +}
  
  //
  // clip_graph
-@@ -3624,7 +3679,15 @@
+@@ -3624,7 +3681,15 @@
  
              // alloc memory and offload data
              ggml_backend_buffer_type_t buft = ggml_backend_get_default_buffer_type(ctx_clip.backend);
@@ -94,7 +96,7 @@
              ggml_backend_buffer_set_usage(ctx_clip.buf.get(), GGML_BACKEND_BUFFER_USAGE_WEIGHTS);
              // read the weight from file
              if (!ctx_clip.no_alloc) {
-@@ -3788,7 +3851,9 @@
+@@ -3788,7 +3853,9 @@
      // only initialize backend buffers, but do not allocate them yet
      static support_info_graph reserve_compute_meta(clip_ctx & ctx_clip, const clip_image_f32_batch & batch) {
          ggml_cgraph * gf = clip_get_graph_builder(&ctx_clip, batch)->build();
@@ -105,7 +107,7 @@
  
          ctx_clip.mem_compute.clear();
          for (size_t i = 0; i < ctx_clip.backend_ptrs.size(); ++i) {
-@@ -4462,6 +4527,7 @@
+@@ -4462,6 +4529,7 @@
      // build the inference graph
      ggml_backend_sched_reset(ctx->sched.get());
      ggml_cgraph * gf = clip_get_graph_builder(ctx, imgs, params)->build();

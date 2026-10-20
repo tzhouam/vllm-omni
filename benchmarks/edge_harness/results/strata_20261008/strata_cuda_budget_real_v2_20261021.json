@@ -1,0 +1,139 @@
+{
+  "schema": "omni-vision-tensor-budget-candidate-v1",
+  "base_sha256": "d9a8cb808aa0a07fdab46515867b0a364b9f1a1d88d956eceb7f5dab7f480da4",
+  "candidate_sha256": "9321cdef0684152aa880ef5abbd606b3060525ba8ab78e241327c0da33bd80dd",
+  "patch_sha256": "cf23bbd219bd012ad1bc473cf37bdb64771630fcf2a3a2cf48b44749ff87e4e7",
+  "apply_check_exit": 0,
+  "scope": "Explicit ggml tensor buffers only; CUDA context/library and preprocessing remain separate lease requirements",
+  "native_compile_verified": false,
+  "neural_execution_verified": false,
+  "production_gate_changed": false,
+  "limits": [
+    "Measurement may release an undersized scheduler buffer",
+    "Retained versus planned sizes use conservative maximum",
+    "CPU operator buffers counted in host pool",
+    "No runtime admission claim before controller integration and real model tests"
+  ],
+  "windows_msvc_syntax": {
+    "argv": [
+      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+      "/nologo",
+      "/TP",
+      "/Zs",
+      "/EHsc",
+      "/std:c++17",
+      "/utf-8",
+      "/DGGML_USE_CPU",
+      "/DGGML_USE_CUDA",
+      "/DMTMD_VIDEO",
+      "/D_CRT_SECURE_NO_WARNINGS",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\ggml\\include",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\include",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\vendor",
+      "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-budget-v1\\clip.cpp"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.7650000001303852,
+    "log_sha256": "948b4fbdece1e6e40c025a025be870641946eeddabf3c71f1471c93bb7c0e4a1",
+    "scope": "Syntax only",
+    "superseded": true
+  },
+  "revision_note": "Real ggml test hit access violation after measurement then direct alloc_graph; reserve actual buffers after admission before reset/alloc.",
+  "windows_msvc_syntax_v2": {
+    "exit_code": 0,
+    "log_sha256": "df92aa66f6b955a3b442c71f45128eca93df18ea7b76efd051910fc2abc5b0bf"
+  },
+  "real_ggml": {
+    "scope": "Real ggml CPU graph allocator and computation; not CUDA or neural model execution",
+    "libraries": {
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-vision-cpu-v2\\llama\\ggml\\src\\ggml-base.lib": "788efce9b646b91333beaee24f6b6535a43b1a3c6a9001c398fbbe0479ba4391",
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-vision-cpu-v2\\llama\\ggml\\src\\ggml-cpu.lib": "1667215786d904bf4e40c605fe11e7f2d53adb4a42aff2fed8c386991958cb5d",
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-vision-cpu-v2\\llama\\ggml\\src\\ggml.lib": "ebd86f484cdbb9823b2de7c12154f017f68cf3635e6150d7b6bb393447e413d3"
+    },
+    "compile_exit": 0,
+    "compile_argv": [
+      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+      "/nologo",
+      "/EHsc",
+      "/std:c++17",
+      "/MT",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\ggml\\include",
+      "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-budget-v1\\budget_real_ggml_test.cpp",
+      "/Fe:C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-budget-v1\\budget_real_ggml_test.exe",
+      "/Fo:C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-budget-v1\\budget_real_ggml_test.obj",
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-vision-cpu-v2\\llama\\ggml\\src\\ggml-base.lib",
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-vision-cpu-v2\\llama\\ggml\\src\\ggml-cpu.lib",
+      "C:\\Users\\zhout\\w2\\strata-omni\\build-vision-cpu-v2\\llama\\ggml\\src\\ggml.lib",
+      "advapi32.lib"
+    ],
+    "run_exit": 0,
+    "files": {
+      "budget_real_ggml_test.cpp": "1c318d028a6f03cd191067b652950efbf7abb491b81f80008926800f40c63257",
+      "real-compile.log": "86ef796ae2431b614c48875bcfae8b981f56f446c537cc543a45dcebc205e9ed",
+      "real-run.log": "e92ad13ca5f6b985712c7df09b1173dea657d2b2b0d04f86e7853e8b641dde37",
+      "budget_real_ggml_test.exe": "c97407afeecb5e6a873ac6d9c0f7e84ca76d67353730dd87d395e9d56ed99157"
+    }
+  },
+  "fault_tests": {
+    "scope": "Extracted candidate helpers and graph admission with fake ggml measurement; no real GPU allocation",
+    "cases": 15,
+    "exit_code": 0,
+    "files": {
+      "budget_fault_test.cpp": "a088afc9a0e76fff6522fb7a63bbeeb6e526e5437a5f4c1537bd829541d7064d",
+      "budget_fault_test.exe": "e9646b4e456862309e231f35fe468940b5a1454e1c8a6607c74677a457f1eae6",
+      "fault-compile.log": "ffcb7a9f86254f836717b57151ad7b8bf4c1497917edb07798dcb3d1ab1b419d",
+      "fault-run.log": "7238af4511d46af264c9d6887852fd7d27bf327a9df5bf6229f8f458fd90db89"
+    }
+  },
+  "archives": {
+    "strata_cuda_budget_real_v2_20261021_budget_real_ggml_test.cpp.gz": {
+      "archive_sha256": "a2f64989a61350d787b0677cb39ac804eb542bb951e2cfed6a93ca7e83e402a0",
+      "raw_sha256": "1c318d028a6f03cd191067b652950efbf7abb491b81f80008926800f40c63257"
+    },
+    "strata_cuda_budget_real_v2_20261021_real-run.log.gz": {
+      "archive_sha256": "d938b688191a25493ef74101bbd31dabbda2c9d558a60d049ebb1e5c760f2737",
+      "raw_sha256": "e92ad13ca5f6b985712c7df09b1173dea657d2b2b0d04f86e7853e8b641dde37"
+    },
+    "strata_cuda_budget_real_v2_20261021_real-compile.log.gz": {
+      "archive_sha256": "480644a7cdd289cd74f2b4f904e336a398a8499f1acb360125b9d888afdcc14d",
+      "raw_sha256": "86ef796ae2431b614c48875bcfae8b981f56f446c537cc543a45dcebc205e9ed"
+    },
+    "strata_cuda_budget_real_v2_20261021_real-receipt-attempt1.json.gz": {
+      "archive_sha256": "f21d3a2578bf96f2923ce7c2b039795577ddf0898b9c0aeb1b93d22fa54bde79",
+      "raw_sha256": "c1da3d64c08598b0d300be5a49c0a93e3b7adc681c09ed04d767e71389aacd92"
+    },
+    "strata_cuda_budget_real_v2_20261021_real-compile-attempt1.log.gz": {
+      "archive_sha256": "0515e2bcfeef5805ad07c33d3121ab63f8b79d26dacc06a15c78e6de2518b3c3",
+      "raw_sha256": "23ced59f045ca7b49c7ef13dbe4363acba8a983c94553fb0032f63238ac664e5"
+    },
+    "strata_cuda_budget_real_v2_20261021_real-receipt.json.attempt2.gz": {
+      "archive_sha256": "bec62004a245429f549d47ba43a6c1b3c48dcb6131090a24150aceaad1de431a",
+      "raw_sha256": "05ae3af3db226710e5cb8383899dc0c14cd334c3dc490abbeb3c00cdec005ae1"
+    },
+    "strata_cuda_budget_real_v2_20261021_real-run.log.attempt2.gz": {
+      "archive_sha256": "6513fdb7987152c585b0d44753bedb5e34b5ec9ff8520f15023a5d67d27e5cca",
+      "raw_sha256": "1c5ba6e851ccb192180afcd8179ebf7aa1646e9c55154c71468f1b51d61918a4"
+    },
+    "strata_cuda_budget_real_v2_20261021_budget_real_ggml_test.cpp.attempt2.gz": {
+      "archive_sha256": "1abb3b86b48745a764955e6095b88177a6799c02cd8e39191d23a6130b0e0369",
+      "raw_sha256": "0dd2ed0a9a6ac7fd1167391b3893d00378d1360b18d4fd84dcd6ffbc5556a28c"
+    },
+    "strata_cuda_budget_real_v2_20261021_budget_fault_test.cpp.gz": {
+      "archive_sha256": "b59122191c55292da383d1c46da5404f668c79c2651c4db19165cba753d02f17",
+      "raw_sha256": "a088afc9a0e76fff6522fb7a63bbeeb6e526e5437a5f4c1537bd829541d7064d"
+    },
+    "strata_cuda_budget_real_v2_20261021_fault-run.log.gz": {
+      "archive_sha256": "cea145d371eee5c9837f1c0770f6d94ecba9699ee4fe22823b199b80ef3a3192",
+      "raw_sha256": "7238af4511d46af264c9d6887852fd7d27bf327a9df5bf6229f8f458fd90db89"
+    },
+    "strata_cuda_budget_real_v2_20261021_fault-compile.log.gz": {
+      "archive_sha256": "ec624dc253ef80ee86a6473b5d40bd3aea7bcc5159e0814aa0d368c50e7f947f",
+      "raw_sha256": "ffcb7a9f86254f836717b57151ad7b8bf4c1497917edb07798dcb3d1ab1b419d"
+    },
+    "strata_cuda_budget_real_v2_20261021_syntax-v2.log.gz": {
+      "archive_sha256": "8ce2c81f4af7e6a29cfdbbf47916d5160670d1daec1aec813d35ce7735e97c96",
+      "raw_sha256": "df92aa66f6b955a3b442c71f45128eca93df18ea7b76efd051910fc2abc5b0bf"
+    }
+  }
+}
