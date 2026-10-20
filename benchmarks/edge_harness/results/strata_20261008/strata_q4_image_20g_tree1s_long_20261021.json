@@ -1,0 +1,975 @@
+{
+  "schema": "omni-strata-20g-tree1s-long-interim-v1",
+  "captured_unix": 1792530335.218539,
+  "receipt_snapshot_sha256": "2d5ea681d9fdc6ba4e44e0d9df352d14a58cd6d8d9753f7fbd89b3d27fdee059",
+  "private_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-full-20g-tree1s-20261021",
+  "observed_phase": "running_image_profile_endurance",
+  "batch_size": 1,
+  "concurrency": 1,
+  "n": 20,
+  "method": "nearest_rank; warmups excluded",
+  "statistics": {
+    "whole_agent_task_s_excludes_load": {
+      "samples": [
+        111.14863649988547,
+        119.42538789985701,
+        114.30881249997765,
+        113.58924160012975,
+        111.88257909985259,
+        114.01624590018764,
+        110.8167677000165,
+        111.80985339963809,
+        110.80732880020514,
+        114.58981040026993,
+        111.43426760006696,
+        113.11024049995467,
+        110.4171913000755,
+        113.47116419998929,
+        110.00628189975396,
+        111.99143300019205,
+        110.99397740000859,
+        120.29929989995435,
+        112.26371689978987,
+        113.00787299964577
+      ],
+      "p50": 111.99143300019205,
+      "p95": 119.42538789985701
+    },
+    "first_visible_output_s": {
+      "samples": [
+        106.04948080005124,
+        114.05872979993,
+        108.98291360028088,
+        108.66144520044327,
+        106.67499109962955,
+        108.71324260020629,
+        106.19088609982282,
+        107.27393750008196,
+        106.1396914999932,
+        109.73721079993993,
+        105.96866719983518,
+        108.20748730003834,
+        106.11903590010479,
+        107.99430319992825,
+        105.52837359998375,
+        107.21641100011766,
+        105.64910489972681,
+        115.52784550003707,
+        107.49409609986469,
+        108.08716079965234
+      ],
+      "p50": 107.27393750008196,
+      "p95": 114.05872979993
+    }
+  },
+  "samples": [
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 0,
+      "index": 46,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 598,
+      "call_start": 92,
+      "request_started_monotonic_s": 2982829.700646,
+      "request_finished_monotonic_s": 2982940.8492825,
+      "whole_agent_task_s_excludes_load": 111.14863649988547,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 106.04948080005124,
+      "event_end": 611,
+      "call_end": 94,
+      "request_id": "81bf5ab575f1495d9da47b0a8c6289e5",
+      "epoch": 47,
+      "last_native_sequence": 94,
+      "model_first_token_s": [
+        29.798248099628836,
+        66.24338359991089
+      ],
+      "witness_file": "sample-0046-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 1,
+      "index": 47,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 611,
+      "call_start": 94,
+      "request_started_monotonic_s": 2982940.9046574,
+      "request_finished_monotonic_s": 2983060.3300453,
+      "whole_agent_task_s_excludes_load": 119.42538789985701,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 114.05872979993,
+      "event_end": 624,
+      "call_end": 96,
+      "request_id": "914e56fc98924dc49bbad8c36b0d64ec",
+      "epoch": 48,
+      "last_native_sequence": 96,
+      "model_first_token_s": [
+        29.40531300008297,
+        72.7475562999025
+      ],
+      "witness_file": "sample-0047-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 2,
+      "index": 48,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 624,
+      "call_start": 96,
+      "request_started_monotonic_s": 2983060.3800655,
+      "request_finished_monotonic_s": 2983174.688878,
+      "whole_agent_task_s_excludes_load": 114.30881249997765,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 108.98291360028088,
+      "event_end": 637,
+      "call_end": 98,
+      "request_id": "77aefd6177544c38bbb02a5ba5c98243",
+      "epoch": 49,
+      "last_native_sequence": 98,
+      "model_first_token_s": [
+        30.577418899629265,
+        68.26107469992712
+      ],
+      "witness_file": "sample-0048-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 3,
+      "index": 49,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 637,
+      "call_start": 98,
+      "request_started_monotonic_s": 2983174.7334596,
+      "request_finished_monotonic_s": 2983288.3227012,
+      "whole_agent_task_s_excludes_load": 113.58924160012975,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 30,
+          "total_tokens": 837,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 108.66144520044327,
+      "event_end": 650,
+      "call_end": 100,
+      "request_id": "21a3df43453b427c9c9f32a2a1f4d2f0",
+      "epoch": 50,
+      "last_native_sequence": 100,
+      "model_first_token_s": [
+        30.644629899878055,
+        67.1009960998781
+      ],
+      "witness_file": "sample-0049-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 4,
+      "index": 50,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 650,
+      "call_start": 100,
+      "request_started_monotonic_s": 2983288.3678048,
+      "request_finished_monotonic_s": 2983400.2503839,
+      "whole_agent_task_s_excludes_load": 111.88257909985259,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 106.67499109962955,
+      "event_end": 663,
+      "call_end": 102,
+      "request_id": "e45627635be3438aaff768dc110c1d25",
+      "epoch": 51,
+      "last_native_sequence": 102,
+      "model_first_token_s": [
+        29.986249099951237,
+        67.0368914003484
+      ],
+      "witness_file": "sample-0050-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 5,
+      "index": 51,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 663,
+      "call_start": 102,
+      "request_started_monotonic_s": 2983400.347251,
+      "request_finished_monotonic_s": 2983514.3634969,
+      "whole_agent_task_s_excludes_load": 114.01624590018764,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 108.71324260020629,
+      "event_end": 676,
+      "call_end": 104,
+      "request_id": "4deabf1e7c2f4872a73aa6b1dc22b447",
+      "epoch": 52,
+      "last_native_sequence": 104,
+      "model_first_token_s": [
+        30.166742799803615,
+        67.21758859977126
+      ],
+      "witness_file": "sample-0051-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 6,
+      "index": 52,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 676,
+      "call_start": 104,
+      "request_started_monotonic_s": 2983514.4117227,
+      "request_finished_monotonic_s": 2983625.2284904,
+      "whole_agent_task_s_excludes_load": 110.8167677000165,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 106.19088609982282,
+      "event_end": 689,
+      "call_end": 106,
+      "request_id": "1f2ab40b1e4747fb885702323dd49c9c",
+      "epoch": 53,
+      "last_native_sequence": 106,
+      "model_first_token_s": [
+        29.467855399940163,
+        67.11732650035992
+      ],
+      "witness_file": "sample-0052-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 7,
+      "index": 53,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 689,
+      "call_start": 106,
+      "request_started_monotonic_s": 2983625.2796184,
+      "request_finished_monotonic_s": 2983737.0894718,
+      "whole_agent_task_s_excludes_load": 111.80985339963809,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 107.27393750008196,
+      "event_end": 702,
+      "call_end": 108,
+      "request_id": "0c69fc00042c48819d311ade58ce5f47",
+      "epoch": 54,
+      "last_native_sequence": 108,
+      "model_first_token_s": [
+        29.967830600216985,
+        66.49904979998246
+      ],
+      "witness_file": "sample-0053-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 8,
+      "index": 54,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 702,
+      "call_start": 108,
+      "request_started_monotonic_s": 2983737.1324396,
+      "request_finished_monotonic_s": 2983847.9397684,
+      "whole_agent_task_s_excludes_load": 110.80732880020514,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 106.1396914999932,
+      "event_end": 715,
+      "call_end": 110,
+      "request_id": "069a39488476454c8786f5ed59f104e1",
+      "epoch": 55,
+      "last_native_sequence": 110,
+      "model_first_token_s": [
+        29.344571699853987,
+        66.46066749980673
+      ],
+      "witness_file": "sample-0054-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 9,
+      "index": 55,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 715,
+      "call_start": 110,
+      "request_started_monotonic_s": 2983848.014304,
+      "request_finished_monotonic_s": 2983962.6041144,
+      "whole_agent_task_s_excludes_load": 114.58981040026993,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 109.73721079993993,
+      "event_end": 728,
+      "call_end": 112,
+      "request_id": "d01434986365438b9947eacfde0734f4",
+      "epoch": 56,
+      "last_native_sequence": 112,
+      "model_first_token_s": [
+        29.44463719986379,
+        67.7688309000805
+      ],
+      "witness_file": "sample-0055-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 10,
+      "index": 56,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 728,
+      "call_start": 112,
+      "request_started_monotonic_s": 2983962.6512857,
+      "request_finished_monotonic_s": 2984074.0855533,
+      "whole_agent_task_s_excludes_load": 111.43426760006696,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 105.96866719983518,
+      "event_end": 741,
+      "call_end": 114,
+      "request_id": "30e196dcfa184ed994fe2962a8643a49",
+      "epoch": 57,
+      "last_native_sequence": 114,
+      "model_first_token_s": [
+        29.785753100179136,
+        66.48941609961912
+      ],
+      "witness_file": "sample-0056-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 11,
+      "index": 57,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 741,
+      "call_start": 114,
+      "request_started_monotonic_s": 2984074.1807052,
+      "request_finished_monotonic_s": 2984187.2909457,
+      "whole_agent_task_s_excludes_load": 113.11024049995467,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 108.20748730003834,
+      "event_end": 754,
+      "call_end": 116,
+      "request_id": "e19adbfd9f5a4a1b89ba932dfae8d60e",
+      "epoch": 58,
+      "last_native_sequence": 116,
+      "model_first_token_s": [
+        29.41406790027395,
+        66.88972799992189
+      ],
+      "witness_file": "sample-0057-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 12,
+      "index": 58,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 754,
+      "call_start": 116,
+      "request_started_monotonic_s": 2984187.3458212,
+      "request_finished_monotonic_s": 2984297.7630125,
+      "whole_agent_task_s_excludes_load": 110.4171913000755,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 106.11903590010479,
+      "event_end": 767,
+      "call_end": 118,
+      "request_id": "3b643b1bd05b4b84b0b4c403dcb29cbc",
+      "epoch": 59,
+      "last_native_sequence": 118,
+      "model_first_token_s": [
+        29.938321200199425,
+        66.14042600011453
+      ],
+      "witness_file": "sample-0058-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 13,
+      "index": 59,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 767,
+      "call_start": 118,
+      "request_started_monotonic_s": 2984297.8308173,
+      "request_finished_monotonic_s": 2984411.3019815,
+      "whole_agent_task_s_excludes_load": 113.47116419998929,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 107.99430319992825,
+      "event_end": 780,
+      "call_end": 120,
+      "request_id": "e5fb21c626474694804b6c091fbd51c3",
+      "epoch": 60,
+      "last_native_sequence": 120,
+      "model_first_token_s": [
+        29.264839600306004,
+        66.3951795999892
+      ],
+      "witness_file": "sample-0059-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 14,
+      "index": 60,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 780,
+      "call_start": 120,
+      "request_started_monotonic_s": 2984411.3547903,
+      "request_finished_monotonic_s": 2984521.3610722,
+      "whole_agent_task_s_excludes_load": 110.00628189975396,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 105.52837359998375,
+      "event_end": 793,
+      "call_end": 122,
+      "request_id": "713f5a0d3cdf4c34a537e85b6337e3ed",
+      "epoch": 61,
+      "last_native_sequence": 122,
+      "model_first_token_s": [
+        29.1440690997988,
+        66.66181199997663
+      ],
+      "witness_file": "sample-0060-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 15,
+      "index": 61,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 793,
+      "call_start": 122,
+      "request_started_monotonic_s": 2984521.4050529,
+      "request_finished_monotonic_s": 2984633.3964859,
+      "whole_agent_task_s_excludes_load": 111.99143300019205,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 107.21641100011766,
+      "event_end": 806,
+      "call_end": 124,
+      "request_id": "ba679cb388e84df18489fa3e3db2431c",
+      "epoch": 62,
+      "last_native_sequence": 124,
+      "model_first_token_s": [
+        29.95534500014037,
+        65.91899799974635
+      ],
+      "witness_file": "sample-0061-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 16,
+      "index": 62,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 806,
+      "call_start": 124,
+      "request_started_monotonic_s": 2984633.4567013,
+      "request_finished_monotonic_s": 2984744.4506787,
+      "whole_agent_task_s_excludes_load": 110.99397740000859,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 105.64910489972681,
+      "event_end": 819,
+      "call_end": 126,
+      "request_id": "2e25edf835ea4cbd87483c7b0bbe5520",
+      "epoch": 63,
+      "last_native_sequence": 126,
+      "model_first_token_s": [
+        29.249105600174516,
+        66.7059884998016
+      ],
+      "witness_file": "sample-0062-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 17,
+      "index": 63,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 819,
+      "call_start": 126,
+      "request_started_monotonic_s": 2984744.5128161,
+      "request_finished_monotonic_s": 2984864.812116,
+      "whole_agent_task_s_excludes_load": 120.29929989995435,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 115.52784550003707,
+      "event_end": 832,
+      "call_end": 128,
+      "request_id": "15b747da471e40a38471503b2910119e",
+      "epoch": 64,
+      "last_native_sequence": 128,
+      "model_first_token_s": [
+        30.094886399805546,
+        73.57651189994067
+      ],
+      "witness_file": "sample-0063-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 18,
+      "index": 64,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 832,
+      "call_start": 128,
+      "request_started_monotonic_s": 2984864.8554111,
+      "request_finished_monotonic_s": 2984977.119128,
+      "whole_agent_task_s_excludes_load": 112.26371689978987,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 107.49409609986469,
+      "event_end": 845,
+      "call_end": 130,
+      "request_id": "f081d08542d5439cba8bc625595c9ea2",
+      "epoch": 65,
+      "last_native_sequence": 130,
+      "model_first_token_s": [
+        29.82954110018909,
+        67.00688470015302
+      ],
+      "witness_file": "sample-0064-image-witness.json"
+    },
+    {
+      "phase": "measured",
+      "length": "long",
+      "ordinal": 19,
+      "index": 65,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "ced5d5bf4f253c4602d3b7763f37d95bbed79e61e766f22572e728529b0c47df",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 845,
+      "call_start": 130,
+      "request_started_monotonic_s": 2984977.1666235,
+      "request_finished_monotonic_s": 2985090.1744965,
+      "whole_agent_task_s_excludes_load": 113.00787299964577,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 108.08716079965234,
+      "event_end": 858,
+      "call_end": 132,
+      "request_id": "81148c96ac154a33b21f9cf1ffd090d3",
+      "epoch": 66,
+      "last_native_sequence": 132,
+      "model_first_token_s": [
+        29.651409699581563,
+        66.30021670041606
+      ],
+      "witness_file": "sample-0065-image-witness.json"
+    }
+  ],
+  "cold_load_and_verification_s": 951.3797715003602,
+  "qualification": false,
+  "limitations": [
+    "Live interim snapshot; endurance/cleanup/source stability/final audit pending.",
+    "Fixed browser screenshot task family only.",
+    "No causal speedup claim against prior runs; cache/background and output equivalence not paired.",
+    "No physical SSD attribution or hard memory cap qualification."
+  ]
+}
