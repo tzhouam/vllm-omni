@@ -1836,6 +1836,7 @@ class StrataTextStageClient(StageClientBase):
                 raise ValueError("Strata MTP/prefetch switches differ from its tier plan")
         memory_snapshot = _probe_memory(gpu)
         _check_live_memory(memory_snapshot, dict(self._reservation.demands), gpu_pool, gpu_total)
+        self._bind_extension_memory(memory_snapshot, gpu, gpu_pool)
         flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
         observer_nonce = uuid.uuid4().hex
         env["OMNI_STRATA_OBSERVER_NONCE"] = observer_nonce
@@ -2130,6 +2131,9 @@ class StrataTextStageClient(StageClientBase):
     ):
         if config.get("image_route") is not None:
             raise ValueError("text stage refuses image route capabilities")
+
+    def _bind_extension_memory(self, memory_snapshot, gpu_index, gpu_pool):
+        pass
 
     def _configure_extension(self, server_cfg):
         pass

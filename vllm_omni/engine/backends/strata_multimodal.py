@@ -261,6 +261,10 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
             or gpu_budget < bounds["vision_gpu_bytes"]
         ):
             raise ValueError("shared resource budget omits encoder/scratch coexistence")
+        self._vision["shared_workspaces"] = {
+            "gpu": tier_plan.budget.gpu_workspace_bytes,
+            "host": tier_plan.budget.host_workspace_bytes,
+        }
         prepared = ArtifactManifest.from_dict(config["prepared_pack_manifest"])
         self._vision["prepared_artifact_size_bytes"] = prepared.total_size_bytes
         projector = ArtifactManifest.from_dict(bounds["projector_manifest"])
@@ -276,6 +280,14 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
         self._vision["text_first_shard"] = str(native)
         self._vision["bootstrap_sha256"] = hashlib.sha256(self._bootstrap_source().encode()).hexdigest()
         self._vision["adapter_sha256"] = strata_vision.digest(Path(strata_vision.__file__))
+
+    def _bind_extension_memory(self, memory_snapshot, gpu_index, gpu_pool):
+        cfg = self._vision["config"]
+        if cfg["encoder_device"] == "cuda":
+            self._vision["cuda_lease"] = strata_vision.bind_cuda_vision_lease(
+                cfg["cuda_execution"], cfg, self._vision["shared_workspaces"],
+                dict(self._reservation.demands), memory_snapshot, gpu_index, gpu_pool,
+            )
 
     def _configure_extension(self, server_cfg):
         cfg = self._vision["config"]
@@ -323,6 +335,8 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
             {key: cfg[key] for key in ("max_image_bytes", "max_image_pixels", "max_image_tokens", "embedding_width")}
             | {"max_io_bytes": self._max_io_bytes}
         )
+        cuda_lease = self._vision["cuda_lease"] if cfg["encoder_device"] == "cuda" else None
+        env["OMNI_STRATA_VISION_CUDA"] = json.dumps(cuda_lease)
         self._encoder_observer = strata_vision.EncoderObserver(
             env["OMNI_STRATA_OBSERVER_NONCE"],
             self._generation,
@@ -330,6 +344,7 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
             embedding_width=cfg["embedding_width"],
             is_live=self._encoder_is_live,
             requested_device=cfg["encoder_device"],
+            cuda_contract=cuda_lease["contract"] if cuda_lease is not None else None,
         )
 
     @staticmethod

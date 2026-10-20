@@ -578,6 +578,58 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
     }
 
 
+def bind_cuda_vision_lease(policy, bounds, workspaces, reservation, memory, gpu_index, gpu_pool):
+    """Bind encoder sub-budgets to a fresh GPU probe and the shared lease.
+
+    Called after the text stage's live admission check, before spawning workers.
+    """
+    keys = {"contract", "gpu_overhead_bytes", "host_overhead_bytes",
+            "language_gpu_workspace_bytes", "language_host_workspace_bytes", "flash_attention"}
+    if not isinstance(policy, dict) or set(policy) != keys or policy["flash_attention"] not in {"auto", "off"}:
+        raise ValueError("invalid CUDA execution policy")
+    evidence = CudaEncoderEvidence(policy["contract"])
+    c = evidence.contract
+    for key in keys - {"contract", "flash_attention"}:
+        _uint(policy[key], True)
+    _uint(gpu_index)
+    if gpu_pool != f"vram:{gpu_index}" and not (gpu_index == 0 and gpu_pool == "vram"):
+        raise ValueError("CUDA encoder pool differs from language GPU index")
+    pci = memory.get("gpu_pci_bus_id")
+    if not isinstance(pci, str):
+        raise ValueError("CUDA physical PCI identity unavailable")
+    pci = pci.lower()
+    if re.fullmatch(r"[0-9a-f]{4}:[0-9a-f]{2}:[01][0-9a-f]\.[0-7]", pci):
+        pci = "0000" + pci
+    uuid = memory.get("gpu_uuid")
+    name_hash = memory.get("gpu_name_sha256")
+    if (pci != c["pci_bus_id"] or not isinstance(uuid, str)
+            or not re.fullmatch(r"GPU-[0-9a-fA-F-]{36}", uuid)
+            or not isinstance(name_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", name_hash)):
+        raise ValueError("CUDA encoder physical GPU binding mismatch")
+    if c["max_image_tokens"] != bounds["max_image_tokens"]:
+        raise ValueError("CUDA lease token bound mismatch")
+    preprocessing = max(bounds["max_image_pixels"], 2048 * 2048) * 32
+    preprocessing += 2048 * 2048 * 3 + 2 * bounds["max_image_bytes"]
+    gpu = bounds["vision_gpu_bytes"]
+    host = bounds["vision_host_bytes"]
+    scratch = bounds["vision_scratch_bytes"]
+    for value in (gpu, host, scratch, workspaces["gpu"], workspaces["host"],
+                  reservation.get(gpu_pool, 0), reservation.get("host_ram", 0)):
+        _uint(value)
+    if (gpu < c["gpu_tensor_bytes"] + policy["gpu_overhead_bytes"]
+            or host < c["host_tensor_bytes"] + preprocessing + policy["host_overhead_bytes"]
+            or workspaces["gpu"] < gpu + policy["language_gpu_workspace_bytes"]
+            or workspaces["host"] < host + scratch + policy["language_host_workspace_bytes"]
+            or reservation.get(gpu_pool, 0) < workspaces["gpu"]
+            or reservation.get("host_ram", 0) < workspaces["host"]):
+        raise ValueError("shared CUDA lease omits simultaneous encoder/language resources")
+    return {"contract": c, "physical_gpu_index": gpu_index, "gpu_pool": gpu_pool,
+            "gpu_identity": {"uuid": uuid, "pci_bus_id": pci, "name_sha256": name_hash},
+            "policy": copy.deepcopy(policy),
+            "memory_probe_sha256": hashlib.sha256(canonical(memory).encode()).hexdigest(),
+            "scope": "shared_lease_with_separate_tensor_and_declared_overhead_budgets"}
+
+
 class CudaEncoderEvidence:
     """Validate native CUDA startup against a caller-owned tensor sub-budget.
 
@@ -1104,6 +1156,12 @@ _v_nonce = os.environ['OMNI_STRATA_OBSERVER_NONCE']
 _v_generation = os.environ['OMNI_STRATA_IO_GENERATION']
 _v_args = json.loads(os.environ.pop('OMNI_STRATA_VISION_ARGS'))
 _v_bounds = json.loads(os.environ.pop('OMNI_STRATA_VISION_BOUNDS'))
+_v_cuda = json.loads(os.environ.pop('OMNI_STRATA_VISION_CUDA', 'null'))
+if _v_cuda is not None:
+    _v.CudaEncoderEvidence(_v_cuda['contract'])
+    if _v_cuda['policy']['flash_attention'] not in ('auto', 'off'):
+        raise RuntimeError('Unadmitted vision attention mode')
+
 _v_scratch = os.path.realpath(os.environ.pop('OMNI_STRATA_VISION_SCRATCH'))
 if (os.path.dirname(_v_scratch) != os.path.realpath(os.path.dirname(__file__))
     or os.path.basename(_v_scratch) != 'vision-scratch' or ' ' in _v_scratch
@@ -1124,6 +1182,16 @@ def _v_launch(args, *a, **kw):
     _env = dict(kw.get('env') or os.environ)
     _env.pop('OMNI_STRATA_OBSERVER_NONCE', None)
     _env.pop('OMNI_STRATA_IO_GENERATION', None)
+    for _key in ('OMNI_VISION_EXPECTED_PCI_BUS_ID', 'OMNI_VISION_GGML_GPU_BUDGET_BYTES',
+                 'OMNI_VISION_GGML_HOST_BUDGET_BYTES'):
+        _env.pop(_key, None)
+    if _v_cuda is not None:
+        _contract = _v_cuda['contract']
+        _env['CUDA_VISIBLE_DEVICES'] = _v_cuda['gpu_identity']['uuid']
+        _env['OMNI_VISION_EXPECTED_PCI_BUS_ID'] = _contract['pci_bus_id']
+        _env['OMNI_VISION_GGML_GPU_BUDGET_BYTES'] = str(_contract['gpu_tensor_bytes'])
+        _env['OMNI_VISION_GGML_HOST_BUDGET_BYTES'] = str(_contract['host_tensor_bytes'])
+        args = [*args, '--flash-attn', _v_cuda['policy']['flash_attention']]
     _env['PATH'] = os.path.dirname(os.path.realpath(args[0])) + os.pathsep + system_directory
     kw['env'] = _env
     kw['stderr'] = subprocess.DEVNULL
@@ -1142,7 +1210,8 @@ def _v_launch(args, *a, **kw):
         _created = (_times[0].dwHighDateTime << 32) | _times[0].dwLowDateTime
         def _emit(row): sys.stderr.write(row); sys.stderr.flush()
         _owned = _v.OwnedEncoderWriter(_v_nonce, _v_generation, p.pid, _created, _emit,
-                                       cwd=kw['cwd'], bounds=_v_bounds, contained=True)
+                                       cwd=kw['cwd'], bounds=_v_bounds, contained=True,
+                                       cuda_contract=_v_cuda['contract'] if _v_cuda is not None else None)
         _v_owned_encoder = _owned
         class _Input:
             def __init__(self, pipe): self.pipe = pipe

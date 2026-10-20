@@ -1543,3 +1543,86 @@ def test_cuda_writer_observer_share_startup_contract_and_fail_on_pool_mismatch(t
         writer.observe_output("READY 2560\n")
         assert observer.retired is wrong_pool
         assert observer.ready is (not wrong_pool)
+
+
+def cuda_lease_fixture():
+    gib = 1 << 30
+    policy = {"contract": cuda_contract() | {"gpu_tensor_bytes": gib, "host_tensor_bytes": 64 << 20},
+              "gpu_overhead_bytes": 256 << 20, "host_overhead_bytes": 128 << 20,
+              "language_gpu_workspace_bytes": gib, "language_host_workspace_bytes": 512 << 20,
+              "flash_attention": "off"}
+    bounds = {"max_image_tokens": 1536, "max_image_pixels": 4194304, "max_image_bytes": 4 << 20,
+              "vision_gpu_bytes": 2 * gib, "vision_host_bytes": gib, "vision_scratch_bytes": 64 << 20}
+    memory = {"gpu_pci_bus_id": "0000:64:00.0", "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+              "gpu_name_sha256": "a" * 64}
+    return policy, bounds, {"gpu": 3 * gib, "host": 2 * gib}, {"vram:0": 4 * gib, "host_ram": 3 * gib}, memory
+
+
+def test_cuda_lease_binds_physical_identity_and_nonoverlapping_workspaces():
+    args = cuda_lease_fixture()
+    result = vision.bind_cuda_vision_lease(*args, 0, "vram:0")
+    assert result["gpu_identity"]["pci_bus_id"] == "00000000:64:00.0"
+    assert result["contract"] == args[0]["contract"]
+    args[0]["contract"]["gpu_tensor_bytes"] = 1
+    assert result["contract"]["gpu_tensor_bytes"] == 1 << 30
+
+
+@pytest.mark.parametrize("case", ["gpu_workspace_overlap", "host_workspace_overlap", "pool", "pci",
+                                  "gpu_reservation", "host_reservation", "overhead"])
+def test_cuda_lease_refuses_incomplete_coexistence_and_wrong_device(case):
+    policy, bounds, workspaces, reservation, memory = cuda_lease_fixture()
+    pool = "vram:0"
+    if case == "gpu_workspace_overlap": workspaces["gpu"] = bounds["vision_gpu_bytes"]
+    if case == "host_workspace_overlap": workspaces["host"] = bounds["vision_host_bytes"]
+    if case == "pool": pool = "vram:1"
+    if case == "pci": memory["gpu_pci_bus_id"] = "00000000:65:00.0"
+    if case == "gpu_reservation": reservation["vram:0"] = 1
+    if case == "host_reservation": reservation["host_ram"] = 1
+    if case == "overhead": policy["gpu_overhead_bytes"] = 2 << 30
+    with pytest.raises(ValueError):
+        vision.bind_cuda_vision_lease(policy, bounds, workspaces, reservation, memory, 0, pool)
+
+
+@pytest.mark.parametrize("cuda", [False, True])
+def test_trusted_vision_launcher_overrides_budget_env_and_appends_only_bound_attention(tmp_path, cuda):
+    import ast
+    import os
+
+    args = [str(tmp_path / "encoder.exe"), "--mmproj", "projector", "--model", "model"]
+    if cuda:
+        args.append("--gpu")
+    policy, bounds, workspaces, reservation, memory = cuda_lease_fixture()
+    lease = vision.bind_cuda_vision_lease(policy, bounds, workspaces, reservation, memory, 0, "vram:0")
+    captured = {}
+
+    class Captured(Exception):
+        pass
+
+    def spawn(actual, *positional, **kwargs):
+        captured.update(args=actual, kwargs=kwargs)
+        raise Captured()
+
+    function = next(n for n in ast.parse(vision._VISION_PREAMBLE).body
+                    if isinstance(n, ast.FunctionDef) and n.name == "_v_launch")
+    namespace = {"os": types.SimpleNamespace(path=os.path, pathsep=os.pathsep, environ={}, name="nt"),
+                 "subprocess": types.SimpleNamespace(DEVNULL=-3), "_v_args": args.copy(),
+                 "_v_scratch": os.path.realpath(tmp_path), "_v_original": spawn,
+                 "_v_cuda": lease if cuda else None, "system_directory": "System32"}
+    exec(compile(ast.Module(body=[function], type_ignores=[]), "trusted-launch-test", "exec"), namespace)
+    with pytest.raises(Captured):
+        namespace["_v_launch"](args, cwd=str(tmp_path), env={
+            "CUDA_VISIBLE_DEVICES": "wrong", "OMNI_VISION_EXPECTED_PCI_BUS_ID": "wrong",
+            "OMNI_VISION_GGML_GPU_BUDGET_BYTES": "999", "OMNI_VISION_GGML_HOST_BUDGET_BYTES": "999",
+            "OMNI_STRATA_OBSERVER_NONCE": "private"})
+    env = captured["kwargs"]["env"]
+    assert "OMNI_STRATA_OBSERVER_NONCE" not in env
+    assert namespace["_v_args"] == args
+    if cuda:
+        assert captured["args"] == args + ["--flash-attn", "off"]
+        assert env["CUDA_VISIBLE_DEVICES"] == memory["gpu_uuid"]
+        assert env["OMNI_VISION_EXPECTED_PCI_BUS_ID"] == policy["contract"]["pci_bus_id"]
+        assert env["OMNI_VISION_GGML_GPU_BUDGET_BYTES"] == str(policy["contract"]["gpu_tensor_bytes"])
+    else:
+        assert captured["args"] == args
+        assert "OMNI_VISION_EXPECTED_PCI_BUS_ID" not in env
+        assert "OMNI_VISION_GGML_GPU_BUDGET_BYTES" not in env

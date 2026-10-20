@@ -1,0 +1,40 @@
+{
+  "schema": "omni-cuda-lease-launcher-integration-v1",
+  "files": {
+    "vllm_omni/engine/backends/strata.py": "c898cd4e5ab22b73b26acf44261e81cca38c8faa1e6646d5d2bb2fe35eda2b85",
+    "vllm_omni/engine/backends/strata_multimodal.py": "c084b2230e996ba4a29d2fb6bafb2d4443b83d2a85c7f4183daa1a40baf12a42",
+    "vllm_omni/engine/backends/strata_vision.py": "5b5a2779f052aa6f05a20c29631dc62a5399acafec098f722c5f09814b9ce629",
+    "tests/edge/test_strata_vision_prototype.py": "58764bef822229143302b7bc460000f38ff27201ad1dd2ed9505d1afae447766"
+  },
+  "tests": [
+    {
+      "files": [
+        "test_strata_vision_prototype.py",
+        "test_strata_backend.py"
+      ],
+      "passed": 183,
+      "skipped": 3,
+      "warnings": 14,
+      "reported_seconds": 41.14
+    },
+    {
+      "selection": "trusted_vision_launcher",
+      "passed": 2,
+      "deselected": 114,
+      "warnings": 14,
+      "reported_seconds": 2.94
+    }
+  ],
+  "implemented": [
+    "Post live-memory-admission extension hook before worker spawn",
+    "Physical PCI/UUID and GPU pool binding to shared lease",
+    "Distinct encoder tensor/overhead and language workspace accounting",
+    "Trusted child environment replaces inherited budgets and chooses admitted GPU UUID",
+    "Trusted wrapper appends bound flash attention and passes contract to writer and observer"
+  ],
+  "not_yet_verified": [
+    "CUDA runtime registration and complete load-plan validator",
+    "Live Agent GPU image quality, lifecycle and performance"
+  ],
+  "cuda_registration_gate_enabled": false
+}

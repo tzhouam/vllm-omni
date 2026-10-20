@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **CUDA 共享租约和可信启动参数接线完成，注册仍关闭**：文本阶段实时内存准入后、spawn 前绑定视觉 PCI／GPU UUID 与同一资源池；分别预留视觉 tensor／额外开销及语言 workspace，拒绝重叠计账或不足的 reservation。可信启动器清除继承的视觉预算，设置已绑定 GPU UUID／PCI／tensor 限额，追加明确 attention 参数，并将 contract 传给 writer／observer。视觉＋文本测试 **183 passed／3 skipped**，另 2 项启动器注入测试通过。尚需 v3 运行包注册、完整 load-plan 校验及真实 Agent 生命周期，未开放 CUDA route。[源码和验证范围](results/strata_20261008/strata_cuda_lease_launcher_20261021.json)。
+
 2026-10-21 **CUDA 启动证据校验已接入 owned writer 与 observer**：显式 contract 约束 PCI、GPU／host tensor 子预算和 token 上限；设备／内存／预热缺失、错序、重放、改预算、超预算及越界时拒绝 READY，运行期内存事件必须绑定活动请求。真实 v3 GPU off 启动日志经哈希验证后，双端离线回放通过；使用的是模拟 owner／liveness，不能算真实控制器接入。完整视觉测试 **105 passed／1 skipped**。注册 gate 继续关闭，仍需共享租约绑定、v3 运行包清单、launcher 参数及真实 Agent 生命周期验证。[状态机与离线回放证据](results/strata_20261008/strata_cuda_startup_contract_20261021.json)。
 
 2026-10-21 **预算检查已移入实际 scheduler 分配边界，GPU 数值回归恢复**：v3 仅在现有 split 后测量并检查 buffer，clip 不再额外 split/reset；Windows 增量编译 9.06 s EXIT 0。真实 GPU auto 嵌入与无预算补丁 v1 逐字节一致，确认主要偏差已修复。GPU off 对历史 CPU auto relative L2 0.01532／cosine 0.999883；对相同 off 设置 CPU 则为 0.02613／0.999659，不能称严格数值等价。三次真实预算拒绝（权重／GPU workspace／host workspace）均在 READY 前退出且无输出。各次组件运行保存资源采样，v3 构建只记录墙钟耗时。下一步为控制器启动证据接入、完整回答质量及取消恢复；生产 CUDA gate 仍关闭。[补丁、实跑对照和拒绝证据](results/strata_20261008/strata_cuda_budget_fix_20261021.json)。
