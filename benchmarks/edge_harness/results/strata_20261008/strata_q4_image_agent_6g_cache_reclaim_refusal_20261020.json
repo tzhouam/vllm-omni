@@ -1,0 +1,74 @@
+{
+  "schema": "omni-strata-agent-capacity-refusal-v1",
+  "date": "2026-10-20",
+  "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-smoke-6g-20261020-v6-r3",
+  "status": "joint_ram_admission_refused_before_model_load",
+  "exit_code": 1,
+  "qualified": false,
+  "error": "ResourceUnavailable: host_ram: joint need 22624075776 bytes, live free 21436764160 bytes",
+  "receipt_sha256": "99821d2fd2d719e83327693e535dd22fb73b194c88ed761cc5b7afcd37c81a5e",
+  "receipt_archive": "strata_q4_image_agent_6g_cache_reclaim_refusal_20261020.receipt.json.gz",
+  "receipt_archive_sha256": "9298a84ea6afc3ae5014c452eaa3b8a81624d5017870dbde8334482f182b7a25",
+  "resource_drain_verified": true,
+  "source_stable": true,
+  "prerequisites_stable": true,
+  "output_writers_quiesced": true,
+  "ledger_reserved_after_close": {
+    "host_ram": 0,
+    "vram": 0,
+    "windows_commit": 0,
+    "ssd": 0
+  },
+  "raw_files": {
+    "all-raw.json": {
+      "size_bytes": 100,
+      "sha256": "259b9d37fc24e7cb02f7d739b8ad412ff79e31e5f34f526f4a731fafc8092d35"
+    },
+    "config.json": {
+      "size_bytes": 14770985,
+      "sha256": "35a35354c6c407de4fd9915ef4a782e9cb8633d5dc57c12db450733332a8e20f"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392363,
+      "sha256": "c7368df325ff69d41484a2fb9dc088dd4b24fe5465cfa3dd7150d51fdceb294a"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "e0f937232aea97fb81fe46c107fba39f5cc9a1ccc76657c739cfa9c6708b99a0"
+    },
+    "hardware.json": {
+      "size_bytes": 4703,
+      "sha256": "9f4d86b20ec926e1c256600c2947cc3b6d3b52153e4ed7718e0b3c96695b2e93"
+    },
+    "memory.sqlite": {
+      "size_bytes": 77824,
+      "sha256": "0fe488739a6cf4aa13ffeb21abc26d85a75d91d8a17cd31daf88bef7136c73a0"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 219,
+      "sha256": "f43d575ca9c2061c8a85488428fec8a03a2d0639c3a1d5a180fbc28265d19f86"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 11444,
+      "sha256": "a9e569989ce774f9da87d5256f0fe801ce734e6dca67dc1e4d0e138e9939ecb1"
+    }
+  },
+  "cache_condition": {
+    "schema": "omni-manual-cache-condition-v1",
+    "recorded_at": "2026-10-20T17:17:39.2893005+08:00",
+    "run": "q4-image-profile-smoke-6g-20261020-v6-r3",
+    "intervention": "WSL sync followed by /proc/sys/vm/drop_caches=1",
+    "scope": "Guest reclaimable file cache only; no process termination, WSL restart, model precision or budget change",
+    "timing": "Before retry and once again during pre-controller validation, before model requests",
+    "observed_guest_cache_before_second": "approximately 11 GiB",
+    "observed_guest_cache_after_second": "871 MiB",
+    "physical_ssd_cache_condition": "uncontrolled; Windows and drive caches were not cleared",
+    "paired_latency_comparison_valid": false
+  },
+  "completed_agent_tasks": 0,
+  "note": "Guest file cache reclamation does not immediately release all corresponding host physical memory. Following process closure, a new observation found 24.93 GiB host available and 2.43 GiB WSL working set. No admission thresholds or model configuration changed."
+}
