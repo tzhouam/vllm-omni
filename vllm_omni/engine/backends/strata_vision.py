@@ -33,6 +33,32 @@ REVIEWED_VISION_EVIDENCE = {
 }
 
 
+# CUDA v3 is separately reviewed: the v2 extra graph split corrupts embeddings.
+# These are raw native source bytes, including their recorded line endings.
+REVIEWED_CUDA_VISION_EVIDENCE = {
+    "strata_patch": REVIEWED_VISION_EVIDENCE["strata_patch"],
+    "dependency_patch": REVIEWED_VISION_EVIDENCE["dependency_patch"],
+    "device_binding_patch": "ff7d8fb0a84dc731a88ba121a31aa9e6e4e1b0a36cdb68cf4cbebfdbdb8d4160",
+    "warmup_patch": "4936a6f5cc07510f2c10b0226b7a966b8598ee1bd75bf828d0bb7b10517d92df",
+    "tensor_budget_patch": "cf23bbd219bd012ad1bc473cf37bdb64771630fcf2a3a2cf48b44749ff87e4e7",
+    "scheduler_budget_patch": "2fdc4c7ca69da6c84d9f96b7e713428849da2547653f9500b5cd8d52784f92e1",
+    "patched_vision_source": "20e1bc8f5a59f01f3184357ab89d64eab6e4ff1d1ee941ff842957e4ed5f66f2",
+    "patched_clip_source": "c1f6aa2d3ee25c63ead54a71080d95dd75fe74ed1273535787062155fdc4a877",
+    "patched_scheduler_source": "d28407c78b8ba0d7504bba73c3db08c8670decb40d8ff491b44eb785409644e4",
+    "device_binding_header": "46dea254506ec1cc00a48567eaedaa0021c15f1edc07bde6c42938c0c4756c76",
+}
+REVIEWED_CUDA_ENCODER_SHA256 = "b7ee3ad280e0dc094283a335f6b97e22b48d5e374a0cd6f1e8f6fe589b0e1a27"
+
+
+def reviewed_vision_build(device, encoder_sha256):
+    """Select reviewed provenance, without granting runtime or model qualification."""
+    if device == "cpu":
+        return dict(REVIEWED_VISION_EVIDENCE), 256 << 20
+    if device != "cuda" or encoder_sha256 != REVIEWED_CUDA_ENCODER_SHA256:
+        raise ValueError("unreviewed CUDA encoder binary; repaired v3 build required")
+    return dict(REVIEWED_CUDA_VISION_EVIDENCE), 512 << 20
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
 
@@ -461,6 +487,7 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
         cmake_options["CMAKE_CUDA_ARCHITECTURES"] = "120"
     if build.get("cmake_options") != cmake_options:
         raise ValueError("unreviewed vision build options")
+    reviewed, pe_file_limit = reviewed_vision_build(config["encoder_device"], digest(encoder))
     # Each provenance byte is also covered by the full runtime manifest. The
     # patch is separately reviewed when this prototype is applied, before build.
     proof_files = build.get("evidence_files")
@@ -473,11 +500,11 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
         if item["role"] in roles:
             raise ValueError("duplicate vision provenance role")
         roles.add(item["role"])
-        if item["role"] in REVIEWED_VISION_EVIDENCE and item["sha256"] != REVIEWED_VISION_EVIDENCE[item["role"]]:
+        if item["role"] in reviewed and item["sha256"] != reviewed[item["role"]]:
             raise ValueError("vision patch/source differs from reviewed prototype")
         if digest(member(item["path"])) != item["sha256"]:
             raise ValueError("vision provenance bytes changed")
-    if not set(REVIEWED_VISION_EVIDENCE) | {"configure_log", "build_log"} <= roles:
+    if not set(reviewed) | {"configure_log", "build_log"} <= roles:
         raise ValueError("vision build/source lineage missing")
     dependencies = build.get("native_dependency_files")
     if not isinstance(dependencies, list):
@@ -496,7 +523,7 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
         ):
             raise ValueError("vision selected dependency hash/path mismatch")
         dependency_names.add(path.name.lower())
-    pe_closure = scan_pe_closure(encoder, root, verified)
+    pe_closure = scan_pe_closure(encoder, root, verified, max_file_bytes=pe_file_limit)
     if build.get("pe_dependency_closure") != pe_closure:
         raise ValueError("encoder actual PE normal/delay closure differs from bound build receipt")
     observed_dependencies = {
@@ -701,7 +728,8 @@ class CudaEncoderEvidence:
                     or payload["pixels"] != 2048 * 2048
                     or payload["max_image_tokens"] != c["max_image_tokens"]
                     or payload["image_tokens"] > c["max_image_tokens"]
-                    or type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0):
+                    or type(elapsed) not in (int, float) or not 0 <= elapsed <= 2**63 - 1
+                    or not math.isfinite(elapsed)):
                 raise ValueError("CUDA warmup bound or status mismatch")
             self.warmup = copy.deepcopy(payload)
         else:

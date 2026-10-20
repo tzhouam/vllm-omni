@@ -1,0 +1,46 @@
+{
+  "schema": "omni-strata-cuda-build-registration-progress-v1",
+  "date": "2026-10-21",
+  "scope": "reviewed v3 provenance selection; production CUDA gate remains closed",
+  "tests": {
+    "passed": 120,
+    "skipped": 1,
+    "warnings": 14,
+    "seconds": 12.6
+  },
+  "native_recheck": {
+    "files": 10,
+    "encoder": true,
+    "passed": true
+  },
+  "changes": [
+    "Separate CUDA v3 raw source and binary identity from CPU build evidence",
+    "Require all four incremental CUDA patches including scheduler repair",
+    "Use explicit 512 MiB PE file limit only for reviewed CUDA candidate; CPU retains 256 MiB",
+    "Reject overflowing warmup elapsed values and retire evidence state"
+  ],
+  "first_test_attempt": {
+    "passed": 118,
+    "failed": 2,
+    "skipped": 1,
+    "reason": "Synthetic CUDA budget fixtures rejected earlier by new binary gate; updated fixtures to explicitly bind synthetic provenance without weakening production checks"
+  },
+  "remaining": [
+    "Isolated v3 full runtime package",
+    "Complete CUDA multimodal load-plan validation",
+    "Live Agent quality, cancellation/recovery and paired batch-1 profiling"
+  ],
+  "evidence": [
+    {
+      "file": "strata_cuda-v3-provenance-tests-20261021.log.gz",
+      "raw_sha256": "5c0d37d714aeaa4d66389a1b3a83cda465b8725d74d631ed82f236049d2a22b7",
+      "raw_size_bytes": 229
+    },
+    {
+      "file": "strata_cuda-v3-provenance-recheck-20261021.json.gz",
+      "raw_sha256": "ba0b7601a31eb199411059b703cbc394b83cf9e9aa47988dde46d24632f61651",
+      "raw_size_bytes": 3382
+    }
+  ],
+  "no_new_neural_run": true
+}

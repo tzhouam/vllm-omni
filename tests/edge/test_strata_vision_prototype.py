@@ -914,26 +914,31 @@ def test_empty_declared_dlls_refused_when_actual_pe_requires_non_system(route):
         verify_route(route)
 
 
-def cuda_config(route, host):
+def cuda_config(route, host, monkeypatch):
+    # Synthetic provenance for budget tests only; real CUDA hashes tested separately.
+    monkeypatch.setattr(vision, "REVIEWED_CUDA_ENCODER_SHA256", vision.digest(route[1] / "encoder.exe"))
+    monkeypatch.setattr(vision, "REVIEWED_CUDA_VISION_EVIDENCE", dict(vision.REVIEWED_VISION_EVIDENCE))
     route[0].update(encoder_device="cuda", allow_cpu_fallback=True, vision_gpu_bytes=1 << 20, vision_host_bytes=host)
     file = route[1] / "build.json"
     build = json.loads(file.read_text())
     build["cmake_options"] = dict(
         STRATA_VISION_CUDA="ON", STRATA_PORTABLE="ON", CMAKE_BUILD_TYPE="Release", CMAKE_CUDA_ARCHITECTURES="120"
     )
+    build["pe_dependency_closure"] = vision.scan_pe_closure(
+        route[1] / "encoder.exe", route[1], route[3], max_file_bytes=512 << 20)
     file.write_text(json.dumps(build), encoding="utf-8")
 
 
-def test_cuda_startup_warmup_cannot_borrow_tiny_input_bounds(route):
-    cuda_config(route, 16384)
+def test_cuda_startup_warmup_cannot_borrow_tiny_input_bounds(route, monkeypatch):
+    cuda_config(route, 16384, monkeypatch)
     with pytest.raises(ValueError, match="decode/preprocessing"):
         verify_route(route)
 
 
-def test_cuda_fallback_needs_simultaneous_cpu_projector_budget_and_remains_disabled(route):
+def test_cuda_fallback_needs_simultaneous_cpu_projector_budget_and_remains_disabled(route, monkeypatch):
     base = 2048 * 2048 * 35 + 2 * route[0]["max_image_bytes"]
     projector_size = len(b"fixture projector")
-    cuda_config(route, base + projector_size - 1)
+    cuda_config(route, base + projector_size - 1, monkeypatch)
     with pytest.raises(ValueError, match="simultaneous host"):
         verify_route(route)
     route[0]["vision_host_bytes"] += 1
@@ -1477,7 +1482,7 @@ def test_cuda_evidence_ready_requires_complete_order_and_request_scope():
 
 
 @pytest.mark.parametrize("case", ["wrong_device", "over_gpu", "over_host", "changed_limit",
-                                  "boolean_bytes", "zero_tokens", "bad_pixels", "infinite_clock"])
+                                  "boolean_bytes", "zero_tokens", "bad_pixels", "infinite_clock", "overflow_clock"])
 def test_cuda_evidence_refuses_unadmitted_or_invalid_reports(case):
     events = cuda_payloads()
     if case == "wrong_device": events[0][1]["pci_bus_id"] = "00000000:65:00.0"
@@ -1488,6 +1493,7 @@ def test_cuda_evidence_refuses_unadmitted_or_invalid_reports(case):
     if case == "zero_tokens": events[2][1]["image_tokens"] = 0
     if case == "bad_pixels": events[2][1]["pixels"] = 1
     if case == "infinite_clock": events[2][1]["elapsed_ms"] = float("inf")
+    if case == "overflow_clock": events[2][1]["elapsed_ms"] = 10**1000
     evidence = vision.CudaEncoderEvidence(cuda_contract())
     with pytest.raises(ValueError):
         for event, payload in events:
@@ -1626,3 +1632,31 @@ def test_trusted_vision_launcher_overrides_budget_env_and_appends_only_bound_att
         assert captured["args"] == args
         assert "OMNI_VISION_EXPECTED_PCI_BUS_ID" not in env
         assert "OMNI_VISION_GGML_GPU_BUDGET_BYTES" not in env
+
+
+@pytest.mark.parametrize("sha", [
+    "098e47247b17ed68c62b2445a4b8703eb045702f3bf4b73bf441cd0c8b6f6402",
+    "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a",
+    "0" * 64,
+])
+def test_cuda_build_rejects_unguarded_and_corrupt_candidates(sha):
+    with pytest.raises(ValueError, match="repaired v3"):
+        vision.reviewed_vision_build("cuda", sha)
+
+
+def test_cuda_build_requires_all_incremental_patches():
+    reviewed, bound = vision.reviewed_vision_build("cuda", vision.REVIEWED_CUDA_ENCODER_SHA256)
+    assert bound == 512 << 20
+    patch_root = ROOT / "benchmarks/edge_harness/runtime_patches"
+    for role, filename in {
+        "device_binding_patch": "strata_vision_device_binding_v1.patch",
+        "warmup_patch": "strata_vision_warmup_v2.patch",
+        "tensor_budget_patch": "strata_vision_tensor_budget_v1.patch",
+        "scheduler_budget_patch": "strata_vision_scheduler_budget_v3.patch",
+    }.items():
+        assert vision.digest(patch_root / filename) == reviewed[role]
+    reviewed.clear()
+    assert vision.REVIEWED_CUDA_VISION_EVIDENCE
+    cpu, bound = vision.reviewed_vision_build("cpu", "fixture")
+    assert cpu == vision.REVIEWED_VISION_EVIDENCE
+    assert bound == 256 << 20
