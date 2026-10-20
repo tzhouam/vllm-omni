@@ -1,0 +1,30 @@
+{
+  "schema": "omni-strata-cuda-lifecycle-contract-check-v1",
+  "tests": {
+    "passed": 54,
+    "seconds": 4.5
+  },
+  "scope": "synthetic lifecycle and evidence contract checks; no new neural result",
+  "runner_sha256": "aab99baa1dfa5d5246fbd909cd4df3da19065edd6a61b4c87899e5e3f3646c37",
+  "registration": {
+    "session": 72491,
+    "pid": 222372,
+    "status": "running_at_record_time",
+    "sequential_image_registration_session": 67317,
+    "prerequisites": "same live process completes successfully, successful receipt, unchanged text launch hash and image registration producer hash"
+  },
+  "evidence": [
+    {
+      "path": "strata_cuda_lifecycle_cuda-lifecycle-contract-tests-20261021.log.gz",
+      "raw_sha256": "88563b4b0e084d47b036fbe9e1a457a9e97e5c34223e076b20c95daa8cf0c5f3"
+    },
+    {
+      "path": "strata_cuda_lifecycle_image-lifecycle-cuda-v3-20261021_test_image_lifecycle.py.gz",
+      "raw_sha256": "d36f87ab0f0a0f5a2f1148c94fd690ae602eab5e6a2daa3cbf4af7e6f3935052"
+    },
+    {
+      "path": "strata_cuda_lifecycle_advance_cuda_registration_20261021.py.gz",
+      "raw_sha256": "ad96c3112c9601bcc5a3158b8eae75f057e4f812f1a1fe8c3752d436934f7a6b"
+    }
+  ]
+}
