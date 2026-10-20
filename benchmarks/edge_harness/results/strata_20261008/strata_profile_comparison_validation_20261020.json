@@ -1,0 +1,21 @@
+{
+  "schema": "image-profile-comparison-validation-v1",
+  "status": "passed",
+  "script_sha256": "5d3a083e9bc95d4a217f447e5a540d9987de67782ab9bd145ea482c5d65f940a",
+  "baseline": "q4-image-profile-full-6g-20261020-v6",
+  "checks": [
+    "Existing audited baseline receipt/sample/hardware/launch bindings accepted",
+    "Known short-input nearest-rank p95 reproduced as 84.76153599983081 seconds",
+    "Altered launch binding rejected",
+    "Different power condition rejected",
+    "Different prompt token count rejected",
+    "Unequal sample count rejected"
+  ],
+  "scope": "Read-only comparison utility validation against existing closed raw baseline and in-memory negative variants; no model execution",
+  "candidate_run": "q4-image-profile-full-6g-20261020-v7",
+  "candidate_comparison_completed": false,
+  "limitations": [
+    "Current live run is not audited or compared yet",
+    "Not a new Agent quality or performance result"
+  ]
+}
