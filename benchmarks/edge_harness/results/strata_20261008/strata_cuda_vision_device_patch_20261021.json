@@ -1,0 +1,61 @@
+{
+  "schema": "omni-strata-cuda-vision-device-patch-v1",
+  "status": "component_tested_not_integrated",
+  "files": {
+    "omni_vision_device_binding.h": {
+      "sha256": "30d7b8c9d7e8eeed47cfd996a8e0f0f11c0bd3b7184f2fc84755b578001e68f2",
+      "size_bytes": 1450
+    },
+    "test_omni_vision_device_binding.cpp": {
+      "sha256": "eb1da43d6dd7bfa1c71fbdeb0a3077afb2407783ad19b86aa1d2b5db52e0d210",
+      "size_bytes": 1114
+    },
+    "strata_vision_device_binding_v1.patch": {
+      "sha256": "ff7d8fb0a84dc731a88ba121a31aa9e6e4e1b0a36cdb68cf4cbebfdbdb8d4160",
+      "size_bytes": 3017
+    }
+  },
+  "base_clip_sha256": "09015eb469da190858ec6cd50cd442ca5d9eb59c1ff8ab9e7c240c8b98cea163",
+  "patch_check": {
+    "command": [
+      "git",
+      "-C",
+      "C:\\Users\\zhout\\w2\\strata-omni\\dependencies\\llama.cpp-3cf03257-vision-cpu-v2",
+      "apply",
+      "--check",
+      "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\benchmarks\\edge_harness\\runtime_patches\\strata_vision_device_binding_v1.patch"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "component_test": {
+    "platform": "WSL Ubuntu",
+    "compiler": "g++ 15.2.0",
+    "flags": [
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-Werror"
+    ],
+    "exit_code": 0,
+    "stdout": "PCI normalization and mismatch rejection passed",
+    "scope": "header PCI normalization and rejection; no CUDA calls or model load"
+  },
+  "contract": {
+    "expected_device_environment": "OMNI_VISION_EXPECTED_PCI_BUS_ID",
+    "native_record_prefix": "OMNI_VISION_DEVICE_V1",
+    "native_schema": "strata-vision-device-v1",
+    "identity_scope": "selected_primary_backend; not all-operator placement",
+    "gpu_unknown_or_mismatch": "reject",
+    "cpu_primary_fallback_on_gpu_request": "reject",
+    "cpu_route": "unchanged"
+  },
+  "pending": [
+    "Full Windows CUDA encoder build and PE dependency identity",
+    "Controller parsing and binding to the admitted GPU pool",
+    "Native startup warmup admission and completion report",
+    "Real image SVE numerical comparison, complete model request, cancellation and recovery"
+  ],
+  "production_cuda_enabled": false
+}

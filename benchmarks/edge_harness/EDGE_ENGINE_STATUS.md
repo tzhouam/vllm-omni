@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **CUDA 视觉身份候选补丁已实现，尚未集成**：从实际 ggml primary backend 读取 PCI 身份，与 `OMNI_VISION_EXPECTED_PCI_BUS_ID` 规范化比较；GPU 请求遇到未知身份、设备不匹配或 CPU primary fallback 时拒绝，并输出版本化选择证据。补丁通过固定 patched clip.cpp 的 apply 检查；C++17／WSL g++ 组件编译运行通过，覆盖域宽度、大小写、非法／缺失／虚拟后缀与不匹配。该结果不证明 Windows CUDA 编译或神经执行。控制器解析、原生预热准入和完整图像数值／生命周期测试仍待完成，生产 CUDA gate 保持关闭。[补丁身份、组件验证和未完成项](results/strata_20261008/strata_cuda_vision_device_patch_20261021.json)。
+
 2026-10-21 **CUDA 视觉路线源码可行性核查**：已按实际编码器 build receipt 核验 Strata 与 llama.cpp 两个补丁文件哈希；运行时顶层源码副本不是实际 patched build source。固定 ggml 已提供 `ggml_backend_dev_props.device_id`，CUDA 通过 `cudaDeviceGetPCIBusId` 填充，可复用为实际设备与 Omni GPU 预算池绑定的依据。当前实跑编码器为 CUDA OFF；仍缺版本化原生身份报告、启动预热准入与真实 GPU 数值／完整请求验证，因此未开启 CUDA 路线。下一步在独立候选补充这些接口；保留 2048-square 原生预热预算，不能仅按投影权重大小准入。[源码身份、发现与下一步](results/strata_20261008/strata_cuda_vision_feasibility_20261021.json)。
 
 2026-10-21 **本轮 profiling 瓶颈与资源汇总完成**：60 条正式请求的截图后调用 p50 约 **70.96–71.87 s**，其内部 prefill **44.55–45.25 s**、CPU 视觉编码 **20.67–21.02 s**、decode **1.08–1.23 s**。这些是嵌套计时，各分位数不能相加；下一项优化优先验证 prefill 与视觉编码，而非假定 decode 主导。流式核验 **2,723,508,469 B** telemetry 与审计 receipt 哈希一致，共 **70,207 行**；整卡显存采样峰值约 **20.30 GiB**、GPU **158.571 W／72°C**，整机可用 RAM 最低约 **8.16 GiB**。整机／整卡包含其他应用，RSS 缓存重复行不是独立观测，物理 SSD 归属仍未知。保留全部阶段样本、有效采样数和可复现汇总代码。[阶段拆分](results/strata_20261008/strata_q4_image_20g_tree1s_stages_20261021.json)，[资源汇总](results/strata_20261008/strata_q4_image_20g_tree1s_resources_20261021.json)。

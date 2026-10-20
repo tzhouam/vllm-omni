@@ -1,0 +1,71 @@
+--- a/tools/mtmd/clip.cpp
++++ b/tools/mtmd/clip.cpp
+@@ -1,4 +1,5 @@
+ #include "clip.h"
++#include "omni_vision_device_binding.h"
+ #include "clip-impl.h"
+ #include "clip-model.h"
+ #include "clip-graph.h"
+@@ -218,6 +219,19 @@
+                         observed_type == GGML_BACKEND_DEVICE_TYPE_IGPU ? "IGPU" : "UNKNOWN";
+         }
+         LOG_INF("OMNI_CLIP_BACKEND_V1 %s %s %d\n", ggml_backend_name(backend), type_name, ctx_params.use_gpu ? 1 : 0);
++
++        if (ctx_params.use_gpu) {
++            ggml_backend_dev_props props{};
++            if (!observed_dev || ggml_backend_dev_type(observed_dev) != GGML_BACKEND_DEVICE_TYPE_GPU ||
++                std::strncmp(ggml_backend_name(backend), "CUDA", 4) != 0) {
++                throw std::runtime_error("vision requires an admitted CUDA GPU; fallback refused");
++            }
++            ggml_backend_dev_get_props(observed_dev, &props);
++            const std::string pci = omni_vision_require_pci(std::getenv("OMNI_VISION_EXPECTED_PCI_BUS_ID"), props.device_id);
++            // Selected device only; CPU operator fallback remains possible.
++            std::fprintf(stdout, "OMNI_VISION_DEVICE_V1 {\"schema\":\"strata-vision-device-v1\",\"pci_bus_id\":\"%s\",\"scope\":\"selected_primary_backend\"}\n", pci.c_str());
++            std::fflush(stdout);
++        }
+ 
+         if (ctx_params.image_min_tokens > 0) {
+             model.hparams.custom_image_min_tokens = ctx_params.image_min_tokens;
+--- /dev/null
++++ b/tools/mtmd/omni_vision_device_binding.h
+@@ -0,0 +1,40 @@
++#pragma once
++
++#include <stdexcept>
++#include <string>
++
++// Normalize CUDA's four-digit domain and NVML's eight-digit domain.
++inline std::string omni_vision_pci_id(const char * value) {
++    if (!value) {
++        throw std::runtime_error("vision PCI identity missing");
++    }
++    std::string id(value);
++    const size_t domain = id.size() == 12 ? 4 : id.size() == 16 ? 8 : 0;
++    if (!domain || id[domain] != ':' || id[domain + 3] != ':' || id[domain + 6] != '.') {
++        throw std::runtime_error("vision PCI identity malformed");
++    }
++    for (size_t i = 0; i < id.size(); ++i) {
++        if (i == domain || i == domain + 3 || i == domain + 6) {
++            continue;
++        }
++        char & c = id[i];
++        if (c >= 'A' && c <= 'F') {
++            c = static_cast<char>(c - 'A' + 'a');
++        }
++        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) {
++            throw std::runtime_error("vision PCI identity malformed");
++        }
++    }
++    if (id[domain + 4] > '1' || id[domain + 7] > '7') {
++        throw std::runtime_error("vision PCI device/function out of range");
++    }
++    return domain == 4 ? "0000" + id : id;
++}
++
++inline std::string omni_vision_require_pci(const char * expected, const char * observed) {
++    const std::string actual = omni_vision_pci_id(observed);
++    if (omni_vision_pci_id(expected) != actual) {
++        throw std::runtime_error("vision selected GPU differs from admitted GPU");
++    }
++    return actual;
++}
