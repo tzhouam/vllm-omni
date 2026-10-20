@@ -342,9 +342,9 @@ def _verify_engine_environment(actual: object, expected: object, description: st
 def verify_reference_calibration_contract(contract: Mapping[str, Any], calibration: Mapping[str, Any]) -> None:
     """Reject reuse of reference-noise budgets after runtime/model changes.
 
-    New scenes and rollout lengths remain held-out test inputs. Hardware,
-    deployment, precision, playback/warmup policy and model/runtime revisions
-    must match calibration.
+    Hardware, deployment, precision, playback/warmup policy and model/runtime
+    revisions must match calibration. Legacy records permit held-out scenes
+    and rollout lengths; profile-bound records require the complete workload.
     """
     if contract["deploy_sha256"] != calibration["deploy_sha256"]:
         raise RegressionError("Reference calibration deployment changed")

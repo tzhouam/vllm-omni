@@ -3,13 +3,15 @@
 The suite drives the real `WS /v1/realtime/video` endpoint. CPU tests validate
 gate logic separately and are not model performance evidence.
 
-## Current production reference: calibration pending
+## Current production reference: CUDA nightly calibration frozen
 
 The initial production baseline is pinned to
 `48cebe5a248d4b0160f20c7fc18b5d1c46883872` for both CUDA and NPU. It contains the
 accepted main implementation and the NPU offload fix; its `vllm_omni` tree is
-`467d4cea37b5667d5ede38286c4072f0f0848133`, identical to the implementation being
-introduced into CI. This reference was refreshed for vLLM 0.32.0 on 2026-10-20. The pin includes
+`467d4cea37b5667d5ede38286c4072f0f0848133`. The candidate retains the same
+LingBot model and AR-Diffusion implementation while incorporating newer accepted
+main changes elsewhere. This reference was refreshed for vLLM 0.32.0 on
+2026-10-20. The pin includes
 Omni `v0.32.0rc1` at `da572cddb38383deae9caef33b8d490e292ef071`
 and the NPU offload fix, plus the compiler-context fix required by PyTorch 2.13.
 The previous vLLM 0.32.0 reference
@@ -21,13 +23,20 @@ CUDA build 17617 and NPU build 9340 failed runtime setup and provide no
 calibration evidence. Future candidate changes remain compared
 against the frozen reference; updating a candidate must not advance this pin.
 
-Calibration is **pending**. Existing calibration JSON files retain the earlier
-reference revisions and their original evidence. CUDA gates reject their use
-with the new revision, while still retaining complete measurements and native
-scores for calibration. These expected calibration failures do not qualify the
-new baseline. Preserve every earlier failed job, including the old-reference
-motion/quality differences; historical candidate videos cannot become new
-reference videos even if their production source tree matches.
+CUDA nightly calibration is frozen from the reference roles of builds
+[17633](https://buildkite.com/vllm/vllm-omni/builds/17633) and
+[17640](https://buildkite.com/vllm/vllm-omni/builds/17640), three independent
+starts per cohort. The reference and runtime now match the active records.
+The next independent campaign must validate these frozen records and the final
+candidate source; fitting and offline construction controls do not establish
+acceptance. The records retain `independent_validation_complete: false` as
+freeze-time provenance. Consult the PR's actual CI results for subsequent
+qualification. Weekly, long and NPU calibration remain pending.
+
+The predecessors remain byte-identical under
+[calibration/history](calibration/history/README.md), and their original failed
+jobs remain failed. Candidate observations never select calibration values;
+historical candidate videos cannot become reference videos.
 
 Before collecting new values, use this reference-only protocol:
 
@@ -222,25 +231,30 @@ eight-chunk warmup session. The first six and terminal chunks stay in raw result
 playback/FPS accounting, but are excluded from steady cadence by `workload.py`.
 
 Reference mean/P50 CV above 3% invalidates calibration. NPU P95 retains the
-same 3% limit. H100 P95 uses a 3.5% reference-CV ceiling fitted from six
-predeclared weekly hold cases with three complete reference starts. Their
-maximum P95 CV is 2.6194%; the existing 25% reserve rounded up to 0.005 gives
-3.5%. The original job was interrupted during candidate collection and remains
-failed. Twelve unseen weekly cases also fit that ceiling; these case controls
-are not a second independent complete weekly cohort or hardware acceptance.
-Raw reference hashes and values are retained in the calibration record;
-`p95-cv-calibration.json` records its rule and hash in CUDA results.
-Each candidate still receives the profile's 5% regression allowance.
+same 3% limit. The CUDA nightly P95 reference-CV ceiling is
+**3%**, derived from the largest of six
+case/cohort CVs across builds 17633/17640, adding 25% and rounding upward to
+0.005 with a 3% minimum. Each group contains three independent reference starts.
+The complete measured profile is bound by `qualified_profile_sha256`; weekly
+and long runs require their own reference cohorts. Raw hashes and values remain
+in the calibration record, and `p95-cv-calibration.json` records the applied rule
+and record hash. Each candidate retains the profile's 5% regression allowance.
 
 For TTFC and accumulated playback stalls only, the allowance is the greater of
 5% of the worst reference and three reference population standard deviations.
-The profile pins this multiplier to at most three. H100 additionally uses
-reference-only jitter floors of **85 ms for TTFC** and **106 ms for total stalls**.
-Two recorded-zero nightly reference cohorts supply the maximum cross-cohort
-excess; the existing 25% reserve rounds upward to 5 ms and 1 ms respectively.
-The record retains all 18 reference observations, raw artifact hashes and
-fitted null controls. Candidate observations never select either floor.
-Those fitted controls are not independent validation after selecting the floors.
+The profile pins this multiplier to at most three. CUDA nightly additionally
+uses reference-only jitter floors of **35 ms for TTFC** and
+**248 ms for total stalls**. The two reference cohorts
+supply the maximum two-way excess; adding 25% and rounding upward to 5 ms and
+1 ms respectively selects these floors. All 18 reference measurements, raw
+artifact hashes and fitted null controls are retained. Candidate observations
+never select either floor. Fitted controls are not independent validation. The complete two-way reference
+comparison retains one failed steady-stall control (street-42, build 17633,
+reference start 0): a 1,916.7 ms arrival interval at chunk 10 causes 277.9 ms of
+post-startup stalls. Its underlying cause is not established. This observation
+is retained, receives no new steady-stall floor, and keeps construction from
+being described as fully passing. A subsequent independent campaign must pass
+the unchanged steady-stall gate before acceptance.
 `ttfc-calibration.json` and `startup-stall-calibration.json` retain the applied
 rule and record hash. NPU uses neither constant floor.
 
@@ -388,44 +402,38 @@ a two-sided difference in active counts across three independent starts: the
 unchanged 0.34 fractional budget permits one changed classification, while two
 or three changes fail. All six individual classifications remain in the report.
 The active [reference-only record](calibration/cuda_nightly_reference.json)
-uses independent three-start H100 cohorts from builds
-[17464](https://buildkite.com/vllm/vllm-omni/builds/17464) and
-[17478](https://buildkite.com/vllm/vllm-omni/builds/17478), with matching models,
-deployment, runtime, playback/warmup policy and recorded zero optimization
-switches. Both suites execute on H100 with all 127 pinned dependencies.
-The record retains all six native reference scores per scene/dimension, public
-Buildkite identities and raw hashes. Binary reference activity differs by at
-most one classification; its unchanged 0.34 candidate budget still rejects two.
-Pixel calibration uses all 15 unordered pairs of the same six reference videos,
-including nine cross-cohort pairs. Version 2 requires two complete three-start
-reference cohorts and records every pair exactly once; native scores remain six
-per scene/dimension. The original six within-cohort summaries remain archived.
-This method was selected after earlier candidate failures, before examining the
-new cross-pair values; candidate data did not select its bounds or budgets.
-All 108 reference comparisons reproduce in the full 127-package environment.
-The frozen training population passes 54 new cross comparisons against nine
-third-cohort reference videos (three independent starts per case); these share
-videos and are not 54 independent starts. Nine physical video controls pass:
-three intact reencodes pass, three nonuniform first-window degradations fail that
-window's PSNR gate, and three truncated videos fail decoding. These offline
-reference checks do not replace successful final-source target-hardware gates.
+uses independent three-start H100 reference cohorts from builds
+[17633](https://buildkite.com/vllm/vllm-omni/builds/17633) and
+[17640](https://buildkite.com/vllm/vllm-omni/builds/17640), with matching model,
+deployment, runtime, playback/warmup policy and recorded optimization switches.
+Both suites execute on H100 with all 127 pinned dependencies. The record retains
+six native reference scores per scene/dimension, public Buildkite identities and
+raw hashes. Binary activity preserves the unchanged 0.34 count budget.
+
+Pixel calibration computes all 15 unordered pairs of those six reference videos,
+including nine cross-cohort pairs. The locked decoder checks every one of the
+477 frames and every window. Version 3 requires two complete three-start
+reference cohorts, every pair exactly once, six native reference scores per
+dimension and complete per-case reference-spread limits. Candidate videos and
+scores do not enter this population. The [pre-collection protocol](calibration/cuda_nightly_v032_protocol.json) was
+recorded before collecting the second cohort and is embedded with its source
+revision and hash.
 
 Excessive continuous reference spread fails calibration; scores are never
-averaged across dimensions or scenes. The 40-chunk fixed population owns its
-reference ceilings: six-reference per-scene ranges receive the existing 25%
-reserve, rounded up to 0.005, retaining any larger global ceiling. The resulting
-nightly subject-consistency ceiling is 0.065 and WBench HPSv3 is 0.1. These are
-reference-stability limits; candidate tolerances do not change. Fresh reference
-spread checks and fixed-population comparisons use the same profile-owned
-ceilings. Weekly and NPU policies retain their separate global limits.
-The candidate floor remains the worst reference minus its unchanged tolerance.
+averaged across dimensions or scenes. Each scene/dimension receives the larger
+of its six-reference range plus 25%, rounded upward to 0.005, and the unchanged
+conservative global limit. Fresh-reference and candidate checks use that case's
+limits. The candidate floor remains the worst fixed reference minus its unchanged
+tolerance. Weekly and NPU retain their separate global policies.
 
-Both original nightly gates remain failed. Before fitting the new population,
-two-way reference-only controls fail 8/36 native continuous checks and 4/18
-pixel checks; all 12 binary controls pass. The new six-reference construction
-passes 54 fitted checks and rejects 87 individual native/pixel boundary
-perturbations. These checks are not independent acceptance: a fresh final-source
-H100 campaign must pass the gates and retain its complete evidence.
+Both collection campaigns retain their original failed calibration gates. The
+new records use reference-role inputs only, retain fitted construction checks,
+and preserve candidate performance, score, binary-activity and pixel allowances.
+Third-cohort acceptance must use the already frozen records, retain failed
+observations and investigate failures without refitting. Earlier pixel-method
+reencode, localized-degradation, truncation and held-out controls remain in the
+[historical records](calibration/history/README.md); those controls do not qualify
+the new reference epoch or replace current target-hardware CI.
 
 The separate [600-chunk population](calibration/cuda_long_quality_population.json)
 still contains historical measurements without recorded optimization switches
@@ -629,7 +637,7 @@ original failed observations and unchanged candidate budgets, then run
 and a fresh target-runner campaign. CUDA quality jobs reject calibration reuse
 after deployment, hardware, runtime package, precision or model/reference changes;
 they retain the applied policy, generation profile and calibration record.
-The preliminary CUDA record does not establish NPU or weekly/long acceptance.
+The CUDA nightly record does not establish NPU or weekly/long acceptance.
 
 The CUDA 40-chunk quality profile also retains a fixed reference population in
 `calibration/cuda_nightly_quality_population.json`: six reference starts from
@@ -644,7 +652,7 @@ This prevents an unusually favorable three-reference cohort from silently
 tightening the candidate gate. Model, deployment, inputs, hardware/runtime,
 asset or evaluator changes reject population reuse. CUDA 600-chunk runs use the
 separate population described above; NPU and CUDA weekly profiles retain their
-own reference comparisons. The active nightly record binds both recorded-zero
+own reference comparisons. The active nightly record binds both vLLM 0.32.0 reference
 cohorts and freshly recomputed pixel summaries from their actual reference
 videos, using NumPy 1.26.4, OpenCV 4.11.0.86 and scikit-image 0.25.2; the OpenCV
 build hash is retained. No local interpreter paths are required by the record.

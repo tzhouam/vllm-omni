@@ -183,7 +183,7 @@ def test_transient_noise_multiplier_is_finite_nonnegative_and_bounded(sigma):
 
 def test_recorded_reference_startup_noise_is_covered_without_a_steady_stall_allowance():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    evidence = read_json(root / "calibration/cuda_nightly_reference.json")["startup_stall_calibration"]
+    evidence = read_json(root / "calibration/history/cuda_nightly_reference_pre_v032.json")["startup_stall_calibration"]
     required = 0
     base = performance_metrics(document(), num_chunks=40, min_steady=30)
     for cohorts in evidence["cases"].values():
@@ -363,7 +363,7 @@ def test_final_generation_gate_applies_reference_noise_calibration_only_to_cuda(
     from tests.dfx.lingbot_world import runner
 
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    calibration = read_json(root / "calibration/cuda_nightly_reference.json")
+    calibration = read_json(root / "calibration/history/cuda_nightly_reference_pre_v032.json")
     # This repository and calibration are synthetic fixtures, not measurements.
     calibration["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
     calibration["ttfc_calibration"]["selected_floor_ms"] = 220
@@ -554,7 +554,7 @@ def test_recorded_independent_h100_reference_cohorts_fit_the_binary_noise_budget
         )
         assert check["passed"], case
         changes.append(abs(check["reference_active_count"] - check["candidate_active_count"]))
-    assert max(changes) == 1
+    assert max(changes) <= 1
 
 
 def test_cuda_quality_ceilings_reproduce_reference_only_calibration_and_keep_npu_separate():
@@ -754,7 +754,7 @@ def test_ssim_budget_covers_independent_reference_holdouts_and_remains_bounded()
 )
 def test_quality_calibration_cannot_be_reused_after_numerical_contract_changes(group, field):
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    record = read_json(root / "calibration/history/cuda_nightly_reference_pre_v032.json")
     # Synthetic contract fixture: this does not add provenance to the on-disk record.
     record["engine_environment"] = dict(_RECORDED_ENGINE_ENVIRONMENT)
     contract = {
@@ -913,10 +913,16 @@ def test_frozen_quality_population_rejects_contract_or_population_changes(mutati
     elif mutation == "spreads_missing":
         del population["max_reference_spreads"]
     elif mutation == "spreads_dimensions":
-        population["max_reference_spreads"]["wbench"].pop("hpsv3_quality")
+        spreads = (
+            case["max_reference_spreads"] if population["schema_version"] == 3 else population["max_reference_spreads"]
+        )
+        spreads["wbench"].pop("hpsv3_quality")
     elif mutation.startswith("spreads_"):
         value = float("nan") if mutation == "spreads_nonfinite" else -1 if mutation == "spreads_negative" else True
-        population["max_reference_spreads"]["wbench"]["hpsv3_quality"] = value
+        spreads = (
+            case["max_reference_spreads"] if population["schema_version"] == 3 else population["max_reference_spreads"]
+        )
+        spreads["wbench"]["hpsv3_quality"] = value
 
     with pytest.raises(RegressionError, match="population"):
         verify_quality_population_contract(
@@ -1025,7 +1031,11 @@ def test_frozen_quality_population_preserves_candidate_budgets_and_negative_cont
     policy = read_json(root / "tests/dfx/lingbot_world/quality.json")
     population = quality_population(chunks)
     case = population["cases"][case_id]
-    reference_spreads = population.get("max_reference_spreads", policy["max_reference_spreads"]["cuda"])
+    reference_spreads = (
+        case["max_reference_spreads"]
+        if population["schema_version"] == 3
+        else population.get("max_reference_spreads", policy["max_reference_spreads"]["cuda"])
+    )
     for suite, reference in case["suites"].items():
         tolerances = {name: policy["candidate_tolerances"]["cuda"][suite][name] for name in reference[0]}
         spreads = {name: reference_spreads[suite][name] for name in reference[0]}
@@ -1053,7 +1063,7 @@ def test_frozen_quality_population_preserves_candidate_budgets_and_negative_cont
 
 def test_older_recorded_zero_calibration_rejects_new_production_reference():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    record = read_json(root / "calibration/history/cuda_nightly_reference_pre_v032.json")
     assert record["engine_environment"] == _RECORDED_ENGINE_ENVIRONMENT
     profile = read_json(root / "configs/cuda_nightly.json")
     assert record["workload"] == read_json(root / "calibration/history/profiles/cuda_nightly.json")
@@ -1090,7 +1100,11 @@ def test_older_quality_population_cannot_qualify_current_production_reference(ch
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    population = quality_population(chunks)
+    population = (
+        read_json(root / "calibration/history/cuda_nightly_quality_population_pre_v032.json")
+        if chunks == 40
+        else quality_population(chunks)
+    )
     contract = copy.deepcopy(population["contract"])
     contract["profile"] = read_json(root / f"configs/{profile_name}.json")
     with pytest.raises(RegressionError, match="Quality reference population profile changed"):
@@ -1103,10 +1117,13 @@ def test_older_quality_population_cannot_qualify_current_production_reference(ch
         )
 
 
-def test_active_nightly_population_records_both_real_cohorts_and_decoder():
+def test_historical_nightly_population_records_both_real_cohorts_and_decoder():
     from benchmarks.lingbot_world.regression import verify_quality_population_contract
 
-    population = quality_population(40)
+    population = read_json(
+        Path(__file__).resolve().parents[2]
+        / "tests/dfx/lingbot_world/calibration/history/cuda_nightly_quality_population_pre_v032.json"
+    )
     assert population["contract"]["engine_environment"] == _RECORDED_ENGINE_ENVIRONMENT
     verify_quality_population_contract(
         population,
@@ -1178,6 +1195,7 @@ def test_active_transient_calibration_reproduces_reference_only_rule_and_full_nu
     evidence = record[field]
     excess = 0.0
     comparisons = 0
+    failures = 0
     for groups in evidence["cases"].values():
         assert len(groups) == 2 and all(len(group) == 3 for group in groups)
         for training, heldout in ((groups[0], groups[1]), (groups[1], groups[0])):
@@ -1192,9 +1210,15 @@ def test_active_transient_calibration_reproduces_reference_only_rule_and_full_nu
                 ttfc_jitter_floor_ms=record["ttfc_calibration"]["selected_floor_ms"],
                 p95_max_cv=record["p95_reference_cv_calibration"]["selected_ceiling"],
             )
-            assert gate["limits"]["steady_stall_ms"]["value"] == 0
+            steady = gate["limits"]["steady_stall_ms"]
+            values = [row["steady_stall_ms"] for row in training]
+            # A startup floor must never become a post-startup constant floor.
+            assert steady["startup_jitter_floor_ms"] == 0
+            assert steady["value"] == pytest.approx(
+                max(values) + max(max(values) * 0.05, statistics.pstdev(values) * 3)
+            )
             for row in heldout:
-                assert check_performance(row, gate, contract={})["passed"]
+                failures += not check_performance(row, gate, contract={})["passed"]
                 comparisons += 1
             damaged = dict(
                 heldout[0],
@@ -1202,16 +1226,22 @@ def test_active_transient_calibration_reproduces_reference_only_rule_and_full_nu
             )
             if metric == "startup_stall_ms":
                 damaged["stall_ms"] = damaged[metric]
-            assert not check_performance(damaged, gate, contract={})["passed"]
+            rejection = check_performance(damaged, gate, contract={})
+            assert not rejection["passed"]
+            rejected_metric = "stall_ms" if metric == "startup_stall_ms" else metric
+            assert any(message.startswith(f"{rejected_metric}:") for message in rejection["violations"])
     assert excess == pytest.approx(evidence[maximum])
     assert evidence["selected_floor_ms"] == math.ceil(excess * (1 + evidence["reserve_fraction"]) / step) * step
     assert comparisons == evidence["fitted_reference_null_checks"] == 18
+    assert failures == evidence["fitted_reference_null_failures"] == 1
     assert not evidence["independent_holdout_validation_complete"]
 
 
-def test_active_p95_cv_calibration_preserves_training_failure_and_unseen_case_controls():
+def test_historical_p95_cv_calibration_preserves_training_failure_and_unseen_case_controls():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
-    evidence = read_json(root / "calibration/cuda_nightly_reference.json")["p95_reference_cv_calibration"]
+    evidence = read_json(root / "calibration/history/cuda_nightly_reference_pre_v032.json")[
+        "p95_reference_cv_calibration"
+    ]
     assert evidence["original_job_exit"] == -1 and not evidence["original_generation_passed"]
     assert evidence["all18_reference_benchmarks_complete"] and len(evidence["reference_inputs"]) == 18
     assert len(evidence["cases"]) == 6
@@ -1243,21 +1273,20 @@ def test_active_nightly_reference_ceilings_are_scoped_and_preserve_candidate_bou
     record = read_json(root / "calibration/cuda_nightly_reference.json")
     population = quality_population(40)
     calibration = record["continuous_reference_calibration"]
-    caps = population["max_reference_spreads"][suite]
-    assert caps == calibration["max_reference_spreads"][suite]
-    for dimension, cap in caps.items():
-        ranges = [
-            max(row[dimension] for row in case["suites"][suite]) - min(row[dimension] for row in case["suites"][suite])
-            for case in population["cases"].values()
-        ]
-        expected = max(
-            policy["max_reference_spreads"]["cuda"][suite][dimension],
-            math.ceil(max(ranges) * (1 + calibration["margin_fraction"]) / calibration["round_up_step"])
-            * calibration["round_up_step"],
-        )
-        assert cap == pytest.approx(expected)
-        for case in population["cases"].values():
+    assert population["schema_version"] == 3
+    for name, case in population["cases"].items():
+        caps = case["max_reference_spreads"][suite]
+        assert caps == calibration["cases"][name]["max_reference_spreads"][suite]
+        for dimension, cap in caps.items():
             values = [row[dimension] for row in case["suites"][suite]]
+            spread = max(values) - min(values)
+            assert spread == pytest.approx(calibration["cases"][name]["reference_ranges"][suite][dimension])
+            expected = max(
+                policy["max_reference_spreads"]["cuda"][suite][dimension],
+                math.ceil(spread * (1 + calibration["margin_fraction"]) / calibration["round_up_step"])
+                * calibration["round_up_step"],
+            )
+            assert cap == pytest.approx(expected)
             tolerance = policy["candidate_tolerances"]["cuda"][suite][dimension]
             measured = min(values) - tolerance - 1e-6
             assert not check_quality(
@@ -1411,12 +1440,15 @@ def test_complete_pixel_pair_population_rejects_incomplete_or_mixed_provenance(m
         )
 
 
-def test_active_pooled_pixels_preserve_archived_native_scores_and_existing_pairs():
+def test_historical_pooled_pixels_preserve_archived_native_scores_and_existing_pairs():
     root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world/calibration"
     archived = root / "history/cuda_nightly_quality_population_within_cohort.json"
     assert sha256(archived) == "16fe10e90f0f13d8ac5ea7aea8100764f15a47703962af429fbc80aed8afea4e"
     previous = read_json(archived)
-    population = quality_population(40)
+    population = read_json(
+        Path(__file__).resolve().parents[2]
+        / "tests/dfx/lingbot_world/calibration/history/cuda_nightly_quality_population_pre_v032.json"
+    )
     assert population["schema_version"] == 2
     for field in (
         "contract",
@@ -1456,3 +1488,104 @@ def test_active_pooled_pixels_preserve_archived_native_scores_and_existing_pairs
     }
     assert not evidence["candidate_budgets_changed"] and not evidence["candidate_model_data_used"]
     assert not population["full_acceptance"]
+
+
+def test_active_nightly_calibration_matches_frozen_profile_and_reference_only_protocol():
+    from benchmarks.lingbot_world.regression import contract_digest, verify_quality_population_contract
+
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    population = quality_population(40)
+    profile = read_json(root / "configs/cuda_nightly.json")
+    assert record["workload"] == population["contract"]["profile"] == profile
+    assert record["qualified_profile_sha256"] == contract_digest(profile)
+    assert record["protocol_sha256"] == sha256(root / "calibration/cuda_nightly_v032_protocol.json")
+    assert record["protocol_sha256"] == "8e0289e43d12ec38c7a9ca24f4483e868a331a0d464c2cbb8bc6a4c1db101267"
+    verify_reference_calibration_contract(population["contract"], record)
+    verify_quality_population_contract(
+        population,
+        population["contract"],
+        evaluator_packages=quality_packages(),
+        evaluator_lock_sha256=population["evaluator_lock_sha256"],
+        asset_lock_sha256=population["asset_lock_sha256"],
+    )
+    assert {row["build_url"].rsplit("/", 1)[-1] for row in population["inputs"]} == {"17633", "17640"}
+    assert all(
+        not row["original_generation_passed"] and not row["original_quality_passed"] for row in population["inputs"]
+    )
+    assert not record["candidate_inputs_used"] and not record["candidate_allowances_changed"]
+    assert not population["candidate_inputs_used"] and not population["candidate_allowances_changed"]
+    assert not record["independent_validation_complete"] and not population["independent_validation_complete"]
+    expected_pairs = [[i, j] for i in range(6) for j in range(i + 1, 6)]
+    for case in population["cases"].values():
+        assert case["pixel_pairs"] == expected_pairs and len(case["pixels"]) == 15
+        assert all(len(rows) == 6 for rows in case["suites"].values())
+        assert len({video["generation_job_id"] for video in case["reference_videos"]}) == 2
+        assert len(case["reference_videos"]) == len({video["sha256"] for video in case["reference_videos"]}) == 6
+        assert all(video["path"].startswith("reference/") for video in case["reference_videos"])
+        assert all(row["decoded_frames"] == 477 for row in case["pixels"])
+        assert all(
+            row["pixel_environment"]["opencv_build_sha256"]
+            == "9ab83ff35436756434918aba371ddde3c7fef67822791a25c473d7e374802667"
+            for row in case["pixels"]
+        )
+    for other in ("cuda_weekly", "cuda_long", "npu_nightly"):
+        changed = copy.deepcopy(population["contract"])
+        changed["profile"] = read_json(root / f"configs/{other}.json")
+        with pytest.raises(RegressionError):
+            verify_reference_calibration_contract(changed, record)
+
+
+def test_active_nightly_p95_cv_ceiling_reproduces_six_measured_reference_groups():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    evidence = record["p95_reference_cv_calibration"]
+    assert len(evidence["cases"]) == 6 and len(evidence["reference_inputs"]) == 18
+    assert {row["build"] for row in evidence["reference_inputs"]} == {17633, 17640}
+    assert all("/reference/" in row["artifact"] for row in evidence["reference_inputs"])
+    cvs = []
+    for row in evidence["cases"].values():
+        assert len(row["p95_values_ms"]) == 3
+        cv = statistics.pstdev(row["p95_values_ms"]) / statistics.mean(row["p95_values_ms"])
+        assert cv == pytest.approx(row["p95_cv"])
+        cvs.append(cv)
+    assert max(cvs) == pytest.approx(evidence["maximum_training_p95_cv"])
+    expected = max(
+        0.03,
+        math.ceil(max(cvs) * (1 + evidence["reserve_fraction"]) / evidence["round_up_cv"]) * evidence["round_up_cv"],
+    )
+    assert evidence["selected_ceiling"] == pytest.approx(expected)
+
+
+@pytest.mark.parametrize(
+    "filename,digest",
+    [
+        ("cuda_nightly_reference_pre_v032.json", "0f3286d8d019b4d5c605b653d11c7b37fc147081fa4d41fac9308f00f804cd58"),
+        (
+            "cuda_nightly_quality_population_pre_v032.json",
+            "c3289857b3d57db52bee8b08bed1df0b5c1526e21fb74654c81420ea5c893175",
+        ),
+    ],
+)
+def test_pre_v032_calibration_archives_remain_byte_identical(filename, digest):
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world/calibration/history"
+    assert sha256(root / filename) == digest
+
+
+def test_reference_stall_remains_a_failed_control_without_a_new_steady_floor():
+    root = Path(__file__).resolve().parents[2] / "tests/dfx/lingbot_world"
+    record = read_json(root / "calibration/cuda_nightly_reference.json")
+    controls = record["performance_reference_null_checks"]
+    assert len(controls) == 18
+    failed = [row for row in controls if not row["check"]["passed"]]
+    assert len(failed) == 1
+    row = failed[0]
+    assert (row["training_build"], row["heldout_build"], row["case"], row["repeat"]) == (17640, 17633, "street-42", 0)
+    assert len(row["check"]["violations"]) == 1
+    assert row["check"]["violations"][0].startswith("steady_stall_ms:")
+    evidence = record["retained_reference_stall_investigation"]
+    assert evidence["chunk_index"] == 10
+    assert evidence["steady_stall_ms"] == pytest.approx(277.91247703135014)
+    assert evidence["steady_stall_ms"] == row["check"]["measured"]["steady_stall_ms"]
+    assert not evidence["steady_stall_floor_added"] and not evidence["reference_observation_removed"]
+    assert not evidence["independent_validation_complete"] and not record["full_acceptance"]
