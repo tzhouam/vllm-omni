@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **Agent CUDA 图像能力绑定完成，真实运行包注册进行中**：Agent 配置检查 v3 编码器、显式策略与语言／视觉共驻预算，加载结果须匹配实际设备及策略，仍仅允许实验性 opt-in。测试 **50 passed**。更新后的运行包及两套源码上下文静态校验通过（210.10 s）；首条路线声明语言 16 GiB＋视觉 5 GiB、CPU 专家 6 GiB、MTP off、视觉 attention off。实际注册正在核验权重及来源并记录进程资源；CUDA 生命周期变体仅已准备，未执行。[证据与复现脚本](results/strata_20261008/strata_cuda_agent_capability_20261021.json)。
+
 2026-10-21 **CUDA 图像注册入口与共驻预算实现**：保留 CPU 入口，新增显式 CUDA 入口；视觉 GPU workspace／加载峰值及 Windows commit 额外计账，保留语言专家缓存及工作区，注册时重新核对物理 GPU 和共享预算。注册器回归 **51 passed**；首次测试导入语法错误已修正并保留日志。新包源码上下文正在刷新并重新做正式静态校验，旧静态身份随后将被新身份替代；尚未生成已注册 CUDA Agent 路线或新增神经运行。[实现范围与记录](results/strata_20261008/strata_cuda_registrar_20261021.json)。
 
 2026-10-21 **受预算约束的 CUDA 配置接入，正式静态运行包校验通过**：配置要求稳定执行策略、tensor／预处理／额外开销及 token 上限，策略纳入路线身份并在 live lease 再验；拒绝主后端 CPU 回退。视觉＋文本回归 **212 passed／3 skipped**。完整运行包通过正式静态校验（172.62 s），附加资源采样 97 条，初始时段缺失。注册工具仍仅接受 CPU 视觉，下一步补 CUDA 共驻 GPU／commit 预算、更新来源上下文并生成真实配置；尚无本轮神经执行。[测试、运行包校验和 profiling](results/strata_20261008/strata_cuda_route_config_20261021.json)。

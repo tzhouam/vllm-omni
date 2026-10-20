@@ -1,0 +1,63 @@
+{
+  "schema": "omni-strata-cuda-agent-capability-progress-v1",
+  "tests": {
+    "passed": 50,
+    "warnings": 14,
+    "seconds": 8.04
+  },
+  "first_attempt": "49 passed, 1 failed: binary corruption fixture selected wrong sorted manifest row; corrected by exact path",
+  "runtime_context": {
+    "passed": true,
+    "seconds": 210.10342539986596,
+    "identity_sha256": "ed94a52ef35645bedb6e5dbf6e177a78cafaee43c5c67ca40c138b97b514952e"
+  },
+  "configuration": {
+    "language_gpu_gib": 16,
+    "vision_gpu_gib": 5,
+    "total_gpu_gib": 21,
+    "cpu_expert_cache_gib": 6,
+    "mtp": false,
+    "vision_flash_attention": "off"
+  },
+  "registration": {
+    "status": "in_progress_at_record_time",
+    "session": 72491,
+    "profile": "cuda-v3-registration-resources-20261021.jsonl",
+    "pid": 222372
+  },
+  "scope": "Agent configuration binding and prepared CUDA lifecycle variant; no neural execution",
+  "evidence": [
+    {
+      "path": "strata_cuda_agent_cuda-agent-capability-tests-20261021.log.gz",
+      "raw_sha256": "4e0cc865ec09c2b62b33c430485e227390a858ee3c039ad40f617d00633fee91"
+    },
+    {
+      "path": "strata_cuda_agent_cuda-agent-capability-tests-v2-20261021.log.gz",
+      "raw_sha256": "e12bfd65cea438bf4309cc6c511732f8f368da0785cb07c93f0b20e29c30c693"
+    },
+    {
+      "path": "strata_cuda_agent_cuda-v3-context-refresh-20261021_verification.json.gz",
+      "raw_sha256": "903e6231122ca856f66142170f29c153baae88584d692888d3ff9aabf9638ac5"
+    },
+    {
+      "path": "strata_cuda_agent_register_q4_cuda_v3_runtime_20261021.py.gz",
+      "raw_sha256": "19939807009b534c3ef35d1d94094d525746d7b6159f2f63d67c1efd4e1cc648"
+    },
+    {
+      "path": "strata_cuda_agent_register_q4_cuda_v3_image_20261021.py.gz",
+      "raw_sha256": "41215d6d545bd07044a3c4fca57ad970d3c3fc637ef8a54c089f181e1d4a8be9"
+    },
+    {
+      "path": "strata_cuda_agent_q4-cuda-v3-image-route-20261021.json.gz",
+      "raw_sha256": "e92c64cee4ba60203db08ef2dae30c7464e5a028266115009d014e6c3279a75f"
+    },
+    {
+      "path": "strata_cuda_agent_image-lifecycle-cuda-v3-20261021_derivation.json.gz",
+      "raw_sha256": "73cb6724fd4eb56e30b36c3eeb21b92e255d399361ecceb3785b22580f496213"
+    },
+    {
+      "path": "strata_cuda_agent_image-lifecycle-cuda-v3-20261021_run_strata_image_lifecycle.py.gz",
+      "raw_sha256": "aab99baa1dfa5d5246fbd909cd4df3da19065edd6a61b4c87899e5e3f3646c37"
+    }
+  ]
+}

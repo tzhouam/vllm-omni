@@ -748,3 +748,34 @@ def test_lower_unseen_epoch_is_rejected_without_consuming_new_native_sequences(l
             plan, metrics, stage, request_id="task-step-1", input_identity=identity, seen_states=seen
         )
     assert seen == before
+
+
+@pytest.mark.parametrize("damage", [None, "workspace", "policy", "binary"])
+def test_cuda_image_capability_is_explicit_budgeted_and_experimental(launch, damage):
+    from vllm_omni.edge.agent.strata_image_evidence import image_capability_from_config
+    from vllm_omni.engine.backends.strata_vision import REVIEWED_CUDA_ENCODER_SHA256
+    backend = launch["backend"]
+    image = backend["image_route"]
+    image.update(encoder_device="cuda", vision_gpu_bytes=2 << 30, vision_host_bytes=1 << 30)
+    image["cuda_execution"] = {"contract": {"pci_bus_id": "00000000:64:00.0", "max_image_tokens": 4,
+        "gpu_tensor_bytes": 1 << 30, "host_tensor_bytes": 64 << 20},
+        "gpu_overhead_bytes": 1 << 30, "host_overhead_bytes": 128 << 20,
+        "language_gpu_workspace_bytes": 1 << 30, "language_host_workspace_bytes": 1 << 30,
+        "flash_attention": "off"}
+    runtime = ArtifactManifest.from_dict(backend["runtime_manifest"])
+    backend["runtime_manifest"] = replace(runtime, files=tuple(
+        replace(row, sha256=REVIEWED_CUDA_ENCODER_SHA256) if row.path == image["encoder_file"] else row
+        for row in runtime.files)).to_dict()
+    tier = WeightTierPlan.from_dict(backend["weight_tier_plan"])
+    backend["weight_tier_plan"] = replace(tier, budget=replace(tier.budget,
+        gpu_workspace_bytes=3 << 30, host_workspace_bytes=3 << 30)).to_dict()
+    if damage == "workspace": backend["weight_tier_plan"]["budget"]["gpu_workspace_bytes"] = 2 << 30
+    if damage == "policy": image["cuda_execution"]["contract"]["max_image_tokens"] = 5
+    if damage == "binary":
+        next(row for row in backend["runtime_manifest"]["files"] if row["path"] == image["encoder_file"])["sha256"] = "0" * 64
+    if damage:
+        with pytest.raises(ValueError): image_capability_from_config(backend)
+    else:
+        result = image_capability_from_config(backend)
+        assert result["encoder_device"] == "cuda"
+        assert result["qualification"] == "experimental_opt_in_only"

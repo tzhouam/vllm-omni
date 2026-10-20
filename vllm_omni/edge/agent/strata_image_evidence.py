@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Fail-closed bindings for the experimental CPU image + Strata text stage.
+"""Fail-closed bindings for the experimental image + Strata text stage.
 
 Configuration is not an execution proof. A completed image request proves only
 the owned PNG -> ENC -> SVE -> GENI chain, not placement of every operator,
@@ -63,15 +63,18 @@ def image_capability_from_config(config: Mapping[str, Any]) -> dict[str, Any]:
         "vision_scratch_bytes",
         "encoder_device",
     }
+    if isinstance(image, Mapping) and image.get("encoder_device") == "cuda":
+        fields.add("cuda_execution")
     if not isinstance(image, Mapping) or set(image) != fields or image["schema"] != "omni-strata-image-route-v1":
         raise ValueError("image capability needs an exact image route descriptor")
     if (
-        image["encoder_device"] != "cpu"
+        image["encoder_device"] not in {"cpu", "cuda"}
         or image["allow_cpu_fallback"] is not False
         or type(image["vision_gpu_bytes"]) is not int
-        or image["vision_gpu_bytes"] != 0
+        or (image["encoder_device"] == "cpu" and image["vision_gpu_bytes"] != 0)
+        or (image["encoder_device"] == "cuda" and image["vision_gpu_bytes"] <= 0)
     ):
-        raise ValueError("only explicit CPU image encoding is enabled")
+        raise ValueError("image encoding needs explicit device and budget without primary fallback")
     source = ArtifactManifest.from_dict(config["artifact_manifest"])
     runtime = ArtifactManifest.from_dict(config["runtime_manifest"])
     projector = ArtifactManifest.from_dict(image["projector_manifest"])
@@ -116,6 +119,17 @@ def image_capability_from_config(config: Mapping[str, Any]) -> dict[str, Any]:
     ):
         raise ValueError("image route exceeds the reviewed prototype bounds")
     host_min = projector.total_size_bytes + 32 * image["max_image_pixels"] + 2 * image["max_image_bytes"]
+    if image["encoder_device"] == "cuda":
+        from vllm_omni.engine.backends.strata_vision import validate_cuda_execution_policy, reviewed_vision_build
+
+        validate_cuda_execution_policy(image["cuda_execution"], image)
+        reviewed_vision_build("cuda", records[image["encoder_file"]].sha256)
+        policy = image["cuda_execution"]
+        if (tier.budget.gpu_workspace_bytes < image["vision_gpu_bytes"] + policy["language_gpu_workspace_bytes"]
+                or tier.budget.host_workspace_bytes < image["vision_host_bytes"] + image["vision_scratch_bytes"]
+                   + policy["language_host_workspace_bytes"]):
+            raise ValueError("CUDA image capability omits language coexistence workspace")
+        host_min = image["vision_host_bytes"]  # Full CUDA host formula checked above.
     scratch_min = 2 * (20 + 4 * image["embedding_width"] * image["max_image_tokens"]) + image["max_image_bytes"]
     if (
         image["vision_host_bytes"] < host_min
@@ -138,7 +152,7 @@ def image_capability_from_config(config: Mapping[str, Any]) -> dict[str, Any]:
         "max_image_pixels": image["max_image_pixels"],
         "max_image_tokens": image["max_image_tokens"],
         "embedding_width": image["embedding_width"],
-        "encoder_device": "cpu",
+        "encoder_device": image["encoder_device"],
         "qualification": "experimental_opt_in_only",
     }
 
@@ -193,6 +207,10 @@ def validate_image_load_plan_for_config(plan: Mapping[str, Any], config: Mapping
         "runtime_artifact_size_bytes": runtime.total_size_bytes,
         "projector_size_bytes": ArtifactManifest.from_dict(declared["projector_manifest"]).total_size_bytes,
     }
+    expected["encoder_device"] = declared["encoder_device"]
+    expected["allow_cpu_fallback"] = declared["allow_cpu_fallback"]
+    if declared["encoder_device"] == "cuda":
+        expected["cuda_execution"] = declared["cuda_execution"]
     bounds = {
         key: declared[key]
         for key in (
