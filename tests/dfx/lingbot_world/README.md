@@ -6,12 +6,16 @@ gate logic separately and are not model performance evidence.
 ## Current production reference: calibration pending
 
 The initial production baseline is pinned to
-`37adcce0a204440de9541d5155baa16a7e081d6d` for both CUDA and NPU. It contains the
+`48cebe5a248d4b0160f20c7fc18b5d1c46883872` for both CUDA and NPU. It contains the
 accepted main implementation and the NPU offload fix; its `vllm_omni` tree is
-`506484183470ed5d7c7ac57c1889815812424404`, identical to the implementation being
+`467d4cea37b5667d5ede38286c4072f0f0848133`, identical to the implementation being
 introduced into CI. This reference was refreshed for vLLM 0.32.0 on 2026-10-20. The pin includes
 Omni `v0.32.0rc1` at `da572cddb38383deae9caef33b8d490e292ef071`
-and the NPU offload fix. The previous reference
+and the NPU offload fix, plus the compiler-context fix required by PyTorch 2.13.
+The previous vLLM 0.32.0 reference
+`37adcce0a204440de9541d5155baa16a7e081d6d` passed serving imports but failed
+compiled SP4 reference warmup in CUDA build 17624. Its failed jobs remain
+unqualified historical evidence. The older reference
 `4134c7f421a195407da6f779f21c3e40c93a2440` imports a removed vLLM API;
 CUDA build 17617 and NPU build 9340 failed runtime setup and provide no
 calibration evidence. Future candidate changes remain compared
@@ -62,6 +66,10 @@ profiles remain 480×832. CI provides exclusive devices.
 
 Reference preparation requires vLLM 0.32.0 and imports both reference and
 candidate serving entrypoints in separate processes before model downloads.
+The CPU gate also compiles the real attention block with a cross-attention
+graph break, checks exact eager/compiled outputs and K/V reuse, and verifies
+leased-output lifetimes and native fallback. These checks cover the observed
+`nullcontext(None)` failure without disabling compilation or changing workloads.
 Each process verifies that it loaded the requested source checkout. A package
 or import mismatch fails setup without starting model inference. NPU also
 requires a compatible vLLM-Ascend stack: the current `Dockerfile.npu.ci` base

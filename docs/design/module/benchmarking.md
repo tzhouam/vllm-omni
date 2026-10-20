@@ -101,8 +101,10 @@ budgets. Record the evaluated case while retaining the complete producer
 profile and manifest hash; verify all producer artifact hashes and preserve the
 producer's failure in the final gate. Use distinct per-case output directories.
 The initial CUDA/NPU production reference is frozen at
-`37adcce0a204440de9541d5155baa16a7e081d6d`, based on Omni `v0.32.0rc1`
-and the NPU offload fix. Require vLLM 0.32.0 and verify both source checkouts
+`48cebe5a248d4b0160f20c7fc18b5d1c46883872`, based on Omni `v0.32.0rc1`
+and the NPU offload/compiler-context fixes. The CPU gate exercises compiled
+attention graph breaks, exact eager/compiled outputs, K/V reuse and leased
+output lifetimes. Require vLLM 0.32.0 and verify both source checkouts
 can import their serving entrypoints before provisioning model weights.
 A compatible Ascend image is required before NPU collection can resume.
 Fresh calibration is pending:
