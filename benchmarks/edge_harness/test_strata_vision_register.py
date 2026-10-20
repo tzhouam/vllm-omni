@@ -240,6 +240,46 @@ def test_image_registration_replays_real_parent_files_and_adds_coexistence_budge
     assert receipt["source_manifest_input_canonical_sha256"] == canonical_hash(image["backend"]["artifact_manifest"])
 
 
+def test_explicit_gpu_cache_expansion_preserves_allowances_and_parent(case):
+    parent_bytes = case["text"].read_bytes()
+    parent = json.loads(parent_bytes)
+    receipt = run(case, gpu_expert_cache_bytes=768)
+    image = json.loads(case["out"].read_text(encoding="utf-8"))
+    old, new = (item["backend"]["weight_tier_plan"]["budget"] for item in (parent, image))
+    assert case["text"].read_bytes() == parent_bytes
+    assert new["gpu_expert_cache_bytes"] == 768
+    assert image["backend"]["gpu_budget_bytes"] == 1256
+    assert image["resource_budget"]["demands"]["vram:0"] == 1256
+    assert new["gpu_loading_peak_bytes"] == old["gpu_loading_peak_bytes"] + 256
+    assert new["windows_commit_peak_bytes"] == old["windows_commit_peak_bytes"] + 256 + 65536 + 8192
+    for field, value in old.items():
+        if field.startswith("gpu_") and field not in ("gpu_expert_cache_bytes", "gpu_loading_peak_bytes"):
+            assert new[field] == value
+    assert new["cpu_expert_cache_bytes"] == old["cpu_expert_cache_bytes"]
+    assert receipt["explicit_gpu_cache_derivation"]["windows_commit_bytes_added"] == 256
+    assert receipt["qualification_created"] is False
+    assert receipt["default_route_created"] is False
+
+
+@pytest.mark.parametrize("requested", [0, -1, True, 512, 511, 2000])
+def test_gpu_cache_expansion_rejects_invalid_or_unfit_budget(case, requested):
+    with pytest.raises(ValueError):
+        run(case, gpu_expert_cache_bytes=requested)
+    assert not case["out"].exists()
+    assert not case["out"].with_suffix(".image-registration.json").exists()
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [("gpu_free_bytes", 1200), ("windows_commit_available_bytes", (4 << 20) + 65536 + 8192)],
+)
+def test_gpu_cache_expansion_requires_fresh_incremental_capacity(case, field, value):
+    case["memory"][field] = value
+    with pytest.raises(Exception, match="admission refused"):
+        run(case, gpu_expert_cache_bytes=768)
+    assert not case["out"].exists()
+
+
 def test_inline_image_bound_needs_explicit_transport_expansion_and_charges_all_host_pools(case):
     case["config"]["max_image_bytes"] = 4 << 20
     case["config"]["vision_host_bytes"] = 12 << 20

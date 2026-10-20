@@ -243,11 +243,14 @@ def register_cpu_image_route(
     max_io_bytes: int | None = None,
     execution_source_context_file: str | None = None,
     expert_ram_budget_bytes: int | None = None,
+    gpu_expert_cache_bytes: int | None = None,
 ):
     """Verify and derive an exclusive CPU-encoder/CUDA-language launch.
 
     Text context/precision controls are retained; an explicitly requested smaller
-    expert cache may reduce its exact cache/loading claim, never commit. Encoder
+    CPU expert cache may reduce its exact cache/loading claim, never commit.
+    Explicit GPU cache expansion adds the same increment to GPU and commit
+    claims, preserving other allowances and requiring fresh admission. Encoder
     and scratch budgets are additional coexistence claims, never substitutions
     for the text stage's overhead. Fresh snapshots do not reserve resources.
     """
@@ -332,6 +335,29 @@ def register_cpu_image_route(
     tier_data.update(route_id=route_id, backend=BACKEND)
     budget = tier_data["budget"]
     cache_derivation = _derive_image_cache_budget(backend, budget, expert_ram_budget_bytes)
+    gpu_derivation = None
+    if gpu_expert_cache_bytes is not None:
+        requested = _positive(gpu_expert_cache_bytes, "gpu_expert_cache_bytes")
+        old_cache = tier.budget.gpu_expert_cache_bytes
+        old_claim = max(tier.budget.gpu_steady_bytes, tier.budget.gpu_loading_peak_bytes)
+        if requested <= old_cache or backend["gpu_budget_bytes"] != old_claim:
+            raise ValueError("GPU cache expansion requires a larger cache and consistent parent GPU budget")
+        delta = requested - old_cache
+        if old_claim + delta > backend["gpu_total_bytes"]:
+            raise ValueError("GPU cache expansion exceeds physical GPU capacity")
+        budget["gpu_expert_cache_bytes"] = requested
+        budget["gpu_loading_peak_bytes"] += delta
+        # Preserve loading slack and all non-cache allowances. Charge the full
+        # increment to Windows commit; shared/nonlocal memory is not extra RAM.
+        budget["windows_commit_peak_bytes"] += delta
+        gpu_derivation = {
+            "old_gpu_expert_cache_bytes": old_cache,
+            "new_gpu_expert_cache_bytes": requested,
+            "old_gpu_budget_bytes": old_claim,
+            "new_gpu_budget_bytes": old_claim + delta,
+            "windows_commit_bytes_added": delta,
+            "scope": "explicit alternate; fresh admission and execution validation required; no inherited qualification",
+        }
     budget["host_workspace_bytes"] += extra_host
     budget["host_transfer_bytes"] += transport_delta
     for field in ("host_loading_peak_bytes", "windows_commit_peak_bytes"):
@@ -436,10 +462,16 @@ def register_cpu_image_route(
     )
     if execution_settings is not None:
         target["execution_observation"] = execution_settings
+    if gpu_derivation is not None:
+        target["gpu_budget_bytes"] = gpu_derivation["new_gpu_budget_bytes"]
+        if "gpu_expert_cache_bytes" in target:
+            target["gpu_expert_cache_bytes"] = budget["gpu_expert_cache_bytes"]
     derived["resource_budget"] = {"capacities": capacities, "demands": demands}
     derived["image_registration"] = provenance
     if cache_derivation is not None:
         provenance["explicit_cache_derivation"] = cache_derivation
+    if gpu_derivation is not None:
+        provenance["explicit_gpu_cache_derivation"] = gpu_derivation
     derived["admission_preflight"] = {
         "admitted": True,
         "over_budget_pools": [],
@@ -479,6 +511,7 @@ def main():
     parser.add_argument("--max-io-bytes", type=int)
     parser.add_argument("--execution-source-context-file")
     parser.add_argument("--expert-ram-budget-bytes", type=int)
+    parser.add_argument("--gpu-expert-cache-bytes", type=int)
     args = parser.parse_args()
     receipt = register_cpu_image_route(
         args.text_launch,
@@ -489,6 +522,7 @@ def main():
         max_io_bytes=args.max_io_bytes,
         execution_source_context_file=args.execution_source_context_file,
         expert_ram_budget_bytes=args.expert_ram_budget_bytes,
+        gpu_expert_cache_bytes=args.gpu_expert_cache_bytes,
     )
     print(json.dumps({key: receipt[key] for key in ("status", "route_id", "launch_canonical_sha256")}))
     return 0

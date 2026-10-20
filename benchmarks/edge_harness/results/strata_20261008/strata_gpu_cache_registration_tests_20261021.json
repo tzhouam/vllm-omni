@@ -1,0 +1,33 @@
+{
+  "schema": "omni-strata-gpu-cache-registration-tests-v1",
+  "captured_utc": "2026-10-20T16:18:09.8897491Z",
+  "status": "synthetic_contract_tests_passed_real_execution_pending",
+  "command": "C:\\Users\\zhout\\w2\\omni029venv\\Scripts\\python.exe -B -X utf8 -m pytest benchmarks/edge_harness/test_strata_vision_register.py -q",
+  "exit_code": 0,
+  "passed": 44,
+  "elapsed_seconds": 68.6,
+  "gpu_expert_cache_gib_before": 7.5,
+  "gpu_expert_cache_gib_candidate": 11.5,
+  "gpu_budget_gib_before": 16,
+  "gpu_budget_gib_candidate": 20,
+  "cpu_expert_cache_gib": 6,
+  "batch_size": 1,
+  "concurrency": 1,
+  "coverage": [
+    "parent metadata remains unchanged",
+    "non-cache GPU allowances preserved",
+    "GPU and commit increment charged",
+    "invalid expansion rejected",
+    "fresh VRAM and commit refusal",
+    "no inherited qualification"
+  ],
+  "sources": {
+    "benchmarks/edge_harness/test_strata_vision_register.py": "dad1396069be311d307124498efcb2d12c04c67d1be2a69cf60972a41ca915a1",
+    "benchmarks/edge_harness/strata_vision_register.py": "4216ee993abf8a4cfe1ff67f0ae8ec60199f292e3ae66ca09b048a7c178032fa"
+  },
+  "limitations": [
+    "Synthetic files and live sensors; no neural execution in these tests",
+    "Ruff unavailable in Windows and WSL project venvs",
+    "Real registration and lifecycle results recorded separately"
+  ]
+}
