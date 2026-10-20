@@ -1445,3 +1445,101 @@ def test_pe_explicit_scan_bound_is_bound_into_closure(tmp_path, monkeypatch):
     assert "explicit_max_file_bytes" not in default
     assert larger["explicit_max_file_bytes"] == 512 << 20
     assert larger["identity_sha256"] != default["identity_sha256"]
+
+
+def cuda_contract():
+    return {"pci_bus_id": "00000000:64:00.0", "gpu_tensor_bytes": 100,
+            "host_tensor_bytes": 20, "max_image_tokens": 1536}
+
+
+def cuda_payloads():
+    return [
+        ("cuda_device", {"schema": "strata-vision-device-v1", "pci_bus_id": "00000000:64:00.0",
+                         "scope": "selected_primary_backend"}),
+        ("cuda_memory", {"schema": "strata-vision-memory-v1", "scope": "explicit_ggml_tensor_buffers",
+                         "gpu_bytes": 100, "host_bytes": 20, "gpu_limit": 100, "host_limit": 20,
+                         "phase": "after_admitted_graph_allocation"}),
+        ("cuda_warmup", {"schema": "strata-vision-warmup-v1", "pixels": 4194304, "image_tokens": 1521,
+                         "max_image_tokens": 1536, "elapsed_ms": 1.25, "status": "passed"}),
+    ]
+
+
+def test_cuda_evidence_ready_requires_complete_order_and_request_scope():
+    evidence = vision.CudaEncoderEvidence(cuda_contract())
+    for event, payload in cuda_payloads():
+        evidence.observe(event, payload)
+    evidence.require_ready()
+    evidence.observe(*cuda_payloads()[1], request_active=True)
+    assert evidence.memory_samples == 2
+    with pytest.raises(ValueError, match="out of order"):
+        evidence.observe(*cuda_payloads()[1])
+    assert evidence.failed
+
+
+@pytest.mark.parametrize("case", ["wrong_device", "over_gpu", "over_host", "changed_limit",
+                                  "boolean_bytes", "zero_tokens", "bad_pixels", "infinite_clock"])
+def test_cuda_evidence_refuses_unadmitted_or_invalid_reports(case):
+    events = cuda_payloads()
+    if case == "wrong_device": events[0][1]["pci_bus_id"] = "00000000:65:00.0"
+    if case == "over_gpu": events[1][1]["gpu_bytes"] = 101
+    if case == "over_host": events[1][1]["host_bytes"] = 21
+    if case == "changed_limit": events[1][1]["gpu_limit"] = 101
+    if case == "boolean_bytes": events[1][1]["gpu_bytes"] = True
+    if case == "zero_tokens": events[2][1]["image_tokens"] = 0
+    if case == "bad_pixels": events[2][1]["pixels"] = 1
+    if case == "infinite_clock": events[2][1]["elapsed_ms"] = float("inf")
+    evidence = vision.CudaEncoderEvidence(cuda_contract())
+    with pytest.raises(ValueError):
+        for event, payload in events:
+            evidence.observe(event, payload)
+    assert evidence.failed
+    with pytest.raises(ValueError): evidence.require_ready()
+
+
+def test_cuda_evidence_missing_startup_and_replay_are_terminal():
+    missing = vision.CudaEncoderEvidence(cuda_contract())
+    with pytest.raises(ValueError): missing.require_ready()
+    with pytest.raises(ValueError): missing.observe(*cuda_payloads()[0])
+    replay = vision.CudaEncoderEvidence(cuda_contract())
+    replay.observe(*cuda_payloads()[0])
+    with pytest.raises(ValueError, match="replay"):
+        replay.observe(*cuda_payloads()[0])
+
+
+def test_owned_cuda_writer_consumes_startup_and_requires_warmup(tmp_path):
+    rows = []
+    writer = vision.OwnedEncoderWriter("a" * 32, "b" * 32, 1, 2, rows.append,
+        cwd=tmp_path, bounds={"embedding_width": 2560, "max_image_tokens": 1536},
+        contained=True, cuda_contract=cuda_contract())
+    prefixes = {"cuda_device": "OMNI_VISION_DEVICE_V1 ", "cuda_memory": "OMNI_VISION_MEMORY_V1 ",
+                "cuda_warmup": "OMNI_VISION_WARMUP_V1 "}
+    for event, payload in cuda_payloads():
+        assert writer.observe_output(prefixes[event] + json.dumps(payload) + "\n")
+    backend = {"schema": "strata-vision-backend-v1", "primary_backend": "CUDA0", "device_type": "GPU",
+               "gpu_requested": True, "cpu_fallback_available": True}
+    assert writer.observe_output(vision.NATIVE_PREFIX + json.dumps(backend) + "\n")
+    assert writer.observe_output("READY 2560\n") is False
+    assert writer.ready and writer.cuda.sealed and len(rows) == 6
+    with pytest.raises(ValueError): writer.observe_output("READY 2560\n")
+
+
+def test_cuda_writer_observer_share_startup_contract_and_fail_on_pool_mismatch(tmp_path):
+    for wrong_pool in (False, True):
+        expected = cuda_contract()
+        if wrong_pool:
+            expected["pci_bus_id"] = "00000000:65:00.0"
+        observer = vision.EncoderObserver("a" * 32, "b" * 32,
+            allow_cpu_fallback=False, embedding_width=2560, is_live=lambda _: True,
+            requested_device="cuda", cuda_contract=expected)
+        writer = vision.OwnedEncoderWriter("a" * 32, "b" * 32, 1, 2, observer.ingest,
+            cwd=tmp_path, bounds={"embedding_width": 2560, "max_image_tokens": 1536},
+            contained=True, cuda_contract=cuda_contract())
+        prefixes = ("OMNI_VISION_DEVICE_V1 ", "OMNI_VISION_MEMORY_V1 ", "OMNI_VISION_WARMUP_V1 ")
+        for prefix, (_, payload) in zip(prefixes, cuda_payloads()):
+            writer.observe_output(prefix + json.dumps(payload) + "\n")
+        backend = {"schema": "strata-vision-backend-v1", "primary_backend": "CUDA0", "device_type": "GPU",
+                   "gpu_requested": True, "cpu_fallback_available": True}
+        writer.observe_output(vision.NATIVE_PREFIX + json.dumps(backend) + "\n")
+        writer.observe_output("READY 2560\n")
+        assert observer.retired is wrong_pool
+        assert observer.ready is (not wrong_pool)

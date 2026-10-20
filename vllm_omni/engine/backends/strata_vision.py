@@ -578,14 +578,101 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
     }
 
 
+class CudaEncoderEvidence:
+    """Validate native CUDA startup against a caller-owned tensor sub-budget.
+
+    This proves reported explicit buffers, not total process/GPU memory or quality.
+    The caller must separately bind this contract to the physical resource lease.
+    """
+
+    def __init__(self, contract):
+        required = {"pci_bus_id", "gpu_tensor_bytes", "host_tensor_bytes", "max_image_tokens"}
+        if not isinstance(contract, dict) or set(contract) != required:
+            raise ValueError("invalid CUDA encoder evidence contract")
+        pci = contract["pci_bus_id"]
+        if not isinstance(pci, str) or not re.fullmatch(r"[0-9a-f]{8}:[0-9a-f]{2}:[01][0-9a-f]\.[0-7]", pci):
+            raise ValueError("invalid canonical CUDA PCI identity")
+        for key in ("gpu_tensor_bytes", "host_tensor_bytes", "max_image_tokens"):
+            _uint(contract[key], key != "host_tensor_bytes")
+        if contract["max_image_tokens"] > 4096:
+            raise ValueError("CUDA token bound exceeds reviewed limit")
+        self.contract = copy.deepcopy(contract)
+        self.device = self.memory = self.warmup = None
+        self.memory_samples = 0
+        self.sealed = self.failed = False
+
+    def observe(self, event, payload, *, request_active=False):
+        try:
+            self._observe(event, payload, request_active=request_active)
+        except (ValueError, TypeError, KeyError):
+            self.failed = True
+            raise
+
+    def _observe(self, event, payload, *, request_active):
+        if self.failed or not isinstance(payload, dict):
+            raise ValueError("invalid or retired CUDA evidence")
+        c = self.contract
+        if event == "cuda_device":
+            if self.device is not None or self.sealed or payload != {
+                "schema": "strata-vision-device-v1", "pci_bus_id": c["pci_bus_id"],
+                "scope": "selected_primary_backend",
+            }:
+                raise ValueError("CUDA device identity mismatch or replay")
+            self.device = copy.deepcopy(payload)
+        elif event == "cuda_memory":
+            if self.device is None or (self.sealed and not request_active) or (not self.sealed and self.warmup is not None):
+                raise ValueError("CUDA memory evidence out of order")
+            if set(payload) != {"schema", "scope", "gpu_bytes", "host_bytes", "gpu_limit", "host_limit", "phase"}:
+                raise ValueError("invalid CUDA memory fields")
+            if (payload["schema"] != "strata-vision-memory-v1"
+                    or payload["scope"] != "explicit_ggml_tensor_buffers"
+                    or payload["phase"] != "after_admitted_graph_allocation"):
+                raise ValueError("unverified CUDA allocation report")
+            for key in ("gpu_bytes", "host_bytes", "gpu_limit", "host_limit"):
+                _uint(payload[key])
+            if (payload["gpu_limit"] != c["gpu_tensor_bytes"]
+                    or payload["host_limit"] != c["host_tensor_bytes"]
+                    or payload["gpu_bytes"] > payload["gpu_limit"]
+                    or payload["host_bytes"] > payload["host_limit"]):
+                raise ValueError("CUDA allocation exceeds or changes admitted budget")
+            self.memory = copy.deepcopy(payload)
+            self.memory_samples += 1
+        elif event == "cuda_warmup":
+            if self.device is None or self.memory is None or self.warmup is not None or self.sealed:
+                raise ValueError("CUDA warmup evidence out of order or replay")
+            if set(payload) != {"schema", "pixels", "image_tokens", "max_image_tokens", "elapsed_ms", "status"}:
+                raise ValueError("invalid CUDA warmup fields")
+            for key in ("pixels", "image_tokens", "max_image_tokens"):
+                _uint(payload[key], True)
+            elapsed = payload["elapsed_ms"]
+            if (payload["schema"] != "strata-vision-warmup-v1" or payload["status"] != "passed"
+                    or payload["pixels"] != 2048 * 2048
+                    or payload["max_image_tokens"] != c["max_image_tokens"]
+                    or payload["image_tokens"] > c["max_image_tokens"]
+                    or type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0):
+                raise ValueError("CUDA warmup bound or status mismatch")
+            self.warmup = copy.deepcopy(payload)
+        else:
+            raise ValueError("unknown CUDA evidence event")
+
+    def require_ready(self):
+        if self.failed or self.sealed or self.device is None or self.memory is None or self.warmup is None:
+            self.failed = True
+            raise ValueError("CUDA READY lacks complete admitted startup evidence")
+        self.sealed = True
+
+
 class OwnedEncoderWriter:
     """Called only by the trusted bootstrap around an exact Popen object."""
 
-    def __init__(self, nonce, generation, pid, created, emit, *, cwd, bounds, contained):
+    def __init__(self, nonce, generation, pid, created, emit, *, cwd, bounds, contained, cuda_contract=None):
         if not re.fullmatch(r"[0-9a-f]{32}", nonce) or not re.fullmatch(r"[0-9a-f]{32}", generation):
             raise ValueError("invalid encoder ownership context")
         self.nonce, self.generation, self.pid, self.created = nonce, generation, _uint(pid, True), _uint(created, True)
         self.emit, self.cwd, self.bounds = emit, Path(cwd).resolve(strict=True), bounds
+        self.cuda = CudaEncoderEvidence(cuda_contract) if cuda_contract is not None else None
+        if self.cuda is not None and self.cuda.contract["max_image_tokens"] != bounds["max_image_tokens"]:
+            raise ValueError("CUDA evidence token bound differs from image bound")
         self.sequence = self.request_seq = 0
         self.active = self.backend = self.last_end = None
         self.dispatched_seq = 0
@@ -642,6 +729,16 @@ class OwnedEncoderWriter:
     def observe_output(self, line):
         """Return True only for our observation line, hidden from upstream parser."""
         with self._lock:
+            for prefix, event in (("OMNI_VISION_DEVICE_V1 ", "cuda_device"),
+                                  ("OMNI_VISION_MEMORY_V1 ", "cuda_memory"),
+                                  ("OMNI_VISION_WARMUP_V1 ", "cuda_warmup")):
+                if line.startswith(prefix):
+                    if self.cuda is None or len(line.encode()) > 2048 or not line.endswith("\n"):
+                        raise ValueError("unexpected or oversized CUDA encoder evidence")
+                    payload = _json(line[len(prefix):])
+                    self.cuda.observe(event, payload, request_active=self.active is not None)
+                    self.frame(event, payload)
+                    return True
             if line.startswith(NATIVE_PREFIX):
                 if self.backend is not None or self.ready or len(line.encode()) > 2048:
                     raise ValueError("repeated/oversized encoder backend observation")
@@ -662,6 +759,10 @@ class OwnedEncoderWriter:
                     or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,64}", payload["primary_backend"])
                 ):
                     raise ValueError("invalid native encoder backend identity")
+                if self.cuda is not None and (self.cuda.warmup is None or payload["device_type"] != "GPU"
+                        or payload["gpu_requested"] is not True
+                        or not re.fullmatch(r"CUDA[0-9]+", payload["primary_backend"])):
+                    raise ValueError("CUDA encoder selected an unadmitted backend")
                 self.backend = payload
                 self.frame("backend", payload)
                 return True
@@ -674,6 +775,8 @@ class OwnedEncoderWriter:
                     or int(parts[1]) != self.bounds["embedding_width"]
                 ):
                     raise ValueError("encoder READY missing verified backend/width")
+                if self.cuda is not None:
+                    self.cuda.require_ready()
                 self.ready = True
                 self.frame("ready", {"embedding_width": int(parts[1])})
             elif line.startswith("OK "):
@@ -743,13 +846,16 @@ class OwnedEncoderWriter:
 class EncoderObserver:
     """Bounded state machine for nonce-authenticated role/phase observations."""
 
-    def __init__(self, nonce, generation, *, allow_cpu_fallback, embedding_width, is_live, requested_device="cpu"):
+    def __init__(self, nonce, generation, *, allow_cpu_fallback, embedding_width, is_live, requested_device="cpu", cuda_contract=None):
         self.nonce, self.generation = nonce, generation
-        if requested_device != "cpu" or allow_cpu_fallback is not False:
+        if (requested_device not in {"cpu", "cuda"} or allow_cpu_fallback is not False
+                or (requested_device == "cuda" and cuda_contract is None)
+                or (requested_device == "cpu" and cuda_contract is not None)):
             raise ValueError(
                 "only an explicit CPU encoder is enabled; CUDA/fallback awaits physical identity and warmup admission"
             )
         self.requested_device = requested_device
+        self.cuda = CudaEncoderEvidence(cuda_contract) if cuda_contract is not None else None
         self.allow_cpu_fallback, self.embedding_width, self.is_live = allow_cpu_fallback, embedding_width, is_live
         self.identity = self.backend = self.language_identity = None
         self.sequence = self.last_request_seq = 0
@@ -799,7 +905,19 @@ class EncoderObserver:
                     self.identity = identity
                 elif self.identity != identity:
                     raise ValueError("encoder_owner_mismatch")
+                elif event in {"cuda_device", "cuda_memory", "cuda_warmup"}:
+                    if self.cuda is None:
+                        raise ValueError("unexpected_CUDA_encoder_event")
+                    active = self.active is not None and self.active["start"] is not None
+                    if self.ready:
+                        if not active or reqseq != self.active["native_encoder_request_seq"]:
+                            raise ValueError("CUDA_memory_not_bound_to_request")
+                    elif reqseq != 0:
+                        raise ValueError("CUDA_startup_request_sequence_invalid")
+                    self.cuda.observe(event, payload, request_active=active)
                 elif event == "backend":
+                    if self.cuda is not None and self.cuda.warmup is None:
+                        raise ValueError("CUDA_backend_before_verified_warmup")
                     if self.backend is not None or self.ready or reqseq != 0 or not isinstance(payload, dict):
                         raise ValueError("encoder_backend_repeated")
                     if (
@@ -838,6 +956,8 @@ class EncoderObserver:
                         or payload != {"embedding_width": self.embedding_width}
                     ):
                         raise ValueError("encoder_ready_unverified")
+                    if self.cuda is not None:
+                        self.cuda.require_ready()
                     self.ready = True
                 elif event == "encode_start":
                     if self.active is None or self.active["start"] is not None or reqseq != self.last_request_seq + 1:

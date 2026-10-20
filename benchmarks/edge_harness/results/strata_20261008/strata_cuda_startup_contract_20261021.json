@@ -1,0 +1,51 @@
+{
+  "scope": "Offline replay of hash-bound actual native startup through writer and observer; synthetic owner/liveness, not live controller integration",
+  "source_sha256": "ee78446cff3b361afbf29ddaa45817a6fb366b28185d8959fe4579dc81c320c0",
+  "native_log_sha256": "3659dff41eb688664614d0bee9646442f3ffe2839ea03d2653eb0d507c332a6c",
+  "writer_ready": true,
+  "observer_ready": true,
+  "framed_events": 7,
+  "contract": {
+    "pci_bus_id": "00000000:64:00.0",
+    "gpu_tensor_bytes": 8589934592,
+    "host_tensor_bytes": 4294967296,
+    "max_image_tokens": 1536
+  },
+  "device": {
+    "pci_bus_id": "00000000:64:00.0",
+    "schema": "strata-vision-device-v1",
+    "scope": "selected_primary_backend"
+  },
+  "warmup": {
+    "elapsed_ms": 1420.517,
+    "image_tokens": 1521,
+    "max_image_tokens": 1536,
+    "pixels": 4194304,
+    "schema": "strata-vision-warmup-v1",
+    "status": "passed"
+  },
+  "memory": {
+    "gpu_bytes": 3491521280,
+    "gpu_limit": 8589934592,
+    "host_bytes": 18787392,
+    "host_limit": 4294967296,
+    "phase": "after_admitted_graph_allocation",
+    "schema": "strata-vision-memory-v1",
+    "scope": "explicit_ggml_tensor_buffers"
+  },
+  "production_route_enabled": false,
+  "tests": {
+    "file": "tests/edge/test_strata_vision_prototype.py",
+    "passed": 105,
+    "skipped": 1,
+    "warnings": 14,
+    "reported_seconds": 13.07,
+    "exit_code": 0
+  },
+  "remaining": [
+    "Bind CUDA contract to actual shared GPU resource lease",
+    "Bind v3 runtime build and DLL closure into route manifest",
+    "Pass CUDA environment and flash-attention choice through trusted launcher",
+    "Live controller/Agent quality and cancel/recovery regression"
+  ]
+}
