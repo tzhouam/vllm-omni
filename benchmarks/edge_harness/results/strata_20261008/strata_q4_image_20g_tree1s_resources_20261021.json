@@ -1,0 +1,51 @@
+{
+  "schema": "omni-closed-run-resource-summary-v1",
+  "source": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-full-20g-tree1s-20261021\\telemetry.jsonl",
+  "source_sha256": "5e41c6a30593bc7e3ccf9de60e002f6568a6bc848f42740cc6eb58b2964766b8",
+  "source_size_bytes": 2723508469,
+  "receipt_sha256": "f4d863fd76033fd36bdb06bd7325dbb2fad1163c9310dd6e86db9eaa4ace30f7",
+  "samples": 70207,
+  "first_unix": 1792522204.8392274,
+  "last_unix": 1792532114.572921,
+  "observed_span_s": 9909.733693599701,
+  "peak_observed_values": {
+    "host.available_ram_bytes": 23772131328,
+    "host.used_ram_bytes": 59008782336,
+    "host.process_tree_rss_sum_bytes": 14059925504,
+    "host.swap_used_bytes": 2985988096,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.used_vram_bytes": 21801709568,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.power_mw": 158571,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.temperature_c": 72,
+    "process_gpu.local_current_usage_bytes": 18735955968,
+    "process_gpu.nonlocal_current_usage_bytes": 8290041856
+  },
+  "minimum_observed_values": {
+    "host.available_ram_bytes": 8764727296
+  },
+  "valid_sample_counts": {
+    "host.available_ram_bytes": 70206,
+    "host.used_ram_bytes": 70206,
+    "host.process_tree_rss_sum_bytes": 70206,
+    "host.swap_used_bytes": 70206,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.used_vram_bytes": 70206,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.power_mw": 70206,
+    "gpu.GPU-bf6e910e-657c-15d7-c558-f169df134d8a.temperature_c": 70206,
+    "process_gpu.local_current_usage_bytes": 62648,
+    "process_gpu.nonlocal_current_usage_bytes": 62648
+  },
+  "limitations": [
+    "Sampled peaks, not guaranteed instantaneous maxima",
+    "Whole-system RAM and GPU usage include other applications",
+    "Process RSS sum double-counts shared pages; not physical RAM attribution",
+    "System swap usage does not prove model paging",
+    "WDDM nonlocal usage is shared host RAM, not proof of GPU spill",
+    "GPU power is not whole-device power; no physical SSD attribution",
+    "Fixed screenshot task family; no default route qualification",
+    "Process-tree RSS refreshes approximately once per second; valid row counts include repeated cached observations, not independent RSS samples."
+  ],
+  "producer_sha256": "1bc5f692ec01200281238ce6974ca49190c02e25781c89cd4282dd4d5ebbe6e0",
+  "producer_archive": {
+    "path": "strata_q4_image_20g_tree1s_resources_producer_20261021.py.gz",
+    "sha256": "87eb89a133911d339616d9ad8f91c1b0bfe3b6683abafcee216bf35d29afa18d"
+  }
+}

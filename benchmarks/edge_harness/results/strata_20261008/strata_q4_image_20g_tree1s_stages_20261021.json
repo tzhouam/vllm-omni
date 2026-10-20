@@ -1,0 +1,1476 @@
+{
+  "schema": "omni-strata-20g-tree1s-stage-analysis-v1",
+  "receipt_sha256": "f4d863fd76033fd36bdb06bd7325dbb2fad1163c9310dd6e86db9eaa4ace30f7",
+  "all_raw_sha256": "42671b5b26328c469b1cd25f0f6cd9a715d85f194b0b0e95c2c6fd8cf6f84ab1",
+  "batch_size": 1,
+  "concurrency": 1,
+  "method": "nearest_rank; measured requests only",
+  "bands": {
+    "short": {
+      "samples": [
+        {
+          "index": 2,
+          "whole_task_s": 107.16407039994374,
+          "calls": [
+            {
+              "wall_s": 33.011734400410205,
+              "prompt_s": 21.6757,
+              "decode_s": 7.5522,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 73.60798169998452,
+              "prompt_s": 46.4099,
+              "decode_s": 1.4735999999999998,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.555
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "whole_task_s": 107.15877210022882,
+          "calls": [
+            {
+              "wall_s": 32.493482999969274,
+              "prompt_s": 21.4559,
+              "decode_s": 6.5201,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 74.15570180024952,
+              "prompt_s": 45.7896,
+              "decode_s": 1.331,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.769
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "whole_task_s": 104.55173430033028,
+          "calls": [
+            {
+              "wall_s": 30.896304400172085,
+              "prompt_s": 21.2553,
+              "decode_s": 5.8744,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.706102500204,
+              "prompt_s": 45.865300000000005,
+              "decode_s": 1.2586,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.327
+            }
+          ]
+        },
+        {
+          "index": 5,
+          "whole_task_s": 105.29663919983432,
+          "calls": [
+            {
+              "wall_s": 31.08983359998092,
+              "prompt_s": 21.1615,
+              "decode_s": 5.8118,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 73.64148609992117,
+              "prompt_s": 45.651300000000006,
+              "decode_s": 1.2437,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.898
+            }
+          ]
+        },
+        {
+          "index": 6,
+          "whole_task_s": 105.52050019986928,
+          "calls": [
+            {
+              "wall_s": 31.716907000169158,
+              "prompt_s": 21.0773,
+              "decode_s": 5.6751000000000005,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 73.07251030020416,
+              "prompt_s": 45.5122,
+              "decode_s": 1.371,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.191
+            }
+          ]
+        },
+        {
+          "index": 7,
+          "whole_task_s": 105.87304859980941,
+          "calls": [
+            {
+              "wall_s": 33.54776509990916,
+              "prompt_s": 21.835,
+              "decode_s": 5.5596000000000005,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.62083519995213,
+              "prompt_s": 45.844,
+              "decode_s": 1.2105,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.245
+            }
+          ]
+        },
+        {
+          "index": 8,
+          "whole_task_s": 104.0417627999559,
+          "calls": [
+            {
+              "wall_s": 31.681667799595743,
+              "prompt_s": 20.7533,
+              "decode_s": 5.4814,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.7422357997857,
+              "prompt_s": 45.2194,
+              "decode_s": 1.2185,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.873
+            }
+          ]
+        },
+        {
+          "index": 9,
+          "whole_task_s": 106.33730489993468,
+          "calls": [
+            {
+              "wall_s": 33.329821300227195,
+              "prompt_s": 21.38,
+              "decode_s": 5.4577,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.4169830000028,
+              "prompt_s": 45.0,
+              "decode_s": 1.2622,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.322
+            }
+          ]
+        },
+        {
+          "index": 10,
+          "whole_task_s": 103.26983609981835,
+          "calls": [
+            {
+              "wall_s": 30.94692869996652,
+              "prompt_s": 21.376,
+              "decode_s": 5.3473999999999995,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.80349059961736,
+              "prompt_s": 45.7662,
+              "decode_s": 1.18,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.689
+            }
+          ]
+        },
+        {
+          "index": 11,
+          "whole_task_s": 104.28297409974039,
+          "calls": [
+            {
+              "wall_s": 31.608953999821097,
+              "prompt_s": 20.77,
+              "decode_s": 5.3261,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.08970270026475,
+              "prompt_s": 44.733599999999996,
+              "decode_s": 1.2002000000000002,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 22.069
+            }
+          ]
+        },
+        {
+          "index": 12,
+          "whole_task_s": 102.07564270030707,
+          "calls": [
+            {
+              "wall_s": 30.125407100189477,
+              "prompt_s": 21.276400000000002,
+              "decode_s": 5.3633999999999995,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.47587080020458,
+              "prompt_s": 45.2329,
+              "decode_s": 1.2598,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.805
+            }
+          ]
+        },
+        {
+          "index": 13,
+          "whole_task_s": 104.05704319989309,
+          "calls": [
+            {
+              "wall_s": 32.046794400084764,
+              "prompt_s": 20.7514,
+              "decode_s": 5.3306000000000004,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.46218350017443,
+              "prompt_s": 45.7572,
+              "decode_s": 1.2210999999999999,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.533
+            }
+          ]
+        },
+        {
+          "index": 14,
+          "whole_task_s": 103.72404030011967,
+          "calls": [
+            {
+              "wall_s": 30.077611200045794,
+              "prompt_s": 20.4988,
+              "decode_s": 5.3507,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.36898860009387,
+              "prompt_s": 44.7294,
+              "decode_s": 1.2278,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.039
+            }
+          ]
+        },
+        {
+          "index": 15,
+          "whole_task_s": 104.17958379955962,
+          "calls": [
+            {
+              "wall_s": 31.972324199974537,
+              "prompt_s": 20.955,
+              "decode_s": 5.3434,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.29166290024295,
+              "prompt_s": 45.0454,
+              "decode_s": 1.2592999999999999,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.939
+            }
+          ]
+        },
+        {
+          "index": 16,
+          "whole_task_s": 102.68446630006656,
+          "calls": [
+            {
+              "wall_s": 30.457615699619055,
+              "prompt_s": 20.849,
+              "decode_s": 5.272,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.72551120026037,
+              "prompt_s": 44.7889,
+              "decode_s": 1.1861,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.319
+            }
+          ]
+        },
+        {
+          "index": 17,
+          "whole_task_s": 104.58716369979084,
+          "calls": [
+            {
+              "wall_s": 32.63349219970405,
+              "prompt_s": 21.0248,
+              "decode_s": 5.2548,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.28299130033702,
+              "prompt_s": 44.9718,
+              "decode_s": 1.2481,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.925
+            }
+          ]
+        },
+        {
+          "index": 18,
+          "whole_task_s": 101.56169650005177,
+          "calls": [
+            {
+              "wall_s": 29.896298800129443,
+              "prompt_s": 20.697599999999998,
+              "decode_s": 5.179399999999999,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.21168219996616,
+              "prompt_s": 44.163,
+              "decode_s": 1.1822000000000001,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.686
+            }
+          ]
+        },
+        {
+          "index": 19,
+          "whole_task_s": 103.45950820017606,
+          "calls": [
+            {
+              "wall_s": 32.19235080014914,
+              "prompt_s": 21.0507,
+              "decode_s": 5.2255,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.75323570007458,
+              "prompt_s": 44.693599999999996,
+              "decode_s": 1.2357,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.775
+            }
+          ]
+        },
+        {
+          "index": 20,
+          "whole_task_s": 102.16197769995779,
+          "calls": [
+            {
+              "wall_s": 29.860363299958408,
+              "prompt_s": 20.614099999999997,
+              "decode_s": 5.181,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.70848380029202,
+              "prompt_s": 44.8587,
+              "decode_s": 1.2103,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 21.373
+            }
+          ]
+        },
+        {
+          "index": 21,
+          "whole_task_s": 103.66369260009378,
+          "calls": [
+            {
+              "wall_s": 32.508786000311375,
+              "prompt_s": 20.6497,
+              "decode_s": 5.734100000000001,
+              "prompt_tokens": 359,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.65204570023343,
+              "prompt_s": 44.5786,
+              "decode_s": 1.183,
+              "prompt_tokens": 1531,
+              "output_tokens": 5,
+              "encoder_s": 20.576
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "0": {
+          "wall_s": {
+            "n": 20,
+            "p50": 31.681667799595743,
+            "p95": 33.329821300227195
+          },
+          "prompt_s": {
+            "n": 20,
+            "p50": 21.0248,
+            "p95": 21.6757
+          },
+          "decode_s": {
+            "n": 20,
+            "p50": 5.3507,
+            "p95": 6.5201
+          }
+        },
+        "1": {
+          "wall_s": {
+            "n": 20,
+            "p50": 71.72551120026037,
+            "p95": 73.64148609992117
+          },
+          "prompt_s": {
+            "n": 20,
+            "p50": 45.0454,
+            "p95": 45.865300000000005
+          },
+          "decode_s": {
+            "n": 20,
+            "p50": 1.2278,
+            "p95": 1.371
+          },
+          "encoder_s": {
+            "n": 20,
+            "p50": 20.925,
+            "p95": 21.686
+          }
+        }
+      }
+    },
+    "medium": {
+      "samples": [
+        {
+          "index": 24,
+          "whole_task_s": 105.88139420002699,
+          "calls": [
+            {
+              "wall_s": 33.666382499970496,
+              "prompt_s": 23.479599999999998,
+              "decode_s": 5.2537,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.6894387002103,
+              "prompt_s": 44.9088,
+              "decode_s": 1.3093,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 21.113
+            }
+          ]
+        },
+        {
+          "index": 25,
+          "whole_task_s": 106.8378542996943,
+          "calls": [
+            {
+              "wall_s": 35.10489770025015,
+              "prompt_s": 23.6835,
+              "decode_s": 5.1067,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.21059889998287,
+              "prompt_s": 44.9268,
+              "decode_s": 1.2193,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.356
+            }
+          ]
+        },
+        {
+          "index": 26,
+          "whole_task_s": 105.00882719969377,
+          "calls": [
+            {
+              "wall_s": 33.55833889963105,
+              "prompt_s": 23.1062,
+              "decode_s": 5.3384,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.96278499998152,
+              "prompt_s": 44.543699999999994,
+              "decode_s": 1.1794,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.606
+            }
+          ]
+        },
+        {
+          "index": 27,
+          "whole_task_s": 104.98579580010846,
+          "calls": [
+            {
+              "wall_s": 33.983881999738514,
+              "prompt_s": 23.502299999999998,
+              "decode_s": 4.9285,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.55577460024506,
+              "prompt_s": 44.5608,
+              "decode_s": 1.1392,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.526
+            }
+          ]
+        },
+        {
+          "index": 28,
+          "whole_task_s": 105.56212189979851,
+          "calls": [
+            {
+              "wall_s": 33.527154500130564,
+              "prompt_s": 24.2557,
+              "decode_s": 5.0257,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.4845409002155,
+              "prompt_s": 45.142199999999995,
+              "decode_s": 1.1529,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.746
+            }
+          ]
+        },
+        {
+          "index": 29,
+          "whole_task_s": 106.00917610013857,
+          "calls": [
+            {
+              "wall_s": 33.984052000101656,
+              "prompt_s": 23.2416,
+              "decode_s": 4.9205,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.2810860001482,
+              "prompt_s": 44.4493,
+              "decode_s": 1.1418,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 21.457
+            }
+          ]
+        },
+        {
+          "index": 30,
+          "whole_task_s": 104.99634769978002,
+          "calls": [
+            {
+              "wall_s": 32.749524699989706,
+              "prompt_s": 23.5837,
+              "decode_s": 4.8679,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.73741830000654,
+              "prompt_s": 45.0607,
+              "decode_s": 1.1965999999999999,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.974
+            }
+          ]
+        },
+        {
+          "index": 31,
+          "whole_task_s": 105.06021950021386,
+          "calls": [
+            {
+              "wall_s": 33.82150560012087,
+              "prompt_s": 23.2822,
+              "decode_s": 4.8742,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.65475740004331,
+              "prompt_s": 44.5539,
+              "decode_s": 1.1528,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.688
+            }
+          ]
+        },
+        {
+          "index": 32,
+          "whole_task_s": 104.82984340004623,
+          "calls": [
+            {
+              "wall_s": 33.94997709989548,
+              "prompt_s": 23.4812,
+              "decode_s": 5.0668999999999995,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.25195659976453,
+              "prompt_s": 44.2452,
+              "decode_s": 1.1538,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.66
+            }
+          ]
+        },
+        {
+          "index": 33,
+          "whole_task_s": 105.83503489987925,
+          "calls": [
+            {
+              "wall_s": 34.202765400055796,
+              "prompt_s": 23.354200000000002,
+              "decode_s": 4.8809,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.07076360005885,
+              "prompt_s": 45.0794,
+              "decode_s": 1.1312,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.381
+            }
+          ]
+        },
+        {
+          "index": 34,
+          "whole_task_s": 103.32068709982559,
+          "calls": [
+            {
+              "wall_s": 31.990471800323576,
+              "prompt_s": 23.24,
+              "decode_s": 4.7876,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.73804600024596,
+              "prompt_s": 44.4309,
+              "decode_s": 1.1412,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 21.173
+            }
+          ]
+        },
+        {
+          "index": 35,
+          "whole_task_s": 105.57853639964014,
+          "calls": [
+            {
+              "wall_s": 33.79421429987997,
+              "prompt_s": 23.1843,
+              "decode_s": 4.8155,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.0862607001327,
+              "prompt_s": 45.059,
+              "decode_s": 1.1399000000000001,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.611
+            }
+          ]
+        },
+        {
+          "index": 36,
+          "whole_task_s": 102.98902630014345,
+          "calls": [
+            {
+              "wall_s": 32.24705890007317,
+              "prompt_s": 23.3535,
+              "decode_s": 4.7885,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.22507240017876,
+              "prompt_s": 44.3062,
+              "decode_s": 1.1425,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.716
+            }
+          ]
+        },
+        {
+          "index": 37,
+          "whole_task_s": 105.96452730009332,
+          "calls": [
+            {
+              "wall_s": 34.895636199973524,
+              "prompt_s": 23.8972,
+              "decode_s": 4.7795,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.54550289968029,
+              "prompt_s": 44.615199999999994,
+              "decode_s": 1.1716,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.277
+            }
+          ]
+        },
+        {
+          "index": 38,
+          "whole_task_s": 103.95367379998788,
+          "calls": [
+            {
+              "wall_s": 32.33650599978864,
+              "prompt_s": 23.1964,
+              "decode_s": 5.0146999999999995,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.91623290022835,
+              "prompt_s": 44.3325,
+              "decode_s": 1.1399000000000001,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.665
+            }
+          ]
+        },
+        {
+          "index": 39,
+          "whole_task_s": 105.60747590009123,
+          "calls": [
+            {
+              "wall_s": 34.716808299999684,
+              "prompt_s": 24.0172,
+              "decode_s": 4.9218,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.2088540000841,
+              "prompt_s": 44.5358,
+              "decode_s": 1.1745,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.423
+            }
+          ]
+        },
+        {
+          "index": 40,
+          "whole_task_s": 104.35909810010344,
+          "calls": [
+            {
+              "wall_s": 32.68043900001794,
+              "prompt_s": 23.3429,
+              "decode_s": 4.9968,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.16793469991535,
+              "prompt_s": 44.0174,
+              "decode_s": 1.1425999999999998,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 21.456
+            }
+          ]
+        },
+        {
+          "index": 41,
+          "whole_task_s": 105.4425698001869,
+          "calls": [
+            {
+              "wall_s": 34.08457050006837,
+              "prompt_s": 23.2308,
+              "decode_s": 4.8286999999999995,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.80490210000426,
+              "prompt_s": 44.2511,
+              "decode_s": 1.1630999999999998,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 21.084
+            }
+          ]
+        },
+        {
+          "index": 42,
+          "whole_task_s": 112.4346106001176,
+          "calls": [
+            {
+              "wall_s": 39.14562950003892,
+              "prompt_s": 26.230400000000003,
+              "decode_s": 8.876100000000001,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.72371640009806,
+              "prompt_s": 45.689699999999995,
+              "decode_s": 1.1522000000000001,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 21.529
+            }
+          ]
+        },
+        {
+          "index": 43,
+          "whole_task_s": 107.50231349980459,
+          "calls": [
+            {
+              "wall_s": 35.01275800028816,
+              "prompt_s": 23.9272,
+              "decode_s": 5.0047,
+              "prompt_tokens": 471,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.96060309978202,
+              "prompt_s": 45.6896,
+              "decode_s": 1.201,
+              "prompt_tokens": 1643,
+              "output_tokens": 5,
+              "encoder_s": 20.454
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "0": {
+          "wall_s": {
+            "n": 20,
+            "p50": 33.82150560012087,
+            "p95": 35.10489770025015
+          },
+          "prompt_s": {
+            "n": 20,
+            "p50": 23.354200000000002,
+            "p95": 24.2557
+          },
+          "decode_s": {
+            "n": 20,
+            "p50": 4.9218,
+            "p95": 5.3384
+          }
+        },
+        "1": {
+          "wall_s": {
+            "n": 20,
+            "p50": 70.96278499998152,
+            "p95": 71.96060309978202
+          },
+          "prompt_s": {
+            "n": 20,
+            "p50": 44.5539,
+            "p95": 45.6896
+          },
+          "decode_s": {
+            "n": 20,
+            "p50": 1.1528,
+            "p95": 1.2193
+          },
+          "encoder_s": {
+            "n": 20,
+            "p50": 20.665,
+            "p95": 21.457
+          }
+        }
+      }
+    },
+    "long": {
+      "samples": [
+        {
+          "index": 46,
+          "whole_task_s": 111.14863649988547,
+          "calls": [
+            {
+              "wall_s": 39.141607500147074,
+              "prompt_s": 29.371,
+              "decode_s": 5.5587,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.50652930000797,
+              "prompt_s": 44.9313,
+              "decode_s": 1.1079,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.886
+            }
+          ]
+        },
+        {
+          "index": 47,
+          "whole_task_s": 119.42538789985701,
+          "calls": [
+            {
+              "wall_s": 40.442913400009274,
+              "prompt_s": 29.0639,
+              "decode_s": 5.4403999999999995,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 78.16391839971766,
+              "prompt_s": 50.8266,
+              "decode_s": 1.1268,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.493
+            }
+          ]
+        },
+        {
+          "index": 48,
+          "whole_task_s": 114.30881249997765,
+          "calls": [
+            {
+              "wall_s": 40.09779780032113,
+              "prompt_s": 30.1438,
+              "decode_s": 5.5889,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 73.64579869993031,
+              "prompt_s": 46.7087,
+              "decode_s": 1.0764,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.018
+            }
+          ]
+        },
+        {
+          "index": 49,
+          "whole_task_s": 113.58924160012975,
+          "calls": [
+            {
+              "wall_s": 40.96925289975479,
+              "prompt_s": 30.3312,
+              "decode_s": 4.5179,
+              "prompt_tokens": 807,
+              "output_tokens": 30,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.05594820016995,
+              "prompt_s": 46.0042,
+              "decode_s": 1.1138,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.601
+            }
+          ]
+        },
+        {
+          "index": 50,
+          "whole_task_s": 111.88257909985259,
+          "calls": [
+            {
+              "wall_s": 39.0618468998,
+              "prompt_s": 29.671599999999998,
+              "decode_s": 5.5732,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.27668990008533,
+              "prompt_s": 45.246,
+              "decode_s": 1.0791,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.417
+            }
+          ]
+        },
+        {
+          "index": 51,
+          "whole_task_s": 114.01624590018764,
+          "calls": [
+            {
+              "wall_s": 40.80216069985181,
+              "prompt_s": 29.7856,
+              "decode_s": 5.3658,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.56819040002301,
+              "prompt_s": 45.5049,
+              "decode_s": 1.0769000000000002,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.121
+            }
+          ]
+        },
+        {
+          "index": 52,
+          "whole_task_s": 110.8167677000165,
+          "calls": [
+            {
+              "wall_s": 38.519423600286245,
+              "prompt_s": 29.0375,
+              "decode_s": 5.3157,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.79370070016012,
+              "prompt_s": 45.1194,
+              "decode_s": 1.1265999999999998,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.55
+            }
+          ]
+        },
+        {
+          "index": 53,
+          "whole_task_s": 111.80985339963809,
+          "calls": [
+            {
+              "wall_s": 40.26921339984983,
+              "prompt_s": 29.677,
+              "decode_s": 5.3073999999999995,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.08223930001259,
+              "prompt_s": 45.045199999999994,
+              "decode_s": 1.0937999999999999,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.022
+            }
+          ]
+        },
+        {
+          "index": 54,
+          "whole_task_s": 110.80732880020514,
+          "calls": [
+            {
+              "wall_s": 38.80315400008112,
+              "prompt_s": 29.07,
+              "decode_s": 5.5811,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.181735499762,
+              "prompt_s": 45.1578,
+              "decode_s": 1.0834000000000001,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.871
+            }
+          ]
+        },
+        {
+          "index": 55,
+          "whole_task_s": 114.58981040026993,
+          "calls": [
+            {
+              "wall_s": 41.203170699998736,
+              "prompt_s": 29.177,
+              "decode_s": 5.273899999999999,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.65420169988647,
+              "prompt_s": 45.3925,
+              "decode_s": 1.1353,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.95
+            }
+          ]
+        },
+        {
+          "index": 56,
+          "whole_task_s": 111.43426760006696,
+          "calls": [
+            {
+              "wall_s": 39.0029700002633,
+              "prompt_s": 29.4726,
+              "decode_s": 5.3529,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.97839199984446,
+              "prompt_s": 45.0205,
+              "decode_s": 1.166,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.886
+            }
+          ]
+        },
+        {
+          "index": 57,
+          "whole_task_s": 113.11024049995467,
+          "calls": [
+            {
+              "wall_s": 38.48258229997009,
+              "prompt_s": 29.0751,
+              "decode_s": 5.397,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.86713810032234,
+              "prompt_s": 45.2591,
+              "decode_s": 1.0163,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.229
+            }
+          ]
+        },
+        {
+          "index": 58,
+          "whole_task_s": 110.4171913000755,
+          "calls": [
+            {
+              "wall_s": 39.456406799610704,
+              "prompt_s": 29.6354,
+              "decode_s": 5.302,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.4767263000831,
+              "prompt_s": 44.9907,
+              "decode_s": 1.0974000000000002,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.571
+            }
+          ]
+        },
+        {
+          "index": 59,
+          "whole_task_s": 113.47116419998929,
+          "calls": [
+            {
+              "wall_s": 40.8257414996624,
+              "prompt_s": 28.9707,
+              "decode_s": 5.1176,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.92074430035427,
+              "prompt_s": 44.7995,
+              "decode_s": 1.0837999999999999,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.08
+            }
+          ]
+        },
+        {
+          "index": 60,
+          "whole_task_s": 110.00628189975396,
+          "calls": [
+            {
+              "wall_s": 38.33095919992775,
+              "prompt_s": 28.8647,
+              "decode_s": 5.1941999999999995,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.18711119983345,
+              "prompt_s": 45.2765,
+              "decode_s": 1.0791,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.863
+            }
+          ]
+        },
+        {
+          "index": 61,
+          "whole_task_s": 111.99143300019205,
+          "calls": [
+            {
+              "wall_s": 40.65015370026231,
+              "prompt_s": 29.6495,
+              "decode_s": 5.2817,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 70.72813790012151,
+              "prompt_s": 44.704699999999995,
+              "decode_s": 1.0722,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.81
+            }
+          ]
+        },
+        {
+          "index": 62,
+          "whole_task_s": 110.99397740000859,
+          "calls": [
+            {
+              "wall_s": 38.27325419988483,
+              "prompt_s": 28.9748,
+              "decode_s": 5.104100000000001,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 72.10133379977196,
+              "prompt_s": 45.1329,
+              "decode_s": 1.0952,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.137
+            }
+          ]
+        },
+        {
+          "index": 63,
+          "whole_task_s": 120.29929989995435,
+          "calls": [
+            {
+              "wall_s": 41.23909009993076,
+              "prompt_s": 29.801299999999998,
+              "decode_s": 5.2962,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 78.38903809990734,
+              "prompt_s": 52.581900000000005,
+              "decode_s": 1.0685,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.594
+            }
+          ]
+        },
+        {
+          "index": 64,
+          "whole_task_s": 112.26371689978987,
+          "calls": [
+            {
+              "wall_s": 39.668018099851906,
+              "prompt_s": 29.4753,
+              "decode_s": 5.8252,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.80901460023597,
+              "prompt_s": 45.5748,
+              "decode_s": 1.0620999999999998,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 21.043
+            }
+          ]
+        },
+        {
+          "index": 65,
+          "whole_task_s": 113.00787299964577,
+          "calls": [
+            {
+              "wall_s": 41.0731767998077,
+              "prompt_s": 29.301099999999998,
+              "decode_s": 5.4248,
+              "prompt_tokens": 807,
+              "output_tokens": 34,
+              "encoder_s": null
+            },
+            {
+              "wall_s": 71.27754259994254,
+              "prompt_s": 45.347,
+              "decode_s": 1.092,
+              "prompt_tokens": 1979,
+              "output_tokens": 5,
+              "encoder_s": 20.573
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "0": {
+          "wall_s": {
+            "n": 20,
+            "p50": 39.668018099851906,
+            "p95": 41.203170699998736
+          },
+          "prompt_s": {
+            "n": 20,
+            "p50": 29.371,
+            "p95": 30.1438
+          },
+          "decode_s": {
+            "n": 20,
+            "p50": 5.3157,
+            "p95": 5.5889
+          }
+        },
+        "1": {
+          "wall_s": {
+            "n": 20,
+            "p50": 71.86713810032234,
+            "p95": 78.16391839971766
+          },
+          "prompt_s": {
+            "n": 20,
+            "p50": 45.246,
+            "p95": 50.8266
+          },
+          "decode_s": {
+            "n": 20,
+            "p50": 1.0837999999999999,
+            "p95": 1.1353
+          },
+          "encoder_s": {
+            "n": 20,
+            "p50": 21.018,
+            "p95": 21.55
+          }
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Runtime prompt/decode and encoder intervals are nested inside call wall time; do not add quantiles or treat them as independent stages.",
+    "Single configuration; no causal comparison or speedup claim.",
+    "CPU encoder selected; whole-model execution attribution and physical SSD time remain unqualified.",
+    "Fixed screenshot task family; not broad Agent task quality."
+  ],
+  "producer_sha256": "19420d410d9faf58c2a50028312bfa3b1adf502f6f6745948c8857894cc1c5fb",
+  "producer_archive": {
+    "path": "strata_q4_image_20g_tree1s_stages_producer_20261021.py.gz",
+    "sha256": "9dfda9d08a04809b4420db27c243a65a267a76219839c94092763390e00528a2"
+  }
+}
