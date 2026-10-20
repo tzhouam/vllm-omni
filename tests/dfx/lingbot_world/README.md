@@ -486,11 +486,10 @@ schedule or matrix identifier.
 | CUDA and NPU video quality together | `quality` | 2 | 2 H100 |
 | CPU unit and aggregation on L4 workers | `l4-cpu` | 1 | 1 L4, masked during tests |
 
-Benchmark generation, aggregation and quality use `priority: -10`, below the
-normal PR priority of `0`; the unit and smoke gates retain `0`. All four groups
-use `concurrency_method: eager`, allowing ready higher-priority jobs to claim
-available slots without waiting behind earlier dependency-blocked jobs.
-Priority does not preempt running jobs or reserve capacity for other PRs.
+All regression jobs use `priority: 0`, the same as normal PR tests. All four
+groups use `concurrency_method: eager`, allowing ready jobs to claim available
+slots without waiting behind earlier dependency-blocked jobs.
+Concurrency limits do not preempt running jobs or reserve capacity for other PRs.
 These limits bound this suite's peak reservation, not its total device-hours:
 all cases, starts and quality dimensions remain required. They apply to newly
 uploaded jobs; already queued jobs and their retries retain their old settings.

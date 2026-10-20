@@ -117,9 +117,9 @@ LingBot regression jobs share organization-wide concurrency groups across builds
 and triggers: one CUDA generation/smoke job, one NPU collector, two CUDA/NPU
 quality jobs combined, and one L4 worker for CPU unit/aggregation jobs. Keep
 group names independent of build, branch, schedule and matrix coordinates.
-Benchmark jobs use priority -10 below normal PR jobs; unit/smoke retain 0.
-Use eager admission so queued benchmarks do not impose ordered-group barriers
-on ready PR jobs. Limits bound peak reservation, preserve the full workload,
+All regression jobs use priority 0, the same as normal PR tests.
+Use eager admission so dependency-blocked jobs do not impose ordered-group
+barriers on ready jobs. Limits bound peak reservation, preserve the full workload,
 and do not preempt running work or replace hardware acceptance.
 GPU evaluators consume checksum-verified CUDA or NPU videos and enforce native
 per-dimension quality limits. Persist evaluator hardware, dependencies and input

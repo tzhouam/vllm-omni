@@ -423,7 +423,7 @@ steps:
         concurrency: 1
         concurrency_group: vllm-omni/lingbot-world/npu-generation
         concurrency_method: eager
-        priority: -10
+        priority: 0
         matrix:
           setup:
             repeat: ["0", "1", "2"]
@@ -448,7 +448,7 @@ steps:
         concurrency: 1
         concurrency_group: vllm-omni/lingbot-world/l4-cpu
         concurrency_method: eager
-        priority: -10
+        priority: 0
         source_file_dependencies: lingbot_world_regression
         depends_on:
           - lingbot-npu-nightly-generation
@@ -464,7 +464,7 @@ steps:
         concurrency: 2
         concurrency_group: vllm-omni/lingbot-world/quality
         concurrency_method: eager
-        priority: -10
+        priority: 0
         source_file_dependencies: lingbot_world_regression
         depends_on:
           - step: lingbot-npu-nightly-gate

@@ -1088,9 +1088,9 @@ def test_lingbot_resource_budget_survives_pipeline_expansion(
             group, limit = "vllm-omni/lingbot-world/l4-cpu", 1
         assert step["concurrency_group"] == group
         assert step["concurrency"] == limit
-        # Eager admission lets ready PR jobs take precedence over queued benchmarks.
+        # Ready jobs can take available slots without dependency-order barriers.
         assert step["concurrency_method"] == "eager"
-        assert step["priority"] == (0 if role in {"unit", "smoke"} else -10)
+        assert step["priority"] == 0
         assert "mirror_hardwares" not in step and "agents" in step
         # Throttling must preserve every case/repeat and the blocking dependency DAG.
         for field in ("matrix", "depends_on", "env", "timeout_in_minutes"):

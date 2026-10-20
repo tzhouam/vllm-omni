@@ -640,7 +640,7 @@ steps:
         concurrency: 1
         concurrency_group: vllm-omni/lingbot-world/cuda-generation
         concurrency_method: eager
-        priority: -10
+        priority: 0
         source_file_dependencies: lingbot_world_regression
         timeout_in_minutes: 240
         mirror_hardwares: h100_4_exclusive
@@ -658,7 +658,7 @@ steps:
         concurrency: 2
         concurrency_group: vllm-omni/lingbot-world/quality
         concurrency_method: eager
-        priority: -10
+        priority: 0
         source_file_dependencies: lingbot_world_regression
         depends_on:
           - step: lingbot-cuda-nightly-generation
