@@ -1,0 +1,52 @@
+{
+  "schema": "omni-strata-verification-prototype-v1",
+  "date": "2026-10-20",
+  "status": "small_real_file_correctness_tests_passed_not_integrated",
+  "production_used": false,
+  "model_executed": false,
+  "speedup_measured": false,
+  "test_runner_exit_code": 0,
+  "tests_run": 10,
+  "test_elapsed_s": 0.333,
+  "test_result_origin": "Terminal session 27494 completed EXIT 0; unittest reported Ran 10 tests / OK. Summary transcribed from tool output; stdout was not redirected to an artifact.",
+  "tests": [
+    "real-file serial parity and order at 1/2/4 workers",
+    "missing file rejection",
+    "changed size rejection",
+    "same-size corruption rejection",
+    "first manifest error order across multiple failures",
+    "digest not cached across mutation",
+    "worker count type and range rejection",
+    "production manifest path validation reused",
+    "started workers drained before failure returns",
+    "at most four pending futures"
+  ],
+  "contract": {
+    "maximum_workers": 4,
+    "maximum_pending_futures": 4,
+    "hash_chunk_bytes_per_worker": 65536,
+    "digest_cache": false,
+    "ordered_result_and_first_failure": true,
+    "started_workers_joined_before_return": true,
+    "source_path_and_manifest_validation": "existing production helpers",
+    "scope": "matching current verifier checks, not new TOCTOU or loaded-image attestation guarantees"
+  },
+  "source_files": {
+    "bounded_verify.py": {
+      "sha256": "d8e321ae1274c502f83fbd3e316f6142e066ec28ad3298a687bb6a22911e516f",
+      "size_bytes": 1972
+    },
+    "test_bounded_verify.py": {
+      "sha256": "9e1770610a0b16de5b361aace5cf1b9a7fcd9ef1e10f80d65c6cec044a81efec",
+      "size_bytes": 5551
+    }
+  },
+  "production_reference": {
+    "vllm_omni/engine/weight_tiers.py": "012edffbd83cccfed4627b330caf3553c51e013838108c3b801a503356d1dec6",
+    "vllm_omni/engine/resource_ledger.py": "935e4b497307437ba85b48eed0e015bbecf5b17e1022155d77c0efcbaa43997b"
+  },
+  "next_gate": "After active model profiling, compare serial and bounded verification on exactly the same complete pinned runtime manifest. Preserve every byte hash and error boundary. No deployment or performance claim before measured results.",
+  "measurement_interference_note": "Small fixture test process imported production modules during full-run pre-request loading. No concurrent model execution or real-runtime large-file scan by prototype. Full-run cold-start cache conditions remain uncontrolled.",
+  "source_archive": "strata_bounded_verification_prototype_20261020.tar.gz",
+  "source_archive_sha256": "5ff648a6d8cb0864792d0cdd947c9183ae5af30e4f5577e4804b03c8c11f334f"
+}
