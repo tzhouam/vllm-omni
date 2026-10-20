@@ -6,13 +6,17 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
 import os
 import re
 import shutil
 import subprocess
+import sys
 import urllib.request
 from pathlib import Path
+
+from packaging.version import Version
 
 from benchmarks.lingbot_world.regression import RegressionError, read_json, sha256, verify_environment, write_json
 from tests.dfx.lingbot_world.opencv_provider import PROVIDER, validate_opencv_provider_record
@@ -146,6 +150,38 @@ def checkout(path: Path, url: str, revision: str, *, submodules: bool = False) -
         subprocess.run(
             ["git", "-C", str(path), "submodule", "update", "--init", "--recursive"], check=True, timeout=1200
         )
+
+
+def verify_inference_runtime() -> None:
+    version = importlib.metadata.version("vllm")
+    parsed = Version(version)
+    if parsed.base_version != "0.32.0" or parsed.is_prerelease or parsed.is_devrelease:
+        raise RegressionError(f"LingBot reference requires vLLM 0.32.0, found {version}")
+
+
+def verify_source_imports(reference: Path) -> None:
+    """Exercise both serving entrypoints before downloading or loading weights."""
+    from tests.dfx.lingbot_world.runner import server_environment
+
+    for role, source in (("reference", reference.resolve()), ("candidate", ROOT)):
+        print(f"Checking {role} serving imports: {source}", flush=True)
+        try:
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "import sys; from pathlib import Path; import vllm_omni; "
+                    "assert Path(vllm_omni.__file__).resolve().parent == Path(sys.argv[1]) / 'vllm_omni'; "
+                    "import vllm_omni.entrypoints.cli.main",
+                    str(source),
+                ],
+                cwd=source,
+                env={**os.environ, **server_environment(source)},
+                check=True,
+                timeout=180,
+            )
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            raise RegressionError(f"{role} serving import preflight failed: {source}") from error
 
 
 def _prepare_evaluators(root: Path) -> Path:
@@ -317,7 +353,9 @@ def main():
         if args.profile is None:
             parser.error("reference needs --profile")
         settings = read_json(args.profile)
+        verify_inference_runtime()
         checkout(args.root.resolve(), "https://github.com/vllm-project/vllm-omni.git", settings["reference_revision"])
+        verify_source_imports(args.root)
         model = os.environ.get("LINGBOT_MODEL_PATH")
         if model is None:
             lock = read_json(ROOT / "tests/dfx/lingbot_world/assets.lock.json")

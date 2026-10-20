@@ -101,7 +101,11 @@ budgets. Record the evaluated case while retaining the complete producer
 profile and manifest hash; verify all producer artifact hashes and preserve the
 producer's failure in the final gate. Use distinct per-case output directories.
 The initial CUDA/NPU production reference is frozen at
-`4134c7f421a195407da6f779f21c3e40c93a2440`. Its fresh calibration is pending:
+`37adcce0a204440de9541d5155baa16a7e081d6d`, based on Omni `v0.32.0rc1`
+and the NPU offload fix. Require vLLM 0.32.0 and verify both source checkouts
+can import their serving entrypoints before provisioning model weights.
+A compatible Ascend image is required before NPU collection can resume.
+Fresh calibration is pending:
 older-reference records remain immutable and must fail contract validation
 against the new pin. Collect fresh reference-role data, freeze training records,
 then validate independent held-out references and final-source candidates.

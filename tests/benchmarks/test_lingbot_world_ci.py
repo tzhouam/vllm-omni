@@ -855,6 +855,64 @@ def evaluator_repository(root: Path):
     (root / "requirements/lingbot-quality.txt").write_text("example==1\n")
 
 
+@pytest.mark.parametrize("version", ["0.32.0", "0.32.0+ascend", "0.31.0", "0.33.0", "0.32.0rc1", "0.32.0.dev1"])
+def test_inference_runtime_requires_v032_release(version, monkeypatch):
+    from tests.dfx.lingbot_world import prepare
+
+    monkeypatch.setattr(prepare.importlib.metadata, "version", lambda name: version)
+    if version in {"0.32.0", "0.32.0+ascend"}:
+        prepare.verify_inference_runtime()
+    else:
+        with pytest.raises(RegressionError, match="requires vLLM 0.32.0"):
+            prepare.verify_inference_runtime()
+
+
+@pytest.mark.parametrize("broken_role", [None, "reference", "candidate"])
+def test_source_import_preflight_uses_each_checkout(tmp_path, monkeypatch, broken_role):
+    from tests.dfx.lingbot_world import prepare
+
+    for role in ("reference", "candidate"):
+        package = tmp_path / role / "vllm_omni"
+        cli = package / "entrypoints/cli"
+        cli.mkdir(parents=True)
+        (package / "__init__.py").write_text("")
+        (cli / "main.py").write_text("raise ImportError('removed runtime API')\n" if role == broken_role else "")
+    monkeypatch.setattr(prepare, "ROOT", tmp_path / "candidate")
+    # A candidate inherited from the job must not shadow the reference.
+    monkeypatch.setenv("PYTHONPATH", str(tmp_path / "candidate"))
+    if broken_role:
+        with pytest.raises(RegressionError, match=f"{broken_role} serving import preflight failed"):
+            prepare.verify_source_imports(tmp_path / "reference")
+    else:
+        prepare.verify_source_imports(tmp_path / "reference")
+
+
+@pytest.mark.parametrize("failure", ["runtime", "imports"])
+def test_reference_preparation_checks_compatibility_before_model_download(tmp_path, monkeypatch, failure):
+    from tests.dfx.lingbot_world import prepare
+
+    profile = tmp_path / "profile.json"
+    profile.write_text(json.dumps({"reference_revision": "a" * 40}))
+    monkeypatch.setattr(
+        sys, "argv", ["prepare", "reference", "--profile", str(profile), "--root", str(tmp_path / "ref")]
+    )
+    monkeypatch.delenv("LINGBOT_MODEL_PATH", raising=False)
+    calls = []
+
+    def check(stage):
+        calls.append(stage)
+        if stage == failure:
+            raise RegressionError("incompatible source/runtime")
+
+    monkeypatch.setattr(prepare, "verify_inference_runtime", lambda: check("runtime"))
+    monkeypatch.setattr(prepare, "checkout", lambda *args: check("checkout"))
+    monkeypatch.setattr(prepare, "verify_source_imports", lambda *args: check("imports"))
+    monkeypatch.setattr(prepare.subprocess, "check_output", lambda *args, **kwargs: pytest.fail("download started"))
+    with pytest.raises(RegressionError, match="incompatible source/runtime"):
+        prepare.main()
+    assert calls == (["runtime"] if failure == "runtime" else ["runtime", "checkout", "imports"])
+
+
 def test_explicit_model_provisioning_preserves_offline_inference(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     from tests.dfx.lingbot_world import prepare
 
@@ -865,6 +923,8 @@ def test_explicit_model_provisioning_preserves_offline_inference(tmp_path: Path,
     output = tmp_path / "model.json"
     monkeypatch.setenv("HF_HUB_OFFLINE", "1")
     monkeypatch.delenv("LINGBOT_MODEL_PATH", raising=False)
+    monkeypatch.setattr(prepare, "verify_inference_runtime", lambda: None)
+    monkeypatch.setattr(prepare, "verify_source_imports", lambda *args: None)
     monkeypatch.setattr(prepare, "checkout", lambda *args: None)
     monkeypatch.setattr(
         sys,

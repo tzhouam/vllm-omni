@@ -6,13 +6,15 @@ gate logic separately and are not model performance evidence.
 ## Current production reference: calibration pending
 
 The initial production baseline is pinned to
-`4134c7f421a195407da6f779f21c3e40c93a2440` for both CUDA and NPU. It contains the
+`37adcce0a204440de9541d5155baa16a7e081d6d` for both CUDA and NPU. It contains the
 accepted main implementation and the NPU offload fix; its `vllm_omni` tree is
-`17f2bb16a58de8d695f9b5de1649fe6a4ab0d6d9`, identical to the implementation being
-introduced into CI. This baseline choice was explicitly approved before fresh
-reference collection on 2026-10-19. The pin includes upstream main
-`990d4c1061124bb87ba3b57a8c1095c2799b41aa`, verified against the actual GitHub
-merge tree before collection. Future candidate changes remain compared
+`506484183470ed5d7c7ac57c1889815812424404`, identical to the implementation being
+introduced into CI. This reference was refreshed for vLLM 0.32.0 on 2026-10-20. The pin includes
+Omni `v0.32.0rc1` at `da572cddb38383deae9caef33b8d490e292ef071`
+and the NPU offload fix. The previous reference
+`4134c7f421a195407da6f779f21c3e40c93a2440` imports a removed vLLM API;
+CUDA build 17617 and NPU build 9340 failed runtime setup and provide no
+calibration evidence. Future candidate changes remain compared
 against the frozen reference; updating a candidate must not advance this pin.
 
 Calibration is **pending**. Existing calibration JSON files retain the earlier
@@ -51,12 +53,22 @@ Before collecting new values, use this reference-only protocol:
 
 ## Prerequisites and commands
 
-Use the inference environment matching `docker/Dockerfile.ci` (vLLM 0.31.0)
+Use the inference environment matching `docker/Dockerfile.ci` (vLLM 0.32.0)
 and development dependencies. Reserve devices with the host scheduler before
 inference. Full CUDA profiles use four GPUs while reserving all eight GPU slots
 of a node in the H100 pool; NPU reserves eight Ascend A2 devices and uses four. The smoke
 uses the real 14B checkpoint at 192×320 on one GPU. Full performance/quality
 profiles remain 480×832. CI provides exclusive devices.
+
+Reference preparation requires vLLM 0.32.0 and imports both reference and
+candidate serving entrypoints in separate processes before model downloads.
+Each process verifies that it loaded the requested source checkout. A package
+or import mismatch fails setup without starting model inference. NPU also
+requires a compatible vLLM-Ascend stack: the current `Dockerfile.npu.ci` base
+still bundles vLLM 0.31.0 and cannot run this reference. As of 2026-10-20,
+neither `quay.io/atlas-ci/vllm-ascend` nor `quay.io/ascend/vllm-ascend`
+publishes a `v0.32.0` tag. Keep NPU collection pending until a compatible
+image is available; do not replace its integrated stack with a CUDA wheel.
 
 The CUDA performance preset prevents other GPU jobs from sharing the eight-GPU
 node during paired measurements. The launcher verifies all eight reserved
