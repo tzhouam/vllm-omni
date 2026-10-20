@@ -57,9 +57,9 @@ def validate_strata_multimodal_load_plan(plan, requested):
             != hashlib.sha256(strata_vision.bootstrap_source(text_bootstrap).encode()).hexdigest()
             or image.get("base_text_bootstrap_sha256") != hashlib.sha256(text_bootstrap.encode()).hexdigest()
             or image.get("vision_adapter_sha256") != strata_vision.digest(Path(strata_vision.__file__))
-            or image.get("encoder_device") != "cpu"
+            or image.get("encoder_device") not in {"cpu", "cuda"}
             or image.get("allow_cpu_fallback") is not False
-            or image.get("native_startup_warmup_pixels") != 0
+            or image.get("native_startup_warmup_pixels") != (2048 * 2048 if image.get("encoder_device") == "cuda" else 0)
             or image.get("encoder_physical_gpu_identity") is not None
         ):
             raise ValueError("image route/source/control identity is incomplete or mismatched")
@@ -148,21 +148,25 @@ def validate_strata_multimodal_load_plan(plan, requested):
         ):
             raise ValueError("separate exact encoder role/module closure is unverified")
         backend = plan["encoder_backend_selection_at_load"]
+        cuda = image["encoder_device"] == "cuda"
         if (
             backend.get("schema") != "strata-vision-backend-v1"
-            or backend.get("device_type") != "CPU"
-            or backend.get("primary_backend") != "CPU"
-            or backend.get("gpu_requested") is not False
+            or backend.get("device_type") != ("GPU" if cuda else "CPU")
+            or backend.get("primary_backend") != ("CUDA0" if cuda else "CPU")
+            or backend.get("gpu_requested") is not cuda
             or backend.get("cpu_fallback_available") is not True
         ):
-            raise ValueError("actual CPU encoder backend selection is unverified")
+            raise ValueError("actual encoder backend selection is unverified")
         bounds = image["bounds_and_declared_budgets"]
-        if any(type(value) is not int or value < 0 for value in bounds.values()) or bounds["vision_gpu_bytes"] != 0:
-            raise ValueError("invalid explicit CPU image budget")
+        if any(type(value) is not int or value < 0 for value in bounds.values()):
+            raise ValueError("invalid explicit image budget")
+        if not cuda and (bounds["vision_gpu_bytes"] != 0 or "cuda_encoder_at_load" in plan
+                         or "cuda_execution" in image):
+            raise ValueError("CPU image route contains CUDA claims")
         host = bounds["vision_host_bytes"]
         scratch = bounds["vision_scratch_bytes"]
         if (
-            host < image["projector_size_bytes"] + bounds["max_image_pixels"] * 32 + 2 * bounds["max_image_bytes"]
+            (not cuda and host < image["projector_size_bytes"] + bounds["max_image_pixels"] * 32 + 2 * bounds["max_image_bytes"])
             or scratch
             < 2 * (20 + 4 * bounds["embedding_width"] * bounds["max_image_tokens"]) + bounds["max_image_bytes"]
             or bounds["max_image_tokens"] + plan["max_new_tokens"] + 8 >= plan["context_tokens"]
@@ -195,6 +199,18 @@ def validate_strata_multimodal_load_plan(plan, requested):
             )
         ):
             raise ValueError("image stage does not bind the shared typed admission budget")
+        if cuda:
+            strata_vision.reviewed_vision_build("cuda", image["encoder_sha256"])
+            loaded = plan["cuda_encoder_at_load"]
+            if not isinstance(loaded, dict) or set(loaded) != {"lease", "startup"}:
+                raise ValueError("CUDA load snapshot fields are incomplete")
+            verified = strata_vision.validate_cuda_load_evidence(
+                loaded["startup"], loaded["lease"], image["cuda_execution"], bounds,
+                {"gpu": tier.budget.gpu_workspace_bytes, "host": tier.budget.host_workspace_bytes},
+                reserved, plan["fresh_memory_admission"], int(requested.rsplit(":", 1)[1]), plan["gpu_pool"],
+            )
+            if verified != loaded:
+                raise ValueError("CUDA startup and shared lease evidence differ")
         if (
             plan.get("declared_modalities") != ["text", "image"]
             or plan.get("qualified_modalities") != []
@@ -212,7 +228,7 @@ def validate_strata_multimodal_load_plan(plan, requested):
         ):
             raise ValueError("experimental image route makes an unsupported capability or qualification claim")
     except (RuntimeError, KeyError, TypeError, ValueError, AttributeError) as exc:
-        raise RuntimeError("Strata did not verify its experimental CPU image stage load plan") from exc
+        raise RuntimeError("Strata did not verify its experimental image stage load plan") from exc
 
 
 class StrataMultimodalStageClient(strata.StrataTextStageClient):

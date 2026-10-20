@@ -1,0 +1,55 @@
+{
+  "schema": "omni-strata-cuda-load-plan-progress-v1",
+  "tests": {
+    "passed": 136,
+    "skipped": 1,
+    "warnings": 14,
+    "seconds": 15.55
+  },
+  "first_attempt": {
+    "failed": 25,
+    "reason": "old error-message regular expressions expected CPU-only wording; rejection behavior unchanged"
+  },
+  "runtime_staging": {
+    "files": 42672,
+    "bytes": 2836730247,
+    "baseline_members_verified": 42652,
+    "wall_seconds": 672.3656481001526,
+    "resource_samples": 486,
+    "sampling_missing_initial_seconds": true
+  },
+  "static_verifier": {
+    "status": "running_at_record_time",
+    "session": 78064,
+    "worker_pid": 222604,
+    "profiler_session": 15196
+  },
+  "changes": [
+    "Complete image load-plan verifier accepts CUDA only with bound v3 binary, CUDA0 selection, unchanged physical probe and shared typed memory lease",
+    "CPU route rejects CUDA claims",
+    "Existing module ownership, source identities, single-request limits and experimental status remain required"
+  ],
+  "remaining": [
+    "Finish static runtime verification",
+    "CUDA route configuration activation",
+    "Live Agent regression and paired profiling"
+  ],
+  "evidence": [
+    {
+      "path": "strata_cuda-full-load-plan-tests-20261021.log.gz",
+      "raw_sha256": "d20737de64c8bfcd0d8d8d9d16ca47783e011505866c91d138ded3259fd204af"
+    },
+    {
+      "path": "strata_cuda-full-load-plan-tests-v2-20261021.log.gz",
+      "raw_sha256": "9eab9cf1b2d82976952b21e204d6b4e07e62223773293b151b72a0dac1723980"
+    },
+    {
+      "path": "strata_cuda-v3-full-staging-20261021.json.gz",
+      "raw_sha256": "5b8bf94686ec0e941b26a938bb77ced2c6affe6ab9ff34edcda1bf9aae676743"
+    },
+    {
+      "path": "strata_cuda-v3-staging-resources-20261021.jsonl.gz",
+      "raw_sha256": "2d8f421be949b4d74d9fcfbcc772a44e63bf3e5ce7f3d8f4b506985d9cfa8471"
+    }
+  ]
+}

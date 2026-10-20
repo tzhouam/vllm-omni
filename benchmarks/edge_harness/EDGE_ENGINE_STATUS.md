@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **完整 CUDA 加载计划校验接入；完整运行包哈希核验完成**：CUDA 分支要求 v3 编码器、CUDA0 选择、同一物理探测和共享 typed lease，以及完整预热证据；CPU 分支拒绝混入 CUDA 声明。回归 **136 passed／1 skipped**。独立完整包 42,672 成员／2,836,730,247 B，原有 42,652 成员全部匹配；准备 672.37 s，附加采样 486 条（初始时段缺失）。正式静态运行时校验仍在执行；配置启用和真实 Agent 回归尚待完成。[代码验证、完整包和 profiling](results/strata_20261008/strata_cuda_full_load_plan_20261021.json)。
+
 2026-10-21 **CUDA 加载证据快照与租约复核接入**：READY 时冻结设备／预算／预热报告，后续请求内存采样不覆盖启动证据；加载路径按 fresh admission、共享 reservation 和物理 GPU 重建租约并比较，拒绝混用来源、预算超限及预热失败。视觉回归 **129 passed／1 skipped**。完整运行包仍在逐文件核验，CUDA 配置与完整 load-plan gate 尚待一起开放；本轮无新神经执行。[实现范围和原始测试日志](results/strata_20261008/strata_cuda_load_snapshot_20261021.json)。
 
 2026-10-21 **CUDA v3 独立视觉运行包完成，完整包复制后核验中**：20 文件／613,529,728 B，包括已绑定编码器、两个实际 PE 必需 cuBLAS DLL 和构建证据，递归依赖闭合通过；原 CPU 包保留。完整 e39-v6 副本已复制，逐文件哈希核验仍在进行，附加进程 CPU／内存／逻辑 I/O 采样（挂接前有缺口）。尚无本轮模型实跑或 Agent 提速结论。[运行包记录和复现脚本](results/strata_20261008/strata_cuda_runtime_package_20261021.json)。

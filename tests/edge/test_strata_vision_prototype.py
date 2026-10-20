@@ -1326,7 +1326,7 @@ def test_multimodal_load_gate_refuses_tampered_missing_or_broadened_evidence(loa
         preimage.pop("identity_sha256")
         image["identity_sha256"] = hashlib.sha256(vision.canonical(preimage).encode()).hexdigest()
         p["route_controls_sha256"] = hashlib.sha256(vision.canonical(p["route_controls"]).encode()).hexdigest()
-    with pytest.raises(RuntimeError, match="experimental CPU image"):
+    with pytest.raises(RuntimeError, match="experimental image"):
         multimodal.validate_strata_multimodal_load_plan(p, "cpu+cuda:0")
 
 
@@ -1422,7 +1422,7 @@ def test_real_shaped_patch_source_lineage_is_required_even_when_resigned(loaded_
     loaded_image_plan["route_controls_sha256"] = hashlib.sha256(
         vision.canonical(loaded_image_plan["route_controls"]).encode()
     ).hexdigest()
-    with pytest.raises(RuntimeError, match="experimental CPU image"):
+    with pytest.raises(RuntimeError, match="experimental image"):
         multimodal.validate_strata_multimodal_load_plan(loaded_image_plan, "cpu+cuda:0")
 
 
@@ -1712,3 +1712,50 @@ def test_cuda_startup_report_unavailable_before_ready_or_after_failure():
     _, evidence = cuda_startup_for_lease()
     with pytest.raises(ValueError): evidence.observe("unknown", {})
     with pytest.raises(ValueError): evidence.startup_report()
+
+
+@pytest.fixture
+def loaded_cuda_image_plan(loaded_image_plan):
+    plan = loaded_image_plan
+    args, evidence = cuda_startup_for_lease()
+    policy, limits, workspaces, _, memory = args
+    image = plan["image_route"]
+    image["encoder_device"] = "cuda"
+    image["native_startup_warmup_pixels"] = 2048 * 2048
+    image["encoder_sha256"] = vision.REVIEWED_CUDA_ENCODER_SHA256
+    image["cuda_execution"] = policy
+    image["bounds_and_declared_budgets"].update(limits)
+    plan["selected_encoder_module_audit_at_load"]["modules"] = [{"sha256": image["encoder_sha256"]}]
+    plan["encoder_backend_selection_at_load"].update(device_type="GPU", primary_backend="CUDA0", gpu_requested=True)
+    tier = tiers.WeightTierPlan.from_dict(plan["weight_tier_plan"])
+    budget = dataclasses.replace(tier.budget, gpu_workspace_bytes=workspaces["gpu"],
+        host_workspace_bytes=workspaces["host"], host_loading_peak_bytes=workspaces["host"],
+        ssd_temporary_bytes=limits["vision_scratch_bytes"])
+    plan["weight_tier_plan"] = dataclasses.replace(tier, budget=budget).to_dict()
+    plan["host_overhead_bytes"] = workspaces["host"]
+    plan["reserved_bytes"] = budget.resource_demands(gpu_pool="vram:0")
+    plan["fresh_memory_admission"].update(memory)
+    lease = vision.bind_cuda_vision_lease(policy, image["bounds_and_declared_budgets"], workspaces,
+        plan["reserved_bytes"], plan["fresh_memory_admission"], 0, "vram:0")
+    plan["cuda_encoder_at_load"] = {"lease": lease, "startup": evidence.startup_report()}
+    image.pop("identity_sha256")
+    image["identity_sha256"] = hashlib.sha256(vision.canonical(image).encode()).hexdigest()
+    plan["route_controls_sha256"] = hashlib.sha256(vision.canonical(plan["route_controls"]).encode()).hexdigest()
+    return plan
+
+
+def test_complete_cuda_load_plan_checks_same_pool_and_startup(loaded_cuda_image_plan):
+    multimodal.validate_strata_multimodal_load_plan(loaded_cuda_image_plan, "cpu+cuda:0")
+
+
+@pytest.mark.parametrize("case", ["missing", "pool", "primary", "budget", "warmup", "probe"])
+def test_complete_cuda_load_plan_rejects_unverified_execution(loaded_cuda_image_plan, case):
+    plan = loaded_cuda_image_plan
+    if case == "missing": plan.pop("cuda_encoder_at_load")
+    if case == "pool": plan["cuda_encoder_at_load"]["lease"]["gpu_pool"] = "vram:1"
+    if case == "primary": plan["encoder_backend_selection_at_load"]["primary_backend"] = "CPU"
+    if case == "budget": plan["cuda_encoder_at_load"]["startup"]["memory"]["gpu_bytes"] = 1 << 40
+    if case == "warmup": plan["cuda_encoder_at_load"]["startup"]["warmup"]["status"] = "failed"
+    if case == "probe": plan["fresh_memory_admission"]["gpu_pci_bus_id"] = "00000000:65:00.0"
+    with pytest.raises(RuntimeError, match="image stage load plan"):
+        multimodal.validate_strata_multimodal_load_plan(plan, "cpu+cuda:0")
