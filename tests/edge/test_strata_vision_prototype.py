@@ -1660,3 +1660,55 @@ def test_cuda_build_requires_all_incremental_patches():
     cpu, bound = vision.reviewed_vision_build("cpu", "fixture")
     assert cpu == vision.REVIEWED_VISION_EVIDENCE
     assert bound == 256 << 20
+
+
+def cuda_startup_for_lease():
+    args = cuda_lease_fixture()
+    contract = args[0]["contract"]
+    evidence = vision.CudaEncoderEvidence(contract)
+    events = cuda_payloads()
+    events[1][1].update(gpu_limit=contract["gpu_tensor_bytes"], host_limit=contract["host_tensor_bytes"])
+    for event, payload in events:
+        evidence.observe(event, payload)
+    evidence.require_ready()
+    return args, evidence
+
+
+def test_cuda_startup_snapshot_does_not_change_with_runtime_samples():
+    args, evidence = cuda_startup_for_lease()
+    original = evidence.startup_report()
+    sample = original["memory"].copy()
+    sample["gpu_bytes"] += 1
+    evidence.observe("cuda_memory", sample, request_active=True)
+    assert evidence.memory != original["memory"]
+    assert evidence.startup_report() == original
+    original["memory"]["gpu_bytes"] = -1
+    assert evidence.startup_report()["memory"]["gpu_bytes"] >= 0
+    lease = vision.bind_cuda_vision_lease(*args, 0, "vram:0")
+    result = vision.validate_cuda_load_evidence(evidence.startup_report(), lease, *args, 0, "vram:0")
+    assert result["lease"] == lease
+    assert result["startup"] == evidence.startup_report()
+
+
+@pytest.mark.parametrize("case", ["lease", "probe", "budget", "device", "memory", "warmup", "extra"])
+def test_cuda_load_evidence_rejects_mixed_or_incomplete_startup(case):
+    args, evidence = cuda_startup_for_lease()
+    lease = vision.bind_cuda_vision_lease(*args, 0, "vram:0")
+    report = evidence.startup_report()
+    if case == "lease": lease["gpu_pool"] = "vram:1"
+    if case == "probe": args[4]["gpu_uuid"] = "GPU-00000000-0000-0000-0000-000000000000"
+    if case == "budget": args[2]["gpu"] = 1
+    if case == "device": report["device"]["pci_bus_id"] = "00000000:65:00.0"
+    if case == "memory": report["memory"]["gpu_bytes"] = 1 << 40
+    if case == "warmup": report["warmup"]["status"] = "failed"
+    if case == "extra": report["quality_passed"] = True
+    with pytest.raises(ValueError):
+        vision.validate_cuda_load_evidence(report, lease, *args, 0, "vram:0")
+
+
+def test_cuda_startup_report_unavailable_before_ready_or_after_failure():
+    evidence = vision.CudaEncoderEvidence(cuda_contract())
+    with pytest.raises(ValueError): evidence.startup_report()
+    _, evidence = cuda_startup_for_lease()
+    with pytest.raises(ValueError): evidence.observe("unknown", {})
+    with pytest.raises(ValueError): evidence.startup_report()

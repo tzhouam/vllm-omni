@@ -679,6 +679,7 @@ class CudaEncoderEvidence:
         self.device = self.memory = self.warmup = None
         self.memory_samples = 0
         self.sealed = self.failed = False
+        self._startup_report = None
 
     def observe(self, event, payload, *, request_active=False):
         try:
@@ -740,6 +741,36 @@ class CudaEncoderEvidence:
             self.failed = True
             raise ValueError("CUDA READY lacks complete admitted startup evidence")
         self.sealed = True
+        self._startup_report = {
+            "schema": "omni-strata-cuda-startup-v1",
+            "device": copy.deepcopy(self.device),
+            "memory": copy.deepcopy(self.memory),
+            "warmup": copy.deepcopy(self.warmup),
+        }
+
+    def startup_report(self):
+        if not self.sealed or self.failed or self._startup_report is None:
+            raise ValueError("CUDA startup report is not ready")
+        return copy.deepcopy(self._startup_report)
+
+
+def validate_cuda_load_evidence(report, lease, policy, bounds, workspaces, reservation, memory, gpu_index, gpu_pool):
+    """Recheck native startup against the same live-admission lease.
+
+    Return only a snapshot; this grants neither all-operator placement nor quality.
+    """
+    expected = bind_cuda_vision_lease(policy, bounds, workspaces, reservation, memory, gpu_index, gpu_pool)
+    if lease != expected:
+        raise ValueError("CUDA load evidence does not match shared admission lease")
+    if not isinstance(report, dict) or set(report) != {"schema", "device", "memory", "warmup"}:
+        raise ValueError("invalid CUDA startup report fields")
+    if report["schema"] != "omni-strata-cuda-startup-v1":
+        raise ValueError("invalid CUDA startup report schema")
+    evidence = CudaEncoderEvidence(expected["contract"])
+    for event, field in (("cuda_device", "device"), ("cuda_memory", "memory"), ("cuda_warmup", "warmup")):
+        evidence.observe(event, report[field])
+    evidence.require_ready()
+    return {"lease": copy.deepcopy(expected), "startup": evidence.startup_report()}
 
 
 class OwnedEncoderWriter:

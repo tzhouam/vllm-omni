@@ -1,0 +1,27 @@
+{
+  "schema": "omni-strata-cuda-load-snapshot-progress-v1",
+  "tests": {
+    "passed": 129,
+    "skipped": 1,
+    "warnings": 14,
+    "seconds": 14.22
+  },
+  "scope": "snapshot and lease contract tests; no neural run",
+  "changes": [
+    "Freeze deep-copied CUDA startup report at READY",
+    "Keep runtime memory reports separate from startup evidence",
+    "Reconstruct exact lease from fresh admission snapshot and shared reservation before accepting load evidence",
+    "Bind report to physical GPU, tensor limits and warmup status",
+    "Store verified CUDA startup and lease in multimodal execution plan"
+  ],
+  "evidence": {
+    "path": "strata_cuda_load_snapshot_tests_20261021.log.gz",
+    "raw_sha256": "57bb30793c9ef950b5e8ffb1932c5caa0d78130f1263c57acea24ed02fc69546"
+  },
+  "remaining": [
+    "Complete runtime staging and static verification",
+    "Enable CUDA configuration and full multimodal load-plan validation together",
+    "Live Agent lifecycle, quality and paired profiling"
+  ],
+  "cuda_route_enabled": false
+}

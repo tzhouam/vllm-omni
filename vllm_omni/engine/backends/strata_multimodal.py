@@ -381,6 +381,14 @@ class StrataMultimodalStageClient(strata.StrataTextStageClient):
         self.execution_plan["image_route"] = image_identity
         self.execution_plan["owned_encoder_at_load"] = copy.deepcopy(self._encoder_observer.identity)
         self.execution_plan["encoder_backend_selection_at_load"] = copy.deepcopy(self._encoder_observer.backend)
+        if self._vision["config"]["encoder_device"] == "cuda":
+            cfg = self._vision["config"]
+            self.execution_plan["cuda_encoder_at_load"] = strata_vision.validate_cuda_load_evidence(
+                self._encoder_observer.cuda.startup_report(), self._vision["cuda_lease"],
+                cfg["cuda_execution"], cfg, self._vision["shared_workspaces"],
+                self.execution_plan["reserved_bytes"], self.execution_plan["fresh_memory_admission"],
+                self._physical_gpu, self.execution_plan["gpu_pool"],
+            )
         encoder_module_audit = strata.strata_io.audit_selected_loaded_modules(
             self._encoder_observer.identity,
             self._vision["runtime_root"],
