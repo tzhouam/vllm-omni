@@ -1,0 +1,232 @@
+{
+  "requests": [
+    {
+      "phase": "initial",
+      "case_id": "approval_heading",
+      "request_id": "strata-a1946043a8b145828ccd23db459e82c9",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 57.05759279988706,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "6dfa4f4fde7d4a488696b1555d9e99ab",
+      "loaded_plan_sha256": "e33fe42dc8a32bb80206a1b42c4eea41fa4ec89529930ac7c397fa0b7a9dffa2",
+      "proof_file": "initial-approval_heading-proof.json",
+      "proof_sha256": "68afdbecfcbf82da412f9d6b3cef7a1ceb928de2a67f19ccded88b343b6a87a4",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    {
+      "phase": "initial",
+      "case_id": "bilingual_button_label",
+      "request_id": "strata-e34e4b5eaad2447cbe4443cdb1751e91",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 56.748224599752575,
+      "native_seq": 2,
+      "encoder_seq": 2,
+      "generation": "6dfa4f4fde7d4a488696b1555d9e99ab",
+      "loaded_plan_sha256": "e33fe42dc8a32bb80206a1b42c4eea41fa4ec89529930ac7c397fa0b7a9dffa2",
+      "proof_file": "initial-bilingual_button_label-proof.json",
+      "proof_sha256": "e36e104047c8cfd09a94d3e049b64b30c37feeb622907dc12a858ea9e8f0b523",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    {
+      "phase": "recovery",
+      "case_id": "approval_heading",
+      "request_id": "strata-6d84af404c2447ee93a02a68eb71ead1",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 55.813515100162476,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "bf21e10567014d2cab2587f9737475ae",
+      "loaded_plan_sha256": "3a9e76f80b08fbe1ae19b4039de3a54dcf20b14eda64e43fa3d2e0608a0a8b9a",
+      "proof_file": "recovery-approval_heading-proof.json",
+      "proof_sha256": "be897034fd4c862bbc35fbcedb0ddae883a3c153496b3c2b36b5f44ae01ae243",
+      "sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    }
+  ],
+  "batch_size": 1,
+  "concurrency": 1,
+  "initial_start_s": 922.605657600332,
+  "recovery_start_s": 853.0572222000919,
+  "encoder_phase_cancel_passed": true,
+  "fresh_generation_image_recovery_passed": true,
+  "resource_drain_verified": true,
+  "source_stable": true,
+  "input_stable": true,
+  "raw_files": {
+    "after-cancel-ledger.json": {
+      "size_bytes": 273,
+      "sha256": "755de7c4c23dc1a714b506de64cafcbba1fadd0c20075c2f688c833e4f16bb7d"
+    },
+    "after-cancel-loaded-plan.json": {
+      "size_bytes": 300404,
+      "sha256": "16afe1c256f0a169137ae72439393a0cf94fb26a92718a2bb0d2be77cb52ff5f"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392744,
+      "sha256": "1dcf71e230e384c1f810500a4ea303ba2e760eebdbefc619c2452a5dc4f628ce"
+    },
+    "encoder-cancellation.json": {
+      "size_bytes": 12433,
+      "sha256": "a16404db05f332fee4570b11b7a9fe00cc9b7abf57ebd80609d233a4086f44e8"
+    },
+    "initial-approval_heading-proof.json": {
+      "size_bytes": 90924,
+      "sha256": "fd0d584ecf4e6fdd3816021037986f6bb93b9f598c61bca48238b11222b6241f"
+    },
+    "initial-approval_heading-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "initial-approval_heading.json": {
+      "size_bytes": 286740,
+      "sha256": "8957d344a430f3252bab4b2decfb6c419670d9bd42c4250386019ebf6d564bf8"
+    },
+    "initial-approval_heading.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "initial-bilingual_button_label-proof.json": {
+      "size_bytes": 91118,
+      "sha256": "b7580bc1ed081d995853b01fe04539670909d10db0db0a1f8edf23f50126d064"
+    },
+    "initial-bilingual_button_label-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "initial-bilingual_button_label.json": {
+      "size_bytes": 290010,
+      "sha256": "6e4fc2efc0724ebdf092b02078af21ad1787b808cca5c6a6d5220b98904731da"
+    },
+    "initial-bilingual_button_label.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "initial-close.json": {
+      "size_bytes": 923,
+      "sha256": "ba9c3d04b44675396a00ef827a396b7e1f881b6d53611a104ea7735139c7537c"
+    },
+    "initial-last-image.json": {
+      "size_bytes": 942,
+      "sha256": "80f1340eacf28baf1bff635fd7bc8f6d3517cf75ee2fd43f7782da23a6c69207"
+    },
+    "initial-last-io.json": {
+      "size_bytes": 2228,
+      "sha256": "f27707c8ba918a05e28429a96087154b73c44d41f7e6fd066830832b484733f1"
+    },
+    "initial-loaded-plan.json": {
+      "size_bytes": 316199,
+      "sha256": "6d7bf3c2f5921394ecefe98d765f5df66539b4bc9125fd871d2b1db48cedfca6"
+    },
+    "input.png": {
+      "size_bytes": 59775,
+      "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e"
+    },
+    "recovery-approval_heading-proof.json": {
+      "size_bytes": 90922,
+      "sha256": "100d52160235fd52fd4f65d6893546c67ffaf726731f7de4ae9c83c45fabd6d8"
+    },
+    "recovery-approval_heading-sve.json": {
+      "size_bytes": 187,
+      "sha256": "ce11b97002b7dd508a1549bd144520000cc0f2ebe219f201a38cfefe2dca5ab3"
+    },
+    "recovery-approval_heading.json": {
+      "size_bytes": 286733,
+      "sha256": "40cb4e6cb8146dd5e76c2e45b5fd2f084b961f7aa8d95793207330a9c3c6e021"
+    },
+    "recovery-approval_heading.sve": {
+      "size_bytes": 8110100,
+      "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70"
+    },
+    "recovery-close.json": {
+      "size_bytes": 1792,
+      "sha256": "86b4414cabab38c9ee8915af0a1c1c06454595d669b8e82bed0861a3be9bdd8c"
+    },
+    "recovery-last-image.json": {
+      "size_bytes": 1296,
+      "sha256": "16b0e3e2fdaeb90d44ff5b43b87becfe9509c5a59a0590bb3ddc111d7c5f76de"
+    },
+    "recovery-last-io.json": {
+      "size_bytes": 9954,
+      "sha256": "94ec378ea6453799558dd3bb6c8dd9ab3722751450f36b2fbf43c050a043322e"
+    },
+    "recovery-loaded-plan.json": {
+      "size_bytes": 316199,
+      "sha256": "74da136f22bcb28531ca93b941d07be5ebc87367b3a8e2b17492c3630fb9558e"
+    },
+    "reference.json": {
+      "size_bytes": 1058,
+      "sha256": "ae90056198d16d861d4cc9139e4df68684533c74a38b55606f2ed267af19f3ed"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 20385330,
+      "sha256": "c5d198ac2e2fc5725fc3985691c5ffd6713ac6bc899cba55e93bc1faf5d5d19a"
+    }
+  },
+  "loaded_python_runtime_identity": {
+    "python": "3.12.10",
+    "omni_source_sha256": "e2fbd0cb64db36768ffc2393afa6cf67151c34918c902f5b004010baf85a6ab0",
+    "vllm_source_sha256": "e9cc8ed865c106f143c4c76cf7ae365e1222445e89ffbc6b7120c3741a95189b",
+    "stage_contract_source_sha256": "12bd9def4a53a012b50fad7b2c76249fd2a0d59048adfe5c0a90d71cb2851bc3",
+    "dependencies": {
+      "cryptography": "50.0.1",
+      "numpy": "2.3.5",
+      "nvidia-ml-py": "13.610.43",
+      "pillow": "12.3.0",
+      "playwright": "1.63.0",
+      "psutil": "7.2.2",
+      "pynvml": "not-installed",
+      "pyside6": "6.11.2",
+      "torch": "2.13.0+cu130",
+      "vllm": "0.29.0+cu134",
+      "vllm-omni": "0.29.0rc2.dev238+g189f7f0df.d20261005"
+    }
+  },
+  "loaded_python_runtime_sha256": "67a2b8e689878516c71ba4c26a508c49c7d416f8e0dc9b276602016695c15da4",
+  "scope": "two real-app image tasks, actual encoder-phase cancellation and fresh image recovery; not performance/default/whole-model qualification",
+  "schema": "omni-strata-20g-gpu-tree1s-lifecycle-v1",
+  "status": "scoped_lifecycle_and_closed_evidence_gate_passed",
+  "run_exit_code": 0,
+  "audit_exit_code": 0,
+  "receipt_sha256": "b13d60d702a411cd0ce44bc1880a6db50a2cfc4a553d4249fb52ab35620e144b",
+  "audit_sha256": "b7a2c67c656e136eaa7b5770d407250b3b32f92da2757d571896dcd8c0c26094",
+  "private_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-lifecycle-tree1s-20261021",
+  "profile_completion": {
+    "ended": "2026-10-20T18:11:30.006381+00:00",
+    "samples": 2280,
+    "observation_errors": 0,
+    "reason": "bound root process exited",
+    "elapsed_seconds": 2281.217999999877
+  },
+  "profile_files": {
+    "completion.json": {
+      "size_bytes": 182,
+      "sha256": "39a0c3dc0349b2a353a046ec5840b1bd313d7d76ff35258fad91f11f33b77606"
+    },
+    "metadata.json": {
+      "size_bytes": 980,
+      "sha256": "3fe52bf4ef2c6223fefe86c82b30356697e0c2725268b179e048456dca140ad6"
+    },
+    "samples.jsonl": {
+      "size_bytes": 5401049,
+      "sha256": "29fc438d61989ed74d0cdcf19691d19817dfe201a48dd8f2ba25fa36737d6f1f"
+    }
+  },
+  "qualification": {
+    "agent": false,
+    "performance": false,
+    "default_route": false,
+    "physical_ssd": false
+  },
+  "limitations": [
+    "Three fixed-image lifecycle requests; not broad model or Agent qualification.",
+    "Cold/warm filesystem cache and background conditions were not paired; no causal speedup claim.",
+    "Main process-tree RSS refresh interval is one second; host/GPU requested cadence unchanged.",
+    "Independent process I/O is logical; system disk counters are not attributable physical SSD reads.",
+    "Short nonblocking GIL-only startup stack capture overlapped this run; see private diagnostic directory.",
+    "Agent smoke started separately; its results are pending."
+  ],
+  "startup_diagnostic_private_path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-20g-gpu-tree1s-startup-stack-20261021"
+}
