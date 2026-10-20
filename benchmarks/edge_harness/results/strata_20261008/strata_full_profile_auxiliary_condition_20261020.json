@@ -1,0 +1,126 @@
+{
+  "schema": "omni-profile-environment-condition-v1",
+  "recorded_utc": "2026-10-20T10:17:57.016152+00:00",
+  "run": "q4-image-profile-full-6g-20261020-v6",
+  "status": "ongoing_protocol_environment_condition_not_final_result",
+  "records": {
+    "auxiliary-import-disturbance.json": {
+      "sha256": "1ffa811b506223878c94a384a49fa2c5ea1c47870c550f0bddb50678bea50ffd",
+      "content": {
+        "recorded_utc": "2026-10-20T10:16:45.401241+00:00",
+        "reason": "CLI help imported production modules before argument parsing; no benchmark or model execution requested",
+        "session": 71650,
+        "corrected": "Production imports moved after argument parsing and live-profile guard",
+        "impact": "Concurrent CPU, RAM and file-read disturbance; do not claim isolated baseline",
+        "owned_help_process_already_exited": true,
+        "observed_process_start_local": "2026-10-20T18:15:35+08:00",
+        "observed_exit_upper_bound_utc": "2026-10-20T10:16:45.401241+00:00",
+        "exit_code": 0,
+        "termination_performed": false,
+        "post_fix_live_guard_test": "passed before production module import",
+        "unknown_exact_exit_time": true
+      }
+    },
+    "auxiliary-import-overlap-current.json": {
+      "sha256": "fb1f05fa2ad49c48d0d1067ff730f428390f4328bc53c9ff95665351ffdc3182",
+      "content": {
+        "status": "partial_live_observation",
+        "disturbance_window_unix": [
+          1792491335.0,
+          1792491405.401241
+        ],
+        "mapping": "Per-request first event at_unix minus receipt monotonic clock; approximate wall-time alignment, not calibrated clock uncertainty",
+        "samples": [
+          {
+            "index": 0,
+            "phase": "warmup",
+            "ordinal": 0,
+            "request_id": "1da6f7a2c3f2465d8766336795150e48",
+            "estimated_start_unix": 1792490747.0347989,
+            "estimated_end_unix": 1792490843.6428666,
+            "overlaps_auxiliary_import": false,
+            "elapsed_s": 96.60806779982522
+          },
+          {
+            "index": 1,
+            "phase": "warmup",
+            "ordinal": 1,
+            "request_id": "5a7c61322afc4a4884d1159c60f01c09",
+            "estimated_start_unix": 1792490843.7389803,
+            "estimated_end_unix": 1792490930.36675,
+            "overlaps_auxiliary_import": false,
+            "elapsed_s": 86.62776970025152
+          },
+          {
+            "index": 2,
+            "phase": "measured",
+            "ordinal": 0,
+            "request_id": "a95c4911c4bc4fafb345f15afeae4528",
+            "estimated_start_unix": 1792490930.4659474,
+            "estimated_end_unix": 1792491014.7654898,
+            "overlaps_auxiliary_import": false,
+            "elapsed_s": 84.29954249970615
+          },
+          {
+            "index": 3,
+            "phase": "measured",
+            "ordinal": 1,
+            "request_id": "9a3ad83afc124faf8929f537d3dacb00",
+            "estimated_start_unix": 1792491014.8644502,
+            "estimated_end_unix": 1792491097.8743575,
+            "overlaps_auxiliary_import": false,
+            "elapsed_s": 83.00990730011836
+          },
+          {
+            "index": 4,
+            "phase": "measured",
+            "ordinal": 2,
+            "request_id": "a0651df47ff742e6a9cb7c8d3308db63",
+            "estimated_start_unix": 1792491097.9099452,
+            "estimated_end_unix": 1792491180.3149214,
+            "overlaps_auxiliary_import": false,
+            "elapsed_s": 82.4049761001952
+          },
+          {
+            "index": 5,
+            "phase": "measured",
+            "ordinal": 3,
+            "request_id": "0843b32183244c92a3765db88f09aae6",
+            "estimated_start_unix": 1792491180.3482852,
+            "estimated_end_unix": 1792491268.1061578,
+            "overlaps_auxiliary_import": false,
+            "elapsed_s": 87.75787249999121
+          },
+          {
+            "index": 6,
+            "phase": "measured",
+            "ordinal": 4,
+            "request_id": "c02af1fe5bfe456f91786102232c36d8",
+            "estimated_start_unix": 1792491268.202598,
+            "estimated_end_unix": 1792491350.8540673,
+            "overlaps_auxiliary_import": true,
+            "elapsed_s": 82.65146919991821
+          },
+          {
+            "index": 7,
+            "phase": "measured",
+            "ordinal": 5,
+            "request_id": "4e7275cf0dd940809bb72abf69c3ec8e",
+            "estimated_start_unix": 1792491350.9547586,
+            "estimated_end_unix": 1792491435.7162945,
+            "overlaps_auxiliary_import": true,
+            "elapsed_s": 84.76153599983081
+          }
+        ],
+        "policy": "Keep all samples; mark overlap, no silent removal or causal speedup claim"
+      }
+    }
+  },
+  "reporting_requirements": [
+    "Include this condition in final qualification evidence",
+    "Retain both overlapping measured samples (short ordinal 4 and 5); do not silently exclude them",
+    "No isolated-hardware baseline or causal performance improvement claim",
+    "Exact helper exit time unknown; overlap uses last observed absence as conservative upper bound",
+    "The sampled helper disturbance does not exhaust unrelated host workload uncertainty"
+  ]
+}
