@@ -1,0 +1,243 @@
+{
+  "schema": "strata-runtime-verification-comparison-v1",
+  "status": "completed",
+  "exit_code": 0,
+  "config": {
+    "manifest_sha256": "77b372729c1878b72f44ea5f717c2703364127131079bcb7e337e2564cfc030a",
+    "manifest_file_sha256": "032f842ad58ee133e5c5e813cf6890d3d32982be84f21e1fa38cce33d14f4f90",
+    "root": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\e39-v6",
+    "files": 42653,
+    "bytes": 2231989080,
+    "sources": {
+      "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\bounded-artifact-verify-20261020\\benchmark_verify.py": "21d614a72ca19498d450900b1481062cf08ad22310cdf4fba0ccb808e103cf0e",
+      "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\bounded-artifact-verify-20261020\\bounded_verify.py": "d8e321ae1274c502f83fbd3e316f6142e066ec28ad3298a687bb6a22911e516f",
+      "\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\engine\\weight_tiers.py": "012edffbd83cccfed4627b330caf3553c51e013838108c3b801a503356d1dec6"
+    },
+    "sequence": [
+      0,
+      2,
+      4,
+      0,
+      4,
+      2,
+      0,
+      2,
+      4,
+      0,
+      4,
+      2
+    ],
+    "zero_means": "production serial verify",
+    "cache_condition": "uncontrolled; no cache flush",
+    "scope": "artifact verification microbenchmark only, not whole startup or Agent latency",
+    "full_content_hash_required": true,
+    "digest_cache": false
+  },
+  "completion": {
+    "status": "completed",
+    "samples": 12,
+    "source_stable": true,
+    "production_integrated": false
+  },
+  "samples": [
+    {
+      "index": 0,
+      "workers": 0,
+      "elapsed_s": 565.4174223998562,
+      "cpu_seconds": 72.375,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1051328512,
+      "host_available_bytes": 24339263488,
+      "verified_files": 42653
+    },
+    {
+      "index": 1,
+      "workers": 2,
+      "elapsed_s": 26.28817419987172,
+      "cpu_seconds": 38.671875,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1068158976,
+      "host_available_bytes": 24194260992,
+      "verified_files": 42653
+    },
+    {
+      "index": 2,
+      "workers": 4,
+      "elapsed_s": 23.361075500026345,
+      "cpu_seconds": 43.59375,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1060302848,
+      "host_available_bytes": 24046305280,
+      "verified_files": 42653
+    },
+    {
+      "index": 3,
+      "workers": 0,
+      "elapsed_s": 22.004720500204712,
+      "cpu_seconds": 21.0625,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1073922048,
+      "host_available_bytes": 24491343872,
+      "verified_files": 42653
+    },
+    {
+      "index": 4,
+      "workers": 4,
+      "elapsed_s": 23.961867599748075,
+      "cpu_seconds": 44.328125,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1065607168,
+      "host_available_bytes": 24602357760,
+      "verified_files": 42653
+    },
+    {
+      "index": 5,
+      "workers": 2,
+      "elapsed_s": 25.407427900005132,
+      "cpu_seconds": 36.9375,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1079234560,
+      "host_available_bytes": 24427638784,
+      "verified_files": 42653
+    },
+    {
+      "index": 6,
+      "workers": 0,
+      "elapsed_s": 22.44140010001138,
+      "cpu_seconds": 21.359375,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1069801472,
+      "host_available_bytes": 24424534016,
+      "verified_files": 42653
+    },
+    {
+      "index": 7,
+      "workers": 2,
+      "elapsed_s": 25.358355899807066,
+      "cpu_seconds": 36.71875,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1081360384,
+      "host_available_bytes": 24447741952,
+      "verified_files": 42653
+    },
+    {
+      "index": 8,
+      "workers": 4,
+      "elapsed_s": 23.793594900052994,
+      "cpu_seconds": 45.21875,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1076105216,
+      "host_available_bytes": 24493584384,
+      "verified_files": 42653
+    },
+    {
+      "index": 9,
+      "workers": 0,
+      "elapsed_s": 22.235629600007087,
+      "cpu_seconds": 21.125,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1084506112,
+      "host_available_bytes": 24386928640,
+      "verified_files": 42653
+    },
+    {
+      "index": 10,
+      "workers": 4,
+      "elapsed_s": 23.769677499774843,
+      "cpu_seconds": 45.0,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1079275520,
+      "host_available_bytes": 24395071488,
+      "verified_files": 42653
+    },
+    {
+      "index": 11,
+      "workers": 2,
+      "elapsed_s": 25.791547799948603,
+      "cpu_seconds": 37.703125,
+      "process_logical_read_bytes": 2231989080,
+      "rss_after_bytes": 1087672320,
+      "host_available_bytes": 24528400384,
+      "verified_files": 42653
+    }
+  ],
+  "summary": {
+    "0": {
+      "samples": 4,
+      "wall_seconds": [
+        565.4174223998562,
+        22.004720500204712,
+        22.44140010001138,
+        22.235629600007087
+      ],
+      "median_wall_s": 22.338514850009233,
+      "median_cpu_s": 21.2421875
+    },
+    "2": {
+      "samples": 4,
+      "wall_seconds": [
+        26.28817419987172,
+        25.407427900005132,
+        25.358355899807066,
+        25.791547799948603
+      ],
+      "median_wall_s": 25.599487849976867,
+      "median_cpu_s": 37.3203125
+    },
+    "4": {
+      "samples": 4,
+      "wall_seconds": [
+        23.361075500026345,
+        23.961867599748075,
+        23.793594900052994,
+        23.769677499774843
+      ],
+      "median_wall_s": 23.78163619991392,
+      "median_cpu_s": 44.6640625
+    }
+  },
+  "archive_sha256": "20d286c48ddce072e3b1574cf9c05f4737a5cfec8182edc1598ea9e712263ac4",
+  "archive_members": {
+    "run/config.json": {
+      "size_bytes": 1232,
+      "sha256": "3831710159c057fdefc39e6424ec56f864f160be8c73e7db6de8937aa647df7d"
+    },
+    "run/samples.jsonl": {
+      "size_bytes": 2645,
+      "sha256": "08b4403d8abdaf1ee7575088d2d347b4974ed7a5986ed497c9590c80ab230efd"
+    },
+    "run/completion.json": {
+      "size_bytes": 108,
+      "sha256": "9f40efe90f9dd51eeee3cb2bbe4cad1fe8c9bbcfd4411410544a630abeae47ea"
+    },
+    "prototype/benchmark_verify.py": {
+      "size_bytes": 3780,
+      "sha256": "21d614a72ca19498d450900b1481062cf08ad22310cdf4fba0ccb808e103cf0e"
+    },
+    "prototype/bounded_verify.py": {
+      "size_bytes": 1972,
+      "sha256": "d8e321ae1274c502f83fbd3e316f6142e066ec28ad3298a687bb6a22911e516f"
+    },
+    "prototype/test_bounded_verify.py": {
+      "size_bytes": 5551,
+      "sha256": "9e1770610a0b16de5b361aace5cf1b9a7fcd9ef1e10f80d65c6cec044a81efec"
+    },
+    "prototype/runtime-manifest.json": {
+      "size_bytes": 11774666,
+      "sha256": "032f842ad58ee133e5c5e813cf6890d3d32982be84f21e1fa38cce33d14f4f90"
+    }
+  },
+  "decision": "Keep production serial verification; bounded parallel prototype not integrated",
+  "limitations": [
+    "Only runtime verification, not full model startup or Agent latency",
+    "Cache state uncontrolled, first serial 565.42 seconds retained; do not claim cold-SSD or parallel speedup",
+    "Only four observations per mode; no qualification p95",
+    "First serial has no paired first-access parallel control",
+    "Post-verification resolved-path comparison is outside measured interval",
+    "RSS-after is not sampled peak RAM; logical I/O is not physical SSD attribution"
+  ],
+  "next_work": [
+    "Diagnose observer component cost before changing profiling",
+    "Measure first-access file operations separately before changing runtime packaging or verification"
+  ]
+}
