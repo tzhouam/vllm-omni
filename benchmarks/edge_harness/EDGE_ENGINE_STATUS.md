@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **CUDA v3 完整运行包实际注册成功**：原始权重、pack、运行包及来源检查完成，生成独立文本中间配置，启动文件与成功回执哈希一致；状态为 registered_not_executed，不是模型执行或资格通过。注册进程已正常结束，原始资源采样归档；串联任务已实际启动 CUDA 图像注册，随后再做真实生命周期和 Agent profile。[成功回执、日志与资源统计](results/strata_20261008/strata_cuda_text_registration_completed_20261021.json)。
+
 2026-10-21 **CUDA 生命周期 runner 契约回归 54 项通过**：复用既有取消／恢复／证据隔离测试，范围为合成契约，不是模型执行。实际运行包注册仍在核验权重和来源，资源采样持续记录；已将后续图像注册串联到当前进程成功退出、回执及哈希一致之后，失败不自动重试。[契约日志及串联脚本](results/strata_20261008/strata_cuda_lifecycle_contracts_20261021.json)。
 
 2026-10-21 **Agent CUDA 图像能力绑定完成，真实运行包注册进行中**：Agent 配置检查 v3 编码器、显式策略与语言／视觉共驻预算，加载结果须匹配实际设备及策略，仍仅允许实验性 opt-in。测试 **50 passed**。更新后的运行包及两套源码上下文静态校验通过（210.10 s）；首条路线声明语言 16 GiB＋视觉 5 GiB、CPU 专家 6 GiB、MTP off、视觉 attention off。实际注册正在核验权重及来源并记录进程资源；CUDA 生命周期变体仅已准备，未执行。[证据与复现脚本](results/strata_20261008/strata_cuda_agent_capability_20261021.json)。
