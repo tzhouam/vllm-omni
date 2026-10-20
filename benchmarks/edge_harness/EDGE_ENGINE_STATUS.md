@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **预算检查已移入实际 scheduler 分配边界，GPU 数值回归恢复**：v3 仅在现有 split 后测量并检查 buffer，clip 不再额外 split/reset；Windows 增量编译 9.06 s EXIT 0。真实 GPU auto 嵌入与无预算补丁 v1 逐字节一致，确认主要偏差已修复。GPU off 对历史 CPU auto relative L2 0.01532／cosine 0.999883；对相同 off 设置 CPU 则为 0.02613／0.999659，不能称严格数值等价。三次真实预算拒绝（权重／GPU workspace／host workspace）均在 READY 前退出且无输出。各次组件运行保存资源采样，v3 构建只记录墙钟耗时。下一步为控制器启动证据接入、完整回答质量及取消恢复；生产 CUDA gate 仍关闭。[补丁、实跑对照和拒绝证据](results/strata_20261008/strata_cuda_budget_fix_20261021.json)。
+
 2026-10-21 **数值二分指向预算候选破坏 GPU 图语义，候选不得使用**：同一 v2 二进制 CPU auto 与参考逐字节一致；CPU off 的 relative L2 为 0.0249。v2 GPU off 在明确提高到 GPU 8 GiB／host 4 GiB 后仍为 1.6547，而未加入预算补丁的 v1 GPU auto 为 0.06888、cosine 0.99763。固定 ggml split_graph 会把 node->src 改写为跨后端副本；新检查在同图上重复 split/reset 是主要嫌疑，CPU 单后端测试未覆盖此行为。下一步在现有 scheduler 分配边界内检查预算，避免额外拆图；保留现有生产 CPU 路线，所有 GPU 候选仍未资格通过。[三组原始对照、预算失败与 profiling](results/strata_20261008/strata_cuda_numeric_bisect_20261021.json)。
 
 2026-10-21 **首个真实 CUDA 图像编码完成，但数值对照失败，禁止晋级**：四分片、投影与运行包重新哈希通过；GPU 身份为本机 64:00.0，预热 1521 tokens 后 READY，792×2560 图像嵌入成功输出，启动约 3.45 s、编码往返约 0.328 s（单样本组件值）。与已审计 CPU 参考 relative L2 **1.6611**、cosine **0.1081**，不是可接受的数值等价或 Agent 提速证明。前一尝试因脚本误要求动态 cudart DLL 停止，修正为实际 PE 必需依赖后完成；两次日志与 profiling 保留。下一步核对同二进制 CPU 与 GPU flash-attention off，定位差异。[真实输出、失败及资源证据](results/strata_20261008/strata_cuda_first_real_20261021.json)。

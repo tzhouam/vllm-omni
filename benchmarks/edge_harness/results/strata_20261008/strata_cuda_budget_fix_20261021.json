@@ -1,0 +1,429 @@
+{
+  "schema": "omni-vision-scheduler-budget-fix-v3",
+  "build": {
+    "phase": "completed",
+    "pid": 222944,
+    "created": 1792535875.0194187,
+    "candidate": {
+      "schema": "omni-vision-budget-v3-candidate",
+      "files": {
+        "tools/mtmd/clip.cpp": {
+          "before_sha256": "030795eac79c3ada87d7f64d2b82ed1aa511bcee2f1734a62e9a04b78f67da91",
+          "candidate_sha256": "d2aab9fbe3013a861a371d9a5c34dc5e6bd50249f6d17280df3472d5cc89eab4"
+        },
+        "ggml/src/ggml-backend.cpp": {
+          "before_sha256": "d67dd319e7c1205934c95abd9b0006d0df46837c084f157b41369a9969a46b97",
+          "candidate_sha256": "82fbaefc871c67fdfdae28f563998c0c7b7d9ed76e8ae85dcd0a5417289dffe8"
+        }
+      },
+      "scope": "Guard within existing scheduler split; no extra split in clip admission",
+      "patch_sha256": "2fdc4c7ca69da6c84d9f96b7e713428849da2547653f9500b5cd8d52784f92e1",
+      "apply_check_exit": 0
+    },
+    "neural_execution": false,
+    "production_modified": false,
+    "source_before_build": {
+      "tools/mtmd/clip.cpp": "c1f6aa2d3ee25c63ead54a71080d95dd75fe74ed1273535787062155fdc4a877",
+      "ggml/src/ggml-backend.cpp": "d28407c78b8ba0d7504bba73c3db08c8670decb40d8ff491b44eb785409644e4"
+    },
+    "argv": [
+      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin\\cmake.exe",
+      "--build",
+      "C:\\Users\\zhout\\w2\\strata-omni\\bv-gpu-v1",
+      "--target",
+      "strata-vision",
+      "--parallel",
+      "2"
+    ],
+    "exit_code": 0,
+    "build_s": 9.061999999918044,
+    "source_after_build": {
+      "tools/mtmd/clip.cpp": "c1f6aa2d3ee25c63ead54a71080d95dd75fe74ed1273535787062155fdc4a877",
+      "ggml/src/ggml-backend.cpp": "d28407c78b8ba0d7504bba73c3db08c8670decb40d8ff491b44eb785409644e4"
+    },
+    "encoder_sha256": "b7ee3ad280e0dc094283a335f6b97e22b48d5e374a0cd6f1e8f6fe589b0e1a27"
+  },
+  "runs": {
+    "4": {
+      "schema": "omni-vision-diagnostic-v1",
+      "scope": "Sequential component diagnostics; only first text shard vocabulary and projector rehashed; full checkpoint binding inherited from preceding run",
+      "prior_receipt_sha256": "4ca984f42de94cd622740a157208d3bbfa39eacdb62790ba2e7a7eeb72fb8291",
+      "batch_size": 1,
+      "concurrency": 1,
+      "release_qualified": false,
+      "cases": [
+        {
+          "name": "gpu_v3_auto",
+          "argv": [
+            "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision-v3.exe",
+            "--mmproj",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+            "--model",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\UD-Q4_K_XL\\Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+            "--gpu",
+            "--threads",
+            "8",
+            "--max-tokens",
+            "1536",
+            "--flash-attn",
+            "auto"
+          ],
+          "pid": 222752,
+          "created": 1792535914.6588616,
+          "wall_s": 4.3280000002123415,
+          "exit_code": 0,
+          "comparison": {
+            "schema": "omni-sve-comparison-v1",
+            "reference": {
+              "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70",
+              "size_bytes": 8110100,
+              "shape": [
+                792,
+                33,
+                24,
+                2560
+              ]
+            },
+            "observed": {
+              "sha256": "b6934a225d18b254b0b42bc2c3b0a65974627514a4178ee8932c1f495624db98",
+              "size_bytes": 8110100,
+              "shape": [
+                792,
+                33,
+                24,
+                2560
+              ]
+            },
+            "elements": 2027520,
+            "max_absolute_error": 0.11775514483451843,
+            "mean_absolute_error": 0.0007033211976024888,
+            "rmse": 0.0017974136996974502,
+            "relative_l2": 0.06887901622509111,
+            "cosine_similarity": 0.9976301570064827,
+            "reference_l2": 37.15726034224152,
+            "observed_l2": 37.18815920385172,
+            "exact_tensor_equal": false,
+            "release_qualified": false,
+            "scope": "Tensor diagnostics only; no inherited checkpoint or task quality qualification"
+          }
+        },
+        {
+          "name": "gpu_v3_off",
+          "argv": [
+            "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision-v3.exe",
+            "--mmproj",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+            "--model",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\UD-Q4_K_XL\\Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+            "--gpu",
+            "--threads",
+            "8",
+            "--max-tokens",
+            "1536",
+            "--flash-attn",
+            "off"
+          ],
+          "pid": 3984,
+          "created": 1792535918.567882,
+          "wall_s": 4.155999999959022,
+          "exit_code": 0,
+          "comparison": {
+            "schema": "omni-sve-comparison-v1",
+            "reference": {
+              "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70",
+              "size_bytes": 8110100,
+              "shape": [
+                792,
+                33,
+                24,
+                2560
+              ]
+            },
+            "observed": {
+              "sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8",
+              "size_bytes": 8110100,
+              "shape": [
+                792,
+                33,
+                24,
+                2560
+              ]
+            },
+            "elements": 2027520,
+            "max_absolute_error": 0.021793514490127563,
+            "mean_absolute_error": 0.00018209586717537164,
+            "rmse": 0.00039978841549961013,
+            "relative_l2": 0.01532036434485638,
+            "cosine_similarity": 0.99988283018449,
+            "reference_l2": 37.15726034224152,
+            "observed_l2": 37.12977160808261,
+            "exact_tensor_equal": false,
+            "release_qualified": false,
+            "scope": "Tensor diagnostics only; no inherited checkpoint or task quality qualification"
+          }
+        }
+      ],
+      "phase": "completed",
+      "files": {
+        "gpu_v3_auto-resources.jsonl": {
+          "sha256": "312e226f9e46e1b26229ed608d13be9dc3db4be907704ed7aacbde310969c74e",
+          "size_bytes": 3947
+        },
+        "gpu_v3_auto-stderr.log": {
+          "sha256": "3b2b0652dca3b09fc1d161fcbbf34203bbdf0e61c2986e22087f30ac4ee0f2a2",
+          "size_bytes": 378
+        },
+        "gpu_v3_auto-stdout.log": {
+          "sha256": "beb04da5856154cd3218b5d902fdf024435e5f2031b27597ba5b48b8b16c4e35",
+          "size_bytes": 1168
+        },
+        "gpu_v3_auto.sve": {
+          "sha256": "b6934a225d18b254b0b42bc2c3b0a65974627514a4178ee8932c1f495624db98",
+          "size_bytes": 8110100
+        },
+        "gpu_v3_off-resources.jsonl": {
+          "sha256": "8aaf045a4008cf5d440f2df97e24e4be0fbeff87bffe018ad17cfbeed6799080",
+          "size_bytes": 4434
+        },
+        "gpu_v3_off-stderr.log": {
+          "sha256": "2551e6230d13bd6be115d9753c083deae038e728540a9f68256a63944dd9ac8d",
+          "size_bytes": 378
+        },
+        "gpu_v3_off-stdout.log": {
+          "sha256": "3659dff41eb688664614d0bee9646442f3ffe2839ea03d2653eb0d507c332a6c",
+          "size_bytes": 1168
+        },
+        "gpu_v3_off.sve": {
+          "sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8",
+          "size_bytes": 8110100
+        },
+        "input.png": {
+          "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+          "size_bytes": 59775
+        }
+      }
+    },
+    "5": {
+      "schema": "omni-vision-diagnostic-v1",
+      "scope": "Sequential component diagnostics; only first text shard vocabulary and projector rehashed; full checkpoint binding inherited from preceding run",
+      "prior_receipt_sha256": "4ca984f42de94cd622740a157208d3bbfa39eacdb62790ba2e7a7eeb72fb8291",
+      "batch_size": 1,
+      "concurrency": 1,
+      "release_qualified": false,
+      "cases": [
+        {
+          "name": "gpu_workspace_refuse",
+          "argv": [
+            "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision-v3.exe",
+            "--mmproj",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+            "--model",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\UD-Q4_K_XL\\Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+            "--gpu",
+            "--threads",
+            "8",
+            "--max-tokens",
+            "1536",
+            "--flash-attn",
+            "auto"
+          ],
+          "pid": 223420,
+          "created": 1792535952.4379203,
+          "wall_s": 2.1409999998286366,
+          "exit_code": 1
+        },
+        {
+          "name": "host_workspace_refuse",
+          "argv": [
+            "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision-v3.exe",
+            "--mmproj",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+            "--model",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\UD-Q4_K_XL\\Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+            "--gpu",
+            "--threads",
+            "8",
+            "--max-tokens",
+            "1536",
+            "--flash-attn",
+            "auto"
+          ],
+          "pid": 223708,
+          "created": 1792535954.5868695,
+          "wall_s": 2.0780000002123415,
+          "exit_code": 1
+        },
+        {
+          "name": "gpu_weights_refuse",
+          "argv": [
+            "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision-v3.exe",
+            "--mmproj",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+            "--model",
+            "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\UD-Q4_K_XL\\Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+            "--gpu",
+            "--threads",
+            "8",
+            "--max-tokens",
+            "1536",
+            "--flash-attn",
+            "auto"
+          ],
+          "pid": 214408,
+          "created": 1792535956.6633763,
+          "wall_s": 1.0,
+          "exit_code": 1
+        }
+      ],
+      "phase": "completed",
+      "files": {
+        "gpu_weights_refuse-resources.jsonl": {
+          "sha256": "7e7b416908153453acba74ad91d2f856937181e55b3e4a0728032f53ba0d25dc",
+          "size_bytes": 961
+        },
+        "gpu_weights_refuse-stderr.log": {
+          "sha256": "a6b0d9b5d966f7d527c4ebc5dcb30f6477b3dff7762fa45b8ab5b0b51286b01f",
+          "size_bytes": 547
+        },
+        "gpu_weights_refuse-stdout.log": {
+          "sha256": "f6b5e2fb36f18f5eb0d0a303a821be553e2c5107d517c27d35932e77788cdb87",
+          "size_bytes": 220
+        },
+        "gpu_workspace_refuse-resources.jsonl": {
+          "sha256": "a667e07b1df1426017f27061917919376de1046dbce9f14cf1d8c0e33ae606e4",
+          "size_bytes": 2451
+        },
+        "gpu_workspace_refuse-stderr.log": {
+          "sha256": "4869621edc0d86705216768d7b09331ab4865e28183d55339cc08b392b0d2a40",
+          "size_bytes": 519
+        },
+        "gpu_workspace_refuse-stdout.log": {
+          "sha256": "4866a8061b2ee7093227e59354b20f68f7b984be9b9044a48d5a9e601e047a85",
+          "size_bytes": 184
+        },
+        "host_workspace_refuse-resources.jsonl": {
+          "sha256": "d9d01239fcbe5d0bbe0cd6f533c71b52006b58ccc29c25a722bfa40f6a2c2bc1",
+          "size_bytes": 2450
+        },
+        "host_workspace_refuse-stderr.log": {
+          "sha256": "65a15dca520944f75eed8d1e7d9a86f3a0da39429ae900688703e5814ced8346",
+          "size_bytes": 508
+        },
+        "host_workspace_refuse-stdout.log": {
+          "sha256": "4866a8061b2ee7093227e59354b20f68f7b984be9b9044a48d5a9e601e047a85",
+          "size_bytes": 184
+        },
+        "input.png": {
+          "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+          "size_bytes": 59775
+        }
+      }
+    }
+  },
+  "archives": {
+    "strata_cuda_budget_fix_4_20261021_gpu_v3_auto-resources.jsonl.gz": "37ac2a8fc533963ea76e817e9e3a4dc721023d2f03ffbbe8e402bc22800f61ee",
+    "strata_cuda_budget_fix_4_20261021_gpu_v3_auto-stderr.log.gz": "00fd9676a6c795a6ca3b8e15db7c9a771e0fcd8600eb122680ee6ef08090a413",
+    "strata_cuda_budget_fix_4_20261021_gpu_v3_auto-stdout.log.gz": "d8034c9578b5dc2b68f1aec3bd6288377fa3b2cbaa7842a976232144039eb888",
+    "strata_cuda_budget_fix_4_20261021_gpu_v3_off-resources.jsonl.gz": "21a0ea4ae6aa6766dfc55a4017247087b52db623ab0dcc5ab0385aca132f551b",
+    "strata_cuda_budget_fix_4_20261021_gpu_v3_off-stderr.log.gz": "ac57f98dbcb356bc2752fa236dafbfd6a1ff62b4c1737d49af7225b49345e540",
+    "strata_cuda_budget_fix_4_20261021_gpu_v3_off-stdout.log.gz": "df961072add37a3bce87b7173df36e3af463ebda792c9e0dd98f00d4cd1f84c5",
+    "strata_cuda_budget_fix_5_20261021_gpu_weights_refuse-resources.jsonl.gz": "8024871da7f81972a0149e2ca9654397d7201ed6d27045215be4f2bd78d466d1",
+    "strata_cuda_budget_fix_5_20261021_gpu_weights_refuse-stderr.log.gz": "412dee2c21ce24a1313644aedd0e4221142f269654f1f45016d505ed76091899",
+    "strata_cuda_budget_fix_5_20261021_gpu_weights_refuse-stdout.log.gz": "8d3785e368a287f2fc551297bbee7d8eb9fae1ac7251bbd21ee3d73679f2cc5b",
+    "strata_cuda_budget_fix_5_20261021_gpu_workspace_refuse-resources.jsonl.gz": "38ac9da62497f7e586e418a286dc4f1e9cceda5692b131803e6a3cb4d40f41a5",
+    "strata_cuda_budget_fix_5_20261021_gpu_workspace_refuse-stderr.log.gz": "7ce801b2b082593aa78d816e9f5a1ee050d2f65e348b75ef3bcac99f6d6bbf6a",
+    "strata_cuda_budget_fix_5_20261021_gpu_workspace_refuse-stdout.log.gz": "b8866d5fe94d2f2cb8d7da44833daed82a28144c7c375a1293eac49871208d1e",
+    "strata_cuda_budget_fix_5_20261021_host_workspace_refuse-resources.jsonl.gz": "37f89d8699a584831674267fc4d759de8eb907e732f20f52f101782147c9bbe6",
+    "strata_cuda_budget_fix_5_20261021_host_workspace_refuse-stderr.log.gz": "e21f717a825567f0fde36da233d947cc008f19551e5c93f77a57f612f3da91b4",
+    "strata_cuda_budget_fix_5_20261021_host_workspace_refuse-stdout.log.gz": "b8866d5fe94d2f2cb8d7da44833daed82a28144c7c375a1293eac49871208d1e",
+    "strata_cuda_budget_fix_20261021_build.log.gz": "1af3f29662f789ae42caf979f068522a16c10b977aba5007a883faf4e52a4293",
+    "strata_cuda_budget_fix_20261021_run_cuda_vision_diagnostic_v4_20261021.py.gz": "fbcf166234804cb5f3b24fc1dad1d3d244bb588b0adf518c7192a52d28e7e945",
+    "strata_cuda_budget_fix_20261021_run_cuda_vision_diagnostic_v5_20261021.py.gz": "47c8e4e0f31eb0d6acfe6359c5804acf87dcbd4af25566014ba05f3ae6529692"
+  },
+  "release_qualified": false,
+  "whole_agent_qualified": false,
+  "build_profiling_scope": "Incremental build wall time only; no resource sampler attached to this 9-second build",
+  "cpu_off_comparison": {
+    "schema": "omni-sve-comparison-v1",
+    "reference": {
+      "sha256": "fd8eb9d499fe66a5afe13d2b68a06c685f5a5c93b6c5b95a52735629a27f61ab",
+      "size_bytes": 8110100,
+      "shape": [
+        792,
+        33,
+        24,
+        2560
+      ]
+    },
+    "observed": {
+      "sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8",
+      "size_bytes": 8110100,
+      "shape": [
+        792,
+        33,
+        24,
+        2560
+      ]
+    },
+    "elements": 2027520,
+    "max_absolute_error": 0.07698352634906769,
+    "mean_absolute_error": 0.00019681847876053734,
+    "rmse": 0.0006813720046507599,
+    "relative_l2": 0.026134608399285587,
+    "cosine_similarity": 0.9996585607954254,
+    "reference_l2": 37.12366647874692,
+    "observed_l2": 37.12977160808261,
+    "exact_tensor_equal": false,
+    "release_qualified": false,
+    "scope": "Tensor diagnostics only; no inherited checkpoint or task quality qualification"
+  },
+  "refusal_checks": [
+    {
+      "name": "gpu_workspace_refuse",
+      "no_ready": true,
+      "no_output": true,
+      "reason": [
+        "vision buffer budget refused backend=CUDA0 planned=186997888 retained=0 limit=166217088"
+      ]
+    },
+    {
+      "name": "host_workspace_refuse",
+      "no_ready": true,
+      "no_output": true,
+      "reason": [
+        "vision buffer budget refused backend=CPU planned=18787392 retained=0 limit=0"
+      ]
+    },
+    {
+      "name": "gpu_weights_refuse",
+      "no_ready": true,
+      "no_output": true,
+      "reason": [
+        "clip_init: failed to load model 'C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf': vision explicit tensor budget exceeded before allocation"
+      ]
+    }
+  ],
+  "explicit_tensor_budgets": {
+    "gpu_v3_auto": [
+      8589934592,
+      4294967296
+    ],
+    "gpu_v3_off": [
+      8589934592,
+      4294967296
+    ],
+    "gpu_workspace_refuse": [
+      1073741824,
+      4294967296
+    ],
+    "host_workspace_refuse": [
+      8589934592,
+      0
+    ],
+    "gpu_weights_refuse": [
+      1048576,
+      4294967296
+    ]
+  },
+  "gpu_auto_equal_to_v1": true
+}
