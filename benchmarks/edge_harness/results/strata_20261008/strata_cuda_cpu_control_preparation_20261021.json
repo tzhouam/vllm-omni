@@ -1,0 +1,18 @@
+{
+  "schema": "omni-strata-paired-control-preparation-v1",
+  "scope": "paired control producer prepared and syntax checked only; neither registration nor inference completed",
+  "shared_language_gpu_expert_cache_bytes": 8053063680,
+  "shared_cpu_expert_cache_bytes": 6442450944,
+  "reason": "compare encoder placement without changing language cache or checkpoint",
+  "active_cuda_image_registration_session": 67317,
+  "evidence": [
+    {
+      "path": "strata_register_q4_cpu_control_v3_image_20261021.py.gz",
+      "raw_sha256": "eecd1ac3eed828f28e8e8b6d4cb2a11ad84b3cd87935a90cb5c0d73df717c85b"
+    },
+    {
+      "path": "strata_cuda-cpu-paired-registration-plan-20261021.json.gz",
+      "raw_sha256": "471bc34f4b7ad3dcb19a3aedcec71c18efa56be1a79024991b2beb113f66208c"
+    }
+  ]
+}
