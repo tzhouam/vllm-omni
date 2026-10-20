@@ -1,0 +1,392 @@
+{
+  "schema": "omni-strata-image-resident-smoke-v1",
+  "date": "2026-10-20",
+  "status": "scoped_functional_pass",
+  "qualified": false,
+  "batch_size": 1,
+  "concurrency": 1,
+  "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-smoke-6g-20261020-v6-r4",
+  "receipt_sha256": "7af01261f1461b69874f82b5968a0ed38a238d1668b89b6ac1b9b79417341c5e",
+  "receipt_archive": "strata_q4_image_6g_resident_smoke_20261020.receipt.json.gz",
+  "receipt_archive_sha256": "0c8c947ff23ab999fcc6192a1503d5c9726d0e23588473e86efd7c88569d85d5",
+  "audit": {
+    "status": "passed",
+    "timing": {
+      "request_intervals_verified": 4,
+      "max_between_request_gap_s": 0.047772899735718966,
+      "endurance_active_request_s": 0,
+      "duration_scope": "submit-to-completion; active endurance excludes between-request bookkeeping"
+    },
+    "statistics": null,
+    "mode": "smoke",
+    "requests": 4,
+    "model_calls": 8,
+    "receipt_sha256": "7af01261f1461b69874f82b5968a0ed38a238d1668b89b6ac1b9b79417341c5e",
+    "raw_file_count": 33,
+    "qualified": false,
+    "scope": "closed sequential image task experiment; no broad task/default/physical SSD qualification"
+  },
+  "audit_sha256": "52e1767ebd5803fa3e7c8feaf1b58ab8d1325042819e357802f01722856b164c",
+  "raw_files_revalidated": true,
+  "raw_files": {
+    "all-raw.json": {
+      "size_bytes": 3793215,
+      "sha256": "fbe4cc32d20b8f88a6b81d25521b6bbc66476caf87e784c41b07da51b862a538"
+    },
+    "config.json": {
+      "size_bytes": 14770985,
+      "sha256": "b5fdd7b75e2eb04f67de70238bedc69b66d36c7a253335180aa17658bc8b5c45"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392363,
+      "sha256": "c7368df325ff69d41484a2fb9dc088dd4b24fe5465cfa3dd7150d51fdceb294a"
+    },
+    "events.jsonl": {
+      "size_bytes": 1153625,
+      "sha256": "72592e8a863961740d02d56d05fec4d40bc9fc6a3f73545f0677867867f9987c"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "c016e5b9d352c99a13eacfb8fe837acc52f651edb2f053f980fb84e00ee2ed33"
+    },
+    "hardware.json": {
+      "size_bytes": 4703,
+      "sha256": "c123dbb1cc2e65abeb6a5bdf5be2be050459a7e1cc7e0c7e14a317383bb3af30"
+    },
+    "image-2.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "image-4.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "image-6.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "image-8.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 300396,
+      "sha256": "eb48ee0fb264178e61d210225e9e746acad41840d860020ddd88c79e59b67c19"
+    },
+    "memory.sqlite": {
+      "size_bytes": 655360,
+      "sha256": "a052914f0d0c683bc44767132f7157a2f61a1b328dfd4ec112e2f3fb030dd681"
+    },
+    "model-image-2.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "model-image-4.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "model-image-6.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "model-image-8.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "profile-protocol.json": {
+      "size_bytes": 641,
+      "sha256": "2efc5b7f83a9fd5fd6d50c04f9260fdfc7dede575fa08feadc453a59d4ad9efb"
+    },
+    "profile-samples.json": {
+      "size_bytes": 4953,
+      "sha256": "1634c6e62c738ac4863c6c0d4aa4730564a3e643504092e70f6b2efc8eb1d799"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 617,
+      "sha256": "61737c90ee3e6296c83a0b3ada91df5e04d99f527be779f0290132f7df236ec8"
+    },
+    "sample-0000-browser.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "sample-0000-controller.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "sample-0000-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "sample-0001-browser.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "sample-0001-controller.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "sample-0001-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "sample-0002-browser.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "sample-0002-controller.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "sample-0002-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "sample-0003-browser.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "sample-0003-controller.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "sample-0003-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 77467411,
+      "sha256": "7c6df3a7712da028145235592dcbc52c3160dcd7853203ee201d6cf438f0fca7"
+    }
+  },
+  "samples": [
+    {
+      "phase": "smoke",
+      "length": "short",
+      "ordinal": 0,
+      "index": 0,
+      "status": "passed",
+      "memory_events_cleared": 0,
+      "prompt_sha256": "10a52e4f59d712c79269b2f015b8856f8f6972bfd4101e9195a940461d19408c",
+      "prompt_utf8_bytes": 284,
+      "event_start": 0,
+      "call_start": 0,
+      "request_started_monotonic_s": 2943895.0461766,
+      "request_finished_monotonic_s": 2943989.3036528,
+      "whole_agent_task_s_excludes_load": 94.25747620034963,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 359,
+          "completion_tokens": 30,
+          "total_tokens": 389,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1531,
+          "completion_tokens": 5,
+          "total_tokens": 1536,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 88.73141380026937,
+      "event_end": 13,
+      "call_end": 2,
+      "request_id": "217c88abf7ba492aa3c64f10006fb6ba",
+      "epoch": 1,
+      "last_native_sequence": 2,
+      "model_first_token_s": [
+        16.62108589988202,
+        48.702082299627364
+      ],
+      "witness_file": "sample-0000-image-witness.json"
+    },
+    {
+      "phase": "smoke",
+      "length": "short",
+      "ordinal": 1,
+      "index": 1,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "10a52e4f59d712c79269b2f015b8856f8f6972bfd4101e9195a940461d19408c",
+      "prompt_utf8_bytes": 284,
+      "event_start": 13,
+      "call_start": 2,
+      "request_started_monotonic_s": 2943989.3443842,
+      "request_finished_monotonic_s": 2944093.6211036,
+      "whole_agent_task_s_excludes_load": 104.27671940019354,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 359,
+          "completion_tokens": 34,
+          "total_tokens": 393,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1531,
+          "completion_tokens": 5,
+          "total_tokens": 1536,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 98.63560790009797,
+      "event_end": 26,
+      "call_end": 4,
+      "request_id": "0cf69c7579d54a918d3d3f2da8574929",
+      "epoch": 2,
+      "last_native_sequence": 4,
+      "model_first_token_s": [
+        15.128590799868107,
+        66.58448780002072
+      ],
+      "witness_file": "sample-0001-image-witness.json"
+    },
+    {
+      "phase": "smoke",
+      "length": "medium",
+      "ordinal": 2,
+      "index": 2,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "bdc7a693a4a9c774a9bd3e17b212f3da35d0aefe0d29fa85e41add38c58de9fd",
+      "prompt_utf8_bytes": 1020,
+      "event_start": 26,
+      "call_start": 4,
+      "request_started_monotonic_s": 2944093.6688765,
+      "request_finished_monotonic_s": 2944183.8050913,
+      "whole_agent_task_s_excludes_load": 90.136214800179,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 471,
+          "completion_tokens": 30,
+          "total_tokens": 501,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1643,
+          "completion_tokens": 5,
+          "total_tokens": 1648,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 85.28069719998166,
+      "event_end": 39,
+      "call_end": 6,
+      "request_id": "d7b3fee6dd4f4651939635ca84a59c00",
+      "epoch": 3,
+      "last_native_sequence": 6,
+      "model_first_token_s": [
+        21.721863499842584,
+        51.66646419977769
+      ],
+      "witness_file": "sample-0002-image-witness.json"
+    },
+    {
+      "phase": "smoke",
+      "length": "long",
+      "ordinal": 3,
+      "index": 3,
+      "status": "passed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "f0ba0794bda5040164e2750cc5f970efae858b1079fa54a712d56b284d441dee",
+      "prompt_utf8_bytes": 3228,
+      "event_start": 39,
+      "call_start": 6,
+      "request_started_monotonic_s": 2944183.8426245,
+      "request_finished_monotonic_s": 2944277.7169074,
+      "whole_agent_task_s_excludes_load": 93.874282900244,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 807,
+          "completion_tokens": 34,
+          "total_tokens": 841,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1979,
+          "completion_tokens": 5,
+          "total_tokens": 1984,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 88.57216690015048,
+      "event_end": 52,
+      "call_end": 8,
+      "request_id": "45150c4a089540c5840c40498bba775b",
+      "epoch": 4,
+      "last_native_sequence": 8,
+      "model_first_token_s": [
+        23.627756900154054,
+        51.746409100014716
+      ],
+      "witness_file": "sample-0003-image-witness.json"
+    }
+  ],
+  "event_count": 52,
+  "model_calls": 8,
+  "cold_load_and_verification_s": 885.3162283999845,
+  "closed_checks": {
+    "quality_passed": true,
+    "functional_task_passed": true,
+    "resource_drain_verified": true,
+    "source_stable": true,
+    "prerequisites_stable": true,
+    "output_writers_quiesced": true,
+    "exact_role_retirement": {
+      "encoder": "retired",
+      "language": "retired"
+    },
+    "fixture_server_stopped": true
+  },
+  "ledger_reserved_after_close": {
+    "host_ram": 0,
+    "vram": 0,
+    "windows_commit": 0,
+    "ssd": 0
+  },
+  "browser_config_sha256": "b2902f3f98f83899d21b86219ff73cc2c773f406d4e62478e86744cd7f509513",
+  "cache_conditions": {
+    "guest_file_cache_reclaimed_before_run": true,
+    "reclaim_during_requests": false,
+    "windows_and_drive_caches_controlled": false,
+    "interpretation": "Not a paired speedup comparison with earlier failed or successful runs"
+  },
+  "latency_targets": {
+    "upgraded_target_s": 60,
+    "all_four_exceeded_target": true,
+    "p50_p95": null
+  },
+  "limitations": [
+    "One fixed local screenshot task family only; not broad Agent quality qualification",
+    "Four smoke tasks do not satisfy 20 measured requests per length or 30-minute endurance",
+    "No aggregate RAM/VRAM hard-cap or physical SSD attribution qualification",
+    "Previous 8 GiB and earlier source results remain separate"
+  ],
+  "next_run": {
+    "source_run": "C:/Users/zhout/w2/strata-omni/runs/q4-image-profile-full-6g-20261020-v6",
+    "mode": "full",
+    "status_at_recording": "process_started_results_pending"
+  }
+}
