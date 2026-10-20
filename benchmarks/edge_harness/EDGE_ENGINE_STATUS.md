@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **CUDA 图像注册入口与共驻预算实现**：保留 CPU 入口，新增显式 CUDA 入口；视觉 GPU workspace／加载峰值及 Windows commit 额外计账，保留语言专家缓存及工作区，注册时重新核对物理 GPU 和共享预算。注册器回归 **51 passed**；首次测试导入语法错误已修正并保留日志。新包源码上下文正在刷新并重新做正式静态校验，旧静态身份随后将被新身份替代；尚未生成已注册 CUDA Agent 路线或新增神经运行。[实现范围与记录](results/strata_20261008/strata_cuda_registrar_20261021.json)。
+
 2026-10-21 **受预算约束的 CUDA 配置接入，正式静态运行包校验通过**：配置要求稳定执行策略、tensor／预处理／额外开销及 token 上限，策略纳入路线身份并在 live lease 再验；拒绝主后端 CPU 回退。视觉＋文本回归 **212 passed／3 skipped**。完整运行包通过正式静态校验（172.62 s），附加资源采样 97 条，初始时段缺失。注册工具仍仅接受 CPU 视觉，下一步补 CUDA 共驻 GPU／commit 预算、更新来源上下文并生成真实配置；尚无本轮神经执行。[测试、运行包校验和 profiling](results/strata_20261008/strata_cuda_route_config_20261021.json)。
 
 2026-10-21 **完整 CUDA 加载计划校验接入；完整运行包哈希核验完成**：CUDA 分支要求 v3 编码器、CUDA0 选择、同一物理探测和共享 typed lease，以及完整预热证据；CPU 分支拒绝混入 CUDA 声明。回归 **136 passed／1 skipped**。独立完整包 42,672 成员／2,836,730,247 B，原有 42,652 成员全部匹配；准备 672.37 s，附加采样 486 条（初始时段缺失）。正式静态运行时校验仍在执行；配置启用和真实 Agent 回归尚待完成。[代码验证、完整包和 profiling](results/strata_20261008/strata_cuda_full_load_plan_20261021.json)。

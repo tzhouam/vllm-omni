@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Derive an explicitly experimental CPU-image route from verified text preparation.
+"""Derive an explicitly experimental image route from verified text preparation.
 
 Registration verifies files and probes current capacity. It never instantiates a
 StageClient, loads neural weights, rewrites a preparation, or grants qualification.
@@ -22,6 +22,7 @@ from benchmarks.edge_harness import strata_runtime
 from benchmarks.edge_harness.strata_profile import RUNTIME_REVISION, canonical_hash, file_hash
 
 SCHEMA = "omni-strata-cpu-image-registration-v1"
+CUDA_SCHEMA = "omni-strata-cuda-image-registration-v1"
 BACKEND = "external.strata.multimodal.v1"
 TEXT_BACKEND = "external.strata.text.v1"
 
@@ -233,7 +234,39 @@ def _derive_image_cache_budget(backend, budget, requested):
     }
 
 
-def register_cpu_image_route(
+def _derive_cuda_encoder_budget(backend, budget, config):
+    """Add an encoder claim without consuming the language cache/workspace."""
+    policy = config["cuda_execution"]
+    extra = _positive(config["vision_gpu_bytes"], "vision_gpu_bytes")
+    if (budget["gpu_workspace_bytes"] < policy["language_gpu_workspace_bytes"]
+            or budget["host_workspace_bytes"] < policy["language_host_workspace_bytes"]):
+        raise ValueError("text budget omits declared language workspace")
+    steady = sum(budget[key] for key in (
+        "gpu_weights_bytes", "gpu_expert_cache_bytes", "gpu_kv_bytes", "gpu_workspace_bytes", "gpu_transfer_bytes", "gpu_headroom_bytes"))
+    old = max(steady, budget["gpu_loading_peak_bytes"])
+    if backend["gpu_budget_bytes"] != old or old + extra > backend["gpu_total_bytes"]:
+        raise ValueError("CUDA image coexistence exceeds or mismatches GPU budget")
+    budget["gpu_workspace_bytes"] += extra
+    budget["gpu_loading_peak_bytes"] += extra
+    budget["windows_commit_peak_bytes"] += extra
+    return {"old_gpu_budget_bytes": old, "new_gpu_budget_bytes": old + extra,
+            "encoder_gpu_bytes_added": extra, "windows_commit_bytes_added": extra,
+            "scope": "aggregate language plus encoder claim; fresh shared admission required"}
+
+
+def register_cpu_image_route(text_launch_path, **kwargs):
+    if kwargs["image_route"].get("encoder_device") != "cpu":
+        raise ValueError("only an explicit CPU image encoder can be registered through the CPU entry point")
+    return _register_image_route(text_launch_path, **kwargs)
+
+
+def register_cuda_image_route(text_launch_path, **kwargs):
+    if kwargs["image_route"].get("encoder_device") != "cuda":
+        raise ValueError("CUDA registration requires an explicit CUDA image encoder")
+    return _register_image_route(text_launch_path, **kwargs)
+
+
+def _register_image_route(
     text_launch_path: Path,
     *,
     text_registration_path: Path,
@@ -245,7 +278,7 @@ def register_cpu_image_route(
     expert_ram_budget_bytes: int | None = None,
     gpu_expert_cache_bytes: int | None = None,
 ):
-    """Verify and derive an exclusive CPU-encoder/CUDA-language launch.
+    """Verify and derive an exclusive image-encoder/CUDA-language launch.
 
     Text context/precision controls are retained; an explicitly requested smaller
     CPU expert cache may reduce its exact cache/loading claim, never commit.
@@ -267,8 +300,8 @@ def register_cpu_image_route(
     if not isinstance(route_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,199}", route_id):
         raise ValueError("image route needs an explicit bounded ID")
     config = copy.deepcopy(dict(image_route))
-    if config.get("encoder_device") != "cpu" or config.get("allow_cpu_fallback") is not False:
-        raise ValueError("only an explicit CPU image encoder can be registered")
+    if config.get("encoder_device") not in {"cpu", "cuda"} or config.get("allow_cpu_fallback") is not False:
+        raise ValueError("image registration requires explicit device without primary fallback")
     initial = _object(text_path, max_bytes=16 << 20)
     backend = initial["backend"]
     roots = [Path(backend[key]).resolve(strict=True) for key in ("runtime_root", "artifact_root", "prepared_model_dir")]
@@ -282,7 +315,7 @@ def register_cpu_image_route(
     )
     backend = launch["backend"]
     if route_id in {backend["route_id"], _object(original_parent)["backend"]["route_id"]}:
-        raise ValueError("CPU image route ID must differ from original/text route IDs")
+        raise ValueError("image route ID must differ from original/text route IDs")
     runtime = ArtifactManifest.from_dict(backend["runtime_manifest"])
     source = ArtifactManifest.from_dict(backend["artifact_manifest"])
     prepared = ArtifactManifest.from_dict(backend["prepared_pack_manifest"])
@@ -358,6 +391,12 @@ def register_cpu_image_route(
             "windows_commit_bytes_added": delta,
             "scope": "explicit alternate; fresh admission and execution validation required; no inherited qualification",
         }
+    cuda_derivation = None
+    if config["encoder_device"] == "cuda":
+        current_backend = dict(backend)
+        if gpu_derivation is not None:
+            current_backend["gpu_budget_bytes"] = gpu_derivation["new_gpu_budget_bytes"]
+        cuda_derivation = _derive_cuda_encoder_budget(current_backend, budget, config)
     budget["host_workspace_bytes"] += extra_host
     budget["host_transfer_bytes"] += transport_delta
     for field in ("host_loading_peak_bytes", "windows_commit_peak_bytes"):
@@ -369,7 +408,7 @@ def register_cpu_image_route(
         raise ValueError("image SSD artifact budget omits source/pack/complete runtime/projector")
     resources = launch["resource_budget"]
     if "windows_commit" not in resources["demands"]:
-        raise ValueError("CPU image launch requires an explicit Windows commit admission pool")
+        raise ValueError("image launch requires an explicit Windows commit admission pool")
     demands = new_tier.budget.resource_demands(
         gpu_pool=backend["gpu_pool"],
         include_wsl="wsl_ram" in resources["demands"],
@@ -377,7 +416,7 @@ def register_cpu_image_route(
     )
     capacities = copy.deepcopy(resources["capacities"])
     if any(type(capacities.get(pool)) is not int or amount > capacities[pool] for pool, amount in demands.items()):
-        raise ValueError("additional CPU image coexistence claim exceeds inherited resource ceilings")
+        raise ValueError("additional image coexistence claim exceeds inherited resource ceilings")
     image_identity = copy.deepcopy(verified_vision["identity"])
     image_identity.pop("identity_sha256")
     image_identity.update(
@@ -404,6 +443,11 @@ def register_cpu_image_route(
     probe_started = datetime.datetime.now(datetime.timezone.utc).isoformat()
     memory = strata._probe_memory(backend["gpu_index"])
     strata._check_live_memory(memory, demands, backend["gpu_pool"], backend["gpu_total_bytes"])
+    if config["encoder_device"] == "cuda":
+        vision.bind_cuda_vision_lease(config["cuda_execution"], config,
+            {"gpu": budget["gpu_workspace_bytes"], "host": budget["host_workspace_bytes"]},
+            demands, memory, backend["gpu_index"], backend["gpu_pool"])
+
     disk = _disk_snapshot([*roots, projector_root, Path(tempfile.gettempdir())])
     _check_disk(disk, demands)
     if min(row["free_bytes"] for row in disk) < new_tier.budget.ssd_temporary_bytes:
@@ -416,7 +460,7 @@ def register_cpu_image_route(
     if any((path.stat().st_size, path.stat().st_mtime_ns) != expected for path, expected in file_stats.items()):
         raise ValueError("verified runtime/source/pack/projector file changed after verification")
     provenance = {
-        "schema": SCHEMA,
+        "schema": CUDA_SCHEMA if config["encoder_device"] == "cuda" else SCHEMA,
         "text_launch_file_sha256": file_hash(text_path),
         "text_launch_canonical_sha256": canonical_hash(launch),
         "text_registration_file_sha256": file_hash(text_receipt_path),
@@ -442,7 +486,7 @@ def register_cpu_image_route(
         "additional_scratch_ssd_temporary_bytes": scratch,
         "qualification_created": False,
         "scope": (
-            "verified experimental CPU image launch and fresh read-only admission snapshot; "
+            "verified experimental image launch and fresh read-only admission snapshot; "
             "no model execution or resource lease"
         ),
     }
@@ -466,6 +510,9 @@ def register_cpu_image_route(
         target["gpu_budget_bytes"] = gpu_derivation["new_gpu_budget_bytes"]
         if "gpu_expert_cache_bytes" in target:
             target["gpu_expert_cache_bytes"] = budget["gpu_expert_cache_bytes"]
+    if cuda_derivation is not None:
+        target["gpu_budget_bytes"] = cuda_derivation["new_gpu_budget_bytes"]
+        provenance["explicit_cuda_encoder_derivation"] = cuda_derivation
     derived["resource_budget"] = {"capacities": capacities, "demands": demands}
     derived["image_registration"] = provenance
     if cache_derivation is not None:

@@ -9,6 +9,8 @@ receipt, PE parser, projector/build/file verification and budget logic are real.
 
 from __future__ import annotations
 
+import dataclasses
+
 import copy
 import importlib.util
 import json
@@ -491,3 +493,46 @@ def test_derived_image_passes_actual_constructor_through_native_launch_boundary(
             types.SimpleNamespace(demands=launch["resource_budget"]["demands"]),
         )
     assert bool(calls) is not reintroduce_v1_double_count
+
+
+@pytest.mark.parametrize("loading_peak", [0, 500])
+def test_cuda_budget_preserves_language_cache_and_charges_commit(loading_peak):
+    budget = dataclasses.asdict(helpers.tiers.WeightTierBudget(
+        gpu_weights_bytes=20, gpu_expert_cache_bytes=40, gpu_workspace_bytes=30,
+        gpu_headroom_bytes=10, host_workspace_bytes=80,
+        gpu_loading_peak_bytes=loading_peak, windows_commit_peak_bytes=1000))
+    before = budget.copy()
+    old = max(100, loading_peak)
+    config = {"vision_gpu_bytes": 50, "cuda_execution": {
+        "language_gpu_workspace_bytes": 30, "language_host_workspace_bytes": 80}}
+    derived = registration._derive_cuda_encoder_budget(
+        {"gpu_budget_bytes": old, "gpu_total_bytes": 1000}, budget, config)
+    assert derived["new_gpu_budget_bytes"] == old + 50
+    assert budget["gpu_expert_cache_bytes"] == before["gpu_expert_cache_bytes"]
+    assert budget["gpu_workspace_bytes"] == 80
+    assert budget["gpu_loading_peak_bytes"] == loading_peak + 50
+    assert budget["windows_commit_peak_bytes"] == 1050
+    assert helpers.tiers.WeightTierBudget(**budget).resource_demands(gpu_pool="vram:0")["vram:0"] == old + 50
+
+
+@pytest.mark.parametrize("case", ["capacity", "mismatch", "gpu_workspace", "host_workspace"])
+def test_cuda_registration_budget_rejects_without_mutating(case):
+    budget = dataclasses.asdict(helpers.tiers.WeightTierBudget(
+        gpu_workspace_bytes=30, host_workspace_bytes=80))
+    before = budget.copy()
+    backend = {"gpu_budget_bytes": 30, "gpu_total_bytes": 100}
+    config = {"vision_gpu_bytes": 50, "cuda_execution": {
+        "language_gpu_workspace_bytes": 30, "language_host_workspace_bytes": 80}}
+    if case == "capacity": backend["gpu_total_bytes"] = 79
+    if case == "mismatch": backend["gpu_budget_bytes"] = 29
+    if case == "gpu_workspace": config["cuda_execution"]["language_gpu_workspace_bytes"] = 31
+    if case == "host_workspace": config["cuda_execution"]["language_host_workspace_bytes"] = 81
+    with pytest.raises(ValueError): registration._derive_cuda_encoder_budget(backend, budget, config)
+    assert budget == before
+
+
+def test_image_registration_entry_points_cannot_silently_switch_device():
+    with pytest.raises(ValueError, match="CPU entry point"):
+        registration.register_cpu_image_route("unused", image_route={"encoder_device": "cuda"})
+    with pytest.raises(ValueError, match="explicit CUDA"):
+        registration.register_cuda_image_route("unused", image_route={"encoder_device": "cpu"})

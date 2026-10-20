@@ -1,0 +1,34 @@
+{
+  "schema": "omni-strata-cuda-registrar-progress-v1",
+  "tests": {
+    "passed": 51,
+    "seconds": 66.8
+  },
+  "first_attempt": "test collection failed due to malformed new import; corrected and rerun",
+  "changes": [
+    "Separate explicit CPU and CUDA registration entry points",
+    "Additional encoder GPU workspace, loading peak and Windows commit claims preserve language workspace/cache",
+    "Check fresh physical GPU and shared lease during CUDA registration",
+    "Keep inherited resource ceilings and experimental status"
+  ],
+  "scope": "registrar and budget tests; no CUDA neural or end-to-end registration result yet",
+  "runtime_context_refresh": {
+    "session": 5839,
+    "status": "running_at_record_time",
+    "previous_bundle_identity_superseded_after_refresh": true
+  },
+  "evidence": [
+    {
+      "path": "strata_cuda-registrar-tests-20261021.log.gz",
+      "raw_sha256": "e17fd505e888139edb0373886c55d1502ddb3c75850f9bf1726c95fd494b79ca"
+    },
+    {
+      "path": "strata_cuda-registrar-tests-v2-20261021.log.gz",
+      "raw_sha256": "9847a2a1d12a8afa794dcdec1fce279e72bdca41ce24025cfa98065ab3a4e0df"
+    },
+    {
+      "path": "strata_refresh_cuda_v3_context_20261021.py.gz",
+      "raw_sha256": "e5dc68eb0c6f12c84cfd82efe9b8c62fe98c18e3cc866e46982976644366c221"
+    }
+  ]
+}
