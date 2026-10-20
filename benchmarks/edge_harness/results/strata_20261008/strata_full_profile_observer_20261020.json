@@ -1,0 +1,54 @@
+{
+  "schema": "omni-strata-live-profiler-observation-v1",
+  "recorded_utc": "2026-10-20T10:03:54.026201+00:00",
+  "status": "live_observer_attached_not_completed_protocol",
+  "model_qualification": false,
+  "metadata": {
+    "schema": 1,
+    "started": "2026-10-20T10:02:25.633832+00:00",
+    "root_pid": 212452,
+    "root_created": 1792489748.19654,
+    "run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-full-6g-20261020-v6",
+    "cadence_seconds": 1,
+    "psutil": "7.2.2",
+    "observer_pid": 5108,
+    "script_sha256": "02989407bde0f62257c928151104ffe1cd7bec9bde80d2823b5e14b0f8098400",
+    "limits": [
+      "Starts mid-loading; does not cover complete cold startup",
+      "Process I/O is logical I/O, not attributable physical SSD reads",
+      "System disk counters include unrelated workloads and devices",
+      "Process RSS can double-count shared pages; do not sum as physical RAM",
+      "No GPU kernel timing, cache hit attribution or power instrumentation",
+      "Sampling has overhead; collection wall time and observer CPU are recorded"
+    ]
+  },
+  "metadata_sha256": "f8b65f2e6c8235d8dfec69e5468bbd0c48f2bbe8a9686234d83e3af9e8b4987c",
+  "captured_prefix": {
+    "samples": 89,
+    "first": "2026-10-20T10:02:25.748469+00:00",
+    "last": "2026-10-20T10:03:53.902511+00:00",
+    "sha256": "348542746aead89317c6d99380b255d73f12249f04f2df73f04ca4c9d90c3e75",
+    "bytes": 118415,
+    "observer_cpu_seconds_delta": 11.46875,
+    "observer_cpu_one_core_fraction": 0.13025713539391073,
+    "collection_wall_ms_median": 125.0,
+    "collection_wall_ms_max": 265.99999982863665
+  },
+  "archives": {
+    "strata_full_profile_observer_20261020.samples.jsonl.gz": {
+      "sha256": "9aa5dc0ff6b441d7468a8c662ffb46e8e96f2a43bb37f0bbbfd96c776168d0f4",
+      "bytes": 11870
+    },
+    "strata_full_profile_observer_20261020.source.tar.gz": {
+      "sha256": "7096ee1455262c8728ad3a4950a1e76fa674af41b1b42e8e4f004d6e178aa8d8",
+      "bytes": 2047
+    }
+  },
+  "analysis_rules": [
+    "Keep observer-overhead condition with all measurements; do not subtract it to manufacture unobserved latency",
+    "Align by UTC timestamps and runner phase; use native per-request timing as authoritative request latency",
+    "First observation per process has no interval delta; missing process observations are unknown, not zero",
+    "Do not sum overlapping RSS, shared GPU RAM or system disk counters into model-exclusive physical usage",
+    "Keep final observer completion separate from the main protocol result and its independent audit"
+  ]
+}
