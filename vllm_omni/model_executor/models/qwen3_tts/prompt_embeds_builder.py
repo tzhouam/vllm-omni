@@ -364,7 +364,12 @@ class Qwen3TTSPromptEmbedsBuilder:
         self._tts_pad_embed_buffer = tts_pad_embed
         self._encode_ref_audio_batch_fn = encode_ref_audio_batch
         self._speaker_cache = speaker_cache
-        self._embedding_dtype = torch.bfloat16
+        # Follow the talker's pad-embedding dtype (model dtype) so CPU float32/float16 deployments work.
+        self._embedding_dtype = (
+            tts_pad_embed.dtype
+            if isinstance(tts_pad_embed, torch.Tensor) and tts_pad_embed.is_floating_point()
+            else torch.bfloat16
+        )
 
         self._text_tokenizer: Any | None = None
         # Projected special-token embeddings are immutable model constants.

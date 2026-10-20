@@ -1,0 +1,9 @@
+{"tag": "vllm-bf16", "model": "XHToken/Spark-X2.5-1.7B", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 3.7763726822277026, "ppl": 43.657394933805286}
+{"tag": "vllm-int4-g64", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g64", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 3.871370641182274, "ppl": 48.00814294379576}
+{"tag": "vllm-int4-g128", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g128", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 3.949247471796542, "ppl": 51.89629870830851}
+{"tag": "vllm-int4-g32", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g32", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 4.041093142384169, "ppl": 56.88849605431311}
+{"tag": "vllm-int4-g64-fpembed", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g64-fpembed", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 3.884205416004657, "ppl": 48.62828784511256}
+{"tag": "vllm-int4-g32-rtn", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g32-rtn", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 4.039075346914289, "ppl": 56.7738224375464}
+{"tag": "vllm-int4-g64-rtn", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g64-rtn", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 4.089284296531948, "ppl": 59.69715095314776}
+{"tag": "expanded-g32", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g32-expanded", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 4.039537154311983, "ppl": 56.80004706364053}
+{"tag": "expanded-g64", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g64-expanded", "window": 512, "chunks": 143, "scored_tokens": 73073, "nll": 3.872951761505493, "ppl": 48.084109634697604}

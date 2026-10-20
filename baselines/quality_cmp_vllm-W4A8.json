@@ -1,0 +1,80 @@
+{
+  "label": "vllm-W4A8",
+  "prompts": 12,
+  "exact_match": "1/12",
+  "mean_prefix_kept": 0.1263,
+  "detail": [
+    {
+      "prompt": "chat_short",
+      "exact": false,
+      "common_prefix_chars": 66,
+      "ref_chars": 182
+    },
+    {
+      "prompt": "chat_long",
+      "exact": false,
+      "common_prefix_chars": 14,
+      "ref_chars": 261
+    },
+    {
+      "prompt": "chat_tools",
+      "exact": false,
+      "common_prefix_chars": 16,
+      "ref_chars": 287
+    },
+    {
+      "prompt": "plain_0",
+      "exact": false,
+      "common_prefix_chars": 25,
+      "ref_chars": 361
+    },
+    {
+      "prompt": "plain_1",
+      "exact": false,
+      "common_prefix_chars": 1,
+      "ref_chars": 512
+    },
+    {
+      "prompt": "plain_2",
+      "exact": false,
+      "common_prefix_chars": 4,
+      "ref_chars": 172
+    },
+    {
+      "prompt": "plain_3",
+      "exact": false,
+      "common_prefix_chars": 4,
+      "ref_chars": 352
+    },
+    {
+      "prompt": "plain_4",
+      "exact": true,
+      "common_prefix_chars": 318,
+      "ref_chars": 318
+    },
+    {
+      "prompt": "plain_5",
+      "exact": false,
+      "common_prefix_chars": 1,
+      "ref_chars": 346
+    },
+    {
+      "prompt": "plain_6",
+      "exact": false,
+      "common_prefix_chars": 1,
+      "ref_chars": 283
+    },
+    {
+      "prompt": "plain_7",
+      "exact": false,
+      "common_prefix_chars": 1,
+      "ref_chars": 320
+    },
+    {
+      "prompt": "plain_8",
+      "exact": false,
+      "common_prefix_chars": 1,
+      "ref_chars": 184
+    }
+  ]
+}

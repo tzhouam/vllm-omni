@@ -1,0 +1,84 @@
+{
+ "codec_start": {
+  "type": "codec.start",
+  "version": 1,
+  "utterance_index": 0,
+  "sentence_index": 0,
+  "sentence_text": "She said she would be here by noon, but nobody showed up.",
+  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "codebooks": 16,
+  "codebook_size": 2048,
+  "frame_rate_hz": 12.5,
+  "sample_rate": 24000,
+  "decoder_id": "qwen3_tts_tokenizer_v2_12hz",
+  "header_format": "<IHB"
+ },
+ "schedule": [
+  2,
+  4,
+  8,
+  16,
+  25
+ ],
+ "total_frames": 56,
+ "ttfa_ms": 156.36097872629762,
+ "playback_start_ms": 156.36132610961795,
+ "stall_at_ttfa_ms": 0,
+ "audio_s": 4.48,
+ "total_s": 2.4820523858070374,
+ "rtf": 0.5540295504033566,
+ "decode_ms_total": 775.7537220604718,
+ "chunks": [
+  {
+   "idx": 0,
+   "t_ms": 156.36132610961795,
+   "arrival_ms": 108.53844881057739,
+   "frames": 2,
+   "samples": 3840,
+   "decode_ms": 47.80319286510348
+  },
+  {
+   "idx": 1,
+   "t_ms": 309.7477317787707,
+   "arrival_ms": 254.71370993182063,
+   "frames": 4,
+   "samples": 7680,
+   "decode_ms": 55.00476807355881
+  },
+  {
+   "idx": 2,
+   "t_ms": 619.3297319114208,
+   "arrival_ms": 539.5850511267781,
+   "frames": 8,
+   "samples": 15360,
+   "decode_ms": 79.70938924700022
+  },
+  {
+   "idx": 3,
+   "t_ms": 1238.8015231117606,
+   "arrival_ms": 1112.3944609425962,
+   "frames": 16,
+   "samples": 30720,
+   "decode_ms": 126.3788677752018
+  },
+  {
+   "idx": 4,
+   "t_ms": 2270.256470888853,
+   "arrival_ms": 2013.8698387891054,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 256.3534560613334
+  },
+  {
+   "idx": 5,
+   "t_ms": 2481.054992880672,
+   "arrival_ms": 2270.534466020763,
+   "frames": 1,
+   "samples": 1920,
+   "decode_ms": 210.50404803827405
+  }
+ ],
+ "device": "cpu",
+ "wav": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-164759/client_1.wav",
+ "codes": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-164759/client_1.codes.npy"
+}

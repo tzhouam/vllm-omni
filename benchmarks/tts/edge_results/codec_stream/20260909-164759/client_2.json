@@ -1,0 +1,84 @@
+{
+ "codec_start": {
+  "type": "codec.start",
+  "version": 1,
+  "utterance_index": 0,
+  "sentence_index": 0,
+  "sentence_text": "The quick brown fox jumps over the lazy dog near the riverbank.",
+  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "codebooks": 16,
+  "codebook_size": 2048,
+  "frame_rate_hz": 12.5,
+  "sample_rate": 24000,
+  "decoder_id": "qwen3_tts_tokenizer_v2_12hz",
+  "header_format": "<IHB"
+ },
+ "schedule": [
+  2,
+  4,
+  8,
+  16,
+  25
+ ],
+ "total_frames": 57,
+ "ttfa_ms": 155.58505477383733,
+ "playback_start_ms": 155.58549156412482,
+ "stall_at_ttfa_ms": 0,
+ "audio_s": 4.56,
+ "total_s": 2.3397060027346015,
+ "rtf": 0.513093421652325,
+ "decode_ms_total": 645.2343706041574,
+ "chunks": [
+  {
+   "idx": 0,
+   "t_ms": 155.58549156412482,
+   "arrival_ms": 103.68144884705544,
+   "frames": 2,
+   "samples": 3840,
+   "decode_ms": 51.878735423088074
+  },
+  {
+   "idx": 1,
+   "t_ms": 312.93459376320243,
+   "arrival_ms": 252.6930426247418,
+   "frames": 4,
+   "samples": 7680,
+   "decode_ms": 60.214733239263296
+  },
+  {
+   "idx": 2,
+   "t_ms": 619.6843227371573,
+   "arrival_ms": 545.541359577328,
+   "frames": 8,
+   "samples": 15360,
+   "decode_ms": 74.12194507196546
+  },
+  {
+   "idx": 3,
+   "t_ms": 1256.4474106766284,
+   "arrival_ms": 1112.3571139760315,
+   "frames": 16,
+   "samples": 30720,
+   "decode_ms": 144.07636178657413
+  },
+  {
+   "idx": 4,
+   "t_ms": 2185.0057099945843,
+   "arrival_ms": 2023.6358987167478,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 161.34549817070365
+  },
+  {
+   "idx": 5,
+   "t_ms": 2338.8509387150407,
+   "arrival_ms": 2185.2396335452795,
+   "frames": 2,
+   "samples": 3840,
+   "decode_ms": 153.59709691256285
+  }
+ ],
+ "device": "cpu",
+ "wav": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-164759/client_2.wav",
+ "codes": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-164759/client_2.codes.npy"
+}

@@ -1,0 +1,12 @@
+{
+ "ring_sliding_ctx1024|qnn_npu": 1.479,
+ "ring_sliding_ctx1024|tflite_npu": 1.491,
+ "ring_sliding_ctx1024|tflite_cpu": 2.958,
+ "ring_sliding_ctx1024|tflite_gpu": 2.259,
+ "ring_sliding_ctx1024|onnx_npu": 1.5,
+ "ring_full_ctx1024|qnn_npu": 1.554,
+ "ring_full_ctx1024|tflite_npu": 1.578,
+ "ring_full_ctx1024|tflite_cpu": 3.006,
+ "ring_full_ctx1024|tflite_gpu": 2.632,
+ "ring_full_ctx1024|onnx_npu": 1.594
+}

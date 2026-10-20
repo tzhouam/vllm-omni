@@ -1,0 +1,16 @@
+{
+  "context": 1024,
+  "cache_layout": "ring",
+  "gelu_mode": "tanh",
+  "logits_snr_db": 65.24,
+  "max_abs_diff": 0.028232574462890625,
+  "ref_top1": 1310,
+  "export_top1": 1310,
+  "top1_agree": true,
+  "top5_agree": true,
+  "kv_bytes": {
+    "hybrid": 36657152,
+    "uniform": 58720256,
+    "saved": 22063104
+  }
+}

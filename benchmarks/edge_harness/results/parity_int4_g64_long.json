@@ -1,0 +1,13 @@
+{
+  "ref_text": "We are given an inventory listing with item codes for warehouse districts 1 through 120. The question asks: \"What is the code for warehouse district",
+  "vllm_text": "Got it, let's see. The user is asking for the code of warehouse district 73. Let's look through the inventory list. Let's check",
+  "greedy_token_match": "0/32",
+  "exact_match": false,
+  "ref_top1": 3066,
+  "vllm_first_token": 71430,
+  "first_token_agree": false,
+  "top20_logprob_overlap": "12/20",
+  "top20_logprob_max_abs_diff": 5.217943981289864,
+  "top20_logprob_mean_abs_diff": 2.0544758004446826,
+  "dtype": "bfloat16"
+}

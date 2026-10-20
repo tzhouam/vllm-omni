@@ -1,0 +1,6 @@
+{
+ "ring_sliding_ctx1024|fp16": 1.483,
+ "ring_full_ctx1024|fp16": 1.567,
+ "lm_head|w4a16": 3.868,
+ "lm_head|w8a16": 3.862
+}

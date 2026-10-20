@@ -12,7 +12,12 @@ out of StageEngineCoreClient into reusable functions.
 from __future__ import annotations
 
 import copy
-import fcntl
+# [edge-infer W1] fcntl does not exist on Windows; this module is in the
+# import closure of AsyncOmni, so the bare import makes the engine
+# unimportable before anything can be configured. The locking logic is
+# sound and torch-free -- only the primitive changes. The shim keeps the
+# BlockingIOError contract this file's stale-lock path depends on.
+from vllm_omni._filelock_compat import flock_exclusive_nb, funlock
 import importlib
 import json
 import multiprocessing as mp
@@ -1898,7 +1903,7 @@ def acquire_device_locks(
                 try:
                     lock_fd, lock_writable = open_device_lock_file(lock_file)
                     try:
-                        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        flock_exclusive_nb(lock_fd)
                         record_lock_holder_pid(lock_fd, lock_writable)
                         lock_acquired = True
                         lock_fds.append(lock_fd)
@@ -1953,7 +1958,7 @@ def release_device_locks(lock_fds: list[int]) -> None:
     """Release file locks acquired by acquire_device_locks."""
     for lock_fd in lock_fds:
         try:
-            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            funlock(lock_fd)
             os.close(lock_fd)
             logger.debug("Released initialization lock (fd=%s)", lock_fd)
         except (OSError, ValueError):

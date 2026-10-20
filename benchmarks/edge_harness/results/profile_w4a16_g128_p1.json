@@ -1,0 +1,224 @@
+{
+  "tag": "bfloat16/None/eager=False",
+  "wall_step_ms": 12.744,
+  "tps": 78.47,
+  "profiled_total_ms_per_step": 12.345,
+  "buckets_ms_per_step": {
+    "gemm": 7.112,
+    "framework": 2.807,
+    "other_op": 1.489,
+    "attn": 0.937
+  },
+  "top": [
+    {
+      "op": "aten::_weight_int4pack_mm_for_cpu",
+      "bucket": "gemm",
+      "ms_per_step": 6.5937,
+      "calls_per_step": 113.0
+    },
+    {
+      "op": "## Call CompiledFxGraph None ##",
+      "bucket": "framework",
+      "ms_per_step": 2.0585,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "vllm::cpu_int4_linear",
+      "bucket": "gemm",
+      "ms_per_step": 0.5181,
+      "calls_per_step": 113.0
+    },
+    {
+      "op": "vllm::unified_attention_with_output",
+      "bucket": "attn",
+      "ms_per_step": 0.4498,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "vllm::unified_kv_cache_update",
+      "bucket": "framework",
+      "ms_per_step": 0.4096,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "_C::cpu_attention_with_kv_cache",
+      "bucket": "attn",
+      "ms_per_step": 0.3554,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::argmax",
+      "bucket": "other_op",
+      "ms_per_step": 0.2452,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::copy_",
+      "bucket": "other_op",
+      "ms_per_step": 0.2452,
+      "calls_per_step": 75.0
+    },
+    {
+      "op": "vllm::spark_head_gate",
+      "bucket": "framework",
+      "ms_per_step": 0.2093,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::slice",
+      "bucket": "other_op",
+      "ms_per_step": 0.1452,
+      "calls_per_step": 230.0
+    },
+    {
+      "op": "_C::cpu_attn_reshape_and_cache",
+      "bucket": "attn",
+      "ms_per_step": 0.1316,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::mul",
+      "bucket": "other_op",
+      "ms_per_step": 0.1275,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "Pregraph bytecode",
+      "bucket": "framework",
+      "ms_per_step": 0.1237,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::sum",
+      "bucket": "other_op",
+      "ms_per_step": 0.094,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::as_strided",
+      "bucket": "other_op",
+      "ms_per_step": 0.0889,
+      "calls_per_step": 290.0
+    },
+    {
+      "op": "aten::narrow",
+      "bucket": "other_op",
+      "ms_per_step": 0.0759,
+      "calls_per_step": 112.0
+    },
+    {
+      "op": "aten::_to_copy",
+      "bucket": "other_op",
+      "ms_per_step": 0.0736,
+      "calls_per_step": 61.0
+    },
+    {
+      "op": "aten::chunk",
+      "bucket": "other_op",
+      "ms_per_step": 0.0566,
+      "calls_per_step": 56.0
+    },
+    {
+      "op": "aten::split",
+      "bucket": "other_op",
+      "ms_per_step": 0.0512,
+      "calls_per_step": 56.0
+    },
+    {
+      "op": "aten::view",
+      "bucket": "other_op",
+      "ms_per_step": 0.0471,
+      "calls_per_step": 62.0
+    },
+    {
+      "op": "aten::empty",
+      "bucket": "other_op",
+      "ms_per_step": 0.0455,
+      "calls_per_step": 145.0
+    },
+    {
+      "op": "aten::to",
+      "bucket": "other_op",
+      "ms_per_step": 0.0313,
+      "calls_per_step": 64.0
+    },
+    {
+      "op": "aten::empty_strided",
+      "bucket": "other_op",
+      "ms_per_step": 0.0267,
+      "calls_per_step": 61.0
+    },
+    {
+      "op": "aten::fill_",
+      "bucket": "other_op",
+      "ms_per_step": 0.0223,
+      "calls_per_step": 40.0
+    },
+    {
+      "op": "aten::index",
+      "bucket": "other_op",
+      "ms_per_step": 0.0188,
+      "calls_per_step": 2.0
+    },
+    {
+      "op": "aten::unsqueeze",
+      "bucket": "other_op",
+      "ms_per_step": 0.0177,
+      "calls_per_step": 29.0
+    },
+    {
+      "op": "_C::compute_slot_mapping_kernel_impl",
+      "bucket": "other_op",
+      "ms_per_step": 0.0167,
+      "calls_per_step": 4.0
+    },
+    {
+      "op": "_C::get_scheduler_metadata",
+      "bucket": "other_op",
+      "ms_per_step": 0.0149,
+      "calls_per_step": 4.0
+    },
+    {
+      "op": "aten::new_empty",
+      "bucket": "other_op",
+      "ms_per_step": 0.0139,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::add",
+      "bucket": "other_op",
+      "ms_per_step": 0.0091,
+      "calls_per_step": 3.0
+    },
+    {
+      "op": "AOTDispatcher Runtime Wrapper Prologue",
+      "bucket": "framework",
+      "ms_per_step": 0.006,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::sub",
+      "bucket": "other_op",
+      "ms_per_step": 0.0052,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::lt",
+      "bucket": "other_op",
+      "ms_per_step": 0.0035,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::index_select",
+      "bucket": "other_op",
+      "ms_per_step": 0.0031,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::detach",
+      "bucket": "other_op",
+      "ms_per_step": 0.0025,
+      "calls_per_step": 2.0
+    }
+  ]
+}

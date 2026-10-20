@@ -137,6 +137,13 @@ def _create_nixl_connector(config: dict[str, Any]) -> OmniConnectorBase:
 
 
 # Register connectors
+def _create_cuda_ipc_connector(config: dict[str, Any]) -> OmniConnectorBase:
+    from .connectors.cuda_ipc_connector import CudaIpcConnector
+
+    return CudaIpcConnector(config)
+
+
+OmniConnectorFactory.register_connector("CudaIpcConnector", _create_cuda_ipc_connector)
 OmniConnectorFactory.register_connector("MooncakeStoreConnector", _create_mooncake_store_connector)
 OmniConnectorFactory.register_connector("MooncakeTransferEngineConnector", _create_mooncake_transfer_engine_connector)
 OmniConnectorFactory.register_connector("SharedMemoryConnector", _create_shm_connector)

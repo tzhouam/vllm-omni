@@ -299,3 +299,28 @@ benchmarks/tts/
 - Upstream seed-tts-eval integration: vllm-project/vllm-omni#2558
 - Pipeline + Deploy schema: vllm-project/vllm-omni#2383
 - Concurrency cliff RFC: vllm-project/vllm-omni#272
+
+## Offline streaming latency (`stream_latency_bench.py`)
+
+Measures chunk-streamed generation through `AsyncOmni` without a server, reusing the
+Qwen3-TTS example's prompt builder. Per request it records every chunk arrival and derives:
+
+| Metric | Definition |
+|---|---|
+| `ttfa_ms` | arrival of the first audio-carrying chunk |
+| `playback_start_ms` | earliest underrun-free playback start, `max_i (t_i - audio_before_i)` |
+| `stall_at_ttfa_ms` | total stall if playback starts at TTFA (the 1→25-frame cliff on the default schedule) |
+| `rtf_streamed` / `rtf_total` | wall time over streamed audio / over streamed + tail audio |
+| `gap_ms` | inter-chunk arrival gaps |
+
+```bash
+# one GPU through the scheduler; every example flag is passed through
+gpu run --gpus 1 --timeout 40m --note "stream latency 0.6B" -- env HF_HUB_OFFLINE=1 \
+  python benchmarks/tts/stream_latency_bench.py --model Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice \
+  --query-type CustomVoice --txt-prompts benchmarks/tts/prompts_12.txt --warmup 1 --repeat 3 \
+  --init-timeout 1500 --stage-init-timeout 900 --tag baseline
+```
+
+Results are written under `benchmarks/tts/edge_results/stream_latency/<model>/<deploy>/`.
+`--init-only` initializes, runs the warm-ups and exits (used by `init_profile.py`);
+`VLLM_OMNI_INIT_TIMELINE=<path>` embeds the initialization timeline JSON when available.

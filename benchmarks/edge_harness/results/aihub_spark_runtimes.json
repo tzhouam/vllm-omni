@@ -1,0 +1,7 @@
+{
+ "qnn_npu": 1.563,
+ "tflite_npu": 1.579,
+ "onnx_npu": 1.594,
+ "tflite_gpu": 3.752,
+ "tflite_cpu": 3.014
+}

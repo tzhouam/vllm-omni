@@ -1,0 +1,58 @@
+[
+ {
+  "i": 0,
+  "frames": 52,
+  "exact_vs_client_chunked": {
+   "snr_db": 75.30462286668491,
+   "corr": 0.9999999963199535,
+   "lag": 0
+  },
+  "full_server_vs_exact": {
+   "snr_db": -3.0102342111930867,
+   "corr": -0.004136945264628016,
+   "lag": -1920
+  }
+ },
+ {
+  "i": 1,
+  "frames": 56,
+  "exact_vs_client_chunked": {
+   "snr_db": 75.94970682010397,
+   "corr": 0.9999999968181664,
+   "lag": 0
+  },
+  "full_server_vs_exact": {
+   "snr_db": -2.944756779166787,
+   "corr": 0.012639352627620306,
+   "lag": -1920
+  }
+ },
+ {
+  "i": 2,
+  "frames": 57,
+  "exact_vs_client_chunked": {
+   "snr_db": 74.71863619940385,
+   "corr": 0.9999999957637626,
+   "lag": 0
+  },
+  "full_server_vs_exact": {
+   "snr_db": -3.039177960515268,
+   "corr": -0.0073217557348321,
+   "lag": -1920
+  }
+ },
+ {
+  "i": 3,
+  "frames": 67,
+  "exact_vs_client_chunked": {
+   "snr_db": 72.65030455154775,
+   "corr": 0.9999999932262861,
+   "lag": 0
+  },
+  "full_server_vs_exact": {
+   "snr_db": -2.9956981500244613,
+   "corr": 0.0008606761784026995,
+   "lag": -1920
+  }
+ }
+]

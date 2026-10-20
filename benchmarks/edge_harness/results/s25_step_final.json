@@ -1,0 +1,23 @@
+{
+ "step_ms": 27.36,
+ "tok_s": 36.5,
+ "baseline_ms": 31.01,
+ "baseline_tok_s": 32.2,
+ "components": {
+  "sliding x21 (ring)": {
+   "ms_each": 0.803,
+   "ms_total": 16.86,
+   "snr_db": 36.85
+  },
+  "full x7 (roll)": {
+   "ms_each": 0.942,
+   "ms_total": 6.59,
+   "snr_db": 37.39
+  },
+  "output head x1": {
+   "ms_each": 3.907,
+   "ms_total": 3.91,
+   "snr_db": 62.76
+  }
+ }
+}

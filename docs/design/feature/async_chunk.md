@@ -321,3 +321,31 @@ stages:
 - `vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py`: Code2wav decoder with batch support
 - `vllm_omni/engine/arg_utils.py`: Configuration definitions (async_chunk, worker_type)
 - `vllm_omni/config/model.py`: Model config with async_chunk field
+
+
+### Chunk Ramp and the Edge Profile
+
+The default schedule emits one 80 ms frame first (`initial_codec_chunk_frames: 1`)
+and the next 25-frame chunk about 160 ms later, so a player that starts at the
+first audio stalls for roughly 80 ms (measured on L20X: playback-start latency
+116 ms vs TTFA 32 ms for the 1.7B model). `codec_chunk_ramp` replaces the
+initial/steady pair with a growing schedule so the audio buffered ahead always
+covers the wait for the next chunk:
+
+```yaml
+connectors:
+  connector_of_shared_memory:
+    name: SharedMemoryConnector
+    extra:
+      codec_chunk_frames: 25
+      codec_chunk_ramp: [2, 4, 8, 16, 25]   # last entry == codec_chunk_frames
+      decode_batch_max_size: 1              # edge: 1-4 concurrent utterances
+```
+
+`vllm_omni/deploy/edge/qwen3_tts.yaml` bundles this ramp with single-device,
+small-batch stage settings and concurrent stage init; select it with
+`Omni(model=..., deploy_profile="edge")` or `vllm serve --omni --deploy-profile edge`
+(`deploy_profile="auto"` additionally probes the hardware, see
+`vllm_omni/edge/`). With the ramp the measured playback-start latency equals
+TTFA (stall 0 ms, TTFA 41-44 ms) at unchanged RTF; results live under
+`benchmarks/tts/edge_results/`.

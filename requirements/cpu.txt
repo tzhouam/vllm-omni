@@ -1,2 +1,6 @@
 -r common.txt
 onnxruntime>=1.23.2
+# CPU OmniPlatform runtime (vllm_omni/platforms/cpu): NUMA/RSS accounting and
+# the OpenMP runtime vLLM's CpuPlatform expects in LD_PRELOAD.
+psutil
+intel-openmp; platform_machine == "x86_64"

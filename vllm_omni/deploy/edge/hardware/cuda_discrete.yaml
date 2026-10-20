@@ -1,0 +1,3 @@
+# Discrete CUDA GPU (desktop / small server): defaults from edge/<model>.yaml apply;
+# nothing pinned here so the measured init_profile results decide graphs vs eager.
+stages: []

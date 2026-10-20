@@ -1,0 +1,2 @@
+# AR-only (TTS/speech) CUDA build: VLLM_OMNI_EDGE_BUILD=1 pip install -e .
+-r core.txt

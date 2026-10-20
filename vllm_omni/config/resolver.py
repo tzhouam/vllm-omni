@@ -182,6 +182,10 @@ def _resolve_generic_diffusion_model_class(
     cli_overrides: Mapping[str, Any],
 ) -> tuple[bool, str | None]:
     """Detect generic diffusion support and its serving pipeline class."""
+    # [edge-infer WP6] Lazy: the diffusion registry imports the whole diffusion
+    # model stack; AR-only (TTS) pipelines resolve through the registry branch
+    # above and must not pay for it (tests/config/test_import_guard.py).
+
     model_class_name = cli_overrides.get("model_class_name") or resolve_model_class_name(
         model,
         str(cli_overrides.get("diffusion_load_format") or "default"),

@@ -36,6 +36,7 @@ from vllm.v1.worker.ubatch_utils import maybe_create_ubatch_slices
 from vllm_omni.core.prefix_cache import stage_prefix_cache_config
 from vllm_omni.core.prefix_cache.runner_mixin import PrefixCacheRunnerMixin
 from vllm_omni.data_entry_keys import OmniPayload
+from vllm_omni.engine.init_timeline import timed_phase, worker_phase
 from vllm_omni.engine.serialization import deserialize_additional_information
 from vllm_omni.model_executor.layers.rotary_embedding.mrope import OmniMRotaryEmbedding as MRotaryEmbedding
 from vllm_omni.model_executor.models.interfaces import requires_request_sample_eligibility
@@ -155,8 +156,10 @@ class OmniGPUModelRunner(PrefixCacheRunnerMixin, GPUModelRunner):
             self._omni_prefix_cache_cfg = cfg
 
     @instrument(span_name="Loading (GPU)")
+    @timed_phase("load_model")
     def load_model(self, *args, **kwargs) -> None:
-        super().load_model(*args, **kwargs)
+        with worker_phase("load_weights"):
+            super().load_model(*args, **kwargs)
         model = getattr(self, "model", None)
         override_fn = None
         if bool(getattr(model, "supports_sampled_token_ids_cpu_override", False)):
@@ -252,6 +255,7 @@ class OmniGPUModelRunner(PrefixCacheRunnerMixin, GPUModelRunner):
         # FULL decoder captures already hold the MTP graphs for those sizes.
         return getattr(self.model, "talker", None) is not None and bool(self.has_talker_mtp)
 
+    @timed_phase("talker_mtp_init")
     def _init_talker_mtp(self) -> None:
         # TODO move this model specific logic to a separate class
         # TTS model IS the talker (no .talker sub-attr); use getattr to support both Omni and TTS.
@@ -276,12 +280,14 @@ class OmniGPUModelRunner(PrefixCacheRunnerMixin, GPUModelRunner):
         hidden_size = int(
             getattr(self.model, "mtp_hidden_size", 0) or getattr(self.model_config.hf_text_config, "hidden_size")
         )
-        max_batch_size = max(self.max_num_reqs, self.compilation_config.max_cudagraph_capture_size)
+        # max_cudagraph_capture_size is None when graphs are disabled (e.g. the CPU platform).
+        max_batch_size = max(self.max_num_reqs, self.compilation_config.max_cudagraph_capture_size or 0)
         self.talker_mtp_input_ids = self._make_buffer(max_batch_size, dtype=torch.int32)
         self.talker_mtp_inputs_embeds = self._make_buffer(max_batch_size, hidden_size, dtype=self.dtype, numpy=False)
         self.last_talker_hidden = self._make_buffer(max_batch_size, hidden_size, dtype=self.dtype, numpy=False)
         self.text_step = self._make_buffer(max_batch_size, hidden_size, dtype=self.dtype, numpy=False)
 
+    @timed_phase("attn_prewarm")
     def _prewarm_attention_capture_workspaces(self) -> None:
         capture_sizes = getattr(self.compilation_config, "cudagraph_capture_sizes", None)
         if not capture_sizes:
@@ -2146,8 +2152,13 @@ class OmniGPUModelRunner(PrefixCacheRunnerMixin, GPUModelRunner):
             talker_kwargs["req_infos"] = [
                 self.model_intermediate_buffer.setdefault(req_id, {}) for req_id in decode_req_ids
             ]
-        with current_omni_platform.set_forward_context(
-            None, self.vllm_config, cudagraph_runtime_mode=_cudagraph_mode, batch_descriptor=batch_desc
+        from vllm_omni.edge.step_stats import StepStats
+
+        with (
+            current_omni_platform.set_forward_context(
+                None, self.vllm_config, cudagraph_runtime_mode=_cudagraph_mode, batch_descriptor=batch_desc
+            ),
+            StepStats.get().timed("model.mtp_graph_ms", sync_device=getattr(self, "device", None)),
         ):
             req_embeds, code_predictor_codes = self.talker_mtp(
                 req_input_ids,
@@ -2197,6 +2208,44 @@ class OmniGPUModelRunner(PrefixCacheRunnerMixin, GPUModelRunner):
                         )
                     self._update_intermediate_buffer(req_id, update_dict)
 
+    def _accepted_forward_kwargs(self) -> frozenset[str] | None:
+        """Names the stage model's ``forward`` will accept, or ``None`` for any.
+
+        Omni-native stage models take ``**kwargs`` and pick out what they need,
+        so the AR runner hands every stage ``sampling_metadata``,
+        ``logits_index`` and ``sampler`` unconditionally. A model that vLLM owns
+        does not: ``LlamaForCausalLM.forward`` is
+        ``(input_ids, positions, intermediate_tensors, inputs_embeds)`` and
+        nothing else, so passing the omni extras is an immediate ``TypeError``
+        on the first forward -- which is what "the model is in the registry" not
+        meaning "the model runs under Omni" looks like in practice (proposal
+        2.4, item 12).
+
+        Dropping them is the correct behaviour rather than a workaround: those
+        arguments exist for stages that sample inside the model, and a
+        vLLM-native causal LM samples through vLLM's own sampler afterwards.
+        Computed once per runner -- ``inspect.signature`` on every decode step
+        would be absurd.
+        """
+        cached = getattr(self, "_omni_forward_kwargs_cache", "unset")
+        if cached != "unset":
+            return cached
+
+        import inspect
+
+        accepted: frozenset[str] | None
+        try:
+            parameters = inspect.signature(type(self.model).forward).parameters
+        except (TypeError, ValueError):
+            accepted = None  # not introspectable; assume it copes, as before
+        else:
+            if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in parameters.values()):
+                accepted = None
+            else:
+                accepted = frozenset(parameters) - {"self"}
+        self._omni_forward_kwargs_cache = accepted
+        return accepted
+
     def _model_forward(
         self,
         input_ids: torch.Tensor | None = None,
@@ -2207,6 +2256,20 @@ class OmniGPUModelRunner(PrefixCacheRunnerMixin, GPUModelRunner):
     ):
         """Inject omni-specific kwargs into forward and cache model output"""
         model_kwargs_extra = self._build_model_kwargs_extra()
+        accepted = self._accepted_forward_kwargs()
+        if accepted is not None:
+            dropped = sorted((set(model_kwargs) | set(model_kwargs_extra)) - accepted)
+            if dropped and not getattr(self, "_omni_logged_dropped_kwargs", False):
+                self._omni_logged_dropped_kwargs = True
+                logger.info(
+                    "[Omni] %s.forward does not accept %s; passing the rest. This is "
+                    "the expected path for a vLLM-native model used as an omni AR "
+                    "stage -- it samples through vLLM's sampler, not its own.",
+                    type(self.model).__name__,
+                    dropped,
+                )
+            model_kwargs = {k: v for k, v in model_kwargs.items() if k in accepted}
+            model_kwargs_extra = {k: v for k, v in model_kwargs_extra.items() if k in accepted}
         update_decode_metadata = getattr(self.model, "update_decode_step_metadata", None)
         if getattr(self.model, "supports_omni_decode_step_metadata", False) and callable(update_decode_metadata):
             cpu_input_tail_ids = None

@@ -179,8 +179,17 @@ class OmniBase(PDDisaggregationMixin):
                 "You should instead, pass the keyword arguments used to initialize the engine args "
                 "directly to this object's initializer."
             )
-        stage_init_timeout = kwargs.pop("stage_init_timeout", 300)
-        init_timeout = kwargs.pop("init_timeout", 600)
+        # Tri-state: ``None`` means "not specified". Named deploy profiles
+        # (e.g. ``deploy_profile="edge"``) initialize both stages on one device
+        # and compile/capture at start, so they get larger defaults; the
+        # init timeline (VLLM_OMNI_INIT_TIMELINE) reports what a run needed.
+        stage_init_timeout = kwargs.pop("stage_init_timeout", None)
+        init_timeout = kwargs.pop("init_timeout", None)
+        if kwargs.get("deploy_profile"):
+            stage_init_timeout = 900 if stage_init_timeout is None else stage_init_timeout
+            init_timeout = 1500 if init_timeout is None else init_timeout
+        stage_init_timeout = 300 if stage_init_timeout is None else stage_init_timeout
+        init_timeout = 600 if init_timeout is None else init_timeout
         log_stats = kwargs.pop("log_stats", False)
         collect_stage_metrics = kwargs.pop("collect_stage_metrics", True)
         self._enable_ar_profiler = kwargs.pop("enable_ar_profiler", False)

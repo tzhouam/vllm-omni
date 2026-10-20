@@ -1,0 +1,20 @@
+# Core runtime for AR and speech; aligned with vLLM 0.32.0.
+transformers >= 5.16.1, < 5.20.0
+av>=14.0.0
+omegaconf>=2.3.0
+safetensors>=0.8.0
+accelerate==1.12.0
+soundfile>=0.13.1
+tqdm>=4.66.0
+einops>=0.8.1
+prettytable>=3.8.0
+aenum==3.1.16
+pyzmq>=25.0.0
+janus>=1.0.0
+msgpack>=1.0.0
+pydantic>=2.12.0
+pydantic-settings>=2.0.0
+typing_extensions>=4.13
+soxr>=0.5.0.post1
+scipy>=1.11.0
+s3tokenizer==0.3.0

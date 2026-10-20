@@ -32,6 +32,7 @@ from vllm_omni.distributed.omni_coordinator import (
 )
 from vllm_omni.engine.arg_utils import is_frontend_only
 from vllm_omni.engine.cuda_mps import CudaMPSServer, physical_gpu_uuid
+from vllm_omni.engine.init_timeline import worker_phase
 from vllm_omni.engine.messages import (
     EngineQueueMessage,
     RegisterRemoteReplicaMessage,
@@ -462,14 +463,16 @@ class StageRuntime:
                             stage_runtime_env(replica.metadata.stage_id, replica.metadata.runtime_cfg),
                             stage_runtime_env(replica.metadata.stage_id, {"env": mps_env}),
                         ):
-                            stage_resources = launch_context.__enter__()
+                            with worker_phase("g2_spawn", stage_id=replica.metadata.stage_id, replica_id=replica.replica_id):
+                                stage_resources = launch_context.__enter__()
                         entered_contexts.append(launch_context)
                         if stage_resources is None:
                             raise RuntimeError(f"LLM stage {plan.stage_id} launcher returned no resources")
                         resources.append(stage_resources)
                     if num_api_servers == 1:
                         exited_contexts.add(len(entered_contexts) - 1)
-                        launch_context.__exit__(None, None, None)
+                        with worker_phase("g2_ready_wait", stage_id=replica.metadata.stage_id, replica_id=replica.replica_id):
+                            launch_context.__exit__(None, None, None)
                     addresses = stage_resources.addresses
                     # The generic resource bundle allows no addresses (e.g.
                     # diffusion), but EngineCore attachment requires them.
@@ -1078,7 +1081,31 @@ class StageRuntime:
             AdmissionExempt,
             StageAdmissionError,
             check_admission,
+            check_host_admission,
         )
+
+        # Which ledger applies is a property of where the stages are *placed*,
+        # not of what platform this process reports: a CPU-only host still has
+        # to admit GPU-shaped plans correctly.
+        #
+        # `devices: "cpu"` resolves to no physical ids, and the device resolver
+        # fails closed on that, so parallel_stage_init was structurally
+        # unusable for CPU deployments -- they silently fell back to sequential
+        # init, which on Qwen3-TTS is ~28 s of a 66 s start. The resource
+        # concurrent CPU init actually contends for is host memory, so admit
+        # against that rather than skipping admission.
+        local = [
+            replica
+            for plan in stage_plans
+            for replica in getattr(plan, "replicas", [])
+            if getattr(replica, "launch_mode", None) == "local"
+        ]
+        if local and all(self._cpu_placed(r) for r in local):
+            import psutil
+
+            self._run_host_admission(stage_plans, check_host_admission,
+                                     lambda: int(psutil.virtual_memory().available))
+            return
 
         def _resolve(replica: ReplicaInitPlan) -> list[int] | AdmissionExempt | None:
             if replica.launch_mode == "remote":
@@ -1145,6 +1172,17 @@ class StageRuntime:
             resolve_physical_devices=_resolve,
             device_total_memory=_total_memory,
         )
+
+    @staticmethod
+    def _cpu_placed(replica: Any) -> bool:
+        """True when this replica is explicitly placed on the CPU."""
+        cfg = getattr(replica.metadata, "runtime_cfg", None) or {}
+        devices = cfg.get("devices") if hasattr(cfg, "get") else getattr(cfg, "devices", None)
+        return isinstance(devices, str) and devices.strip().lower() == "cpu"
+
+    def _run_host_admission(self, stage_plans, check_host_admission, available_memory) -> None:
+        """Bound concurrent CPU stage init against host RAM (see stage_admission)."""
+        check_host_admission(stage_plans, available_memory=available_memory)
 
     def _build_init_groups(
         self,

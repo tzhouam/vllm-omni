@@ -1,0 +1,6 @@
+{"tag": "c2-bf16", "model": "XHToken/Spark-X2.5-1.7B", "window": 512, "chunks": 247, "scored_tokens": 126217, "nll": 2.3291262563013975, "ppl": 10.268965168486398}
+{"tag": "c2-int4-g64", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g64", "window": 512, "chunks": 247, "scored_tokens": 126217, "nll": 2.446570275075721, "ppl": 11.548669956733075}
+{"tag": "c2-int4-g128", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g128", "window": 512, "chunks": 247, "scored_tokens": 126217, "nll": 2.4960842284453117, "ppl": 12.134883374312405}
+{"tag": "c2-int4-g32", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-int4-g32", "window": 512, "chunks": 247, "scored_tokens": 126217, "nll": 2.4446298061138063, "ppl": 11.526281849868935}
+{"tag": "c2-gptq-w4a8", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-gptq-g128-head", "window": 512, "chunks": 247, "scored_tokens": 126217, "nll": 2.5695190991422434, "ppl": 13.05954258534955}
+{"tag": "c2-gptq-w4a16", "model": "/data/zhoutaichang/embedding_infer/models/spark2_5-gptq-g128-head", "window": 512, "chunks": 247, "scored_tokens": 126217, "nll": 2.5562905847375963, "ppl": 12.887921884302088}

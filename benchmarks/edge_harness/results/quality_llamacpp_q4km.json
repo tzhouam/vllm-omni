@@ -1,0 +1,50 @@
+{
+  "chat_short": {
+    "text": "We are asked: \"What is the capital of France? Answer in one word.\" So the answer should be a single word: \"Paris\". But we need to output just the answer in one word. The instruction says: \"Answer in one word.\" So we should respond with \"Paris\".</think>Paris",
+    "token_ids": null
+  },
+  "chat_long": {
+    "text": "We are given an inventory listing with items 1 through 120. Each item has a code for a warehouse district. The codes are given as:\n\nItem 1: 1007\nItem 2: 1014\nItem 3: 1021\n",
+    "token_ids": null
+  },
+  "chat_tools": {
+    "text": "The user wants weather for Shenzhen in celsius. I have the weather function available. Let me call it with the city \"Shenzhen\" and unit \"celsius\".</think><tool_call>get_weather<arg_key>city</arg_key><arg_value>Shenzhen</arg_value><arg_key>unit</arg_key><arg_value>celsius</arg_value></tool_call>",
+    "token_ids": null
+  },
+  "plain_0": {
+    "text": " the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia",
+    "token_ids": null
+  },
+  "plain_1": {
+    "text": " mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission",
+    "token_ids": null
+  },
+  "plain_2": {
+    "text": "    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n        return b\n\n\nfib = fibonacci\n\n\nprint(fib(10))\nprint(fib(20))\nprint(fib",
+    "token_ids": null
+  },
+  "plain_3": {
+    "text": " that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that that",
+    "token_ids": null
+  },
+  "plain_4": {
+    "text": " to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to",
+    "token_ids": null
+  },
+  "plain_5": {
+    "text": " the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the",
+    "token_ids": null
+  },
+  "plain_6": {
+    "text": " converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts converts",
+    "token_ids": null
+  },
+  "plain_7": {
+    "text": " is used to organize data in a way that is used to organize data in a way that is used to organize data in a way that is used to organize data in a way that is used to organize data in a way that is used to organize data in a way that is used to organize data in a way that is",
+    "token_ids": null
+  },
+  "plain_8": {
+    "text": " 1621. The Treaty of Westphalia was signed in 1621. The Treaty of Westphalia was signed in 1621. The Treaty of Westphalia was signed in 1621. The Treaty of Westphalia was signed in 162",
+    "token_ids": null
+  }
+}

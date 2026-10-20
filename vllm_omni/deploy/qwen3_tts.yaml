@@ -168,3 +168,59 @@ platforms:
         enforce_eager: true
   musa:
     model_runner: v1
+  # CPU OmniPlatform (VLLM_TARGET_DEVICE=cpu or a +cpu vLLM wheel). vLLM's
+  # CpuPlatform already forces async_scheduling=False, no CUDA graphs and
+  # CPU_ATTN; the values below size the two stages for a CPU box. Nested
+  # layout: engine args under ``engine_args``, placement under ``runtime``.
+  # gpu_memory_utilization is read by the CPU worker as a NUMA-node memory
+  # fraction, so an absolute kv_cache_memory_bytes is set instead.
+  # Thread ranges are per-stage (disjoint) so the two workers do not pin the
+  # same cores; deploy_profile="auto" derives them from the probed topology.
+  cpu:
+    stages:
+      - stage_id: 0
+        engine_args:
+          enforce_eager: true
+          async_scheduling: false
+          max_num_seqs: 2
+          max_num_batched_tokens: 2048
+          max_model_len: 2048
+          gpu_memory_utilization: 0.05
+          dtype: bfloat16
+          # Sized from the model rather than from a server default: the
+          # talker is 28 layers x 8 KV heads x 128 head_dim x 2 (K,V) x 2 B
+          # = 112 KiB/token, so max_num_seqs 2 at max_model_len 2048 needs
+          # 560 MiB against the 4 GiB this used to ask for -- 7.3x the need.
+          # (vllm_omni/edge/kv_budget.py computes it from the HF config.)
+          #
+          # This only takes effect with the patch in vllm_omni/patch.py:
+          # CpuPlatform.check_and_update_config overwrites
+          # kv_cache_memory_bytes from VLLM_CPU_KVCACHE_SPACE unconditionally,
+          # so on CPU this key was dead. Verified by allocation: the same
+          # request went from 71 527 cache tokens to 2 231 once the explicit
+          # value won. What that saves in resident memory is *not* established
+          # -- RssAnon is the metric to use, since VmRSS here moves 1-2 GB
+          # between identical runs as the mmap'd checkpoint's pages come and go.
+          kv_cache_memory_bytes: 671088640
+        runtime:
+          devices: "cpu"
+          env:
+            VLLM_CPU_OMP_THREADS_BIND: "0-11"
+      - stage_id: 1
+        engine_args:
+          enforce_eager: true
+          async_scheduling: false
+          max_num_seqs: 2
+          max_num_batched_tokens: 8192
+          max_model_len: 8192
+          gpu_memory_utilization: 0.05
+          dtype: bfloat16
+          # Left at 2 GiB deliberately: Code2Wav is a generation stage and its
+          # cache geometry is not a plain attention KV, so the figure cannot be
+          # derived the way stage 0's can. Measure before shrinking it --
+          # under-sizing makes vLLM preempt by recompute, which is a stall.
+          kv_cache_memory_bytes: 2147483648
+        runtime:
+          devices: "cpu"
+          env:
+            VLLM_CPU_OMP_THREADS_BIND: "12-15"

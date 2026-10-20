@@ -1,0 +1,243 @@
+{
+ "schema": 1,
+ "t0": 1788922985.7413883,
+ "t_end": 1788923101.556566,
+ "total_s": 115.81517767906189,
+ "phases": [
+  {
+   "name": "stages_init",
+   "start": 1788922985.7419274,
+   "end": 1788923101.5526595,
+   "stage_id": null,
+   "replica_id": 0,
+   "pid": 2696625,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 115.81073212623596
+  },
+  {
+   "name": "g3_device_lock",
+   "start": 1788922986.9963589,
+   "end": 1788922986.996449,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2696625,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 9.012222290039062e-05
+  },
+  {
+   "name": "g2_launch_lock_wait",
+   "start": 1788922986.996471,
+   "end": 1788922986.9964728,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2696625,
+   "role": "engine",
+   "extra": {
+    "acquired": true
+   },
+   "dur_s": 1.9073486328125e-06
+  },
+  {
+   "name": "g2_spawn_and_ready",
+   "start": 1788922986.9966266,
+   "end": 1788923046.3813353,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2696625,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 59.384708642959595
+  },
+  {
+   "name": "proc_entry",
+   "start": 1788923013.2874067,
+   "end": 1788923013.2874067,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2701749,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.0
+  },
+  {
+   "name": "engine_core_init",
+   "start": 1788923013.2921188,
+   "end": 1788923046.3809264,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2701749,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 33.088807582855225
+  },
+  {
+   "name": "init_device",
+   "start": 1788923041.4748535,
+   "end": 1788923041.6801615,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2704478,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.2053079605102539
+  },
+  {
+   "name": "load_model",
+   "start": 1788923041.6858006,
+   "end": 1788923045.3642385,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2704478,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 3.6784379482269287
+  },
+  {
+   "name": "load_weights",
+   "start": 1788923041.6858053,
+   "end": 1788923045.3575325,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2704478,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 3.671727180480957
+  },
+  {
+   "name": "talker_mtp_init",
+   "start": 1788923045.3596318,
+   "end": 1788923045.35985,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2704478,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.0002181529998779297
+  },
+  {
+   "name": "attn_prewarm",
+   "start": 1788923045.362195,
+   "end": 1788923045.3621984,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 2704478,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 3.337860107421875e-06
+  },
+  {
+   "name": "g3_device_lock",
+   "start": 1788923046.50593,
+   "end": 1788923046.5060115,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2696625,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 8.153915405273438e-05
+  },
+  {
+   "name": "g2_launch_lock_wait",
+   "start": 1788923046.5060327,
+   "end": 1788923046.5060344,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2696625,
+   "role": "engine",
+   "extra": {
+    "acquired": true
+   },
+   "dur_s": 1.6689300537109375e-06
+  },
+  {
+   "name": "g2_spawn_and_ready",
+   "start": 1788923046.5062885,
+   "end": 1788923098.2446568,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2696625,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 51.73836827278137
+  },
+  {
+   "name": "proc_entry",
+   "start": 1788923071.5826006,
+   "end": 1788923071.5826006,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2710426,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.0
+  },
+  {
+   "name": "engine_core_init",
+   "start": 1788923071.5883718,
+   "end": 1788923098.2452688,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2710426,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 26.65689706802368
+  },
+  {
+   "name": "init_device",
+   "start": 1788923096.0763087,
+   "end": 1788923096.44545,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2715059,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.3691413402557373
+  },
+  {
+   "name": "load_model",
+   "start": 1788923096.4508653,
+   "end": 1788923097.6060805,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2715059,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.1552152633666992
+  },
+  {
+   "name": "load_weights",
+   "start": 1788923096.45087,
+   "end": 1788923097.600111,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2715059,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.1492409706115723
+  },
+  {
+   "name": "talker_mtp_init",
+   "start": 1788923097.6021373,
+   "end": 1788923097.6021414,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2715059,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 4.0531158447265625e-06
+  },
+  {
+   "name": "attn_prewarm",
+   "start": 1788923097.6042283,
+   "end": 1788923097.6042325,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 2715059,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 4.291534423828125e-06
+  }
+ ]
+}

@@ -104,3 +104,31 @@ QWEN3_TTS_FUSED_PIPELINE = PipelineConfig(
         ),
     ),
 )
+
+
+# Talker-only pipeline: stage 0 is terminal and its codec frames (codes.audio)
+# are published to the client for on-device decoding (codec-token streaming,
+# see entrypoints/openai/codec_stream.py). No next-stage processors, so no
+# omni connector is created; ``final_output_type="latent"`` keeps the AR
+# output path (audio-specific terminal handling is not applied).
+QWEN3_TTS_TALKER_ONLY_PIPELINE = PipelineConfig(
+    model_type="qwen3_tts_talker_only",
+    default_deploy_config_name="qwen3_tts_talker_only.yaml",
+    model_arch="Qwen3TTSTalkerForConditionalGeneration",
+    stages=(
+        StagePipelineConfig(
+            stage_id=0,
+            model_stage="qwen3_tts",
+            execution_type=StageExecutionType.LLM_AR,
+            input_sources=(),
+            owns_tokenizer=True,
+            final_output=True,
+            final_output_type="latent",
+            engine_output_type="latent",
+            sampling_constraints={
+                "detokenize": False,
+                "stop_token_ids": [2150],
+            },
+        ),
+    ),
+)

@@ -1,0 +1,10 @@
+# x86 mini-PC / laptop CPU: eager, 1-2 utterances, thread ranges derived at runtime.
+stages:
+  - stage_id: 0
+    max_num_seqs: 2
+    enforce_eager: true
+    async_scheduling: false
+  - stage_id: 1
+    max_num_seqs: 2
+    enforce_eager: true
+    async_scheduling: false

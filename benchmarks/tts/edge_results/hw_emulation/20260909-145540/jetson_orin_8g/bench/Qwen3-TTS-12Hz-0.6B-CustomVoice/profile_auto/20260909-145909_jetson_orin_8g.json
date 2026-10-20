@@ -1,0 +1,1158 @@
+{
+ "schema": 1,
+ "meta": {
+  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "deploy_config": null,
+  "query_type": "CustomVoice",
+  "txt_prompts": "/data/zhoutaichang/embedding_infer/vllm-omni-run/benchmarks/tts/prompts_12.txt",
+  "git_sha": "602e3964",
+  "gpu_name": "NVIDIA L20X",
+  "cuda_visible_devices": "3",
+  "timestamp": "20260909-145909",
+  "argv": [
+   "--query-type",
+   "CustomVoice",
+   "--txt-prompts",
+   "/data/zhoutaichang/embedding_infer/vllm-omni-run/benchmarks/tts/prompts_12.txt",
+   "--init-timeout",
+   "1500",
+   "--stage-init-timeout",
+   "1200"
+  ],
+  "bench_args": {
+   "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+   "warmup": 1,
+   "repeat": 1,
+   "init_only": false,
+   "tag": "jetson_orin_8g",
+   "output_dir": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/hw_emulation/20260909-145540/jetson_orin_8g/bench",
+   "save_wav": false,
+   "gpu_poll_interval_s": 0.2,
+   "parallel_stage_init": false,
+   "deploy_profile": "auto",
+   "bench_help": false
+  },
+  "warmup": 1,
+  "repeat": 1,
+  "init_only": false
+ },
+ "init": {
+  "init_s": 129.0033661830239,
+  "init_timeline": {
+   "schema": 1,
+   "t0": 1788936976.2017155,
+   "t_end": 1788937100.9199085,
+   "total_s": 124.71819305419922,
+   "phases": [
+    {
+     "name": "stages_init",
+     "start": 1788936976.2023551,
+     "end": 1788937100.9153888,
+     "stage_id": null,
+     "replica_id": 0,
+     "pid": 382030,
+     "role": "engine",
+     "extra": {},
+     "dur_s": 124.71303367614746
+    },
+    {
+     "name": "g3_device_lock",
+     "start": 1788936977.6465156,
+     "end": 1788936977.6466358,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 382030,
+     "role": "engine",
+     "extra": {},
+     "dur_s": 0.0001201629638671875
+    },
+    {
+     "name": "g2_launch_lock_wait",
+     "start": 1788936977.6466682,
+     "end": 1788936977.6466706,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 382030,
+     "role": "engine",
+     "extra": {
+      "acquired": true
+     },
+     "dur_s": 2.384185791015625e-06
+    },
+    {
+     "name": "g2_spawn_and_ready",
+     "start": 1788936977.6467502,
+     "end": 1788937036.7105439,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 382030,
+     "role": "engine",
+     "extra": {},
+     "dur_s": 59.063793659210205
+    },
+    {
+     "name": "proc_entry",
+     "start": 1788937021.92302,
+     "end": 1788937021.92302,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 389077,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 0.0
+    },
+    {
+     "name": "engine_core_init",
+     "start": 1788937021.9341168,
+     "end": 1788937037.0617135,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 389077,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 15.127596616744995
+    },
+    {
+     "name": "init_device",
+     "start": 1788937022.9382017,
+     "end": 1788937026.638886,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 389077,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 3.7006843090057373
+    },
+    {
+     "name": "load_model",
+     "start": 1788937026.6422162,
+     "end": 1788937029.5129046,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 389077,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 2.8706884384155273
+    },
+    {
+     "name": "load_weights",
+     "start": 1788937026.6422246,
+     "end": 1788937029.5050254,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 389077,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 2.8628008365631104
+    },
+    {
+     "name": "talker_mtp_init",
+     "start": 1788937029.5073655,
+     "end": 1788937029.5087717,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 389077,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 0.0014061927795410156
+    },
+    {
+     "name": "attn_prewarm",
+     "start": 1788937029.5109634,
+     "end": 1788937029.5109673,
+     "stage_id": 0,
+     "replica_id": 0,
+     "pid": 389077,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 3.814697265625e-06
+    },
+    {
+     "name": "g3_device_lock",
+     "start": 1788937036.8933508,
+     "end": 1788937036.8934786,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 382030,
+     "role": "engine",
+     "extra": {},
+     "dur_s": 0.0001277923583984375
+    },
+    {
+     "name": "g2_launch_lock_wait",
+     "start": 1788937036.8935075,
+     "end": 1788937036.8935106,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 382030,
+     "role": "engine",
+     "extra": {
+      "acquired": true
+     },
+     "dur_s": 3.0994415283203125e-06
+    },
+    {
+     "name": "g2_spawn_and_ready",
+     "start": 1788937036.8936777,
+     "end": 1788937097.130456,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 382030,
+     "role": "engine",
+     "extra": {},
+     "dur_s": 60.236778259277344
+    },
+    {
+     "name": "proc_entry",
+     "start": 1788937083.2225428,
+     "end": 1788937083.2225428,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 0.0
+    },
+    {
+     "name": "engine_core_init",
+     "start": 1788937083.228271,
+     "end": 1788937097.4330206,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 14.204749584197998
+    },
+    {
+     "name": "init_device",
+     "start": 1788937084.2443407,
+     "end": 1788937088.6246407,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 4.380300045013428
+    },
+    {
+     "name": "load_model",
+     "start": 1788937088.6272058,
+     "end": 1788937093.026989,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 4.399783134460449
+    },
+    {
+     "name": "load_weights",
+     "start": 1788937088.6272104,
+     "end": 1788937093.0111985,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 4.38398814201355
+    },
+    {
+     "name": "code2wav_cudagraph",
+     "start": 1788937092.0205486,
+     "end": 1788937092.0206237,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 7.510185241699219e-05
+    },
+    {
+     "name": "talker_mtp_init",
+     "start": 1788937093.0180583,
+     "end": 1788937093.0180619,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 3.5762786865234375e-06
+    },
+    {
+     "name": "attn_prewarm",
+     "start": 1788937093.0213637,
+     "end": 1788937093.0213668,
+     "stage_id": 1,
+     "replica_id": 0,
+     "pid": 398558,
+     "role": "worker",
+     "extra": {},
+     "dur_s": 3.0994415283203125e-06
+    }
+   ]
+  }
+ },
+ "resources": {
+  "peak_rss_bytes": 9020207104,
+  "peak_gpu_mem_mib": 6236,
+  "gpu_mem_samples": 196,
+  "gpu_mem_mode": "per-process"
+ },
+ "requests": [
+  {
+   "request_id": "w0",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 9498.977854382247,
+     "gap_ms": 9498.977854382247,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 9689.383544959128,
+     "gap_ms": 190.40569057688117,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 9904.208207968622,
+     "gap_ms": 214.82466300949454,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 10094.394760206342,
+     "gap_ms": 190.1865522377193,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 10377.320267260075,
+     "gap_ms": 282.9255070537329,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 10396.367113105953,
+     "gap_ms": 19.046845845878124,
+     "samples": 23040
+    }
+   ],
+   "t_final_ms": 10801.08840437606,
+   "ttfa_ms": 9498.977854382247,
+   "playback_start_ms": 9529.383544959128,
+   "stall_at_ttfa_ms": 30.40569057688117,
+   "n_chunks": 6,
+   "streamed_audio_s": 3.36,
+   "tail_audio_s": 1.44,
+   "total_wall_s": 10.80108840437606,
+   "rtf_streamed": 3.094156878900581,
+   "rtf_total": 2.250226750911679,
+   "gap_ms": [
+    190.40569057688117,
+    214.82466300949454,
+    190.1865522377193,
+    282.9255070537329,
+    19.046845845878124
+   ],
+   "text": "Hello, welcome to the voice synthesis benchmark test.",
+   "warmup": true
+  },
+  {
+   "request_id": "r0_0",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 180.466182064265,
+     "gap_ms": 180.466182064265,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 358.42903098091483,
+     "gap_ms": 177.96284891664982,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 667.6190407015383,
+     "gap_ms": 309.1900097206235,
+     "samples": 13440
+    },
+    {
+     "idx": 3,
+     "t_ms": 1170.36651680246,
+     "gap_ms": 502.74747610092163,
+     "samples": 17280
+    },
+    {
+     "idx": 4,
+     "t_ms": 1759.79941803962,
+     "gap_ms": 589.43290123716,
+     "samples": 23040
+    },
+    {
+     "idx": 5,
+     "t_ms": 2430.2085149101913,
+     "gap_ms": 670.4090968705714,
+     "samples": 28800
+    }
+   ],
+   "t_final_ms": 2937.2792169451714,
+   "ttfa_ms": 180.466182064265,
+   "playback_start_ms": 198.42903098091483,
+   "stall_at_ttfa_ms": 17.96284891664982,
+   "n_chunks": 6,
+   "streamed_audio_s": 3.92,
+   "tail_audio_s": 0.88,
+   "total_wall_s": 2.9372792169451714,
+   "rtf_streamed": 0.6199511517628039,
+   "rtf_total": 0.6119331701969107,
+   "gap_ms": [
+    177.96284891664982,
+    309.1900097206235,
+    502.74747610092163,
+    589.43290123716,
+    670.4090968705714
+   ],
+   "text": "Hello, welcome to the voice synthesis benchmark test.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_1",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 186.21136201545596,
+     "gap_ms": 186.21136201545596,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 361.01151118054986,
+     "gap_ms": 174.8001491650939,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 617.4220982939005,
+     "gap_ms": 256.41058711335063,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 1054.1211850941181,
+     "gap_ms": 436.69908680021763,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1523.8420590758324,
+     "gap_ms": 469.72087398171425,
+     "samples": 21120
+    },
+    {
+     "idx": 5,
+     "t_ms": 2130.5784611031413,
+     "gap_ms": 606.7364020273089,
+     "samples": 26880
+    }
+   ],
+   "t_final_ms": 2350.749251898378,
+   "ttfa_ms": 186.21136201545596,
+   "playback_start_ms": 201.01151118054986,
+   "stall_at_ttfa_ms": 14.800149165093899,
+   "n_chunks": 6,
+   "streamed_audio_s": 3.6,
+   "tail_audio_s": 0.4,
+   "total_wall_s": 2.350749251898378,
+   "rtf_streamed": 0.5918273503064281,
+   "rtf_total": 0.5876873129745945,
+   "gap_ms": [
+    174.8001491650939,
+    256.41058711335063,
+    436.69908680021763,
+    469.72087398171425,
+    606.7364020273089
+   ],
+   "text": "She said she would be here by noon, but nobody showed up.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_2",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 189.13057167083025,
+     "gap_ms": 189.13057167083025,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 359.934666659683,
+     "gap_ms": 170.80409498885274,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 626.33206974715,
+     "gap_ms": 266.39740308746696,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 995.9177258424461,
+     "gap_ms": 369.58565609529614,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1481.0904329642653,
+     "gap_ms": 485.17270712181926,
+     "samples": 21120
+    },
+    {
+     "idx": 5,
+     "t_ms": 2036.6765386424959,
+     "gap_ms": 555.5861056782305,
+     "samples": 24960
+    }
+   ],
+   "t_final_ms": 2526.501118671149,
+   "ttfa_ms": 189.13057167083025,
+   "playback_start_ms": 199.934666659683,
+   "stall_at_ttfa_ms": 10.80409498885274,
+   "n_chunks": 6,
+   "streamed_audio_s": 3.52,
+   "tail_audio_s": 0.88,
+   "total_wall_s": 2.526501118671149,
+   "rtf_streamed": 0.5786012893870727,
+   "rtf_total": 0.5742047996979883,
+   "gap_ms": [
+    170.80409498885274,
+    266.39740308746696,
+    369.58565609529614,
+    485.17270712181926,
+    555.5861056782305
+   ],
+   "text": "The quick brown fox jumps over the lazy dog near the riverbank.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_3",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 186.21199717745185,
+     "gap_ms": 186.21199717745185,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 356.47769132629037,
+     "gap_ms": 170.26569414883852,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 615.7490410842001,
+     "gap_ms": 259.2713497579098,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 961.944037117064,
+     "gap_ms": 346.19499603286386,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1427.0423240959644,
+     "gap_ms": 465.09828697890043,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 1969.4357700645924,
+     "gap_ms": 542.3934459686279,
+     "samples": 23040
+    }
+   ],
+   "t_final_ms": 2756.0699861496687,
+   "ttfa_ms": 186.21199717745185,
+   "playback_start_ms": 196.47769132629037,
+   "stall_at_ttfa_ms": 10.26569414883852,
+   "n_chunks": 6,
+   "streamed_audio_s": 3.36,
+   "tail_audio_s": 1.36,
+   "total_wall_s": 2.7560699861496687,
+   "rtf_streamed": 0.5861415982335096,
+   "rtf_total": 0.5839131326588282,
+   "gap_ms": [
+    170.26569414883852,
+    259.2713497579098,
+    346.19499603286386,
+    465.09828697890043,
+    542.3934459686279
+   ],
+   "text": "I can't believe how beautiful the sunset looks from up here on the mountain.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_4",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 191.76805298775434,
+     "gap_ms": 191.76805298775434,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 365.75297405943274,
+     "gap_ms": 173.9849210716784,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 627.9256651178002,
+     "gap_ms": 262.1726910583675,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 974.8428403399885,
+     "gap_ms": 346.91717522218823,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1661.1361261457205,
+     "gap_ms": 686.293285805732,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 2239.6327322348952,
+     "gap_ms": 578.4966060891747,
+     "samples": 24960
+    }
+   ],
+   "t_final_ms": 3464.8528820835054,
+   "ttfa_ms": 191.76805298775434,
+   "playback_start_ms": 205.75297405943274,
+   "stall_at_ttfa_ms": 13.9849210716784,
+   "n_chunks": 6,
+   "streamed_audio_s": 3.44,
+   "tail_audio_s": 1.6,
+   "total_wall_s": 3.4648528820835054,
+   "rtf_streamed": 0.6510560268124695,
+   "rtf_total": 0.6874708099372034,
+   "gap_ms": [
+    173.9849210716784,
+    262.1726910583675,
+    346.91717522218823,
+    686.293285805732,
+    578.4966060891747
+   ],
+   "text": "Please remember to bring your identification documents to the appointment tomorrow morning.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_5",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 180.74133479967713,
+     "gap_ms": 180.74133479967713,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 362.56567388772964,
+     "gap_ms": 181.8243390880525,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 678.9954276755452,
+     "gap_ms": 316.42975378781557,
+     "samples": 13440
+    },
+    {
+     "idx": 3,
+     "t_ms": 1172.4381698295474,
+     "gap_ms": 493.4427421540022,
+     "samples": 19200
+    },
+    {
+     "idx": 4,
+     "t_ms": 1637.3441708274186,
+     "gap_ms": 464.90600099787116,
+     "samples": 23040
+    },
+    {
+     "idx": 5,
+     "t_ms": 2815.576837863773,
+     "gap_ms": 1178.2326670363545,
+     "samples": 48000
+    }
+   ],
+   "t_final_ms": 3170.043084770441,
+   "ttfa_ms": 180.74133479967713,
+   "playback_start_ms": 202.56567388772964,
+   "stall_at_ttfa_ms": 21.82433908805251,
+   "n_chunks": 6,
+   "streamed_audio_s": 4.8,
+   "tail_audio_s": 0.8,
+   "total_wall_s": 3.170043084770441,
+   "rtf_streamed": 0.5865785078882861,
+   "rtf_total": 0.5660791222804359,
+   "gap_ms": [
+    181.8243390880525,
+    316.42975378781557,
+    493.4427421540022,
+    464.90600099787116,
+    1178.2326670363545
+   ],
+   "text": "Have you ever wondered what it would be like to travel through time and visit ancient civilizations?",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_6",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 174.1851158440113,
+     "gap_ms": 174.1851158440113,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 346.1971338838339,
+     "gap_ms": 172.01201803982258,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 601.3958198018372,
+     "gap_ms": 255.19868591800332,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 955.6994419544935,
+     "gap_ms": 354.3036221526563,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1388.9103760011494,
+     "gap_ms": 433.2109340466559,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 1982.9820240847766,
+     "gap_ms": 594.0716480836272,
+     "samples": 23040
+    },
+    {
+     "idx": 6,
+     "t_ms": 3084.042552858591,
+     "gap_ms": 1101.0605287738144,
+     "samples": 48000
+    }
+   ],
+   "t_final_ms": 3525.2399472519755,
+   "ttfa_ms": 174.1851158440113,
+   "playback_start_ms": 186.19713388383389,
+   "stall_at_ttfa_ms": 12.012018039822578,
+   "n_chunks": 7,
+   "streamed_audio_s": 5.36,
+   "tail_audio_s": 0.8,
+   "total_wall_s": 3.5252399472519755,
+   "rtf_streamed": 0.5753810732945133,
+   "rtf_total": 0.5722792122162298,
+   "gap_ms": [
+    172.01201803982258,
+    255.19868591800332,
+    354.3036221526563,
+    433.2109340466559,
+    594.0716480836272,
+    1101.0605287738144
+   ],
+   "text": "The restaurant on the corner serves the best pasta I have ever tasted in my entire life.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_7",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 195.38136012852192,
+     "gap_ms": 195.38136012852192,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 371.63095921278,
+     "gap_ms": 176.24959908425808,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 665.2554511092603,
+     "gap_ms": 293.6244918964803,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 1063.308927230537,
+     "gap_ms": 398.0534761212766,
+     "samples": 17280
+    },
+    {
+     "idx": 4,
+     "t_ms": 1602.827348280698,
+     "gap_ms": 539.5184210501611,
+     "samples": 23040
+    },
+    {
+     "idx": 5,
+     "t_ms": 2270.252151414752,
+     "gap_ms": 667.424803134054,
+     "samples": 28800
+    }
+   ],
+   "t_final_ms": 2960.7506250031292,
+   "ttfa_ms": 195.38136012852192,
+   "playback_start_ms": 211.63095921278,
+   "stall_at_ttfa_ms": 16.24959908425808,
+   "n_chunks": 6,
+   "streamed_audio_s": 3.84,
+   "tail_audio_s": 1.28,
+   "total_wall_s": 2.9607506250031292,
+   "rtf_streamed": 0.5912114977642584,
+   "rtf_total": 0.5782716064459237,
+   "gap_ms": [
+    176.24959908425808,
+    293.6244918964803,
+    398.0534761212766,
+    539.5184210501611,
+    667.424803134054
+   ],
+   "text": "After the meeting, we should discuss the quarterly results and plan for the next phase.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_8",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 178.62620390951633,
+     "gap_ms": 178.62620390951633,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 355.81603879109025,
+     "gap_ms": 177.18983488157392,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 614.745148923248,
+     "gap_ms": 258.9291101321578,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 955.7055421173573,
+     "gap_ms": 340.9603931941092,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1385.2556720376015,
+     "gap_ms": 429.5501299202442,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 1933.9630380272865,
+     "gap_ms": 548.7073659896851,
+     "samples": 24960
+    },
+    {
+     "idx": 6,
+     "t_ms": 2972.650059964508,
+     "gap_ms": 1038.6870219372213,
+     "samples": 48000
+    }
+   ],
+   "t_final_ms": 3694.8771718889475,
+   "ttfa_ms": 178.62620390951633,
+   "playback_start_ms": 195.81603879109025,
+   "stall_at_ttfa_ms": 17.189834881573915,
+   "n_chunks": 7,
+   "streamed_audio_s": 5.44,
+   "tail_audio_s": 1.36,
+   "total_wall_s": 3.6948771718889475,
+   "rtf_streamed": 0.5464430257287698,
+   "rtf_total": 0.5433642899836687,
+   "gap_ms": [
+    177.18983488157392,
+    258.9291101321578,
+    340.9603931941092,
+    429.5501299202442,
+    548.7073659896851,
+    1038.6870219372213
+   ],
+   "text": "Learning a new language takes patience, practice, and a genuine curiosity about other cultures.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_9",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 180.9624508023262,
+     "gap_ms": 180.9624508023262,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 340.93625005334616,
+     "gap_ms": 159.97379925101995,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 590.60581587255,
+     "gap_ms": 249.66956581920385,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 937.9266686737537,
+     "gap_ms": 347.3208528012037,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1340.0834458880126,
+     "gap_ms": 402.1567772142589,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 2388.4025630541146,
+     "gap_ms": 1048.319117166102,
+     "samples": 48000
+    }
+   ],
+   "t_final_ms": 3115.349425934255,
+   "ttfa_ms": 180.9624508023262,
+   "playback_start_ms": 180.9624508023262,
+   "stall_at_ttfa_ms": 0,
+   "n_chunks": 6,
+   "streamed_audio_s": 4.4,
+   "tail_audio_s": 1.44,
+   "total_wall_s": 3.115349425934255,
+   "rtf_streamed": 0.5428187643304806,
+   "rtf_total": 0.5334502441668245,
+   "gap_ms": [
+    159.97379925101995,
+    249.66956581920385,
+    347.3208528012037,
+    402.1567772142589,
+    1048.319117166102
+   ],
+   "text": "The train leaves at half past seven, so we need to arrive at the station before then.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_10",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 176.5974280424416,
+     "gap_ms": 176.5974280424416,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 335.0057010538876,
+     "gap_ms": 158.408273011446,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 589.3466998822987,
+     "gap_ms": 254.3409988284111,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 929.9635039642453,
+     "gap_ms": 340.6168040819466,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1350.8389969356358,
+     "gap_ms": 420.8754929713905,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 2384.7711607813835,
+     "gap_ms": 1033.9321638457477,
+     "samples": 48000
+    }
+   ],
+   "t_final_ms": 3218.0966418236494,
+   "ttfa_ms": 176.5974280424416,
+   "playback_start_ms": 176.5974280424416,
+   "stall_at_ttfa_ms": 0,
+   "n_chunks": 6,
+   "streamed_audio_s": 4.4,
+   "tail_audio_s": 1.52,
+   "total_wall_s": 3.2180966418236494,
+   "rtf_streamed": 0.5419934456321326,
+   "rtf_total": 0.5435974057134543,
+   "gap_ms": [
+    158.408273011446,
+    254.3409988284111,
+    340.6168040819466,
+    420.8754929713905,
+    1033.9321638457477
+   ],
+   "text": "Could you please turn down the music a little bit, I'm trying to concentrate on my work.",
+   "warmup": false
+  },
+  {
+   "request_id": "r0_11",
+   "sr": 24000,
+   "chunks": [
+    {
+     "idx": 0,
+     "t_ms": 177.01446590945125,
+     "gap_ms": 177.01446590945125,
+     "samples": 3840
+    },
+    {
+     "idx": 1,
+     "t_ms": 337.73790718987584,
+     "gap_ms": 160.7234412804246,
+     "samples": 7680
+    },
+    {
+     "idx": 2,
+     "t_ms": 586.682234890759,
+     "gap_ms": 248.94432770088315,
+     "samples": 11520
+    },
+    {
+     "idx": 3,
+     "t_ms": 936.4643557928503,
+     "gap_ms": 349.78212090209126,
+     "samples": 15360
+    },
+    {
+     "idx": 4,
+     "t_ms": 1343.5302898287773,
+     "gap_ms": 407.06593403592706,
+     "samples": 19200
+    },
+    {
+     "idx": 5,
+     "t_ms": 2365.47291604802,
+     "gap_ms": 1021.9426262192428,
+     "samples": 48000
+    }
+   ],
+   "t_final_ms": 3211.8923189118505,
+   "ttfa_ms": 177.01446590945125,
+   "playback_start_ms": 177.73790718987584,
+   "stall_at_ttfa_ms": 0.7234412804245949,
+   "n_chunks": 6,
+   "streamed_audio_s": 4.4,
+   "tail_audio_s": 1.6,
+   "total_wall_s": 3.2118923189118505,
+   "rtf_streamed": 0.5376074809200045,
+   "rtf_total": 0.5353153864853084,
+   "gap_ms": [
+    160.7234412804246,
+    248.94432770088315,
+    349.78212090209126,
+    407.06593403592706,
+    1021.9426262192428
+   ],
+   "text": "It was a dark and stormy night when the old lighthouse keeper heard a knock at the door.",
+   "warmup": false
+  }
+ ],
+ "summary": {
+  "n_requests": 12,
+  "ttfa_ms": {
+   "n": 12,
+   "p50": 180.74133479967713,
+   "p90": 191.76805298775434,
+   "max": 195.38136012852192,
+   "mean": 183.1080437793086
+  },
+  "playback_start_ms": {
+   "n": 12,
+   "p50": 196.47769132629037,
+   "p90": 205.75297405943274,
+   "max": 211.63095921278,
+   "mean": 194.42612216807902
+  },
+  "stall_at_ttfa_ms": {
+   "n": 12,
+   "p50": 12.012018039822578,
+   "p90": 17.96284891664982,
+   "max": 21.82433908805251,
+   "mean": 11.318078388770422
+  },
+  "rtf_streamed": {
+   "n": 12,
+   "p50": 0.5786012893870727,
+   "p90": 0.6199511517628039,
+   "max": 0.6510560268124695,
+   "mean": 0.5791342676717274
+  },
+  "rtf_total": {
+   "n": 12,
+   "p50": 0.5722792122162298,
+   "p90": 0.6119331701969107,
+   "max": 0.6874708099372034,
+   "mean": 0.5764638743964475
+  },
+  "gap_ms": {
+   "n": 62,
+   "p50": 354.3036221526563,
+   "p90": 686.293285805732,
+   "max": 1178.2326670363545,
+   "mean": 433.71618925143156
+  },
+  "total_audio_s": 50.480000000000004,
+  "total_wall_s": 36.93170167133212
+ }
+}

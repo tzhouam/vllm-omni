@@ -120,17 +120,55 @@ def musa_omni_platform_plugin() -> str | None:
     return "vllm_omni.platforms.musa.platform.MUSAOmniPlatform" if is_musa else None
 
 
+_CPU_OMNI_PLATFORM = "vllm_omni.platforms.cpu.platform.CPUOmniPlatform"
+
+
+def _cpu_target_requested() -> bool:
+    """True when vLLM itself would select its CPU platform (env or ``+cpu`` wheel)."""
+    try:
+        import vllm.envs as envs
+
+        if getattr(envs, "VLLM_TARGET_DEVICE", None) == "cpu":
+            return True
+    except Exception:  # pragma: no cover - envs import never fails in practice
+        pass
+    try:
+        from vllm.platforms import vllm_version_matches_substr
+
+        return bool(vllm_version_matches_substr("cpu"))
+    except Exception:
+        return False
+
+
+def cpu_omni_platform_plugin() -> str | None:
+    """Check if the CPU OmniPlatform should be activated.
+
+    Mirrors vLLM's own ``cpu_platform_plugin``: active when
+    ``VLLM_TARGET_DEVICE=cpu`` or a ``+cpu`` vLLM wheel is installed.
+    """
+    logger.debug("Checking if CPU OmniPlatform is available.")
+    return _CPU_OMNI_PLATFORM if _cpu_target_requested() else None
+
+
 builtin_omni_platform_plugins = {
     "cuda": cuda_omni_platform_plugin,
     "rocm": rocm_omni_platform_plugin,
     "npu": npu_omni_platform_plugin,
     "xpu": xpu_omni_platform_plugin,
     "musa": musa_omni_platform_plugin,
+    "cpu": cpu_omni_platform_plugin,
 }
 
 
 def resolve_current_omni_platform_cls_qualname() -> str:
     """Resolve the current OmniPlatform class qualified name."""
+    # Like vLLM (vllm/platforms/__init__.py), an explicit CPU target wins before
+    # any accelerator probe so a +cpu wheel on a GPU host does not activate two
+    # builtin platforms.
+    if _cpu_target_requested():
+        logger.debug("CPU target requested; activating CPU OmniPlatform.")
+        return _CPU_OMNI_PLATFORM
+
     platform_plugins = load_omni_plugins_by_group(OMNI_PLATFORM_PLUGINS_GROUP)
 
     activated_plugins = []

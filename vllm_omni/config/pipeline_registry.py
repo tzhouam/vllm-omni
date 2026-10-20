@@ -119,7 +119,11 @@ from vllm_omni.model_executor.models.qwen3_omni.pipeline import (
     QWEN3_OMNI_THINKER_ONLY_PIPELINE,
     resolve_qwen3_omni_pipeline,
 )
-from vllm_omni.model_executor.models.qwen3_tts.pipeline import QWEN3_TTS_FUSED_PIPELINE, QWEN3_TTS_PIPELINE
+from vllm_omni.model_executor.models.qwen3_tts.pipeline import (
+    QWEN3_TTS_FUSED_PIPELINE, QWEN3_TTS_PIPELINE, QWEN3_TTS_TALKER_ONLY_PIPELINE,
+)
+from vllm_omni.config.vllm_native_pipelines import LLAMA_PIPELINE
+from vllm_omni.model_executor.models.spark2_5.pipeline import SPARK2_5_PIPELINE
 from vllm_omni.model_executor.models.step_audio2.pipeline import (
     STEP_AUDIO2_ASR_PIPELINE,
     STEP_AUDIO2_PIPELINE,
@@ -149,6 +153,9 @@ OMNI_PIPELINES: dict[str, PipelineConfig | PipelineResolverFunc] = {
     "audex_tts": AUDEX_TTS_PIPELINE,
     "auk": AUK_PIPELINE,
     "aura_omni": AURA_OMNI_PIPELINE,
+    "qwen3_tts_talker_only": QWEN3_TTS_TALKER_ONLY_PIPELINE,
+    "llama": LLAMA_PIPELINE,
+    "spark2_5": SPARK2_5_PIPELINE,
     "bagel": BAGEL_PIPELINE,
     "bagel_single_stage": BAGEL_SINGLE_STAGE_PIPELINE,
     "bagel_think": BAGEL_THINK_PIPELINE,

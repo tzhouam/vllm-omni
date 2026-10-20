@@ -43,6 +43,7 @@ from vllm_omni.core.sched.omni_scheduling_coordinator import uses_native_mrv2_da
 from vllm_omni.data_entry_keys import ASYNC_CHUNK_PREWARM_NS, FIRST_AUDIO_KEY, FIRST_AUDIO_REQUIRED_KEY
 from vllm_omni.diffusion.data import is_diffusion_request_started_output
 from vllm_omni.distributed.omni_connectors.utils.config import stage_receives_chunks
+from vllm_omni.edge.step_stats import StepStats
 from vllm_omni.engine import OmniEngineCoreRequest
 from vllm_omni.engine.async_engine_utils import apply_omni_final_stage_metadata, scope_stage_replica_mm_uuids
 from vllm_omni.engine.cfg_companion_tracker import CfgCompanionTracker
@@ -1322,7 +1323,12 @@ class OrchestratorBase:
                 len(pollers),
             )
 
+            _stats = StepStats.get()
+            _dispatch_t0: float | None = None
             while not self._shutdown_event.is_set():
+                if _dispatch_t0 is not None:
+                    _stats.add("orch.dispatch_ms", (_time.perf_counter() - _dispatch_t0) * 1000.0)
+                    _dispatch_t0 = None
                 if pending_get is None:
                     pending_get = asyncio.create_task(ready_q.get(), name="orch-dispatch-get")
                 done, _ = await asyncio.wait(
@@ -1354,6 +1360,8 @@ class OrchestratorBase:
                 # Record the queue after dequeue so the gauge reflects work
                 # still waiting for dispatch rather than producer-side depth.
                 self._orch_monitor.set_dispatch_queue_size(ready_q.qsize())
+                if _stats.enabled:
+                    _dispatch_t0 = _time.perf_counter()
 
                 if kind == "error":
                     # replica_id < 0 means the failure was raised by a poller

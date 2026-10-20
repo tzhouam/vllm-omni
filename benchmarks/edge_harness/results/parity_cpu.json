@@ -1,0 +1,13 @@
+{
+  "ref_text": "We are asked: \"What is the capital of France? Answer in one word.\" So the answer should be the single",
+  "vllm_text": "We are asked: \"What is the capital of France? Answer in one word.\" So the answer should be the single",
+  "greedy_token_match": "24/24",
+  "exact_match": true,
+  "ref_top1": 3066,
+  "vllm_first_token": 3066,
+  "first_token_agree": true,
+  "top20_logprob_overlap": "20/20",
+  "top20_logprob_max_abs_diff": 0.23139667510986328,
+  "top20_logprob_mean_abs_diff": 0.09972160011529922,
+  "dtype": "bfloat16"
+}

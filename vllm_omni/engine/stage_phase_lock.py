@@ -30,9 +30,13 @@ is importable and unit-testable without a GPU; torch/platform imports are lazy.
 from __future__ import annotations
 
 import contextlib
-import fcntl
 import os
 import time
+
+try:
+    import fcntl
+except ImportError:  # [edge-infer W8] Windows: no fcntl; see _try_lock below.
+    fcntl = None  # type: ignore[assignment]
 from collections.abc import Iterator
 
 from vllm.logger import init_logger
@@ -42,6 +46,35 @@ from vllm_omni.engine.stage_init_utils import (
     open_device_lock_file,
     record_lock_holder_pid,
 )
+
+# Lock modes, spelled without fcntl so the module imports on Windows.
+LOCK_SH = getattr(fcntl, "LOCK_SH", 1)
+LOCK_EX = getattr(fcntl, "LOCK_EX", 2)
+
+
+def _try_lock(fd: int, mode: int) -> None:
+    """Non-blocking lock in *mode*; raises BlockingIOError when held elsewhere.
+
+    [edge-infer W8] On POSIX this is ``fcntl.flock(fd, mode | LOCK_NB)``. On
+    Windows ``msvcrt.locking`` has no shared mode, so both SH and EX become the
+    exclusive byte lock from ``_filelock_compat``: strictly more serialising
+    than POSIX (shared holders now queue behind each other), never less safe.
+    """
+    if fcntl is not None:
+        fcntl.flock(fd, mode | fcntl.LOCK_NB)
+        return
+    from vllm_omni._filelock_compat import flock_exclusive_nb
+
+    flock_exclusive_nb(fd)
+
+
+def _unlock(fd: int) -> None:
+    if fcntl is not None:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        return
+    from vllm_omni._filelock_compat import funlock
+
+    funlock(fd)
 
 logger = init_logger(__name__)
 
@@ -149,14 +182,14 @@ class DevicePhaseLock:
                 fd, writable = open_device_lock_file(device_init_lock_path(device_id, self._lock_dir))
                 while True:
                     try:
-                        fcntl.flock(fd, mode | fcntl.LOCK_NB)
+                        _try_lock(fd, mode)
                         break
                     except BlockingIOError:
                         if time.monotonic() > deadline:
                             os.close(fd)
                             raise DeviceLockTimeoutError(
                                 f"Timed out after {self._timeout_s:.0f}s acquiring "
-                                f"{'EX' if mode == fcntl.LOCK_EX else 'SH'} lock on device {device_id}"
+                                f"{'EX' if mode == LOCK_EX else 'SH'} lock on device {device_id}"
                             )
                         time.sleep(0.01)
                 record_lock_holder_pid(fd, writable)
@@ -172,7 +205,7 @@ class DevicePhaseLock:
         if not self._device_ids:
             yield
             return
-        fds = self._acquire(fcntl.LOCK_SH)
+        fds = self._acquire(LOCK_SH)
         try:
             yield
         finally:
@@ -184,7 +217,7 @@ class DevicePhaseLock:
         if not self._device_ids:
             yield
             return
-        fds = self._acquire(fcntl.LOCK_EX)
+        fds = self._acquire(LOCK_EX)
         try:
             yield
         finally:
@@ -194,7 +227,7 @@ class DevicePhaseLock:
 def _release_fds(fds: list[int]) -> None:
     for fd in fds:
         try:
-            fcntl.flock(fd, fcntl.LOCK_UN)
+            _unlock(fd)
             os.close(fd)
         except (OSError, ValueError):
             pass

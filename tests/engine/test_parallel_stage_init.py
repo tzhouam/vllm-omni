@@ -928,3 +928,95 @@ def test_device_ledger_required_and_fits():
     assert led.fits
     led.kv_budget_bytes = 90
     assert not led.fits
+
+
+# --------------------------------------------------------------------------- #
+# Host-memory admission: parallel init on a CPU platform
+# --------------------------------------------------------------------------- #
+def _cpu_vllm_config(kv_bytes: int | None):
+    return types.SimpleNamespace(
+        cache_config=types.SimpleNamespace(kv_cache_memory_bytes=kv_bytes),
+        compilation_config=types.SimpleNamespace(cudagraph_capture_sizes=[]),
+    )
+
+
+def test_host_ledger_arithmetic():
+    from vllm_omni.engine.stage_admission import evaluate_host
+
+    led = evaluate_host([("s0", 4 << 30), ("s1", 2 << 30)],
+                        available_bytes=16 << 30, safety_margin_bytes=1 << 30)
+    assert led.kv_bytes == 6 << 30
+    assert led.required_bytes == 7 << 30
+    assert led.fits
+    assert evaluate_host([("s0", 20 << 30)], available_bytes=16 << 30).fits is False
+
+
+def test_cpu_stages_are_admitted_against_host_memory():
+    """The per-device ledger is vacuous on CPU; host RAM is the real resource."""
+    from vllm_omni.engine.stage_admission import check_host_admission
+
+    plans = [
+        LogicalStageInitPlan(stage_idx=0, stage_id=0, replicas=[
+            _llm_replica(0, 0, "cpu", vllm_config=_cpu_vllm_config(1 << 30))]),
+        LogicalStageInitPlan(stage_idx=1, stage_id=1, replicas=[
+            _llm_replica(1, 0, "cpu", vllm_config=_cpu_vllm_config(2 << 30))]),
+    ]
+    led = check_host_admission(plans, available_memory=lambda: 32 << 30)
+    assert led.kv_bytes == 3 << 30
+    assert led.contributors == ["stage0/replica0", "stage1/replica0"]
+
+
+def test_cpu_admission_fails_fast_when_host_memory_is_short():
+    from vllm_omni.engine.stage_admission import check_host_admission
+
+    plans = [LogicalStageInitPlan(stage_idx=0, stage_id=0, replicas=[
+        _llm_replica(0, 0, "cpu", vllm_config=_cpu_vllm_config(30 << 30))])]
+    with pytest.raises(StageAdmissionError, match="host memory"):
+        check_host_admission(plans, available_memory=lambda: 8 << 30)
+
+
+def test_cpu_admission_fails_closed_on_an_undeclared_budget():
+    """Same discipline as the device ledger: an unbounded stage cannot be
+    admitted to initialize concurrently with others."""
+    from vllm_omni.engine.stage_admission import check_host_admission
+
+    plans = [LogicalStageInitPlan(stage_idx=0, stage_id=0, replicas=[
+        _llm_replica(0, 0, "cpu", vllm_config=_cpu_vllm_config(None))])]
+    with pytest.raises(StageAdmissionError, match="cannot account for CPU replicas"):
+        check_host_admission(plans, available_memory=lambda: 64 << 30)
+
+
+def test_cpu_diffusion_stage_allocates_no_kv_and_is_skipped():
+    from vllm_omni.engine.stage_admission import check_host_admission
+
+    replica = _llm_replica(0, 0, "cpu", vllm_config=None)
+    plans = [LogicalStageInitPlan(stage_idx=0, stage_id=0, replicas=[replica])]
+    led = check_host_admission(plans, available_memory=lambda: 16 << 30)
+    assert led.kv_bytes == 0 and led.contributors == []
+
+
+def test_runtime_routes_cpu_platforms_to_the_host_ledger(monkeypatch):
+    """Before this, `devices: "cpu"` resolved to no physical ids and the device
+    resolver failed closed, so parallel_stage_init could never run on CPU."""
+    import vllm_omni.engine.stage_admission as admission_mod
+
+    seen: dict = {}
+
+    def _fake_host(stage_plans, *, available_memory, **kw):
+        seen["plans"] = stage_plans
+        seen["available"] = available_memory()
+        return None
+
+    monkeypatch.setattr(admission_mod, "check_host_admission", _fake_host)
+
+    def _explode(*a, **k):
+        raise AssertionError("device ledger must not run on a CPU platform")
+
+    monkeypatch.setattr(admission_mod, "check_admission", _explode)
+
+    runtime = _runtime(parallel_stage_init=True)
+    plans = [LogicalStageInitPlan(stage_idx=0, stage_id=0, replicas=[
+        _llm_replica(0, 0, "cpu", vllm_config=_cpu_vllm_config(1 << 30))])]
+    runtime._run_stage_admission(plans)
+    assert seen["plans"] is plans
+    assert seen["available"] > 0

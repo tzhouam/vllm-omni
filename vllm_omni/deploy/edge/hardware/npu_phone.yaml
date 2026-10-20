@@ -1,0 +1,3 @@
+# Phone NPUs do not run vLLM-Omni; this class is only meaningful for the
+# codec-token client (decoder backend selection). Kept for completeness.
+stages: []

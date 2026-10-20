@@ -1,0 +1,435 @@
+{
+ "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+ "timestamp": "20260909-145257",
+ "host_cpu_base": 56,
+ "rows": [
+  {
+   "case": "cpu8",
+   "threads": 8,
+   "stage0_cpus": "56-61",
+   "stage1_cpus": "62-63",
+   "inductor": false,
+   "returncode": 0,
+   "cmd": [
+    "taskset",
+    "-c",
+    "56-63",
+    "/data/zhoutaichang/embedding_infer/.venvs/omni-cpu/bin/python",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/stream_latency_bench.py",
+    "--model",
+    "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+    "--deploy-config",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu8/cpu8.yaml",
+    "--query-type",
+    "CustomVoice",
+    "--txt-prompts",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/prompts_12.txt",
+    "--warmup",
+    "1",
+    "--repeat",
+    "1",
+    "--output-dir",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu8/bench",
+    "--tag",
+    "cpu8",
+    "--step-stats",
+    "--init-timeout",
+    "1500",
+    "--stage-init-timeout",
+    "1200"
+   ],
+   "init_s": 112.65361651126295,
+   "ttfa_p50": 426.0161090642214,
+   "playback_start_p50": 9438.19383399561,
+   "rtf_total_p50": 2.780552295553207,
+   "peak_rss_gib": 13.310592651367188,
+   "step_stats": [
+    {
+     "role": "stage0",
+     "counter": "core.step_ms",
+     "count": 801,
+     "mean_ms": 250.51031519918146,
+     "p95_ms": 499.69329591840506,
+     "share_of_frame": 3.1313789399897685
+    },
+    {
+     "role": "stage1",
+     "counter": "core.step_ms",
+     "count": 48571,
+     "mean_ms": 1.6700252576988601,
+     "p95_ms": 5.3447638638317585,
+     "share_of_frame": 0.02087531572123575
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.enqueue_to_put_ms",
+     "count": 48,
+     "mean_ms": 1.3707510370295495,
+     "p95_ms": 7.9169743694365025,
+     "share_of_frame": 0.01713438796286937
+    },
+    {
+     "role": "stage1",
+     "counter": "hop.get_ms",
+     "count": 52,
+     "mean_ms": 0.939564027178746,
+     "p95_ms": 4.237850196659565,
+     "share_of_frame": 0.011744550339734325
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.put_ms",
+     "count": 48,
+     "mean_ms": 0.30433394325276214,
+     "p95_ms": 0.7615480571985245,
+     "share_of_frame": 0.003804174290659527
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.schedule_ms",
+     "count": 802,
+     "mean_ms": 0.12998572409041503,
+     "p95_ms": 0.16232719644904137,
+     "share_of_frame": 0.001624821551130188
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.update_from_output_ms",
+     "count": 801,
+     "mean_ms": 0.12777436329296019,
+     "p95_ms": 0.17483020201325417,
+     "share_of_frame": 0.0015971795411620024
+    },
+    {
+     "role": "stage1",
+     "counter": "sched.schedule_ms",
+     "count": 48572,
+     "mean_ms": 0.050099294604372346,
+     "p95_ms": 0.0986647792160511,
+     "share_of_frame": 0.0006262411825546544
+    }
+   ]
+  },
+  {
+   "case": "cpu16",
+   "threads": 16,
+   "stage0_cpus": "56-67",
+   "stage1_cpus": "68-71",
+   "inductor": false,
+   "returncode": 0,
+   "cmd": [
+    "taskset",
+    "-c",
+    "56-71",
+    "/data/zhoutaichang/embedding_infer/.venvs/omni-cpu/bin/python",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/stream_latency_bench.py",
+    "--model",
+    "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+    "--deploy-config",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu16/cpu16.yaml",
+    "--query-type",
+    "CustomVoice",
+    "--txt-prompts",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/prompts_12.txt",
+    "--warmup",
+    "1",
+    "--repeat",
+    "1",
+    "--output-dir",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu16/bench",
+    "--tag",
+    "cpu16",
+    "--step-stats",
+    "--init-timeout",
+    "1500",
+    "--stage-init-timeout",
+    "1200"
+   ],
+   "init_s": 109.45583191420883,
+   "ttfa_p50": 292.3040329478681,
+   "playback_start_p50": 5346.291882991791,
+   "rtf_total_p50": 1.8194366359597887,
+   "peak_rss_gib": 13.319080352783203,
+   "step_stats": [
+    {
+     "role": "stage0",
+     "counter": "core.step_ms",
+     "count": 801,
+     "mean_ms": 147.36169048314088,
+     "p95_ms": 219.59225786849856,
+     "share_of_frame": 1.842021131039261
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.enqueue_to_put_ms",
+     "count": 48,
+     "mean_ms": 0.8175775195316722,
+     "p95_ms": 1.054082065820694,
+     "share_of_frame": 0.010219718994145904
+    },
+    {
+     "role": "stage1",
+     "counter": "hop.get_ms",
+     "count": 52,
+     "mean_ms": 0.7918375956181151,
+     "p95_ms": 1.0263491421937943,
+     "share_of_frame": 0.009897969945226438
+    },
+    {
+     "role": "stage1",
+     "counter": "core.step_ms",
+     "count": 75381,
+     "mean_ms": 0.6547511186745705,
+     "p95_ms": 0.3465181216597557,
+     "share_of_frame": 0.008184388983432132
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.put_ms",
+     "count": 48,
+     "mean_ms": 0.4695340370138486,
+     "p95_ms": 1.1264756321907043,
+     "share_of_frame": 0.005869175462673107
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.schedule_ms",
+     "count": 802,
+     "mean_ms": 0.11892363596289532,
+     "p95_ms": 0.1422208733856678,
+     "share_of_frame": 0.0014865454495361914
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.update_from_output_ms",
+     "count": 801,
+     "mean_ms": 0.1157221533172065,
+     "p95_ms": 0.14588981866836548,
+     "share_of_frame": 0.0014465269164650814
+    },
+    {
+     "role": "stage1",
+     "counter": "sched.schedule_ms",
+     "count": 75382,
+     "mean_ms": 0.045330475403062113,
+     "p95_ms": 0.08748378604650497,
+     "share_of_frame": 0.0005666309425382764
+    }
+   ]
+  },
+  {
+   "case": "cpu16_inductor",
+   "threads": 16,
+   "stage0_cpus": "56-67",
+   "stage1_cpus": "68-71",
+   "inductor": true,
+   "returncode": 0,
+   "cmd": [
+    "taskset",
+    "-c",
+    "56-71",
+    "/data/zhoutaichang/embedding_infer/.venvs/omni-cpu/bin/python",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/stream_latency_bench.py",
+    "--model",
+    "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+    "--deploy-config",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu16_inductor/cpu16_inductor.yaml",
+    "--query-type",
+    "CustomVoice",
+    "--txt-prompts",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/prompts_12.txt",
+    "--warmup",
+    "1",
+    "--repeat",
+    "1",
+    "--output-dir",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu16_inductor/bench",
+    "--tag",
+    "cpu16_inductor",
+    "--step-stats",
+    "--init-timeout",
+    "1500",
+    "--stage-init-timeout",
+    "1200"
+   ],
+   "init_s": 103.38288806378841,
+   "ttfa_p50": 233.9726546779275,
+   "playback_start_p50": 3642.257673740387,
+   "rtf_total_p50": 1.4156768089402225,
+   "peak_rss_gib": 13.337944030761719,
+   "step_stats": [
+    {
+     "role": "stage0",
+     "counter": "core.step_ms",
+     "count": 801,
+     "mean_ms": 138.89987101794665,
+     "p95_ms": 179.95364079251885,
+     "share_of_frame": 1.736248387724333
+    },
+    {
+     "role": "stage1",
+     "counter": "hop.get_ms",
+     "count": 52,
+     "mean_ms": 0.9077971783251717,
+     "p95_ms": 6.81871036067605,
+     "share_of_frame": 0.011347464729064647
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.enqueue_to_put_ms",
+     "count": 48,
+     "mean_ms": 0.8297054834353427,
+     "p95_ms": 1.1348621919751167,
+     "share_of_frame": 0.010371318542941783
+    },
+    {
+     "role": "stage1",
+     "counter": "core.step_ms",
+     "count": 70325,
+     "mean_ms": 0.672337398657405,
+     "p95_ms": 0.6240149959921837,
+     "share_of_frame": 0.008404217483217563
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.put_ms",
+     "count": 48,
+     "mean_ms": 0.4615955598031481,
+     "p95_ms": 1.0002129711210728,
+     "share_of_frame": 0.005769944497539351
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.schedule_ms",
+     "count": 802,
+     "mean_ms": 0.12305161237549454,
+     "p95_ms": 0.16312114894390106,
+     "share_of_frame": 0.0015381451546936818
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.update_from_output_ms",
+     "count": 801,
+     "mean_ms": 0.11718296474973658,
+     "p95_ms": 0.15717511996626854,
+     "share_of_frame": 0.0014647870593717072
+    },
+    {
+     "role": "stage1",
+     "counter": "sched.schedule_ms",
+     "count": 70326,
+     "mean_ms": 0.04691729749081007,
+     "p95_ms": 0.16828998923301697,
+     "share_of_frame": 0.0005864662186351259
+    }
+   ]
+  },
+  {
+   "case": "cpu32",
+   "threads": 32,
+   "stage0_cpus": "56-79",
+   "stage1_cpus": "80-87",
+   "inductor": false,
+   "returncode": 0,
+   "cmd": [
+    "taskset",
+    "-c",
+    "56-87",
+    "/data/zhoutaichang/embedding_infer/.venvs/omni-cpu/bin/python",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/stream_latency_bench.py",
+    "--model",
+    "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+    "--deploy-config",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu32/cpu32.yaml",
+    "--query-type",
+    "CustomVoice",
+    "--txt-prompts",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/prompts_12.txt",
+    "--warmup",
+    "1",
+    "--repeat",
+    "1",
+    "--output-dir",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/cpu_sweep/20260909-145257/cpu32/bench",
+    "--tag",
+    "cpu32",
+    "--step-stats",
+    "--init-timeout",
+    "1500",
+    "--stage-init-timeout",
+    "1200"
+   ],
+   "init_s": 155.67474265303463,
+   "ttfa_p50": 251.5225620009005,
+   "playback_start_p50": 4995.450793839991,
+   "rtf_total_p50": 1.6667016652018691,
+   "peak_rss_gib": 13.523807525634766,
+   "step_stats": [
+    {
+     "role": "stage0",
+     "counter": "core.step_ms",
+     "count": 801,
+     "mean_ms": 136.15325865011368,
+     "p95_ms": 168.9455881714821,
+     "share_of_frame": 1.701915733126421
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.enqueue_to_put_ms",
+     "count": 48,
+     "mean_ms": 0.8607769462590417,
+     "p95_ms": 1.1321199126541615,
+     "share_of_frame": 0.010759711828238021
+    },
+    {
+     "role": "stage0",
+     "counter": "hop.put_ms",
+     "count": 48,
+     "mean_ms": 0.648114801151678,
+     "p95_ms": 1.8421937711536884,
+     "share_of_frame": 0.008101435014395975
+    },
+    {
+     "role": "stage1",
+     "counter": "hop.get_ms",
+     "count": 53,
+     "mean_ms": 0.5498284843029841,
+     "p95_ms": 0.8803871460258961,
+     "share_of_frame": 0.006872856053787302
+    },
+    {
+     "role": "stage1",
+     "counter": "core.step_ms",
+     "count": 75788,
+     "mean_ms": 0.528387298923063,
+     "p95_ms": 0.46643195673823357,
+     "share_of_frame": 0.006604841236538287
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.update_from_output_ms",
+     "count": 801,
+     "mean_ms": 0.11039824781941712,
+     "p95_ms": 0.14352239668369293,
+     "share_of_frame": 0.0013799780977427141
+    },
+    {
+     "role": "stage0",
+     "counter": "sched.schedule_ms",
+     "count": 802,
+     "mean_ms": 0.1092211127355509,
+     "p95_ms": 0.13850722461938858,
+     "share_of_frame": 0.0013652639091943863
+    },
+    {
+     "role": "stage1",
+     "counter": "sched.schedule_ms",
+     "count": 75789,
+     "mean_ms": 0.042512980838002465,
+     "p95_ms": 0.11504581198096275,
+     "share_of_frame": 0.0005314122604750309
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+{
+ "codec_start": {
+  "type": "codec.start",
+  "version": 1,
+  "utterance_index": 0,
+  "sentence_index": 0,
+  "sentence_text": "She said she would be here by noon, but nobody showed up.",
+  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "codebooks": 16,
+  "codebook_size": 2048,
+  "frame_rate_hz": 12.5,
+  "sample_rate": 24000,
+  "decoder_id": "qwen3_tts_tokenizer_v2_12hz",
+  "header_format": "<IHB"
+ },
+ "schedule": [
+  2,
+  4,
+  8,
+  16,
+  25
+ ],
+ "total_frames": 56,
+ "ttfa_ms": 2220.2195092104375,
+ "playback_start_ms": 2220.219925045967,
+ "stall_at_ttfa_ms": 0,
+ "audio_s": 4.48,
+ "total_s": 2.6397858639247715,
+ "rtf": 0.5892379160546365,
+ "decode_ms_total": 573.353567160666,
+ "chunks": [
+  {
+   "idx": 0,
+   "t_ms": 2220.219925045967,
+   "arrival_ms": 2065.352803096175,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 154.79304362088442
+  },
+  {
+   "idx": 1,
+   "t_ms": 2424.035610165447,
+   "arrival_ms": 2065.352803096175,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 203.80566967651248
+  },
+  {
+   "idx": 2,
+   "t_ms": 2638.8036208227277,
+   "arrival_ms": 2065.352803096175,
+   "frames": 6,
+   "samples": 11520,
+   "decode_ms": 214.7548538632691
+  }
+ ],
+ "device": "cpu",
+ "wav": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-160935/client_1.wav",
+ "codes": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-160935/client_1.codes.npy"
+}

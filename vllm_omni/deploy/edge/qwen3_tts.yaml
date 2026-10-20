@@ -1,0 +1,56 @@
+# Qwen3-TTS edge profile: single device, small batch, ramped codec chunks.
+#
+# Select with ``Omni(model=..., deploy_profile="edge")`` or ``vllm serve --omni
+# --deploy-profile edge``. Inherits everything from ../qwen3_tts.yaml; only the
+# keys below differ. Top-level blocks other than ``stages``/``platforms`` are
+# replaced wholesale by the overlay merge, so ``connectors`` is restated.
+#
+# Why these values (see benchmarks/tts/edge_results and analysis/experiments.md):
+#   * The default schedule emits 1 frame (80 ms) first and the next 25-frame
+#     chunk ~160 ms later, which stalls a player that starts at first audio by
+#     ~80 ms. ``codec_chunk_ramp`` grows chunks 2 -> 4 -> 8 -> 16 -> 25 frames so
+#     the audio buffered ahead always exceeds the wait for the next chunk.
+#   * ``decode_batch_max_size: 1`` and ``max_num_seqs: 4`` size the decoder and
+#     scheduler for 1-4 concurrent utterances instead of 64.
+#   * Both stages share logical device "0" (one GPU). Memory fractions are
+#     what the two 0.6B/1.7B stages actually need with these limits, not the
+#     server defaults; raise stage 1 if the KV-profile log reports OOM.
+#   * Init-time knobs come from benchmarks/tts/init_profile.py run
+#     20260909-112200 (1.7B, L20X, warm caches): default 152.0 s,
+#     eager_stage1 149.9 s, eager_both 110.9 s but first-request TTFA 15 s
+#     (no talker/predictor graphs), parallel_stage_init 94.6 s with unchanged
+#     TTFA. So graphs stay on (``enforce_eager`` untouched) and both stages
+#     initialise concurrently on the shared device.
+base_config: ../qwen3_tts.yaml
+async_chunk: true
+
+# Orchestrator arguments carried by the profile (applied by the ``deploy_profile``
+# selector; explicit CLI/engine values win). Not part of the stage schema.
+orchestrator:
+  parallel_stage_init: true
+
+connectors:
+  connector_of_shared_memory:
+    name: SharedMemoryConnector
+    extra:
+      codec_streaming: true
+      connector_get_sleep_s: 0.01
+      connector_get_max_wait_first_chunk: 3000
+      connector_get_max_wait: 300
+      codec_chunk_frames: 25
+      codec_left_context_frames: 72
+      # Ramp overrides initial_codec_chunk_frames; last entry == codec_chunk_frames.
+      codec_chunk_ramp: [2, 4, 8, 16, 25]
+      decode_batch_max_size: 1
+
+stages:
+  - stage_id: 0
+    max_num_seqs: 4
+    gpu_memory_utilization: 0.25
+    # Small per-step batches keep first-chunk latency low at edge concurrency.
+    max_num_batched_tokens: 512
+    devices: "0"
+  - stage_id: 1
+    max_num_seqs: 4
+    gpu_memory_utilization: 0.15
+    devices: "0"

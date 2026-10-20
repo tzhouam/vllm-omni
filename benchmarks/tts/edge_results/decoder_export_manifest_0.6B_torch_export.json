@@ -1,0 +1,29 @@
+{
+ "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+ "backend": "torch_export",
+ "partitioner": null,
+ "context_frames": 72,
+ "num_quantizers": 16,
+ "hop": 1920,
+ "sample_rate": 24000,
+ "programs": {
+  "2": {
+   "chunk_frames": 2,
+   "window_frames": 74,
+   "max_abs_diff_vs_eager": 0.0,
+   "out_samples": 3840,
+   "path": "/tmp/claude-2005/-data-zhoutaichang-embedding-infer/e695f57b-0163-4287-b1be-1d0ec9330768/scratchpad/code2wav_export/code2wav_c2_ctx72.pt2",
+   "export_s": 8.396002520807087,
+   "bytes": 459787784
+  },
+  "25": {
+   "chunk_frames": 25,
+   "window_frames": 97,
+   "max_abs_diff_vs_eager": 0.0,
+   "out_samples": 48000,
+   "path": "/tmp/claude-2005/-data-zhoutaichang-embedding-infer/e695f57b-0163-4287-b1be-1d0ec9330768/scratchpad/code2wav_export/code2wav_c25_ctx72.pt2",
+   "export_s": 6.752497379668057,
+   "bytes": 459791131
+  }
+ }
+}

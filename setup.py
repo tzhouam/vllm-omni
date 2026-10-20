@@ -227,6 +227,12 @@ def get_install_requires() -> list[str]:
     device = detect_target_device()
     requirements_dir = Path(__file__).parent / "requirements"
     requirements_file = requirements_dir / f"{device}.txt"
+    # VLLM_OMNI_EDGE_BUILD=1 selects the AR-only dependency set (no diffusion /
+    # video stack) when requirements/<device>-edge.txt exists.
+    if os.environ.get("VLLM_OMNI_EDGE_BUILD", "0") == "1":
+        edge_file = requirements_dir / f"{device}-edge.txt"
+        if edge_file.exists():
+            requirements_file = edge_file
 
     print(f"Loading requirements from: {requirements_file}")
     requirements = load_requirements(requirements_file)

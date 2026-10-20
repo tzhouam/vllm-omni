@@ -1,0 +1,13 @@
+{
+  "ref_text": "The user wants to know the weather in Shenzhen right now in Celsius. I have a function available called `get_weather` that can retrieve weather",
+  "vllm_text": "The user wants to know the weather in Shenzhen right now in Celsius. I have a function available called `get_weather` that can retrieve weather",
+  "greedy_token_match": "32/32",
+  "exact_match": true,
+  "ref_top1": 1046,
+  "vllm_first_token": 1046,
+  "first_token_agree": true,
+  "top20_logprob_overlap": "20/20",
+  "top20_logprob_max_abs_diff": 2.193450927734375e-05,
+  "top20_logprob_mean_abs_diff": 1.334088810835965e-05,
+  "dtype": "float32"
+}

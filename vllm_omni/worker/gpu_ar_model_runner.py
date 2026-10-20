@@ -45,6 +45,7 @@ from vllm.v1.worker.ubatch_utils import maybe_create_ubatch_slices
 from vllm_omni.data_entry_keys import flatten_payload
 from vllm_omni.distributed.omni_connectors.kv_transfer_manager import OmniKVTransferManager
 from vllm_omni.distributed.omni_connectors.utils.config import stage_sends_async_output
+from vllm_omni.engine.init_timeline import timed_phase, worker_phase
 from vllm_omni.model_executor.duplex_sampling import DuplexSamplingRunnerMixin
 from vllm_omni.outputs import OmniModelRunnerOutput
 from vllm_omni.platforms import current_omni_platform
@@ -69,6 +70,13 @@ from vllm_omni.worker.sampling_utils import (
 from vllm_omni.worker.sparse_audio import resolve_sparse_mm_routing
 
 logger = init_logger(__name__)
+
+
+def _step_stats():
+    """Process-local per-step counters (no-op unless VLLM_OMNI_STEP_STATS_DIR is set)."""
+    from vllm_omni.edge.step_stats import StepStats
+
+    return StepStats.get()
 
 
 def _to_cpu_contiguous(tensor: torch.Tensor) -> torch.Tensor:
@@ -565,7 +573,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
         return engine_output_type, downstream_req_ids
 
     def capture_model(self) -> int:
-        result = super().capture_model()
+        with worker_phase("cudagraph_capture"):
+            result = super().capture_model()
         if not self._has_talker_mtp_graphs():
             return result
         torch.accelerator.synchronize()
@@ -680,11 +689,13 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
         # 5. Release all CUDA graphs unconditionally (upstream only does this
         #    on ROCm; on CUDA the graphs are only freed by Python GC during
         #    interpreter shutdown, which is too late to prevent memory spikes).
-        from vllm.compilation.breakable_cudagraph import BreakableCUDAGraphWrapper
-        from vllm.compilation.cuda_graph import CUDAGraphWrapper
+        #    Skipped on CPU, where no graph wrapper is ever instantiated.
+        if getattr(self.device, "type", "cuda") != "cpu":
+            from vllm.compilation.breakable_cudagraph import BreakableCUDAGraphWrapper
+            from vllm.compilation.cuda_graph import CUDAGraphWrapper
 
-        CUDAGraphWrapper.clear_all_graphs()
-        BreakableCUDAGraphWrapper.clear_all_graphs()
+            CUDAGraphWrapper.clear_all_graphs()
+            BreakableCUDAGraphWrapper.clear_all_graphs()
 
         # 6. Stop the prefix-cache committer before the CUDA context and the
         # tensors it copies from are torn down.
@@ -1301,16 +1312,18 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
                     defer_finalize=defer_kv_connector_finalize,
                 ) as kv_connector_output,
             ):
-                model_output = self._model_forward(
-                    input_ids=input_ids,
-                    positions=positions,
-                    intermediate_tensors=intermediate_tensors,
-                    inputs_embeds=inputs_embeds,
-                    **model_kwargs,
-                    sampling_metadata=self.input_batch.sampling_metadata,
-                    logits_index=logits_indices,
-                    sampler=self.sampler,
-                )
+                _stats = _step_stats()
+                with _stats.timed("model.forward_ms", sync_device=self.device):
+                    model_output = self._model_forward(
+                        input_ids=input_ids,
+                        positions=positions,
+                        intermediate_tensors=intermediate_tensors,
+                        inputs_embeds=inputs_embeds,
+                        **model_kwargs,
+                        sampling_metadata=self.input_batch.sampling_metadata,
+                        logits_index=logits_indices,
+                        sampler=self.sampler,
+                    )
 
                 # [Omni] Map pending ropes metadata to req_ids.
                 flush_pending_metadata = getattr(self.model, "flush_pending_metadata", None)
@@ -1454,10 +1467,13 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
         fallthrough is load-bearing, not an error path; it is logged once per
         model for visibility.
         """
-        sampling_metadata = self.input_batch.sampling_metadata
+        _stats = _step_stats()
+        with _stats.timed("model.sample_meta_ms"):
+            sampling_metadata = self.input_batch.sampling_metadata
         if spec_decode_metadata is None:
             model_sample = getattr(self.model, "sample", None)
-            self.input_batch.update_async_output_token_ids()
+            with _stats.timed("model.sample_async_ids_ms"):
+                self.input_batch.update_async_output_token_ids()
             if logits is not None and callable(model_sample) and getattr(self.model, "prefer_model_sampler", False):
                 # Apply logit bias (min_tokens, allowed_token_ids) before
                 # the custom model sampler — the standard GPU sampler does
@@ -1489,10 +1505,15 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
                     "prefer_model_sampler model %s returned None from sample(); falling back to the default sampler.",
                     type(self.model).__name__,
                 )
-            return self.sampler(
-                logits=logits,
-                sampling_metadata=sampling_metadata,
-            )
+            if _stats.enabled:
+                from vllm_omni.edge.step_stats import instrument_sampler
+
+                instrument_sampler(self.sampler)
+            with _stats.timed("model.sampler_call_ms", sync_device=self.device):
+                return self.sampler(
+                    logits=logits,
+                    sampling_metadata=sampling_metadata,
+                )
 
         return super()._sample(logits, spec_decode_metadata)
 
@@ -1517,6 +1538,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
             return None
         return hidden_states_cpu[start:end]
 
+    @timed_phase("talker_mtp")
     def _run_post_sample_talker_mtp(
         self,
         *,
@@ -2150,7 +2172,8 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin, Duplex
             )
 
         with record_function_or_nullcontext("gpu_model_runner: sample"):
-            sampler_output = self._sample(logits, spec_decode_metadata)
+            with _step_stats().timed("model.sample_ms", sync_device=self.device):
+                sampler_output = self._sample(logits, spec_decode_metadata)
 
         self._update_states_after_model_execute(sampler_output.sampled_token_ids, scheduler_output)
         if self.use_async_scheduling:

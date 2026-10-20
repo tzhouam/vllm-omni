@@ -694,9 +694,25 @@ class StreamingSpeechSessionConfig(BaseModel):
             "'clause' also splits on commas/semicolons for lower TTFA."
         ),
     )
+    output_mode: Literal["pcm", "codec_tokens"] = Field(
+        default="pcm",
+        description=(
+            "'pcm' streams decoded audio. 'codec_tokens' streams the talker's codec frames "
+            "(binary frames described by a 'codec.start' message) for decoding on the client "
+            "device; requires a talker-only deployment (e.g. deploy config qwen3_tts_talker_only.yaml), "
+            "stream_audio=true, response_format='pcm' and word_timestamps=false."
+        ),
+    )
 
     @model_validator(mode="after")
     def validate_streaming_constraints(self) -> "StreamingSpeechSessionConfig":
+        if self.output_mode == "codec_tokens":
+            if not self.stream_audio:
+                raise ValueError("output_mode='codec_tokens' requires stream_audio=true.")
+            if self.word_timestamps:
+                raise ValueError("output_mode='codec_tokens' does not support word_timestamps.")
+            if self.response_format != "pcm":
+                raise ValueError("output_mode='codec_tokens' requires response_format='pcm'.")
         if self.stream_audio:
             if self.response_format != "pcm":
                 raise ValueError(

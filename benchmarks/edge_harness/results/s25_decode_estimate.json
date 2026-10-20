@@ -1,0 +1,44 @@
+{
+ "fp16|ctx1024": {
+  "hybrid_ms": 46.38,
+  "tok_s": 21.6,
+  "uniform_ms": 43.65,
+  "uniform_tok_s": 22.9,
+  "speedup": 0.94
+ },
+ "fp16|ctx4096": {
+  "hybrid_ms": 56.22,
+  "tok_s": 17.8,
+  "uniform_ms": 82.99,
+  "uniform_tok_s": 12.0,
+  "speedup": 1.48
+ },
+ "w8a16|ctx1024": {
+  "hybrid_ms": 27.05,
+  "tok_s": 37.0,
+  "uniform_ms": 31.61,
+  "uniform_tok_s": 31.6,
+  "speedup": 1.17
+ },
+ "w8a16|ctx4096": {
+  "hybrid_ms": 30.92,
+  "tok_s": 32.3,
+  "uniform_ms": 47.07,
+  "uniform_tok_s": 21.2,
+  "speedup": 1.52
+ },
+ "w4a16|ctx1024": {
+  "hybrid_ms": 27.15,
+  "tok_s": 36.8,
+  "uniform_ms": 31.56,
+  "uniform_tok_s": 31.7,
+  "speedup": 1.16
+ },
+ "w4a16|ctx4096": {
+  "hybrid_ms": 30.89,
+  "tok_s": 32.4,
+  "uniform_ms": 46.54,
+  "uniform_tok_s": 21.5,
+  "speedup": 1.51
+ }
+}

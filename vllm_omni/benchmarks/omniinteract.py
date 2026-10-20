@@ -9,7 +9,6 @@ import asyncio
 import binascii
 import contextlib
 import copy
-import fcntl
 import hashlib
 import json
 import logging
@@ -659,13 +658,27 @@ def _output_dir(root: Path, case: OmniInteractCase) -> Path:
 
 @contextlib.contextmanager
 def omniinteract_output_lock(root: Path) -> Iterator[None]:
+    # [edge-infer W8] was a module-level ``import fcntl`` + blocking ``flock``.
+    # ``fcntl`` does not exist on Windows, and this module is imported by
+    # ``vllm_omni.entrypoints.cli`` (through ``benchmarks.patch``), so every
+    # ``vllm-omni serve`` died at import there. The blocking exclusive lock is
+    # rebuilt from the non-blocking primitive in ``_filelock_compat`` (fcntl on
+    # POSIX, msvcrt on Windows) with a short retry; semantics are unchanged.
+    from vllm_omni._filelock_compat import flock_exclusive_nb, funlock
+
     root.mkdir(parents=True, exist_ok=True)
     with (root / ARTIFACT_LOCK_FILE).open("a+b") as lock_file:
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+        fd = lock_file.fileno()
+        while True:
+            try:
+                flock_exclusive_nb(fd)
+                break
+            except BlockingIOError:
+                time.sleep(0.05)
         try:
             yield
         finally:
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+            funlock(fd)
 
 
 def _atomic_replace(path: Path, writer: Callable[[Path], None]) -> None:

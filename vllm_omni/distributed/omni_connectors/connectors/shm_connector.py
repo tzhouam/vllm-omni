@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
 
-import fcntl
 import glob
 import hashlib
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import os
 import select
 import stat
@@ -53,6 +56,12 @@ class SharedMemoryConnector(OmniConnectorBase):
         return self.get(from_stage, to_stage, get_key, metadata)
 
     def __init__(self, config: dict[str, Any]):
+        if fcntl is None:
+            raise RuntimeError(
+                "SharedMemoryConnector requires POSIX shared memory and fcntl "
+                "locking (it addresses lock files under /dev/shm); neither exists "
+                "on Windows. Select a different connector for this stage."
+            )
         self.config = config
         self.stage_id = config.get("stage_id", -1)
         scope = config.get("extra", {}).get("wakeup_scope")

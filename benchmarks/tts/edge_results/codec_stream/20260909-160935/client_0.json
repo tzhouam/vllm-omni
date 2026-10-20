@@ -1,0 +1,60 @@
+{
+ "codec_start": {
+  "type": "codec.start",
+  "version": 1,
+  "utterance_index": 0,
+  "sentence_index": 0,
+  "sentence_text": "Hello, welcome to the voice synthesis benchmark test.",
+  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "codebooks": 16,
+  "codebook_size": 2048,
+  "frame_rate_hz": 12.5,
+  "sample_rate": 24000,
+  "decoder_id": "qwen3_tts_tokenizer_v2_12hz",
+  "header_format": "<IHB"
+ },
+ "schedule": [
+  2,
+  4,
+  8,
+  16,
+  25
+ ],
+ "total_frames": 52,
+ "ttfa_ms": 17410.63924692571,
+ "playback_start_ms": 17410.639968235046,
+ "stall_at_ttfa_ms": 0,
+ "audio_s": 4.16,
+ "total_s": 17.91295762034133,
+ "rtf": 4.305999427966666,
+ "decode_ms_total": 1106.4688973128796,
+ "chunks": [
+  {
+   "idx": 0,
+   "t_ms": 17410.639968235046,
+   "arrival_ms": 16784.192154183984,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 626.3310848735273
+  },
+  {
+   "idx": 1,
+   "t_ms": 17731.141499243677,
+   "arrival_ms": 16784.192154183984,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 320.48439234495163
+  },
+  {
+   "idx": 2,
+   "t_ms": 17890.80695528537,
+   "arrival_ms": 16784.192154183984,
+   "frames": 2,
+   "samples": 3840,
+   "decode_ms": 159.65342009440064
+  }
+ ],
+ "device": "cpu",
+ "wav": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-160935/client_0.wav",
+ "codes": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-160935/client_0.codes.npy"
+}

@@ -15,6 +15,7 @@ from vllm.v1.worker.gpu_worker import init_worker_distributed_environment
 from vllm.v1.worker.workspace import init_workspace_manager
 
 from vllm_omni.diffusion.data import OmniACK, OmniSleepTask, OmniWakeTask
+from vllm_omni.engine.init_timeline import timed_phase
 from vllm_omni.platforms import current_omni_platform
 from vllm_omni.worker.base import OmniGPUWorkerBase
 from vllm_omni.worker.gpu_ar_model_runner import GPUARModelRunner
@@ -34,6 +35,7 @@ class GPUARWorker(OmniWorkerMixin, OmniGPUWorkerBase):
     model_runner_cls = GPUARModelRunner
 
     @instrument(span_name="Init device")
+    @timed_phase("init_device")
     def init_device(self):
         if self.device_config.device_type in ("cuda", "musa"):
             # This env var set by Ray causes exceptions with graph building.

@@ -1,0 +1,80 @@
+{
+  "label": "llamacpp-Q4_K_M",
+  "prompts": 12,
+  "exact_match": "4/12",
+  "mean_prefix_kept": 0.5101,
+  "detail": [
+    {
+      "prompt": "chat_short",
+      "exact": false,
+      "common_prefix_chars": 91,
+      "ref_chars": 182
+    },
+    {
+      "prompt": "chat_long",
+      "exact": false,
+      "common_prefix_chars": 43,
+      "ref_chars": 246
+    },
+    {
+      "prompt": "chat_tools",
+      "exact": false,
+      "common_prefix_chars": 15,
+      "ref_chars": 290
+    },
+    {
+      "prompt": "plain_0",
+      "exact": true,
+      "common_prefix_chars": 361,
+      "ref_chars": 361
+    },
+    {
+      "prompt": "plain_1",
+      "exact": true,
+      "common_prefix_chars": 512,
+      "ref_chars": 512
+    },
+    {
+      "prompt": "plain_2",
+      "exact": false,
+      "common_prefix_chars": 71,
+      "ref_chars": 172
+    },
+    {
+      "prompt": "plain_3",
+      "exact": false,
+      "common_prefix_chars": 3,
+      "ref_chars": 352
+    },
+    {
+      "prompt": "plain_4",
+      "exact": true,
+      "common_prefix_chars": 318,
+      "ref_chars": 318
+    },
+    {
+      "prompt": "plain_5",
+      "exact": true,
+      "common_prefix_chars": 346,
+      "ref_chars": 346
+    },
+    {
+      "prompt": "plain_6",
+      "exact": false,
+      "common_prefix_chars": 2,
+      "ref_chars": 177
+    },
+    {
+      "prompt": "plain_7",
+      "exact": false,
+      "common_prefix_chars": 1,
+      "ref_chars": 320
+    },
+    {
+      "prompt": "plain_8",
+      "exact": false,
+      "common_prefix_chars": 2,
+      "ref_chars": 184
+    }
+  ]
+}

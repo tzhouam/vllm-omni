@@ -1,0 +1,59 @@
+{
+ "codec_start": {
+  "type": "codec.start",
+  "version": 1,
+  "utterance_index": 0,
+  "sentence_index": 0,
+  "sentence_text": "The quick brown fox jumps over the lazy dog near the riverbank.",
+  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "codebooks": 16,
+  "codebook_size": 2048,
+  "frame_rate_hz": 12.5,
+  "sample_rate": 24000,
+  "decoder_id": "qwen3_tts_tokenizer_v2_12hz",
+  "header_format": "<IHB"
+ },
+ "schedule": [
+  2,
+  4,
+  8,
+  16,
+  25
+ ],
+ "total_frames": 57,
+ "ttfa_ms": 2374.6770787984133,
+ "playback_start_ms": 2374.677674844861,
+ "stall_at_ttfa_ms": 0,
+ "audio_s": 4.56,
+ "total_s": 3.1928034727461636,
+ "rtf": 0.7001762001636325,
+ "decode_ms_total": 1007.7741779386997,
+ "chunks": [
+  {
+   "idx": 0,
+   "t_ms": 2374.677674844861,
+   "arrival_ms": 2183.5330086760223,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 191.07505306601524
+  },
+  {
+   "idx": 1,
+   "t_ms": 2612.2152279131114,
+   "arrival_ms": 2183.5330086760223,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 237.5256298109889
+  },
+  {
+   "idx": 2,
+   "t_ms": 3191.405546851456,
+   "arrival_ms": 2183.5330086760223,
+   "frames": 7,
+   "samples": 13440,
+   "decode_ms": 579.1734950616956
+  }
+ ],
+ "device": "cpu",
+ "wav": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-154659/client_2.wav"
+}

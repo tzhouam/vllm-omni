@@ -1,0 +1,2 @@
+{"engine": "vllm", "dtype": "bfloat16", "gpu": "L20X", "init_s": 120.21, "pp_tokens": 512, "pp_s": 0.0116, "pp_tps": 44054.08, "tg_tokens": 128, "tg_s": 0.2767, "tg_tps": 458.97}
+{"engine": "sglang", "dtype": "bfloat16", "gpu": "L20X", "init_s": 102.77, "pp_tokens": 512, "pp_s": 0.0101, "pp_tps": 50934.7, "tg_tokens": 128, "tg_s": 0.2902, "tg_tps": 437.68}

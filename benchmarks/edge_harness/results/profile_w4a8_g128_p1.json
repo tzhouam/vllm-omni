@@ -1,0 +1,230 @@
+{
+  "retracted": true,
+  "retracted_on": "2026-09-13",
+  "reason": "Measured on models/spark2_5-gptq-g128, which was built with tie_word_embeddings: true and zero lm_head tensors, so the output projection ran in bf16 through _C::onednn_mm at ~2.97 ms/step -- visible in `top` -- and dominated the 4-bit saving. Every W4A8 number derived from this file is void.",
+  "superseded_by": "profile_w4a8_g128_head_p1.json",
+  "valid_build": "models/spark2_5-gptq-g128-head (lm_head untied and quantized)",
+  "onednn_mm_ms_per_step": 2.9705,
+  "tag": "bfloat16/None/eager=False",
+  "wall_step_ms": 13.743,
+  "tps": 72.77,
+  "profiled_total_ms_per_step": 14.009,
+  "buckets_ms_per_step": {
+    "gemm": 8.044,
+    "framework": 3.336,
+    "other_op": 1.66,
+    "attn": 0.968
+  },
+  "top": [
+    {
+      "op": "_C::int4_scaled_mm_cpu",
+      "bucket": "gemm",
+      "ms_per_step": 5.0734,
+      "calls_per_step": 112.0
+    },
+    {
+      "op": "_C::onednn_mm",
+      "bucket": "gemm",
+      "ms_per_step": 2.9705,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "## Call CompiledFxGraph None ##",
+      "bucket": "framework",
+      "ms_per_step": 2.4192,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "vllm::unified_attention_with_output",
+      "bucket": "attn",
+      "ms_per_step": 0.4763,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "vllm::unified_kv_cache_update",
+      "bucket": "framework",
+      "ms_per_step": 0.4504,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "_C::cpu_attention_with_kv_cache",
+      "bucket": "attn",
+      "ms_per_step": 0.3572,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::copy_",
+      "bucket": "other_op",
+      "ms_per_step": 0.2745,
+      "calls_per_step": 75.0
+    },
+    {
+      "op": "aten::argmax",
+      "bucket": "other_op",
+      "ms_per_step": 0.2475,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "vllm::spark_head_gate",
+      "bucket": "framework",
+      "ms_per_step": 0.2348,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::slice",
+      "bucket": "other_op",
+      "ms_per_step": 0.1659,
+      "calls_per_step": 230.0
+    },
+    {
+      "op": "Pregraph bytecode",
+      "bucket": "framework",
+      "ms_per_step": 0.1351,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "_C::cpu_attn_reshape_and_cache",
+      "bucket": "attn",
+      "ms_per_step": 0.1347,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::mul",
+      "bucket": "other_op",
+      "ms_per_step": 0.1295,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "aten::empty",
+      "bucket": "other_op",
+      "ms_per_step": 0.1074,
+      "calls_per_step": 369.0
+    },
+    {
+      "op": "aten::sum",
+      "bucket": "other_op",
+      "ms_per_step": 0.1011,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "AOTDispatcher Runtime Wrapper Prologue",
+      "bucket": "framework",
+      "ms_per_step": 0.0966,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::as_strided",
+      "bucket": "other_op",
+      "ms_per_step": 0.0952,
+      "calls_per_step": 290.0
+    },
+    {
+      "op": "aten::_to_copy",
+      "bucket": "other_op",
+      "ms_per_step": 0.0859,
+      "calls_per_step": 61.0
+    },
+    {
+      "op": "aten::narrow",
+      "bucket": "other_op",
+      "ms_per_step": 0.0835,
+      "calls_per_step": 112.0
+    },
+    {
+      "op": "aten::chunk",
+      "bucket": "other_op",
+      "ms_per_step": 0.0596,
+      "calls_per_step": 56.0
+    },
+    {
+      "op": "aten::split",
+      "bucket": "other_op",
+      "ms_per_step": 0.0584,
+      "calls_per_step": 56.0
+    },
+    {
+      "op": "aten::view",
+      "bucket": "other_op",
+      "ms_per_step": 0.0494,
+      "calls_per_step": 61.0
+    },
+    {
+      "op": "aten::to",
+      "bucket": "other_op",
+      "ms_per_step": 0.0349,
+      "calls_per_step": 64.0
+    },
+    {
+      "op": "aten::empty_strided",
+      "bucket": "other_op",
+      "ms_per_step": 0.0269,
+      "calls_per_step": 61.0
+    },
+    {
+      "op": "aten::fill_",
+      "bucket": "other_op",
+      "ms_per_step": 0.0217,
+      "calls_per_step": 40.0
+    },
+    {
+      "op": "aten::index",
+      "bucket": "other_op",
+      "ms_per_step": 0.0196,
+      "calls_per_step": 2.0
+    },
+    {
+      "op": "aten::unsqueeze",
+      "bucket": "other_op",
+      "ms_per_step": 0.0188,
+      "calls_per_step": 29.0
+    },
+    {
+      "op": "aten::new_empty",
+      "bucket": "other_op",
+      "ms_per_step": 0.0176,
+      "calls_per_step": 28.0
+    },
+    {
+      "op": "_C::compute_slot_mapping_kernel_impl",
+      "bucket": "other_op",
+      "ms_per_step": 0.0158,
+      "calls_per_step": 4.0
+    },
+    {
+      "op": "_C::get_scheduler_metadata",
+      "bucket": "other_op",
+      "ms_per_step": 0.0137,
+      "calls_per_step": 4.0
+    },
+    {
+      "op": "aten::add",
+      "bucket": "other_op",
+      "ms_per_step": 0.0089,
+      "calls_per_step": 3.0
+    },
+    {
+      "op": "aten::sub",
+      "bucket": "other_op",
+      "ms_per_step": 0.0053,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::lt",
+      "bucket": "other_op",
+      "ms_per_step": 0.0034,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::index_select",
+      "bucket": "other_op",
+      "ms_per_step": 0.0028,
+      "calls_per_step": 1.0
+    },
+    {
+      "op": "aten::detach",
+      "bucket": "other_op",
+      "ms_per_step": 0.0026,
+      "calls_per_step": 2.0
+    }
+  ]
+}

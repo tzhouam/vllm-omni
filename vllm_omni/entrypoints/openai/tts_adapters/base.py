@@ -276,6 +276,13 @@ class TTSModelAdapter(ABC):
     #: Target sample rates validated for this adapter's output path. An empty
     #: set means that the adapter does not expose per-request resampling.
     supported_output_sample_rates: ClassVar[frozenset[int]] = frozenset()
+    #: Whether the model's talker can be served alone and its codec frames
+    #: streamed to a client-side decoder (``output_mode="codec_tokens"``).
+    supports_codec_stream: ClassVar[bool] = False
+    #: Codec description sent in ``codec.start`` when ``supports_codec_stream``:
+    #: ``codebooks``, ``codebook_size``, ``frame_rate_hz``, ``sample_rate``,
+    #: ``decoder_id`` and ``eos_token_id``.
+    codec_stream_spec: ClassVar[dict[str, Any]] = {}
 
     max_new_tokens_min = 1
 

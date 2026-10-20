@@ -18,6 +18,7 @@ Shared by Qwen3-Omni and Qwen3-TTS talker models.
 from __future__ import annotations
 
 import dataclasses
+import os
 import time
 from collections.abc import Iterable, Sequence
 
@@ -30,6 +31,7 @@ from vllm.model_executor.layers.vocab_parallel_embedding import VocabParallelEmb
 from vllm.model_executor.model_loader.weight_utils import default_weight_loader
 
 from vllm_omni.diffusion.layers.custom_op import CustomOp
+from vllm_omni.engine.init_timeline import timed_phase
 from vllm_omni.platforms import current_omni_platform
 
 logger = init_logger(__name__)
@@ -276,11 +278,58 @@ class CodePredictorAttention(nn.Module):
             sync=True,
         )[0]
 
+    def forward_static_step(
+        self,
+        hidden_states: torch.Tensor,
+        position_embeddings: tuple[torch.Tensor, torch.Tensor],
+        kv_cache: tuple[torch.Tensor, torch.Tensor],
+        cache_pos: torch.Tensor,
+        attn_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        """One new token against a fixed-size cache (shape-static, ``torch.compile``-friendly).
+
+        ``cache_pos`` is a 1-element int64 tensor (the slot to write), ``attn_mask`` a bool
+        ``[B, 1, 1, max_seq]`` mask that is True for the valid slots ``<= cache_pos``.
+        """
+        bsz, seq_len, _ = hidden_states.shape
+        qkv = self.qkv_proj(hidden_states)
+        q_raw, k_raw, v_raw = self._split_qkv(qkv)
+        q = self.q_norm(q_raw.view(bsz, seq_len, self.num_heads, self.head_dim)).transpose(1, 2)
+        k = self.k_norm(k_raw.view(bsz, seq_len, self.num_kv_heads, self.head_dim)).transpose(1, 2)
+        v = v_raw.view(bsz, seq_len, self.num_kv_heads, self.head_dim).transpose(1, 2)
+        cos, sin = position_embeddings
+        cos = cos.unsqueeze(1)
+        sin = sin.unsqueeze(1)
+        q = (q * cos) + (_rotate_half(q) * sin)
+        k = (k * cos) + (_rotate_half(k) * sin)
+        k_cache, v_cache = kv_cache
+        k_cache.index_copy_(2, cache_pos, k.to(k_cache.dtype))
+        v_cache.index_copy_(2, cache_pos, v.to(v_cache.dtype))
+        attn_out = F.scaled_dot_product_attention(
+            q,
+            k_cache[:bsz],
+            v_cache[:bsz],
+            attn_mask=attn_mask,
+            scale=self.scaling,
+            enable_gqa=self.is_gqa,
+        )
+        attn_out = attn_out.transpose(1, 2).reshape(bsz, seq_len, -1)
+        return self.o_proj(attn_out)
+
     def forward(
         self,
         hidden_states: torch.Tensor,
         position_embeddings: tuple[torch.Tensor, torch.Tensor],
+        kv_cache: tuple[torch.Tensor, torch.Tensor] | None = None,
+        cache_pos: int = 0,
     ) -> torch.Tensor:
+        """Causal self-attention.
+
+        With ``kv_cache=(k_cache, v_cache)`` of shape ``[B, kv_heads, max_seq, head_dim]`` the
+        new positions ``cache_pos .. cache_pos+seq_len`` are written into the cache and attended
+        together with the cached prefix (incremental decoding of the residual codebooks); a
+        multi-token call is only allowed from an empty cache (``cache_pos == 0``).
+        """
         bsz, seq_len, _ = hidden_states.shape
         hidden_shape_q = (bsz, seq_len, self.num_heads, self.head_dim)
         hidden_shape_kv = (bsz, seq_len, self.num_kv_heads, self.head_dim)
@@ -305,12 +354,21 @@ class CodePredictorAttention(nn.Module):
         else:
             q = (q * cos) + (_rotate_half(q) * sin)
             k = (k * cos) + (_rotate_half(k) * sin)
+            if kv_cache is not None:
+                if seq_len > 1 and cache_pos != 0:
+                    raise ValueError("incremental code-predictor attention: multi-token append needs an empty cache")
+                k_cache, v_cache = kv_cache
+                end = cache_pos + seq_len
+                k_cache[:bsz, :, cache_pos:end] = k
+                v_cache[:bsz, :, cache_pos:end] = v
+                k = k_cache[:bsz, :, :end]
+                v = v_cache[:bsz, :, :end]
             attn_out = F.scaled_dot_product_attention(
                 q,
                 k,
                 v,
                 scale=self.scaling,
-                is_causal=True,
+                is_causal=seq_len > 1,
                 enable_gqa=self.is_gqa,
             )
 
@@ -408,14 +466,35 @@ class CodePredictorDecoderLayer(nn.Module):
         self.input_layernorm = _RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.post_attention_layernorm = _RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 
+    def forward_static_step(
+        self,
+        hidden_states: torch.Tensor,
+        position_embeddings: tuple[torch.Tensor, torch.Tensor],
+        kv_cache: tuple[torch.Tensor, torch.Tensor],
+        cache_pos: torch.Tensor,
+        attn_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        residual = hidden_states
+        hidden_states = self.input_layernorm(hidden_states)
+        hidden_states = self.self_attn.forward_static_step(
+            hidden_states, position_embeddings, kv_cache, cache_pos, attn_mask
+        )
+        hidden_states = residual + hidden_states
+        residual = hidden_states
+        hidden_states = self.post_attention_layernorm(hidden_states)
+        hidden_states = self.mlp(hidden_states)
+        return residual + hidden_states
+
     def forward(
         self,
         hidden_states: torch.Tensor,
         position_embeddings: tuple[torch.Tensor, torch.Tensor],
+        kv_cache: tuple[torch.Tensor, torch.Tensor] | None = None,
+        cache_pos: int = 0,
     ) -> torch.Tensor:
         residual = hidden_states
         hidden_states = self.input_layernorm(hidden_states)
-        hidden_states = self.self_attn(hidden_states, position_embeddings)
+        hidden_states = self.self_attn(hidden_states, position_embeddings, kv_cache=kv_cache, cache_pos=cache_pos)
         if current_omni_platform.is_npu():
             hidden_states, _, residual = torch_npu.npu_add_rms_norm(
                 hidden_states,
@@ -455,6 +534,36 @@ class CodePredictorDecoderLayer(nn.Module):
 # ===================================================================
 #  Base Transformer Model (re-prefill, or incremental with a K/V buffer)
 # ===================================================================
+
+
+def _post_step_sample(
+    hidden: torch.Tensor,
+    head_w: torch.Tensor,
+    embed_w: torch.Tensor,
+    proj_w: torch.Tensor | None,
+    proj_b: torch.Tensor | None,
+    u: torch.Tensor,
+    inv_temperature: float,
+    top_k: int,
+    use_sampling: bool,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """lm head -> top-k mask -> Gumbel-max sample (noise ``u`` drawn by the caller) -> embed -> project.
+
+    Shape-static and generator-free so it compiles into one graph per (top_k, use_sampling).
+    Returns ``(code [B, 1], proj_row [B, H])``.
+    """
+    logits = F.linear(hidden, head_w)
+    if use_sampling:
+        scaled = logits * inv_temperature
+        if top_k > 0:
+            topk_vals, _ = scaled.topk(top_k, dim=-1)
+            scaled = scaled.masked_fill(scaled < topk_vals[:, -1:], float("-inf"))
+        code = (scaled.float() - torch.log(-torch.log(u))).argmax(dim=-1, keepdim=True)
+    else:
+        code = logits.argmax(dim=-1, keepdim=True)
+    new_embed = F.embedding(code, embed_w).reshape(code.shape[0], -1)  # [B, H]
+    proj_row = new_embed if proj_w is None else F.linear(new_embed, proj_w, proj_b)
+    return code, proj_row
 
 
 class CodePredictorBaseModel(nn.Module):
@@ -521,6 +630,55 @@ class CodePredictorBaseModel(nn.Module):
                 hidden_states = layer(hidden_states, position_embeddings)
             hidden_states = self.norm(hidden_states)
         return hidden_states.to(input_dtype)
+
+    def forward_cached_edge(
+        self,
+        inputs_embeds: torch.Tensor,
+        position_ids: torch.Tensor,
+        kv_caches: list,
+        cache_pos: int,
+    ) -> torch.Tensor:
+        """Incremental forward: process only ``inputs_embeds`` (positions ``cache_pos..``) against the caches.
+
+        Same math as :meth:`forward` over the full prefix, without re-running the
+        cached positions; used for the residual-codebook loop on CPU where each
+        of the 15 sub-steps would otherwise recompute up to 17 positions.
+        """
+        input_dtype = inputs_embeds.dtype
+        use_fp32 = input_dtype == torch.float16 and inputs_embeds.device.type != "cpu"
+        if use_fp32:
+            inputs_embeds = inputs_embeds.float()
+        hidden_states = inputs_embeds
+        with torch.amp.autocast(inputs_embeds.device.type, enabled=use_fp32, dtype=torch.float32):
+            position_embeddings = self.rotary_emb(hidden_states, position_ids)
+            for layer, cache in zip(self.layers, kv_caches, strict=True):
+                hidden_states = layer(hidden_states, position_embeddings, kv_cache=cache, cache_pos=cache_pos)
+            hidden_states = self.norm(hidden_states)
+        return hidden_states.to(input_dtype)
+
+    def new_kv_caches(self, bsz: int, max_seq: int, device: torch.device, dtype: torch.dtype) -> list:
+        """Per-layer ``(k_cache, v_cache)`` buffers for :meth:`forward_cached`."""
+        attn0 = self.layers[0].self_attn
+        shape = (bsz, attn0.num_kv_heads, max_seq, attn0.head_dim)
+        return [
+            (torch.zeros(shape, device=device, dtype=dtype), torch.zeros(shape, device=device, dtype=dtype))
+            for _ in self.layers
+        ]
+
+    def forward_static_step(
+        self,
+        inputs_embeds: torch.Tensor,
+        position_ids: torch.Tensor,
+        kv_caches: list,
+        cache_pos: torch.Tensor,
+        attn_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        """One-token step with tensor-valued position and mask (no Python ints -> one compiled graph)."""
+        hidden_states = inputs_embeds
+        position_embeddings = self.rotary_emb(hidden_states, position_ids)
+        for layer, cache in zip(self.layers, kv_caches, strict=True):
+            hidden_states = layer.forward_static_step(hidden_states, position_embeddings, cache, cache_pos, attn_mask)
+        return self.norm(hidden_states)
 
     def forward_cached(
         self,
@@ -872,6 +1030,7 @@ class CodePredictorWrapper(nn.Module):
             key_mask = (keys[None, :] <= positions[:, None]).view(1, 1, positions.numel(), max_seq)
             self._kv_steps[step] = (positions, key_mask)
 
+    @timed_phase("predictor_setup_compile")
     def _setup_compile(self) -> None:
         """Lazily set up torch.compile with optional device graph capture."""
         if self._compiled_model_fwd is not None:
@@ -1107,6 +1266,7 @@ class CodePredictorWrapper(nn.Module):
             required_entries = 4  # {first step, later steps} x {batch 1, dynamic batch}
         return max(torch._dynamo.config.cache_size_limit, required_entries)
 
+    @timed_phase("predictor_warmup")
     def _warmup_buckets(self) -> None:
         """Warm up batch-size buckets to front-load Inductor compilation."""
         self._bucket_sizes = self._batch_bucket_sizes()
@@ -1184,6 +1344,7 @@ class CodePredictorWrapper(nn.Module):
         # capture and serving reuse the same static buffers.
         self._synchronize_warmup(device)
 
+    @timed_phase("predictor_cudagraph")
     def _capture_cuda_graphs(self) -> None:
         """Capture a CUDA graph per bucket using vLLM's global graph pool."""
         from vllm.platforms import current_platform
@@ -1352,6 +1513,198 @@ class CodePredictorWrapper(nn.Module):
                 raise ValueError(
                     f"sample_uniforms must have shape {expected_shape}, got {tuple(sample_uniforms.shape)}"
                 )
+    # ------------------------------------------------------------------
+    #  Incremental (KV-cached) residual decoding
+    # ------------------------------------------------------------------
+    _INCREMENTAL_ENV = "VLLM_OMNI_PREDICTOR_INCREMENTAL"
+    _INT8_ENV = "VLLM_OMNI_PREDICTOR_INT8"  # CPU: dynamic int8 Linear layers (default on; "0" disables)
+    _PARITY_ENV = "VLLM_OMNI_PREDICTOR_PARITY_CHECK"  # "1": compare int8 logits with the bf16 model per sub-step
+
+    def _parity_check(self, step: int, proj_row: torch.Tensor, logits_int8: torch.Tensor, ref_caches: list) -> None:
+        """Record top-1 agreement and max |logit diff| between the int8 and the reference predictor."""
+        from vllm_omni.edge.step_stats import StepStats
+
+        ref_model, ref_heads = self._parity_ref
+        rdtype = next(ref_model.parameters()).dtype
+        bsz = proj_row.shape[0]
+        if step == 1:
+            x = proj_row.to(rdtype)  # [B, 2, H] prefill rows
+            h = ref_model.forward_cached_edge(x, self._incremental_pos_ids(bsz, 0, 2, proj_row.device), ref_caches, 0)[:, 1]
+        else:
+            x = proj_row.to(rdtype)  # [B, 1, H]
+            h = ref_model.forward_cached_edge(x, self._incremental_pos_ids(bsz, step, 1, proj_row.device), ref_caches, step)[
+                :, 0
+            ]
+        ref_logits = ref_heads[step - 1](h).float()
+        stats = StepStats.get()
+        test_logits = logits_int8.float()
+        agree = (ref_logits.argmax(-1) == test_logits.argmax(-1)).float().mean().item()
+        stats.add("predictor.parity_top1_agree", agree)
+        stats.add("predictor.parity_logit_maxdiff", (ref_logits - test_logits).abs().max().item())
+        ref_top5 = ref_logits.topk(5, dim=-1).indices
+        test_top5 = test_logits.topk(5, dim=-1).indices
+        overlap = (ref_top5.unsqueeze(-1) == test_top5.unsqueeze(-2)).any(-1).float().mean().item()
+        stats.add("predictor.parity_top5_overlap", overlap)
+        ref_lp = ref_logits.log_softmax(-1)
+        test_lp = test_logits.log_softmax(-1)
+        stats.add("predictor.parity_kl_ref_test", (ref_lp.exp() * (ref_lp - test_lp)).sum(-1).mean().item())
+
+    def _setup_cpu_fast_path(self, device: torch.device) -> None:
+        """CPU: dynamic int8 quantization of every Linear (weights int8 per-channel, activations per call).
+
+        Measured on a Xeon 8480C (12 threads): bf16 M=1 GEMVs carry ~30 us of fixed
+        kernel overhead each and the 15 residual sub-steps cost 70 ms per frame; with
+        int8-dynamic Linear layers (fp32 activations) the same loop costs 36 ms.
+        """
+        if getattr(self, "_cpu_fast_path_done", False):
+            return
+        self._cpu_fast_path_done = True
+        if device.type != "cpu" or current_omni_platform.is_npu():
+            return
+        # Default "fp32": fp32 weights + compiled shape-static step. Measured in situ against the
+        # bf16 model (VLLM_OMNI_PREDICTOR_PARITY_CHECK=1): fp32 keeps 93.8 % top-1 / KL 0.0015,
+        # while torch.ao dynamic int8 ("ao") drops to 22 % top-1 (per-tensor activation
+        # quantization of the residual stream), so int8 is opt-in only.
+        mode = os.environ.get(self._INT8_ENV, "fp32").strip().lower()
+        if mode in ("0", "false", "off", "no"):
+            return
+        self._parity_ref = None
+        if os.environ.get(self._PARITY_ENV, "0").strip().lower() in ("1", "true", "on", "yes"):
+            # keep an unquantized copy to measure int8 fidelity in situ (see _parity_check)
+            import copy as _copy
+
+            self._parity_ref = (_copy.deepcopy(self.model), _copy.deepcopy(self.lm_head))
+        # "torchao" / "torchao-wo": int8 weight-only + compiled static step (numerically faithful;
+        # torchao's dynamic-activation int8 is wrong under torch.compile on CPU, so it is not offered).
+        use_torchao = mode in ("torchao", "torchao-wo", "fp32")
+        if use_torchao:
+            try:
+                from torchao.quantization import Int8WeightOnlyConfig, quantize_
+            except ImportError:
+                use_torchao = False
+        if use_torchao:
+            # torchao's int8 Linear variants are plain PyTorch math, so the shape-static one-token
+            # step (and the 2-token prefill) compile into single graphs: micro-benchmark 70 ms
+            # (bf16 eager) -> 21 ms per frame for the 15 sub-steps with dynamic activations.
+            # "fp32" keeps the weights unquantized (compiled fp32 control for parity checks),
+            # "torchao-wo" quantizes weights only (activations fp32).
+            self.model.float()
+            self.lm_head.float()
+            if mode != "fp32":
+                quantize_(self.model, Int8WeightOnlyConfig())
+                quantize_(self.lm_head, Int8WeightOnlyConfig())
+            self._static_step_fn = torch.compile(self.model.forward_static_step, dynamic=False)
+            self._post_step_fn = torch.compile(_post_step_sample, dynamic=False)
+            model = self.model
+
+            def _prefill(x, pos_ids, caches):
+                return model.forward_cached_edge(x, pos_ids, caches, 0)
+
+            self._prefill_fn = torch.compile(_prefill, dynamic=False)
+            self._incremental_compiled = True
+            kind = ("fp32 (control)" if mode == "fp32" else "torchao int8 weight-only") + " + compiled static step"
+        else:
+            from torch.ao.quantization import quantize_dynamic
+
+            self.model = quantize_dynamic(self.model.float(), {nn.Linear}, dtype=torch.qint8)
+            if mode == "ao-nohead":  # keep the 15 lm heads (logits) in fp32
+                self.lm_head = self.lm_head.float()
+                kind = "torch.ao dynamic int8 Linear, fp32 lm heads (eager)"
+            else:
+                self.lm_head = quantize_dynamic(self.lm_head.float(), {nn.Linear}, dtype=torch.qint8)
+                kind = "torch.ao dynamic int8 Linear (eager)"
+        self.small_to_mtp_projection = self.small_to_mtp_projection.float()
+        self._model_dtype = torch.float32
+        self._lm_heads_list = list(self.lm_head)
+        self._codec_embeds_list = list(self.model.codec_embedding)
+        self._compiled_model_fwd = self.model.forward
+        self._proj_buf = None  # re-allocated in fp32 by _ensure_buffers
+        logger.info("code_predictor: CPU fast path (KV-cached sub-steps, %s, fp32 activations)", kind)
+
+    _THREADS_ENV = "VLLM_OMNI_PREDICTOR_THREADS"  # CPU: OpenMP threads for the residual loop (0 = unchanged)
+    _COMPILE_ENV = (
+        "VLLM_OMNI_PREDICTOR_COMPILE"  # "1": torch.compile the per-layer MLP/norm blocks (CPU, static shapes)
+    )
+
+    def _incremental_threads(self) -> int:
+        try:
+            return max(0, int(os.environ.get(self._THREADS_ENV, "0")))
+        except ValueError:
+            return 0
+
+    def _setup_incremental_compile(self) -> None:
+        """Compile the whole shape-static one-token step (``forward_static_step``) for the incremental path.
+
+        The step takes the fixed-size caches, a tensor position and a boolean mask, so a
+        single ``torch.compile`` graph serves all 14 residual sub-steps without
+        recompilation; the 2-token prefill of the first sub-step stays eager.
+        """
+        if getattr(self, "_incremental_compiled", False):
+            return
+        self._incremental_compiled = True
+        if getattr(self, "_static_step_fn", None) is not None:
+            return
+        self._static_step_fn = None
+        if os.environ.get(self._COMPILE_ENV, "0").strip().lower() not in ("1", "true", "on", "yes", "step"):
+            return
+        self._static_step_fn = torch.compile(self.model.forward_static_step, dynamic=False)
+        logger.info("code_predictor: incremental path with a compiled static one-token step")
+
+    def _use_incremental(self, device: torch.device) -> bool:
+        """KV-cached sub-steps: default on CPU (no device graphs there), ``=1`` forces, ``=0`` disables."""
+        mode = os.environ.get(self._INCREMENTAL_ENV, "auto").strip().lower()
+        if mode in ("0", "false", "off", "no"):
+            return False
+        if mode in ("1", "true", "on", "yes"):
+            return not current_omni_platform.is_npu()
+        return device.type == "cpu" and not self._device_graphs
+
+    def _incremental_caches(self, bsz: int, max_seq: int, device: torch.device, dtype: torch.dtype) -> list:
+        key = (bsz, max_seq, str(device), dtype)
+        buffers = getattr(self, "_kv_cache_buffers", None)
+        if buffers is None:
+            buffers = self._kv_cache_buffers = {}
+        caches = buffers.get(key)
+        if caches is None:
+            caches = buffers[key] = self.model.new_kv_caches(bsz, max_seq, device, dtype)
+        return caches
+
+    @staticmethod
+    def _incremental_pos_ids(bsz: int, start: int, n: int, device: torch.device) -> torch.Tensor:
+        return torch.arange(start, start + n, device=device, dtype=torch.long).unsqueeze(0).expand(bsz, -1)
+
+    def _sample_step_code(
+        self,
+        logits: torch.Tensor,
+        sample_generator: _GeneratorLike,
+        *,
+        stored_mode: bool,
+        s_top_k: int,
+        s_top_p: float,
+        use_sampling: bool,
+        inv_temperature: float,
+        top_k: int,
+    ) -> torch.Tensor:
+        """Same sampling as the re-prefill loop body (kept identical so codes match)."""
+        if stored_mode:
+            if s_top_k > 0:
+                topk_vals, _ = logits.topk(s_top_k, dim=-1)
+                logits = logits.masked_fill(logits < topk_vals[:, -1:], float("-inf"))
+            if s_top_p < 1.0:
+                sorted_logits, sorted_idx = logits.sort(dim=-1, descending=True)
+                sorted_probs = F.softmax(sorted_logits, dim=-1, dtype=torch.float32)
+                cumulative_probs = sorted_probs.cumsum(dim=-1)
+                remove_mask = (cumulative_probs - sorted_probs) >= s_top_p
+                sorted_logits[remove_mask] = float("-inf")
+                logits = sorted_logits.scatter(1, sorted_idx, sorted_logits)
+            return self._sample_codes_gumbel(logits, generator=sample_generator)
+        if use_sampling:
+            scaled = logits * inv_temperature
+            if top_k > 0:
+                topk_vals, _ = scaled.topk(top_k, dim=-1)
+                scaled = scaled.masked_fill(scaled < topk_vals[:, -1:], float("-inf"))
+            return self._sample_codes_gumbel(scaled, generator=sample_generator)
+        return logits.argmax(dim=-1, keepdim=True)
 
     @torch.inference_mode()
     def forward(
@@ -1377,6 +1730,7 @@ class CodePredictorWrapper(nn.Module):
         # _setup_compile caches _model_dtype on first call; use it for buffers
         # so they always match model weight precision (#2385).
         self._setup_compile()
+        self._setup_cpu_fast_path(device)
         dtype = self._model_dtype
 
         padded_bsz = self._padded_bsz(bsz)
@@ -1425,7 +1779,127 @@ class CodePredictorWrapper(nn.Module):
                 self._kv_buf[:, :, :padded_bsz].zero_()
             kv_caches = self._kv_views(padded_bsz)
         # Autoregressive loop: predict layers 1..G-1
+        from vllm_omni.edge.step_stats import StepStats
+
+        _stats = StepStats.get()
+        _t_loop = time.perf_counter() if _stats.enabled else 0.0
+        max_seq = self._num_groups + 1
+        lm_heads = self._lm_heads_list
+        incremental = self._use_incremental(device)
+        edge_kv_caches = self._incremental_caches(bsz, max_seq, device, dtype) if incremental else None
+        prev_threads = None
+        if incremental:
+            self._setup_incremental_compile()
+            n_threads = self._incremental_threads()
+            if n_threads > 0 and device.type == "cpu" and n_threads != torch.get_num_threads():
+                prev_threads = torch.get_num_threads()
+                torch.set_num_threads(n_threads)
+        sample_kwargs = (
+            dict(
+                stored_mode=True, s_top_k=s_top_k, s_top_p=s_top_p, use_sampling=False, inv_temperature=0.0, top_k=top_k
+            )
+            if stored_mode
+            else dict(
+                stored_mode=False,
+                s_top_k=0,
+                s_top_p=1.0,
+                use_sampling=use_sampling,
+                inv_temperature=inv_temperature,
+                top_k=top_k,
+            )
+        )
         for step in range(1, num_groups):
+            _t_sub = time.perf_counter() if _stats.enabled else 0.0
+            if incremental:
+                # KV-cached: prefill positions 0..1 at the first sub-step, then one new position per sub-step.
+                if step == 1:
+                    prefill = getattr(self, "_prefill_fn", None)
+                    if prefill is not None:
+                        hidden_new = prefill(
+                            proj_buf[:bsz, :2, :], self._incremental_pos_ids(bsz, 0, 2, device), edge_kv_caches
+                        )
+                    else:
+                        hidden_new = self.model.forward_cached_edge(
+                            proj_buf[:bsz, :2, :], self._incremental_pos_ids(bsz, 0, 2, device), edge_kv_caches, 0
+                        )
+                    hidden_step = hidden_new[:, 1, :]
+                elif getattr(self, "_static_step_fn", None) is not None:
+                    pos_t = torch.tensor([step], device=device, dtype=torch.long)
+                    attn_mask = (
+                        (torch.arange(max_seq, device=device) <= step).view(1, 1, 1, max_seq).expand(bsz, 1, 1, max_seq)
+                    )
+                    hidden_new = self._static_step_fn(
+                        proj_buf[:bsz, step : step + 1, :],
+                        self._incremental_pos_ids(bsz, step, 1, device),
+                        edge_kv_caches,
+                        pos_t,
+                        attn_mask,
+                    )
+                    hidden_step = hidden_new[:, 0, :]
+                else:
+                    hidden_new = self.model.forward_cached_edge(
+                        proj_buf[:bsz, step : step + 1, :],
+                        self._incremental_pos_ids(bsz, step, 1, device),
+                        edge_kv_caches,
+                        step,
+                    )
+                    hidden_step = hidden_new[:, 0, :]
+                post_step = getattr(self, "_post_step_fn", None)
+                if (
+                    post_step is not None
+                    and not stored_mode
+                    and getattr(self, "_parity_ref", None) is None
+                    and not self._wrapper_config.return_proj_buf
+                    and isinstance(projection, (nn.Linear, nn.Identity))
+                ):
+                    head = lm_heads[step - 1]
+                    proj_w = projection.weight if isinstance(projection, nn.Linear) else None
+                    proj_b = projection.bias if isinstance(projection, nn.Linear) else None
+                    u = torch.empty(bsz, head.weight.shape[0], dtype=torch.float32, device=device)
+                    row_generators = self._normalize_generators(sample_generator, bsz)
+                    if isinstance(row_generators, list):
+                        for row, row_generator in enumerate(row_generators):
+                            u[row : row + 1].uniform_(_UNIFORM_EPS, 1.0 - _UNIFORM_EPS, generator=row_generator)
+                    else:
+                        u.uniform_(_UNIFORM_EPS, 1.0 - _UNIFORM_EPS, generator=row_generators)
+                    code, proj_row = post_step(
+                        hidden_step,
+                        head.weight,
+                        codec_embeds[step - 1].weight,
+                        proj_w,
+                        proj_b,
+                        u,
+                        float(sample_kwargs["inv_temperature"]),
+                        int(sample_kwargs["top_k"]),
+                        bool(sample_kwargs["use_sampling"]),
+                    )
+                    all_codes[:, step] = code.reshape(bsz)
+                    if step < num_groups - 1:
+                        proj_buf[:bsz, step + 1, :] = proj_row
+                    if _stats.enabled:
+                        _stats.add("predictor.substep_ms", (time.perf_counter() - _t_sub) * 1000.0)
+                    continue
+                logits = lm_heads[step - 1](hidden_step)
+                if getattr(self, "_parity_ref", None) is not None:
+                    if step == 1:
+                        ref_model = self._parity_ref[0]
+                        self._parity_caches = ref_model.new_edge_kv_caches(
+                            bsz, max_seq, device, next(ref_model.parameters()).dtype
+                        )
+                        self._parity_check(step, proj_buf[:bsz, :2, :], logits, self._parity_caches)
+                    else:
+                        self._parity_check(step, proj_buf[:bsz, step : step + 1, :], logits, self._parity_caches)
+                code = self._sample_step_code(logits, sample_generator, **sample_kwargs)
+                if self._wrapper_config.return_proj_buf:
+                    all_codes[:, step] = code
+                else:
+                    all_codes[:, step] = code.reshape(bsz)
+                if step < num_groups - 1 or self._wrapper_config.return_proj_buf:
+                    new_embed = codec_embeds[step - 1](code)
+                    proj_buf[:bsz, step + 1, :] = projection(new_embed.reshape(bsz, 1, -1)).reshape(bsz, -1)
+                if _stats.enabled:
+                    _stats.add("predictor.substep_ms", (time.perf_counter() - _t_sub) * 1000.0)
+                continue
             if kv_caches is not None:
                 # Step 1 runs positions 0-1; later steps append one position.
                 positions, key_mask = self._kv_steps[step]
@@ -1493,6 +1967,12 @@ class CodePredictorWrapper(nn.Module):
             if step < num_groups - 1 or self._wrapper_config.return_proj_buf:
                 new_embed = codec_embeds[step - 1](code)
                 proj_buf[:bsz, step + 1, :] = projection(new_embed.reshape(bsz, 1, -1)).reshape(bsz, -1)
+            if _stats.enabled:
+                _stats.add("predictor.substep_ms", (time.perf_counter() - _t_sub) * 1000.0)
+        if prev_threads is not None:
+            torch.set_num_threads(prev_threads)
+        if _stats.enabled:
+            _stats.add("predictor.loop_ms", (time.perf_counter() - _t_loop) * 1000.0)
 
         if self._wrapper_config.return_proj_buf:
             return all_codes, proj_buf[:bsz].clone()

@@ -1,0 +1,14 @@
+{
+  "engine": "llama.cpp",
+  "gguf": "Spark-X2.5-1.7B-Q4_K_M.gguf",
+  "ref_text": "The user wants to know the weather in Shenzhen right now in Celsius. I have a function available called `get_weather` that can retrieve current",
+  "llamacpp_text": "The user wants weather for Shenzhen in celsius. I have the weather function available. Let me call it with the city \"Shenzhen\"",
+  "greedy_token_match": "3/32",
+  "exact_match": false,
+  "ref_top1": 1046,
+  "llamacpp_first_token": 1046,
+  "first_token_agree": true,
+  "top20_prob_overlap": "13/20",
+  "top20_prob_max_abs_diff": 0.0003068447281868725,
+  "top20_prob_mean_abs_diff": 5.7490022653347724e-05
+}

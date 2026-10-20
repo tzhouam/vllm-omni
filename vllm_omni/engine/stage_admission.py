@@ -203,6 +203,102 @@ def evaluate(
 # ---- plan walking ----------------------------------------------------------
 
 
+@dataclass
+class HostLedger:
+    """What concurrent CPU stage init will ask of host memory."""
+
+    available_bytes: int
+    kv_bytes: int
+    safety_margin_bytes: int
+    contributors: list[str] = field(default_factory=list)
+
+    @property
+    def required_bytes(self) -> int:
+        return self.kv_bytes + self.safety_margin_bytes
+
+    @property
+    def fits(self) -> bool:
+        return self.required_bytes <= self.available_bytes
+
+
+def evaluate_host(
+    kv_demands: Sequence[tuple[str, int]],
+    available_bytes: int,
+    safety_margin_bytes: int = _DEFAULT_SAFETY_MARGIN_BYTES,
+) -> HostLedger:
+    """Pure arithmetic for the host-memory ledger, so it is unit-testable."""
+    return HostLedger(
+        available_bytes=available_bytes,
+        kv_bytes=sum(kv for _, kv in kv_demands),
+        safety_margin_bytes=safety_margin_bytes,
+        contributors=[label for label, _ in kv_demands],
+    )
+
+
+def check_host_admission(
+    stage_plans: Sequence[Any],
+    *,
+    available_memory: Callable[[], int],
+    safety_margin_bytes: int = _DEFAULT_SAFETY_MARGIN_BYTES,
+) -> HostLedger:
+    """Admit concurrent CPU stage init against host RAM.
+
+    On a CPU platform the per-device ledger is vacuous -- there is no device to
+    overcommit -- but the resource parallel init actually contends for is host
+    memory, and two stages allocating their KV caches at once can exhaust it
+    just as two GPU stages can exhaust a card. So the same fail-fast discipline
+    applies to a different resource.
+
+    Weights are not counted: they are already resident by the time a stage
+    allocates its cache, so they are inside ``available_memory()``. What this
+    bounds is the *new* allocation the stages are about to make concurrently.
+    """
+    kv_demands: list[tuple[str, int]] = []
+    unaccounted: list[str] = []
+    for plan in stage_plans:
+        for replica in getattr(plan, "replicas", []):
+            metadata = replica.metadata
+            label = f"stage{metadata.stage_id}/replica{replica.replica_id}"
+            vllm_config = replica.stage_vllm_config
+            if vllm_config is None:
+                # A CPU diffusion stage allocates no KV cache.
+                continue
+            kv = getattr(vllm_config.cache_config, "kv_cache_memory_bytes", None)
+            if not kv:
+                unaccounted.append(label)
+                continue
+            kv_demands.append((label, int(kv)))
+
+    if unaccounted:
+        raise StageAdmissionError(
+            "parallel_stage_init admission cannot account for CPU replicas: "
+            f"{unaccounted}. Each must declare a KV budget -- set "
+            "kv_cache_memory_bytes in the stage's engine_args, or "
+            "VLLM_CPU_KVCACHE_SPACE -- otherwise it would allocate "
+            "concurrently without bounding host memory."
+        )
+
+    ledger = evaluate_host(kv_demands, available_memory(), safety_margin_bytes)
+    logger.info(
+        "[admission] host memory: available=%s required=%s (kv=%s margin=%s) "
+        "contributors=%s",
+        format_gib(ledger.available_bytes),
+        format_gib(ledger.required_bytes),
+        format_gib(ledger.kv_bytes),
+        format_gib(ledger.safety_margin_bytes),
+        ledger.contributors,
+    )
+    if not ledger.fits:
+        raise StageAdmissionError(
+            "parallel_stage_init admission failed — concurrent CPU stage init "
+            f"needs {format_gib(ledger.required_bytes)} GiB of host memory but "
+            f"only {format_gib(ledger.available_bytes)} GiB is available "
+            f"(contributors {ledger.contributors}). Lower the per-stage KV "
+            "budgets or disable parallel_stage_init."
+        )
+    return ledger
+
+
 def check_admission(
     stage_plans: Sequence[Any],
     *,

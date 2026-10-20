@@ -1,0 +1,13 @@
+{
+  "ref_text": "We are given an inventory listing with item codes for warehouse districts 1 through 120. The question asks: \"What is the code for warehouse district",
+  "vllm_text": "We are given an inventory listing with item codes for warehouse districts. The question asks: \"What is the code for warehouse district 73?\" We need to",
+  "greedy_token_match": "12/32",
+  "exact_match": false,
+  "ref_top1": 3066,
+  "vllm_first_token": 3066,
+  "first_token_agree": true,
+  "top20_logprob_overlap": "19/20",
+  "top20_logprob_max_abs_diff": 1.5648207664489746,
+  "top20_logprob_mean_abs_diff": 0.7438137785678631,
+  "dtype": "bfloat16"
+}

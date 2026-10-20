@@ -86,6 +86,9 @@ def _register_omni_hf_configs() -> None:
         from vllm_omni.model_executor.models.qwen3_tts.configuration_qwen3_tts import (
             Qwen3TTSConfig,
         )
+        from vllm_omni.model_executor.models.spark2_5.configuration_spark2_5 import (
+            Spark2_5Config,
+        )
         from vllm_omni.transformers_utils.configs.cosyvoice3 import CosyVoice3Config
         from vllm_omni.transformers_utils.configs.glm_tts import GLMTTSConfig
         from vllm_omni.transformers_utils.configs.omnivoice import OmniVoiceConfig
@@ -111,6 +114,7 @@ def _register_omni_hf_configs() -> None:
         ("moss_tts_local", MossTTSLocalConfig),
         ("moss_tts_realtime", MossTTSRealtimeConfig),
         ("qwen3_tts", Qwen3TTSConfig),
+        ("spark2_5", Spark2_5Config),
         ("personaplex", PersonaPlexConfig),
         ("nemotron_voicechat", NemotronVoiceChatConfig),
         ("cosyvoice3", CosyVoice3Config),
@@ -147,6 +151,16 @@ def register_omni_models_to_vllm():
 
     # Register omni-specific reasoning parsers (e.g., step_audio).
     import vllm_omni.reasoning  # noqa: F401
+
+    # Register out-of-tree quantization methods (e.g. cpu_int4, which gives
+    # the CPU backend the 4-bit weight path vLLM 0.28 does not ship).
+    import vllm_omni.model_executor.layers.quantization  # noqa: F401
+
+    # Let the CPU backend use the fused RMSNorm kernels it already ships but
+    # marks unsupported (see cpu_ir_ops): ~1.8 ms of a 12 ms decode step.
+    from vllm_omni.model_executor.layers import cpu_ir_ops
+
+    cpu_ir_ops.prefer_cpu_fused_norms()
 
 
 @dataclass
@@ -548,6 +562,9 @@ class OrchestratorArgs:
 
     # === Config Files ===
     deploy_config: str | None = None
+    # Named deploy profile (e.g. ``edge``) resolved to ``deploy/<profile>/<model_type>.yaml``
+    # by the orchestrator; mutually exclusive with ``deploy_config``.
+    deploy_profile: str | None = None
     stage_overrides: dict[str, dict[str, Any]] | None = None
     # Optional composable-parallel strategy.yaml; orchestrator reads it, overlays
     # derived sizing onto merged stages, then drops it before per-stage engine args.

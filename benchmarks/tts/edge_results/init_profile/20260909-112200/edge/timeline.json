@@ -1,0 +1,375 @@
+{
+ "schema": 1,
+ "t0": 1788924932.8095877,
+ "t_end": 1788925076.2958198,
+ "total_s": 143.48623204231262,
+ "phases": [
+  {
+   "name": "stages_init",
+   "start": 1788924932.8103828,
+   "end": 1788925076.2919607,
+   "stage_id": null,
+   "replica_id": 0,
+   "pid": 3013806,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 143.48157787322998
+  },
+  {
+   "name": "g3_device_lock",
+   "start": 1788924934.5008247,
+   "end": 1788924934.5009727,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3013806,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 0.0001480579376220703
+  },
+  {
+   "name": "g2_launch_lock_wait",
+   "start": 1788924934.5010102,
+   "end": 1788924934.5010166,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3013806,
+   "role": "engine",
+   "extra": {
+    "acquired": true
+   },
+   "dur_s": 6.4373016357421875e-06
+  },
+  {
+   "name": "g2_spawn_and_ready",
+   "start": 1788924934.501085,
+   "end": 1788924997.6252868,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3013806,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 63.12420177459717
+  },
+  {
+   "name": "proc_entry",
+   "start": 1788924967.0676057,
+   "end": 1788924967.0676057,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.0
+  },
+  {
+   "name": "engine_core_init",
+   "start": 1788924967.0746248,
+   "end": 1788924997.9885395,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 30.913914680480957
+  },
+  {
+   "name": "init_device",
+   "start": 1788924968.077489,
+   "end": 1788924971.8294072,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 3.751918315887451
+  },
+  {
+   "name": "load_model",
+   "start": 1788924971.8328805,
+   "end": 1788924975.9742837,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 4.1414031982421875
+  },
+  {
+   "name": "load_weights",
+   "start": 1788924971.832886,
+   "end": 1788924975.9538856,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 4.120999574661255
+  },
+  {
+   "name": "talker_mtp_init",
+   "start": 1788924975.9564993,
+   "end": 1788924975.9571838,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.0006844997406005859
+  },
+  {
+   "name": "attn_prewarm",
+   "start": 1788924975.9593656,
+   "end": 1788924975.97181,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.012444496154785156
+  },
+  {
+   "name": "cudagraph_capture",
+   "start": 1788924984.3891368,
+   "end": 1788924986.1398516,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.7507147789001465
+  },
+  {
+   "name": "talker_mtp_capture",
+   "start": 1788924986.1452074,
+   "end": 1788924993.3882885,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 7.243081092834473
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924986.1477609,
+   "end": 1788924991.2735271,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 5.125766277313232
+  },
+  {
+   "name": "predictor_warmup",
+   "start": 1788924986.151782,
+   "end": 1788924991.2699246,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 5.118142604827881
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924993.106905,
+   "end": 1788924993.1069105,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 5.4836273193359375e-06
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924993.159612,
+   "end": 1788924993.1596136,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.6689300537109375e-06
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924993.1968093,
+   "end": 1788924993.1968107,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.430511474609375e-06
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924993.2750087,
+   "end": 1788924993.2750103,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.6689300537109375e-06
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924993.2984207,
+   "end": 1788924993.2984226,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.9073486328125e-06
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924993.3298414,
+   "end": 1788924993.329843,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.6689300537109375e-06
+  },
+  {
+   "name": "predictor_setup_compile",
+   "start": 1788924993.3538125,
+   "end": 1788924993.3538141,
+   "stage_id": 0,
+   "replica_id": 0,
+   "pid": 3021274,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 1.6689300537109375e-06
+  },
+  {
+   "name": "g3_device_lock",
+   "start": 1788924997.8095732,
+   "end": 1788924997.8097544,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3013806,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 0.0001811981201171875
+  },
+  {
+   "name": "g2_launch_lock_wait",
+   "start": 1788924997.8097851,
+   "end": 1788924997.809787,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3013806,
+   "role": "engine",
+   "extra": {
+    "acquired": true
+   },
+   "dur_s": 1.9073486328125e-06
+  },
+  {
+   "name": "g2_spawn_and_ready",
+   "start": 1788924997.8100107,
+   "end": 1788925072.458119,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3013806,
+   "role": "engine",
+   "extra": {},
+   "dur_s": 74.64810824394226
+  },
+  {
+   "name": "proc_entry",
+   "start": 1788925052.3254876,
+   "end": 1788925052.3254876,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.0
+  },
+  {
+   "name": "engine_core_init",
+   "start": 1788925052.3412683,
+   "end": 1788925072.7815034,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 20.440235137939453
+  },
+  {
+   "name": "init_device",
+   "start": 1788925053.412615,
+   "end": 1788925057.198293,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 3.785677909851074
+  },
+  {
+   "name": "load_model",
+   "start": 1788925057.2016265,
+   "end": 1788925065.8000126,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 8.59838604927063
+  },
+  {
+   "name": "load_weights",
+   "start": 1788925057.2016325,
+   "end": 1788925065.782122,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 8.58048939704895
+  },
+  {
+   "name": "code2wav_cudagraph",
+   "start": 1788925058.6794255,
+   "end": 1788925064.5210114,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 5.841585874557495
+  },
+  {
+   "name": "talker_mtp_init",
+   "start": 1788925065.7847798,
+   "end": 1788925065.784787,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 7.152557373046875e-06
+  },
+  {
+   "name": "attn_prewarm",
+   "start": 1788925065.7872002,
+   "end": 1788925065.7978103,
+   "stage_id": 1,
+   "replica_id": 0,
+   "pid": 3029196,
+   "role": "worker",
+   "extra": {},
+   "dur_s": 0.010610103607177734
+  }
+ ]
+}

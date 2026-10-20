@@ -1,0 +1,14 @@
+{
+  "engine": "llama.cpp",
+  "gguf": "Spark-X2.5-1.7B-Q4_K_M.gguf",
+  "ref_text": "We are given an inventory listing with item codes for warehouse districts 1 through 120. The question asks: \"What is the code for warehouse district",
+  "llamacpp_text": "We are given an inventory listing with item 1 to item 120, each with a code for a warehouse district. The codes are given as:",
+  "greedy_token_match": "10/32",
+  "exact_match": false,
+  "ref_top1": 3066,
+  "llamacpp_first_token": 3066,
+  "first_token_agree": true,
+  "top20_prob_overlap": "16/20",
+  "top20_prob_max_abs_diff": 0.0041646957494917425,
+  "top20_prob_mean_abs_diff": 0.0005320748771736946
+}

@@ -1,0 +1,30 @@
+# Qwen3-TTS talker-only deployment: stage 0 is terminal and publishes codec
+# frames (codes.audio, 16 codebooks @ 12.5 Hz) to the client instead of PCM.
+# Used by the codec-token streaming mode of /v1/audio/speech/stream
+# (session.config.output_mode: "codec_tokens") with decoding on the client
+# device (see examples/online_serving/text_to_speech/qwen3_tts/edge_decoder_client.py).
+# Stage settings mirror stage 0 of qwen3_tts.yaml.
+pipeline: qwen3_tts_talker_only
+async_chunk: false
+stages:
+- stage_id: 0
+  max_num_seqs: 64
+  gpu_memory_utilization: 0.3
+  trust_remote_code: true
+  enable_prefix_caching: false
+  async_scheduling: true
+  max_num_batched_tokens: 32768
+  max_model_len: 4096
+  devices: '0'
+  default_sampling_params:
+    temperature: 0.9
+    top_k: 50
+    max_tokens: 4096
+    min_tokens: 2
+    repetition_penalty: 1.05
+  silence_ban_frames: 0
+  subtalker_sampling_params:
+    do_sample: true
+    temperature: 0.9
+    top_k: 50
+    top_p: 1.0

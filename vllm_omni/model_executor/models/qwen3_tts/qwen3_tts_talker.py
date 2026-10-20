@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import copy
+import os
 from collections.abc import Iterable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from typing import Any
@@ -28,6 +29,7 @@ from vllm_omni.data_entry_keys import OmniPayload
 from vllm_omni.model_executor.models.common.ecapa_tdnn import ECAPATimeDelayNet
 from vllm_omni.model_executor.models.output_templates import OmniOutput, OwnedBatchTensor
 from vllm_omni.utils.device_copy import DeviceStager, index_to_device, to_device_nonblocking
+from vllm_omni.platforms import current_omni_platform
 from vllm_omni.utils.speaker_cache import (
     get_speaker_cache,
     iter_custom_voice_profiles,
@@ -216,6 +218,12 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
         self.have_multimodal_outputs = True
         self.has_preprocess = True
         self.has_postprocess = True
+        # CPU: vLLM's stock sampler spends ~8.5 ms per step in a torch.compile'd
+        # random-sample kernel (measured, Xeon 8480C); the model-side sampler
+        # below reproduces the same math eagerly in <0.5 ms. GPU keeps the stock path.
+        self.prefer_model_sampler = current_omni_platform.is_cpu() and os.environ.get(
+            "VLLM_OMNI_CPU_FAST_SAMPLER", "1"
+        ).strip().lower() not in ("0", "false", "off", "no")
         # Qwen3-TTS postprocess() only reads hidden_states[-1, :]. On a prefix-
         # cache hit, the last hidden state is in the newly computed tail, so
         # reconstructing the full cached_prefix + new_tail span is wasted work.
@@ -269,6 +277,13 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
         self.use_async_omni_output = True
         self.eager_omni_postprocess_before_async_output = True
         self.omni_pooler_payload_include_hidden = False
+        # Terminal talker (no downstream stage, e.g. qwen3_tts_talker_only):
+        # publish the per-step codec frames to the client so an on-device
+        # decoder can consume them (codec-token streaming).
+        if getattr(vllm_config.model_config, "custom_process_next_stage_input_func", None) is None and not getattr(
+            vllm_config.model_config, "async_chunk_process_next_stage_input_func", None
+        ):
+            self.omni_client_multimodal_output_keys = ("codes.audio",)
         self.model = Qwen3Model(vllm_config=vllm_config, prefix=maybe_prefix(prefix, "model"))
 
         if get_pp_group().is_last_rank:
@@ -392,7 +407,9 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
             torch.zeros(1, int(self.talker_config.hidden_size), dtype=model_dtype),
             persistent=False,
         )
-        self._embedding_dtype = torch.bfloat16
+        # Follows the model dtype so CPU deployments can run float32/float16;
+        # on CUDA this is bfloat16 as before.
+        self._embedding_dtype = model_dtype if isinstance(model_dtype, torch.dtype) else torch.bfloat16
 
         tokenizer_config = Qwen3TTSTokenizerV2Config.from_pretrained(
             self.model_path,
@@ -402,7 +419,7 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
             tokenizer_config.encoder_config,
         )
         self.encoder.eval()
-        self.encoder.to(dtype=torch.bfloat16)
+        self.encoder.to(dtype=self._embedding_dtype)
         self._encoder_valid_num_quantizers = int(tokenizer_config.encoder_valid_num_quantizers)
         self._encoder_downsample_rate = int(tokenizer_config.encode_downsample_rate)
 
@@ -570,6 +587,45 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
     def mm_outputs_fresh_per_step(self) -> bool:
         """Stream-decode outputs come from :meth:`_make_eager_omni_output`, allocated per step."""
         return self.stream_decoder is not None and self.eager_frames_active
+    # ------------------------------------------------------------------
+    # CPU fast sampler (prefer_model_sampler): same math as vLLM's Sampler.forward
+    # (logits processors, penalties, temperature, top-k/top-p, exponential-noise
+    # sampling with per-request generators) without the compiled random-sample
+    # kernel that dominates the CPU step. Returns None to fall back to the stock
+    # sampler whenever logprobs are requested or the tensor is not on CPU.
+    # ------------------------------------------------------------------
+    def sample(self, logits: torch.Tensor, sampling_metadata: Any) -> Any:
+        if logits is None or logits.device.type != "cpu" or sampling_metadata.max_num_logprobs is not None:
+            return None
+        if getattr(sampling_metadata, "logprob_token_ids", None):
+            return None
+        from vllm.v1.outputs import SamplerOutput
+        from vllm.v1.sample.ops.topk_topp_sampler import apply_top_k_top_p
+        from vllm.v1.sample.sampler import Sampler
+
+        sampler = getattr(self, "_stock_sampler", None)
+        if sampler is None:
+            sampler = self._stock_sampler = Sampler()
+        logits = logits.to(torch.float32)
+        # apply_logits_processors applies penalties, bad words and min-tokens (vLLM 0.28)
+        logits = sampler.apply_logits_processors(logits, sampling_metadata, False)
+        if sampling_metadata.all_greedy:
+            sampled = logits.argmax(dim=-1)
+        else:
+            greedy = logits.argmax(dim=-1) if not sampling_metadata.all_random else None
+            logits = sampler.apply_temperature(logits, sampling_metadata.temperature, sampling_metadata.all_random)
+            k, p = sampling_metadata.top_k, sampling_metadata.top_p
+            if k is not None or p is not None:
+                logits = apply_top_k_top_p(logits, k, p)
+            probs = logits.softmax(dim=-1, dtype=torch.float32)
+            q = torch.empty_like(probs)
+            q.exponential_()
+            for i, generator in sampling_metadata.generators.items():
+                q[i].exponential_(generator=generator)
+            sampled = probs.div_(q).argmax(dim=-1)
+            if greedy is not None:
+                sampled = torch.where(sampling_metadata.temperature < 1e-5, greedy, sampled)
+        return SamplerOutput(sampled_token_ids=sampled.view(-1, 1), logprobs_tensors=None)
 
     def make_omni_output(self, model_outputs: torch.Tensor | OmniOutput, **kwargs: Any) -> OmniOutput:
         if isinstance(model_outputs, OmniOutput):
@@ -1342,7 +1398,7 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
             sampling_rate=target_sr,
             return_tensors="pt",
         )
-        input_values = inputs["input_values"].squeeze(1).to(device=device, dtype=torch.bfloat16)
+        input_values = inputs["input_values"].squeeze(1).to(device=device, dtype=self._embedding_dtype)
         downsample = self._encoder_downsample_rate
         valid_code_lengths = [(int(wav.size) + downsample - 1) // downsample for wav in wavs]
 
@@ -1418,7 +1474,7 @@ class Qwen3TTSTalkerForConditionalGeneration(nn.Module):
                 loaded.add(name)
 
         device = self.vllm_config.device_config.device
-        self.encoder.to(device=device, dtype=torch.bfloat16)
+        self.encoder.to(device=device, dtype=self._embedding_dtype)
 
         self._init_runtime_buffers()
         self._init_silence_mask()

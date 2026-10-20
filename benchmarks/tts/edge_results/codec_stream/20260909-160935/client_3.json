@@ -1,0 +1,60 @@
+{
+ "codec_start": {
+  "type": "codec.start",
+  "version": 1,
+  "utterance_index": 0,
+  "sentence_index": 0,
+  "sentence_text": "I can't believe how beautiful the sunset looks from up here on the mountain.",
+  "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+  "codebooks": 16,
+  "codebook_size": 2048,
+  "frame_rate_hz": 12.5,
+  "sample_rate": 24000,
+  "decoder_id": "qwen3_tts_tokenizer_v2_12hz",
+  "header_format": "<IHB"
+ },
+ "schedule": [
+  2,
+  4,
+  8,
+  16,
+  25
+ ],
+ "total_frames": 67,
+ "ttfa_ms": 2587.735196109861,
+ "playback_start_ms": 2587.735620792955,
+ "stall_at_ttfa_ms": 0,
+ "audio_s": 5.36,
+ "total_s": 3.123869556002319,
+ "rtf": 0.5828114843287908,
+ "decode_ms_total": 704.384888522327,
+ "chunks": [
+  {
+   "idx": 0,
+   "t_ms": 2587.735620792955,
+   "arrival_ms": 2418.170887976885,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 169.50282221660018
+  },
+  {
+   "idx": 1,
+   "t_ms": 2822.7644758298993,
+   "arrival_ms": 2418.170887976885,
+   "frames": 25,
+   "samples": 48000,
+   "decode_ms": 235.01680931076407
+  },
+  {
+   "idx": 2,
+   "t_ms": 3122.6435392163694,
+   "arrival_ms": 2418.170887976885,
+   "frames": 17,
+   "samples": 32640,
+   "decode_ms": 299.8652569949627
+  }
+ ],
+ "device": "cpu",
+ "wav": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-160935/client_3.wav",
+ "codes": "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/codec_stream/20260909-160935/client_3.codes.npy"
+}

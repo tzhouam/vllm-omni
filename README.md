@@ -1,118 +1,116 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vllm-project/vllm-omni/refs/heads/main/docs/source/logos/vllm-omni-logo.png">
-    <img alt="vllm-omni" src="https://raw.githubusercontent.com/vllm-project/vllm-omni/refs/heads/main/docs/source/logos/vllm-omni-logo.png" width=55%>
-  </picture>
-</p>
-<h3 align="center">
-Easy, fast, and cheap omni-modality model serving for everyone
-</h3>
+# edge-infer
 
-<p align="center">
-| <a href="https://vllm-omni.readthedocs.io/en/latest/"><b>Documentation</b></a> | <a href="https://deepwiki.com/vllm-project/vllm-omni"><b>DeepWiki</b></a> | <a href="https://discuss.vllm.ai"><b>User Forum</b></a> | <a href="https://slack.vllm.ai"><b>Developer Slack</b></a> | <a href="docs/assets/WeChat.jpg"><b>WeChat</b></a> | <a href="https://arxiv.org/abs/2610.09307"><b>Technical Report</b></a> | <a href="https://arxiv.org/abs/2602.02204"><b>Paper</b></a> | <a href="https://docs.google.com/presentation/d/1SV7-4AoSrnK25syLG9XmnEgC0D4lcjP7/edit?usp=sharing"><b>Slides</b></a> |
-</p>
+Running multimodal models on **edge CPUs** — a mini-PC or a gateway box with
+tens of gigabytes of RAM and no GPU — instead of on servers.
 
----
+Built as a fork of [vLLM-Omni](https://github.com/vllm-project/vllm-omni),
+because it is the only engine with a multi-stage multimodal pipeline,
+continuous batching and an OpenAI-compatible server; the alternatives were
+evaluated and the reasoning is in [docs/engines/](docs/engines/).
 
-*Latest News* 🔥
+The work turned out to be less about kernels than about three things nobody
+profiles: how much memory is resident while the model *loads*, how much is
+resident that nothing ever reads, and whether the number you just measured came
+from the code path you thought it did. The largest single win here — 843 MB —
+was a setting that had been marked "no effect, do not retry" because the code
+path under test discarded it.
 
-- [2026/10] We released the [vLLM-Omni Technical Report](https://arxiv.org/abs/2610.09307), describing a unified serving runtime for text, audio, image, video, and action generation.
-- [2026/09] We released [0.30.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.30.0), rebased onto vLLM 0.30.0, featuring a unified full-duplex serving framework around engine-owned sessions for [MiniCPM-o 4.5](recipes/OpenBMB/MiniCPM-o-4_5.md) and AURA, native cross-stage KV and multimodal payload transfer (Mooncake AR-to-DiT handoff and NIXL connectors), interactive world-model serving with [LingBot World](recipes/Robbyant/LingBot-World-2.0.md), and realtime [MiniMax H3](recipes/MiniMaxAI/MiniMax-H3.md) Turbo inference on NVIDIA Blackwell and Ascend 950.
-- [2026/08] We released [0.28.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.28.0), featuring production-ready [MiniMax H3](recipes/MiniMaxAI/MiniMax-H3.md) serving on GPU and NPU, a unified AR/DiT paged KV cache runtime, and enhanced realtime full-duplex serving for the [MiniCPM-o series](recipes/OpenBMB/MiniCPM-o-4_5.md).
-- [2026/08] [VeRL-Omni](https://github.com/verl-project/verl-omni) `v0.2.0` is released: faster diffusion RL powered by vLLM-Omni (request-level/step-wise batching with FA3), rebuilt Qwen3-Omni multimodal training (DPO & GSPO), plus LTX-2.3, Qwen-Image-Edit support and more. See the [release notes](https://github.com/verl-project/verl-omni/releases/tag/v0.2.0).
-- [2026/08] We released [0.26.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0) - aligned with the vLLM 0.26 release line, featuring [MiniMax H3](recipes/MiniMaxAI/MiniMax-H3.md) joint video/audio generation, an experimental full-duplex realtime runtime for [MiniCPM-o 4.5](recipes/OpenBMB/MiniCPM-o-4_5.md), distributed layerwise diffusion offload, and broader model, hardware, streaming, TTS, and quantization support.
-- [2026/07] We released [0.24.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.24.0) - aligned with the vLLM 0.24 release line, expanding production-ready coverage across TTS, speech, diffusion, image/video generation, and robot-policy serving, with major Omni stage runtime refactoring, diffusion request-level batching, async output materialization, quantization/cache/memory improvements, and broad CUDA/ROCm/XPU/NPU support.
-- [2026/06] Starting with [0.14.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.14.0), vLLM-Omni publishes a stable release aligned with every even-numbered upstream vLLM minor version. [0.16.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.16.0), [0.18.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.18.0), [0.20.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.20.0), and [0.22.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.22.0) continued this cadence, expanding omni and world-model support with [NVIDIA Cosmos3](recipes/cosmos3/Cosmos3-Nano.md) and DreamZero, adding models such as MiniCPM-o 4.5, MOSS-TTS, and Lance, and advancing TTS, diffusion, distributed execution, quantization, RL integration through [VeRL-Omni](https://github.com/verl-project/verl-omni), and CUDA/ROCm/MUSA/NPU/XPU coverage.
-- [2026/03] Check out our first public [project deepdive](https://youtu.be/sgwNfsNnR9I) at the vLLM Hong Kong Meetup!
-- [2025/11] vLLM community officially released [vllm-project/vllm-omni](https://github.com/vllm-project/vllm-omni) in order to support omni-modality models serving.
+This repository holds the engine changes, the measurement harness, the raw
+results, the baselines they are compared against, and the written analyses.
+Upstream's own README is preserved at [docs/README.vllm-omni.md](docs/README.vllm-omni.md).
 
----
+## What's here
 
-## About
+| area | where |
+|---|---|
+| 4-bit CPU quantization | `vllm_omni/model_executor/layers/quantization/cpu_int4.py` — W4A16 on PyTorch's tinygemm kernel, prefill reading the kernel's own weight layout instead of a duplicate |
+| Memory | RoPE tables sized to the servable context; weights repacked in blocks; a KV budget that is actually honoured on CPU |
+| CPU platform + vLLM patches | `vllm_omni/platforms/cpu/`, `vllm_omni/patch.py` — vLLM is monkey-patched at import; its *source* is unmodified and no vLLM is redistributed. See [docs/edge/environment.md](docs/edge/environment.md) |
+| Device routing | `vllm_omni/edge/weight_path.py` picks the weight format per device class, from measurements rather than assumption |
+| Device placement | `vllm_omni/edge/placement.py` decides which parameters leave the GPU when the checkpoint is bigger than the VRAM — cold ones first, because `embed_tokens` and `lm_head` are the same size and the opposite decision |
+| Measurement harness | `benchmarks/edge_harness/` — the grid runner, benchmarks, memory ledger, fidelity metric and agent suite every number here came from |
+| Raw results | `benchmarks/edge_harness/results/` — 100+ artifacts backing the published figures, each with provenance |
+| Baselines | `baselines/` — llama.cpp runs and the comparison scripts |
+| Engine analyses | `docs/engines/` — llama.cpp, ExecuTorch, MNN, ncnn, vLLM, vLLM-Omni |
+| Study documents | `docs/analysis/` — the full reports these summaries distil |
 
-[vLLM](https://github.com/vllm-project/vllm) was originally designed to support large language models for text-based autoregressive generation tasks. vLLM-Omni is a framework that extends its support for omni-modality model inference and serving:
+## Headline results
 
-- **Omni-modality**: Text, image, audio, video, and action data processing
-- **Non-autoregressive Architectures**: extend the AR support of vLLM to Diffusion Transformers (DiT) and other parallel generation models
-- **Heterogeneous outputs**: from traditional text generation to multimodal and action outputs
+Spark-X2.5-1.7B, Xeon Platinum 8480C, 24 pinned node-local cores, W4A16 g128.
+Every figure is a median of at least three interleaved passes against a control
+arm, on a shared host where end-to-end throughput swings ~30% run to run.
 
-<p align="center">
-  <picture>
-    <img alt="vllm-omni" src="https://raw.githubusercontent.com/vllm-project/vllm-omni/refs/heads/main/docs/source/architecture/omni-modality-model-architecture.png" width=55%>
-  </picture>
-</p>
+**Memory** — each measured as its own A/B with the alternative reachable by a flag:
 
-vLLM-Omni is fast with:
+| lever | saving | cost |
+|---|---|---|
+| KV budget 1 GiB → 192 MiB | **843 MB** | fewer cached tokens |
+| RoPE table capped to `max_model_len` | **618 MB** | none |
+| One packed weight layout instead of two | **615 MB** | ~1.6× prefill |
+| Blocked weight repack | **489 MB** of load-time peak | none |
 
-- State-of-the-art AR support by leveraging efficient KV cache management from vLLM
-- Pipelined stage execution overlapping for high throughput performance
-- Fully disaggregation based on OmniConnector and dynamic resource allocation across stages
+These overlap and **must not be added** — see [docs/edge/results.md](docs/edge/results.md).
 
-vLLM-Omni is flexible and easy to use with:
+**Speed**, same machine:
 
-- Heterogeneous pipeline abstraction to manage complex model workflows
-- Seamless integration with popular Hugging Face models
-- Tensor, pipeline, data and expert parallelism support for distributed inference
-- Streaming outputs
-- OpenAI-compatible API server
-- [Full-duplex realtime serving](docs/serving/realtime_duplex_api.md) with streaming audio input and output
+| path | decode | prefill (pp512) |
+|---|---|---|
+| W4A8 (AMX `int4_scaled_mm_cpu`) | 74.4 tok/s | — |
+| W4A16 (tinygemm) | 71.6 tok/s | 2190 tok/s |
+| `cpu_gemm_wna16` fallback | 32.3 tok/s | — |
+| llama.cpp Q4_K_M (reference) | 90.0 tok/s | 1121 tok/s |
 
-vLLM-Omni seamlessly supports most popular open-source models on HuggingFace, including:
+Decode is llama.cpp's; prefill is ours by ~2×. Neither engine is
+bandwidth-bound — both sit at 33–39% of the measured 222 GB/s ceiling — so the
+decode gap is the execution model, not the kernels. See
+[docs/edge/comparisons.md](docs/edge/comparisons.md).
 
-- **Omni-modality models** (e.g. Qwen3-Omni, MiniCPM-o 4.5, Cosmos3, HunyuanImage, BAGEL)
-- **TTS models** (e.g. Qwen3-TTS, Tencent AuK, Breeze-TTS-2, CosyVoice3)
-- **Diffusion models** — image, video, and audio generation (e.g. MiniMax H3, LingBot World, MAGI-2, LTX-2.5, Wan2.2)
-- **Robot-policy and action models** (e.g. π0, GR00T-N1.7, DreamZero-DROID, InternVLA-A1)
+## Why the numbers here are worth reading
 
-## Getting Started
+This project has retracted five conclusions, every one of them a measurement
+error rather than a coding error. The harness exists because of them:
 
-Visit our [documentation](https://vllm-omni.readthedocs.io/en/latest/) to learn more.
+- a "3.1 GB saving" that was `VmRSS` counting the mmap'd checkpoint;
+- W4A8 timings taken on a checkpoint whose output head was silently left in bf16;
+- a memory benchmark reading `/proc/self/status` while the model ran in a *worker process*;
+- "KV sizing saves only 188 MB" — measured through a code path that discarded the setting, so both arms ran the same cache;
+- a 1.9× prefill cost quoted from the one pass of a grid whose other passes had crashed.
 
-- [Installation](https://vllm-omni.readthedocs.io/en/latest/getting_started/installation/)
-- [Quickstart](https://vllm-omni.readthedocs.io/en/latest/getting_started/quickstart/)
-- [Nightly CUDA Docker images](https://hub.docker.com/r/vllm/vllm-omni/tags?name=nightly) built from the latest `main`
-- [List of Supported Models](https://vllm-omni.readthedocs.io/en/latest/models/supported_models/)
-- [Deployment Recipes](https://recipes.vllm.ai) for vLLM-Omni model serving
+[docs/edge/methodology.md](docs/edge/methodology.md) is the resulting discipline,
+and it is the most transferable thing in this repository.
 
-## Contributing
+## Quick start
 
-We welcome and value any contributions and collaborations.
-Please check out [Contributing to vLLM-Omni](https://vllm-omni.readthedocs.io/en/latest/contributing/) for how to get involved.
+```bash
+# CPU build of vLLM, then this fork
+pip install vllm==0.28.0+cpu
+VLLM_TARGET_DEVICE=cpu pip install -e .
 
-## Citation
-
-If you use vLLM-Omni for your research, please cite our [technical report](https://arxiv.org/abs/2610.09307) and [original paper](https://arxiv.org/abs/2602.02204):
-
-```bibtex
-@article{vllmomni2026technicalreport,
-  title={vLLM-Omni Technical Report: A Unified Serving Runtime for Omni-Modality Generation},
-  author={{vLLM-Omni Team}},
-  journal={arXiv preprint arXiv:2610.09307},
-  year={2026}
-}
-
-@article{yin2026vllmomni,
-  title={vLLM-Omni: Fully Disaggregated Serving for Any-to-Any Multimodal Models},
-  author={Peiqi Yin, Jiangyun Zhu, Han Gao, Chenguang Zheng, Yongxiang Huang, Taichang Zhou, Ruirui Yang, Weizhi Liu, Weiqing Chen, Canlin Guo, Didan Deng, Zifeng Mo, Cong Wang, James Cheng, Roger Wang, Hongsheng Liu},
-  journal={arXiv preprint arXiv:2602.02204},
-  year={2026}
-}
+# a right-sized edge deployment
+VLLM_CPU_KVCACHE_SPACE=1 python -c "
+from vllm import LLM, SamplingParams
+llm = LLM(model='<your-cpu_int4-checkpoint>', quantization='cpu_int4',
+          dtype='bfloat16', max_model_len=2048, max_num_seqs=1,
+          kv_cache_memory_bytes=192 << 20)   # the single largest memory lever
+print(llm.generate(['Hello'], SamplingParams(max_tokens=32))[0].outputs[0].text)
+"
 ```
 
-## Join the Community
+## Documentation
 
-Feel free to ask questions, provide feedbacks and discuss with fellow users of vLLM-Omni in `#sig-omni` slack channel at [slack.vllm.ai](https://slack.vllm.ai) or vLLM user forum at [discuss.vllm.ai](https://discuss.vllm.ai).
+| | |
+|---|---|
+| [docs/edge/results.md](docs/edge/results.md) | every measured figure, with spread and baseline |
+| [docs/edge/methodology.md](docs/edge/methodology.md) | how to measure on a shared machine without fooling yourself — the five retractions and the rules they left |
+| [docs/edge/cpu-4bit.md](docs/edge/cpu-4bit.md) | the two 4-bit paths, the packed layout as measured, building a checkpoint |
+| [docs/edge/comparisons.md](docs/edge/comparisons.md) | against llama.cpp and the other engines considered |
+| [docs/edge/environment.md](docs/edge/environment.md) | pins, machine, and why there is no vLLM patch series |
+| [docs/edge/local-text-mode.md](docs/edge/local-text-mode.md) | the single-stage local text engine: device capabilities, memory admission, explicit refusals, cancellation |
+| [docs/edge/external-stage-backends.md](docs/edge/external-stage-backends.md) | placing a stage on the Radeon 890M or the AMD NPU: out-of-process workers, proven placement, the shared-RAM ledger |
+| [docs/edge/harness.md](docs/edge/harness.md) | running a comparison |
+| [docs/edge/laptop-heterogeneous.md](docs/edge/laptop-heterogeneous.md) | Qwen3.8-27B and Spark-X2.5-4B on a Ryzen AI laptop — what the CPU, NPU and GPU are each worth when decode is bandwidth-bound |
+| [ROADMAP.md](ROADMAP.md) | what is next, with expected gains and how each would be verified — and what was rejected |
 
-## Star History
+## Licence
 
-<a href="https://www.star-history.com/?repos=vllm-project%2Fvllm-omni&type=date&legend=top-left">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=vllm-project/vllm-omni&type=date&theme=dark&legend=top-left&sealed_token=ExgLDZJoQEg27Zfhhut2LqN0GYO6Fw2PWLwPE6JYBUp2BgM3hmsYlwaIVopnUEfbRXidQ4nisumrTdKYydiKhy1SZXipw47qY2_tiUDhCpsPXeXtPuEVKVzBwKs3pw0tiHsJgtSfwXx5yjHXck0Y2SblzFWeJYCkTe1WLGTbUAOIETjXXQJjyCGZvKz5" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=vllm-project/vllm-omni&type=date&legend=top-left&sealed_token=ExgLDZJoQEg27Zfhhut2LqN0GYO6Fw2PWLwPE6JYBUp2BgM3hmsYlwaIVopnUEfbRXidQ4nisumrTdKYydiKhy1SZXipw47qY2_tiUDhCpsPXeXtPuEVKVzBwKs3pw0tiHsJgtSfwXx5yjHXck0Y2SblzFWeJYCkTe1WLGTbUAOIETjXXQJjyCGZvKz5" />
-    <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=vllm-project/vllm-omni&type=date&legend=top-left&sealed_token=ExgLDZJoQEg27Zfhhut2LqN0GYO6Fw2PWLwPE6JYBUp2BgM3hmsYlwaIVopnUEfbRXidQ4nisumrTdKYydiKhy1SZXipw47qY2_tiUDhCpsPXeXtPuEVKVzBwKs3pw0tiHsJgtSfwXx5yjHXck0Y2SblzFWeJYCkTe1WLGTbUAOIETjXXQJjyCGZvKz5" />
-  </picture>
-</a>
-
-## License
-
-Apache License 2.0, as found in the [LICENSE](./LICENSE) file.
+Apache-2.0, inherited from vLLM-Omni. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

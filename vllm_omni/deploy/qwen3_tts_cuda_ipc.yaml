@@ -1,0 +1,20 @@
+# Qwen3-TTS with the CUDA-IPC connector between talker and code2wav
+# (co-located CUDA stages, same GPU). GPU tensor leaves in the stage payload
+# are shared through CUDA IPC instead of D2H + msgpack; CPU leaves and the
+# control-plane metadata still use shared memory. Measurement gate: adopt in
+# the edge profile only if the per-chunk hop latency improves (see
+# benchmarks/tts/edge_results/stream_latency and WP7 notes).
+base_config: qwen3_tts.yaml
+async_chunk: true
+connectors:
+  connector_of_shared_memory:
+    name: CudaIpcConnector
+    extra:
+      codec_streaming: true
+      connector_get_sleep_s: 0.01
+      connector_get_max_wait_first_chunk: 3000
+      connector_get_max_wait: 300
+      codec_chunk_frames: 25
+      codec_left_context_frames: 72
+      initial_codec_chunk_frames: 1
+      decode_batch_max_size: 4

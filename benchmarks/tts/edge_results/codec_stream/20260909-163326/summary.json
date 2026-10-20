@@ -1,0 +1,71 @@
+{
+ "model": "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice",
+ "timestamp": "20260909-163326",
+ "prompts": [
+  "Hello, welcome to the voice synthesis benchmark test.",
+  "She said she would be here by noon, but nobody showed up.",
+  "The quick brown fox jumps over the lazy dog near the riverbank.",
+  "I can't believe how beautiful the sunset looks from up here on the mountain."
+ ],
+ "client_device": "cpu",
+ "rows": [
+  {
+   "i": 0,
+   "text": "Hello, welcome to the voice synthesis benchmark test.",
+   "frames": 52,
+   "client_ttfa_ms": 17572.953226976097,
+   "client_playback_start_ms": 17572.95406376943,
+   "client_rtf": 4.333014040066001,
+   "client_decode_ms": 1063.6401386000216,
+   "client_audio_s": 4.16,
+   "full_server_s": 22.814023814164102,
+   "full_audio_s": 4.16,
+   "snr_db": -3.03693684919166,
+   "length_ratio": 1.0
+  },
+  {
+   "i": 1,
+   "text": "She said she would be here by noon, but nobody showed up.",
+   "frames": 56,
+   "client_ttfa_ms": 2366.1640412174165,
+   "client_playback_start_ms": 2366.16463214159,
+   "client_rtf": 0.6394575549555676,
+   "client_decode_ms": 686.854031868279,
+   "client_audio_s": 4.48,
+   "full_server_s": 2.6364654297940433,
+   "full_audio_s": 4.48,
+   "snr_db": -2.953329833875654,
+   "length_ratio": 1.0
+  },
+  {
+   "i": 2,
+   "text": "The quick brown fox jumps over the lazy dog near the riverbank.",
+   "frames": 57,
+   "client_ttfa_ms": 2354.5054919086397,
+   "client_playback_start_ms": 2354.5059328898787,
+   "client_rtf": 0.6621650503866636,
+   "client_decode_ms": 828.5680301487446,
+   "client_audio_s": 4.56,
+   "full_server_s": 2.656285943929106,
+   "full_audio_s": 4.56,
+   "snr_db": -3.011027358981732,
+   "length_ratio": 1.0
+  },
+  {
+   "i": 3,
+   "text": "I can't believe how beautiful the sunset looks from up here on the mountain.",
+   "frames": 67,
+   "client_ttfa_ms": 2623.2912791892886,
+   "client_playback_start_ms": 2623.2917830348015,
+   "client_rtf": 0.5809188830846949,
+   "client_decode_ms": 642.5018617883325,
+   "client_audio_s": 5.36,
+   "full_server_s": 2.823788551148027,
+   "full_audio_s": 5.36,
+   "snr_db": -2.9195661162834483,
+   "length_ratio": 1.0
+  }
+ ],
+ "talker_server_start_s": 103.04911469155923,
+ "full_server_start_s": 168.08003386110067
+}

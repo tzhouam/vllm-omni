@@ -62,6 +62,7 @@ import base64
 import json
 import time
 from collections.abc import Awaitable, Callable
+from collections import deque
 from contextlib import aclosing
 from dataclasses import dataclass, field
 from typing import cast
@@ -153,6 +154,54 @@ class _CommitmentUtterance:
     aborted_request_ids: set[str] = field(default_factory=set)
 
 
+_DISCONNECT = object()
+
+
+class _SessionInbox:
+    """Single-reader message queue for one WebSocket session.
+
+    ``pump`` is the only coroutine that calls ``websocket.receive_text()``;
+    messages (or a disconnect marker) are queued and consumed by the session
+    loop or, during a generation, by ``_iter_with_cancel``.
+    """
+
+    def __init__(self) -> None:
+        self._queue: asyncio.Queue[object] = asyncio.Queue()
+        self._replay: deque[str] = deque()
+
+    async def pump(self, websocket: WebSocket) -> None:
+        try:
+            while True:
+                raw = await websocket.receive_text()
+                await self._queue.put(raw)
+        except (WebSocketDisconnect, RuntimeError):
+            await self._queue.put(_DISCONNECT)
+        except asyncio.CancelledError:
+            raise
+
+    async def get(self, timeout: float | None) -> str:
+        if self._replay:
+            return self._replay.popleft()
+        item = await asyncio.wait_for(self._queue.get(), timeout=timeout)
+        if item is _DISCONNECT:
+            raise WebSocketDisconnect(code=1006)
+        return item  # type: ignore[return-value]
+
+    async def peek_control(self) -> str:
+        """Wait for the next message; classify cancel/disconnect, replay the rest later."""
+        item = await self._queue.get()
+        if item is _DISCONNECT:
+            return "disconnect"
+        try:
+            msg = json.loads(item) if isinstance(item, str) and item else {}
+        except json.JSONDecodeError:
+            msg = {}
+        if isinstance(msg, dict) and msg.get("type") == "input.cancel":
+            return "cancel"
+        self._replay.append(item)  # type: ignore[arg-type]
+        return "other"
+
+
 class OmniStreamingSpeechHandler:
     """Handles WebSocket sessions for streaming text-input TTS.
 
@@ -199,6 +248,12 @@ class OmniStreamingSpeechHandler:
         # input.done. Buffered text is not enough to detect it: sentence/clause
         # splitting can leave the buffer empty after emitting a unit.
         utterance_open = False
+        # One reader task owns ``websocket.receive_text()`` for the whole
+        # session; every consumer reads from the inbox instead. This is what
+        # lets a generation loop notice ``input.cancel`` (or a disconnect)
+        # while it streams, without cancelling a socket receive mid-flight.
+        inbox = _SessionInbox()
+        reader = asyncio.ensure_future(inbox.pump(websocket))
 
         try:
             while True:
@@ -213,6 +268,7 @@ class OmniStreamingSpeechHandler:
                         websocket,
                         timeout=self._config_timeout if config is None else self._idle_timeout,
                         commitment=commitment,
+                        inbox=inbox,
                     )
                     if worker_finished:
                         commitment = None
@@ -288,6 +344,7 @@ class OmniStreamingSpeechHandler:
                             unit,
                             utterance_index=utterance_index,
                             sentence_index=sentence_index,
+                            inbox=inbox,
                         )
                         sentence_index += int(self._generation_precondition_error(config) is None)
 
@@ -319,6 +376,7 @@ class OmniStreamingSpeechHandler:
                             unit,
                             utterance_index=utterance_index,
                             sentence_index=sentence_index,
+                            inbox=inbox,
                         )
                         sentence_index += int(self._generation_precondition_error(config) is None)
 
@@ -332,6 +390,15 @@ class OmniStreamingSpeechHandler:
                     utterance_index += 1
                     sentence_index = 0
                     utterance_open = False
+
+                elif msg_type == "input.cancel":
+                    # Nothing is streaming at this point (cancels that arrive
+                    # during generation are handled in ``_iter_with_cancel``).
+                    # Drop whatever text is still buffered for this utterance;
+                    # units already emitted keep their sentence_index.
+                    splitter = SpeechTextSplitter(config.split_granularity)
+                    utterance_open = False
+                    await websocket.send_json({"type": "input.cancelled", "utterance_index": utterance_index})
 
                 elif msg_type == "session.close":
                     await self._cleanup_commitment_utterance(commitment)
@@ -355,6 +422,8 @@ class OmniStreamingSpeechHandler:
                 logger.debug("Failed to send error to streaming speech client", exc_info=True)
         finally:
             await self._cleanup_commitment_utterance(commitment)
+            reader.cancel()
+            await asyncio.gather(reader, return_exceptions=True)
 
     async def _receive_text(
         self,
@@ -362,6 +431,7 @@ class OmniStreamingSpeechHandler:
         *,
         timeout: float,
         commitment: _CommitmentUtterance | None,
+        inbox: _SessionInbox | None = None,
     ) -> tuple[str, bool]:
         """Receive input while accounting for committed server work.
 
@@ -371,10 +441,11 @@ class OmniStreamingSpeechHandler:
         ``session.done``. The same receive task survives both transitions so a
         message arriving exactly as work settles cannot be lost.
         """
+        receive = websocket.receive_text if inbox is None else lambda: inbox.get(timeout=None)
         if commitment is None or commitment.worker is None:
-            return await asyncio.wait_for(websocket.receive_text(), timeout=timeout), False
+            return await asyncio.wait_for(receive(), timeout=timeout), False
 
-        receive_task = asyncio.create_task(websocket.receive_text())
+        receive_task = asyncio.create_task(receive())
         join_task: asyncio.Task[None] | None = None
         try:
             if commitment.eof:
@@ -800,6 +871,58 @@ class OmniStreamingSpeechHandler:
                 "PCM audio.chunk stream)."
             )
         return None
+    async def _iter_with_cancel(
+        self,
+        websocket: WebSocket,
+        stream,
+        request_id: str,
+        inbox: "_SessionInbox | None",
+    ):
+        """Yield items from ``stream`` while watching the session inbox.
+
+        ``input.cancel`` aborts the engine request and ends the stream (the
+        ``audio.done`` / ``codec.done`` message then carries ``cancelled``);
+        a disconnect raises ``WebSocketDisconnect`` like a plain send would;
+        any other message is left queued for the session loop.
+        """
+        self._last_cancelled = False
+        if inbox is None:
+            async for item in stream:
+                yield item
+            return
+        next_task = asyncio.ensure_future(stream.__anext__())
+        msg_task = asyncio.ensure_future(inbox.peek_control())
+        try:
+            while True:
+                done, _ = await asyncio.wait({msg_task, next_task}, return_when=asyncio.FIRST_COMPLETED)
+                if msg_task in done:
+                    kind = msg_task.result()
+                    if kind == "disconnect":
+                        next_task.cancel()
+                        raise WebSocketDisconnect(code=1006)
+                    if kind == "cancel":
+                        self._last_cancelled = True
+                        try:
+                            await self._speech_service.engine_client.abort(request_id)
+                        except Exception:
+                            logger.debug("Failed to abort request %s on input.cancel", request_id, exc_info=True)
+                        next_task.cancel()
+                        return
+                    msg_task = asyncio.ensure_future(inbox.peek_control())
+                    if next_task not in done:
+                        continue
+                if next_task in done:
+                    try:
+                        item = next_task.result()
+                    except StopAsyncIteration:
+                        return
+                    yield item
+                    next_task = asyncio.ensure_future(stream.__anext__())
+        finally:
+            for task in (msg_task, next_task):
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(msg_task, next_task, return_exceptions=True)
 
     async def _generate_and_send(
         self,
@@ -813,6 +936,7 @@ class OmniStreamingSpeechHandler:
         aborted_request_ids: set[str] | None = None,
         suppress_done_on_cancel: bool = False,
         cancellation_event: asyncio.Event | None = None,
+        inbox: "_SessionInbox | None" = None,
     ) -> bool:
         """Generate audio for a single sentence and send it over WebSocket.
 
@@ -822,6 +946,18 @@ class OmniStreamingSpeechHandler:
         request_arrival_ts = time.time()
         request_start_s = time.perf_counter()
         response_format = config.response_format or "wav"
+        self._last_cancelled = False
+
+        if getattr(config, "output_mode", "pcm") == "codec_tokens":
+            await self._generate_and_send_codec(
+                websocket,
+                config,
+                sentence_text,
+                utterance_index=utterance_index,
+                sentence_index=sentence_index,
+                inbox=inbox,
+            )
+            return
 
         # Reject unmet word-timestamps preconditions early with a clear reason.
         precondition_error = self._generation_precondition_error(config)
@@ -845,9 +981,9 @@ class OmniStreamingSpeechHandler:
             ref_text=config.ref_text,
             x_vector_only_mode=config.x_vector_only_mode,
             speaker_embedding=config.speaker_embedding,
+            seed=config.seed,
             stream=config.stream_audio,
             word_timestamps=config.word_timestamps,
-            seed=config.seed,
         )
 
         start_payload = {
@@ -924,7 +1060,7 @@ class OmniStreamingSpeechHandler:
                             audio_format=audio_format,
                         )
                     ) as stream:
-                        async for chunk in stream:
+                        async for chunk in self._iter_with_cancel(websocket, stream, request_id, inbox):
                             await send_start()
                             total_bytes += len(chunk)
                             await websocket.send_bytes(chunk)
@@ -990,6 +1126,108 @@ class OmniStreamingSpeechHandler:
             except Exception:
                 logger.debug("Failed to send audio.done for sentence %d", sentence_index, exc_info=True)
         return not generation_failed and not generation_cancelled
+
+    async def _generate_and_send_codec(
+        self,
+        websocket: WebSocket,
+        config: StreamingSpeechSessionConfig,
+        sentence_text: str,
+        *,
+        utterance_index: int,
+        sentence_index: int,
+        inbox: "_SessionInbox | None" = None,
+    ) -> None:
+        """Stream the talker's codec frames (no server-side decoding).
+
+        Protocol: ``codec.start`` (JSON, codec description) → binary frames
+        (``codec_stream.pack_codec_frame``) → ``codec.done``. Requires a
+        talker-only deployment and an adapter with ``supports_codec_stream``.
+        """
+        from vllm_omni.entrypoints.openai.codec_stream import codec_start_message, pack_codec_frame
+
+        adapter = self._speech_service._get_tts_adapter()
+        if adapter is None or not getattr(adapter, "supports_codec_stream", False):
+            await self._send_error(websocket, "output_mode='codec_tokens' is not supported by the loaded TTS model.")
+            return
+        spec = dict(adapter.codec_stream_spec)
+        request = OpenAICreateSpeechRequest(
+            input=sentence_text,
+            model=config.model,
+            voice=config.voice,
+            task_type=config.task_type,
+            language=config.language,
+            instructions=config.instructions,
+            response_format="pcm",
+            speed=config.speed,
+            max_new_tokens=config.max_new_tokens,
+            non_streaming_mode=config.non_streaming_mode,
+            ref_audio=config.ref_audio,
+            ref_text=config.ref_text,
+            x_vector_only_mode=config.x_vector_only_mode,
+            speaker_embedding=config.speaker_embedding,
+            seed=config.seed,
+            stream=True,
+        )
+        await websocket.send_json(
+            codec_start_message(
+                utterance_index=utterance_index,
+                sentence_index=sentence_index,
+                sentence_text=sentence_text,
+                spec=spec,
+                model=config.model,
+            )
+        )
+        total_frames = 0
+        seq = 0
+        generation_failed = False
+        request_id = None
+        eos_sent = False
+        try:
+            request_id, generator, tts_params = await self._speech_service._prepare_speech_generation(request)
+            async with aclosing(
+                self._speech_service._generate_codec_chunks(generator, request_id, tts_params=tts_params)
+            ) as stream:
+                async for codes, eos in self._iter_with_cancel(websocket, stream, request_id, inbox):
+                    n = 0 if codes is None else int(codes.shape[0])
+                    total_frames += n
+                    await websocket.send_bytes(pack_codec_frame(seq, codes, eos=eos, codebooks=int(spec["codebooks"])))
+                    seq += 1
+                    eos_sent = eos_sent or eos
+        except WebSocketDisconnect:
+            if request_id is not None:
+                try:
+                    await self._speech_service.engine_client.abort(request_id)
+                except Exception:
+                    logger.debug("Failed to abort codec stream request %s", request_id, exc_info=True)
+            raise
+        except Exception as e:
+            generation_failed = True
+            logger.error("Codec stream failed for utterance %d: %s", utterance_index, e)
+            await self._send_error(
+                websocket, f"Codec stream failed for utterance {utterance_index}: {e}", partial_audio=total_frames > 0
+            )
+        finally:
+            cancelled = bool(getattr(self, "_last_cancelled", False))
+            if not eos_sent and not generation_failed:
+                try:
+                    await websocket.send_bytes(pack_codec_frame(seq, None, eos=True, codebooks=int(spec["codebooks"])))
+                    seq += 1
+                except Exception:
+                    logger.debug("Failed to send terminal codec frame", exc_info=True)
+            try:
+                await websocket.send_json(
+                    {
+                        "type": "codec.done",
+                        "utterance_index": utterance_index,
+                        "sentence_index": sentence_index,
+                        "total_frames": total_frames,
+                        "seq_last": seq - 1,
+                        "error": generation_failed,
+                        "cancelled": cancelled,
+                    }
+                )
+            except Exception:
+                logger.debug("Failed to send codec.done", exc_info=True)
 
     async def _stream_audio_with_alignments(
         self,

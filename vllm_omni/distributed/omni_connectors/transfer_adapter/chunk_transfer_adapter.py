@@ -16,6 +16,7 @@ from vllm.v1.request import Request, RequestStatus
 from vllm.v1.utils import ConstantList
 
 from vllm_omni.data_entry_keys import MetaStruct, OmniPayloadStruct, unflatten_payload
+from vllm_omni.edge.step_stats import StepStats, shm_lockfile_age_ms
 
 from ..adapter import construct_next_stage_streaming_input_prompt
 from ..connectors.shm_connector import SharedMemoryConnector
@@ -504,6 +505,7 @@ class OmniChunkTransferAdapter(OmniTransferAdapterBase):
             "is_segment_finished": is_segment_finished,
             "new_token_ids": tuple(int(token_id) for token_id in (new_token_ids or ())),
             "segment_generation": generation,
+            "enqueued_at": time.perf_counter(),
         }
 
         reject_reason = None
@@ -566,13 +568,24 @@ class OmniChunkTransferAdapter(OmniTransferAdapterBase):
         connector_get_key = f"{external_req_id}_{target_stage_id}_{chunk_id}"
 
         # Use timeout=0 for non-blocking poll
+        _stats = StepStats.get()
         try:
+            # The shm lock file is written at put time and removed by get, so
+            # sample its age before the get (None while the chunk is not there).
+            _age = shm_lockfile_age_ms(connector_get_key) if _stats.enabled else None
+            _t_get = time.perf_counter()
             result = self.connector.get(
                 str(target_stage_id),
                 str(stage_id),
                 connector_get_key,
                 entry.source_metadata,
             )
+            if _stats.enabled:
+                _stats.add(
+                    "hop.get_ms" if result is not None else "hop.poll_miss_ms", (time.perf_counter() - _t_get) * 1000.0
+                )
+                if result is not None and _age is not None:
+                    _stats.add("hop.put_to_get_ms", _age)
         except Exception as e:
             logger.error(f"SharedMemoryConnector get failed for req {connector_get_key}: {e}")
             with self._receiver_state_lock:
@@ -969,15 +982,17 @@ class OmniChunkTransferAdapter(OmniTransferAdapterBase):
             return
 
         if sender_token is not None:
-            # Include the in-flight key even if cancellation wins before put
-            # returns or the connector raises after creating the segment.
             sender_token.num_puts = self.put_req_chunk[external_req_id] + 1
-        success, size, metadata = self.connector.put(
-            from_stage=str(stage_id),
-            to_stage=str(next_stage_id),
-            put_key=connector_put_key,
-            data=payload_data,
-        )
+        _stats = StepStats.get()
+        if _stats.enabled and task.get("enqueued_at") is not None:
+            _stats.add("hop.enqueue_to_put_ms", (time.perf_counter() - task["enqueued_at"]) * 1000.0)
+        with _stats.timed("hop.put_ms"):
+            success, size, metadata = self.connector.put(
+                from_stage=str(stage_id),
+                to_stage=str(next_stage_id),
+                put_key=connector_put_key,
+                data=payload_data,
+            )
 
         with self._sender_state_lock:
             if sender_token is not None:

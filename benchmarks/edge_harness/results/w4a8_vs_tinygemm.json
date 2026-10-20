@@ -1,0 +1,122 @@
+[
+  {
+    "name": "qkv",
+    "N": 3072,
+    "K": 2048,
+    "group": 128,
+    "m1": {
+      "tinygemm_ms": 0.0229,
+      "w4a8_ms": 0.015,
+      "speedup": 1.53,
+      "rel_diff_vs_tinygemm": 0.0958
+    },
+    "m8": {
+      "tinygemm_ms": 0.0553,
+      "w4a8_ms": 0.0305,
+      "speedup": 1.81,
+      "rel_diff_vs_tinygemm": 0.1096
+    },
+    "m512": {
+      "tinygemm_ms": 3.239,
+      "w4a8_ms": 0.39,
+      "speedup": 8.3,
+      "rel_diff_vs_tinygemm": 0.1005
+    }
+  },
+  {
+    "name": "o",
+    "N": 2048,
+    "K": 2048,
+    "group": 128,
+    "m1": {
+      "tinygemm_ms": 0.0158,
+      "w4a8_ms": 0.0142,
+      "speedup": 1.11,
+      "rel_diff_vs_tinygemm": 0.1087
+    },
+    "m8": {
+      "tinygemm_ms": 0.039,
+      "w4a8_ms": 0.0251,
+      "speedup": 1.56,
+      "rel_diff_vs_tinygemm": 0.1127
+    },
+    "m512": {
+      "tinygemm_ms": 2.1629,
+      "w4a8_ms": 0.2706,
+      "speedup": 7.99,
+      "rel_diff_vs_tinygemm": 0.1011
+    }
+  },
+  {
+    "name": "gate_up",
+    "N": 13312,
+    "K": 2048,
+    "group": 128,
+    "m1": {
+      "tinygemm_ms": 0.0648,
+      "w4a8_ms": 0.0271,
+      "speedup": 2.4,
+      "rel_diff_vs_tinygemm": 0.0846
+    },
+    "m8": {
+      "tinygemm_ms": 0.2229,
+      "w4a8_ms": 0.0932,
+      "speedup": 2.39,
+      "rel_diff_vs_tinygemm": 0.0905
+    },
+    "m512": {
+      "tinygemm_ms": 13.9922,
+      "w4a8_ms": 1.5752,
+      "speedup": 8.88,
+      "rel_diff_vs_tinygemm": 0.1004
+    }
+  },
+  {
+    "name": "down",
+    "N": 2048,
+    "K": 6656,
+    "group": 128,
+    "m1": {
+      "tinygemm_ms": 0.0347,
+      "w4a8_ms": 0.0228,
+      "speedup": 1.52,
+      "rel_diff_vs_tinygemm": 0.0925
+    },
+    "m8": {
+      "tinygemm_ms": 0.1134,
+      "w4a8_ms": 0.056,
+      "speedup": 2.02,
+      "rel_diff_vs_tinygemm": 0.0968
+    },
+    "m512": {
+      "tinygemm_ms": 7.0191,
+      "w4a8_ms": 0.8952,
+      "speedup": 7.84,
+      "rel_diff_vs_tinygemm": 0.0999
+    }
+  },
+  {
+    "name": "lm_head",
+    "N": 131072,
+    "K": 2048,
+    "group": 128,
+    "m1": {
+      "tinygemm_ms": 0.5832,
+      "w4a8_ms": 0.4462,
+      "speedup": 1.31,
+      "rel_diff_vs_tinygemm": 0.1167
+    },
+    "m8": {
+      "tinygemm_ms": 2.1946,
+      "w4a8_ms": 1.023,
+      "speedup": 2.15,
+      "rel_diff_vs_tinygemm": 0.0926
+    },
+    "m512": {
+      "tinygemm_ms": 138.7226,
+      "w4a8_ms": 16.4399,
+      "speedup": 8.44,
+      "rel_diff_vs_tinygemm": 0.1004
+    }
+  }
+]

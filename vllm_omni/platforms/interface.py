@@ -24,6 +24,7 @@ class OmniPlatformEnum(Enum):
     NPU = "npu"
     XPU = "xpu"
     MUSA = "musa"
+    CPU = "cpu"
     OOT = "oot"
     UNSPECIFIED = "unspecified"
 
@@ -53,6 +54,9 @@ class OmniPlatform(Platform):
 
     def is_musa(self) -> bool:
         return self._omni_enum == OmniPlatformEnum.MUSA
+
+    def is_cpu(self) -> bool:
+        return self._omni_enum == OmniPlatformEnum.CPU
 
     def is_out_of_tree(self) -> bool:
         return self._omni_enum == OmniPlatformEnum.OOT

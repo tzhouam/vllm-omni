@@ -1,0 +1,50 @@
+{
+  "chat_short": {
+    "text": "We are asked: \"What is the capital of France? Answer in one word.\" So the answer should be \"Paris\". But we need to output it in one word. So the final answer is \"Paris\".</think>Paris",
+    "token_ids": null
+  },
+  "chat_long": {
+    "text": "We are given an inventory listing with item codes for warehouse districts 1 through 120. The question asks: \"What is the code for warehouse district 73?\" We need to find the code corresponding to district 73.\n\nLooking at the list, we see:\nItem 1:",
+    "token_ids": null
+  },
+  "chat_tools": {
+    "text": "The user wants to know the weather in Shenzhen right now in Celsius. I have a function available to get weather for a city. Let me call it with the city \"Shenzhen\" and unit \"celsius\".</think><tool_call>get_weather<arg_key>city</arg_key><arg_value>Shenzhen</arg_value><arg_key>unit</arg_key>",
+    "token_ids": null
+  },
+  "plain_0": {
+    "text": " the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia is the capital of Australia",
+    "token_ids": null
+  },
+  "plain_1": {
+    "text": " mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission mission",
+    "token_ids": null
+  },
+  "plain_2": {
+    "text": "    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n        if _ == n:\n            return a\n    return a\n\n\ndef main():\n    n = int(input())\n    print(fibonacci(n",
+    "token_ids": null
+  },
+  "plain_3": {
+    "text": " the three laws of thermodynamics state that the three laws of thermodynamics state that the three laws of thermodynamics state that the three laws of thermodynamics state that the three laws of thermodynamics state that the three laws of thermodynamics state that the three laws of thermodynamics state that the three laws of thermodynamics state that",
+    "token_ids": null
+  },
+  "plain_4": {
+    "text": " to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to make a proper espresso you need to",
+    "token_ids": null
+  },
+  "plain_5": {
+    "text": " the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the difference between TCP and UDP is the",
+    "token_ids": null
+  },
+  "plain_6": {
+    "text": " carbon and oxygen into glucose and other organic compounds.\nassistant: [{type: \"question\", content: \"\u8bf7\u89e3\u91ca\u5149\u5408\u4f5c\u7528\u7684\u8fc7\u7a0b\uff0c\u5305\u62ec\u5149\u53cd\u5e94\u548c\u6697\u53cd\u5e94\uff08\u5361\u5c14\u6587\u5faa\u73af\uff09\u3002\"}]\n\nassistant: \u5149\u5408\u4f5c\u7528\u662f\u690d\u7269\u3001\u85fb\u7c7b\u548c\u67d0\u4e9b\u7ec6\u83cc\u5229\u7528\u5149\u80fd\u5c06\u4e8c\u6c27\u5316\u78b3\u8f6c\u5316\u4e3a\u6709\u673a\u7269\u8d28",
+    "token_ids": null
+  },
+  "plain_7": {
+    "text": " supports operations such as insertion, deletion, and traversal. A binary search tree is a tree where each node has at most two children, and the left and right children are such that the left subtree contains all nodes with values less than the node's value, and the right subtree contains all nodes with values greater",
+    "token_ids": null
+  },
+  "plain_8": {
+    "text": " 1333. The Treaty of Westphalia was signed in 1333. The Treaty of Westphalia was signed in 1333. The Treaty of Westphalia was signed in 1333. The Treaty of Westphalia was signed in 133",
+    "token_ids": null
+  }
+}

@@ -1,0 +1,41 @@
+{
+ "arch": "aarch64",
+ "cpu_model": "emulated Jetson Orin 8GB (emulated) host",
+ "cpu_flags": [
+  "neon",
+  "dotprod",
+  "fp16_arith"
+ ],
+ "n_logical": 8,
+ "n_physical": 8,
+ "clusters": [
+  {
+   "max_khz": 2200000,
+   "cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  }
+ ],
+ "numa_nodes": 2,
+ "ram_total_bytes": 8589934592,
+ "ram_available_bytes": 6442450944,
+ "accelerator": "cuda_unified",
+ "gpu_name": "Jetson Orin 8GB (emulated)",
+ "gpu_mem_bytes": 8589934592,
+ "gpu_sm_count": 16,
+ "gpu_capability": [
+  8,
+  7
+ ],
+ "supports_bf16": true,
+ "supports_fp16": true,
+ "thermal_zones": 2,
+ "source": "emulation"
+}

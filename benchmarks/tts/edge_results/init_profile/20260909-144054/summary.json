@@ -1,0 +1,88 @@
+{
+ "model": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+ "timestamp": "20260909-144054",
+ "rows": [
+  {
+   "config": "cold_cache",
+   "returncode": 0,
+   "wall_s": 443.2846204279922,
+   "cmd": [
+    "/data/zhoutaichang/embedding_infer/.venvs/omni-cuda/bin/python",
+    "/data/zhoutaichang/embedding_infer/vllm-omni-run/benchmarks/tts/stream_latency_bench.py",
+    "--init-only",
+    "--warmup",
+    "1",
+    "--model",
+    "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+    "--deploy-config",
+    "/data/zhoutaichang/embedding_infer/vllm-omni-run/vllm_omni/deploy/qwen3_tts.yaml",
+    "--output-dir",
+    "/data/zhoutaichang/embedding_infer/vllm-omni/benchmarks/tts/edge_results/init_profile/20260909-144054/cold_cache/bench",
+    "--tag",
+    "cold_cache",
+    "--init-timeout",
+    "1500",
+    "--stage-init-timeout",
+    "1200"
+   ],
+   "deploy_config": "/data/zhoutaichang/embedding_infer/vllm-omni-run/vllm_omni/deploy/qwen3_tts.yaml",
+   "init_s": 355.5421999040991,
+   "ttfa_ms": 464.5279091782868,
+   "gpu_mib": 46640,
+   "phases": {
+    "stages_init": 353.30018043518066,
+    "g3_device_lock": 0.0004811286926269531,
+    "g2_launch_lock_wait": 9.298324584960938e-06,
+    "g2_spawn_and_ready": 265.880170583725,
+    "proc_entry": 0.0,
+    "engine_core_init": 189.50928831100464,
+    "init_device": 7.96953010559082,
+    "load_model": 14.530292987823486,
+    "load_weights": 14.41350245475769,
+    "talker_mtp_init": 0.0026183128356933594,
+    "attn_prewarm": 0.0968317985534668,
+    "cudagraph_capture": 3.493351697921753,
+    "talker_mtp_capture": 101.75919222831726,
+    "predictor_setup_compile": 47.19006609916687,
+    "predictor_warmup": 47.18329930305481,
+    "code2wav_cudagraph": 6.74182915687561
+   },
+   "phases_by_stage": {
+    "-": {
+     "stages_init": 353.30018043518066
+    },
+    "0": {
+     "g3_device_lock": 0.00022792816162109375,
+     "g2_launch_lock_wait": 5.4836273193359375e-06,
+     "g2_spawn_and_ready": 215.01248002052307,
+     "proc_entry": 0.0,
+     "engine_core_init": 167.79693055152893,
+     "init_device": 4.566705942153931,
+     "load_model": 5.034432888031006,
+     "load_weights": 4.933957099914551,
+     "talker_mtp_init": 0.0026140213012695312,
+     "attn_prewarm": 0.08658766746520996,
+     "cudagraph_capture": 3.493351697921753,
+     "talker_mtp_capture": 101.75919222831726,
+     "predictor_setup_compile": 47.19006609916687,
+     "predictor_warmup": 47.18329930305481
+    },
+    "1": {
+     "g3_device_lock": 0.0002532005310058594,
+     "g2_launch_lock_wait": 3.814697265625e-06,
+     "g2_spawn_and_ready": 50.867690563201904,
+     "proc_entry": 0.0,
+     "engine_core_init": 21.712357759475708,
+     "init_device": 3.4028241634368896,
+     "load_model": 9.49586009979248,
+     "load_weights": 9.47954535484314,
+     "code2wav_cudagraph": 6.74182915687561,
+     "talker_mtp_init": 4.291534423828125e-06,
+     "attn_prewarm": 0.010244131088256836
+    }
+   },
+   "total_s": 353.3062620162964
+  }
+ ],
+ "table": "| config | init_s | ttfa_ms | gpu_mib | stages_init | g2_spawn_and_ready | engine_core_init | init_device | load_model | load_weights | predictor_setup_compile | predictor_warmup | cudagraph_capture | talker_mtp_capture | code2wav_cudagraph |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n| cold_cache | 355.5 | 464.5 | 46640 | 353.3 | 265.9 | 189.5 | 8.0 | 14.5 | 14.4 | 47.2 | 47.2 | 3.5 | 101.8 | 6.7 |"
+}

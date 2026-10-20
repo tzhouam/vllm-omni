@@ -289,3 +289,17 @@ lance_compare/
 
 # Linting binaries downloaded by local pre-commit hooks
 shellcheck*/
+
+# --- edge-infer -------------------------------------------------------------
+# Measurement artifacts are the substance of this fork, not build output: every
+# published figure is traceable to a file below. They are tracked despite the
+# blanket `*.json` and `results/` rules above. Binary captures (.npz, .onnx,
+# .wav, .npy) stay ignored.
+!benchmarks/edge_harness/results/
+!benchmarks/edge_harness/results/**
+!baselines/
+!baselines/**
+benchmarks/edge_harness/results/**/*.npz
+benchmarks/edge_harness/results/**/*.onnx
+benchmarks/edge_harness/results/**/*.npy
+benchmarks/edge_harness/results/**/*.wav

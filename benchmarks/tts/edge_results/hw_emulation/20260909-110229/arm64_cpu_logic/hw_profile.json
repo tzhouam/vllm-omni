@@ -1,0 +1,35 @@
+{
+ "arch": "aarch64",
+ "cpu_model": "emulated RK3588",
+ "cpu_flags": [
+  "neon",
+  "dotprod",
+  "fp16_arith",
+  "i8mm"
+ ],
+ "n_logical": 4,
+ "n_physical": 4,
+ "clusters": [
+  {
+   "max_khz": 3000000,
+   "cpus": [
+    0,
+    1,
+    2,
+    3
+   ]
+  }
+ ],
+ "numa_nodes": 2,
+ "ram_total_bytes": 8589934592,
+ "ram_available_bytes": 6442450944,
+ "accelerator": "none",
+ "gpu_name": "",
+ "gpu_mem_bytes": 0,
+ "gpu_sm_count": 0,
+ "gpu_capability": [],
+ "supports_bf16": false,
+ "supports_fp16": true,
+ "thermal_zones": 2,
+ "source": "emulation"
+}

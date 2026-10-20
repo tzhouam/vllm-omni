@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import queue
+import os
 import threading
 import time
 import uuid
@@ -42,6 +43,7 @@ from vllm_omni.engine.async_engine_utils import (
     shutdown_runtime_after_orchestrator,
     weak_shutdown_async_omni_engine,
 )
+from vllm_omni.engine.init_timeline import ENV_OUT, InitTimeline, timed_phase
 from vllm_omni.engine.messages import (
     AbortRequestMessage,
     AbortResultMessage,
@@ -141,6 +143,9 @@ class OmniEngineBase:
         client_config: OmniClientConfig | None = None,
         **kwargs: Any,
     ) -> None:
+        from vllm_omni.entrypoints.utils import apply_deploy_profile
+
+        apply_deploy_profile(model, kwargs)
         self.model = model
         self.tokenizer = tokenizer
         # Cached by get_diffusion_od_config().
@@ -327,8 +332,17 @@ class OmniEngineBase:
             daemon=True,
             name="orchestrator",
         )
+        timeline_out = os.environ.get(ENV_OUT)
+        InitTimeline.start(
+            enabled=bool(timeline_out) or bool(log_stats),
+            run_dir=(
+                os.path.join(os.path.dirname(os.path.abspath(timeline_out)), "init_timeline_workers")
+                if timeline_out else None
+            ),
+        )
         self.orchestrator_thread.start()
         self._wait_for_orchestrator_init(startup_future, startup_timeout)
+        self._report_init_timeline(partial=False)
         self._correlated_rpc_client = CorrelatedRpcClient(
             self.request_queue.sync_q,
             self.rpc_output_queue.sync_q,
@@ -383,6 +397,7 @@ class OmniEngineBase:
                 "Use --stage-id none to launch no local stage."
             )
 
+    @timed_phase("initialize_stages")
     def _initialize_stages(self, stage_init_timeout: int) -> None:
         """Initialize stage clients/processors via StageRuntime and assign to self."""
         self._runtime = create_stage_runtime(
@@ -528,6 +543,25 @@ class OmniEngineBase:
         """Construct this engine's orchestrator (runs on the orchestrator thread after stage init)."""
         raise NotImplementedError
 
+    def _report_init_timeline(self, partial: bool) -> None:
+        """Merge worker phase records and log/dump the init timeline (no-op when disabled)."""
+        tl = InitTimeline.current()
+        if tl is None or not tl.enabled:
+            return
+        try:
+            tl.finish()
+            tl.ingest_workers()
+            status = "PARTIAL (startup timed out)" if partial else "complete"
+            logger.info("[AsyncOmniEngine] init timeline %s\n%s", status, tl.format_table())
+            if not partial:
+                logger.info("[AsyncOmniEngine] init timeline suggested timeouts: %s", tl.suggest_timeouts())
+            out = os.environ.get(ENV_OUT)
+            if out:
+                tl.dump(out)
+                logger.info("[AsyncOmniEngine] init timeline written to %s", out)
+        except Exception as exc:  # telemetry must never break start-up
+            logger.warning("[AsyncOmniEngine] init timeline reporting failed: %s", exc)
+
     def _wait_for_orchestrator_init(self, startup_future: concurrent.futures.Future, startup_timeout: int) -> None:
         """
         Wait for orchestrator startup future to return ready. Raises exception on any failures to the init process.
@@ -544,6 +578,7 @@ class OmniEngineBase:
                     startup_timeout,
                 )
                 self._try_shutdown("[OmniEngine] Failed to cleanup after orchestrator startup timeout")
+                self._report_init_timeline(partial=True)
                 raise TimeoutError(f"Orchestrator did not become ready within {startup_timeout}s")
             try:
                 startup_future.result(

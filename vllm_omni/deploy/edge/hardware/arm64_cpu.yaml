@@ -1,0 +1,10 @@
+# ARM64 CPU boards: single utterance at a time, eager, generous chunk lead.
+stages:
+  - stage_id: 0
+    max_num_seqs: 1
+    enforce_eager: true
+    async_scheduling: false
+  - stage_id: 1
+    max_num_seqs: 1
+    enforce_eager: true
+    async_scheduling: false

@@ -241,6 +241,13 @@ def modify_stage_config(
     # get_chunk_config and get_batch_token_config). int(time.time()) would collide
     # and the later write would overwrite the earlier YAML on disk.
     # Keep generated configs outside the repo and delete them when pytest exits.
+    # The generated YAML lives in a temp dir, so a relative ``base_config`` (e.g.
+    # ``../qwen3_tts.yaml`` in ``deploy/edge/``) must be anchored to the source
+    # file's directory before writing (same rule as ``_materialize_ci_overlay``).
+    base_config = config.get("base_config")
+    if isinstance(base_config, str) and base_config and not os.path.isabs(base_config):
+        config["base_config"] = str((path.parent / base_config).resolve())
+
     output_fd, output_path = tempfile.mkstemp(prefix=f"{path.stem}_", suffix=".yaml")
     atexit.register(Path(output_path).unlink, missing_ok=True)
 

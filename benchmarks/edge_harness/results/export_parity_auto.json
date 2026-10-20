@@ -1,0 +1,16 @@
+{
+  "context": 1024,
+  "cache_layout": "auto",
+  "gelu_mode": "exact",
+  "logits_snr_db": 134.84,
+  "max_abs_diff": 2.288818359375e-05,
+  "ref_top1": 1310,
+  "export_top1": 1310,
+  "top1_agree": true,
+  "top5_agree": true,
+  "kv_bytes": {
+    "hybrid": 36657152,
+    "uniform": 58720256,
+    "saved": 22063104
+  }
+}

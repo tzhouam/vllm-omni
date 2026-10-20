@@ -326,6 +326,27 @@ class _SpeechStreamingResponse(StreamingResponse):
             # Close it explicitly, even inside Starlette's cancelled scope.
             with anyio.CancelScope(shield=True):
                 await cast(Any, self.body_iterator).aclose()
+def _coerce_codec_snapshots(codes: Any) -> Any:
+    """Normalize the per-step ``codes.audio`` payload to one ``[rows, codebooks]`` array.
+
+    In DELTA output mode the output processor accumulates the talker's
+    per-step payloads as a list (deferred concatenation). The talker publishes
+    the *cumulative* code matrix each step, so the last snapshot is the current
+    state; a list of single-row entries (a true per-step delta producer) is
+    concatenated instead.
+    """
+    if codes is None or not isinstance(codes, (list, tuple)):
+        return codes
+    items = [c for c in codes if c is not None]
+    if not items:
+        return None
+    import numpy as np
+
+    arrays = [c.detach().cpu().numpy() if hasattr(c, "detach") else np.asarray(c) for c in items]
+    arrays = [a.reshape(1, -1) if a.ndim == 1 else a for a in arrays]
+    if len(arrays) > 1 and all(a.ndim == 2 and a.shape[0] == 1 for a in arrays):
+        return np.concatenate(arrays, axis=0)
+    return arrays[-1]
 
 
 class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
@@ -758,6 +779,15 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
             if model_arch in entry_stage_archs and worker_type == "ar":
                 return stage
         return None
+
+    def _is_talker_only_deployment(self) -> bool:
+        """True when the TTS stage is the final stage and emits latents (codec tokens) per step."""
+        stage = self._tts_stage
+        if stage is None:
+            return False
+        return bool(getattr(stage, "final_output", False)) and (
+            str(getattr(stage, "final_output_type", "") or "").lower() == "latent"
+        )
 
     def _detect_tts_model_type(self) -> str | None:
         """Detect TTS model type from the resolved stage's deployment metadata.
@@ -2201,7 +2231,13 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
         # list() makes a copy to avoid mutating the params.
         sampling_params_list = list(self.engine_client.default_sampling_params_list)
         async_chunk = getattr(self.model_config, "async_chunk", True)
-        qwen3_full_payload = self._tts_model_type == "qwen3_tts" and not bool(async_chunk)
+        # A talker-only (codec-token) deployment has no code2wav stage and no
+        # async chunks either, but its per-step ``codes.audio`` payloads are the
+        # stream itself, so it must keep DELTA outputs (otherwise the engine
+        # emits one FINAL_ONLY output and every codec frame arrives at once).
+        qwen3_full_payload = (
+            self._tts_model_type == "qwen3_tts" and not bool(async_chunk) and not self._is_talker_only_deployment()
+        )
         is_streaming_request = request.is_streaming() and not qwen3_full_payload
         sampling_params_list = coerce_param_message_types(sampling_params_list, is_streaming_request)
 

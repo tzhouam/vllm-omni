@@ -1,0 +1,48 @@
+{
+ "arch": "x86_64",
+ "cpu_model": "emulated x86_64",
+ "cpu_flags": [
+  "avx2",
+  "avx512",
+  "avx512_bf16",
+  "amx_bf16",
+  "amx_tile"
+ ],
+ "n_logical": 16,
+ "n_physical": 16,
+ "clusters": [
+  {
+   "max_khz": 3000000,
+   "cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
+  }
+ ],
+ "numa_nodes": 2,
+ "ram_total_bytes": 34359738368,
+ "ram_available_bytes": 25769803776,
+ "accelerator": "none",
+ "gpu_name": "",
+ "gpu_mem_bytes": 0,
+ "gpu_sm_count": 0,
+ "gpu_capability": [],
+ "supports_bf16": true,
+ "supports_fp16": true,
+ "thermal_zones": 2,
+ "source": "emulation"
+}

@@ -1,0 +1,11 @@
+{
+ "sliding|ctx1024|Samsung Galaxy S25|fp16": 1.689,
+ "sliding|ctx1024|Samsung Galaxy S25|w8a16": 0.912,
+ "sliding|ctx1024|Samsung Galaxy S25|w4a16": 0.917,
+ "full|ctx1024|Samsung Galaxy S25|fp16": 1.559,
+ "full|ctx1024|Samsung Galaxy S25|w8a16": 1.129,
+ "full|ctx1024|Samsung Galaxy S25|w4a16": 1.127,
+ "full|ctx4096|Samsung Galaxy S25|fp16": 2.964,
+ "full|ctx4096|Samsung Galaxy S25|w8a16": 1.681,
+ "full|ctx4096|Samsung Galaxy S25|w4a16": 1.662
+}

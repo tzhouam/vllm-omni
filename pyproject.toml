@@ -34,6 +34,12 @@ classifiers = [
 
 [project.optional-dependencies]
 
+# Edge / on-device clients (codec-token streaming client, playback).
+edge = [
+    "websockets>=13.0",
+    "sounddevice>=0.5.0",
+]
+
 dev = [
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
@@ -163,6 +169,12 @@ vllm-omni = "vllm_omni.entrypoints.cli.main:main"
 # only import vllm, not vllm_omni) will still pick up the omni archs.
 [project.entry-points."vllm.general_plugins"]
 vllm_omni_register_models = "vllm_omni.engine.arg_utils:register_omni_models_to_vllm"
+# [edge-infer] Host-OS compatibility for native Windows (no-op elsewhere); vLLM runs
+# general plugins in the API server, every engine-core child and every worker.
+vllm_omni_windows = "vllm_omni.windows:activate"
+
+[project.entry-points."vllm_omni.general_plugins"]
+vllm_omni_windows = "vllm_omni.windows:activate"
 
 
 [tool.setuptools]

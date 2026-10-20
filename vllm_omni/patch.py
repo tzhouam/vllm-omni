@@ -8,6 +8,13 @@ import os
 import sys
 from functools import cached_property
 
+# [edge-infer] Host-OS compatibility must precede every vLLM import below: it
+# provides `fcntl`/`uvloop` and sets the event-loop policy on native Windows.
+# No-op on other platforms. Design: analysis/design_windows_compat_plugin_20260921.md
+from vllm_omni.windows import activate as _activate_windows_compat  # isort:skip
+
+_activate_windows_compat()
+
 import torch
 from aenum import extend_enum
 from vllm.config import ModelConfig as _OriginalModelConfig
@@ -660,6 +667,9 @@ def release_cumem_allocations_for_shutdown(allocator) -> int:
 
 def _patch_cumem_free_callback_cuda() -> None:
     try:
+        if torch.version.cuda is None and getattr(torch.version, "hip", None) is None:
+            _PATCH_LOGGER.debug("[cumem-cuda] CPU-only torch; skipping patch")
+            return
         from vllm.device_allocator import cumem as cumem_module
         from vllm.device_allocator.cumem import CuMemAllocator
     except ImportError:
@@ -783,3 +793,169 @@ def _patch_mrv2_stop_token_capacity() -> None:
 
 
 _patch_mrv2_stop_token_capacity()
+def _patch_cpu_aot_compile_cache_load() -> None:
+    """Let the CPU backend actually reuse its compiled model across starts.
+
+    ``vllm.compilation.decorators._try_load_aot_compiled_fn`` finishes a cache
+    load with ``loaded_fn._artifacts.compiled_fn.finalize_loading(cfg)``. On
+    CUDA that artifact is a wrapper object carrying the method; with the
+    inductor CPU backend it is a plain function, so the call raises
+    ``AttributeError``, the exception handler treats the whole load as a cache
+    miss ("Compiling model again due to a load failure"), and **every engine
+    start recompiles the model from scratch** -- most of a 50-100 s init on a
+    28-layer model, paid again on every restart.
+
+    Rather than copy vLLM's loader, attach the missing no-op: a plain Python
+    function accepts attribute assignment, and the CPU artifact loads its
+    generated shared object lazily on first call anyway (that call is the
+    warm-up run, so a genuine failure still surfaces during init, not in
+    production traffic).
+
+    Self-disabling: if the artifact already has ``finalize_loading`` -- as it
+    does on GPU, and as it will if upstream gives the CPU path one -- this
+    changes nothing.
+    """
+    import torch
+
+    from vllm.platforms import current_platform
+
+    if not current_platform.is_cpu():
+        return
+    if os.environ.get("VLLM_OMNI_AOT_CACHE_SHIM", "1") != "1":
+        return
+    if getattr(torch.compiler, "_omni_aot_finalize_shim", False):
+        return
+
+    original = torch.compiler.load_compiled_function
+
+    def load_compiled_function(*args, **kwargs):
+        loaded = original(*args, **kwargs)
+        artifacts = getattr(loaded, "_artifacts", None)
+        compiled_fn = getattr(artifacts, "compiled_fn", None)
+        if compiled_fn is not None and not hasattr(compiled_fn, "finalize_loading"):
+            try:
+                compiled_fn.finalize_loading = lambda *_a, **_k: None
+            except (AttributeError, TypeError):
+                # Slot-based artifact: leave it alone and let vLLM recompile.
+                pass
+        return loaded
+
+    torch.compiler.load_compiled_function = load_compiled_function
+    torch.compiler._omni_aot_finalize_shim = True
+    _PATCH_LOGGER.info(
+        "CPU AOT compile-cache load shim installed: compiled models are reused "
+        "across engine starts instead of being recompiled."
+    )
+
+
+_patch_cpu_aot_compile_cache_load()
+
+
+def _patch_cpu_explicit_kv_cache_memory() -> None:
+    """Stop a legacy env var from overriding an explicit KV budget on CPU.
+
+    ``CpuPlatform.check_and_update_config`` ends with (vLLM 0.28, the comment
+    is theirs)::
+
+        # Lagecy setting
+        env_key = "VLLM_CPU_KVCACHE_SPACE"
+        if env_key in os.environ and os.environ[env_key] != "":
+            cache_config.kv_cache_memory_bytes = int(os.environ[env_key]) * GiB
+
+    -- unconditionally, so ``--kv-cache-memory-bytes`` is silently discarded
+    whenever the env var is set, which it must be on CPU or the engine tries to
+    claim most of the machine. Verified: with the env at 1 GiB, asking for
+    128 MiB produced the same 17 881 tokens as asking for nothing, and with the
+    env at 4 GiB it produced 71 527 -- the explicit value never applied.
+
+    Two consequences for edge serving, which is where KV size actually matters:
+    the budget can only be set in whole GiB (the env is parsed with ``int()``,
+    so the smallest non-zero cache is 1 GiB), and a deploy config that sets
+    ``kv_cache_memory_bytes`` per stage -- which is how vllm-omni expresses
+    per-stage budgets -- has no effect at all on CPU.
+
+    This restores the obvious precedence: an explicit budget wins, and the env
+    remains the default for callers that set nothing. Spark-X2.5 needs 56 KiB
+    per token, so a 2048-token single-stream deployment wants 112 MiB where the
+    env's floor is 1 GiB.
+    """
+    from vllm.platforms.cpu import CpuPlatform
+
+    if getattr(CpuPlatform, "_omni_explicit_kv_bytes", False):
+        return
+
+    base = CpuPlatform.check_and_update_config.__func__
+
+    def check_and_update_config(cls, vllm_config):
+        cache_config = getattr(vllm_config, "cache_config", None)
+        explicit = getattr(cache_config, "kv_cache_memory_bytes", None)
+        base(cls, vllm_config)
+        if explicit is None or cache_config is None:
+            return
+        if cache_config.kv_cache_memory_bytes != explicit:
+            cache_config.kv_cache_memory_bytes = explicit
+            _PATCH_LOGGER.info(
+                "Restored explicit kv_cache_memory_bytes=%d (%.3f GiB); "
+                "VLLM_CPU_KVCACHE_SPACE would have overridden it.",
+                explicit,
+                explicit / (1024**3),
+            )
+
+    CpuPlatform.check_and_update_config = classmethod(check_and_update_config)
+    CpuPlatform._omni_explicit_kv_bytes = True
+
+
+_patch_cpu_explicit_kv_cache_memory()
+
+
+def _patch_cpu_release_memory_after_load() -> None:
+    """Return the weight-loading churn to the OS on CPU.
+
+    Loading a quantized checkpoint allocates far more than the weights occupy
+    -- the GPTQ path unpacks 4-bit codes to int32, four bytes per weight, to
+    permute and repack them -- and the intermediates, though freed, stay
+    resident because a caching allocator keeps the arenas. On Spark-X2.5-1.7B
+    that is 3828 MiB held after a W4A8 load and 1612 MiB after W4A16; released,
+    both land at ~3.5 GiB, so W4A8's apparent memory penalty over W4A16 was
+    entirely this and not a real difference in footprint.
+
+    Hooked in two places because they churn separately: after weights are
+    loaded and processed, and after the compile/warm-up pass.
+    """
+    from vllm.platforms import current_platform
+
+    if not current_platform.is_cpu():
+        return
+    if os.environ.get("VLLM_OMNI_CPU_RELEASE_MEMORY", "1") != "1":
+        return
+
+    from vllm.v1.worker.cpu_worker import CPUWorker
+
+    if getattr(CPUWorker, "_omni_release_memory", False):
+        return
+
+    from vllm_omni.edge.memory import release_after_load
+
+    base_load = CPUWorker.load_model
+    base_warm = CPUWorker.compile_or_warm_up_model
+
+    def load_model(self, *args, **kwargs):
+        out = base_load(self, *args, **kwargs)
+        release_after_load("weight load")
+        return out
+
+    def compile_or_warm_up_model(self, *args, **kwargs):
+        out = base_warm(self, *args, **kwargs)
+        release_after_load("warm-up")
+        return out
+
+    CPUWorker.load_model = load_model
+    CPUWorker.compile_or_warm_up_model = compile_or_warm_up_model
+    CPUWorker._omni_release_memory = True
+    _PATCH_LOGGER.info(
+        "CPU weight-load memory release installed (set "
+        "VLLM_OMNI_CPU_RELEASE_MEMORY=0 to disable)."
+    )
+
+
+_patch_cpu_release_memory_after_load()

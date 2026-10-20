@@ -1,0 +1,14 @@
+{
+  "context": 1024,
+  "logits_snr_db": 138.54,
+  "max_abs_diff": 1.9073486328125e-05,
+  "ref_top1": 1310,
+  "export_top1": 1310,
+  "top1_agree": true,
+  "top5_agree": true,
+  "kv_bytes": {
+    "hybrid": 36700160,
+    "uniform": 58720256,
+    "saved": 22020096
+  }
+}

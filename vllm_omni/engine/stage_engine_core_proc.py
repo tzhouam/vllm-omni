@@ -247,6 +247,13 @@ class StageEngineCoreProc(EngineCoreProc):
             # Setting this env var allows the same graceful fallback to work.
             os.environ.setdefault("FLASHINFER_DISABLE_VERSION_CHECK", "1")
             os.environ["VLLM_OMNI_REPLICA_ID"] = str(max(int(omni_replica_id), 0))
+            if omni_stage_id is not None:
+                # Lets init-timeline records from this process and its spawned
+                # workers carry the logical stage id.
+                os.environ["VLLM_OMNI_STAGE_ID"] = str(int(omni_stage_id))
+            from vllm_omni.engine.init_timeline import worker_mark, worker_phase
+
+            worker_mark("proc_entry")
 
             # Patch the decoder type so process_input_sockets (started
             # during __init__) decodes OmniEngineCoreRequest (which
@@ -279,11 +286,16 @@ class StageEngineCoreProc(EngineCoreProc):
             if omni_parallel_stage_init:
                 _install_phase_locks(kwargs, local_dp_rank)
 
-            engine_core = StageEngineCoreProc(
-                *args,
-                engine_index=dp_rank,
-                **kwargs,
-            )
+            with worker_phase("engine_core_init"):
+                engine_core = StageEngineCoreProc(
+                    *args,
+                    engine_index=dp_rank,
+                    **kwargs,
+                )
+            # Steady-state overhead attribution (no-op unless VLLM_OMNI_STEP_STATS_DIR).
+            from vllm_omni.edge.step_stats import StepStats, instrument_engine_core
+
+            instrument_engine_core(engine_core)
 
             # Each subprocess corresponds to exactly one omni replica with
             # its own OmniMasterServer allocation, so the heartbeat client
@@ -334,6 +346,8 @@ class StageEngineCoreProc(EngineCoreProc):
                 engine_core._send_engine_dead()
             raise
         finally:
+            with contextlib.suppress(Exception):
+                StepStats.get().dump()
             signal.signal(signal.SIGTERM, signal.SIG_DFL)
             signal.signal(signal.SIGINT, signal.SIG_DFL)
             if signal_callback is not None:
