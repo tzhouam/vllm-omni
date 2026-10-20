@@ -1,0 +1,70 @@
+{
+  "schema": "omni-vision-tensor-budget-candidate-v1",
+  "base_sha256": "d9a8cb808aa0a07fdab46515867b0a364b9f1a1d88d956eceb7f5dab7f480da4",
+  "candidate_sha256": "351e8b88ee1d9f58f681147020dc0c21fafbb4036cc0acd1049ad027889442d8",
+  "patch_sha256": "9b2af989b3cc3019fe5aaa8831fffb801fc33ebd6e9494341e2485a0a2550997",
+  "apply_check_exit": 0,
+  "scope": "Explicit ggml tensor buffers only; CUDA context/library and preprocessing remain separate lease requirements",
+  "native_compile_verified": false,
+  "neural_execution_verified": false,
+  "production_gate_changed": false,
+  "limits": [
+    "Measurement may release an undersized scheduler buffer",
+    "Retained versus planned sizes use conservative maximum",
+    "CPU operator buffers counted in host pool",
+    "No runtime admission claim before controller integration and real model tests"
+  ],
+  "windows_msvc_syntax": {
+    "argv": [
+      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+      "/nologo",
+      "/TP",
+      "/Zs",
+      "/EHsc",
+      "/std:c++17",
+      "/utf-8",
+      "/DGGML_USE_CPU",
+      "/DGGML_USE_CUDA",
+      "/DMTMD_VIDEO",
+      "/D_CRT_SECURE_NO_WARNINGS",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\ggml\\include",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\include",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\vendor",
+      "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-budget-v1\\clip.cpp"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 1.7650000001303852,
+    "log_sha256": "948b4fbdece1e6e40c025a025be870641946eeddabf3c71f1471c93bb7c0e4a1",
+    "scope": "Syntax only"
+  },
+  "fault_tests": {
+    "scope": "Extracted candidate helpers and graph admission with fake ggml measurement; no real GPU allocation",
+    "cases": 15,
+    "exit_code": 0,
+    "files": {
+      "budget_fault_test.cpp": "89c34f3f48c4e300399f4f0ffb82e4d8e8af550cb00b79121da050b71368838c",
+      "budget_fault_test.exe": "66d1c31614251cbeede3b23ef3133886a18ef235af490a40f931ef07e41a7348",
+      "fault-compile.log": "ffcb7a9f86254f836717b57151ad7b8bf4c1497917edb07798dcb3d1ab1b419d",
+      "fault-run.log": "7238af4511d46af264c9d6887852fd7d27bf327a9df5bf6229f8f458fd90db89"
+    }
+  },
+  "archives": {
+    "strata_cuda_tensor_budget_20261021_budget_fault_test.cpp.gz": {
+      "archive_sha256": "2ec89fa63b733de8768dbf2e8f3ed4b02a8729c432ffba719610e8047643c70d",
+      "raw_sha256": "89c34f3f48c4e300399f4f0ffb82e4d8e8af550cb00b79121da050b71368838c"
+    },
+    "strata_cuda_tensor_budget_20261021_fault-compile.log.gz": {
+      "archive_sha256": "ec624dc253ef80ee86a6473b5d40bd3aea7bcc5159e0814aa0d368c50e7f947f",
+      "raw_sha256": "ffcb7a9f86254f836717b57151ad7b8bf4c1497917edb07798dcb3d1ab1b419d"
+    },
+    "strata_cuda_tensor_budget_20261021_fault-run.log.gz": {
+      "archive_sha256": "cea145d371eee5c9837f1c0770f6d94ecba9699ee4fe22823b199b80ef3a3192",
+      "raw_sha256": "7238af4511d46af264c9d6887852fd7d27bf327a9df5bf6229f8f458fd90db89"
+    },
+    "strata_cuda_tensor_budget_20261021_syntax.log.gz": {
+      "archive_sha256": "7374e58ba3f91ff720c39cf307d4bfcd0eda98f99f0458fbc468cb1dfc796a40",
+      "raw_sha256": "948b4fbdece1e6e40c025a025be870641946eeddabf3c71f1471c93bb7c0e4a1"
+    }
+  }
+}

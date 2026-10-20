@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **CUDA 显式张量预算候选已实现，15 项组件测试通过**：在权重分配前复用 ggml aligned size，在预热 reserve 与每次图像 alloc_graph 前复用 scheduler reserve_size，按 GPU／主机池检查权重和 retained／planned 计算 buffer 的保守上界；缺预算、非法数字、溢出和任一池超限均拒绝。Windows MSVC 语法检查及 15 项假 ggml 故障注入通过，原始日志与测试源码归档。范围仅显式 ggml tensor buffer；CUDA context／库内部开销、host preprocessing 仍需共享账本独立准入。尚未链接或运行真实 GPU，也未改生产 gate。[补丁、语法与边界证据](results/strata_20261008/strata_cuda_tensor_budget_20261021.json)。
+
 2026-10-21 **GPU 预热候选的 Windows 原生故障注入 11/11 通过**：从候选源码原样提取预热代码块，以假的 mtmd 接口注入 bitmap／chunk 分配失败、tokenize／encode 失败、零 token、超界、缺图像和多图像；失败均在 READY 之前返回并释放上下文，正常与恰好上限路径通过。保存 C++ 测试源码、编译／执行原始日志及哈希。这是控制流组件验证，未执行真实 CUDA／模型，也不证明显存预算约束；独立 CUDA 构建及进程 profiling 仍在运行。[11 项结果与原始证据](results/strata_20261008/strata_cuda_warmup_fault_20261021.json)。
 
 2026-10-21 **GPU 视觉预热失败处理候选已修补，尚未集成**：发现固定原生代码在预热失败／零 image token 时仍可能发出 READY；候选改为要求恰好一个有效图像 chunk、编码成功且 token 不超过显式上限，失败释放上下文并退出，成功输出版本化预热耗时与形状记录。固定源码 apply 检查和 Windows MSVC C++17 语法检查 EXIT 0；尚未链接／故障注入或神经验证，不能当作显存预算已验证。前一版设备身份 CUDA 构建仍独立运行，未改动其源码；已附加每秒进程 profiling，挂接前缺口单独记录。[候选哈希、检查及剩余项](results/strata_20261008/strata_cuda_vision_warmup_candidate_20261021.json)。

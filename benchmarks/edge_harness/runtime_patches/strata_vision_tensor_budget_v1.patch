@@ -1,0 +1,115 @@
+--- a/tools/mtmd/clip.cpp
++++ b/tools/mtmd/clip.cpp
+@@ -145,8 +145,35 @@
+ #endif
+ 
+ 
++
++// These limits cover explicit ggml tensors only. The caller reserves CUDA
++// context/library overhead and host preprocessing separately in its lease.
++static size_t omni_vision_budget_env(const char * name) {
++    const char * value = std::getenv(name);
++    if (!value || !*value) throw std::runtime_error("missing vision tensor budget");
++    size_t result = 0;
++    for (const char * p = value; *p; ++p) {
++        if (*p < '0' || *p > '9' || result > (std::numeric_limits<size_t>::max() - (*p - '0')) / 10)
++            throw std::runtime_error("invalid vision tensor budget");
++        result = result * 10 + (*p - '0');
++    }
++    return result;
++}
++static size_t omni_vision_budget_add(size_t a, size_t b) {
++    if (b > std::numeric_limits<size_t>::max() - a)
++        throw std::runtime_error("vision tensor accounting overflow");
++    return a + b;
++}
++static void omni_vision_budget_require(size_t gpu, size_t host, size_t gpu_limit, size_t host_limit) {
++    if (gpu > gpu_limit || host > host_limit)
++        throw std::runtime_error("vision explicit tensor budget exceeded before allocation");
++}
++
+ struct clip_ctx {
+     clip_model model;
++    bool omni_budget_enabled = false;
++    size_t omni_gpu_limit = 0, omni_host_limit = 0;
++    size_t omni_gpu_weights = 0, omni_host_weights = 0;
+ 
+     gguf_context_ptr ctx_gguf;
+     ggml_context_ptr ctx_data;
+@@ -180,6 +207,11 @@
+     uint32_t rng_seed = UINT32_MAX;
+ 
+     clip_ctx(clip_context_params & ctx_params) {
++        omni_budget_enabled = ctx_params.use_gpu;
++        if (omni_budget_enabled) {
++            omni_gpu_limit = omni_vision_budget_env("OMNI_VISION_GGML_GPU_BUDGET_BYTES");
++            omni_host_limit = omni_vision_budget_env("OMNI_VISION_GGML_HOST_BUDGET_BYTES");
++        }
+         flash_attn_type = ctx_params.flash_attn_type;
+         no_alloc = ctx_params.no_alloc;
+         backend_cpu = ggml_backend_init_by_type(GGML_BACKEND_DEVICE_TYPE_CPU, nullptr);
+@@ -266,6 +298,29 @@
+         return model.proj_type;
+     }
+ };
++
++
++static void omni_vision_check_graph_budget(clip_ctx & ctx, ggml_cgraph * graph) {
++    if (!ctx.omni_budget_enabled) return;
++    std::vector<size_t> retained(ctx.backend_ptrs.size()), planned(ctx.backend_ptrs.size());
++    for (size_t i = 0; i < retained.size(); ++i)
++        retained[i] = ggml_backend_sched_get_buffer_size(ctx.sched.get(), ctx.backend_ptrs[i]);
++    // Measurement can release undersized buffers, but does not allocate device buffers.
++    ggml_backend_sched_reserve_size(ctx.sched.get(), graph, planned.data());
++    size_t gpu = ctx.omni_gpu_weights, host = ctx.omni_host_weights;
++    for (size_t i = 0; i < planned.size(); ++i) {
++        const size_t bytes = std::max(retained[i], planned[i]);
++        if (ggml_backend_buft_is_host(ctx.backend_buft[i])) host = omni_vision_budget_add(host, bytes);
++        else gpu = omni_vision_budget_add(gpu, bytes);
++    }
++    omni_vision_budget_require(gpu, host, ctx.omni_gpu_limit, ctx.omni_host_limit);
++    std::fprintf(stdout, "OMNI_VISION_MEMORY_V1 {\"schema\":\"strata-vision-memory-v1\","
++        "\"scope\":\"explicit_ggml_tensor_buffers\",\"gpu_bytes\":%zu,\"host_bytes\":%zu,"
++        "\"gpu_limit\":%zu,\"host_limit\":%zu,\"phase\":\"before_graph_allocation\"}\n",
++        gpu, host, ctx.omni_gpu_limit, ctx.omni_host_limit);
++    std::fflush(stdout);
++    ggml_backend_sched_reset(ctx.sched.get());
++}
+ 
+ //
+ // clip_graph
+@@ -3624,7 +3679,15 @@
+ 
+             // alloc memory and offload data
+             ggml_backend_buffer_type_t buft = ggml_backend_get_default_buffer_type(ctx_clip.backend);
++            if (ctx_clip.omni_budget_enabled) {
++                const size_t weight_bytes = ggml_backend_alloc_ctx_tensors_from_buft_size(ctx_clip.ctx_data.get(), buft);
++                if (ggml_backend_buft_is_host(buft)) ctx_clip.omni_host_weights = weight_bytes;
++                else ctx_clip.omni_gpu_weights = weight_bytes;
++                omni_vision_budget_require(ctx_clip.omni_gpu_weights, ctx_clip.omni_host_weights,
++                    ctx_clip.omni_gpu_limit, ctx_clip.omni_host_limit);
++            }
+             ctx_clip.buf.reset(ggml_backend_alloc_ctx_tensors_from_buft(ctx_clip.ctx_data.get(), buft));
++            if (!ctx_clip.buf) throw std::runtime_error("vision weight allocation failed");
+             ggml_backend_buffer_set_usage(ctx_clip.buf.get(), GGML_BACKEND_BUFFER_USAGE_WEIGHTS);
+             // read the weight from file
+             if (!ctx_clip.no_alloc) {
+@@ -3788,7 +3851,9 @@
+     // only initialize backend buffers, but do not allocate them yet
+     static support_info_graph reserve_compute_meta(clip_ctx & ctx_clip, const clip_image_f32_batch & batch) {
+         ggml_cgraph * gf = clip_get_graph_builder(&ctx_clip, batch)->build();
+-        ggml_backend_sched_reserve(ctx_clip.sched.get(), gf);
++        omni_vision_check_graph_budget(ctx_clip, gf);
++        if (!ggml_backend_sched_reserve(ctx_clip.sched.get(), gf))
++            throw std::runtime_error("vision graph reserve failed");
+ 
+         ctx_clip.mem_compute.clear();
+         for (size_t i = 0; i < ctx_clip.backend_ptrs.size(); ++i) {
+@@ -4462,6 +4527,7 @@
+     // build the inference graph
+     ggml_backend_sched_reset(ctx->sched.get());
+     ggml_cgraph * gf = clip_get_graph_builder(ctx, imgs, params)->build();
++    omni_vision_check_graph_budget(*ctx, gf);
+     if (!ggml_backend_sched_alloc_graph(ctx->sched.get(), gf)) {
+         LOG_ERR("%s: failed to allocate compute graph\n", __func__);
+         return false;
