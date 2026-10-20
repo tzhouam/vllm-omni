@@ -1,0 +1,148 @@
+{
+  "schema": "strata-observer-cost-v1",
+  "status": "controlled_diagnostic_and_collector_lifecycle_passed",
+  "summary": {
+    "observer-cost-20261020-v1": {
+      "samples": 12,
+      "observed_process_counts": [
+        49
+      ],
+      "median_collection_wall_s": 5.5919934483245015,
+      "median_collection_cpu_s": 5.3125,
+      "errors": 0
+    },
+    "observer-fields-20261020-v1": {
+      "samples": 12,
+      "observed_process_counts": [
+        49
+      ],
+      "median_collection_wall_s": 5.563706748653203,
+      "median_collection_cpu_s": 5.3203125,
+      "errors": 0
+    },
+    "observer-without-threads-20261020-v1": {
+      "samples": 12,
+      "observed_process_counts": [
+        49
+      ],
+      "median_collection_wall_s": 0.12346710101701319,
+      "median_collection_cpu_s": 0.125,
+      "errors": 0
+    },
+    "observer-sidecar-smoke-20261020-v1": {
+      "ended": "2026-10-20T12:58:33.957749+00:00",
+      "samples": 8,
+      "observation_errors": 0,
+      "reason": "bound root process exited",
+      "elapsed_seconds": 8.0
+    }
+  },
+  "archive_sha256": "a84c251b47f2142eefa4b0607b14ef0f888f0a8022ac280a1f9c37d95dcb3e18",
+  "archive_members": {
+    "observer-cost-20261020-v1/completion.json": {
+      "size_bytes": 38,
+      "sha256": "b4250e00ca65c0dd5f50171e14052b4535e1aa210a667c58e02ca7a3ec202216"
+    },
+    "observer-cost-20261020-v1/config.json": {
+      "size_bytes": 667,
+      "sha256": "c8eb7af0a1c99debfe8e202467cd5e411f6574aa66bfc4ec9aaebd497ae5292e"
+    },
+    "observer-cost-20261020-v1/fixture.json": {
+      "size_bytes": 445,
+      "sha256": "682f3c9289a0893bd216a2ed282775e76428743c556bdb9e8caa5210615b095b"
+    },
+    "observer-cost-20261020-v1/samples.jsonl": {
+      "size_bytes": 373024,
+      "sha256": "943c2ef4219dee5e3af3a95ba32dc92aba95dbcf6167a408060473b3b2176e5f"
+    },
+    "observer-fields-20261020-v1/completion.json": {
+      "size_bytes": 38,
+      "sha256": "b4250e00ca65c0dd5f50171e14052b4535e1aa210a667c58e02ca7a3ec202216"
+    },
+    "observer-fields-20261020-v1/config.json": {
+      "size_bytes": 667,
+      "sha256": "89a4ef35e02e4e8885e5e763bf73caa7cfc1ac3c248a9404ac27610b94e747c7"
+    },
+    "observer-fields-20261020-v1/fixture.json": {
+      "size_bytes": 444,
+      "sha256": "3f9225bfad5f995776663e41577a301332feb04ddad37799526cc8568f065572"
+    },
+    "observer-fields-20261020-v1/samples.jsonl": {
+      "size_bytes": 511417,
+      "sha256": "f5479cc1ad7f8109d9c7e43438642c39725c0b2ac6fd4f2a2113f2992a6e217d"
+    },
+    "observer-without-threads-20261020-v1/completion.json": {
+      "size_bytes": 38,
+      "sha256": "b4250e00ca65c0dd5f50171e14052b4535e1aa210a667c58e02ca7a3ec202216"
+    },
+    "observer-without-threads-20261020-v1/config.json": {
+      "size_bytes": 665,
+      "sha256": "773a14fc70761ec150507c91ebc9f7d7d7cf4a76f52c90890e6484dcc3a8bd2f"
+    },
+    "observer-without-threads-20261020-v1/fixture.json": {
+      "size_bytes": 444,
+      "sha256": "da5dcb7a8f273d997e2d5216630899e1dcada60bb60731f628c409127826bf51"
+    },
+    "observer-without-threads-20261020-v1/samples.jsonl": {
+      "size_bytes": 374365,
+      "sha256": "9471ff0ffb48b6ba7bd63559ff53d2809389732b23826f5eef4df5ce7b81847e"
+    },
+    "observer-sidecar-smoke-20261020-v1/completion.json": {
+      "size_bytes": 165,
+      "sha256": "af1ba0f45c5dc84eee40115821f2b3a0916fd1420cd9b0db052f296e69d979f9"
+    },
+    "observer-sidecar-smoke-20261020-v1/fixture.json": {
+      "size_bytes": 443,
+      "sha256": "f1ca25639f9925fa7eba7d78badac9471f8d827d51a4e18fe54d0ba7a55616d6"
+    },
+    "observer-sidecar-smoke-20261020-v1/metadata.json": {
+      "size_bytes": 972,
+      "sha256": "f822c80cf55da1edea03a4bd555a63f087f7ba2a7432db57aec311787de9ff3f"
+    },
+    "observer-sidecar-smoke-20261020-v1/samples.jsonl": {
+      "size_bytes": 265183,
+      "sha256": "11d52a352e6b10aa852999be73c000438103ef61e102efe868d325dbdaa26e51"
+    },
+    "source/diagnose_fields.py": {
+      "size_bytes": 4831,
+      "sha256": "8e9488d6369bfed140dce2af6baeffb19f71bdf350d6ddab592f58e2f64f0411"
+    },
+    "source/diagnose_observer.py": {
+      "size_bytes": 4452,
+      "sha256": "c3124987b9baa5ec906a3a0840daea33400f1411e0b22a7294f21d82c36d84f5"
+    },
+    "source/diagnose_without_threads.py": {
+      "size_bytes": 4563,
+      "sha256": "2c0dba17a789da6e6c26951d4e16a6df4450c4f530415fd5ab51bf10ce1832b6"
+    },
+    "source/run_fields_fixture.py": {
+      "size_bytes": 1840,
+      "sha256": "230556a1288185e4e9759bb4259314e590ee97ba562ac8cc45f1f41b5b1acd56"
+    },
+    "source/run_fixture.py": {
+      "size_bytes": 1812,
+      "sha256": "2f8de29ee5fa333cf23f876ad61c240427e5a8aced4801ab0fb35364357b538f"
+    },
+    "source/run_sidecar_fixture.py": {
+      "size_bytes": 1993,
+      "sha256": "1c9b53f47a22bd5f8aa78c3e41b774ba7207fbd4ba34d2423030a2e8bdcac7b6"
+    },
+    "source/run_without_threads_fixture.py": {
+      "size_bytes": 1849,
+      "sha256": "d52d1ba82cfb59ebd68ea87fd182d47cab60e66d014344abf731dbbf993052bc"
+    },
+    "source/process_profile_sidecar.py": {
+      "size_bytes": 5750,
+      "sha256": "6f561244edf7057f2abbf7c76384f16f7cfc5b81a1890e69128a5f39c86e1c40"
+    }
+  },
+  "change": "Process CPU, RAM and logical I/O remain sampled every cycle; per-process num_threads disabled by default, explicit --include-thread-count enables it",
+  "limitations": [
+    "Synthetic idle process tree, not model or Agent latency",
+    "16 requested child interpreters expand to 49 observed processes including launcher processes",
+    "Diagnostic timing adds CPU-counter overhead; component CPU totals not whole observer process lifetime",
+    "No physical SSD attribution, GPU metrics or cache-hit instrumentation in this sidecar",
+    "Thread count is null when disabled, never interpreted as zero",
+    "Full Agent rerun with this collector remains pending"
+  ]
+}
