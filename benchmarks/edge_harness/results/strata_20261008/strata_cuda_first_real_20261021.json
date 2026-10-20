@@ -1,0 +1,751 @@
+{
+  "schema": "omni-cuda-vision-first-real-v1",
+  "runs": {
+    "1": {
+      "schema": "omni-cuda-vision-real-component-v1",
+      "phase": "failed",
+      "pid": 221860,
+      "created": 1792535158.4133575,
+      "batch_size": 1,
+      "concurrency": 1,
+      "release_qualified": false,
+      "whole_agent_qualified": false,
+      "scope": "Standalone native vision encoder; no language generation or Omni route admission",
+      "reference_receipt_sha256": "b13d60d702a411cd0ce44bc1880a6db50a2cfc4a553d4249fb52ab35620e144b",
+      "verified_artifacts": [
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+          "size_bytes": 10946624,
+          "sha256": "4448186216b3af4cc558bbce2c3213f01608f8f8b2e5267a9767971dd3ec8082",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        },
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf",
+          "size_bytes": 49859583136,
+          "sha256": "3f342f1c1580473f1ee94ddd5b28206e8c07a70fa1a366f59d1d6c922919a6c9",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        },
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00003-of-00004.gguf",
+          "size_bytes": 49376141504,
+          "sha256": "56758f40269cad5cd9b0d3d6fbae0f40f6d5be6de49e4ab392dbe83157d9cbd3",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        },
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00004-of-00004.gguf",
+          "size_bytes": 12087983520,
+          "sha256": "753bda48b98ba4f1636134a90a967de1b2d3908a236c026e464777342e53510a",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        }
+      ],
+      "projector_sha256": "2e788f8c511d8093c7b43cb87b2fd7e14228340318057f8fb20c86df2efe2355",
+      "input.png_sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+      "initial-approval_heading.sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70",
+      "encoder_sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a",
+      "pe_closure": {
+        "schema": "omni-strata-pe-closure-v1",
+        "scope": "recursive_PE_normal_and_delay_imports_live_LoadLibrary_requires_separate_snapshot",
+        "files": [
+          {
+            "path": "cublas64_13.dll",
+            "size_bytes": 54942320,
+            "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+            "normal": [
+              "cublaslt64_13.dll",
+              "kernel32.dll"
+            ],
+            "delay": [],
+            "non_system": [
+              "cublaslt64_13.dll"
+            ],
+            "system": [
+              "kernel32.dll"
+            ]
+          },
+          {
+            "path": "cublasLt64_13.dll",
+            "size_bytes": 492752496,
+            "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+            "normal": [
+              "kernel32.dll"
+            ],
+            "delay": [],
+            "non_system": [],
+            "system": [
+              "kernel32.dll"
+            ]
+          },
+          {
+            "path": "strata-vision.exe",
+            "size_bytes": 59539968,
+            "sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a",
+            "normal": [
+              "advapi32.dll",
+              "cublas64_13.dll",
+              "kernel32.dll"
+            ],
+            "delay": [],
+            "non_system": [
+              "cublas64_13.dll"
+            ],
+            "system": [
+              "advapi32.dll",
+              "kernel32.dll"
+            ]
+          }
+        ],
+        "required_at_load": [
+          "cublas64_13.dll",
+          "cublaslt64_13.dll",
+          "strata-vision.exe"
+        ],
+        "all_dynamic_loads_covered": false,
+        "system_dependencies_pinned": false,
+        "explicit_max_file_bytes": 536870912,
+        "identity_sha256": "ba48dd161c35c995afa3d9802c7438186dff6ebbafa3486f0372fa52248c4188"
+      },
+      "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+      "gpu_pci": "00000000:64:00.0",
+      "standalone_available_before": {
+        "gpu_free": 22728491008,
+        "host_available": 23554641920
+      },
+      "tensor_budgets": {
+        "gpu": 3221225472,
+        "host": 1073741824
+      },
+      "argv": [
+        "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision.exe",
+        "--mmproj",
+        "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+        "--model",
+        "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\UD-Q4_K_XL\\Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+        "--gpu",
+        "--threads",
+        "8",
+        "--max-tokens",
+        "1536",
+        "--flash-attn",
+        "auto"
+      ],
+      "child_pid": 222804,
+      "child_created": 1792535297.5802155,
+      "ready": "READY 2560",
+      "startup_s": 4.032000000122935,
+      "loaded_modules": [
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\cublas64_13.dll",
+          "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9"
+        },
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\cublasLt64_13.dll",
+          "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107"
+        },
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision.exe",
+          "sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a"
+        },
+        {
+          "path": "C:\\Windows\\System32\\advapi32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\apphelp.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\bcryptprimitives.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\cfgmgr32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\combase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\crypt32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\cryptbase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\cryptnet.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\devobj.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvapi64_impl.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvcuda64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvcudart_hybrid64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvdxgdmal64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvobjectloader64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\drvstore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DXCore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\gdi32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\gdi32full.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\imm32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\kernel.appcore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\kernel32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\KernelBase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\msasn1.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\msvcrt.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\ntdll.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\nvapi64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\nvcuda.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\ole32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\oleaut32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\rpcrt4.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\sechost.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\setupapi.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\SHCore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\shell32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\shlwapi.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\user32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\version.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\win32u.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\windows.storage.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\wldp.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        }
+      ],
+      "error": "",
+      "cleanup": "owned Popen killed and waited after failure",
+      "raw_files": {
+        "input.png": {
+          "size_bytes": 59775,
+          "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e"
+        },
+        "resources.jsonl": {
+          "size_bytes": 3364,
+          "sha256": "8432e6e04d043c2818c7bcf63ea7e48b1eaa8d42332b8735030d61cc02301e68"
+        },
+        "stderr.log": {
+          "size_bytes": 378,
+          "sha256": "3b2b0652dca3b09fc1d161fcbbf34203bbdf0e61c2986e22087f30ac4ee0f2a2"
+        },
+        "stdout.log": {
+          "size_bytes": 901,
+          "sha256": "5426d45b0c0f246b7be6076db384f788f9cf10e0865aa4ad3917c07451fd15a0"
+        }
+      },
+      "sidecar_completion": {
+        "ended": "2026-10-20T22:28:22.375977+00:00",
+        "samples": 123,
+        "observation_errors": 0,
+        "reason": "bound root process exited",
+        "elapsed_seconds": 123.03099999995902
+      },
+      "failure_explanation": "Test incorrectly demanded dynamic cudart DLL; actual PE required_at_load is encoder, cublas, cublasLt, all present and hash verified."
+    },
+    "2": {
+      "schema": "omni-cuda-vision-real-component-v1",
+      "phase": "completed",
+      "pid": 221260,
+      "created": 1792535331.9820702,
+      "batch_size": 1,
+      "concurrency": 1,
+      "release_qualified": false,
+      "whole_agent_qualified": false,
+      "scope": "Standalone native vision encoder; no language generation or Omni route admission",
+      "reference_receipt_sha256": "b13d60d702a411cd0ce44bc1880a6db50a2cfc4a553d4249fb52ab35620e144b",
+      "verified_artifacts": [
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+          "size_bytes": 10946624,
+          "sha256": "4448186216b3af4cc558bbce2c3213f01608f8f8b2e5267a9767971dd3ec8082",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        },
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf",
+          "size_bytes": 49859583136,
+          "sha256": "3f342f1c1580473f1ee94ddd5b28206e8c07a70fa1a366f59d1d6c922919a6c9",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        },
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00003-of-00004.gguf",
+          "size_bytes": 49376141504,
+          "sha256": "56758f40269cad5cd9b0d3d6fbae0f40f6d5be6de49e4ab392dbe83157d9cbd3",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        },
+        {
+          "path": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00004-of-00004.gguf",
+          "size_bytes": 12087983520,
+          "sha256": "753bda48b98ba4f1636134a90a967de1b2d3908a236c026e464777342e53510a",
+          "role": "weights",
+          "quantization": "Unsloth UD-Q4_K_XL mixed",
+          "layout": "GGUF"
+        }
+      ],
+      "projector_sha256": "2e788f8c511d8093c7b43cb87b2fd7e14228340318057f8fb20c86df2efe2355",
+      "input.png_sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+      "initial-approval_heading.sve_sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70",
+      "encoder_sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a",
+      "pe_closure": {
+        "schema": "omni-strata-pe-closure-v1",
+        "scope": "recursive_PE_normal_and_delay_imports_live_LoadLibrary_requires_separate_snapshot",
+        "files": [
+          {
+            "path": "cublas64_13.dll",
+            "size_bytes": 54942320,
+            "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9",
+            "normal": [
+              "cublaslt64_13.dll",
+              "kernel32.dll"
+            ],
+            "delay": [],
+            "non_system": [
+              "cublaslt64_13.dll"
+            ],
+            "system": [
+              "kernel32.dll"
+            ]
+          },
+          {
+            "path": "cublasLt64_13.dll",
+            "size_bytes": 492752496,
+            "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107",
+            "normal": [
+              "kernel32.dll"
+            ],
+            "delay": [],
+            "non_system": [],
+            "system": [
+              "kernel32.dll"
+            ]
+          },
+          {
+            "path": "strata-vision.exe",
+            "size_bytes": 59539968,
+            "sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a",
+            "normal": [
+              "advapi32.dll",
+              "cublas64_13.dll",
+              "kernel32.dll"
+            ],
+            "delay": [],
+            "non_system": [
+              "cublas64_13.dll"
+            ],
+            "system": [
+              "advapi32.dll",
+              "kernel32.dll"
+            ]
+          }
+        ],
+        "required_at_load": [
+          "cublas64_13.dll",
+          "cublaslt64_13.dll",
+          "strata-vision.exe"
+        ],
+        "all_dynamic_loads_covered": false,
+        "system_dependencies_pinned": false,
+        "explicit_max_file_bytes": 536870912,
+        "identity_sha256": "ba48dd161c35c995afa3d9802c7438186dff6ebbafa3486f0372fa52248c4188"
+      },
+      "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+      "gpu_pci": "00000000:64:00.0",
+      "standalone_available_before": {
+        "gpu_free": 22725345280,
+        "host_available": 23777144832
+      },
+      "tensor_budgets": {
+        "gpu": 3221225472,
+        "host": 1073741824
+      },
+      "argv": [
+        "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision.exe",
+        "--mmproj",
+        "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\mmproj-BF16.gguf",
+        "--model",
+        "C:\\Users\\zhout\\w2\\strata-omni\\models\\q4\\UD-Q4_K_XL\\Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf",
+        "--gpu",
+        "--threads",
+        "8",
+        "--max-tokens",
+        "1536",
+        "--flash-attn",
+        "auto"
+      ],
+      "child_pid": 219304,
+      "child_created": 1792535480.5586483,
+      "ready": "READY 2560",
+      "startup_s": 3.4530000002123415,
+      "loaded_modules": [
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\cublas64_13.dll",
+          "sha256": "1119dbca0a808e0c8850bb4221e330daf0b5ddb348d62d37b6ac533854723df9"
+        },
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\cublasLt64_13.dll",
+          "sha256": "0f5bc315fef706b5626248ebd74e8a48a9e82fa2f0cad38330f5f70984913107"
+        },
+        {
+          "path": "C:\\Users\\zhout\\w2\\strata-omni\\runtime\\vision-cuda-candidate-v2\\strata-vision.exe",
+          "sha256": "b73826c481b65358363f28c625d4ec726bb3151a3f97630ecb54add21114051a"
+        },
+        {
+          "path": "C:\\Windows\\System32\\advapi32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\bcryptprimitives.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\cfgmgr32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\combase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\crypt32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\cryptbase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\cryptnet.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\devobj.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvapi64_impl.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvcuda64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvcudart_hybrid64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvdxgdmal64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DriverStore\\FileRepository\\nvam.inf_amd64_caf0517026dd1f5b\\nvobjectloader64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\drvstore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\DXCore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\gdi32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\gdi32full.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\imm32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\kernel.appcore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\kernel32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\KernelBase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\msasn1.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\msvcp_win.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\msvcrt.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\ntdll.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\nvapi64.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\nvcuda.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\ole32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\oleaut32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\rpcrt4.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\sechost.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\setupapi.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\SHCore.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\shell32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\shlwapi.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\ucrtbase.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\user32.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\version.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\win32u.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\windows.storage.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        },
+        {
+          "path": "C:\\Windows\\System32\\wldp.dll",
+          "scope": "external_system_or_driver_module_not_bundled"
+        }
+      ],
+      "encode_terminal": "OK 792 33 24 332",
+      "encode_roundtrip_s": 0.32800000021234155,
+      "comparison": {
+        "schema": "omni-sve-comparison-v1",
+        "reference": {
+          "sha256": "8c5fac2f4f8cc5069884a265977550f18ec73d0df043ef610440260d4fa19e70",
+          "size_bytes": 8110100,
+          "shape": [
+            792,
+            33,
+            24,
+            2560
+          ]
+        },
+        "observed": {
+          "sha256": "9c12cf046c8cbd7a69c8e312534223a18eb02521c9abf44d3d942ca45045de2d",
+          "size_bytes": 8110100,
+          "shape": [
+            792,
+            33,
+            24,
+            2560
+          ]
+        },
+        "elements": 2027520,
+        "max_absolute_error": 0.638890580739826,
+        "mean_absolute_error": 0.03000721703205789,
+        "rmse": 0.043346128883370194,
+        "relative_l2": 1.6610748628182386,
+        "cosine_similarity": 0.10812739798858638,
+        "reference_l2": 37.15726034224152,
+        "observed_l2": 53.464262815509414,
+        "exact_tensor_equal": false,
+        "release_qualified": false,
+        "scope": "Tensor diagnostics only; no inherited checkpoint or task quality qualification"
+      },
+      "exit_code": 0,
+      "exact_child_exited": true,
+      "raw_files": {
+        "input.png": {
+          "size_bytes": 59775,
+          "sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e"
+        },
+        "output.sve": {
+          "size_bytes": 8110100,
+          "sha256": "9c12cf046c8cbd7a69c8e312534223a18eb02521c9abf44d3d942ca45045de2d"
+        },
+        "resources.jsonl": {
+          "size_bytes": 4030,
+          "sha256": "1674b33258e4d84f9c44352e778fa67a153dd2eb065594af30eea5cd756946fc"
+        },
+        "stderr.log": {
+          "size_bytes": 378,
+          "sha256": "38c400653b5c7debac3db4c769b6f6c2035672cb7a3eb96988222a6fe010fdfc"
+        },
+        "stdout.log": {
+          "size_bytes": 1144,
+          "sha256": "09228df2c0d8a4255652aaf837273de10f67dd1c493ca480bd290a8ba9cefb80"
+        }
+      },
+      "sidecar_completion": {
+        "ended": "2026-10-20T22:31:26.133781+00:00",
+        "samples": 136,
+        "observation_errors": 0,
+        "reason": "bound root process exited",
+        "elapsed_seconds": 136.10900000017136
+      }
+    }
+  },
+  "archives": {
+    "strata_cuda_first_real_1_20261021_stdout.log.gz": "83d70441eab60700cd4228792fe8a0621214dbaa75f7d0e8dfcc229b1fb1c1ed",
+    "strata_cuda_first_real_1_20261021_stderr.log.gz": "00fd9676a6c795a6ca3b8e15db7c9a771e0fcd8600eb122680ee6ef08090a413",
+    "strata_cuda_first_real_1_20261021_resources.jsonl.gz": "041102362b51f2c83fc452676a1c5e3c4846399898f0bae8c84655a791aa892b",
+    "strata_cuda_first_real_2_20261021_stdout.log.gz": "0bac63485c9b23291d783f9c4c839e2656595bde9f7267432fba6235055ee6e4",
+    "strata_cuda_first_real_2_20261021_stderr.log.gz": "56f81b669a6ce5b30d0b748883e81eb98cf6801b3632f195fc973ac97dca7293",
+    "strata_cuda_first_real_2_20261021_resources.jsonl.gz": "e1d703249d79a8077a38296f1693828b5de86f1a93c436244aa12d0931255ef3"
+  },
+  "qualified": false,
+  "conclusion": "GPU component executes, but numerical comparison fails badly; cannot promote to Agent",
+  "next": "Compare same executable CPU and CUDA flash-attention off to isolate configuration versus CUDA behavior"
+}

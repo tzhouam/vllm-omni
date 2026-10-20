@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **首个真实 CUDA 图像编码完成，但数值对照失败，禁止晋级**：四分片、投影与运行包重新哈希通过；GPU 身份为本机 64:00.0，预热 1521 tokens 后 READY，792×2560 图像嵌入成功输出，启动约 3.45 s、编码往返约 0.328 s（单样本组件值）。与已审计 CPU 参考 relative L2 **1.6611**、cosine **0.1081**，不是可接受的数值等价或 Agent 提速证明。前一尝试因脚本误要求动态 cudart DLL 停止，修正为实际 PE 必需依赖后完成；两次日志与 profiling 保留。下一步核对同二进制 CPU 与 GPU flash-attention off，定位差异。[真实输出、失败及资源证据](results/strata_20261008/strata_cuda_first_real_20261021.json)。
+
 2026-10-21 **Windows CUDA 视觉 v1／v2 构建均 EXIT 0，profiling 已闭合**：v2 包含设备身份、预热失败处理及显式 tensor 预算检查，固定源码／工具／产物与日志哈希保留。CUDA 13.4 cublasLt 约 470 MiB 超过旧 256 MiB PE 上限，扫描器保留默认值并增加最多 1 GiB 的显式参数，非默认上限纳入 closure identity；9 项 PE 测试通过。候选使用显式 512 MiB 扫描，正常／延迟导入闭合通过；动态 cublasLt 等加载仍待真实进程核验。当前只是编译与静态依赖验证，尚无 GPU 图像数值或 Agent 性能结果。[构建、原始日志、profiling 与依赖记录](results/strata_20261008/strata_cuda_vision_builds_20261021.json)。
 
 2026-10-21 **SVE 数值对照工具与 CPU 参考已准备**：新比较器拒绝非法形状／长度、超大小及 NaN／Inf，输出哈希、绝对误差、RMSE、relative L2 和 cosine，不自动授予质量资格。5 项测试通过；既有已审计 CPU 生命周期中的初次／恢复输出均为 792×2560，共 2,027,520 个数值，张量完全一致，原文件哈希与 receipt 匹配。这不是 CUDA 对照结果；待候选构建后使用同输入比较。[工具验证及 CPU 参考](results/strata_20261008/strata_sve_comparator_20261021.json)。
