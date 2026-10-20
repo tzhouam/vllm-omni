@@ -415,12 +415,16 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
         "vision_scratch_bytes",
         "encoder_device",
     }
+    if isinstance(config, dict) and config.get("encoder_device") == "cuda":
+        required.add("cuda_execution")
     if not isinstance(config, dict) or set(config) != required or config["schema"] != "omni-strata-image-route-v1":
         raise ValueError("invalid image route descriptor")
     if config["text_artifact_manifest_sha256"] != artifacts.manifest_sha256:
         raise ValueError("projector route belongs to another text artifact")
     if config["encoder_device"] not in {"cpu", "cuda"}:
         raise ValueError("encoder_device must explicitly be cpu or cuda")
+    if config["encoder_device"] == "cuda" and config["allow_cpu_fallback"] is not False:
+        raise ValueError("CUDA encoder primary CPU fallback is not admitted")
     if type(config["allow_cpu_fallback"]) is not bool:
         raise ValueError("allow_cpu_fallback must be explicit boolean")
     if config["encoder_device"] == "cpu" and config["allow_cpu_fallback"] is not False:
@@ -566,9 +570,7 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
     if numeric["vision_scratch_bytes"] < minimum_scratch:
         raise ValueError("vision scratch budget omits image/SVE files")
     if config["encoder_device"] == "cuda":
-        raise ValueError(
-            "CUDA encoder route disabled pending authoritative physical GPU binding and native warmup admission"
-        )
+        validate_cuda_execution_policy(config["cuda_execution"], numeric)
     identity = {
         "schema": "omni-strata-image-identity-v1",
         "runtime_manifest_sha256": runtime_manifest.manifest_sha256,
@@ -593,6 +595,8 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
         "release_qualified": False,
         "build_proof_scope": "hash_bound_recorded_build_evidence_not_independent_rebuild",
     }
+    if config["encoder_device"] == "cuda":
+        identity["cuda_execution"] = copy.deepcopy(config["cuda_execution"])
     identity["identity_sha256"] = hashlib.sha256(canonical(identity).encode()).hexdigest()
     return {
         "identity": identity,
@@ -605,11 +609,8 @@ def verify_vision_route(config, runtime, runtime_manifest, runtime_files, artifa
     }
 
 
-def bind_cuda_vision_lease(policy, bounds, workspaces, reservation, memory, gpu_index, gpu_pool):
-    """Bind encoder sub-budgets to a fresh GPU probe and the shared lease.
-
-    Called after the text stage's live admission check, before spawning workers.
-    """
+def validate_cuda_execution_policy(policy, bounds):
+    """Validate stable route budgets before probing or spawning a process."""
     keys = {"contract", "gpu_overhead_bytes", "host_overhead_bytes",
             "language_gpu_workspace_bytes", "language_host_workspace_bytes", "flash_attention"}
     if not isinstance(policy, dict) or set(policy) != keys or policy["flash_attention"] not in {"auto", "off"}:
@@ -618,6 +619,22 @@ def bind_cuda_vision_lease(policy, bounds, workspaces, reservation, memory, gpu_
     c = evidence.contract
     for key in keys - {"contract", "flash_attention"}:
         _uint(policy[key], True)
+    if c["max_image_tokens"] != bounds["max_image_tokens"]:
+        raise ValueError("CUDA lease token bound mismatch")
+    preprocessing = max(bounds["max_image_pixels"], 2048 * 2048) * 32
+    preprocessing += 2048 * 2048 * 3 + 2 * bounds["max_image_bytes"]
+    if (bounds["vision_gpu_bytes"] < c["gpu_tensor_bytes"] + policy["gpu_overhead_bytes"]
+            or bounds["vision_host_bytes"] < c["host_tensor_bytes"] + preprocessing + policy["host_overhead_bytes"]):
+        raise ValueError("CUDA route omits tensor or preprocessing/overhead budget")
+    return c
+
+
+def bind_cuda_vision_lease(policy, bounds, workspaces, reservation, memory, gpu_index, gpu_pool):
+    """Bind encoder sub-budgets to a fresh GPU probe and the shared lease.
+
+    Called after the text stage's live admission check, before spawning workers.
+    """
+    c = validate_cuda_execution_policy(policy, bounds)
     _uint(gpu_index)
     if gpu_pool != f"vram:{gpu_index}" and not (gpu_index == 0 and gpu_pool == "vram"):
         raise ValueError("CUDA encoder pool differs from language GPU index")

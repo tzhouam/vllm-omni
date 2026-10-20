@@ -1,0 +1,50 @@
+{
+  "schema": "omni-strata-cuda-config-progress-v1",
+  "tests": {
+    "passed": 212,
+    "skipped": 3,
+    "warnings": 14,
+    "seconds": 37.81
+  },
+  "static_runtime": {
+    "passed": true,
+    "seconds": 172.6203958997503,
+    "identity_sha256": "cd4f3ccac8caad4e6ca3ca327779a9895e19e3560eb53bc4347c42c1c6026bae",
+    "resource_samples": 97,
+    "sampling_scope": "attached after import; initial interval unobserved"
+  },
+  "changes": [
+    "CUDA configuration requires explicit stable execution policy",
+    "Validate tensor limits, host preprocessing, overhead and token bounds before spawning",
+    "Bind policy into route identity and repeat validation with live shared lease",
+    "Disallow implicit primary CPU fallback; CPU route unchanged"
+  ],
+  "remaining": [
+    "Extend CPU-only image registrar for explicit CUDA coexistence claims",
+    "Refresh source context and create registered experimental route",
+    "Real load/cancellation/quality and paired Agent profiling"
+  ],
+  "neural_run": false,
+  "evidence": [
+    {
+      "path": "strata_cuda-route-config-tests-20261021.log.gz",
+      "raw_sha256": "808c848f56273cd355efc26ac2feedfec9bb369d8fe8c47a607c78a512fcaf79"
+    },
+    {
+      "path": "strata_cuda-v3-full-verify-20261021.json.gz",
+      "raw_sha256": "73a318a7ec29c86b53f986f0c7eadd4b562fbebd6b15798b1195d5ccb017537a"
+    },
+    {
+      "path": "strata_cuda-v3-full-verify-20261021.log.gz",
+      "raw_sha256": "859ce9a9abd23964404e03b38418e54ea3fe189953c619d4664bc6e1bbb791d8"
+    },
+    {
+      "path": "strata_cuda-v3-static-verifier-resources-20261021.jsonl.gz",
+      "raw_sha256": "f9eaef93dba09f3e992ecafbc6a6098dcf35ba40b71d843f9e24e35b58cb21c5"
+    },
+    {
+      "path": "strata_profile_cuda_v3_verifier_20261021.py.gz",
+      "raw_sha256": "02ca1950caa55a0eae28382fc34aaea127ac0f9c7d9f16bd6a4d087d4e987313"
+    }
+  ]
+}

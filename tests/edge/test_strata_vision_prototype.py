@@ -918,7 +918,10 @@ def cuda_config(route, host, monkeypatch):
     # Synthetic provenance for budget tests only; real CUDA hashes tested separately.
     monkeypatch.setattr(vision, "REVIEWED_CUDA_ENCODER_SHA256", vision.digest(route[1] / "encoder.exe"))
     monkeypatch.setattr(vision, "REVIEWED_CUDA_VISION_EVIDENCE", dict(vision.REVIEWED_VISION_EVIDENCE))
-    route[0].update(encoder_device="cuda", allow_cpu_fallback=True, vision_gpu_bytes=1 << 20, vision_host_bytes=host)
+    route[0].update(encoder_device="cuda", allow_cpu_fallback=False, vision_gpu_bytes=1 << 20, vision_host_bytes=host,
+        cuda_execution={"contract": cuda_contract() | {"max_image_tokens": 4, "host_tensor_bytes": 1},
+            "gpu_overhead_bytes": 1, "host_overhead_bytes": 1,
+            "language_gpu_workspace_bytes": 1, "language_host_workspace_bytes": 1, "flash_attention": "off"})
     file = route[1] / "build.json"
     build = json.loads(file.read_text())
     build["cmake_options"] = dict(
@@ -935,14 +938,17 @@ def test_cuda_startup_warmup_cannot_borrow_tiny_input_bounds(route, monkeypatch)
         verify_route(route)
 
 
-def test_cuda_fallback_needs_simultaneous_cpu_projector_budget_and_remains_disabled(route, monkeypatch):
+def test_cuda_route_requires_explicit_overhead_and_refuses_primary_cpu_fallback(route, monkeypatch):
     base = 2048 * 2048 * 35 + 2 * route[0]["max_image_bytes"]
-    projector_size = len(b"fixture projector")
-    cuda_config(route, base + projector_size - 1, monkeypatch)
-    with pytest.raises(ValueError, match="simultaneous host"):
+    cuda_config(route, base + 1, monkeypatch)
+    with pytest.raises(ValueError, match="overhead budget"):
         verify_route(route)
     route[0]["vision_host_bytes"] += 1
-    with pytest.raises(ValueError, match="CUDA encoder route disabled"):
+    verified = verify_route(route)
+    assert verified["identity"]["cuda_execution"] == route[0]["cuda_execution"]
+    assert verified["identity"]["release_qualified"] is False
+    route[0]["allow_cpu_fallback"] = True
+    with pytest.raises(ValueError, match="primary CPU fallback"):
         verify_route(route)
 
 
@@ -1759,3 +1765,16 @@ def test_complete_cuda_load_plan_rejects_unverified_execution(loaded_cuda_image_
     if case == "probe": plan["fresh_memory_admission"]["gpu_pci_bus_id"] = "00000000:65:00.0"
     with pytest.raises(RuntimeError, match="image stage load plan"):
         multimodal.validate_strata_multimodal_load_plan(plan, "cpu+cuda:0")
+
+
+@pytest.mark.parametrize("case", ["missing", "unknown", "tokens", "gpu", "host", "attention"])
+def test_cuda_route_policy_is_explicit_and_budgeted(route, monkeypatch, case):
+    cuda_config(route, 1 << 30, monkeypatch)
+    policy = route[0]["cuda_execution"]
+    if case == "missing": route[0].pop("cuda_execution")
+    if case == "unknown": policy["silent_fallback"] = True
+    if case == "tokens": policy["contract"]["max_image_tokens"] = 5
+    if case == "gpu": policy["gpu_overhead_bytes"] = 2 << 30
+    if case == "host": policy["host_overhead_bytes"] = 2 << 30
+    if case == "attention": policy["flash_attention"] = "on"
+    with pytest.raises(ValueError): verify_route(route)
