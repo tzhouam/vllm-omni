@@ -1,0 +1,48 @@
+--- a/tools/vision/strata_vision.cpp
++++ b/tools/vision/strata_vision.cpp
+@@ -188,17 +188,41 @@
+         mtmd_input_text txt{marker.c_str(), marker.size(), false, true};
+         const mtmd_bitmap* bms[1] = {bm};
+         int warm_tokens = 0;
+-        if (bm && mtmd_tokenize(ctx, chunks, &txt, bms, 1) == 0) {
++        int warm_images = 0;
++        bool warm_ok = bm && chunks && mtmd_tokenize(ctx, chunks, &txt, bms, 1) == 0;
++        if (warm_ok) {
+             for (size_t c = 0; c < mtmd_input_chunks_size(chunks); ++c) {
+                 const mtmd_input_chunk* ch = mtmd_input_chunks_get(chunks, c);
+-                if (mtmd_input_chunk_get_type(ch) == MTMD_INPUT_CHUNK_TYPE_IMAGE && mtmd_encode_chunk(ctx, ch) == 0)
+-                    warm_tokens = (int) mtmd_input_chunk_get_n_tokens(ch);
++                if (mtmd_input_chunk_get_type(ch) != MTMD_INPUT_CHUNK_TYPE_IMAGE) continue;
++                ++warm_images;
++                const auto tokens = mtmd_input_chunk_get_n_tokens(ch);
++                if (tokens == 0 || (max_tokens > 0 && tokens > (size_t) max_tokens) ||
++                    mtmd_encode_chunk(ctx, ch) != 0) {
++                    warm_ok = false;
++                    break;
++                }
++                warm_tokens = (int) tokens;
+             }
+         }
++        warm_ok = warm_ok && warm_images == 1 && warm_tokens > 0;
+         std::fprintf(stderr, "strata-vision: warmed up at %d image tokens in %.1f s\n", warm_tokens,
+                      std::chrono::duration<double>(std::chrono::steady_clock::now() - warm_t0).count());
+-        mtmd_input_chunks_free(chunks);
++        if (chunks) mtmd_input_chunks_free(chunks);
+         if (bm) mtmd_bitmap_free(bm);
++        if (!warm_ok) {
++            std::printf("ERR GPU warmup failed or violated the image token bound\n");
++            std::fflush(stdout);
++            mtmd_free(ctx);
++            llama_model_free(text);
++            llama_backend_free();
++            return 1;
++        }
++        std::printf("OMNI_VISION_WARMUP_V1 {\"schema\":\"strata-vision-warmup-v1\","
++                    "\"pixels\":%u,\"image_tokens\":%d,\"max_image_tokens\":%d,"
++                    "\"elapsed_ms\":%.3f,\"status\":\"passed\"}\n",
++                    side * side, warm_tokens, max_tokens,
++                    std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - warm_t0).count());
++        std::fflush(stdout);
+     }
+     if (observation_invalid || observed_backend.empty() || observed_gpu_requested != gpu) {
+         std::printf("ERR encoder backend observation unavailable\n"); std::fflush(stdout); return 1;

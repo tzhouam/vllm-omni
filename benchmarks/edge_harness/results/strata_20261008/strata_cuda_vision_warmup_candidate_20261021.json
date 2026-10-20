@@ -1,0 +1,40 @@
+{
+  "schema": "omni-vision-warmup-candidate-v1",
+  "base_sha256": "455bd8edb1a60e12960542e55116c0f98022cfc70ac604fe14dff59b23300787",
+  "candidate_sha256": "15cb5ccf949e9c99a845d8c2c9a63855a33b693d1842bf3475b4a0c0f546d5c6",
+  "patch_sha256": "4936a6f5cc07510f2c10b0226b7a966b8598ee1bd75bf828d0bb7b10517d92df",
+  "apply_check_exit": 0,
+  "apply_check_stdout": "",
+  "apply_check_stderr": "",
+  "native_compile_verified": false,
+  "neural_execution_verified": false,
+  "production_gate_changed": false,
+  "memory_admission_proven": false,
+  "generation_note": "First attempt stopped on CRLF matching before writing; normalized LF for patch generation.",
+  "windows_msvc_syntax": {
+    "argv": [
+      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+      "/nologo",
+      "/TP",
+      "/Zs",
+      "/EHsc",
+      "/std:c++17",
+      "/DGGML_USE_CPU",
+      "/DGGML_USE_CUDA",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\tools\\mtmd",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\ggml\\include",
+      "/IC:\\Users\\zhout\\w2\\strata-omni\\lv-gpu-v1\\include",
+      "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\cuda-vision-warmup-v2\\strata_vision.cpp"
+    ],
+    "exit_code": 0,
+    "elapsed_s": 0.5929999998770654,
+    "log_sha256": "f35e84b1bca1eb8ed408088de96fdb1c8dd2dd5702906235e901972b4998901c",
+    "scope": "Syntax only, no linking or neural execution"
+  },
+  "remaining": [
+    "Linked Windows CUDA build",
+    "Fault-injection tests for tokenization/encode/zero/multiple-image failures",
+    "GPU warmup budget enforcement and controller event parsing",
+    "Actual SVE numerical comparison and complete request/cancel/recovery"
+  ]
+}
