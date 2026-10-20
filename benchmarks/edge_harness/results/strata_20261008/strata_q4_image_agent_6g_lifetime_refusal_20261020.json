@@ -1,0 +1,200 @@
+{
+  "schema": "omni-strata-agent-partial-functional-lifetime-refusal-v1",
+  "date": "2026-10-20",
+  "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-smoke-6g-20261020-v6-r2",
+  "exit_code": 1,
+  "status": "first_task_passed_second_refused_live_ram",
+  "qualified": false,
+  "receipt_sha256": "6a4ca43e2bf1024741a4d8b24e685f6c6ce0cecbaa9c4d1879dcf8bcf01bb44c",
+  "receipt_archive": "strata_q4_image_agent_6g_lifetime_refusal_20261020.receipt.json.gz",
+  "receipt_archive_sha256": "281e3c2b158fe9f2168c81ba9b04e37525eff26f045b1e33122f82d2e43e3acd",
+  "raw_files": {
+    "all-raw.json": {
+      "size_bytes": 951133,
+      "sha256": "c2fe07127b9473fb99c228d19b65e616529d355f73fa6613ec9381e225470cbd"
+    },
+    "config.json": {
+      "size_bytes": 14770985,
+      "sha256": "7525de6d07c9028a0c0caca81df53ea296e908b9a5d9cb0145bfaa71960f9c56"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392363,
+      "sha256": "c7368df325ff69d41484a2fb9dc088dd4b24fe5465cfa3dd7150d51fdceb294a"
+    },
+    "events.jsonl": {
+      "size_bytes": 287697,
+      "sha256": "789ae7bf0ce5013e751d2ba4ae5cb72ad9e9bca518e81766360c9c4510c2f9db"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "b6cfea1c0a4bb94ff020b149dab09494cfb294bf9ee664fe34b2d7bc990eafe0"
+    },
+    "hardware.json": {
+      "size_bytes": 4703,
+      "sha256": "e1c2a6e50dd587cd37075061a5d39a58073914acf6704b26818f5e43c65527e7"
+    },
+    "image-2.sve": {
+      "size_bytes": 9420820,
+      "sha256": "570f3fb118f83372328239ecac8a3381b88bc13a4654f764501ad1dd0de5b86b"
+    },
+    "loaded-plan.json": {
+      "size_bytes": 300392,
+      "sha256": "41855039da52e51f5ae6ee161b7d488a309728a70625a2d6f6aca7c3ad97982f"
+    },
+    "memory.sqlite": {
+      "size_bytes": 626688,
+      "sha256": "15068baa905ffb521c3627facd432af5efab711063df4ba86c7310913cf50921"
+    },
+    "model-image-2.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "profile-protocol.json": {
+      "size_bytes": 641,
+      "sha256": "2efc5b7f83a9fd5fd6d50c04f9260fdfc7dede575fa08feadc453a59d4ad9efb"
+    },
+    "profile-samples.json": {
+      "size_bytes": 1845,
+      "sha256": "61b86ba05d1575c65bea5e4a980b9fd63c17a0ae79cc1552b75284c0ecf63569"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 374,
+      "sha256": "a8c15b1414a491ee4ac4471f7611eec02e6ede44c8627b8f8c967cd05bf52eb2"
+    },
+    "sample-0000-browser.jpg": {
+      "size_bytes": 56151,
+      "sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5"
+    },
+    "sample-0000-controller.png": {
+      "size_bytes": 161034,
+      "sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4"
+    },
+    "sample-0000-image-witness.json": {
+      "size_bytes": 584,
+      "sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 19051143,
+      "sha256": "448d648b5cdb0b05f90bba0fcefc2e9e1b1a31f8549e0373b0dd7f5d7f116fb2"
+    }
+  },
+  "samples": [
+    {
+      "phase": "smoke",
+      "length": "short",
+      "ordinal": 0,
+      "index": 0,
+      "status": "passed",
+      "memory_events_cleared": 0,
+      "prompt_sha256": "522cf2abb0576d10ef0a511d31e814dafeb74dd9353bfbff7c5e868db6f4cfff",
+      "prompt_utf8_bytes": 284,
+      "event_start": 0,
+      "call_start": 0,
+      "request_started_monotonic_s": 2942014.5197786,
+      "request_finished_monotonic_s": 2942110.4778372,
+      "whole_agent_task_s_excludes_load": 95.9580585998483,
+      "answer": "Actions requiring your approval",
+      "usage": [
+        {
+          "prompt_tokens": 359,
+          "completion_tokens": 30,
+          "total_tokens": 389,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        {
+          "prompt_tokens": 1531,
+          "completion_tokens": 5,
+          "total_tokens": 1536,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        }
+      ],
+      "first_visible_output_s": 91.18963959999382,
+      "event_end": 13,
+      "call_end": 2,
+      "request_id": "ac2017e34b444d6da63c36219c57fbfe",
+      "epoch": 1,
+      "last_native_sequence": 2,
+      "model_first_token_s": [
+        17.22288849996403,
+        52.25875379983336
+      ],
+      "witness_file": "sample-0000-image-witness.json"
+    },
+    {
+      "phase": "smoke",
+      "length": "short",
+      "ordinal": 1,
+      "index": 1,
+      "status": "failed",
+      "memory_events_cleared": 13,
+      "prompt_sha256": "522cf2abb0576d10ef0a511d31e814dafeb74dd9353bfbff7c5e868db6f4cfff",
+      "prompt_utf8_bytes": 284,
+      "event_start": 13,
+      "call_start": 2,
+      "request_started_monotonic_s": 2942110.507403,
+      "request_finished_monotonic_s": 2942110.5203651,
+      "whole_agent_task_s_excludes_load": 0.012962100096046925,
+      "error": "RuntimeError: Agent turn is repeated, incomplete or has an unexpected terminal",
+      "event_end": 15,
+      "call_end": 2
+    }
+  ],
+  "refusal_events": [
+    {
+      "session_id": "1535cca6f98d4255b752ec1cf20a1142",
+      "request_id": "b5c9e2deebda44fc843c2142db8387a6",
+      "epoch": 2,
+      "seq": 2,
+      "kind": "refusal",
+      "payload": {
+        "task_class": "browser_vision",
+        "reasons": {
+          "unsloth-q4-6g-image-execution-e39-v6-experimental": "host_ram: joint lifetime live free 655929344 bytes fell below declared reservation floor 2080710656 bytes; drain and re-admit explicitly"
+        },
+        "power_condition": "AC",
+        "initial_power_condition": "AC",
+        "message": "No admitted, qualified complete route for this task and current power condition"
+      },
+      "at_unix": 1792487329.8125153,
+      "_profile_received_monotonic_s": 2942110.5199699
+    }
+  ],
+  "cold_load_and_verification_s": 931.1690190997906,
+  "closed_checks": {
+    "resource_drain_verified": true,
+    "source_stable": true,
+    "prerequisites_stable": true,
+    "output_writers_quiesced": true,
+    "exact_role_retirement": {
+      "encoder": "retired",
+      "language": "retired"
+    },
+    "fixture_server_stopped": true
+  },
+  "ledger_reserved_after_close": {
+    "host_ram": 0,
+    "vram": 0,
+    "windows_commit": 0,
+    "ssd": 0
+  },
+  "telemetry_sampled": {
+    "max_process_tree_rss_sum_bytes": 14882308096,
+    "min_host_available_ram_bytes": 533315584,
+    "physical_ssd_read_bytes": null,
+    "limitations": [
+      "RSS may double count shared pages",
+      "WDDM nonlocal memory overlaps host RAM; no additive peak estimate",
+      "Shared GPU counters alone do not prove implicit paging",
+      "No exclusive cause attribution for host memory pressure"
+    ]
+  },
+  "scope": "One actual browser screenshot task passed; four-round protocol failed. No p95, stability, default, or three-tier-memory qualification."
+}

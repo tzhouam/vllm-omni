@@ -1,5 +1,7 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-20 **当前源码下首条 6 GiB Q4 图像 Agent 任务通过；第二条被运行期 RAM 余量保护拒绝，四轮协议未通过**：[闭合失败记录与 18 个已复核文件哈希](../edge_harness/results/strata_20261008/strata_q4_image_agent_6g_lifetime_refusal_20261020.json)。完整 browser→截图→模型回答耗时 **95.958 s**，加载及校验 **931.169 s**；第二条在模型调用前因 live free 655,929,344 B 低于保留余量 2,080,710,656 B 被拒。模型／编码器退出、浏览器绑定集合释放、账本清零、源码／前置记录稳定通过。不是输出重复或模型错误；通用 runner 错误文本应与原始 `refusal` 事件一起读取。仅一条任务，不报告 p95 或授予稳定性、默认路线、三层内存资格。另发现 WSL 有约 12 GiB 可重建文件缓存，已在本次模型退出后回收；其后重试须单列缓存条件，不能做配对性能收益结论。
+
 2026-10-20 **定位并修正浏览器安装版本漂移造成的启动拒绝**：[失败回执与新声明](../edge_harness/results/strata_20261008/strata_browser_update_rebind_20261020.json)。Edge 从 `155.0.4283.45` 更新至 `155.0.4283.62`，旧声明在控制器构建时正确拒绝 `declared CDP image file size differs`，本次 0 条 Agent 任务、未加载模型。新配置绑定当前 Microsoft 签名文件的大小／SHA256 与精确辅助程序路径，保留原有资源预算、CDP 类型及无进程终止权限边界；命名文件校验通过，实跑重试尚未闭合，不能视为浏览器生命周期或模型通过。
 
 2026-10-20 **释放内存后的 10 月 14 日重试未形成终态证据，不能计为通过**：[原始未闭合回执及文件哈希](../edge_harness/results/strata_20261008/strata_q4_image_agent_6g_interrupted_20261020.json)。最后阶段为 `loading_actual_image_stage`，遥测止于 10 月 14 日 18:03（北京时间）；10 月 20 日检查未发现对应 runner 或 Strata 进程。退出码、终止原因及有序资源释放均未知，不将其归类为模型失败或准入拒绝。用户已授权关闭普通应用释放内存；新的同配置独立重试使用 `q4-image-profile-smoke-6g-20261020-v6`，结果待闭合，不授予性能或默认资格。
