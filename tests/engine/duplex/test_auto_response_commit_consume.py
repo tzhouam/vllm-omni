@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import base64
 import struct
-from types import SimpleNamespace
+from types import MethodType, SimpleNamespace
 
 import pytest
 
@@ -44,15 +44,15 @@ class _Buffer:
         self._payloads = list(payloads)
         self._index = 0
 
-    def prepare_commit_prefix(self, *, operation_id: str, chunk_period_ms: int) -> None:
-        # These PCM-only commits each contain a single terminal payload.
-        return None
-
     def prepare_commit(self, *, operation_id: str, chunk_period_ms: int) -> _Reservation:
         del chunk_period_ms
         payload = self._payloads[self._index]
         self._index += 1
         return _Reservation(payload, operation_id)
+
+    def prepare_commit_prefix(self, *, operation_id: str, chunk_period_ms: int) -> None:
+        del operation_id, chunk_period_ms
+        return None
 
 
 class _Model:
@@ -125,13 +125,21 @@ async def test_auto_response_commit_consumes_retained_pcm(
         )
         return await attempt._submit()
 
-    runner = object.__new__(DuplexSessionRunner)
-    monkeypatch.setattr(runner, "session", session, raising=False)
-    monkeypatch.setattr(runner, "model_state", state, raising=False)
-    monkeypatch.setattr(runner, "emit", lambda payload: None)
-    monkeypatch.setattr(runner, "_start_append", start_append)
+    runner = SimpleNamespace(
+        session=session,
+        model_state=state,
+        emit=lambda payload: None,
+        _start_append=start_append,
+    )
+    for name in (
+        "_reserve_commit_prefixes",
+        "_rollback_commit_reservations",
+        "_hold_commit_prefixes",
+        "_submit_held_commit_prefixes",
+    ):
+        setattr(runner, name, MethodType(getattr(DuplexSessionRunner, name), runner))
     for item_id in item_ids:
-        await runner._commit_and_start_auto_response({}, realtime_item_id=item_id)
+        await DuplexSessionRunner._commit_and_start_auto_response(runner, {}, realtime_item_id=item_id)
 
     assert [_samples(audio) for audio in model.submitted] == [[1.0], [2.0]]
     assert state.committed_audio_payload is None

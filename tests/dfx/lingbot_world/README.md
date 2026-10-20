@@ -8,9 +8,8 @@ gate logic separately and are not model performance evidence.
 The initial production baseline is pinned to
 `48cebe5a248d4b0160f20c7fc18b5d1c46883872` for both CUDA and NPU. It contains the
 accepted main implementation and the NPU offload fix; its `vllm_omni` tree is
-`467d4cea37b5667d5ede38286c4072f0f0848133`. The candidate retains the same
-LingBot model and AR-Diffusion implementation while incorporating newer accepted
-main changes elsewhere. This reference was refreshed for vLLM 0.32.0 on
+`467d4cea37b5667d5ede38286c4072f0f0848133`. The candidate incorporates newer accepted main changes and is checked against
+this frozen reference. Its LingBot model and deployment configuration are unchanged. This reference was refreshed for vLLM 0.32.0 on
 2026-10-20. The pin includes
 Omni `v0.32.0rc1` at `da572cddb38383deae9caef33b8d490e292ef071`
 and the NPU offload fix, plus the compiler-context fix required by PyTorch 2.13.
