@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **数值二分指向预算候选破坏 GPU 图语义，候选不得使用**：同一 v2 二进制 CPU auto 与参考逐字节一致；CPU off 的 relative L2 为 0.0249。v2 GPU off 在明确提高到 GPU 8 GiB／host 4 GiB 后仍为 1.6547，而未加入预算补丁的 v1 GPU auto 为 0.06888、cosine 0.99763。固定 ggml split_graph 会把 node->src 改写为跨后端副本；新检查在同图上重复 split/reset 是主要嫌疑，CPU 单后端测试未覆盖此行为。下一步在现有 scheduler 分配边界内检查预算，避免额外拆图；保留现有生产 CPU 路线，所有 GPU 候选仍未资格通过。[三组原始对照、预算失败与 profiling](results/strata_20261008/strata_cuda_numeric_bisect_20261021.json)。
+
 2026-10-21 **首个真实 CUDA 图像编码完成，但数值对照失败，禁止晋级**：四分片、投影与运行包重新哈希通过；GPU 身份为本机 64:00.0，预热 1521 tokens 后 READY，792×2560 图像嵌入成功输出，启动约 3.45 s、编码往返约 0.328 s（单样本组件值）。与已审计 CPU 参考 relative L2 **1.6611**、cosine **0.1081**，不是可接受的数值等价或 Agent 提速证明。前一尝试因脚本误要求动态 cudart DLL 停止，修正为实际 PE 必需依赖后完成；两次日志与 profiling 保留。下一步核对同二进制 CPU 与 GPU flash-attention off，定位差异。[真实输出、失败及资源证据](results/strata_20261008/strata_cuda_first_real_20261021.json)。
 
 2026-10-21 **Windows CUDA 视觉 v1／v2 构建均 EXIT 0，profiling 已闭合**：v2 包含设备身份、预热失败处理及显式 tensor 预算检查，固定源码／工具／产物与日志哈希保留。CUDA 13.4 cublasLt 约 470 MiB 超过旧 256 MiB PE 上限，扫描器保留默认值并增加最多 1 GiB 的显式参数，非默认上限纳入 closure identity；9 项 PE 测试通过。候选使用显式 512 MiB 扫描，正常／延迟导入闭合通过；动态 cublasLt 等加载仍待真实进程核验。当前只是编译与静态依赖验证，尚无 GPU 图像数值或 Agent 性能结果。[构建、原始日志、profiling 与依赖记录](results/strata_20261008/strata_cuda_vision_builds_20261021.json)。
