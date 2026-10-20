@@ -1,5 +1,9 @@
 # Native Windows Omni edge Agent — rolling status (2026-10-10)
 
+2026-10-20 **定位并修正浏览器安装版本漂移造成的启动拒绝**：[失败回执与新声明](../edge_harness/results/strata_20261008/strata_browser_update_rebind_20261020.json)。Edge 从 `155.0.4283.45` 更新至 `155.0.4283.62`，旧声明在控制器构建时正确拒绝 `declared CDP image file size differs`，本次 0 条 Agent 任务、未加载模型。新配置绑定当前 Microsoft 签名文件的大小／SHA256 与精确辅助程序路径，保留原有资源预算、CDP 类型及无进程终止权限边界；命名文件校验通过，实跑重试尚未闭合，不能视为浏览器生命周期或模型通过。
+
+2026-10-20 **释放内存后的 10 月 14 日重试未形成终态证据，不能计为通过**：[原始未闭合回执及文件哈希](../edge_harness/results/strata_20261008/strata_q4_image_agent_6g_interrupted_20261020.json)。最后阶段为 `loading_actual_image_stage`，遥测止于 10 月 14 日 18:03（北京时间）；10 月 20 日检查未发现对应 runner 或 Strata 进程。退出码、终止原因及有序资源释放均未知，不将其归类为模型失败或准入拒绝。用户已授权关闭普通应用释放内存；新的同配置独立重试使用 `q4-image-profile-smoke-6g-20261020-v6`，结果待闭合，不授予性能或默认资格。
+
 2026-10-14 **6 GiB 驻留 Agent smoke 也被实时联合 RAM 准入拒绝，0 条完整任务**：[原始失败回执与哈希](../edge_harness/results/strata_20261008/strata_q4_image_agent_6g_capacity_refusal_20261014.json)。联合需求 22,624,075,776 B，可用 18,999,222,272 B；安全退出、账本清零及源码／前置证据稳定性通过。独立 6 GiB 图像生命周期通过不变。未发现残留 Strata 模型进程；未关闭其他应用或 JiuwenCopilot 服务。保持固定路线，等待释放约 5 GiB RAM 或用户指定可关闭应用后重试；尚未开始正式性能长测。
 
 2026-10-14 **e39-v6 6 GiB 图像生命周期与离线复核 EXIT 0**：[原始回执及完整哈希索引](../edge_harness/results/strata_20261008/strata_q4_image_6g_v6_lifecycle_closed_20261014.json)。三条指定请求参考检查通过，完整响应 40.898／44.016／42.800 s；编码阶段取消、重新加载恢复、原生进程退场、账本清零及源码／输入稳定性通过。原生 RAM arena 报告 6141 MiB，GPU 专家缓存 7676 MiB，仅证明对应组件预算一致性，非总进程硬上限。四轮驻留 Agent smoke 已启动，尚无完成或性能资格结论。

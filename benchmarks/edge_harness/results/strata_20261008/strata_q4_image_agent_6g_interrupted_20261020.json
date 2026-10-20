@@ -1,0 +1,91 @@
+{
+  "schema": "omni-strata-incomplete-run-observation-v1",
+  "observed_at": "2026-10-20T08:43:31.664076+00:00",
+  "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-smoke-6g-20261014-v6-r2",
+  "status": "incomplete_no_live_runner_observed",
+  "last_recorded_phase": "loading_actual_image_stage",
+  "exit_code": null,
+  "termination_cause": "unknown",
+  "qualified": false,
+  "completed_agent_tasks_proven": 0,
+  "cleanup_verified": false,
+  "observation": "Win32_Process inventory on 2026-10-20 found no matching image profile runner or Strata native process before retry. No terminal receipt or loaded plan exists. Process absence does not prove ordered cleanup.",
+  "receipt_sha256": "a445040fee59758f33032c6266acad31ccea21865bfb43d7d158ca20f589ad38",
+  "receipt_archive": "strata_q4_image_agent_6g_interrupted_20261020.receipt.json.gz",
+  "receipt_archive_sha256": "5862ddf8d94669baa9cc535d801b870481d821ae9addb3e76c48896441160c99",
+  "raw_files": {
+    "config.json": {
+      "size_bytes": 14771003,
+      "sha256": "b605b089a8731479516d93da27b3f3596241f2c487da223d6d0e076973bfceac"
+    },
+    "effective-launch.json": {
+      "size_bytes": 13392363,
+      "sha256": "c7368df325ff69d41484a2fb9dc088dd4b24fe5465cfa3dd7150d51fdceb294a"
+    },
+    "fixture.html": {
+      "size_bytes": 79963,
+      "sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    "fixture.json": {
+      "size_bytes": 317,
+      "sha256": "bdd219f7ec22a09a334a8bc91efe00f33206986c5bbcced76b6d971ce338d048"
+    },
+    "hardware.json": {
+      "size_bytes": 4703,
+      "sha256": "e86b8f3831f5a1ef35cdecedb33d9d99ca9d866dbb0a83b578a69df151127c36"
+    },
+    "memory.sqlite": {
+      "size_bytes": 77824,
+      "sha256": "8fb877e33798cb4c25e4da94326744c554eef8232703740e6c98658324572eb0"
+    },
+    "receipt.json": {
+      "size_bytes": 333535,
+      "sha256": "a445040fee59758f33032c6266acad31ccea21865bfb43d7d158ca20f589ad38"
+    },
+    "runner-phases.jsonl": {
+      "size_bytes": 149,
+      "sha256": "4a6abae8837110afbded85bd2257f310fd15f7a3713590ec5ea914478d80de06"
+    },
+    "telemetry.jsonl": {
+      "size_bytes": 3909960,
+      "sha256": "d79ac86599cdd7d916c24661497d638b87be95b0457729542502225dfa89b1ce"
+    }
+  },
+  "last_telemetry": {
+    "unix": 1791972207.4129436,
+    "host": {
+      "total_ram_bytes": 67773509632,
+      "available_ram_bytes": 26551009280,
+      "used_ram_bytes": 41222500352,
+      "process_tree_rss_sum_bytes": 1559572480,
+      "system_disk_read_bytes": 53711631714304,
+      "swap_used_bytes": 1953337344
+    },
+    "gpus": [
+      {
+        "uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+        "name": "NVIDIA GeForce RTX 5090 Laptop GPU",
+        "used_vram_bytes": 3889582080,
+        "total_vram_bytes": 25651314688,
+        "power_mw": 31232,
+        "temperature_c": 58
+      }
+    ],
+    "process_gpu": {
+      "schema": "omni-windows-process-gpu-memory-v1",
+      "status": "unknown",
+      "reason": "ValueError: native owner identity is not yet available; loading peak is not observed",
+      "unix_s": 1791972207.4834652,
+      "owner_identity": null,
+      "local_current_usage_bytes": null,
+      "nonlocal_current_usage_bytes": null,
+      "local_budget_bytes": null,
+      "nonlocal_budget_bytes": null,
+      "scope": "sampled WDDM process accounting; nonlocal memory shares host RAM",
+      "hard_cap_verified": false
+    },
+    "bound_browser_companion_memory": null,
+    "browser_process_memory_scope": "separate_browser_only_bound_set_not_added_to_agent_model"
+  },
+  "interpretation": "Not a model correctness failure, not a successful run, and not a closed memory admission refusal. Preserve original files; retry uses a separate directory."
+}

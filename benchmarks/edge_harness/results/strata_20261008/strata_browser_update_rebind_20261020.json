@@ -1,0 +1,78 @@
+{
+  "schema": "omni-strata-browser-installation-rebind-v1",
+  "date": "2026-10-20",
+  "status": "named_installation_verified_live_agent_retry_pending",
+  "qualified": false,
+  "failed_attempt": {
+    "source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-smoke-6g-20261020-v6",
+    "exit_code": 1,
+    "phase": "failed",
+    "error": "ValueError: declared CDP image file size differs",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\image-profile-v3\\run_image_profile.py\", line 667, in run\n    controller, hardware = build_controller(out / \"config.json\",\n                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\edge\\agent\\native_app.py\", line 576, in build_controller\n    companion = _browser_companion_from_config(\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\edge\\agent\\native_app.py\", line 542, in _browser_companion_from_config\n    capability = resolve_cdp_observed_helper_capability(\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\edge\\windows_cdp_helper.py\", line 168, in resolve_cdp_observed_helper_capability\n    capability.verify_named_artifacts()\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\edge\\windows_cdp_helper.py\", line 128, in verify_named_artifacts\n    _verify_named_image(self.browser_image_path, self.browser_size_bytes, self.browser_sha256)\n  File \"\\\\wsl.localhost\\Ubuntu\\home\\zhout\\project\\edge_infer\\vllm-omni-edge\\vllm_omni\\edge\\windows_cdp_helper.py\", line 44, in _verify_named_image\n    raise ValueError(\"declared CDP image file size differs\")\nValueError: declared CDP image file size differs\n",
+    "completed_agent_tasks": 0,
+    "controller_close_attempted": false,
+    "resource_drain_verified": false,
+    "interpretation": "Controller construction refused changed browser installation before model startup. No model quality result. Do not reinterpret absent cleanup receipt as verified drain.",
+    "receipt_sha256": "95af2e0e8122bdc8744c290f22ac0a73dba7be28660a8598f9d447b8f7c01681",
+    "receipt_archive": "strata_browser_update_rebind_20261020.receipt.json.gz",
+    "receipt_archive_sha256": "2203654ba85f975e3ae834326924f711f97e4c947faa5d75ce9496fe75573095"
+  },
+  "rebind": {
+    "browser_version": "155.0.4283.62",
+    "old_browser_version": "155.0.4283.45",
+    "config_sha256": "b2902f3f98f83899d21b86219ff73cc2c773f406d4e62478e86744cd7f509513",
+    "declaration_sha256": "8bf266bc0139169502927b25315f4fe58796df9e7d6a3d7b8f4688750e0eda9d",
+    "capability": {
+      "schema": "omni-cdp-observed-helper-capability-v1",
+      "browser_image_path": "c:\\program files (x86)\\microsoft\\edge\\application\\msedge.exe",
+      "browser_size_bytes": 5438320,
+      "browser_sha256": "c2451a012ff88e82449834de5b526ebb42b5a3fc25958d795910d2b172c975b6",
+      "helper_image_path": "c:\\program files (x86)\\microsoft\\edge\\application\\155.0.4283.62\\identity_helper.exe",
+      "helper_size_bytes": 2587504,
+      "helper_sha256": "992b15b6d3c0f3e8e215deef76e47d551e7e8faa21236fead965e8bec0eb00e9",
+      "cdp_process_type": "winrt_app_id.mojom.WinrtAppIdService",
+      "declaration_sha256": "8bf266bc0139169502927b25315f4fe58796df9e7d6a3d7b8f4688750e0eda9d",
+      "capability_sha256": "0de9c04354660fddbcbea9392a2cb95e1cfe5cfa2089ed7e22b895f13bfec66e",
+      "scope": "declared_CDP_observed_helper_same_retained_process_object",
+      "named_file_hash_is_not_loaded_image_attestation": true,
+      "ancestry_verified": false,
+      "exclusive_ownership_verified": false,
+      "termination_authority": false,
+      "retirement_required": true
+    },
+    "named_files_verified": true,
+    "live_browser_validation": false,
+    "unchanged_resource_and_gpu_declarations": true
+  },
+  "browser_config": {
+    "browser_native_gpu_accounting": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\prototypes\\strata-browser-model-diagnostic-resources-v2\\native-gpu-accounting.json",
+      "sha256": "dc0f5ec5841d3907cac990a8933530a1ddfc5000617c2ccde98c5d0e2f2c8b73"
+    },
+    "browser_resource_envelope": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-8g-20261013-v5\\browser-resource-envelope.json",
+      "sha256": "c3f80f2d8d7d97b1c06964a3a4f5da27c8153cbb19f95f37cec1affb5962bcf4"
+    },
+    "browser_cdp_helper": {
+      "path": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-agent-input-20261020-v6\\helper-declaration.json",
+      "sha256": "8bf266bc0139169502927b25315f4fe58796df9e7d6a3d7b8f4688750e0eda9d"
+    }
+  },
+  "helper_declaration": {
+    "schema": "omni-cdp-observed-helper-capability-v1",
+    "browser_image_path": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+    "browser_size_bytes": 5438320,
+    "browser_sha256": "c2451a012ff88e82449834de5b526ebb42b5a3fc25958d795910d2b172c975b6",
+    "helper_image_path": "C:/Program Files (x86)/Microsoft/Edge/Application/155.0.4283.62/identity_helper.exe",
+    "helper_size_bytes": 2587504,
+    "helper_sha256": "992b15b6d3c0f3e8e215deef76e47d551e7e8faa21236fead965e8bec0eb00e9",
+    "cdp_process_type": "winrt_app_id.mojom.WinrtAppIdService"
+  },
+  "authenticode_observation": {
+    "browser_status": "Valid",
+    "helper_status": "Valid",
+    "signer": "Microsoft Corporation",
+    "scope": "Get-AuthenticodeSignature on named files; not loaded-image attestation"
+  },
+  "retry_source_run": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-image-profile-smoke-6g-20261020-v6-r2"
+}
