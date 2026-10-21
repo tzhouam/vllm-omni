@@ -1,0 +1,23 @@
+{
+  "status": "captured_cuda_terminal_replay_passed",
+  "duplicate_rejected": true,
+  "qualification_created": false,
+  "source_sha256": "c537203103a4234a26de1ea5f98640e6bbccca96aa0d67ba44ae69214bb4ceed",
+  "captured_receipt_sha256": "39f7bddfbd8b7549f2ed312b135b12deb320888419be24133e62a0e77672dbac",
+  "raw_request_sha256": "020fc72121374fc18c94418d0216e2a6f61e9e9c5c3ee174f2d80f8c3ef03278",
+  "scope": "Offline validation of one previously captured correct CUDA request. Original failed lifecycle remains failed; fresh lifecycle still required.",
+  "evidence": [
+    {
+      "path": "strata_cuda-terminal-offline-replay-20261021.json.gz",
+      "raw_sha256": "9a2361388f402e31c3ff1226f2636569ff61aec9dcd3bdec93c96267e1d82a11"
+    },
+    {
+      "path": "strata_cuda-terminal-offline-replay-20261021.log.gz",
+      "raw_sha256": "e6fc94514ac5458bfdea3a626b776d936c80fa7ddc176a710227c98c1486cd6a"
+    },
+    {
+      "path": "strata_replay_cuda_terminal_fix_20261021.py.gz",
+      "raw_sha256": "c7bf99aedc66e7126edfa88f434d4aeb2c3a7ad0f4341e4755a8f12ec800c4af"
+    }
+  ]
+}
