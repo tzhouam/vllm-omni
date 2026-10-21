@@ -140,5 +140,8 @@
       }
     }
   ],
-  "scope": "Analysis of closed historical runs; current CUDA full run remains incomplete. Historical CPU placement is not paired with current CUDA placement; no speedup or new qualification claimed."
+  "scope": "Analysis of closed historical runs; current CUDA full run remains incomplete. Historical CPU placement is not paired with current CUDA placement; no speedup or new qualification claimed.",
+  "script_raw_archive": "analyze_audited_agent_phases_20261021.py.gz",
+  "script_sha256_scope": "Exact uncompressed Windows source bytes retained in .py.gz; Git text checkout may normalize line endings.",
+  "script_git_lf_sha256": "b005bfb7a5fac4ae90110975b11400463128ed003c1fef9febd731101bd714fc"
 }
