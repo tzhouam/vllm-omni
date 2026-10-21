@@ -1,0 +1,39 @@
+{
+  "schema": "omni-strata-cuda-image-registration-completed-v1",
+  "status": "registered_experimental_image_not_executed",
+  "launch_sha256": "00a200964ed2228bd87f7c5b351cb0d3def6d0886cbf16493fdefcb858a4015d",
+  "registration_native_model_executed": false,
+  "qualification_created": false,
+  "profiling": {
+    "samples": 829,
+    "sampled_wall_seconds": 937.7824709415436,
+    "sampled_process_tree_rss_peak_bytes": 1207414784,
+    "system_available_ram_min_bytes": 21282488320,
+    "logical_read_delta_bytes": 129490265786,
+    "cpu_seconds_delta": 548.921875,
+    "scope": "Registration only; starts after imports. Logical reads are not physical SSD traffic."
+  },
+  "evidence": [
+    {
+      "path": "strata_cuda_registered_image_cuda-v3-image-registration-resources-20261021.jsonl.gz",
+      "raw_sha256": "c5ebd622f2452352aa7860c672e1a9ec6fb68df29023f9bab6198a77c900d030"
+    },
+    {
+      "path": "strata_cuda_registered_image_attempt.json.gz",
+      "raw_sha256": "20104e38f0a0f62047948056d7e2e3d4dcbb3be58e081c782d5478bf5cc5764a"
+    },
+    {
+      "path": "strata_cuda_registered_image_cuda-v3-image-registration-20261021.log.gz",
+      "raw_sha256": "fe83400217bde6558d8fef4b31ccc58332a736f71dbb41091432e20140c5ecdb"
+    },
+    {
+      "path": "strata_cuda_registered_image_freeze.json.gz",
+      "raw_sha256": "768fbeb8716ae3b0a97856d0e9dfb05abb8207f9cb7cf15e0c6bd15632c7605a"
+    }
+  ],
+  "next": {
+    "step": "real CUDA image lifecycle",
+    "status": "started; outcome pending",
+    "raw_directory": "C:\\Users\\zhout\\w2\\strata-omni\\runs\\q4-cuda-v3-lifecycle-20261021"
+  }
+}
