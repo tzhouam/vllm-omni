@@ -1,0 +1,26 @@
+{
+  "schema": "omni-strata-cuda-lifecycle-resource-summary-v1",
+  "source_archive": "strata_cuda_lifecycle_pass_telemetry.jsonl.gz",
+  "source_raw_sha256": "2f7fa8a6fab97bf2d893de62236cde7db2396306efc8766324b99cb92ef1f3d6",
+  "sample_count": 14495,
+  "request_edge_records": 9,
+  "sampled_span_s": 1857.6444244384766,
+  "max_observed_sample_gap_s": 2.8585941791534424,
+  "system_available_ram_min_bytes": 9291812864,
+  "process_tree_rss_sum_peak_bytes": 13135273984,
+  "gpu_global_used_vram_peak_bytes": 21328486400,
+  "gpu_power_peak_mw": 87245,
+  "gpu_temperature_peak_c": 71,
+  "gpu_uuid": "GPU-bf6e910e-657c-15d7-c558-f169df134d8a",
+  "batch_size": 1,
+  "concurrency": 1,
+  "qualification_created": false,
+  "physical_model_ssd_read_bytes": null,
+  "limitations": [
+    "Whole lifecycle including loading, requests, cancellation and recovery, not sustained performance qualification.",
+    "Global GPU and system RAM samples include other applications. Do not add these to process RSS.",
+    "Process-tree RSS sum can double-count shared pages; a sampled peak can miss instantaneous allocations.",
+    "GPU power is not whole-system power; no physical model SSD attribution.",
+    "Do not reduce admission budgets based solely on this sampled observation."
+  ]
+}
