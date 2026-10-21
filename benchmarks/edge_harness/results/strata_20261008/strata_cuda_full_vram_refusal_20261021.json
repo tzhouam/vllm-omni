@@ -1,0 +1,62 @@
+{
+  "status": "failed_before_load",
+  "error": "ResourceUnavailable: vram: joint need 23622320128 bytes, live free 23530905600 bytes",
+  "batch_size": 1,
+  "concurrency": 1,
+  "resource_drain_verified": true,
+  "source_stable": true,
+  "qualified": false,
+  "performance_samples": 0,
+  "evidence": [
+    {
+      "path": "strata_cuda_full_vram_refusal_receipt.json.gz",
+      "raw_sha256": "ef07285029f2626d4dfaa2304d7a30a48982a07d3d763929b84c91f64d16cc74",
+      "raw_size_bytes": 666824
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_all-raw.json.gz",
+      "raw_sha256": "259b9d37fc24e7cb02f7d739b8ad412ff79e31e5f34f526f4a731fafc8092d35",
+      "raw_size_bytes": 100
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_config.json.gz",
+      "raw_sha256": "b6c63cd08f74cf315c86751911f3f97412f847e6d35f99fdf4100648d2875b75",
+      "raw_size_bytes": 14777846
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_effective-launch.json.gz",
+      "raw_sha256": "00a200964ed2228bd87f7c5b351cb0d3def6d0886cbf16493fdefcb858a4015d",
+      "raw_size_bytes": 13398863
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_fixture.html.gz",
+      "raw_sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f",
+      "raw_size_bytes": 79963
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_fixture.json.gz",
+      "raw_sha256": "70fd086f01cb03f6ca288fc96c2b510be9eea50b71cae809a0aacdb85d095ca0",
+      "raw_size_bytes": 317
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_hardware.json.gz",
+      "raw_sha256": "0b5a5b6fecb518381d4a09244bc2c8e0e0fa40493b04c4fecdf6efeacfa61523",
+      "raw_size_bytes": 4703
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_memory.sqlite.gz",
+      "raw_sha256": "3993d7707dc72b396bcb80b3ba8afbe1b5c121c1ae9cd579b76ea48ff5ae67ba",
+      "raw_size_bytes": 77824
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_runner-phases.jsonl.gz",
+      "raw_sha256": "8c7520b315431e84ce6a9b73f61c7fd6bb68c7d3dcaa49bbc9dcad41721e1a4b",
+      "raw_size_bytes": 217
+    },
+    {
+      "path": "strata_cuda_full_vram_refusal_telemetry.jsonl.gz",
+      "raw_sha256": "d80c95db6ea450cadf89004d29ab5c5185d84fdcb52fc38eb3a75e7ecdf6d824",
+      "raw_size_bytes": 21992
+    }
+  ]
+}

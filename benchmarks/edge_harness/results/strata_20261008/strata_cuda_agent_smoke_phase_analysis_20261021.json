@@ -1,0 +1,321 @@
+{
+  "schema": "omni-strata-agent-smoke-phase-analysis-v1",
+  "batch_size": 1,
+  "concurrency": 1,
+  "scope": "Four completed tasks; diagnostic phase breakdown, not p50/p95 or a paired route comparison.",
+  "raw_sources": {
+    "all-raw.json": "5df2f011871c7b455f304369e7dc5d737655c071a035472d8a9c0a6276c2fbf6",
+    "profile-samples.json": "0746b9c6ba68851e65d2ea252e14e0410612dc7ab5b44527f8947be3478e9809"
+  },
+  "cold_load_and_verification_s": 511.286228899844,
+  "samples": [
+    {
+      "index": 0,
+      "length": "short",
+      "whole_agent_task_s": 95.42332050018013,
+      "first_visible_answer_s": 91.02517320029438,
+      "calls": [
+        {
+          "role": "planner",
+          "native_request_seq": 1,
+          "caller_wall_s": 44.38306500017643,
+          "backend_wall_s": 42.23018479999155,
+          "first_model_output_s": 22.134724299889058,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 359,
+            "prompt_ms": 21140.7,
+            "prompt_per_token_ms": 58.888,
+            "prompt_per_second": 17.0,
+            "predicted_n": 30,
+            "predicted_ms": 20966.3,
+            "predicted_per_token_ms": 698.877,
+            "predicted_per_second": 1.4,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 359,
+            "completion_tokens": 30,
+            "total_tokens": 389,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": null,
+          "decode_logical_file_read_bytes": 26744100000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.321,
+          "physical_model_ssd_read_bytes": null
+        },
+        {
+          "role": "image_answer",
+          "native_request_seq": 2,
+          "caller_wall_s": 48.42006819974631,
+          "backend_wall_s": 46.349274000152946,
+          "first_model_output_s": 43.97594520030543,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 1531,
+            "prompt_ms": 42638.9,
+            "prompt_per_token_ms": 27.85,
+            "prompt_per_second": 35.9,
+            "predicted_n": 5,
+            "predicted_ms": 2852.8,
+            "predicted_per_token_ms": 570.56,
+            "predicted_per_second": 1.8,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 1531,
+            "completion_tokens": 5,
+            "total_tokens": 1536,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": 342.0,
+          "decode_logical_file_read_bytes": 3713500000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.389,
+          "physical_model_ssd_read_bytes": null
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "length": "short",
+      "whole_agent_task_s": 83.4463579999283,
+      "first_visible_answer_s": 79.82649610005319,
+      "calls": [
+        {
+          "role": "planner",
+          "native_request_seq": 3,
+          "caller_wall_s": 37.286459600087255,
+          "backend_wall_s": 34.13628759980202,
+          "first_model_output_s": 21.156052799895406,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 359,
+            "prompt_ms": 20538.9,
+            "prompt_per_token_ms": 57.211,
+            "prompt_per_second": 17.5,
+            "predicted_n": 34,
+            "predicted_ms": 13425.3,
+            "predicted_per_token_ms": 394.862,
+            "predicted_per_second": 2.5,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 359,
+            "completion_tokens": 34,
+            "total_tokens": 393,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": null,
+          "decode_logical_file_read_bytes": 17237500000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.592,
+          "physical_model_ssd_read_bytes": null
+        },
+        {
+          "role": "image_answer",
+          "native_request_seq": 4,
+          "caller_wall_s": 45.814554300159216,
+          "backend_wall_s": 43.7609628001228,
+          "first_model_output_s": 42.150534300133586,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 1531,
+            "prompt_ms": 41336.4,
+            "prompt_per_token_ms": 27.0,
+            "prompt_per_second": 37.0,
+            "predicted_n": 5,
+            "predicted_ms": 1915.2,
+            "predicted_per_token_ms": 383.04,
+            "predicted_per_second": 2.6,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 1531,
+            "completion_tokens": 5,
+            "total_tokens": 1536,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": 328.0,
+          "decode_logical_file_read_bytes": 2487900000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.547,
+          "physical_model_ssd_read_bytes": null
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "length": "medium",
+      "whole_agent_task_s": 80.11929369997233,
+      "first_visible_answer_s": 76.49825929990038,
+      "calls": [
+        {
+          "role": "planner",
+          "native_request_seq": 5,
+          "caller_wall_s": 34.10293889977038,
+          "backend_wall_s": 31.774350400082767,
+          "first_model_output_s": 23.288054700009525,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 471,
+            "prompt_ms": 22861.9,
+            "prompt_per_token_ms": 48.539,
+            "prompt_per_second": 20.6,
+            "predicted_n": 30,
+            "predicted_ms": 8738.1,
+            "predicted_per_token_ms": 291.27,
+            "predicted_per_second": 3.4,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 471,
+            "completion_tokens": 30,
+            "total_tokens": 501,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": null,
+          "decode_logical_file_read_bytes": 11207300000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.704,
+          "physical_model_ssd_read_bytes": null
+        },
+        {
+          "role": "image_answer",
+          "native_request_seq": 6,
+          "caller_wall_s": 45.67787359980866,
+          "backend_wall_s": 43.56689429981634,
+          "first_model_output_s": 42.0211694999598,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 1643,
+            "prompt_ms": 41241.9,
+            "prompt_per_token_ms": 25.102,
+            "prompt_per_second": 39.8,
+            "predicted_n": 5,
+            "predicted_ms": 1831.0,
+            "predicted_per_token_ms": 366.2,
+            "predicted_per_second": 2.7,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 1643,
+            "completion_tokens": 5,
+            "total_tokens": 1648,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": 325.0,
+          "decode_logical_file_read_bytes": 2389700000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.573,
+          "physical_model_ssd_read_bytes": null
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "length": "long",
+      "whole_agent_task_s": 84.20364939980209,
+      "first_visible_answer_s": 80.51968549983576,
+      "calls": [
+        {
+          "role": "planner",
+          "native_request_seq": 7,
+          "caller_wall_s": 38.03657109988853,
+          "backend_wall_s": 34.9346699998714,
+          "first_model_output_s": 27.740899899974465,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 807,
+            "prompt_ms": 27325.3,
+            "prompt_per_token_ms": 33.86,
+            "prompt_per_second": 29.5,
+            "predicted_n": 30,
+            "predicted_ms": 7413.4,
+            "predicted_per_token_ms": 247.113,
+            "predicted_per_second": 4.0,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 807,
+            "completion_tokens": 30,
+            "total_tokens": 837,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": null,
+          "decode_logical_file_read_bytes": 9562700000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.734,
+          "physical_model_ssd_read_bytes": null
+        },
+        {
+          "role": "image_answer",
+          "native_request_seq": 8,
+          "caller_wall_s": 45.88477369956672,
+          "backend_wall_s": 43.73152599995956,
+          "first_model_output_s": 42.15947200031951,
+          "native_language_timings": {
+            "cache_n": 0,
+            "prompt_n": 1979,
+            "prompt_ms": 41365.5,
+            "prompt_per_token_ms": 20.902,
+            "prompt_per_second": 47.8,
+            "predicted_n": 5,
+            "predicted_ms": 1847.8,
+            "predicted_per_token_ms": 369.56,
+            "predicted_per_second": 2.7,
+            "draft_n": 0,
+            "draft_n_accepted": 0
+          },
+          "usage": {
+            "prompt_tokens": 1979,
+            "completion_tokens": 5,
+            "total_tokens": 1984,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "native_encoder_ms": 324.0,
+          "decode_logical_file_read_bytes": 2441500000,
+          "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+          "decode_expert_cache_hit_ratio": 0.581,
+          "physical_model_ssd_read_bytes": null
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Native phase and caller timers have distinct boundaries; do not sum them as an end-to-end measurement.",
+    "Expert hit rate and file read counters are decode-scoped and cannot explain prefill stalls.",
+    "Planner token count is real model output; reducing it requires task-quality and tool-format regression.",
+    "Same-placement CPU control and full protocol remain necessary before claiming a CUDA improvement."
+  ],
+  "next_measurements": [
+    "Compare qualified RAM and SSD artifacts with the same Agent tasks.",
+    "Separate language prefill and decode expert execution/transfer waits using existing native observations.",
+    "Retain complete task success and safe tool behavior while evaluating prompt or planner-route changes."
+  ],
+  "qualification_created": false
+}
