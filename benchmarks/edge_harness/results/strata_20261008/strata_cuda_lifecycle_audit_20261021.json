@@ -1,0 +1,22 @@
+{
+  "status": "independent_lifecycle_audit_passed",
+  "receipt_sha256": "e78e0d19ee865b65f4c276c342e7ec2887572fcba96e73ae4479ed712fe27a46",
+  "audit_sha256": "3541bf178ad9da6894c6cf4737b3e87d46a009ab7e88e7dfa9284c09572d586f",
+  "evidence": [
+    {
+      "path": "strata_cuda_audit_chain_q4-cuda-v3-terminal-fix-lifecycle-20261021.audit.json.gz",
+      "raw_sha256": "3541bf178ad9da6894c6cf4737b3e87d46a009ab7e88e7dfa9284c09572d586f"
+    },
+    {
+      "path": "strata_cuda_audit_chain_status.json.gz",
+      "raw_sha256": "df55e121f799725878e76dc34c5dcc564c509cb8200e4177cea92b649900f8cd"
+    },
+    {
+      "path": "strata_cuda_audit_chain_agent-smoke.log.gz",
+      "raw_sha256": "65bfcd77156174c55f9158c7f0c7d27b3c7c2c9d52945c60709f6f4b8b48b892"
+    }
+  ],
+  "agent_status": "PowerShell wrapper refused by execution policy before Python runner; direct existing Python CLI now started with same hash-bound prerequisites; result pending",
+  "system_execution_policy_changed": false,
+  "qualified": false
+}
