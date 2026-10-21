@@ -1,0 +1,229 @@
+{
+  "schema": "omni-strata-cuda-agent-smoke-completed-v1",
+  "status": "completed",
+  "receipt_sha256": "feb1b6da955268c5b13e0ce9e53c5792101249174464bf04085b7e8dbdaa9f38",
+  "batch_size": 1,
+  "concurrency": 1,
+  "requests": 4,
+  "model_calls": 8,
+  "cold_load_and_verification_s": 511.286228899844,
+  "samples": [
+    {
+      "index": 0,
+      "length": "short",
+      "status": "passed",
+      "whole_agent_task_s_excludes_load": 95.42332050018013,
+      "first_visible_output_s": 91.02517320029438,
+      "last_native_sequence": 2
+    },
+    {
+      "index": 1,
+      "length": "short",
+      "status": "passed",
+      "whole_agent_task_s_excludes_load": 83.4463579999283,
+      "first_visible_output_s": 79.82649610005319,
+      "last_native_sequence": 4
+    },
+    {
+      "index": 2,
+      "length": "medium",
+      "status": "passed",
+      "whole_agent_task_s_excludes_load": 80.11929369997233,
+      "first_visible_output_s": 76.49825929990038,
+      "last_native_sequence": 6
+    },
+    {
+      "index": 3,
+      "length": "long",
+      "status": "passed",
+      "whole_agent_task_s_excludes_load": 84.20364939980209,
+      "first_visible_output_s": 80.51968549983576,
+      "last_native_sequence": 8
+    }
+  ],
+  "quality_passed": true,
+  "resource_drain_verified": true,
+  "source_stable": true,
+  "prerequisites_stable": true,
+  "exact_role_retirement": {
+    "encoder": "retired",
+    "language": "retired"
+  },
+  "browser_release_scope": "joined_browser_owner_worker_and_exact_retained_handle_bound_set_only",
+  "browser_all_descendants_retired": false,
+  "qualified": false,
+  "physical_ssd_read_bytes": null,
+  "evidence": [
+    {
+      "path": "strata_cuda_agent_smoke_all-raw.json.gz",
+      "raw_sha256": "5df2f011871c7b455f304369e7dc5d737655c071a035472d8a9c0a6276c2fbf6",
+      "raw_size_bytes": 3789146
+    },
+    {
+      "path": "strata_cuda_agent_smoke_config.json.gz",
+      "raw_sha256": "a1f5b13ce3575a5572bafada6164395c166297549f269e5bae4d072c4b70e317",
+      "raw_size_bytes": 14777847
+    },
+    {
+      "path": "strata_cuda_agent_smoke_effective-launch.json.gz",
+      "raw_sha256": "00a200964ed2228bd87f7c5b351cb0d3def6d0886cbf16493fdefcb858a4015d",
+      "raw_size_bytes": 13398863
+    },
+    {
+      "path": "strata_cuda_agent_smoke_events.jsonl.gz",
+      "raw_sha256": "3085f28ddc0a9d17f7c90af9b7d005fca243d9e4f8638211d9f3b62deaa8550f",
+      "raw_size_bytes": 1153147
+    },
+    {
+      "path": "strata_cuda_agent_smoke_fixture.html.gz",
+      "raw_sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f",
+      "raw_size_bytes": 79963
+    },
+    {
+      "path": "strata_cuda_agent_smoke_fixture.json.gz",
+      "raw_sha256": "8e095f6e1551e54708d02a41951617af7532e4bef41079d7dda32f127e75712d",
+      "raw_size_bytes": 317
+    },
+    {
+      "path": "strata_cuda_agent_smoke_hardware.json.gz",
+      "raw_sha256": "b87750e22ca26a504a1bd99907942e770d93d2bd7035d2941b53a51a15f921f4",
+      "raw_size_bytes": 4703
+    },
+    {
+      "path": "strata_cuda_agent_smoke_image-2.sve.gz",
+      "raw_sha256": "29f73d197a4fb712ae9554a1a4b57accb879a5aa04c16e703fe0daadc4e20c01",
+      "raw_size_bytes": 9420820
+    },
+    {
+      "path": "strata_cuda_agent_smoke_image-4.sve.gz",
+      "raw_sha256": "29f73d197a4fb712ae9554a1a4b57accb879a5aa04c16e703fe0daadc4e20c01",
+      "raw_size_bytes": 9420820
+    },
+    {
+      "path": "strata_cuda_agent_smoke_image-6.sve.gz",
+      "raw_sha256": "29f73d197a4fb712ae9554a1a4b57accb879a5aa04c16e703fe0daadc4e20c01",
+      "raw_size_bytes": 9420820
+    },
+    {
+      "path": "strata_cuda_agent_smoke_image-8.sve.gz",
+      "raw_sha256": "29f73d197a4fb712ae9554a1a4b57accb879a5aa04c16e703fe0daadc4e20c01",
+      "raw_size_bytes": 9420820
+    },
+    {
+      "path": "strata_cuda_agent_smoke_loaded-plan.json.gz",
+      "raw_sha256": "b65774add9325eb2100e7479f574a068fd3973de8011f63f31aa53b82ce684da",
+      "raw_size_bytes": 309641
+    },
+    {
+      "path": "strata_cuda_agent_smoke_memory.sqlite.gz",
+      "raw_sha256": "f9dd20c91b0f389845721f82f271ccc6c1c69672b1ed4498746d728418dd117c",
+      "raw_size_bytes": 647168
+    },
+    {
+      "path": "strata_cuda_agent_smoke_model-image-2.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_model-image-4.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_model-image-6.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_model-image-8.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_profile-protocol.json.gz",
+      "raw_sha256": "2efc5b7f83a9fd5fd6d50c04f9260fdfc7dede575fa08feadc453a59d4ad9efb",
+      "raw_size_bytes": 641
+    },
+    {
+      "path": "strata_cuda_agent_smoke_profile-samples.json.gz",
+      "raw_sha256": "0746b9c6ba68851e65d2ea252e14e0410612dc7ab5b44527f8947be3478e9809",
+      "raw_size_bytes": 4954
+    },
+    {
+      "path": "strata_cuda_agent_smoke_receipt.json.gz",
+      "raw_sha256": "feb1b6da955268c5b13e0ce9e53c5792101249174464bf04085b7e8dbdaa9f38",
+      "raw_size_bytes": 788846
+    },
+    {
+      "path": "strata_cuda_agent_smoke_runner-phases.jsonl.gz",
+      "raw_sha256": "c233923fd3240b84b16734ed7c4898ab8d049a6261f9637c154016e6db2d1dbf",
+      "raw_size_bytes": 616
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0000-browser.jpg.gz",
+      "raw_sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5",
+      "raw_size_bytes": 56151
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0000-controller.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0000-image-witness.json.gz",
+      "raw_sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5",
+      "raw_size_bytes": 584
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0001-browser.jpg.gz",
+      "raw_sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5",
+      "raw_size_bytes": 56151
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0001-controller.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0001-image-witness.json.gz",
+      "raw_sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5",
+      "raw_size_bytes": 584
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0002-browser.jpg.gz",
+      "raw_sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5",
+      "raw_size_bytes": 56151
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0002-controller.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0002-image-witness.json.gz",
+      "raw_sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5",
+      "raw_size_bytes": 584
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0003-browser.jpg.gz",
+      "raw_sha256": "24a6963962ece31555cee59acaa71318d64812c48504b7d8ab8e60c2abbaaad5",
+      "raw_size_bytes": 56151
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0003-controller.png.gz",
+      "raw_sha256": "7aead7765294d9c1fcda85d2754b87986f598b60529d78b55710949cc22dbff4",
+      "raw_size_bytes": 161034
+    },
+    {
+      "path": "strata_cuda_agent_smoke_sample-0003-image-witness.json.gz",
+      "raw_sha256": "7bbe212e9703a4d7c3fc18361d58caeaf3523c5078832f706366b782c04193d5",
+      "raw_size_bytes": 584
+    },
+    {
+      "path": "strata_cuda_agent_smoke_telemetry.jsonl.gz",
+      "raw_sha256": "2b6f33a64b32a989e6c4536184cb381c7723e0c0ad8342f220955a3d66fbb9c8",
+      "raw_size_bytes": 112959465
+    }
+  ],
+  "scope": "Four sequential tasks in one screenshot task family, eight real planner/image model calls and managed browser captures. Not broad Agent/default qualification; all four exceed the 60-second target. Independent audit and complete performance protocol follow separately."
+}
