@@ -1,0 +1,56 @@
+{
+  "schema": "omni-strata-cuda-first-request-profile-analysis-v1",
+  "sample_count": 1,
+  "batch_size": 1,
+  "concurrency": 1,
+  "raw_sha256": "020fc72121374fc18c94418d0216e2a6f61e9e9c5c3ee174f2d80f8c3ef03278",
+  "raw_archive": "strata_cuda_terminal_failure_initial-approval_heading.json.gz",
+  "full_response_s": 43.433927200268954,
+  "first_output_s": 40.36829000012949,
+  "native_encoder_ms": 351.0,
+  "language_timings": {
+    "cache_n": 0,
+    "prompt_n": 830,
+    "prompt_ms": 38407.6,
+    "prompt_per_token_ms": 46.274,
+    "prompt_per_second": 21.6,
+    "predicted_n": 5,
+    "predicted_ms": 3753.4,
+    "predicted_per_token_ms": 750.68,
+    "predicted_per_second": 1.3,
+    "draft_n": 0,
+    "draft_n_accepted": 0
+  },
+  "decode_scope": {
+    "logical_file_read_bytes": 4380600000,
+    "logical_file_read_scope": "decode_only_excludes_prefill_and_loading",
+    "hit_rate": 0.282,
+    "native_compute": {
+      "scope": "routed_decode_experts_only",
+      "counters": {
+        "generated": 5,
+        "hits": 653,
+        "lookups": 2314,
+        "offloaded": 86,
+        "prompt_read": 830,
+        "prompt_tokens": 830
+      },
+      "cpu_expert_entries": 1661,
+      "gpu_expert_entries": 739,
+      "units": [
+        "cpu",
+        "cuda:0"
+      ],
+      "evidence": "native_DONE; pinned native-pack miss dispatch; no remote GPU routes"
+    }
+  },
+  "physical_ssd_read_bytes": null,
+  "qualified": false,
+  "limitations": [
+    "First request only; lifecycle failed at Agent terminal validation after a correct answer.",
+    "Not p50/p95, no paired speedup claim.",
+    "Decode I/O and hit ratio do not explain prefill latency.",
+    "Stage times have different boundaries; do not sum as end-to-end latency."
+  ],
+  "next_experiment": "Pair CPU and CUDA vision using identical language cache placement; collect repeated complete requests and phase-resolved expert execution and I/O."
+}
