@@ -1,0 +1,144 @@
+{
+  "schema": "omni-strata-phase-analyzer-verification-v1",
+  "status": "passed",
+  "script": "analyze_audited_agent_phases_20261021.py",
+  "script_sha256": "1df0b59ede2e8d84038e950e103b7bee606f60e409ed220d6d9884a3861c958c",
+  "smoke_receipt_sha256": "feb1b6da955268c5b13e0ce9e53c5792101249174464bf04085b7e8dbdaa9f38",
+  "historical_full_receipt_sha256": "f4d863fd76033fd36bdb06bd7325dbb2fad1163c9310dd6e86db9eaa4ace30f7",
+  "historical_full_audit_sha256": "be45683af63cdd53bbf0012b642cce596a9f3b53ee706856304ad393879aaade",
+  "smoke_requests": 4,
+  "smoke_statistics_emitted": false,
+  "historical_full_requests": 83,
+  "measured_groups": 3,
+  "measured_requests_per_group": 20,
+  "whole_and_first_visible_quantiles_exactly_match_independent_audit": true,
+  "historical_full_phase_statistics": [
+    {
+      "length": "short",
+      "n": 20,
+      "metrics": {
+        "whole_agent_task_s": {
+          "p50": 104.05704319989309,
+          "p95": 107.15877210022882
+        },
+        "first_visible_output_s": {
+          "p50": 98.90930630033836,
+          "p95": 100.85782459983602
+        },
+        "planner_caller_wall_s": {
+          "p50": 31.681667799595743,
+          "p95": 33.329821300227195
+        },
+        "planner_native_prefill_ms": {
+          "p50": 21024.8,
+          "p95": 21675.7
+        },
+        "planner_native_decode_ms": {
+          "p50": 5350.7,
+          "p95": 6520.1
+        },
+        "image_answer_caller_wall_s": {
+          "p50": 71.72551120026037,
+          "p95": 73.64148609992117
+        },
+        "image_answer_native_prefill_ms": {
+          "p50": 45045.4,
+          "p95": 45865.3
+        },
+        "image_answer_native_decode_ms": {
+          "p50": 1227.8,
+          "p95": 1371.0
+        },
+        "native_encoder_ms": {
+          "p50": 20925.0,
+          "p95": 21686.0
+        }
+      }
+    },
+    {
+      "length": "medium",
+      "n": 20,
+      "metrics": {
+        "whole_agent_task_s": {
+          "p50": 105.4425698001869,
+          "p95": 107.50231349980459
+        },
+        "first_visible_output_s": {
+          "p50": 100.46049260022119,
+          "p95": 102.29436689987779
+        },
+        "planner_caller_wall_s": {
+          "p50": 33.82150560012087,
+          "p95": 35.10489770025015
+        },
+        "planner_native_prefill_ms": {
+          "p50": 23354.2,
+          "p95": 24255.7
+        },
+        "planner_native_decode_ms": {
+          "p50": 4921.8,
+          "p95": 5338.4
+        },
+        "image_answer_caller_wall_s": {
+          "p50": 70.96278499998152,
+          "p95": 71.96060309978202
+        },
+        "image_answer_native_prefill_ms": {
+          "p50": 44553.9,
+          "p95": 45689.6
+        },
+        "image_answer_native_decode_ms": {
+          "p50": 1152.8,
+          "p95": 1219.3
+        },
+        "native_encoder_ms": {
+          "p50": 20665.0,
+          "p95": 21457.0
+        }
+      }
+    },
+    {
+      "length": "long",
+      "n": 20,
+      "metrics": {
+        "whole_agent_task_s": {
+          "p50": 111.99143300019205,
+          "p95": 119.42538789985701
+        },
+        "first_visible_output_s": {
+          "p50": 107.27393750008196,
+          "p95": 114.05872979993
+        },
+        "planner_caller_wall_s": {
+          "p50": 39.668018099851906,
+          "p95": 41.203170699998736
+        },
+        "planner_native_prefill_ms": {
+          "p50": 29371.0,
+          "p95": 30143.8
+        },
+        "planner_native_decode_ms": {
+          "p50": 5315.7,
+          "p95": 5588.9
+        },
+        "image_answer_caller_wall_s": {
+          "p50": 71.86713810032234,
+          "p95": 78.16391839971766
+        },
+        "image_answer_native_prefill_ms": {
+          "p50": 45246.0,
+          "p95": 50826.6
+        },
+        "image_answer_native_decode_ms": {
+          "p50": 1083.8,
+          "p95": 1135.3
+        },
+        "native_encoder_ms": {
+          "p50": 21018.0,
+          "p95": 21550.0
+        }
+      }
+    }
+  ],
+  "scope": "Analysis of closed historical runs; current CUDA full run remains incomplete. Historical CPU placement is not paired with current CUDA placement; no speedup or new qualification claimed."
+}
