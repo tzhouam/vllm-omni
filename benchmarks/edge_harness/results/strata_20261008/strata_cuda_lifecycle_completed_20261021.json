@@ -1,0 +1,208 @@
+{
+  "schema": "omni-strata-cuda-image-lifecycle-completed-v1",
+  "status": "completed",
+  "receipt_sha256": "e78e0d19ee865b65f4c276c342e7ec2887572fcba96e73ae4479ed712fe27a46",
+  "batch_size": 1,
+  "concurrency": 1,
+  "requests": [
+    {
+      "phase": "initial",
+      "case_id": "approval_heading",
+      "request_id": "strata-4211f38576ca40598434cbf25631fc01",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 43.066687900107354,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "43af3621fc7d434fb4643dcd706e053a",
+      "loaded_plan_sha256": "fdaaba41c6d81745d9a21877b8a83afead2aff538499017701e50e5e76277306",
+      "proof_file": "initial-approval_heading-proof.json",
+      "proof_sha256": "413da824e6b22a37c31f27beea985a37714158337c02c19009e0d7266d60ca77",
+      "sve_sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8"
+    },
+    {
+      "phase": "initial",
+      "case_id": "bilingual_button_label",
+      "request_id": "strata-74a4e0c6cef54d36969acf8f4feaeaa4",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 50.06189899984747,
+      "native_seq": 2,
+      "encoder_seq": 2,
+      "generation": "43af3621fc7d434fb4643dcd706e053a",
+      "loaded_plan_sha256": "fdaaba41c6d81745d9a21877b8a83afead2aff538499017701e50e5e76277306",
+      "proof_file": "initial-bilingual_button_label-proof.json",
+      "proof_sha256": "e8610c419d6cff5480394647cc16e4e52e43618097e61645ec2ed628cf0428bb",
+      "sve_sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8"
+    },
+    {
+      "phase": "recovery",
+      "case_id": "approval_heading",
+      "request_id": "strata-83106172a7ac43819b889c239519b412",
+      "quality_passed": true,
+      "finish_reason": "stop",
+      "full_response_s": 43.40088710002601,
+      "native_seq": 1,
+      "encoder_seq": 1,
+      "generation": "d004833cd7134961b0960277ed702b10",
+      "loaded_plan_sha256": "4c8ac034292167387d634105c47b3741a82079c73463645192b3ec9c01b3335b",
+      "proof_file": "recovery-approval_heading-proof.json",
+      "proof_sha256": "92ff3d87999b14532e75096bd6d8d564e83dec01121862f7568897427db889b8",
+      "sve_sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8"
+    }
+  ],
+  "initial_load_seconds": 864.3170205000788,
+  "recovery_load_seconds": 835.5852461000904,
+  "encoder_cancel_seconds": 2.3100145999342203,
+  "resource_drain_verified": true,
+  "encoder_phase_cancel_passed": true,
+  "fresh_generation_image_recovery_passed": true,
+  "source_stable": true,
+  "input_stable": true,
+  "agent_qualified": false,
+  "release_qualified": false,
+  "physical_ssd_read_bytes": null,
+  "evidence": [
+    {
+      "path": "strata_cuda_lifecycle_pass_after-cancel-ledger.json.gz",
+      "raw_sha256": "755de7c4c23dc1a714b506de64cafcbba1fadd0c20075c2f688c833e4f16bb7d",
+      "raw_size_bytes": 273
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_after-cancel-loaded-plan.json.gz",
+      "raw_sha256": "53417a7ece425a2c74f9c06d571f55d7f4bbca3df4c732a47690b2d74227c89e",
+      "raw_size_bytes": 309647
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_effective-launch.json.gz",
+      "raw_sha256": "00a200964ed2228bd87f7c5b351cb0d3def6d0886cbf16493fdefcb858a4015d",
+      "raw_size_bytes": 13398863
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_encoder-cancellation.json.gz",
+      "raw_sha256": "a7f886f8cce89582e4d7b8c903a201aaa20f6343b513f6c110bb5319d4ed6059",
+      "raw_size_bytes": 12436
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-approval_heading-proof.json.gz",
+      "raw_sha256": "7d2811b4af724352eb9dbf986ea1100792c49befaf049d03de9d116c55b73da2",
+      "raw_size_bytes": 90901
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-approval_heading-sve.json.gz",
+      "raw_sha256": "2216384cf3d9292d94edc5d05ebb9b1c2a552380f8962d129172f61fcd805040",
+      "raw_size_bytes": 187
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-approval_heading.json.gz",
+      "raw_sha256": "144508d73bb81f7773199fcb63f5601db36c54e07d59f14e578cbbc8b2e9f2d3",
+      "raw_size_bytes": 286693
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-approval_heading.sve.gz",
+      "raw_sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8",
+      "raw_size_bytes": 8110100
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-bilingual_button_label-proof.json.gz",
+      "raw_sha256": "1b48130ae62d3318c272908ea8dd13bcd13d4d52bbba5768110b744a3351e49b",
+      "raw_size_bytes": 91102
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-bilingual_button_label-sve.json.gz",
+      "raw_sha256": "2216384cf3d9292d94edc5d05ebb9b1c2a552380f8962d129172f61fcd805040",
+      "raw_size_bytes": 187
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-bilingual_button_label.json.gz",
+      "raw_sha256": "cb744e88446f9fcbb6d717c3942525a1a0210669ed436fe7586e7e43e9863a9b",
+      "raw_size_bytes": 289980
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-bilingual_button_label.sve.gz",
+      "raw_sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8",
+      "raw_size_bytes": 8110100
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-close.json.gz",
+      "raw_sha256": "c5cce080f85bafa1fb3e2f5f48422dcbb7e942b356a06b5bd8a9891d22c0cc7a",
+      "raw_size_bytes": 922
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-last-image.json.gz",
+      "raw_sha256": "641d20179b761ccf6a6853568f2a777ff011eeeec8169c812f0685dff0d8ceda",
+      "raw_size_bytes": 943
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-last-io.json.gz",
+      "raw_sha256": "837bc0f41094d91c09954d8961f230ca8e9058425ce4a7688ce171f5cd5e93a7",
+      "raw_size_bytes": 2228
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_initial-loaded-plan.json.gz",
+      "raw_sha256": "818d24536674bd05d097d855f0f524bcde621daad7d67bcdfae98b27d36aefa2",
+      "raw_size_bytes": 325960
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_input.png.gz",
+      "raw_sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+      "raw_size_bytes": 59775
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_receipt.json.gz",
+      "raw_sha256": "e78e0d19ee865b65f4c276c342e7ec2887572fcba96e73ae4479ed712fe27a46",
+      "raw_size_bytes": 996510
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-approval_heading-proof.json.gz",
+      "raw_sha256": "3975fcd81282580ef3dc4f73665684db805dd08ef6cfcfdb30e4be216934a03b",
+      "raw_size_bytes": 90911
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-approval_heading-sve.json.gz",
+      "raw_sha256": "2216384cf3d9292d94edc5d05ebb9b1c2a552380f8962d129172f61fcd805040",
+      "raw_size_bytes": 187
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-approval_heading.json.gz",
+      "raw_sha256": "b01538392dc642b97ff891909d083f4248a14a7338c4e7b4ad258d83fabec928",
+      "raw_size_bytes": 286717
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-approval_heading.sve.gz",
+      "raw_sha256": "02a56f5013ca6d532f2fda0689d1a85b1f7211b1837f3291a7bd85d4e3665de8",
+      "raw_size_bytes": 8110100
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-close.json.gz",
+      "raw_sha256": "10379738014143063cd4d916b23986e7bffa38b5a1bdf76ecb0efeaab7929516",
+      "raw_size_bytes": 1792
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-last-image.json.gz",
+      "raw_sha256": "cfb312bde20ce7c205b9ee95337e7df345ec1036c512a0751cc77aec94e6a349",
+      "raw_size_bytes": 1295
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-last-io.json.gz",
+      "raw_sha256": "84d3674885cc92a9f3e95c69f6bbe5cdc2ef4f02544a2b60d9fe595d059fa948",
+      "raw_size_bytes": 9953
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_recovery-loaded-plan.json.gz",
+      "raw_sha256": "3af3dd55155ef6bb461d4217ba7d55c2e9ad29e169dd58bb9e782653802877d0",
+      "raw_size_bytes": 325960
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_reference.json.gz",
+      "raw_sha256": "ae90056198d16d861d4cc9139e4df68684533c74a38b55606f2ed267af19f3ed",
+      "raw_size_bytes": 1058
+    },
+    {
+      "path": "strata_cuda_lifecycle_pass_telemetry.jsonl.gz",
+      "raw_sha256": "2f7fa8a6fab97bf2d893de62236cde7db2396306efc8766324b99cb92ef1f3d6",
+      "raw_size_bytes": 19133565
+    }
+  ],
+  "scope": "Three specified screenshot requests, observed encoder-phase cancellation and fresh-generation recovery. Not broad modality, Agent, sustained latency or physical SSD qualification. Independent audit and Agent smoke follow separately."
+}
