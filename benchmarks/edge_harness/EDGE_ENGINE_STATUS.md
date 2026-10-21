@@ -1,5 +1,7 @@
 # Omni 本地推理引擎：Strata 集成状态与路线图（2026-10-10）
 
+2026-10-21 **CUDA 首条完整图像回答正确，终端证据检查暴露 CPU 硬编码**：首输出 40.37 s、完整响应 43.43 s（单样本）；首次加载 426.46 s，含完整文件校验。终端验证仍只接受 CPU，导致后续请求与取消恢复未执行；精确角色退出、账本释放、源码和输入稳定检查通过。失败原始输出和 telemetry 保留。已补匹配明确 CPU／CUDA 声明的终端分支，保留请求、设备与进程绑定；修复后须重新冻结实跑，不能将本轮算作生命周期或 Agent 资格通过。[原始失败与 profiling](results/strata_20261008/strata_cuda_terminal_failure_20261021.json)。
+
 2026-10-21 **CUDA 图像路线注册完成，真实生命周期测试已启动并采样**：注册与冻结清单成功，启动配置、真实图像、参考和源码已绑定哈希。注册过程的 CPU、RAM 和逻辑 I/O 原始样本已归档；实际生命周期目录已产生 telemetry，覆盖后续加载、请求、取消恢复与释放。当前运行尚未闭合，不能称为通过或 Agent 提速。所有性能运行保持 batch=1、单活跃请求；物理 SSD 归因仍未知。[注册 profiling 与原始记录](results/strata_20261008/strata_cuda_image_registration_completed_20261021.json)。
 
 2026-10-21 **CUDA v3 完整运行包实际注册成功**：原始权重、pack、运行包及来源检查完成，生成独立文本中间配置，启动文件与成功回执哈希一致；状态为 registered_not_executed，不是模型执行或资格通过。注册进程已正常结束，原始资源采样归档；串联任务已实际启动 CUDA 图像注册，随后再做真实生命周期和 Agent profile。[成功回执、日志与资源统计](results/strata_20261008/strata_cuda_text_registration_completed_20261021.json)。

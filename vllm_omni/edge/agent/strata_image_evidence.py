@@ -331,6 +331,10 @@ def validate_image_terminal(
             raise ValueError("text-only request unexpectedly contains image-chain evidence")
         return None
     image = plan["image_route"]
+    encoder_device = image.get("encoder_device")
+    if encoder_device not in {"cpu", "cuda"}:
+        raise ValueError("image terminal requires an explicit admitted encoder device")
+    cuda = encoder_device == "cuda"
     bounds = image["bounds_and_declared_budgets"]
     if (
         not _sha(input_identity.get("sha256"))
@@ -366,9 +370,9 @@ def validate_image_terminal(
         or report.get("backend_selection")
         != {
             "schema": "strata-vision-backend-v1",
-            "primary_backend": "CPU",
-            "device_type": "CPU",
-            "gpu_requested": False,
+            "primary_backend": "CUDA0" if cuda else "CPU",
+            "device_type": "GPU" if cuda else "CPU",
+            "gpu_requested": cuda,
             "cpu_fallback_available": True,
         }
         or report.get("all_encoder_operators_gpu_verified") is not False
@@ -377,7 +381,7 @@ def validate_image_terminal(
         or report.get("release_qualified") is not False
         or report.get("reasons") != []
     ):
-        raise ValueError("owned CPU image chain is incomplete or belongs to another request/artifact")
+        raise ValueError("owned image chain is incomplete or belongs to another request/artifact")
     result, dispatch = report["encode_result"], report["language_dispatch"]
     bounds = image["bounds_and_declared_budgets"]
     language = plan["selected_native_module_audit_at_load"]

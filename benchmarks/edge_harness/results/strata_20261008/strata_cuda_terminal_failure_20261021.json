@@ -1,0 +1,78 @@
+{
+  "schema": "omni-strata-cuda-terminal-failure-v1",
+  "status": "failed_after_correct_first_answer",
+  "error": "owned CPU image chain is incomplete or belongs to another request/artifact",
+  "resource_drain_verified": true,
+  "source_stable": true,
+  "input_stable": true,
+  "initial_start_s": 426.4604029003531,
+  "first_request": {
+    "status": "completed",
+    "output_text": "Actions requiring your approval",
+    "finish_reason": "stop",
+    "quality": {
+      "passed": true,
+      "kind": "exact_text",
+      "reference": null
+    },
+    "full_response_s": 43.433927200268954,
+    "first_output_s": 40.36829000012949,
+    "output_tokens": 5
+  },
+  "batch_size": 1,
+  "concurrency": 1,
+  "qualified": false,
+  "scope": "One complete image request, then CPU-only terminal validator rejected CUDA evidence. Cancellation/recovery not reached. Single latency sample is not p50/p95 or Agent qualification.",
+  "evidence": [
+    {
+      "path": "strata_cuda_terminal_failure_effective-launch.json.gz",
+      "raw_sha256": "00a200964ed2228bd87f7c5b351cb0d3def6d0886cbf16493fdefcb858a4015d",
+      "raw_size_bytes": 13398863
+    },
+    {
+      "path": "strata_cuda_terminal_failure_initial-approval_heading.json.gz",
+      "raw_sha256": "020fc72121374fc18c94418d0216e2a6f61e9e9c5c3ee174f2d80f8c3ef03278",
+      "raw_size_bytes": 286675
+    },
+    {
+      "path": "strata_cuda_terminal_failure_initial-close.json.gz",
+      "raw_sha256": "22f3e6f99410ee91d7c1e32c9c8ffa6c9538bb2984d1081fdee0204642da11f4",
+      "raw_size_bytes": 1792
+    },
+    {
+      "path": "strata_cuda_terminal_failure_initial-last-image.json.gz",
+      "raw_sha256": "2a77be9824ae812a78d2c2a5aff8c24c7708ea0d0a61b0d155e95b97c45dbe9b",
+      "raw_size_bytes": 1295
+    },
+    {
+      "path": "strata_cuda_terminal_failure_initial-last-io.json.gz",
+      "raw_sha256": "679be5192b3c7b653c5ff1c777f56e53dbb5597e4ed18f70a08084d26cb7cb9c",
+      "raw_size_bytes": 9933
+    },
+    {
+      "path": "strata_cuda_terminal_failure_initial-loaded-plan.json.gz",
+      "raw_sha256": "8ff63c2d67d2d9983db3dc2a2bed0026834f4d0ef91b8e55598f7b18a5cbdd13",
+      "raw_size_bytes": 326308
+    },
+    {
+      "path": "strata_cuda_terminal_failure_input.png.gz",
+      "raw_sha256": "73d64724eda2368d71213378caeeab0996ca405959ded5a0c1d2e3ff47c87c5e",
+      "raw_size_bytes": 59775
+    },
+    {
+      "path": "strata_cuda_terminal_failure_receipt.json.gz",
+      "raw_sha256": "39f7bddfbd8b7549f2ed312b135b12deb320888419be24133e62a0e77672dbac",
+      "raw_size_bytes": 991150
+    },
+    {
+      "path": "strata_cuda_terminal_failure_reference.json.gz",
+      "raw_sha256": "ae90056198d16d861d4cc9139e4df68684533c74a38b55606f2ed267af19f3ed",
+      "raw_size_bytes": 1058
+    },
+    {
+      "path": "strata_cuda_terminal_failure_telemetry.jsonl.gz",
+      "raw_sha256": "236072b2e258cc911ea9466580e55814f4b244dffe21b2a5ecb23df8ebbd7300",
+      "raw_size_bytes": 4861184
+    }
+  ]
+}

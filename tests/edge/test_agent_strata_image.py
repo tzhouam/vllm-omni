@@ -164,7 +164,7 @@ def proof_fixture(launch):
         )
     }
     plan = {
-        "image_route": {"identity_sha256": "4" * 64, "bounds_and_declared_budgets": bounds},
+        "image_route": {"identity_sha256": "4" * 64, "encoder_device": "cpu", "bounds_and_declared_budgets": bounds},
         "owned_encoder_at_load": {"pid": 11, "creation_filetime_100ns": 111},
         "encoder_backend_selection_at_load": selection,
         "selected_native_module_audit_at_load": {"pid": 22, "creation_filetime_100ns": 222},
@@ -309,8 +309,31 @@ def test_png_transport_refuses_unadmitted_inputs(launch, mutation):
         image_input_identity(data, capability)
 
 
-def test_terminal_proof_binds_all_roles_input_and_final_output_detached(launch):
+@pytest.mark.parametrize("declared,observed", [("cuda", "cpu"), ("cpu", "cuda"), (None, "cpu"), ("vulkan", "cuda")])
+def test_terminal_rejects_encoder_device_mismatch_even_when_plan_and_report_agree(launch, declared, observed):
+    _, plan, metrics, stage, identity = proof_fixture(launch)
+    plan["image_route"]["encoder_device"] = declared
+    if observed == "cuda":
+        plan["encoder_backend_selection_at_load"].update(
+            primary_backend="CUDA0", device_type="GPU", gpu_requested=True
+        )
+    metrics["runtime_telemetry"]["image_observation"]["backend_selection"] = copy.deepcopy(
+        plan["encoder_backend_selection_at_load"]
+    )
+    with pytest.raises(ValueError):
+        validate_image_terminal(
+            plan, metrics, stage, request_id="task-step-0", input_identity=identity, seen_states=set()
+        )
+
+
+@pytest.mark.parametrize("encoder_device", ["cpu", "cuda"])
+def test_terminal_proof_binds_all_roles_input_and_final_output_detached(launch, encoder_device):
     cfg, plan, metrics, stage, identity = proof_fixture(launch)
+    if encoder_device == "cuda":
+        plan["image_route"]["encoder_device"] = "cuda"
+        selection = plan["encoder_backend_selection_at_load"]
+        selection.update(primary_backend="CUDA0", device_type="GPU", gpu_requested=True)
+        metrics["runtime_telemetry"]["image_observation"]["backend_selection"] = copy.deepcopy(selection)
     seen = set()
     proof = validate_image_terminal(
         plan, metrics, stage, request_id="task-step-0", input_identity=identity, seen_states=seen
