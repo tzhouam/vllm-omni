@@ -1,0 +1,65 @@
+{
+  "schema": "omni-strata-cuda-agent-live-vram-refusal-v1",
+  "status": "refused_before_model_load",
+  "joint_vram_required_bytes": 23622320128,
+  "live_vram_free_bytes": 22658695168,
+  "resource_drain_verified": true,
+  "source_stable": true,
+  "prerequisites_stable": true,
+  "evidence": [
+    {
+      "path": "strata_cuda_agent_vram_refusal_all-raw.json.gz",
+      "raw_sha256": "259b9d37fc24e7cb02f7d739b8ad412ff79e31e5f34f526f4a731fafc8092d35"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_config.json.gz",
+      "raw_sha256": "dd7585bf093fd4790a57b9fe7cf713d7d31eb842bce9791499ee198ea80d5942"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_effective-launch.json.gz",
+      "raw_sha256": "00a200964ed2228bd87f7c5b351cb0d3def6d0886cbf16493fdefcb858a4015d"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_fixture.html.gz",
+      "raw_sha256": "988f12697c0367b22b90174dfa00b34a4b2bd8db93105d0bd295c187f9839f5f"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_fixture.json.gz",
+      "raw_sha256": "345cd75e6c78ce65112b893db98b9476f8237df958391671c039f3fd1d817d46"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_hardware.json.gz",
+      "raw_sha256": "5a33a0755a193932ebd74ee8b542b1fc9903bace8a106d87a1231ed092b7050b"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_memory.sqlite.gz",
+      "raw_sha256": "a9c4d1ae8d94961d116703d5c84e0047d9a54b065bf8f7ef6293cbb8ef000f80"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_receipt.json.gz",
+      "raw_sha256": "74a3c73f52e617387ba02a9cf562327329911f81376fc2c34816c3d1a6d013c4"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_runner-phases.jsonl.gz",
+      "raw_sha256": "f5775ec4b9a5385fde0a6a61e7a6a1068e9c44a93b72442db7135f4c7fcf3bb2"
+    },
+    {
+      "path": "strata_cuda_agent_vram_refusal_telemetry.jsonl.gz",
+      "raw_sha256": "eaf516c53874ab7e8534ec2baeedda3d29e082a0755312786c9ed19077654112"
+    }
+  ],
+  "closed_apps": [
+    "idle old Omni Edge Agent",
+    "Windows Settings",
+    "Chrome new-tab window and remaining background process tree",
+    "ASUS OLED screensaver",
+    "background Radeon control panel",
+    "windowless Slack"
+  ],
+  "after_cleanup_free_vram_mib": 22571,
+  "required_vram_mib": 22528,
+  "precision_or_cache_budget_changed": false,
+  "retry": "q4-image-agent-smoke-cuda-v3-freed-vram-20261021; started, outcome pending",
+  "qualified": false,
+  "scope": "Live free-memory admission; no neural execution or latency sample in this refused run. Cleanup snapshot is not a guarantee of later free memory."
+}
