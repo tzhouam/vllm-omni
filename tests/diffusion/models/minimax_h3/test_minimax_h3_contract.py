@@ -2980,8 +2980,9 @@ def test_g4_reference_image_file_format_and_size_contract(tmp_path):
 
     invalid_path = tmp_path / "reference.bmp"
     Image.new("RGB", (256, 256)).save(invalid_path)
-    with pytest.raises(ValueError, match="must use"):
+    with pytest.raises(ValueError) as exc_info:
         load_minimax_h3_images(invalid_path)
+    assert str(exc_info.value) == "MiniMax H3 reference image must use JPG, JPEG, PNG, or WEBP, got BMP"
 
 
 def test_g4_standalone_audio_duration_and_total_duration_contract():

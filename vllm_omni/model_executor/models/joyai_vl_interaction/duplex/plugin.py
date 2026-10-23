@@ -11,8 +11,8 @@ from copy import deepcopy
 
 import numpy as np
 import pybase64
-from PIL import Image
 from vllm.config import ModelConfig
+from vllm.multimodal.image import open_image
 from vllm.sampling_params import RequestOutputKind, SamplingParams
 
 from vllm_omni.config.stage_config import PipelineConfig
@@ -281,7 +281,7 @@ class JoyAIDuplexPlugin(DuplexModelPlugin):
         for encoded in session_config.get("joyai_frames", [])[-4:]:
             if encoded.startswith("data:"):
                 encoded = encoded.split(",", 1)[1]
-            with Image.open(io.BytesIO(pybase64.b64decode(encoded, validate=True))) as image:
+            with open_image(io.BytesIO(pybase64.b64decode(encoded, validate=True))) as image:
                 image.thumbnail((448, 448))
                 images.append(image.convert("RGB").copy())
         system = SILENT_SYSTEM_PROMPT
