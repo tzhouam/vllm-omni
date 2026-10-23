@@ -19,6 +19,9 @@ from vllm_omni.diffusion.distributed.autoencoders.distributed_vae_executor impor
     GridSpec,
     TileTask,
 )
+from vllm_omni.diffusion.distributed.autoencoders.wan_sdpa_alignment import (
+    install_wan_attention_sdpa_alignment,
+)
 from vllm_omni.diffusion.distributed.autoencoders.wan_vae_fastpath import (
     can_encode_frames,
     decode_frames,
@@ -49,6 +52,10 @@ class OmniAutoencoderKLWan(AutoencoderKLWan):
             enabled=True,
         )
 
+    def _install_attention_alignment(self) -> None:
+        """Realign 1x1 Wan attention inputs before the first encode or decode."""
+        install_wan_attention_sdpa_alignment(self)
+
     def encode(self, x: torch.Tensor, return_dict: bool = True):
         with self._execution_context():
             return super().encode(x, return_dict=return_dict)
@@ -56,6 +63,7 @@ class OmniAutoencoderKLWan(AutoencoderKLWan):
     def _encode(self, x: torch.Tensor):
         # Keep the parent's tiling dispatch and patchified tile coordinates.
         # Only the untiled, supported inference schedule uses preallocation.
+        self._install_attention_alignment()
         if not is_encoder_installed(self):
             return super()._encode(x)
         if can_encode_frames(self, x):
@@ -76,6 +84,7 @@ class OmniAutoencoderKLWan(AutoencoderKLWan):
 
     def _decode(self, z: torch.Tensor, return_dict: bool = True):
         """Decode one latent batch, preserving the parent Diffusers contract."""
+        self._install_attention_alignment()
         _, _, _, height, width = z.shape
         tile_latent_min_height = self.tile_sample_min_height // self.spatial_compression_ratio
         tile_latent_min_width = self.tile_sample_min_width // self.spatial_compression_ratio
@@ -191,6 +200,7 @@ class OmniAutoencoderKLWan(AutoencoderKLWan):
 
     def _decode_with_chunks(self, z: torch.Tensor, *, on_chunk: DecodedChunkConsumer) -> None:
         """Run the temporal streaming primitive without API or hook handling."""
+        self._install_attention_alignment()
         distributed_enabled = False
         if hasattr(self, "is_distributed_enabled"):
             distributed_enabled = self.is_distributed_enabled()
