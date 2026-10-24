@@ -533,7 +533,7 @@ def test_minicpmo_npu_additional_config_reaches_engine_args(monkeypatch, deploy_
     monkeypatch.setattr(current_omni_platform, "device_name", "npu")
     monkeypatch.setattr(stage_init_utils, "resolve_worker_cls", lambda engine_args: None)
     stage = _from_pipeline_key("minicpmo_4_5", deploy_config_path=deploy_name).stage_by_id(2)
-    expected = {"code2wav_enable_npu_graph": True, "code2wav_max_npu_graphs": 32}
+    expected: dict[str, object] = {"code2wav_enable_npu_graph": True, "code2wav_max_npu_graphs": 32}
     if deploy_name == "minicpmo_4_5":
         # Single-card deploy: batch sizes round up to a capture bucket so the
         # 32-entry pool covers the shape space.
@@ -1152,6 +1152,7 @@ def test_sub_config_fields_match_structured_scopes():
         "media_io_kwargs",
         "final_output",
         "supports_running_prefix_cache_reset",
+        "recompute_preemption",
         "active_stream_window",
         "session_mode",
         "duplex_max_sessions",
@@ -2511,3 +2512,28 @@ def test_mrv2_duplex_session_validation():
     ps_no_duplex = replace(ps, supports_duplex_mrv2=False)
     with pytest.raises(ValueError, match="supports session_mode 'turn' only"):
         validate_native_mrv2_session(deploy_duplex, ps_no_duplex, "v2")
+
+
+@pytest.mark.parametrize("execution_type", list(StageExecutionType))
+@pytest.mark.parametrize("mode", ["allow", "fail"])
+def test_recompute_preemption_projection_is_ar_only(execution_type, mode):
+    pipeline = PipelineConfig(
+        model_type="test_preemption",
+        stages=(
+            StagePipelineConfig(
+                stage_id=0,
+                model_stage="test",
+                execution_type=execution_type,
+                recompute_preemption=mode,
+                final_output=True,
+            ),
+        ),
+    )
+    deploy = DeployConfig(stages=[StageDeployConfig(stage_id=0)])
+    legacy = merge_pipeline_deploy(pipeline, deploy)[0]
+    structured = VllmOmniConfig.from_pipeline_config(pipeline, user_deploy_config=deploy).stage_by_id(0)
+    expected = mode if execution_type is StageExecutionType.LLM_AR else "allow"
+    assert legacy.yaml_engine_args.get("recompute_preemption", "allow") == expected
+    assert structured.model_config.recompute_preemption == expected
+    if execution_type is not StageExecutionType.LLM_AR:
+        assert "recompute_preemption" not in legacy.yaml_engine_args
