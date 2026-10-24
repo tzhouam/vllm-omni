@@ -1311,6 +1311,7 @@ class FlashAttentionImpl(AttentionImpl[AttentionMetadata]):
         per-segment kernel differs (``npu_fusion_attention`` instead of
         ``flash_attn_func``).
         """
+        assert attn_metadata.full_attn_spans is not None
         self._warn_fa_deterministic_non_dense("piecewise-npu")
         logger.debug("Using piecewise NPU attention for mixed causal/full mask")
         return piecewise_attn(
