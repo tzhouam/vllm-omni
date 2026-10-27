@@ -144,6 +144,15 @@ and is applied while draining outputs, including cancelled requests. Ordinary
 request failures retain retryable classification; duplex session termination
 keeps its existing semantics.
 
+The P0/P1 multimodal sender cache shadows exactly one EngineCore receiver. A
+stage that more than one EngineCore can serve (several replicas, or any stage
+in distributed mode) processes multimodal inputs with a processor-only
+frontend cache instead, as upstream does for `data_parallel_size > 1`: HF
+processing is still cached, but every request carries its full payload, so no
+replica can be handed a payload it never received or one belonging to another
+request. Prompts are therefore processed exactly as submitted; the frontend
+never rewrites `multi_modal_uuids`.
+
 ## Promotion gate
 
 - Reconcile current names and boundaries after #5441 merges, closes, or is

@@ -24,7 +24,7 @@ from collections.abc import Callable, Collection, Generator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, fields, is_dataclass, replace
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import regex as re
 from vllm.logger import init_logger
@@ -58,11 +58,14 @@ from vllm_omni.engine.arg_utils import OmniEngineArgs
 from vllm_omni.entrypoints.stage_utils import _to_dict, set_stage_devices
 from vllm_omni.entrypoints.utils import filter_dataclass_kwargs
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams, OmniSamplingParams
-from vllm_omni.inputs.preprocess import build_omni_renderer, omni_renderer_cls
+from vllm_omni.inputs.preprocess import build_omni_renderer
 from vllm_omni.outputs.output_processor import MultimodalOutputProcessor
 from vllm_omni.platforms import current_omni_platform
 from vllm_omni.quantization.inc_config import OmniINCConfig
 from vllm_omni.transformers_utils.repo_utils import hf_api
+
+if TYPE_CHECKING:
+    from vllm_omni.engine.stage_pool import StagePool
 
 logger = init_logger(__name__)
 
@@ -1655,24 +1658,47 @@ class _TokenOnlyRenderer(BaseRenderer):
         )
 
 
-def _build_token_only_renderer(stage_vllm_config: Any) -> BaseRenderer:
-    return omni_renderer_cls(_TokenOnlyRenderer)(stage_vllm_config, tokenizer=None)
+def _build_token_only_renderer(stage_vllm_config: Any, *, mm_ipc_cache: bool = True) -> BaseRenderer:
+    return build_omni_renderer(
+        stage_vllm_config, renderer_cls=_TokenOnlyRenderer, tokenizer=None, mm_ipc_cache=mm_ipc_cache
+    )
 
 
-def build_stage0_input_processor(stage_vllm_config: Any) -> InputProcessor:
+def stage_mm_ipc_cache_allowed(stage_pool: StagePool | None, *, distributed: bool | None = None) -> bool:
+    """Whether a stage's frontend may use vLLM's P0/P1 multimodal sender cache.
+
+    The sender cache shadows exactly one receiver, so it is only safe while
+    exactly one EngineCore can ever receive the stage's requests: a single,
+    statically configured replica. A distributed pool can gain replicas at any
+    time, so it never qualifies. ``distributed`` overrides the pool's own view
+    for callers that build the processor before the hub is attached.
+    """
+    if stage_pool is None:
+        return True
+    if distributed is None:
+        distributed = stage_pool.is_distributed
+    if distributed:
+        return False
+    return stage_pool.num_replicas <= 1
+
+
+def build_stage0_input_processor(stage_vllm_config: Any, *, mm_ipc_cache: bool = True) -> InputProcessor:
     """Build the shared stage-0 input processor.
 
     The renderer is the Omni subclass of the upstream renderer class that
     ``renderer_from_config`` would have picked (or of the token-only renderer
     when the stage skips tokenizer initialization), so upstream's
     ``InputProcessor`` runs unmodified on top of it.
+
+    ``mm_ipc_cache`` must be False when more than one EngineCore can receive
+    the stage's requests (see :func:`stage_mm_ipc_cache_allowed`).
     """
 
     patch_generation_config_if_needed(stage_vllm_config.model_config)
     if bool(getattr(stage_vllm_config.model_config, "skip_tokenizer_init", False)):
-        renderer = _build_token_only_renderer(stage_vllm_config)
+        renderer = _build_token_only_renderer(stage_vllm_config, mm_ipc_cache=mm_ipc_cache)
     else:
-        renderer = build_omni_renderer(stage_vllm_config)
+        renderer = build_omni_renderer(stage_vllm_config, mm_ipc_cache=mm_ipc_cache)
     return InputProcessor(vllm_config=stage_vllm_config, renderer=renderer)
 
 

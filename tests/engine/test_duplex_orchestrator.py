@@ -1303,20 +1303,15 @@ async def test_turn_requests_keep_the_session_replica_before_prompt_processing(m
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("preselected", [False, True])
-async def test_session_replica_scopes_multimodal_cache_before_processing(monkeypatch, preselected) -> None:
+async def test_session_replica_processes_multimodal_input_as_sent(monkeypatch) -> None:
+    """Sessions pinned to different replicas hand the same prompt to the input processor
+    unchanged (off the event loop): the replicated stage runs a processor-only multimodal
+    cache, so no per-replica cache keys are injected."""
     from vllm_omni.engine.orchestrator import build_engine_core_request_from_tokens
 
     orchestrator, _, rpc_q, _ = _build(replicas=2, runtime_config=_placement_config())
     processed = []
-    scope_calls = []
     loop_thread_id = threading.get_ident()
-    scope_prompt = orchestrator._scope_stage_mm_cache_to_replica
-
-    def scope_inputs(stage_id, prompt, replica_id):
-        assert threading.get_ident() != loop_thread_id
-        scope_calls.append((stage_id, replica_id))
-        return scope_prompt(stage_id, prompt, replica_id)
 
     def process_inputs(**kwargs):
         assert threading.get_ident() != loop_thread_id
@@ -1328,22 +1323,19 @@ async def test_session_replica_scopes_multimodal_cache_before_processing(monkeyp
     monkeypatch.setattr(
         orchestrator, "_get_stage_input_processor", lambda stage: SimpleNamespace(process_inputs=process_inputs)
     )
-    monkeypatch.setattr(orchestrator, "_scope_stage_mm_cache_to_replica", scope_inputs)
     prompt = {"prompt": "image", "multi_modal_data": {"image": object()}, "multi_modal_uuids": {"image": ["same"]}}
     try:
+        routes = []
         for session_id in (SESSION_ID, "other"):
             assert (await _open(orchestrator, rpc_q, session_id=session_id)).ok
             request_id = duplex_resource_request_id(DuplexFence(session_id), "stage0")
             state = orchestrator.request_states[request_id]
             replica_id = orchestrator._session_route(0, state)
             orchestrator.stage_pools[0].bind_request_to_replica(request_id, replica_id)
-            kwargs = {"replica_id": replica_id} if preselected else {}
-            await orchestrator._build_next_stage_request(request_id, 0, prompt, state.sampling_params_list[0], **kwargs)
-        assert scope_calls == [(0, 0), (0, 1)]
-        assert [item["multi_modal_uuids"]["image"] for item in processed] == [
-            ["stage0:rep0:same"],
-            ["stage0:rep1:same"],
-        ]
+            routes.append(replica_id)
+            await orchestrator._build_next_stage_request(request_id, 0, prompt, state.sampling_params_list[0])
+        assert routes == [0, 1]
+        assert processed == [prompt, prompt]
         assert prompt["multi_modal_uuids"] == {"image": ["same"]}
     finally:
         await orchestrator.session_manager.shutdown()

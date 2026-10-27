@@ -778,9 +778,10 @@ async def test_async_chunk_prewarms_after_the_entry_stage(orchestrator_factory) 
 
 
 @pytest.mark.asyncio
-async def test_replicated_stage1_keys_mm_cache_per_receiving_replica() -> None:
-    """The same image reaching a replicated stage 1 by either path is keyed per receiving
-    replica; binding fails while no replica is serviceable and is skipped without a sender cache."""
+async def test_replicated_stage1_processes_media_as_sent_without_binding() -> None:
+    """Media reaching a replicated stage 1 by either path is processed exactly as sent: the
+    frontend injects no per-replica cache keys and binds no replica before submission (the
+    stage's processor runs with a processor-only multimodal cache instead)."""
     orchestrator = object.__new__(Orchestrator)
     mm_config = SimpleNamespace(mm_processor_cache_gb=4)
     orchestrator.stage_pools = [
@@ -791,10 +792,10 @@ async def test_replicated_stage1_keys_mm_cache_per_receiving_replica() -> None:
             stage_vllm_config=SimpleNamespace(model_config=SimpleNamespace(multimodal_config=mm_config)),
         ),
     ]
-    seen_uuids: dict[str, str] = {}
+    seen_prompts: dict[str, dict] = {}
 
     def process_inputs(*, request_id, prompt, params, **kwargs):
-        seen_uuids[request_id] = prompt["multi_modal_uuids"]["image"][0]
+        seen_prompts[request_id] = prompt
         return _processed_request(request_id, params)
 
     orchestrator._stage_input_processors = {1: SimpleNamespace(process_inputs=process_inputs)}
@@ -804,34 +805,47 @@ async def test_replicated_stage1_keys_mm_cache_per_receiving_replica() -> None:
     )
     orchestrator.request_states = {"req-bypass": req_state, "req-forwarded": req_state}
     bypass_prompt = {"prompt_token_ids": [1, 2, 3], "multi_modal_data": {"image": ["frame-0"]}}
-    forwarded_prompt = {"prompt": "describe", "multi_modal_data": {"image": ["frame-0"]}}
-    await orchestrator._build_entry_stage_request(
-        "req-bypass",
-        1,
-        bypass_prompt,
-        req_state,
-        replica_id=orchestrator._preselect_stage_mm_cache_replica("req-bypass", 1, bypass_prompt),
-    )
-    await orchestrator._build_next_stage_request(
-        "req-forwarded",
-        1,
-        forwarded_prompt,
-        _sampling_params(),
-        replica_id=orchestrator._preselect_stage_mm_cache_replica("req-forwarded", 1, forwarded_prompt),
-    )
+    forwarded_prompt = {"prompt": "describe", "multi_modal_data": {"image": ["frame-1"]}}
+    await orchestrator._build_entry_stage_request("req-bypass", 1, bypass_prompt, req_state)
+    await orchestrator._build_next_stage_request("req-forwarded", 1, forwarded_prompt, _sampling_params())
 
+    assert seen_prompts["req-bypass"] is bypass_prompt
+    assert seen_prompts["req-forwarded"] is forwarded_prompt
+    assert "multi_modal_uuids" not in bypass_prompt and "multi_modal_uuids" not in forwarded_prompt
     stage1_pool = orchestrator.stage_pools[1]
-    for req_id, uuid in seen_uuids.items():
-        assert uuid.startswith(f"stage1:rep{stage1_pool.get_bound_replica_id(req_id)}:")
-    assert seen_uuids["req-bypass"] != seen_uuids["req-forwarded"]
-    assert seen_uuids["req-bypass"].split(":", 2)[2] == seen_uuids["req-forwarded"].split(":", 2)[2]
+    assert stage1_pool.get_bound_replica_id("req-bypass") is None
+    assert stage1_pool.get_bound_replica_id("req-forwarded") is None
 
-    # A distributed pool whose snapshot has no UP replica yet cannot bind one.
-    stage1_pool.preselect_replica_id = lambda req_id: None
-    with pytest.raises(StageUnavailableError):
-        orchestrator._preselect_stage_mm_cache_replica("req-unbound", 1, forwarded_prompt)
-    mm_config.mm_processor_cache_gb = 0
-    assert orchestrator._preselect_stage_mm_cache_replica("req-unbound", 1, forwarded_prompt) is None
+
+def test_stage_input_processor_disables_mm_ipc_cache_for_replicated_or_distributed_stage(monkeypatch) -> None:
+    """Only a single, statically configured replica may keep vLLM's P0/P1 sender cache."""
+    import vllm_omni.engine.stage_init_utils as init_mod
+
+    built: list[tuple[object, bool]] = []
+
+    def _fake_build(cfg, *, mm_ipc_cache=True):
+        built.append((cfg, mm_ipc_cache))
+        return object()
+
+    monkeypatch.setattr(init_mod, "build_stage0_input_processor", _fake_build)
+    single = StagePool(0, [FakeStageClient()], stage_vllm_config=SimpleNamespace(name="single"))
+    replicated = StagePool(
+        1, [FakeStageClient(), FakeStageClient()], stage_vllm_config=SimpleNamespace(name="replicated")
+    )
+    distributed = StagePool(2, [FakeStageClient()], stage_vllm_config=SimpleNamespace(name="distributed"))
+    distributed.attach_hub(SimpleNamespace())
+
+    orchestrator = object.__new__(Orchestrator)
+    orchestrator.stage_pools = [single, replicated, distributed]
+    orchestrator._stage_input_processors = {}
+    for stage_id in range(3):
+        orchestrator._get_stage_input_processor(stage_id)
+
+    assert built == [
+        (single.stage_vllm_config, True),
+        (replicated.stage_vllm_config, False),
+        (distributed.stage_vllm_config, False),
+    ]
 
 
 @pytest.mark.asyncio
@@ -1717,14 +1731,7 @@ async def test_stage_pool_pinned_submit_preserves_route_and_legacy_round_robin(s
     # Preprocessing and sender endpoint lookup see the same owner as submission.
     assert pool.bind_request_to_replica("pinned", 1) == 1
     assert pool.get_bound_client("pinned") is clients[1]
-    assert pool.preselect_replica_id("pinned") == 1
-    expected_replica_id = 1 if stage_type == "llm" else None
-    assert (
-        await pool.submit_initial(
-            "pinned", state, request, pinned_replica_id=1, expected_replica_id=expected_replica_id
-        )
-        == 1
-    )
+    assert await pool.submit_initial("pinned", state, request, pinned_replica_id=1) == 1
     assert await pool.submit_update("pinned", state, request, pinned_replica_id=1) == 1
     assert not clients[0].add_request_calls
     assert len(clients[1].add_request_calls) == 2
@@ -1775,26 +1782,6 @@ async def test_stage_pool_pinned_submit_never_falls_back(operation: str, failure
         await getattr(pool, operation)("pinned", state, request, pinned_replica_id=pinned_replica_id)
 
     assert pool.get_bound_replica_id("pinned") == expected_binding
-    assert not processor.add_request_calls
-    assert all(not client.add_request_calls for client in clients)
-
-
-@pytest.mark.asyncio
-async def test_stage_pool_pinned_submit_rejects_mismatched_cache_replica(monkeypatch) -> None:
-    clients = [FakeStageClient(), FakeStageClient()]
-    processor = FakeOutputProcessor()
-    pool = StagePool(0, clients, output_processor=processor)
-    state = OrchestratorRequestState(request_id="pinned", sampling_params_list=[_sampling_params()], final_stage_id=0)
-    request = SimpleNamespace(request_id="pinned", prompt_token_ids=[1])
-
-    async def fail_selection(*args, **kwargs):
-        raise AssertionError("pinned dispatch must not select another replica")
-
-    monkeypatch.setattr(pool, "_pick_or_select", fail_selection)
-    with pytest.raises(StageUnavailableError, match="replica 0 keyed by pinned"):
-        await pool.submit_initial("pinned", state, request, pinned_replica_id=1, expected_replica_id=0)
-
-    assert pool.get_bound_replica_id("pinned") is None
     assert not processor.add_request_calls
     assert all(not client.add_request_calls for client in clients)
 

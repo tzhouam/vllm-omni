@@ -2188,12 +2188,55 @@ def test_build_stage0_input_processor_uses_omni_renderer_subclass(monkeypatch):
             self.renderer = renderer
 
     monkeypatch.setattr(init_mod, "InputProcessor", DummyInputProcessor)
-    monkeypatch.setattr(init_mod, "build_omni_renderer", lambda cfg: built if cfg is config else None)
+    monkeypatch.setattr(init_mod, "build_omni_renderer", lambda cfg, **_kw: built if cfg is config else None)
     processor = build_stage0_input_processor(config)
     assert seen["renderer"] is built
     assert isinstance(processor.renderer, OmniRenderer)
     assert isinstance(processor.renderer, _Base)
     assert not hasattr(processor, "input_preprocessor")
+
+
+@pytest.mark.parametrize(
+    ("num_replicas", "pool_distributed", "override", "expected"),
+    [
+        (1, False, None, True),
+        (2, False, None, False),
+        (1, True, None, False),
+        # Before the hub is attached the pool reports local; the engine flag decides.
+        (1, False, True, False),
+        (1, True, False, True),
+    ],
+)
+def test_stage_mm_ipc_cache_allowed_only_for_one_static_replica(num_replicas, pool_distributed, override, expected):
+    from vllm_omni.engine.stage_init_utils import stage_mm_ipc_cache_allowed
+
+    pool = types.SimpleNamespace(num_replicas=num_replicas, is_distributed=pool_distributed)
+    assert stage_mm_ipc_cache_allowed(pool, distributed=override) is expected
+    assert stage_mm_ipc_cache_allowed(None) is True
+
+
+def test_build_stage0_input_processor_forwards_mm_cache_mode(monkeypatch):
+    import vllm_omni.engine.stage_init_utils as init_mod
+
+    seen = {}
+
+    def _fake_builder(name):
+        def build(cfg, **kw):
+            seen[name] = kw
+            return name
+
+        return build
+
+    monkeypatch.setattr(init_mod, "InputProcessor", lambda vllm_config, renderer=None: renderer)
+    monkeypatch.setattr(init_mod, "build_omni_renderer", _fake_builder("renderer"))
+    monkeypatch.setattr(init_mod, "_build_token_only_renderer", _fake_builder("token-only"))
+    config = types.SimpleNamespace(model_config=types.SimpleNamespace(try_get_generation_config=lambda: {}))
+    assert build_stage0_input_processor(config, mm_ipc_cache=False) == "renderer"
+    assert seen["renderer"] == {"mm_ipc_cache": False}
+
+    config.model_config.skip_tokenizer_init = True
+    assert build_stage0_input_processor(config, mm_ipc_cache=False) == "token-only"
+    assert seen["token-only"] == {"mm_ipc_cache": False}
 
 
 def test_build_stage0_input_processor_does_not_resolve_tokenizer_when_skipped(monkeypatch):
@@ -2206,11 +2249,11 @@ def test_build_stage0_input_processor_does_not_resolve_tokenizer_when_skipped(mo
             assert renderer is original
             self.renderer = renderer
 
-    def _must_not_resolve(_cfg):
+    def _must_not_resolve(_cfg, **_kw):
         raise AssertionError("tokenizer must not be resolved when skip_tokenizer_init=True")
 
     monkeypatch.setattr(init_mod, "InputProcessor", DummyInputProcessor)
-    monkeypatch.setattr(init_mod, "_build_token_only_renderer", lambda _: original)
+    monkeypatch.setattr(init_mod, "_build_token_only_renderer", lambda _, **_kw: original)
     monkeypatch.setattr(init_mod, "build_omni_renderer", _must_not_resolve)
     config = types.SimpleNamespace(
         model_config=types.SimpleNamespace(skip_tokenizer_init=True, try_get_generation_config=lambda: {})

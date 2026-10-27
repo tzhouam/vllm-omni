@@ -54,7 +54,7 @@ from vllm_omni.engine.messages import (
 from vllm_omni.engine.orchestrator import OrchestratorBase
 from vllm_omni.engine.rpc_result_router import CorrelatedRpcClient
 from vllm_omni.engine.stage_client import StageClient
-from vllm_omni.engine.stage_init_utils import build_stage0_input_processor
+from vllm_omni.engine.stage_init_utils import build_stage0_input_processor, stage_mm_ipc_cache_allowed
 from vllm_omni.engine.stage_pool import StagePool
 from vllm_omni.engine.stage_runtime import (
     OmniClientConfig,
@@ -418,15 +418,26 @@ class OmniEngineBase:
         ]
         self.stage_vllm_configs = [pool.stage_vllm_config for pool in self.stage_pools]
         self.output_processors = [pool.output_processor for pool in self.stage_pools]
+        # The P0/P1 multimodal sender cache shadows one receiver; a stage that
+        # can be served by several replicas (or that can gain replicas, in
+        # distributed mode) processes media with a processor-only cache instead.
+        # The hub is attached by the Orchestrator later, so distributed mode is
+        # taken from the engine flag here.
         self.input_processor = (
-            build_stage0_input_processor(self.stage_vllm_configs[0])
+            build_stage0_input_processor(
+                self.stage_vllm_configs[0],
+                mm_ipc_cache=stage_mm_ipc_cache_allowed(self.stage_pools[0], distributed=self.single_stage_mode),
+            )
             if self.stage_vllm_configs and self.stage_vllm_configs[0] is not None
             else None
         )
         if self.stage_configs and getattr(self.stage_configs[0], "bypass_without_modalities", []):
             # Chat requests that bypass stage 0 are rendered for stage 1; the
             # orchestrator runs their multimodal processing.
-            self._entry_stage_renderers[1] = build_omni_renderer(self.stage_vllm_configs[1])
+            self._entry_stage_renderers[1] = build_omni_renderer(
+                self.stage_vllm_configs[1],
+                mm_ipc_cache=stage_mm_ipc_cache_allowed(self.stage_pools[1], distributed=self.single_stage_mode),
+            )
         self.prompt_transform_func = (
             getattr(self.stage_clients[0], "prompt_transform_func", None) if self.stage_clients else None
         )

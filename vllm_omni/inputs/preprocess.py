@@ -17,6 +17,8 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, cast
 
 from vllm.exceptions import VLLMValidationError
+from vllm.logger import init_logger
+from vllm.multimodal.cache import LruKeyReplicatedSenderCache, MultiModalProcessorOnlyCache
 from vllm.renderers import BaseRenderer
 from vllm.renderers.registry import RENDERER_REGISTRY
 from vllm.tokenizers.registry import cached_tokenizer_from_config, tokenizer_args_from_config
@@ -24,6 +26,8 @@ from vllm.tokenizers.registry import cached_tokenizer_from_config, tokenizer_arg
 if TYPE_CHECKING:
     from vllm.config import VllmConfig
     from vllm.tokenizers import TokenizerLike
+
+logger = init_logger(__name__)
 
 
 class OmniRenderer:
@@ -174,11 +178,41 @@ def omni_renderer_cls(base_cls: type[BaseRenderer]) -> type[BaseRenderer]:
     return cls
 
 
+def use_processor_only_mm_cache(renderer: BaseRenderer) -> BaseRenderer:
+    """Swap the renderer's P0/P1 multimodal sender cache for a processor-only one.
+
+    vLLM's ``LruKeyReplicatedSenderCache`` shadows the receiver cache of exactly
+    one EngineCore: after sending an item once it omits the tensor on later
+    requests and trusts that receiver to still hold it. A vllm-omni stage with
+    several replicas puts several receivers behind that single sender, so an
+    omitted tensor can reach a replica that never received it (#7255, #7295,
+    #8039). Upstream makes the same call for ``data_parallel_size > 1`` behind
+    one API process (``vllm.multimodal.cache.factories._get_cache_type``): keep
+    caching the HF processor output on the frontend, but always ship the full
+    payload. Replica receivers then only ever store what they were sent.
+
+    The shm sender cache is left in place: its ring buffer is shared by every
+    reader on the node, so there is no per-receiver shadow state to drift.
+    """
+    cache = renderer.mm_processor_cache
+    if not isinstance(cache, LruKeyReplicatedSenderCache):
+        return renderer
+    processor_only_cache = MultiModalProcessorOnlyCache(renderer.model_config)
+    # ``BaseRenderer`` has no setter for the cache; it is created in its
+    # ``__init__`` from the config alone, which cannot see the replica count.
+    renderer._mm_processor_cache = processor_only_cache
+    renderer._resources.callback(processor_only_cache.close)
+    cache.close()
+    logger.debug("Multimodal IPC sender cache replaced by a processor-only cache for a multi-replica stage")
+    return renderer
+
+
 def build_omni_renderer(
     vllm_config: VllmConfig,
     *,
     renderer_cls: type[BaseRenderer] | None = None,
     tokenizer: TokenizerLike | None = None,
+    mm_ipc_cache: bool = True,
 ) -> BaseRenderer:
     """Build the Omni renderer for ``vllm_config``.
 
@@ -186,6 +220,10 @@ def build_omni_renderer(
     the tokenizer and renderer mode come from the model config and the class
     from ``RENDERER_REGISTRY``. Pass ``renderer_cls`` (and optionally
     ``tokenizer``) to skip that resolution, e.g. for tokenizer-less stages.
+
+    ``mm_ipc_cache=False`` disables the P0/P1 multimodal sender cache (see
+    :func:`use_processor_only_mm_cache`); pass it for any stage whose requests
+    can be received by more than one EngineCore.
     """
     model_config = vllm_config.model_config
     if renderer_cls is None:
@@ -193,4 +231,7 @@ def build_omni_renderer(
             tokenizer = cached_tokenizer_from_config(model_config)
         renderer_mode, *_ = tokenizer_args_from_config(model_config)
         renderer_cls = RENDERER_REGISTRY.load_renderer_cls(renderer_mode)
-    return omni_renderer_cls(renderer_cls)(vllm_config, tokenizer)
+    renderer = omni_renderer_cls(renderer_cls)(vllm_config, tokenizer)
+    if not mm_ipc_cache:
+        use_processor_only_mm_cache(renderer)
+    return renderer

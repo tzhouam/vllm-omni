@@ -3,6 +3,7 @@
 """Exercise Omni routing through the active upstream rendering pipeline."""
 
 import asyncio
+from contextlib import ExitStack
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
@@ -12,7 +13,19 @@ from vllm.config import ModelConfig
 from vllm.config.multimodal import MultiModalConfig
 from vllm.exceptions import VLLMValidationError
 from vllm.inputs import mm_input, tokens_input
-from vllm.multimodal.inputs import PlaceholderRange
+from vllm.multimodal.cache import (
+    LruKeyReplicatedReceiverCache,
+    LruKeyReplicatedSenderCache,
+    MultiModalCacheMissError,
+    MultiModalProcessorOnlyCache,
+    ShmObjectStoreSenderCache,
+)
+from vllm.multimodal.inputs import (
+    MultiModalFieldElem,
+    MultiModalKwargsItem,
+    MultiModalSharedField,
+    PlaceholderRange,
+)
 from vllm.multimodal.parse import MultiModalDataParser
 from vllm.multimodal.processing import BaseProcessingInfo, InputProcessingContext
 from vllm.pooling_params import PoolingParams
@@ -21,7 +34,12 @@ from vllm.renderers.params import TokenizeParams
 from vllm.v1.engine.input_processor import InputProcessor
 
 from vllm_omni.inputs import preprocess as preprocess_mod
-from vllm_omni.inputs.preprocess import OmniRenderer, build_omni_renderer, omni_renderer_cls
+from vllm_omni.inputs.preprocess import (
+    OmniRenderer,
+    build_omni_renderer,
+    omni_renderer_cls,
+    use_processor_only_mm_cache,
+)
 
 pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
 
@@ -386,3 +404,106 @@ def test_build_omni_renderer_resolves_like_upstream(monkeypatch):
     load_cls.assert_called_once_with("fake-mode")
     assert isinstance(built, OmniRenderer) and isinstance(built, _CtorRenderer)
     assert built.tokenizer is tokenizer
+
+
+# ---- multimodal cache mode for replicated stages ----
+
+
+def _mm_model_config(cache_gb: float = 1.0):
+    mm_config = SimpleNamespace(mm_processor_cache_gb=cache_gb)
+    return SimpleNamespace(get_multimodal_config=lambda: mm_config)
+
+
+class _CacheRenderer(BaseRenderer):
+    """A renderer carrying only what ``use_processor_only_mm_cache`` touches."""
+
+    def __init__(self, cache):
+        self.model_config = _mm_model_config()
+        self._mm_processor_cache = cache
+        self._resources = ExitStack()
+
+    def render_messages(self, messages, params):
+        raise NotImplementedError
+
+
+def _mm_item(value: int) -> MultiModalKwargsItem:
+    return MultiModalKwargsItem(
+        {"pixel_values": MultiModalFieldElem(data=torch.tensor([value]), field=MultiModalSharedField(batch_size=1))}
+    )
+
+
+def test_use_processor_only_mm_cache_replaces_lru_sender_cache():
+    lru_sender = LruKeyReplicatedSenderCache(_mm_model_config())
+    renderer = _CacheRenderer(lru_sender)
+    closed = []
+    lru_sender.close = lambda: closed.append("lru")
+
+    assert use_processor_only_mm_cache(renderer) is renderer
+
+    assert isinstance(renderer.mm_processor_cache, MultiModalProcessorOnlyCache)
+    assert closed == ["lru"]
+    renderer._resources.close()  # the replacement cache is owned by the renderer's resources
+
+
+@pytest.mark.parametrize("cache_factory", [lambda: None, lambda: MultiModalProcessorOnlyCache(_mm_model_config())])
+def test_use_processor_only_mm_cache_leaves_non_ipc_caches_alone(cache_factory):
+    cache = cache_factory()
+    renderer = _CacheRenderer(cache)
+    use_processor_only_mm_cache(renderer)
+    assert renderer.mm_processor_cache is cache
+
+
+def test_use_processor_only_mm_cache_leaves_shm_sender_cache_alone():
+    # The shm ring is shared by every reader on the node and the workers attach to
+    # the ring the sender created, so it must not be swapped out behind them.
+    shm_sender = object.__new__(ShmObjectStoreSenderCache)
+    renderer = _CacheRenderer(shm_sender)
+    use_processor_only_mm_cache(renderer)
+    assert renderer.mm_processor_cache is shm_sender
+
+
+def test_build_omni_renderer_switches_cache_mode_only_when_asked(monkeypatch):
+    swapped = []
+
+    def _record(renderer):
+        swapped.append(renderer)
+        return renderer
+
+    monkeypatch.setattr(preprocess_mod, "use_processor_only_mm_cache", _record)
+    config = SimpleNamespace(model_config=SimpleNamespace())
+
+    kept = build_omni_renderer(config, renderer_cls=_CtorRenderer, tokenizer=None)
+    assert swapped == []
+    switched = build_omni_renderer(config, renderer_cls=_CtorRenderer, tokenizer=None, mm_ipc_cache=False)
+    assert swapped == [switched] and kept is not switched
+
+
+def test_processor_only_sender_never_omits_payload_across_replica_receivers():
+    """The contract behind #8039 / #7295 / #7255.
+
+    One frontend sender cache feeds several EngineCore receiver caches, each of which
+    only knows what it was sent. The key-replicated LRU sender omits a payload it has
+    sent once, so the second replica to see that media gets nothing. The processor-only
+    sender always returns the full item, so every replica stores exactly what it is
+    sent and no payload can be filled in from another request.
+    """
+    receivers = [LruKeyReplicatedReceiverCache(_mm_model_config()) for _ in range(2)]
+    # Same media hashed once ("h-a"), routed to replica 0 then replica 1; a different
+    # video ("h-b") routed to replica 1 in between.
+    route = [("h-a", 0, 1), ("h-b", 1, 2), ("h-a", 1, 1)]
+
+    def run(sender):
+        delivered = []
+        for mm_hash, replica, value in route:
+            sent_item, _updates = sender.get_and_update_item((_mm_item(value), []), mm_hash)
+            received = receivers[replica].get_and_update_item(sent_item, mm_hash)
+            delivered.append(int(received["pixel_values"].data.item()))
+        return delivered
+
+    processor_only = MultiModalProcessorOnlyCache(_mm_model_config())
+    assert run(processor_only) == [1, 2, 1]
+
+    receivers = [LruKeyReplicatedReceiverCache(_mm_model_config()) for _ in range(2)]
+    lru_sender = LruKeyReplicatedSenderCache(_mm_model_config())
+    with pytest.raises(MultiModalCacheMissError):
+        run(lru_sender)

@@ -474,23 +474,6 @@ class DuplexOrchestrator(Orchestrator, DuplexStagePort):
             request = OmniEngineCoreRequest.from_request(request)
         return request
 
-    async def _build_next_stage_request(self, req_id, next_stage_id, next_input, params, **kwargs):
-        state = self.request_states.get(req_id)
-        if (
-            self.replica_placement is not None
-            and isinstance(state, DuplexOrchestratorRequestState)
-            and isinstance(next_input, dict)
-            and next_input.get("multi_modal_data")
-            and not self._next_stage_input_is_tokens(next_input)
-        ):
-            # Keep the shared sender cache scoped to the session's pinned receiver.
-            # The base builder performs scoping off-loop before input processing.
-            replica_id = self.stage_pools[next_stage_id].get_bound_replica_id(req_id)
-            if replica_id is None:
-                raise StageUnavailableError(f"stage {next_stage_id}: duplex input has no pinned replica")
-            kwargs["replica_id"] = replica_id
-        return await super()._build_next_stage_request(req_id, next_stage_id, next_input, params, **kwargs)
-
     async def submit(self, submission: DuplexStageSubmission) -> DuplexStageSubmissionResult:
         context = submission.context
         input_guard = nullcontext() if submission.resumable else self._stage_input_submission(context.stage_id)

@@ -25,7 +25,6 @@ from vllm_omni.engine import OmniEngineCoreRequest
 from vllm_omni.engine.async_engine_utils import (
     apply_omni_final_stage_metadata,
     inject_global_id,
-    scope_stage_replica_mm_uuids,
     upgrade_to_omni_request,
 )
 from vllm_omni.engine.messages import (
@@ -50,160 +49,6 @@ class AsyncOmniEngine(OmniEngineBase):
         return Orchestrator(**orchestrator_kwargs)
 
     # ---- request helpers ----
-
-    _DEFAULT_MM_HASHER_ALGORITHM = "blake3"
-
-    def _resolve_mm_hasher_algorithm(self) -> str:
-        """Return the MM hash algorithm configured for stage 0.
-
-        Upstream vLLM 0.29 removed ``MultiModalHasher``'s ``_get_mm_hasher_algorithm``
-        helper and the ``VLLM_MM_HASHER_ALGORITHM`` env var; the algorithm now lives
-        only on ``MultiModalConfig.mm_hasher_algorithm`` (``--mm-hasher-algorithm``,
-        default ``"blake3"``). Resolve it from stage-0's config so the pre-computed
-        replica-scoped uuid uses the same algorithm as the stage-0 renderer built by
-        ``build_stage0_input_processor``. Falls back to the upstream default when the
-        engine has no stage config (unit tests built via ``object.__new__``) or the
-        model has no multimodal config.
-        """
-
-        stage_vllm_configs = getattr(self, "stage_vllm_configs", None) or []
-        if not stage_vllm_configs:
-            return self._DEFAULT_MM_HASHER_ALGORITHM
-
-        model_config = getattr(stage_vllm_configs[0], "model_config", None)
-        if model_config is None:
-            return self._DEFAULT_MM_HASHER_ALGORITHM
-
-        mm_config = None
-        get_multimodal_config = getattr(model_config, "get_multimodal_config", None)
-        if callable(get_multimodal_config):
-            try:
-                mm_config = get_multimodal_config()
-            except ValueError:
-                # Model is not multimodal.
-                mm_config = None
-        if mm_config is None:
-            mm_config = getattr(model_config, "multimodal_config", None)
-
-        return getattr(mm_config, "mm_hasher_algorithm", None) or self._DEFAULT_MM_HASHER_ALGORITHM
-
-    def _ensure_stage_replica_mm_uuids(
-        self,
-        prompt: Any,
-        *,
-        stage_id: int,
-        replica_id: int,
-    ) -> Any:
-        """Make multimodal processor-cache keys local to a stage replica.
-
-        vLLM's frontend multimodal sender cache is process-global, while each
-        vllm-omni stage replica owns a separate EngineCore receiver cache. If
-        two requests with the same image are routed to different stage-0
-        replicas, a plain content hash can make the sender omit the tensor for
-        a replica that has never received it. Prefixing user/content UUIDs with
-        the selected replica keeps cache reuse within the receiver that owns it.
-
-        Returns a shallow copy carrying the scoped UUIDs; the caller's prompt is
-        left untouched. Writing the scoped UUIDs back would make the next
-        request built from that dict reuse them as user UUIDs and key its new
-        media under the old media's hash.
-        """
-        return scope_stage_replica_mm_uuids(
-            prompt,
-            stage_id=stage_id,
-            replica_id=replica_id,
-            model_id=str(getattr(self, "model", "")),
-            mm_hasher_algorithm=self._resolve_mm_hasher_algorithm(),
-        )
-
-    @staticmethod
-    def _stage_pool_replica_count(stage_pool: Any) -> int:
-        try:
-            live_num_replicas = getattr(stage_pool, "live_num_replicas", None)
-            if live_num_replicas is not None:
-                return int(live_num_replicas)
-        except Exception:
-            pass
-
-        try:
-            live_replica_ids = getattr(stage_pool, "live_replica_ids", None)
-            if callable(live_replica_ids):
-                return len(live_replica_ids())
-        except Exception:
-            pass
-
-        try:
-            clients = getattr(stage_pool, "clients", None)
-            if clients is not None:
-                return sum(1 for client in clients if client is not None)
-        except Exception:
-            pass
-
-        return int(getattr(stage_pool, "num_replicas", 1) or 1)
-
-    @staticmethod
-    def _stage_pool_is_distributed(stage_pool: Any) -> bool:
-        try:
-            is_distributed = getattr(stage_pool, "is_distributed", None)
-            if is_distributed is not None:
-                return bool(is_distributed() if callable(is_distributed) else is_distributed)
-        except Exception:
-            pass
-
-        return getattr(stage_pool, "_hub", None) is not None
-
-    def _scope_stage0_multimodal_cache_to_replica(
-        self,
-        request_id: str,
-        prompt: Any,
-    ) -> tuple[int | None, Any]:
-        """Return the preselected stage-0 replica and the prompt to process.
-
-        The returned prompt is a scoped copy when scoping applies, else
-        ``prompt`` itself.
-        """
-        stage_pools = getattr(self, "stage_pools", None)
-        if isinstance(prompt, EngineCoreRequest) or not stage_pools:
-            return None, prompt
-
-        stage0_pool = stage_pools[0]
-        # TODO: Currently only supports the ar -> dit process.
-        # Future scenarios (e.g., dit -> ar) need to be added, which will require modifications here.
-        if stage0_pool.stage_type == "diffusion" or self._stage_pool_replica_count(stage0_pool) <= 1:
-            return None, prompt
-
-        prompts = prompt if isinstance(prompt, list) else [prompt]
-        if not any(isinstance(p, dict) and p.get("multi_modal_data") for p in prompts):
-            return None, prompt
-
-        if self._stage_pool_is_distributed(stage0_pool):
-            preselect_replica_id = getattr(stage0_pool, "preselect_replica_id", None)
-            if not callable(preselect_replica_id):
-                logger.debug(
-                    "[AsyncOmniEngine] Skipping stage-0 multimodal cache scoping for distributed routing "
-                    "without preselect support req=%s",
-                    request_id,
-                )
-                return None, prompt
-            replica_id = preselect_replica_id(request_id)
-            if replica_id is None:
-                logger.debug(
-                    "[AsyncOmniEngine] Skipping stage-0 multimodal cache scoping for distributed routing "
-                    "because no serviceable replica is available yet req=%s",
-                    request_id,
-                )
-                return None, prompt
-        else:
-            replica_id = stage0_pool.select_replica_id(request_id)
-
-        scoped = [self._ensure_stage_replica_mm_uuids(p, stage_id=0, replica_id=replica_id) for p in prompts]
-
-        logger.debug(
-            "[AsyncOmniEngine] Scoped multimodal cache keys to stage-0 replica-%s for req=%s",
-            replica_id,
-            request_id,
-        )
-        return replica_id, (scoped if isinstance(prompt, list) else scoped[0])
 
     def _build_add_request_message(
         self,
@@ -256,7 +101,6 @@ class AsyncOmniEngine(OmniEngineBase):
         if isinstance(prompt, dict):
             prompt.pop(REQUEST_ARTIFACT_DIRS_KEY, None)
         original_prompt = prompt
-        preselected_stage0_replica: int | None = None
         request_artifact_dirs: list[str] = []
 
         stage_type = self.stage_metadata[0].stage_type
@@ -301,20 +145,17 @@ class AsyncOmniEngine(OmniEngineBase):
                 for item in prompt:
                     inject_global_id(item, request_id)
 
-            preselected_stage0_replica, prompt = self._scope_stage0_multimodal_cache_to_replica(
-                request_id,
-                prompt,
-            )
-
-            # Full input processing (tokenization, multimodal, etc.)
+            # Full input processing (tokenization, multimodal, etc.). The
+            # prompt's media is processed as the client sent it: when stage 0
+            # has several replicas the processor runs with a processor-only
+            # multimodal cache (see ``build_stage0_input_processor``), so no
+            # per-replica cache keys need to be injected here.
             assert self.input_processor is not None
 
             def _release_failed_preprocess() -> None:
-                """Undo a failed stage-0 preprocess: free the reserved replica
-                binding and drop artifacts the transform already wrote. Reads
-                only server-tracked state — never the client prompt."""
-                if preselected_stage0_replica is not None and self.stage_pools:
-                    self.stage_pools[0].release_binding(request_id)
+                """Undo a failed stage-0 preprocess: drop artifacts the
+                transform already wrote. Reads only server-tracked state —
+                never the client prompt."""
                 for artifact_dir in request_artifact_dirs:
                     shutil.rmtree(artifact_dir, ignore_errors=True)
 

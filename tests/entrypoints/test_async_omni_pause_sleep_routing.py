@@ -1948,7 +1948,6 @@ def test_build_failure_after_transform_cleans_extracted_dirs(mocker):
         REQUEST_ARTIFACT_DIRS_KEY: ["/tmp/omni-test-artifact"],
     }
     engine.input_processor = SimpleNamespace(process_inputs=lambda **kwargs: object())
-    mocker.patch.object(engine, "_scope_stage0_multimodal_cache_to_replica", return_value=(None, {"prompt": "hi"}))
     rmtree = mocker.patch("vllm_omni.engine.async_omni_engine.shutil.rmtree")
     mocker.patch("vllm_omni.engine.async_omni_engine.upgrade_to_omni_request", side_effect=RuntimeError("boom"))
 
