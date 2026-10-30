@@ -1046,6 +1046,8 @@ class OrchestratorBase:
                 reported_session_errors.add(req_state.request_id)
                 if request_id is not None:
                     reported_session_errors.add(request_id)
+            if isinstance(getattr(eco, "stage_work", None), list):
+                self._collect_duplex_stage_work(stage_id, eco, req_state)
 
         iteration_stats = IterationStats() if self._stat_logger is not None and raw_outputs.outputs else None
         processed = await pool.process_llm_raw_outputs(
@@ -1211,6 +1213,7 @@ class OrchestratorBase:
                                 continue
 
                             if not is_diffusion_request_started_output(diffusion_output):
+                                diffusion_output = await pool.process_diffusion_output(diffusion_output)
                                 pool.record_output_timestamps([diffusion_output])
                             processed = [diffusion_output]
                         else:
@@ -1479,6 +1482,7 @@ class OrchestratorBase:
                             self._orch_monitor.note_loop(idle=False)
                             continue
                         if not is_diffusion_request_started_output(payload):
+                            payload = await pool.process_diffusion_output(payload)
                             pool.record_output_timestamps([payload])
                         processed = [payload]
                     else:
@@ -1989,6 +1993,24 @@ class OrchestratorBase:
             return True
         req_state.finished_final_output_stage_ids.add(stage_id)
         return True
+
+    def _collect_duplex_stage_work(
+        self,
+        stage_id: int,
+        eco: Any,
+        req_state: OrchestratorRequestState,
+    ) -> None:
+        """Keep a raw output's duplex work spans for the session (RFC #8325); no-op outside duplex."""
+        del stage_id, eco, req_state
+
+    def _annotate_next_stage_inputs(
+        self,
+        src_stage_id: int,
+        req_state: OrchestratorRequestState,
+        next_inputs: list[Any],
+    ) -> None:
+        """Stamp forwarded inputs before they are submitted; no-op outside duplex."""
+        del src_stage_id, req_state, next_inputs
 
     async def _report_duplex_session_request_error(
         self,
@@ -3093,6 +3115,7 @@ class OrchestratorBase:
             await self._cleanup_request_ids([req_id, *self._cfg_tracker.cleanup_parent(req_id)])
             return
 
+        self._annotate_next_stage_inputs(src_stage_id, req_state, next_inputs)
         # Build and submit requests for each input
         for next_input in next_inputs:
             # Only AR thinker stages consume encoder mm_features; downstream
