@@ -46,10 +46,8 @@ build_vllm_base() (
     vllm_source_dir=$(mktemp -d)
     trap 'rm -rf "${vllm_source_dir}"' EXIT
 
-    git -C "${vllm_source_dir}" init --quiet
-    git -C "${vllm_source_dir}" remote add origin https://github.com/vllm-project/vllm
-    git -C "${vllm_source_dir}" fetch --depth 1 origin "${VLLM_VERSION}"
-    git -C "${vllm_source_dir}" checkout --detach FETCH_HEAD
+    git clone --depth 1 --branch "${VLLM_VERSION}" \
+        https://github.com/vllm-project/vllm "${vllm_source_dir}"
 
     local out=("${export_args[@]/'{{IMAGE}}'/${base_image_name}}")
     docker build "${out[@]}" \

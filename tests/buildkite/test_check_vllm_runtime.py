@@ -22,7 +22,7 @@ def test_release_wheel_commit_check(monkeypatch, commit):
     # All candidates advertise the same release version. Only the wheel built
     # from the pinned source can pass; absent/truncated build metadata fails.
     fake_vllm = ModuleType("vllm")
-    vars(fake_vllm)["__version__"] = "0.33.0rc1"
+    vars(fake_vllm)["__version__"] = "0.33.0rc2"
     fake_version = ModuleType("vllm._version")
     vars(fake_version)["__commit_id__"] = commit
     monkeypatch.setitem(sys.modules, "vllm", fake_vllm)

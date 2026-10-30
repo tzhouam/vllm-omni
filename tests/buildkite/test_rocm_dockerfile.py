@@ -117,9 +117,7 @@ def test_rocm_source_ref_tracks_cuda_vllm_release() -> None:
     cuda_version = _docker_arg(CUDA_RELEASE_DOCKERFILE, "VLLM_VERSION")
     rocm_source_ref = _docker_arg(ROCM_DOCKERFILE, "VLLM_VERSION_OR_COMMIT_HASH")
 
-    assert rocm_source_ref == _docker_arg(CUDA_RELEASE_DOCKERFILE, "VLLM_SOURCE_COMMIT")
-    assert rocm_source_ref == _docker_arg(CUDA_CI_DOCKERFILE, "VLLM_SOURCE_COMMIT")
-    assert cuda_version == _docker_arg(CUDA_CI_DOCKERFILE, "VLLM_VERSION")
+    assert rocm_source_ref == f"v{cuda_version}" == f"v{_docker_arg(CUDA_CI_DOCKERFILE, 'VLLM_VERSION')}"
     assert _docker_arg(CUDA_RELEASE_DOCKERFILE, "VLLM_PRECOMPILED_WHEEL_COMMIT") == _docker_arg(
         CUDA_CI_DOCKERFILE, "VLLM_PRECOMPILED_WHEEL_COMMIT"
     )

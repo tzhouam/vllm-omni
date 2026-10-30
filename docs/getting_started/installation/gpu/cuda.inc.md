@@ -9,8 +9,8 @@
 # --8<-- [start:set-up-using-python]
 
 vLLM-Omni depends on the matching major/minor release of vLLM. This source
-checkout targets commit `61cbf542986283d715b54013fc62cbaa8c29c98a` on
-`releases/v0.33.0`, six commits after the rc1 source.
+checkout targets vLLM 0.33.0rc2 at commit
+`61cbf542986283d715b54013fc62cbaa8c29c98a` at the `v0.33.0rc2` tag on `releases/v0.33.0`.
 The combined Python metadata range for this checkout and vLLM is
 `>=3.11,<3.14`. The tested CUDA runtime uses Python 3.12, PyTorch 2.14.0 and
 CUDA 13.0 (`cu130`).
@@ -54,19 +54,20 @@ uv pip install 'vllm-omni[demo]==0.30.0'
 
 #### Installation of vLLM
 
-First install the published rc1 runtime and its matching dependencies:
+If you do not need to modify source code of vLLM, install the release-branch
+0.33.0rc2 wheel directly from the frozen commit:
 
 ```bash
 uv pip install --torch-backend=cu130 \
-  "vllm @ https://wheels.vllm.ai/cbafc4690fda85d74b8aad8f93f3d11aa0366b8b/vllm-0.33.0rc1-cp38-abi3-manylinux_2_28_x86_64.whl"
+  "vllm @ https://wheels.vllm.ai/61cbf542986283d715b54013fc62cbaa8c29c98a/vllm-0.33.0rc2-cp38-abi3-manylinux_2_28_x86_64.whl"
 ```
 
 This command selects the Linux x86_64 CUDA 13.0 wheel and matching PyTorch
 backend. It requires a CUDA 13 compatible driver. For another architecture,
 CUDA variant or an existing incompatible PyTorch installation, build vLLM
 from source instead. The commit-index wheel is available; this checkout
-tracks newer release-branch source and full CI validation remains pending.
-Install the selected source after cloning Omni below.
+tracks a release candidate and full CI validation remains pending. Install
+Omni from this source checkout.
 
 #### Installation of vLLM-Omni
 
@@ -75,9 +76,6 @@ Since vllm-omni is rapidly evolving, it's recommended to install it from source
 ```bash
 git clone https://github.com/vllm-project/vllm-omni.git
 cd vllm-omni
-bash tools/install_vllm_release_source.sh \
-  61cbf542986283d715b54013fc62cbaa8c29c98a \
-  cbafc4690fda85d74b8aad8f93f3d11aa0366b8b 0.33.0rc1
 uv pip install -e .
 ```
 
@@ -110,8 +108,8 @@ git checkout 61cbf542986283d715b54013fc62cbaa8c29c98a
 Set up environment variables to get pre-built wheels. If there are internet problems, just download the whl file manually. And set `VLLM_PRECOMPILED_WHEEL_LOCATION` as your local absolute path of whl file.
 
 ```bash
-# CUDA 13.0 rc1 binaries; native build inputs are unchanged at the selected source
-export VLLM_PRECOMPILED_WHEEL_LOCATION=https://wheels.vllm.ai/cbafc4690fda85d74b8aad8f93f3d11aa0366b8b/vllm-0.33.0rc1-cp38-abi3-manylinux_2_28_x86_64.whl
+# CUDA 13.0 release-branch wheel for the exact source commit on x86_64
+export VLLM_PRECOMPILED_WHEEL_LOCATION=https://wheels.vllm.ai/61cbf542986283d715b54013fc62cbaa8c29c98a/vllm-0.33.0rc2-cp38-abi3-manylinux_2_28_x86_64.whl
 ```
 
 Install vllm with command below (If you have no existing PyTorch).
@@ -170,15 +168,14 @@ docker run --runtime nvidia --gpus 2 \
 
 The production Dockerfile bootstraps from the published
 `vllm/vllm-openai:v0.32.0` CUDA 13 image and installs the frozen
-vLLM 0.33.0rc1 wheel with its matching dependencies, then installs the frozen
-release-branch source using ABI-identical compiled extensions:
+vLLM 0.33.0rc2 wheel with its matching dependencies:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.cuda -t vllm-omni-cuda .
 ```
 
 The CI Dockerfile pins the bootstrap image by digest and installs the same
-source and binary combination. Full CI validation remains pending:
+candidate wheel. Full CI validation remains pending:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.ci -t vllm-omni-cuda-ci .

@@ -1,5 +1,5 @@
 # Bootstrap from the published stable image, then build the selected release
-# candidate below. No v0.33.0rc1 ROCm image is published yet.
+# candidate below. No v0.33.0rc2 ROCm image is published yet.
 ARG BASE_IMAGE=vllm/vllm-openai-rocm:v0.32.0
 
 # Keep the dependency-heavy portion independent from the source tree. The
@@ -13,7 +13,7 @@ FROM ${BASE_IMAGE} AS deps
 # target runtime. CUDA CI and the source tag are checked together in
 # tests/buildkite/test_rocm_dockerfile.py.
 ARG USE_NIGHTLY_BUILD=1
-ARG VLLM_VERSION_OR_COMMIT_HASH=61cbf542986283d715b54013fc62cbaa8c29c98a
+ARG VLLM_VERSION_OR_COMMIT_HASH=v0.33.0rc2
 ARG ARG_PYTORCH_ROCM_ARCH
 ENV PYTORCH_ROCM_ARCH=${ARG_PYTORCH_ROCM_ARCH:-${PYTORCH_ROCM_ARCH}}
 

@@ -20,18 +20,15 @@ source .venv/bin/activate
 
 # On CUDA (Linux x86_64, CUDA 13.0)
 uv pip install --torch-backend=cu130 \
-  "vllm @ https://wheels.vllm.ai/cbafc4690fda85d74b8aad8f93f3d11aa0366b8b/vllm-0.33.0rc1-cp38-abi3-manylinux_2_28_x86_64.whl"
+  "vllm @ https://wheels.vllm.ai/61cbf542986283d715b54013fc62cbaa8c29c98a/vllm-0.33.0rc2-cp38-abi3-manylinux_2_28_x86_64.whl"
 
 git clone https://github.com/vllm-project/vllm-omni.git
 cd vllm-omni
-bash tools/install_vllm_release_source.sh \
-  61cbf542986283d715b54013fc62cbaa8c29c98a \
-  cbafc4690fda85d74b8aad8f93f3d11aa0366b8b 0.33.0rc1
 uv pip install -e .
 ```
 
-These commands select vLLM release-branch source at `61cbf542986283d715b54013fc62cbaa8c29c98a`,
-with PyTorch 2.14.0 and CUDA 13.0. The source installer reuses ABI-identical rc1 binaries after checking native build inputs. Full CI and
+These commands select vLLM 0.33.0rc2 at the frozen release-branch commit,
+with PyTorch 2.14.0 and CUDA 13.0. This is a release candidate; full CI and
 ROCm/XPU runtime validation remain pending. Install Omni from this source
 checkout. For published Omni wheels and other installation methods, see the
 [installation guide](installation/README.md).
