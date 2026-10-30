@@ -76,7 +76,7 @@ COPY requirements/ requirements/
 ENV VLLM_OMNI_VERSION_OVERRIDE=0.0.0
 
 RUN uv pip install --python "$(python3 -c 'import sys; print(sys.executable)')" \
-        --no-cache-dir -e ".[dev]" --no-build-isolation && \
+        --no-cache-dir --override requirements/vllm033-overrides.txt -e ".[dev]" --no-build-isolation && \
     python3 -m pip uninstall -y onnxruntime && \
     python3 -m pip install --no-cache-dir --force-reinstall --no-deps \
         "onnxruntime-rocm>=1.22.2" && \

@@ -1,15 +1,18 @@
+<!-- markdownlint-disable MD001 MD025 -->
+
 # --8<-- [start:requirements]
 
 - GPU: compute capability 7.5 or higher (e.g., T4, RTX20xx, A100, L4, H100, etc.)
 
 # --8<-- [end:requirements]
+
 # --8<-- [start:set-up-using-python]
 
 vLLM-Omni depends on the matching major/minor release of vLLM. This source
-checkout targets vLLM 0.32.0 at commit
-`5df63a7203cdb9328d824a27b682e77c7b9928be` at the `v0.32.0` tag on `releases/v0.32.0`.
+checkout targets vLLM 0.33.0rc1 at commit
+`cbafc4690fda85d74b8aad8f93f3d11aa0366b8b` at the `v0.33.0rc1` tag on `releases/v0.33.0`.
 The combined Python metadata range for this checkout and vLLM is
-`>=3.11,<3.14`. The tested CUDA runtime uses Python 3.12, PyTorch 2.13.0 and
+`>=3.11,<3.14`. The tested CUDA runtime uses Python 3.12, PyTorch 2.14.0 and
 CUDA 13.0 (`cu130`).
 The pre-built Omni wheel instructions below install
 the published 0.30.0 release with its matching vLLM dependency.
@@ -28,6 +31,7 @@ Therefore, it is recommended to install vLLM and vLLM-Omni with a **fresh new** 
 These pre-built wheel instructions install the published vLLM-Omni 0.30.0 release.
 
 vLLM-Omni is built based on vLLM. Please install it with command below.
+
 ```bash
 uv pip install vllm==0.30.0 --torch-backend=auto
 ```
@@ -39,6 +43,7 @@ uv pip install vllm-omni==0.30.0
 ```
 
 To run Gradio demos, also install the optional extras:
+
 ```bash
 uv pip install 'vllm-omni[demo]==0.30.0'
 ```
@@ -48,25 +53,26 @@ uv pip install 'vllm-omni[demo]==0.30.0'
 # --8<-- [start:build-wheel-from-source]
 
 #### Installation of vLLM
+
 If you do not need to modify source code of vLLM, install the release-branch
-0.32.0 wheel directly from the tested commit:
+0.33.0rc1 wheel directly from the frozen commit:
 
 ```bash
 uv pip install --torch-backend=cu130 \
-  "vllm @ https://wheels.vllm.ai/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm-0.32.0-cp38-abi3-manylinux_2_28_x86_64.whl"
+  "vllm @ https://wheels.vllm.ai/cbafc4690fda85d74b8aad8f93f3d11aa0366b8b/vllm-0.33.0rc1-cp38-abi3-manylinux_2_28_x86_64.whl"
 ```
 
 This command selects the Linux x86_64 CUDA 13.0 wheel and matching PyTorch
 backend. It requires a CUDA 13 compatible driver. For another architecture,
 CUDA variant or an existing incompatible PyTorch installation, build vLLM
-from source instead. The [vLLM 0.32.0 release](https://github.com/vllm-project/vllm/releases/tag/v0.32.0)
-and its commit-index and PyPI wheels are available. The PyPI x86_64 wheel
-embeds the same release commit and CUDA/PyTorch requirements. The command
-above retains the exact tested artifact. A vLLM-Omni 0.32 wheel is not yet
-published; install Omni from this source checkout.
+from source instead. The commit-index wheel is available; this checkout
+tracks a release candidate and full CI validation remains pending. Install
+Omni from this source checkout.
 
 #### Installation of vLLM-Omni
+
 Since vllm-omni is rapidly evolving, it's recommended to install it from source
+
 ```bash
 git clone https://github.com/vllm-project/vllm-omni.git
 cd vllm-omni
@@ -74,9 +80,21 @@ uv pip install -e .
 ```
 
 To run Gradio demos, install with optional extras:
+
 ```bash
-uv pip install -e '.[demo]'
+uv pip install --override requirements/vllm033-overrides.txt -e '.[demo]'
 ```
+
+Development installs use the same override:
+
+```bash
+uv pip install --override requirements/vllm033-overrides.txt -e '.[dev]'
+```
+
+The override retains vLLM's Pillow 13 requirement while Gradio, used by
+demos and the VoxCPM test dependency, still declares `pillow<13`.
+See [Gradio #13999](https://github.com/gradio-app/gradio/issues/13999).
+The CI Dockerfile applies this override too.
 
 <details><summary>(Optional) Installation of vLLM from source</summary>
 If you want to check, modify or debug with source code of vLLM, install the library from source with the following instructions:
@@ -84,23 +102,30 @@ If you want to check, modify or debug with source code of vLLM, install the libr
 ```bash
 git clone https://github.com/vllm-project/vllm.git
 cd vllm
-git checkout 5df63a7203cdb9328d824a27b682e77c7b9928be
+git checkout cbafc4690fda85d74b8aad8f93f3d11aa0366b8b
 ```
+
 Set up environment variables to get pre-built wheels. If there are internet problems, just download the whl file manually. And set `VLLM_PRECOMPILED_WHEEL_LOCATION` as your local absolute path of whl file.
+
 ```bash
 # CUDA 13.0 release-branch wheel for the exact source commit on x86_64
-export VLLM_PRECOMPILED_WHEEL_LOCATION=https://wheels.vllm.ai/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm-0.32.0-cp38-abi3-manylinux_2_28_x86_64.whl
+export VLLM_PRECOMPILED_WHEEL_LOCATION=https://wheels.vllm.ai/cbafc4690fda85d74b8aad8f93f3d11aa0366b8b/vllm-0.33.0rc1-cp38-abi3-manylinux_2_28_x86_64.whl
 ```
+
 Install vllm with command below (If you have no existing PyTorch).
+
 ```bash
 VLLM_USE_PRECOMPILED=1 uv pip install --editable . --torch-backend=cu130
 ```
+
 Install vllm with command below (If you already have PyTorch).
+
 ```bash
 python use_existing_torch.py
 uv pip install -r requirements/build/cuda.txt
 uv pip install --no-build-isolation --editable .
 ```
+
 </details>
 
 # --8<-- [end:build-wheel-from-source]
@@ -121,6 +146,7 @@ Nightly CUDA images built from the latest `main` are also available:
 Use a commit-pinned tag when you need a reproducible nightly environment.
 
 Here's an example deployment command that has been verified on 2 x H100's:
+
 ```bash
 docker run --runtime nvidia --gpus 2 \
     -v ~/.cache/huggingface:/root/.cache/huggingface \
@@ -140,17 +166,16 @@ docker run --runtime nvidia --gpus 2 \
 
 #### Build docker image
 
-The production Dockerfile defaults to the published
-`vllm/vllm-openai:v0.32.0` CUDA 13 image, which identifies release commit
-`5df63a7203cdb9328d824a27b682e77c7b9928be`:
+The production Dockerfile bootstraps from the published
+`vllm/vllm-openai:v0.32.0` CUDA 13 image and installs the frozen
+vLLM 0.33.0rc1 wheel with its matching dependencies:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.cuda -t vllm-omni-cuda .
 ```
 
-The CI Dockerfile pins the final CUDA base by digest and installs the exact
-0.32.0 commit-index wheel used by the tested local runtime. Full CI validation
-of this final image stack remains pending:
+The CI Dockerfile pins the bootstrap image by digest and installs the same
+candidate wheel. Full CI validation remains pending:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build -f docker/Dockerfile.ci -t vllm-omni-cuda-ci .

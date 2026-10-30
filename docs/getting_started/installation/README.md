@@ -1,7 +1,7 @@
 # Installation
 
 !!! important
-    vLLM-Omni is released against the matching upstream vLLM major/minor version. This source checkout targets the vLLM 0.32.0 wheel at `5df63a7203cdb9328d824a27b682e77c7b9928be`, tested with CUDA 13.0 and PyTorch 2.13.0. The [vLLM 0.32.0 release](https://github.com/vllm-project/vllm/releases/tag/v0.32.0), PyPI wheels and upstream CUDA/ROCm/XPU images are published. The Dockerfiles now select those matching release images; CI pins the CUDA image by digest. Full CI validation of the final CUDA base and ROCm/XPU runtime validation remain pending. A vLLM-Omni 0.32 wheel is not published. The published vLLM-Omni 0.30.0 wheel instructions use vLLM 0.30.0; choose the installation path that matches your Omni revision.
+    This source checkout targets vLLM 0.33.0rc1 at `cbafc4690fda85d74b8aad8f93f3d11aa0366b8b`, with CUDA 13.0 and PyTorch 2.14.0. Full CI and ROCm/XPU runtime validation remain pending. CUDA Dockerfiles upgrade the published 0.32.0 bootstrap image using the frozen candidate wheel; ROCm builds the candidate from source. The published Omni 0.30.0 wheel instructions below retain their matching vLLM 0.30.0 dependency.
 
 vLLM-Omni supports the following hardware platforms:
 
