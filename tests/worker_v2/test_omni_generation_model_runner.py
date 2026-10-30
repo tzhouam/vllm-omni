@@ -437,6 +437,8 @@ def test_prewarm_runs_after_finish_and_only_on_consecutive_idle_steps(cached):
     from vllm_omni.core.sched.output import OmniRequestPrewarm, OmniSchedulerOutput
 
     runner = object.__new__(OmniGenerationModelRunner)
+    runner.pp_handler = None
+    runner.encoder_cache = None
     runner._prev_step_idle = False
     runner._failed_optional_model_hooks = set()
     events = []

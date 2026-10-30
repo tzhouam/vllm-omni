@@ -43,6 +43,9 @@ def test_flash_attention_hub_uses_torch_stable_abi_build(monkeypatch):
 @pytest.mark.core_model
 @pytest.mark.cpu
 def test_explicit_kernels_hub_selection_does_not_fallback(monkeypatch: pytest.MonkeyPatch):
+    # Explicit FA/Sage selections must not initialize the unrelated cuDNN runtime.
+    monkeypatch.setattr(torch.backends.cudnn, "version", lambda: pytest.fail("Unexpected cuDNN initialization"))
+
     from vllm_omni.platforms.cuda.platform import CudaOmniPlatform
 
     # Temporarily hide/remove kernels module if present

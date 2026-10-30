@@ -58,6 +58,9 @@ tries versions 1, 2, then 3 so Torch stable-ABI builds remain available when
 older per-Torch builds do not match. An explicit selection still fails when
 no compatible published build resolves.
 
+Explicit backend validation must avoid initializing unrelated runtimes. The
+cuDNN version probe belongs to automatic Blackwell fallback selection.
+
 The selector must not duplicate device capability or package-availability
 policy that belongs to the platform.
 
