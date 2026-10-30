@@ -978,6 +978,15 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                     lora_request=lora_request,
                 )
 
+                chat_template_kwargs = self._effective_chat_template_kwargs(request)
+                parser = (
+                    self._make_parser(request, tokenizer, chat_template_kwargs) if self.parser_cls is not None else None
+                )
+                prompt_token_ids = []
+                if isinstance(engine_prompt, Mapping):
+                    raw_ids = engine_prompt.get("prompt_token_ids")
+                    if isinstance(raw_ids, list):
+                        prompt_token_ids = raw_ids
                 generator = self.engine_client.generate(
                     prompt=engine_prompt,
                     request_id=request_id,
@@ -986,6 +995,12 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                     arrival_time=request_timestamp,
                     lora_request=lora_request,
                     entry_stage_id=entry_stage_id,
+                    **self._engine_reasoning_kwargs(
+                        request,
+                        parser,
+                        chat_template_kwargs,
+                        prompt_token_ids,
+                    ),
                 )
 
                 generators.append(generator)
@@ -2904,6 +2919,9 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                         else (output.finish_reason if output.finish_reason else "stop")
                     ),
                     stop_reason=output.stop_reason,
+                    weight_versions=(
+                        getattr(output, "weight_versions", None) if request.return_weight_versions else None
+                    ),
                 )
                 choices.append(choice_data)
                 continue
@@ -3041,6 +3059,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                 ),
                 stop_reason=output.stop_reason,
                 token_ids=(as_list(output.token_ids) if request.return_token_ids else None),
+                weight_versions=(getattr(output, "weight_versions", None) if request.return_weight_versions else None),
             )
             choices.append(choice_data)
 

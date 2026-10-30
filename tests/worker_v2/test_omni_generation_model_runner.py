@@ -96,6 +96,7 @@ def test_control_only_step_keeps_lifecycle_and_skips_input_construction(aux_enab
     runner._attach_native_data_plane_signals = lambda value: value
     metadata = object()
     runner.aux_output_connector = SimpleNamespace(begin_step=MagicMock()) if aux_enabled else None
+    runner.pp_handler = None
     scheduler_output = SimpleNamespace(
         total_num_scheduled_tokens=0,
         scheduled_new_reqs=[],

@@ -18,7 +18,7 @@ import janus
 import pytest
 import torch
 from vllm.lora.request import LoRARequest
-from vllm.outputs import CompletionOutput, RequestOutput
+from vllm.outputs import CompletionOutput, RequestError, RequestOutput
 from vllm.sampling_params import SamplingParams
 from vllm.v1.engine import EngineCoreOutput, EngineCoreOutputs, EngineCoreRequest, FinishReason
 from vllm.v1.engine.exceptions import EngineDeadError
@@ -322,7 +322,13 @@ def _sampling_params(max_tokens: int = 4) -> SamplingParams:
 
 
 def _engine_core_outputs(tag: str, timestamp: float) -> SimpleNamespace:
-    return SimpleNamespace(outputs=[tag], timestamp=timestamp, scheduler_stats=None, finished_requests=None)
+    return SimpleNamespace(
+        outputs=[tag],
+        timestamp=timestamp,
+        scheduler_stats=None,
+        finished_requests=None,
+        weight_version=None,
+    )
 
 
 def _terminal_engine_core_outputs(
@@ -2822,6 +2828,7 @@ async def test_orchestrator_records_scheduler_stats_without_outputs(orchestrator
                 timestamp=1.0,
                 scheduler_stats=scheduler_stats,
                 finished_requests=None,
+                weight_version=None,
             )
         )
 
@@ -2850,7 +2857,13 @@ async def test_orchestrator_rehydrates_mrv2_pooling_payload_before_output_proces
 
     try:
         stage0.push_engine_core_outputs(
-            SimpleNamespace(outputs=[engine_output], timestamp=1.0, scheduler_stats=None, finished_requests=None)
+            SimpleNamespace(
+                outputs=[engine_output],
+                timestamp=1.0,
+                scheduler_stats=None,
+                finished_requests=None,
+                weight_version=None,
+            )
         )
 
         await _wait_for(lambda: len(processor.process_calls) == 1)
@@ -2877,6 +2890,7 @@ async def test_orchestrator_does_not_build_iteration_stats_for_finished_only_bat
                 timestamp=1.0,
                 scheduler_stats=None,
                 finished_requests={"req-finished"},
+                weight_version=None,
             )
         )
 
@@ -2913,7 +2927,7 @@ async def test_stage_pool_preserves_none_iteration_stats() -> None:
         output_processor=processor,
         stage_vllm_config=SimpleNamespace(model_config=SimpleNamespace(max_model_len=64)),
     )
-    raw_outputs = SimpleNamespace(outputs=["raw"], timestamp=1.0, scheduler_stats=None)
+    raw_outputs = SimpleNamespace(outputs=["raw"], timestamp=1.0, scheduler_stats=None, weight_version=None)
 
     await pool.process_llm_raw_outputs(0, raw_outputs, iteration_stats=None)
 
@@ -2930,7 +2944,7 @@ async def test_stage_pool_process_llm_raw_outputs_mutates_iteration_stats() -> N
         output_processor=processor,
         stage_vllm_config=SimpleNamespace(model_config=SimpleNamespace(max_model_len=64)),
     )
-    raw_outputs = SimpleNamespace(outputs=["raw"], timestamp=1.0, scheduler_stats=None)
+    raw_outputs = SimpleNamespace(outputs=["raw"], timestamp=1.0, scheduler_stats=None, weight_version=None)
     iteration_stats = IterationStats()
 
     await pool.process_llm_raw_outputs(0, raw_outputs, iteration_stats=iteration_stats)
@@ -3083,6 +3097,85 @@ async def test_duplex_session_request_error_finish_is_delivered_as_request_error
         OmniEngineCoreOutput(request_id="plain-req", new_token_ids=[], finish_reason=FinishReason.ERROR),
         plain_state,
     )
+    assert output_queue.empty()
+
+
+_PAUSE_MESSAGE = "Generation is paused. Please retry after it resumes."
+
+
+@pytest.mark.asyncio
+async def test_raw_stage_error_prefers_request_error_message(mocker):
+    pools = _build_stage_pools([[FakeStageClient()], [FakeStageClient()]])
+    for pool in pools:
+        mocker.patch.object(pool, "process_llm_raw_outputs", new_callable=mocker.AsyncMock, return_value=[])
+    output_queue: asyncio.Queue[ErrorMessage] = asyncio.Queue()
+    orchestrator = Orchestrator(
+        request_async_queue=asyncio.Queue(),
+        output_async_queue=output_queue,
+        rpc_async_queue=asyncio.Queue(),
+        stage_pools=[],
+    )
+    orchestrator.stage_pools = pools
+    orchestrator.request_states["stuck"] = OrchestratorRequestState(request_id="stuck", final_stage_id=1)
+    mocker.patch.object(orchestrator, "_handle_kv_ready_raw_outputs", new_callable=mocker.AsyncMock)
+    mocker.patch.object(orchestrator, "_cleanup_request_ids", new_callable=mocker.AsyncMock)
+    raw = EngineCoreOutputs(
+        outputs=[
+            OmniEngineCoreOutput(
+                request_id="stuck",
+                new_token_ids=[],
+                finish_reason=FinishReason.ERROR,
+                stop_reason=None,
+                error=RequestError(code="engine_paused", message=_PAUSE_MESSAGE, retryable=True),
+            )
+        ]
+    )
+
+    await orchestrator._process_llm_stage_outputs(0, 0, raw, set())
+
+    error = output_queue.get_nowait()
+    assert error.error == _PAUSE_MESSAGE
+    assert error.error_type == "engine_paused"
+    assert error.request_id == "stuck"
+    assert output_queue.empty()
+
+
+@pytest.mark.asyncio
+async def test_duplex_session_error_is_not_emitted_twice(mocker):
+    pools = _build_stage_pools([[FakeStageClient()]])
+    pause = OmniRequestOutput.from_error("duplex-req", _PAUSE_MESSAGE, error_type="engine_paused")
+    mocker.patch.object(pools[0], "process_llm_raw_outputs", new_callable=mocker.AsyncMock, return_value=[pause])
+    output_queue: asyncio.Queue[ErrorMessage] = asyncio.Queue()
+    orchestrator = Orchestrator(
+        request_async_queue=asyncio.Queue(),
+        output_async_queue=output_queue,
+        rpc_async_queue=asyncio.Queue(),
+        stage_pools=[],
+    )
+    orchestrator.stage_pools = pools
+    orchestrator.request_states["duplex-req"] = OrchestratorRequestState(
+        request_id="duplex-req",
+        session_owned=True,
+    )
+    mocker.patch.object(orchestrator, "_handle_kv_ready_raw_outputs", new_callable=mocker.AsyncMock)
+    raw = EngineCoreOutputs(
+        outputs=[
+            OmniEngineCoreOutput(
+                request_id="duplex-req",
+                new_token_ids=[],
+                finish_reason=FinishReason.ERROR,
+                error=RequestError(code="engine_paused", message=_PAUSE_MESSAGE, retryable=True),
+            )
+        ]
+    )
+
+    processed = await orchestrator._process_llm_stage_outputs(0, 0, raw, set())
+
+    assert processed == []
+    error = output_queue.get_nowait()
+    assert error.error == _PAUSE_MESSAGE
+    assert error.error_type == "engine_paused"
+    assert error.request_id == "duplex-req"
     assert output_queue.empty()
 
 

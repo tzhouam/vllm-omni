@@ -1,10 +1,10 @@
-# Align the CUDA base and commit-index wheel with the final v0.32.0 release.
-# Pin the published multi-platform image digest so CI uses the same release
-# stack even if the upstream tag is updated.
-ARG VLLM_PRECOMPILED_WHEEL_COMMIT=5df63a7203cdb9328d824a27b682e77c7b9928be
-ARG VLLM_VERSION=0.32.0
+# Install the v0.33.0 release candidate from its frozen commit index.
+# Bootstrap from the published v0.32.0 image; uv resolves the selected
+# wheel's dependencies, including the v0.33.0 Torch runtime, below.
+ARG VLLM_PRECOMPILED_WHEEL_COMMIT=cbafc4690fda85d74b8aad8f93f3d11aa0366b8b
+ARG VLLM_VERSION=0.33.0rc1
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
-ARG VLLM_BASE_TAG=v${VLLM_VERSION}@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34
+ARG VLLM_BASE_TAG=v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34
 
 # We use registry-based layer caching for the dependencies,
 # where the tag is determined based on the hash of the contents

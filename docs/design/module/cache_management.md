@@ -26,6 +26,11 @@ last_reviewed: 2026-07-16
 Cache management defines reusable state, cache identity, validity, lifecycle,
 and eviction across AR and diffusion execution.
 
+When upstream reports a multimodal encoder-cache size mismatch, both AR and
+generation schedulers drain that request into a terminal error output and
+discard its pending prewarm payload. A rejected cache identifier must not
+leave a request waiting indefinitely or replay the same error on later steps.
+
 ## Candidate invariants
 
 ### CACHE-INV-001: Cache identity is complete

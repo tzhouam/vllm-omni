@@ -1,6 +1,5 @@
-# Keep the ROCm runtime aligned with the vLLM release targeted by
-# docker/Dockerfile.ci. A stale base image can build successfully while failing
-# at runtime when vLLM-Omni imports APIs added by the newer vLLM release.
+# Bootstrap from the published stable image, then build the selected release
+# candidate below. No v0.33.0rc1 ROCm image is published yet.
 ARG BASE_IMAGE=vllm/vllm-openai-rocm:v0.32.0
 
 # Keep the dependency-heavy portion independent from the source tree. The
@@ -9,14 +8,12 @@ ARG BASE_IMAGE=vllm/vllm-openai-rocm:v0.32.0
 FROM ${BASE_IMAGE} AS deps
 
 # NOTE: REMINDER to vLLM-Omni rebase maintainer
-# BASE_IMAGE pins the default prebuilt runtime when USE_NIGHTLY_BUILD=0.
-# VLLM_VERSION_OR_COMMIT_HASH is consumed only by the opt-in source rebuild when
-# USE_NIGHTLY_BUILD=1. Keep both aligned with docker/Dockerfile.ci's
-# release version. This is enforced by tests/buildkite/test_rocm_dockerfile.py. An
-# intentional custom source pin must update that regression in the same change,
-# and should return to the stable release as soon as one is available.
-ARG USE_NIGHTLY_BUILD=0
-ARG VLLM_VERSION_OR_COMMIT_HASH=v0.32.0
+# Build from the release tag until a matching prebuilt ROCm image is available.
+# Set USE_NIGHTLY_BUILD=0 only with a BASE_IMAGE that already contains the
+# target runtime. CUDA CI and the source tag are checked together in
+# tests/buildkite/test_rocm_dockerfile.py.
+ARG USE_NIGHTLY_BUILD=1
+ARG VLLM_VERSION_OR_COMMIT_HASH=v0.33.0rc1
 ARG ARG_PYTORCH_ROCM_ARCH
 ENV PYTORCH_ROCM_ARCH=${ARG_PYTORCH_ROCM_ARCH:-${PYTORCH_ROCM_ARCH}}
 

@@ -1281,6 +1281,7 @@ class StagePool:
             raw_outputs.outputs,
             raw_outputs.timestamp,
             iteration_stats,
+            weight_version=raw_outputs.weight_version,
         )
         # Use the same wall-clock source as OrchestratorRequestState.stage_submit_ts.
         # EngineCoreOutputs.timestamp may use a different clock base, which would
