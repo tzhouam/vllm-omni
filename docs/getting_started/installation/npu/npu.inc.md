@@ -75,9 +75,9 @@ We are keeping [issue #886](https://github.com/vllm-project/vllm-omni/issues/886
 # --8<-- [start:installation-main]
 
 You can also install vLLM-Omni from source if you want to use the latest features
-or bug fixes. This alignment checkout targets vLLM 0.33.0rc1 and requires a
+or bug fixes. This alignment checkout targets vLLM 0.33.0 release-branch source and requires a
 matching vLLM-Ascend runtime validated on your NPU. The v0.30.0 Ascend images
-above do not establish compatibility with this vLLM 0.33.0rc1 checkout. Check
+above do not establish compatibility with this vLLM 0.33.0 release-branch source checkout. Check
 [issue #886](https://github.com/vllm-project/vllm-omni/issues/886) for aligned
 versions and NPU validation before selecting a development image.
 

@@ -5,6 +5,7 @@ FROM ${BASE_IMAGE}
 # runtime from the same frozen wheel used by CUDA CI.
 ARG VLLM_PRECOMPILED_WHEEL_COMMIT=cbafc4690fda85d74b8aad8f93f3d11aa0366b8b
 ARG VLLM_VERSION=0.33.0rc1
+ARG VLLM_SOURCE_COMMIT=61cbf542986283d715b54013fc62cbaa8c29c98a
 ARG COMMON_WORKDIR=/app
 
 WORKDIR ${COMMON_WORKDIR}
@@ -22,6 +23,9 @@ COPY . ${COMMON_WORKDIR}/vllm-omni
 RUN cd ${COMMON_WORKDIR}/vllm-omni && uv pip install --python "$(python3 -c 'import sys; print(sys.executable)')" --no-cache-dir \
     "vllm @ https://wheels.vllm.ai/${VLLM_PRECOMPILED_WHEEL_COMMIT}/vllm-${VLLM_VERSION}-cp38-abi3-manylinux_2_28_$(uname -m).whl" \
     "."
+
+RUN bash ${COMMON_WORKDIR}/vllm-omni/tools/install_vllm_release_source.sh \
+    "${VLLM_SOURCE_COMMIT}" "${VLLM_PRECOMPILED_WHEEL_COMMIT}" "${VLLM_VERSION}"
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 

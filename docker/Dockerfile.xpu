@@ -1,4 +1,4 @@
-# Target vLLM version: v0.33.0rc1. Keep VLLM_VERSION aligned with the target vLLM
+# Target vLLM version: 61cbf542986283d715b54013fc62cbaa8c29c98a. Keep VLLM_VERSION aligned with the target vLLM
 # release on every rebase.
 #
 # This file layers vLLM-Omni on top of the published upstream XPU image, which
@@ -11,14 +11,15 @@
 # If the tag does not exist yet (targeting an unreleased vLLM commit), build the
 # base from upstream's own Dockerfile and point VLLM_BASE at the result:
 #
-#   git clone --depth 1 --branch $VLLM_VERSION https://github.com/vllm-project/vllm /tmp/vllm
+#   git clone https://github.com/vllm-project/vllm /tmp/vllm
+#   git -C /tmp/vllm checkout $VLLM_VERSION
 #   docker build -t vllm-openai-xpu:local --target vllm-openai \
 #       -f /tmp/vllm/docker/Dockerfile.xpu /tmp/vllm
 #   docker build -f docker/Dockerfile.xpu --build-arg VLLM_BASE=vllm-openai-xpu:local .
 #
 # .buildkite/intel/scripts/run-xpu-test.sh automates that pull-then-build fallback.
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai-xpu
-ARG VLLM_VERSION=v0.33.0rc1
+ARG VLLM_VERSION=61cbf542986283d715b54013fc62cbaa8c29c98a
 ARG VLLM_BASE=${VLLM_BASE_IMAGE}:${VLLM_VERSION}
 
 FROM ${VLLM_BASE} AS vllm-omni

@@ -31,6 +31,11 @@ generation schedulers drain that request into a terminal error output and
 discard its pending prewarm payload. A rejected cache identifier must not
 leave a request waiting indefinitely or replay the same error on later steps.
 
+When HiSparse defers asynchronous KV loads, a completed nonempty scheduler
+step advances the upstream fence and drains both deferred frees and loads.
+Empty steps leave the fence unchanged so a reused block cannot be loaded
+while an earlier GPU step still reads it.
+
 ## Candidate invariants
 
 ### CACHE-INV-001: Cache identity is complete

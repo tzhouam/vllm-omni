@@ -12,7 +12,7 @@ from pathlib import Path
 def main() -> None:
     dockerfile = Path(__file__).resolve().parents[3] / "docker" / "Dockerfile.ci"
     match = re.search(
-        r"^ARG VLLM_PRECOMPILED_WHEEL_COMMIT=([0-9a-f]{40})$",
+        r"^ARG VLLM_SOURCE_COMMIT=([0-9a-f]{40})$",
         dockerfile.read_text(),
         re.MULTILINE,
     )

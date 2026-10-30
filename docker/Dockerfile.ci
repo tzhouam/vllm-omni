@@ -3,6 +3,7 @@
 # wheel's dependencies, including the v0.33.0 Torch runtime, below.
 ARG VLLM_PRECOMPILED_WHEEL_COMMIT=cbafc4690fda85d74b8aad8f93f3d11aa0366b8b
 ARG VLLM_VERSION=0.33.0rc1
+ARG VLLM_SOURCE_COMMIT=61cbf542986283d715b54013fc62cbaa8c29c98a
 ARG VLLM_BASE_IMAGE=vllm/vllm-openai
 ARG VLLM_BASE_TAG=v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34
 
@@ -14,6 +15,7 @@ ARG VLLM_BASE_TAG=v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c
 FROM ${VLLM_BASE_IMAGE}:${VLLM_BASE_TAG} AS deps
 ARG VLLM_PRECOMPILED_WHEEL_COMMIT
 ARG VLLM_VERSION
+ARG VLLM_SOURCE_COMMIT
 # Keep APP_DIR outside /workspace so k8s Buildkite workspace mounts cannot
 # shadow the editable install target (#5364). Docker WORKDIR creates /opt if
 # needed.
@@ -47,10 +49,16 @@ ENV VLLM_OMNI_VERSION_OVERRIDE=0.0.0
 RUN uv pip install --system --override requirements/vllm033-overrides.txt \
     "vllm @ https://wheels.vllm.ai/${VLLM_PRECOMPILED_WHEEL_COMMIT}/vllm-${VLLM_VERSION}-cp38-abi3-manylinux_2_28_$(uname -m).whl" \
     -e ".[dev]"
+# Overlay the frozen release-branch source; its native build inputs are checked
+# against the published wheel before reusing its compiled extensions.
+COPY tools/install_vllm_release_source.sh /tmp/install_vllm_release_source.sh
+RUN bash /tmp/install_vllm_release_source.sh "${VLLM_SOURCE_COMMIT}" \
+        "${VLLM_PRECOMPILED_WHEEL_COMMIT}" "${VLLM_VERSION}" && \
+    rm /tmp/install_vllm_release_source.sh
 # Fail the image build if dependency resolution replaced the selected vLLM.
 # The CPU builder has no NVIDIA driver; CUDA imports are checked at the start
 # of each GPU test job by .buildkite/cuda/scripts/check_vllm_runtime.py.
-RUN python3 -c "from vllm._version import __commit_id__; commit = (__commit_id__ or '').removeprefix('g'); assert len(commit) >= 8 and '${VLLM_PRECOMPILED_WHEEL_COMMIT}'.startswith(commit), __commit_id__"
+RUN python3 -c "from vllm._version import __commit_id__; commit = (__commit_id__ or '').removeprefix('g'); assert len(commit) >= 8 and '${VLLM_SOURCE_COMMIT}'.startswith(commit), __commit_id__"
 
 # The final stage just copies the working dir on top of the
 # dependencies image. This uses --link so that we can skip

@@ -15,7 +15,9 @@ pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
 SCRIPT = Path(__file__).resolve().parents[2] / ".buildkite/cuda/scripts/check_vllm_runtime.py"
 
 
-@pytest.mark.parametrize("commit", ["gcbafc4690", "g4135590ff", "g82eb574d9", "gdeadbeef0", None, "g5df6"])
+@pytest.mark.parametrize(
+    "commit", ["g61cbf5429", "gcbafc4690", "g4135590ff", "g82eb574d9", "gdeadbeef0", None, "g5df6"]
+)
 def test_release_wheel_commit_check(monkeypatch, commit):
     # All candidates advertise the same release version. Only the wheel built
     # from the pinned source can pass; absent/truncated build metadata fails.
@@ -37,7 +39,7 @@ def test_release_wheel_commit_check(monkeypatch, commit):
     for name in ("flashinfer", "vllm._C_stable_libtorch"):
         monkeypatch.setitem(sys.modules, name, ModuleType(name))
     main = runpy.run_path(str(SCRIPT))["main"]
-    if commit == "gcbafc4690":
+    if commit == "g61cbf5429":
         main()
     else:
         with pytest.raises(AssertionError, match="Expected vLLM"):
