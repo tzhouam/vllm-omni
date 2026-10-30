@@ -2369,7 +2369,9 @@ def test_whole_euler_ragged_rows_match_per_row_exact_solves(
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required for graph capture")
-def test_whole_euler_mixed_histories_match_independent_streams(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_whole_euler_mixed_histories_match_independent_streams(
+    monkeypatch: pytest.MonkeyPatch, with_ieee_cudnn_fp32
+) -> None:
     """Different reference lengths share a graph without exposing padded history."""
     pool = torch.cuda.graph_pool_handle()
     monkeypatch.setattr(current_platform, "get_global_graph_pool", lambda: pool)

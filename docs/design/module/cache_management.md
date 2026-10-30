@@ -36,6 +36,10 @@ step advances the upstream fence and drains both deferred frees and loads.
 Empty steps leave the fence unchanged so a reused block cannot be loaded
 while an earlier GPU step still reads it.
 
+Diffusion supplies worker attention specs to the native KV planner and uses
+its default grouping. Its model-config adapter declares that it does not use
+a registered model's custom `SupportsKVCacheGrouping` hook.
+
 ## Candidate invariants
 
 ### CACHE-INV-001: Cache identity is complete
