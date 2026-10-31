@@ -19,8 +19,9 @@ RUN mkdir -p ${COMMON_WORKDIR}/vllm-omni
 
 # Step 2: Copy vllm-omni code and install
 COPY . ${COMMON_WORKDIR}/vllm-omni
-RUN cd ${COMMON_WORKDIR}/vllm-omni && uv pip install --python "$(python3 -c 'import sys; print(sys.executable)')" --no-cache-dir \
-    "vllm @ https://wheels.vllm.ai/${VLLM_PRECOMPILED_WHEEL_COMMIT}/vllm-${VLLM_VERSION}-cp38-abi3-manylinux_2_28_$(uname -m).whl" \
+RUN VLLM_WHEEL_VERSION=$(printf '%s' "${VLLM_VERSION}" | sed 's/+/%2B/g') && \
+    cd ${COMMON_WORKDIR}/vllm-omni && uv pip install --python "$(python3 -c 'import sys; print(sys.executable)')" --no-cache-dir \
+    "vllm @ https://wheels.vllm.ai/${VLLM_PRECOMPILED_WHEEL_COMMIT}/vllm-${VLLM_WHEEL_VERSION}-cp38-abi3-manylinux_2_28_$(uname -m).whl" \
     "."
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
