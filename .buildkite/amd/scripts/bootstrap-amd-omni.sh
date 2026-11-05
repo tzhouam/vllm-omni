@@ -16,6 +16,13 @@ source .buildkite/common/scripts/resolve_skip_ci.sh
 
 AMD_SUITE_SELECTOR=".buildkite/amd/scripts/select_test_suites.py"
 
+# An opt-in diagnostic control, never selected by PR labels or schedules.
+# EXPECTED_CONTROL_COMMIT must be supplied by the build creator after commit.
+if [[ "${AMD_MAIN82_TWO_JOB_CONTROL:-0}" == "1" ]]; then
+    python3 .buildkite/amd/scripts/main82_two_job_control.py bootstrap
+    export DEBUG_TEST_YAML="nightly,weekly"
+fi
+
 if [[ -z "${RUN_ALL:-}" ]]; then
     RUN_ALL=0
 fi
@@ -219,6 +226,12 @@ upload_pipeline() {
         echo "Prepared AMD nightly jobs using PR/scheduled source-filter policy."
     fi
 
+    if [[ "${AMD_MAIN82_TWO_JOB_CONTROL:-0}" == "1" ]]; then
+        control_test_yaml=$(mktemp "${TMPDIR:-/tmp}/amd-main82-control.XXXXXX.yml")
+        python3 scripts/main82_two_job_control.py select "$TEST_YAML" "$control_test_yaml"
+        TEST_YAML="$control_test_yaml"
+    fi
+
     (
         set -x
         # Output pipeline.yaml with all blank lines removed
@@ -237,6 +250,10 @@ upload_pipeline() {
             | sed '/^[[:space:]]*$/d' \
             > pipeline.yaml
     )
+    if [[ "${AMD_MAIN82_TWO_JOB_CONTROL:-0}" == "1" ]]; then
+        python3 scripts/main82_two_job_control.py wrap pipeline.yaml
+        rm -f -- "$control_test_yaml"
+    fi
     cat pipeline.yaml
     if [[ -n "$filtered_test_yaml" ]]; then
         rm -f -- "$filtered_test_yaml"
@@ -277,7 +294,9 @@ release_line_parent_base() {
 # claim a from-source wheel build here: if VLLM_USE_PRECOMPILED is already
 # set, the block below keeps that value.
 DIFF_BASE=""
-if is_release_line_push; then
+if [[ "${AMD_MAIN82_TWO_JOB_CONTROL:-0}" == "1" ]]; then
+    DIFF_BASE="82fc4f511fe02bb933d01c5b5f24e1f8a9e5b415"
+elif is_release_line_push; then
     if ! DIFF_BASE=$(release_line_parent_base); then
         echo "release-line parent is unavailable; running all AMD tests (RUN_ALL=1)." >&2
         RUN_ALL=1
