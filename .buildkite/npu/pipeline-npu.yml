@@ -1,9 +1,30 @@
-# Hook uploads this entry YAML; upload_pipeline.py --upload reads bootstrap-upload-steps.yml
-# and injects ``if`` by step ``key`` from skip-ci.
+# Ephemeral diagnostic branch only: inspect immutable CI image bytes without
+# importing a framework, opening devices, loading models or running collectors.
 steps:
-  - label: ":github: Resolve skip-ci & upload pipeline"
-    key: upload-ci-pipeline
-    commands:
-      - "python3 .buildkite/common/scripts/upload_pipeline.py --upload .buildkite/npu/bootstrap-upload-steps.yml"
+  - label: "PR9009 · immutable NPU CI image metadata only"
+    key: pr9009-npu-vendor-source-diagnostic
     agents:
-      queue: "medium_cpu_queue_premerge"
+      queue: ascend-a2b3
+      resource_class: npu-1
+    image: swr.cn-southwest-2.myhuaweicloud.com/modelfoundry/vllm-omni-ci-npu@sha256:3dbdeb54e96faab8b1b4cfe3014c29bfdba067c03d07dc8412269e2133244c94
+    plugins:
+      - kubernetes:
+          podSpecPatch:
+            imagePullSecrets:
+              - name: swr-secret
+    env:
+      ASCEND_RT_VISIBLE_DEVICES: ""
+      CUDA_VISIBLE_DEVICES: ""
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONNOUSERSITE: "1"
+      GIT_OPTIONAL_LOCKS: "0"
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    commands:
+      - mkdir -p diagnostic-artifacts
+      - python3 -I -S .buildkite/npu/scripts/inspect_vendor_source_readonly.py --output diagnostic-artifacts/vendor-source.json --expected-image swr.cn-southwest-2.myhuaweicloud.com/modelfoundry/vllm-omni-ci-npu@sha256:3dbdeb54e96faab8b1b4cfe3014c29bfdba067c03d07dc8412269e2133244c94
+    artifact_paths:
+      - "diagnostic-artifacts/**/*"
+    timeout_in_minutes: 10
+    retry:
+      automatic: false
