@@ -9,6 +9,14 @@
 
 set -euo pipefail
 
+# An explicit source-only diagnostic exits before suite selection or rendering.
+if [[ "${AMD_MAIN82_SOURCE_PROBE:-0}" == "1" ]]; then
+    probe_pipeline=$(mktemp /tmp/amd-main82-source-probe.XXXXXX.json)
+    python3 -I -S .buildkite/amd/scripts/main82_source_probe.py bootstrap > "$probe_pipeline"
+    buildkite-agent pipeline upload "$probe_pipeline"
+    exit 0
+fi
+
 # The bootstrap runs from the repository root; ShellCheck does not follow
 # sourced files unless invoked with -x.
 # shellcheck disable=SC1091
