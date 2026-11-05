@@ -1,9 +1,93 @@
-# Hook uploads this entry YAML; upload_pipeline.py --upload reads bootstrap-upload-steps.yml
-# and injects ``if`` by step ``key`` from skip-ci.
+# Ephemeral matched-main diagnostic branch; no image build or PR qualification.
 steps:
-  - label: ":github: Resolve skip-ci & upload pipeline"
-    key: upload-ci-pipeline
-    commands:
-      - "python3 .buildkite/common/scripts/upload_pipeline.py --upload .buildkite/cuda/bootstrap-upload-steps.yml"
+  - label: "PR9009 · main08 MiniCPM Duplex control"
+    key: pr9009-minicpm-main08-control
     agents:
-      queue: "medium_cpu_queue_premerge"
+      queue: mithril-h100-pool
+    timeout_in_minutes: 120
+    retry:
+      automatic: false
+    env:
+      VLLM_WORKER_MULTIPROC_METHOD: spawn
+      HF_HUB_DOWNLOAD_TIMEOUT: "300"
+      HF_HUB_ETAG_TIMEOUT: "60"
+      LINGBOT_REFERENCE_ONLY: "1"
+    plugins:
+      - kubernetes:
+          podSpec:
+            containers:
+              - image: 936637512419.dkr.ecr.us-west-2.amazonaws.com/vllm-ci-pull-through-cache/q9t5s3a7/vllm-ci-test-repo:22e05035c559ae5c0febfe5f2609704f2f238713@sha256:44c269b6b9d7418b9f601aa0bbec46081f2c0d49eead2226a52d44f22bbbf660
+                resources:
+                  limits:
+                    nvidia.com/gpu: 1
+                volumeMounts:
+                  - name: devshm
+                    mountPath: /dev/shm
+                  - name: hf-cache
+                    mountPath: /root/.cache/huggingface
+                env:
+                  - name: HF_HOME
+                    value: /root/.cache/huggingface
+                  - name: VLLM_CI_HF_TOKEN
+                    valueFrom:
+                      secretKeyRef:
+                        name: hf-token-secret
+                        key: token
+            nodeSelector:
+              node.kubernetes.io/instance-type: gpu-h100-sxm
+            volumes:
+              - name: devshm
+                emptyDir:
+                  medium: Memory
+              - name: hf-cache
+                hostPath:
+                  path: /mnt/hf-cache
+                  type: DirectoryOrCreate
+    artifact_paths:
+      - tests/e2e/online_serving/results/minicpmo_duplex_recognition/**/*
+      - diagnostic-artifacts/**/*
+    commands:
+      - |
+        set -euo pipefail
+        if [ -n "$${VLLM_CI_HF_TOKEN:-}" ]; then export HF_TOKEN="$${VLLM_CI_HF_TOKEN}"; fi
+        export PYTHONPATH="$$PWD$${PYTHONPATH:+:$$PYTHONPATH}"
+        mkdir -p diagnostic-artifacts
+        python3 .buildkite/cuda/scripts/check_vllm_runtime.py
+        python3 .buildkite/cuda/scripts/verify_minicpm_control_source.py prepare --output diagnostic-artifacts/source.json
+
+        observer_pid=""
+        cleanup_observer() {
+          if [ -n "$$observer_pid" ]; then
+            kill "$$observer_pid" 2>/dev/null || true
+            wait "$$observer_pid" 2>/dev/null || true
+          fi
+        }
+        trap cleanup_observer EXIT
+        run_native() {
+          phase="$$1"
+          shift
+          "$$@" &
+          native_pid="$$!"
+          python3 .buildkite/cuda/scripts/verify_minicpm_control_source.py observe \
+            --native-pid "$$native_pid" --output "diagnostic-artifacts/$$phase-launch.json" \
+            --stop-file "diagnostic-artifacts/$$phase-stopped" &
+          observer_pid="$$!"
+          set +e
+          wait "$$native_pid"
+          native_status="$$?"
+          touch "diagnostic-artifacts/$$phase-stopped"
+          wait "$$observer_pid"
+          observer_status="$$?"
+          observer_pid=""
+          python3 .buildkite/cuda/scripts/verify_minicpm_control_source.py snapshot --output "diagnostic-artifacts/$$phase-snapshot.json"
+          snapshot_status="$$?"
+          set -e
+          printf '{"native_exit":%s,"observer_exit":%s,"snapshot_exit":%s}\n' \
+            "$$native_status" "$$observer_status" "$$snapshot_status" > "diagnostic-artifacts/$$phase-status.json"
+          if [ "$$native_status" -ne 0 ]; then return "$$native_status"; fi
+          if [ "$$observer_status" -ne 0 ]; then return "$$observer_status"; fi
+          return "$$snapshot_status"
+        }
+        run_native recognition pytest -s -v tests/e2e/online_serving/test_minicpmo_4_5_duplex_recognition.py -m "full_model and cuda and H100 and B200 and omni and cards_1" --run-level "full_model"
+        run_native expansion pytest -s -v tests/e2e/online_serving/test_minicpmo_4_5_duplex_expansion.py -m "full_model and cuda and H100 and B200 and omni and cards_1" --run-level "full_model"
+        run_native window pytest -s -v tests/e2e/online_serving/test_minicpmo_4_5_window.py -m "full_model and cuda and H100 and B200 and omni and cards_1" --run-level "full_model"
