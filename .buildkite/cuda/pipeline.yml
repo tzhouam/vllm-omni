@@ -1,9 +1,11 @@
-# Hook uploads this entry YAML; upload_pipeline.py --upload reads bootstrap-upload-steps.yml
-# and injects ``if`` by step ``key`` from skip-ci.
+# Independent codec candidate control; the ordinary PR pipeline is unchanged.
+# Render only the dedicated image-build and five-node diagnostic pipeline.
 steps:
-  - label: ":github: Resolve skip-ci & upload pipeline"
-    key: upload-ci-pipeline
+  - label: ":github: Upload MiniCPM codec candidate control"
+    key: upload-minicpm-codec-candidate-control
     commands:
-      - "python3 .buildkite/common/scripts/upload_pipeline.py --upload .buildkite/cuda/bootstrap-upload-steps.yml"
+      - "python3 .buildkite/common/scripts/upload_pipeline.py --all --upload .buildkite/cuda/test-minicpm-codec-candidate.yml"
     agents:
       queue: "medium_cpu_queue_premerge"
+    retry:
+      automatic: false

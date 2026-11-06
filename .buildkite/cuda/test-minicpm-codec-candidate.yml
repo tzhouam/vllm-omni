@@ -1,0 +1,73 @@
+# Diagnostic subset of the original Single-H100 leaf, not full-leaf acceptance.
+# Build the carrier commit's source into the unchanged official CUDA runtime.
+env:
+  VLLM_WORKER_MULTIPROC_METHOD: spawn
+  HF_HUB_DOWNLOAD_TIMEOUT: 300
+  HF_HUB_ETAG_TIMEOUT: 60
+
+steps:
+  - label: ":docker: Build codec candidate image"
+    key: minicpm-codec-candidate-image-build
+    commands:
+      - "bash .buildkite/cuda/scripts/build-ci-image.sh"
+    agents:
+      queue: "medium_cpu_queue_premerge"
+    retry:
+      automatic: false
+
+  - label: ":full_moon: MiniCPM codec candidate · five original default nodes · H100"
+    key: minicpm-codec-candidate-default-five-h100
+    depends_on: minicpm-codec-candidate-image-build
+    mirror_hardwares: h100_1
+    timeout_in_minutes: 120
+    retry:
+      automatic: false
+    artifact_paths:
+      - diagnostic-artifacts/minicpm-codec-default5.xml
+    commands:
+      - |
+        python3 -B - <<'PY'
+        # Metadata observation in the normal candidate test Pod/cwd.
+        # No torch/vllm/TTS import, no fullname child find_spec and no source-path override.
+        import hashlib, importlib.metadata as metadata, importlib.util, json, os, sys
+        from pathlib import Path
+        from urllib.parse import urlsplit
+        name = 'vllm_omni'
+        tts_name = 'vllm_omni.model_executor.models.minicpmo_4_5.minicpmo_4_5_omni_tts'
+        assert name not in sys.modules and tts_name not in sys.modules
+        spec = importlib.util.find_spec(name)  # Top-level only: does not execute package __init__.
+        assert spec and spec.submodule_search_locations
+        roots = list(spec.submodule_search_locations)
+        assert len(roots) == 1
+        selected = Path(roots[0]).resolve()
+        cwd = Path.cwd().resolve()
+        allowed = {(cwd / 'vllm_omni').resolve(), Path('/opt/vllm-omni/vllm_omni').resolve()}
+        assert selected in allowed
+        relative = Path('model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py')
+        expected = 'dd120298bcb7b2e7f5ee16e7f533d234f5dc26f0baf979e1c3acf2785c039a72'
+        files = {}
+        for label, root in [('selected_package', selected), ('image_editable', Path('/opt/vllm-omni/vllm_omni')), ('checkout_package', cwd / 'vllm_omni')]:
+            path = root / relative
+            content = path.read_bytes()
+            digest = hashlib.sha256(content).hexdigest()
+            assert digest == expected
+            files[label] = {'path': str(path.resolve()), 'bytes': len(content), 'sha256': digest}
+        dist = metadata.distribution('vllm-omni')
+        url = dist.read_text('direct_url.json')
+        editable = json.loads(url) if url else None
+        assert editable and editable.get('dir_info', {}).get('editable') is True
+        source_url = urlsplit(editable['url'])
+        assert source_url.scheme == 'file' and not source_url.netloc and source_url.path == '/opt/vllm-omni'
+        assert name not in sys.modules and tts_name not in sys.modules
+        print(json.dumps({'scope': 'metadata resolver plus exact candidate-file bytes, not loaded-TTS origin', 'cwd': str(cwd), 'python': sys.executable, 'sys_path': sys.path, 'PYTHONPATH': os.environ.get('PYTHONPATH'), 'package_spec_origin': spec.origin, 'package_search_locations': roots, 'distribution_version': dist.version, 'editable_source': source_url.path, 'files': files, 'TTS_imported': False}, sort_keys=True))
+        PY
+      - >-
+        pytest -sv
+        'tests/e2e/online_serving/test_minicpmo_4_5_expansion.py::test_text_video_to_text_001[default]'
+        'tests/e2e/online_serving/test_minicpmo_4_5_expansion.py::test_sequential_requests_independent[default]'
+        'tests/e2e/online_serving/test_minicpmo_4_5_expansion.py::test_text_to_audio_long_output_001[default]'
+        'tests/e2e/online_serving/test_minicpmo_4_5_expansion.py::test_text_to_audio_long_form_001[default]'
+        'tests/e2e/online_serving/test_minicpmo_4_5_expansion.py::test_chinese_text_to_audio[default]'
+        --run-level "full_model"
+        -m "full_model and H100 and B200 and omni and cards_1"
+        --junitxml=diagnostic-artifacts/minicpm-codec-default5.xml
