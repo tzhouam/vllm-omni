@@ -9,6 +9,14 @@
 
 set -euo pipefail
 
+# Explicit CPU-only SDK observation; no publisher or native suites are selected.
+if [[ "${AMD_SDK_CPU_OBSERVATION:-0}" == "1" ]]; then
+    sdk_pipeline=$(mktemp /tmp/amd-sdk-cpu-observation.XXXXXX.json)
+    python3 -I -S .buildkite/amd/scripts/observe_sdk_cpu.py bootstrap > "$sdk_pipeline"
+    buildkite-agent pipeline upload "$sdk_pipeline"
+    exit 0
+fi
+
 # The bootstrap runs from the repository root; ShellCheck does not follow
 # sourced files unless invoked with -x.
 # shellcheck disable=SC1091
