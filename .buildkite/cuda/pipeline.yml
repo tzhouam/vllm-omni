@@ -1,9 +1,57 @@
-# Hook uploads this entry YAML; upload_pipeline.py --upload reads bootstrap-upload-steps.yml
-# and injects ``if`` by step ``key`` from skip-ci.
+# Ephemeral paired source control. One fixed published M9 SDK, no image build.
+# Actual native execution still requires root's review and separate authorization.
 steps:
-  - label: ":github: Resolve skip-ci & upload pipeline"
-    key: upload-ci-pipeline
-    commands:
-      - "python3 .buildkite/common/scripts/upload_pipeline.py --upload .buildkite/cuda/bootstrap-upload-steps.yml"
+  - label: "PR9009 · paired M9/main6e8c MiniCPM SDK-C2 control"
+    key: pr9009-minicpm-m9-main6e8c-paired-sdk-c2-control
     agents:
-      queue: "medium_cpu_queue_premerge"
+      queue: mithril-h100-pool
+    timeout_in_minutes: 120
+    retry:
+      automatic: false
+    env:
+      VLLM_WORKER_MULTIPROC_METHOD: spawn
+      HF_HUB_DOWNLOAD_TIMEOUT: "300"
+      HF_HUB_ETAG_TIMEOUT: "60"
+      LINGBOT_REFERENCE_ONLY: "1"
+    plugins:
+      - kubernetes:
+          podSpec:
+            containers:
+              - image: 936637512419.dkr.ecr.us-west-2.amazonaws.com/vllm-ci-pull-through-cache/q9t5s3a7/vllm-ci-test-repo:80ef8e167cb70daffd7507fd20c2a03c1e268b31@sha256:ea6116473b124000699701056bfbdf28224761b8f26469e1f5788b060d68a937
+                resources:
+                  limits:
+                    nvidia.com/gpu: 1
+                volumeMounts:
+                  - name: devshm
+                    mountPath: /dev/shm
+                  - name: hf-cache
+                    mountPath: /root/.cache/huggingface
+                env:
+                  - name: HF_HOME
+                    value: /root/.cache/huggingface
+                  - name: VLLM_CI_HF_TOKEN
+                    valueFrom:
+                      secretKeyRef:
+                        name: hf-token-secret
+                        key: token
+            nodeSelector:
+              node.kubernetes.io/instance-type: gpu-h100-sxm
+            volumes:
+              - name: devshm
+                emptyDir:
+                  medium: Memory
+              - name: hf-cache
+                hostPath:
+                  path: /mnt/hf-cache
+                  type: DirectoryOrCreate
+    artifact_paths:
+      - diagnostic-artifacts/**/*
+    commands:
+      - |
+        bash <<'PAIRED_CONTROL_BASH'
+        set -euo pipefail
+        if [ -n "$${VLLM_CI_HF_TOKEN:-}" ]; then export HF_TOKEN="$${VLLM_CI_HF_TOKEN}"; fi
+        python3 -B .buildkite/cuda/scripts/verify_minicpm_paired_control.py \
+          --execute-paired-control \
+          --expected-self-sha256 77f6f8967aa5d37afc2ba1856e48b7d8004ed57a78c6c91d31e2e66bf0ebc6c0
+        PAIRED_CONTROL_BASH
