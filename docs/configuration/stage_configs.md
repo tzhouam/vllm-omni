@@ -301,8 +301,10 @@ implementation alone does not qualify every model or deployment on a platform.
 
 Profiles that still resolve to V1 are unavailable with this version. These
 include Qwen3-TTS's NPU/XPU/ROCm/MUSA fallbacks, Qwen3-Omni's XPU/ROCm/MUSA
-fallbacks, Fish-Omni's DAC stage, PersonaPlex's Talker, VibeVoice, and the LFM3-Omni
+fallbacks, Fish-Omni's DAC stage, PersonaPlex's Talker, VibeVoice, YuE2, and the LFM3-Omni
 profiles. Selecting `v2` manually does not establish support for those paths.
+YuE2's audio synthesis still depends on V1 model sampling hooks; its two
+offline audio export tests are not applicable to the V2 runtime.
 The Merge CI matrix excludes the LFM3 and VibeVoice jobs that require V1;
 their exclusion does not count as a passing V2 model test.
 
