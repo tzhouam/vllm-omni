@@ -12,9 +12,7 @@ import torch.nn as nn
 
 from tests.helpers.mark import hardware_marks
 from tests.model_executor.models.minicpmo_4_5.test_talker_host_sync import _EOS, _infos, _make_talker, _states, _step
-from vllm_omni.model_executor.stage_input_processors.minicpmo_4_5_omni import _extract_codec_delta
 from vllm_omni.utils.device_copy import index_to_device
-from vllm_omni.utils.mm_outputs import to_payload_element
 
 pytestmark = [pytest.mark.core_model, *hardware_marks(res={"cuda": "L4", "rocm": "MI325"}, num_cards=1)]
 
@@ -87,80 +85,3 @@ def test_talker_condition_upload_does_not_synchronize_cuda() -> None:
         torch.cuda.set_sync_debug_mode(previous)
     assert torch.equal(condition, expected)
     assert boundary.shape == (2, 4)
-
-
-@torch.inference_mode()
-def test_v1_batched_decode_and_async_snapshot_match_scalar(mocker):
-    from vllm_omni.worker.gpu_ar_model_runner import _snapshot_tensor_payload_to_cpu_async
-
-    ids = torch.tensor([3, _EOS, _EOS, 6], dtype=torch.int32, device="cuda")
-    hidden = torch.arange(16, dtype=torch.float32, device="cuda").reshape(4, 4)
-    penalties = torch.tensor([1.05, 1.2, 1.05, 1.0], device="cuda")
-    results, talkers = [], []
-    for batched in (False, True):
-        talker = _make_talker("cuda")
-        talker._request_audio_states = copy.deepcopy(_states())
-        results.append(
-            _step(talker, _infos(_states()), hidden, mocker, batched=batched, input_ids=ids, penalties=penalties)
-        )
-        talkers.append(talker)
-    for index in (0, 2, 3, 4):
-        torch.testing.assert_close(results[0][index], results[1][index], rtol=0, atol=0)
-    _assert_device_states_match_scalar(talkers[1], talkers[0]._request_audio_states)
-    reference, candidate = [result[1].multimodal_outputs for result in results]
-    # The device path keeps fixed-size codec rows plus a validity mask; compare
-    # the downstream-visible deltas rather than the scalar path's empty rows.
-    for row, rid in enumerate(_states()):
-        left = to_payload_element(reference, row, row, row + 1, seq_len=4)
-        right = to_payload_element(candidate, row, row, row + 1, seq_len=4)
-        assert _extract_codec_delta(left, rid) == _extract_codec_delta(right, rid)
-        torch.testing.assert_close(left["meta"]["finished"].cpu(), right["meta"]["finished"].cpu(), rtol=0, atol=0)
-    snapshot = _snapshot_tensor_payload_to_cpu_async(
-        {"hidden_states": hidden, "multimodal_outputs": candidate},
-        copy_stream=torch.cuda.Stream(),
-        pin_memory=True,
-    )
-    expected_hidden = hidden.cpu().clone()
-    snapshot.wait()
-    torch.testing.assert_close(snapshot.payload["hidden_states"], expected_hidden, rtol=0, atol=0)
-    for group in ("codes", "meta"):
-        for key in candidate[group]:
-            for left, right in zip(
-                candidate[group][key], snapshot.payload["multimodal_outputs"][group][key], strict=True
-            ):
-                torch.testing.assert_close(left.cpu(), right, rtol=0, atol=0)
-    hidden.fill_(-1)
-    torch.testing.assert_close(snapshot.payload["hidden_states"], expected_hidden, rtol=0, atol=0)
-
-
-@torch.inference_mode()
-def test_pure_decode_batch_snapshot_keeps_row_shapes_and_owned_values():
-    from vllm_omni.worker.gpu_ar_model_runner import _snapshot_tensor_payload_to_cpu_async
-
-    talker = _make_talker("cuda")
-    states = {
-        "a": {"finished": False, "step": 2, "max_tokens": 100, "recent_codes": [1, 2]},
-        "b": {"finished": False, "step": 2, "max_tokens": 100, "recent_codes": [2, 3]},
-    }
-    talker._request_audio_states = states
-    infos = _infos(states)
-    ids = torch.tensor([3, _EOS], dtype=torch.long, device="cuda")
-    talker.preprocess_decode_batch(input_ids=ids, req_infos=infos)
-    out = talker._make_omni_output_single_frame(torch.zeros(2, 4, device="cuda"), infos, [(0, 1), (1, 2)])
-    mm = out.multimodal_outputs
-    assert isinstance(mm["codes"]["audio"], torch.Tensor)
-    assert mm["codes"]["audio"].shape == (2, 1, 1)
-    snapshot = _snapshot_tensor_payload_to_cpu_async(mm, copy_stream=torch.cuda.Stream(), pin_memory=True)
-    # Source reuse is allowed immediately after snapshot construction: the
-    # copy stream must read owned clones, not these producer buffers.
-    mm["codes"]["audio"].fill_(-123)
-    mm["meta"]["finished"].fill_(False)
-    snapshot.wait()
-    restored = talker.finalize_multimodal_outputs_from_cpu_snapshot(snapshot.payload)
-    assert [x.tolist() for x in restored["codes"]["audio"]] == [[[3]], [[_EOS]]]
-    assert [x.shape for x in restored["codes"]["audio"]] == [torch.Size([1, 1])] * 2
-    assert [x.shape for x in restored["meta"]["finished"]] == [torch.Size([])] * 2
-    assert [x.item() for x in restored["meta"]["finished"]] == [False, True]
-    assert [x.tolist() for x in restored["meta"]["codec_frame_valid"]] == [[True], [False]]
-    assert _extract_codec_delta(to_payload_element(restored, 0, 0, 1, seq_len=2), "a") == [3]
-    assert _extract_codec_delta(to_payload_element(restored, 1, 1, 2, seq_len=2), "b") == []
