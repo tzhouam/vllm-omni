@@ -5682,7 +5682,7 @@ def test_device_reduction_ready_executes_junit_guard_before_exit(
     [
         (
             "ROCm · One-Card Worker GPU Test",
-            35,
+            11,
             "Expected exactly 11 executed one-card worker GPU tests",
             "WORKER_READY_ARTIFACT_DIR",
             "worker-ready-guard",

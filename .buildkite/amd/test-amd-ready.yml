@@ -822,7 +822,7 @@ steps:
         | sed -n 's/^\(tests\/.*::.*\)/\1/p' \
         | sort > /tmp/worker-ready-collected.txt
       if ! diff -u /tmp/worker-ready-expected.txt /tmp/worker-ready-collected.txt; then
-        echo "One-card worker READY collection drifted from the 35 MI325 nodes" >&2
+        echo "One-card worker READY collection drifted from the 11 MI325 nodes" >&2
         exit 1
       fi
       WORKER_READY
