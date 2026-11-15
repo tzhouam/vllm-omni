@@ -204,14 +204,20 @@ class TestDeployTopology:
             # The NPU overlay caps all three stages at 8 so the top tier is not
             # gated by a single stage; every other platform keeps the base 16.
             is_npu = (current_omni_platform.device_name or "").lower() == "npu"
+            is_cuda = (current_omni_platform.device_name or "").lower() == "cuda"
             expected_seqs = 8 if is_npu else 16
             assert [stage.yaml_engine_args["max_num_seqs"] for stage in stages] == [expected_seqs] * 3
             memory_utilizations = [stage.yaml_engine_args["gpu_memory_utilization"] for stage in stages]
-            # The NPU overlay also retunes the per-stage memory budget for the
-            # 910B single-card layout; every other platform keeps the base one.
-            expected_utils = [0.55, 0.10, 0.22] if is_npu else [0.55, 0.15, 0.18]
+            # Check requested configuration budgets, not measured colocated
+            # peaks: CUDA reserves more for the native post-warmup KV pool.
+            if is_npu:
+                expected_utils = [0.55, 0.10, 0.22]
+            elif is_cuda:
+                expected_utils = [0.62, 0.15, 0.18]
+            else:
+                expected_utils = [0.55, 0.15, 0.18]
             assert memory_utilizations == expected_utils
-            assert sum(memory_utilizations) <= 0.9 + 1e-6
+            assert sum(memory_utilizations) <= (0.95 if is_cuda else 0.9) + 1e-6
             # Keep the default Daily-Omni budget; Video-MME overrides stage 0 explicitly.
             assert stages[0].yaml_engine_args["limit_mm_per_prompt"] == {
                 "image": 64,
