@@ -190,6 +190,8 @@ platforms:
     cuda_mps: true
     stages:
       - stage_id: 0
+        # Include native MRv2's measured post-warmup memory in the shared-card budget.
+        gpu_memory_utilization: 0.62
         # Use native normalization for the CUDA duplex accuracy profile.
         # Keep Q/K normalization on this path by disabling its RoPE fusion.
         kernel_config:
