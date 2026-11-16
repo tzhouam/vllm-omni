@@ -67,6 +67,8 @@ def qwen_duplex_server(tmp_path_factory, cached_silero_vad_artifact, cached_smar
             {
                 "base_config": get_deploy_config_path("qwen3_omni_duplex_mrv2.yaml"),
                 "duplex_session": {
+                    # This acceptance fixture exercises legacy bounded-history pruning.
+                    "model_custom_options": {"history_policy": "recent"},
                     "server_vad_model_path": cached_silero_vad_artifact,
                     "semantic_vad_model_path": cached_smart_turn_artifact,
                 },
