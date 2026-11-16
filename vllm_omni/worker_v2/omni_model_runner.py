@@ -79,7 +79,10 @@ def _runner_assisted_batch_descriptor(
 
 
 def _needs_capture_tensor_unwrap(model: Any) -> bool:
-    return bool(getattr(model, "_returns_tuple", False) or getattr(model, "have_multimodal_outputs", False))
+    return bool(
+        getattr(model, "_returns_tuple", False)
+        or (getattr(model, "have_multimodal_outputs", False) and not getattr(model, "_mrv2_tensor_output", False))
+    )
 
 
 def _supports_full_graph_aux_outputs(model: Any) -> bool:
@@ -509,10 +512,12 @@ class OmniGPUModelRunner(MRv2PrefixCacheMixin, GPUModelRunner):
     # ------------------------------------------------------------------
 
     def _exclude_unsupported_full_graphs(self) -> None:
-        # vLLM 0.29 keys dispatch candidates by (uniform token count, LoRA count).
+        # Keep both native token- and request-keyed dispatch tables aligned
+        # with the capture plan. Uniform decode tables contain FULL graphs.
         manager = self.cudagraph_manager
         assert manager is not None
         manager._capture_descs.pop(CUDAGraphMode.FULL, None)
+        manager._decode_descs.clear()
         manager._candidates = {
             key: [desc for desc in candidates if desc.cg_mode != CUDAGraphMode.FULL]
             for key, candidates in manager._candidates.items()
