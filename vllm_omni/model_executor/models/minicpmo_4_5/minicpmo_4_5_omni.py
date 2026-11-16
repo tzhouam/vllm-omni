@@ -139,6 +139,8 @@ class MiniCPMO45OmniForConditionalGeneration(nn.Module, SupportsMultiModal, Supp
     """
 
     requires_raw_input_tokens = True
+    # MRv2 attaches multimodal outputs after forward; drafter layers stay native.
+    _mrv2_tensor_output = True
     # Set when a drafter (EAGLE-3, DFlash, DSpark) reads Thinker layers.
     _returns_aux_hidden_states = False
     _num_aux_hidden_states = 0
