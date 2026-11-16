@@ -1,9 +1,67 @@
-# Hook uploads this entry YAML; upload_pipeline.py --upload reads bootstrap-upload-steps.yml
-# and injects ``if`` by step ``key`` from skip-ci.
+env:
+  VLLM_WORKER_MULTIPROC_METHOD: spawn
+  HF_HUB_DOWNLOAD_TIMEOUT: 300
+  HF_HUB_ETAG_TIMEOUT: 60
 steps:
-  - label: ":github: Resolve skip-ci & upload pipeline"
-    key: upload-ci-pipeline
-    commands:
-      - "python3 .buildkite/common/scripts/upload_pipeline.py --upload .buildkite/cuda/bootstrap-upload-steps.yml"
-    agents:
-      queue: "medium_cpu_queue_premerge"
+- label: Verify frozen main source equivalence
+  key: control-source-preflight
+  commands:
+  - "python3 - <<'PYCONTROL'\nimport os\nimport subprocess\n\nMAIN = '64d674cb034dc0014d68752b10cb604431791d1e'\ndef git(*args):\n    return subprocess.check_output(['git', *args]).decode().strip()\nhead = git('rev-parse', 'HEAD')\nassert head == os.environ['BUILDKITE_COMMIT'], 'Control must use its exact commit, without a synthetic merge checkout'\nparents = git('rev-list', '--parents', '-n', '1', 'HEAD').split()[1:]\nassert parents == [MAIN], 'Control must be one CI-only commit directly on the frozen main'\nchanged = git('diff', '--name-only', MAIN, 'HEAD').splitlines()\nassert changed == ['.buildkite/cuda/pipeline.yml'], changed\nprint('Control checkout:', head)\nprint('Runtime/test/deploy/fixture source equals main:', MAIN)\nprint('Only CI entry YAML differs; source equivalence passed')\nPYCONTROL\n"
+  agents:
+    queue: medium_cpu_queue_premerge
+- label: Omni · MiniCPM-o 4.5 Duplex Test
+  timeout_in_minutes: 60
+  artifact_paths:
+  - tests/e2e/online_serving/results/minicpmo_duplex_recognition/**/*
+  - tests/e2e/online_serving/results/minicpmo_duplex/junit.xml
+  commands:
+  - if [ -n "$${VLLM_CI_HF_TOKEN:-}" ]; then export HF_TOKEN="$${VLLM_CI_HF_TOKEN}"; fi
+  - python3 .buildkite/cuda/scripts/check_vllm_runtime.py
+  - "bash -e <<'BASH'\nmkdir -p tests/e2e/online_serving/results/minicpmo_duplex\ntimeout 55m pytest -s -v \\\n  tests/e2e/online_serving/test_duplex_client_live.py \\\n  'tests/e2e/online_serving/test_minicpmo_4_5_duplex_mrv2.py::test_mrv2_duplex_overlapping_turns[1-mrv2-real-weights]' \\\n  'tests/e2e/online_serving/test_minicpmo_4_5_duplex_mrv2.py::test_mrv2_duplex_overlapping_turns[4-mrv2-real-weights]' \\\n  tests/e2e/online_serving/test_minicpmo_4_5_duplex_mrv2.py::test_mrv2_duplex_new_session_during_long_response \\\n  tests/e2e/online_serving/test_minicpmo_4_5_duplex_mrv2.py::test_mrv2_duplex_server_answers_image_chat_from_the_image \\\n  tests/e2e/online_serving/test_minicpmo_4_5_duplex_recognition.py \\\n  -m '(core_model or advanced_model) and cuda' --run-level advanced_model \\\n  --junitxml=tests/e2e/online_serving/results/minicpmo_duplex/junit.xml\nBASH\n"
+  agents:
+    queue: mithril-h100-pool
+  retry:
+    manual:
+      permit_on_passed: true
+    automatic:
+    - exit_status: -1
+      limit: 1
+    - exit_status: 128
+      limit: 1
+    - signal_reason: agent_stop
+      limit: 1
+    - signal_reason: agent_refused
+      limit: 1
+  plugins:
+  - kubernetes:
+      podSpec:
+        containers:
+        - image: 936637512419.dkr.ecr.us-west-2.amazonaws.com/vllm-ci-pull-through-cache/q9t5s3a7/vllm-ci-test-repo:64d674cb034dc0014d68752b10cb604431791d1e
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+          volumeMounts:
+          - name: devshm
+            mountPath: /dev/shm
+          - name: hf-cache
+            mountPath: /root/.cache/huggingface
+          env:
+          - name: HF_HOME
+            value: /root/.cache/huggingface
+          - name: VLLM_CI_HF_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: hf-token-secret
+                key: token
+        nodeSelector:
+          node.kubernetes.io/instance-type: gpu-h100-sxm
+        volumes:
+        - name: devshm
+          emptyDir:
+            medium: Memory
+        - name: hf-cache
+          hostPath:
+            path: /mnt/hf-cache
+            type: DirectoryOrCreate
+  key: main-control-minicpm-duplex
+  depends_on: control-source-preflight
