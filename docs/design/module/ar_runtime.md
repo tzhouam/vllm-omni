@@ -31,6 +31,10 @@ last_reviewed: 2026-07-16
 
 The AR runtime extends vLLM scheduling and worker execution for omni-stage
 inputs and outputs while preserving vLLM scheduling and cache semantics.
+Omni workers use Model Runner V2; the retired GPU, NPU and XPU V1 runner
+implementations and their exclusive helpers are removed. Shared utilities under
+`worker/` remain in use by `worker_v2/`. The upstream `vllm.v1` package name
+does not select Model Runner V1.
 
 After applying sampled output, the AR scheduler publishes only completed KV
 blocks to upstream prefix caching, including on its plain-decode path. Async
@@ -44,7 +48,7 @@ For Bagel image editing, the vLLM 0.33 prefix-range helper receives shallow
 spans retain bidirectional attention. The original features keep their modality,
 encoder data, cache identifiers and placeholder masks. Upstream still computes
 the ranges and applies sliding-window and padding rules. This adapter is installed
-from `vllm_omni.patch` for both upstream runner implementations; it is unnecessary
+from `vllm_omni.patch` for the upstream V2 runner; it is unnecessary
 with vLLM versions that build the ranges inline.
 
 MOSS Local's fused and separate depth-attention paths share an explicitly

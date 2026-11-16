@@ -4822,45 +4822,14 @@ def test_customvoice_merge_executes_junit_guard_before_exit(
 _WORKER_ONE_CARD_MARKER = "core_model and rocm and MI325 and cards_1"
 _WORKER_ONE_CARD_FILES = (
     "tests/worker/test_batched_omni_output.py",
-    "tests/worker/test_gpu_generation_async_output.py",
     "tests/worker_v2/test_eager_frame_kernels.py",
 )
 _WORKER_ONE_CARD_EXCLUDED = (
     "tests/worker_v2/test_capture_query_bound_gpu.py",
     "tests/worker_v2/test_decode_query_bound_gpu.py",
-    "tests/worker/test_gpu_ar_model_runner_cuda.py",
 )
 _WORKER_ONE_CARD_NODES = (
-    "tests/worker/test_batched_omni_output.py::test_async_packed_snapshot_survives_source_reuse[1]",
-    "tests/worker/test_batched_omni_output.py::test_async_packed_snapshot_survives_source_reuse[3]",
-    "tests/worker/test_batched_omni_output.py::test_equal_shape_async_snapshot_survives_source_reuse[shape0]",
-    "tests/worker/test_batched_omni_output.py::test_equal_shape_async_snapshot_survives_source_reuse[shape1]",
-    "tests/worker/test_batched_omni_output.py::test_equal_shape_async_snapshot_survives_source_reuse[shape2]",
-    "tests/worker/test_batched_omni_output.py::test_mtp_preserves_rows_and_snapshot_without_cuda_sync[offsets0]",
-    "tests/worker/test_batched_omni_output.py::test_mtp_preserves_rows_and_snapshot_without_cuda_sync[offsets1]",
     "tests/worker/test_batched_omni_output.py::test_mixed_stop_flags_do_not_synchronize_cuda",
-    "tests/worker/test_gpu_generation_async_output.py::test_async_generation_owns_output_and_request_mapping[tensor]",
-    "tests/worker/test_gpu_generation_async_output.py::test_async_generation_owns_output_and_request_mapping[list]",
-    "tests/worker/test_gpu_generation_async_output.py::test_async_generation_owns_output_and_request_mapping[mapping]",
-    "tests/worker/test_gpu_generation_async_output.py::test_async_generation_preserves_none_rows",
-    "tests/worker/test_gpu_generation_async_output.py::"
-    "test_full_payload_accumulation_keeps_synchronous_host_copy[False]",
-    "tests/worker/test_gpu_generation_async_output.py::"
-    "test_full_payload_accumulation_keeps_synchronous_host_copy[True]",
-    "tests/worker/test_gpu_generation_async_output.py::"
-    "test_owned_generation_output_skips_device_snapshot_and_retains_sources[tensor]",
-    "tests/worker/test_gpu_generation_async_output.py::"
-    "test_owned_generation_output_skips_device_snapshot_and_retains_sources[list]",
-    "tests/worker/test_gpu_generation_async_output.py::"
-    "test_owned_generation_output_skips_device_snapshot_and_retains_sources[mapping]",
-    "tests/worker/test_gpu_generation_async_output.py::test_owned_generation_output_preserves_none_rows",
-    "tests/worker/test_gpu_generation_async_output.py::test_outer_graph_execution_keeps_snapshot_even_for_owned_model",
-    "tests/worker/test_gpu_generation_async_output.py::test_discarded_output_records_copy_stream[False]",
-    "tests/worker/test_gpu_generation_async_output.py::test_discarded_output_records_copy_stream[True]",
-    "tests/worker/test_gpu_generation_async_output.py::test_dense_waveforms_share_one_host_allocation[False-False]",
-    "tests/worker/test_gpu_generation_async_output.py::test_dense_waveforms_share_one_host_allocation[False-True]",
-    "tests/worker/test_gpu_generation_async_output.py::test_dense_waveforms_share_one_host_allocation[True-False]",
-    "tests/worker/test_gpu_generation_async_output.py::test_dense_waveforms_share_one_host_allocation[True-True]",
     "tests/worker_v2/test_eager_frame_kernels.py::test_settled_frames_match_torch[step_dtype0]",
     "tests/worker_v2/test_eager_frame_kernels.py::test_settled_frames_match_torch[step_dtype1]",
     "tests/worker_v2/test_eager_frame_kernels.py::test_codec_graph_inputs_match_the_copies[3-8-1]",
@@ -4877,8 +4846,7 @@ _WORKER_ONE_CARD_NODES = (
 def test_worker_one_card_ready_stays_outside_r2_01() -> None:
     """READY blocks on the collected one-card worker nodes.
 
-    Local collection of the three files with the MI325 marker returned these
-    35 ids. R2-01 still collects 1438 model-executor nodes and does not run them.
+    The V2/shared one-card cases retain their exact IDs after V1 removal. R2-01 still collects 1438 model-executor nodes and does not run them.
     """
     step = _find_step("ROCm · One-Card Worker GPU Test", AMD_READY_PIPELINE)
     command = "\n".join(step["commands"])
@@ -4898,7 +4866,7 @@ def test_worker_one_card_ready_stays_outside_r2_01() -> None:
     ]
     assert command.count('--run-level "core_model"') == 2
     assert quoted == _WORKER_ONE_CARD_NODES
-    assert len(_WORKER_ONE_CARD_NODES) == 35
+    assert len(_WORKER_ONE_CARD_NODES) == 11
     for path in _WORKER_ONE_CARD_FILES:
         assert sum(node.startswith(path + "::") for node in quoted) >= 1
         assert command.count(f"\n  {path} \\\n") == 2
@@ -4907,16 +4875,16 @@ def test_worker_one_card_ready_stays_outside_r2_01() -> None:
         assert "MI325" not in Path(path).read_text(encoding="utf-8")
     assert "diff -u /tmp/worker-ready-expected.txt" in command
     assert "--junitxml=" in command
-    assert "Expected exactly 35 executed one-card worker GPU tests" in command
+    assert "Expected exactly 11 executed one-card worker GPU tests" in command
     assert "pytest.log" not in command
     assert "pytest-summary.txt" not in command
     assert "PIPESTATUS" not in command
     assert "tee " not in command
 
-    for path in _WORKER_ONE_CARD_FILES[:2]:
+    for path in _WORKER_ONE_CARD_FILES[:1]:
         source = Path(path).read_text(encoding="utf-8")
         assert source.count('res={"cuda": "L4", "rocm": "MI325"}, num_cards=1') == 1
-    eager = Path(_WORKER_ONE_CARD_FILES[2]).read_text(encoding="utf-8")
+    eager = Path(_WORKER_ONE_CARD_FILES[1]).read_text(encoding="utf-8")
     assert eager.count('res={"cuda": "L4", "rocm": "MI325"}, num_cards=1') == 6
 
     r2_01 = _find_step(
@@ -5117,7 +5085,6 @@ _WORKER_COPY_EXCLUDED = (
     "tests/worker_v2/test_index_staging.py",
     "tests/worker_v2/test_shared_stage_cuda.py",
     "tests/worker_v2/test_staged_writes.py",
-    "tests/worker/test_gpu_ar_model_runner_cuda.py",
     "tests/worker_v2/test_capture_query_bound_gpu.py",
     "tests/worker_v2/test_decode_query_bound_gpu.py",
 )
@@ -5652,7 +5619,7 @@ def test_device_reduction_ready_renders_blocking() -> None:
     [
         (
             "ROCm · One-Card Worker GPU Test",
-            "Expected exactly 35 executed one-card worker GPU tests",
+            "Expected exactly 11 executed one-card worker GPU tests",
         ),
         (
             "ROCm · One-Card Worker Copy Test",
@@ -5715,8 +5682,8 @@ def test_device_reduction_ready_executes_junit_guard_before_exit(
     [
         (
             "ROCm · One-Card Worker GPU Test",
-            35,
-            "Expected exactly 35 executed one-card worker GPU tests",
+            11,
+            "Expected exactly 11 executed one-card worker GPU tests",
             "WORKER_READY_ARTIFACT_DIR",
             "worker-ready-guard",
         ),
